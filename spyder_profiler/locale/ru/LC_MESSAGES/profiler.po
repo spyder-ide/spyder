@@ -1,0 +1,184 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2016-03-21 22:00+0300\n"
+"PO-Revision-Date: 2016-04-18 20:14+0300\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.5.4\n"
+"Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: ru\n"
+
+#: spyplugins/ui/profiler/profiler.py:27
+msgid "Results"
+msgstr "Результаты"
+
+#: spyplugins/ui/profiler/profiler.py:28
+msgid ""
+"Profiler plugin results (the output of python's profile/cProfile)\n"
+"are stored here:"
+msgstr ""
+"Результаты Профайлера (вывод profile/cProfile python'а)\n"
+"хранятся здесь:"
+
+#: spyplugins/ui/profiler/profiler.py:68
+msgid "Profiler"
+msgstr "Профайлер"
+
+#: spyplugins/ui/profiler/profiler.py:96
+#: spyplugins/ui/profiler/widgets/profilergui.py:76
+msgid "Profile"
+msgstr "Профилировать"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:77
+msgid "Run profiler"
+msgstr "Запустить профайлер"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:82
+msgid "Stop"
+msgstr "Стоп"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:83
+msgid "Stop current profiling"
+msgstr "Остановить текущее профилирование"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:91
+#: spyplugins/ui/profiler/widgets/profilergui.py:214
+msgid "Select Python script"
+msgstr "Выбрать скрипт Python"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:97
+msgid "Output"
+msgstr "Вывод"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:99
+msgid "Show program's output"
+msgstr "Показать вывод программы"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:108
+msgid "Collapse one level up"
+msgstr "Свернуть на один уровень вверх"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:113
+msgid "Expand one level down"
+msgstr "Раскрыть на один уровень вниз"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:116
+msgid "Save data"
+msgstr "Сохранить данные"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:119
+msgid "Save profiling data"
+msgstr "Сохранить данные профилирования"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:121
+msgid "Load data"
+msgstr "Загрузить данные"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:124
+msgid "Load profiling data for comparison"
+msgstr "Загрузить данные профилирования для сравнения"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:126
+msgid "Clear comparison"
+msgstr "Очистить сравнение"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:166
+msgid "Please install"
+msgstr "Пожалуйста, установите"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:167
+msgid "the Python profiler modules"
+msgstr "модули профайлера Python"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:174
+msgid "Save profiler result"
+msgstr "Сохранить результаты профилирования"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:177
+#: spyplugins/ui/profiler/widgets/profilergui.py:183
+msgid "Profiler result"
+msgstr "Результаты профилирования"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:182
+msgid "Select script to compare"
+msgstr "Выберите скрипт для сравнения"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:215
+msgid "Python scripts"
+msgstr "Скрипты Python"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:222
+#: spyplugins/ui/profiler/widgets/profilergui.py:227
+msgid "Profiler output"
+msgstr "Вывод профайлера"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:246
+msgid "Profiling, please wait..."
+msgstr "Профилирование, пожалуйста, подождите..."
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:290
+msgid "Error"
+msgstr "Ошибка"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:291
+msgid "Process failed to start"
+msgstr "Процесс не удалось запустить"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:338
+msgid "Sorting data, please wait..."
+msgstr "Сортировка данных, пожалуйста, подождите..."
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:384
+msgid "Function/Module"
+msgstr "Функция/Модуль"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:384
+msgid "Total Time"
+msgstr "Общее время"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:384
+#: spyplugins/ui/profiler/widgets/profilergui.py:385
+msgid "Diff"
+msgstr "Различие"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:385
+msgid "Calls"
+msgstr "Вызовы"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:385
+msgid "Local Time"
+msgstr "Локальное время"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:386
+msgid "File:line"
+msgstr "Файл:строка"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:536
+msgid "Time in function (including sub-functions)"
+msgstr "Время в функции (включая подфункции)"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:545
+msgid "Local time in function (not in sub-functions)"
+msgstr "Локальное время в функции (исключая подфункции)"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:555
+msgid "Total number of calls (including recursion)"
+msgstr "Общее число вызовов (включая рекурсию)"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:565
+msgid "File:line where function is defined"
+msgstr "Файл:строка, где функция определена"
+
+#: spyplugins/ui/profiler/widgets/profilergui.py:570
+msgid "recursion"
+msgstr "рекурсия"

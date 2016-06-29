@@ -101,7 +101,7 @@ def kernel_config():
                                          "%matplotlib {0}".format(mpl_backend))
 
         # Inline backend configuration
-        if backends[backend_o] == 'inline':
+        if mpl_backend == 'inline':
            # Figure format
            format_o = CONF.get('ipython_console',
                                'pylab/inline/figure_format', 0)

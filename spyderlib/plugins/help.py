@@ -18,7 +18,7 @@ from qtpy.QtCore import QThread, QUrl, Signal, Slot
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QMessageBox, QSizePolicy,
                             QToolButton, QVBoxLayout, QWidget)
-from qtpy.QtWebEngineWidgets import QWebEnginePage
+from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
 from spyderlib import dependencies
@@ -178,7 +178,7 @@ class RichText(QWidget):
 
         self.webview = FrameWebView(self)
         self.find_widget = FindReplace(self)
-        self.find_widget.set_editor(self.webview)
+        self.find_widget.set_editor(self.webview.web_widget)
         self.find_widget.hide()
 
         layout = QVBoxLayout()
@@ -468,9 +468,10 @@ class Help(SpyderPluginWidget):
                                              self._on_sphinx_thread_html_ready)
         self._sphinx_thread.error_msg.connect(self._on_sphinx_thread_error_msg)
 
-        # Render internal links
+        # Handle internal and external links
         view = self.rich_text.webview
-        view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
+        if not WEBENGINE:
+            view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
         view.linkClicked.connect(self.handle_link_clicks)
 
         self._starting_up = True
@@ -739,10 +740,9 @@ class Help(SpyderPluginWidget):
     @Slot()
     def show_tutorial(self):
         tutorial_path = get_module_source_path('spyderlib.utils.help')
-        img_path = osp.join(tutorial_path, 'static', 'images')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
-        self.show_rich_text(text, collapse=True, img_path=img_path)
+        self.show_rich_text(text, collapse=True)
 
     def handle_link_clicks(self, url):
         url = to_text_string(url.toString())

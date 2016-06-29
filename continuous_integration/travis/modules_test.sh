@@ -87,7 +87,7 @@ for f in spyderlib/*/*/*.py; do
 done
 
 # Spyderplugins
-for f in spyplugins/ui/*/widgets/*.py; do
+for f in spyder_*/widgets/*.py; do
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1

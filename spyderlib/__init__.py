@@ -3,8 +3,7 @@
 Spyder License Agreement (MIT License)
 --------------------------------------
 
-Copyright (c) 2009-2013 Pierre Raybaut
-Copyright (c) 2013-2015 The Spyder Development Team
+Copyright (c) 2009- The Spyder Development Team
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -28,7 +27,9 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '3.0.0dev'
+version_info = (3, 0, 0, "dev0")
+
+__version__ = '.'.join(map(str, version_info))
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'

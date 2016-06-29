@@ -398,24 +398,26 @@ class SpyderPluginMixin(object):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
-    
+
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=NoDefault):
+                          add_sc_to_tip=False):
         """
-        Register QAction or QShortcut to Spyder main application,
-        with shortcut (context, name, default)
+        Register QAction or QShortcut to Spyder main application
+
+        if add_sc_to_tip is True, the shortcut is added to the
+        action's tooltip
         """
-        self.main.register_shortcut(qaction_or_qshortcut,
-                                    context, name, default)
-        
-    def register_widget_shortcuts(self, context, widget):
+        self.main.register_shortcut(qaction_or_qshortcut, context,
+                                    name, add_sc_to_tip)
+
+    def register_widget_shortcuts(self, widget):
         """
         Register widget shortcuts
         widget interface must have a method called 'get_shortcut_data'
         """
-        for qshortcut, name, default in widget.get_shortcut_data():
-            self.register_shortcut(qshortcut, context, name, default)
-    
+        for qshortcut, context, name in widget.get_shortcut_data():
+            self.register_shortcut(qshortcut, context, name)
+
     def switch_to_plugin(self):
         """Switch to plugin
         This method is called when pressing plugin's shortcut key"""
@@ -524,8 +526,8 @@ class SpyderPluginMixin(object):
         if self.shortcut is not None:
             action = create_action(self, title,
                              toggled=lambda checked: self.toggle_view(checked),
-                             shortcut=QKeySequence(self.shortcut))
-            action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+                             shortcut=QKeySequence(self.shortcut),
+                             context=Qt.WidgetShortcut)
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))

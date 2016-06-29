@@ -29,7 +29,7 @@ from spyderlib.py3compat import builtins, is_text_string, to_text_string
 from spyderlib.utils.sourcecode import CELL_LANGUAGES
 
 
-PYGMENTS_REQVER = '>=1.6'
+PYGMENTS_REQVER = '>=2.0'
 dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
                                "other file types"),
                  required_version=PYGMENTS_REQVER)
@@ -870,8 +870,13 @@ class BaseWebSH(BaseSH):
                                            self.formats["comment"])
                         else:
                             self.setCurrentBlockState(self.NORMAL)
-                            self.setFormat(start, end-start,
-                                           self.formats[key])
+                            try:
+                                self.setFormat(start, end-start,
+                                               self.formats[key])
+                            except KeyError:
+                                # happens with unmatched end-of-comment;
+                                # see issue 1462
+                                pass
             
             match = self.PROG.search(text, match.end())
             match_count += 1
@@ -987,23 +992,3 @@ def guess_pygments_highlighter(filename):
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer
     return GuessedPygmentsSH
-
-
-
-if __name__ == '__main__':
-    # Test Python Outline Explorer comment regexps
-    valid_comments = [
-      '# --- First variant',
-      '#------ 2nd variant',
-      '### 3rd variant'
-    ]
-    invalid_comments = [
-      '#---', '#--------', '#---   ', '# -------'
-    ]
-    for line in valid_comments:
-        if not PythonSH.OECOMMENT.match(line):
-            print("Error matching '%s' as outline comment" % line)
-    for line in invalid_comments:
-        if PythonSH.OECOMMENT.match(line):
-            print("Error: '%s' is matched as outline comment" % line)
-        

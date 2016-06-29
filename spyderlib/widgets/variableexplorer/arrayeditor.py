@@ -32,13 +32,12 @@ import numpy as np
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.config.gui import get_font, new_shortcut
+from spyderlib.config.gui import get_font, fixed_shortcut
 from spyderlib.py3compat import (io, is_binary_string, is_string,
                                  is_text_string, PY3, to_binary_string,
                                  to_text_string)
 from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       qapplication)
+from spyderlib.utils.qthelpers import add_actions, create_action, keybinding
 
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
@@ -47,6 +46,7 @@ SUPPORTED_FORMATS = {
                      'double': '%.3f',
                      'float_': '%.3f',
                      'longfloat': '%.3f',
+                     'float16': '%.3f',
                      'float32': '%.3f',
                      'float64': '%.3f',
                      'float96': '%.3f',
@@ -399,7 +399,7 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        new_shortcut(QKeySequence.Copy, self, self.copy)
+        fixed_shortcut(QKeySequence.Copy, self, self.copy)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
@@ -797,71 +797,3 @@ class ArrayEditor(QDialog):
             for index in range(self.stack.count()):
                 self.stack.widget(index).reject_changes()
         QDialog.reject(self)
-
-
-#==============================================================================
-# Tests
-#==============================================================================    
-def test_edit(data, title="", xlabels=None, ylabels=None,
-              readonly=False, parent=None):
-    """Test subroutine"""
-    app = qapplication(test_time=1.5)    # analysis:ignore
-    dlg = ArrayEditor(parent)
-
-    if dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels,
-                           readonly=readonly):
-        dlg.exec_()
-        return dlg.get_value()
-    else:
-        import sys
-        sys.exit(1)
-
-
-def test():
-    """Array editor test"""
-    from numpy.testing import assert_array_equal
-
-    arr = np.array(["kjrekrjkejr"])
-    assert arr == test_edit(arr, "string array")
-
-    arr = np.array([u"ñññéáíó"])
-    assert arr == test_edit(arr, "unicode array")
-
-    arr = np.ma.array([[1, 0], [1, 0]], mask=[[True, False], [False, False]])
-    assert_array_equal(arr, test_edit(arr, "masked array"))
-
-    arr = np.zeros((2, 2), {'names': ('red', 'green', 'blue'),
-                           'formats': (np.float32, np.float32, np.float32)})
-    assert_array_equal(arr, test_edit(arr, "record array"))
-
-    arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
-                   dtype=[(('title 1', 'x'), '|i1'),
-                          (('title 2', 'y'), '>f4')])
-    assert_array_equal(arr, test_edit(arr, "record array with titles"))
-
-    arr = np.random.rand(5, 5)
-    assert_array_equal(arr, test_edit(arr, "float array",
-                                      xlabels=['a', 'b', 'c', 'd', 'e']))
-
-    arr = np.round(np.random.rand(5, 5)*10)+\
-                   np.round(np.random.rand(5, 5)*10)*1j
-    assert_array_equal(arr, test_edit(arr, "complex array",
-                                      xlabels=np.linspace(-12, 12, 5),
-                                      ylabels=np.linspace(-12, 12, 5)))
-
-    arr_in = np.array([True, False, True])
-    arr_out = test_edit(arr_in, "bool array")
-    assert arr_in is arr_out
-
-    arr = np.array([1, 2, 3], dtype="int8")
-    assert_array_equal(arr, test_edit(arr, "int array"))
-
-    arr = np.zeros((3,3,4))
-    arr[0,0,0]=1
-    arr[0,0,1]=2
-    arr[0,0,2]=3
-    assert_array_equal(arr, test_edit(arr, "3D array"))
-
-
-if __name__ == "__main__":
-    test()

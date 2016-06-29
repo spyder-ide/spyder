@@ -13,8 +13,8 @@ import re
 import sys
 
 # Third party imports
-from qtpy.compat import from_qvariant, to_qvariant
 from qtpy import PYQT5
+from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
                          QSortFilterProxyModel, Qt)
 from qtpy.QtGui import (QKeySequence, QRegExpValidator)
@@ -348,7 +348,20 @@ class ShortcutEditor(QDialog):
             self.button_ok.setEnabled(True)
             different_sequence = True
 
-        self.text_new_sequence.setText(sequence)
+        if sys.platform == 'darwin':
+            if 'Meta+Ctrl' in sequence:
+                shown_sequence = sequence.replace('Meta+Ctrl', 'Ctrl+Cmd')
+            elif 'Ctrl+Meta' in sequence:
+                shown_sequence = sequence.replace('Ctrl+Meta', 'Cmd+Ctrl')
+            elif 'Ctrl' in sequence:
+                shown_sequence = sequence.replace('Ctrl', 'Cmd')
+            elif 'Meta' in sequence:
+                shown_sequence = sequence.replace('Meta', 'Ctrl')
+            else:
+                shown_sequence = sequence
+        else:
+            shown_sequence = sequence
+        self.text_new_sequence.setText(shown_sequence)
         self.new_sequence = sequence
 
         conflicts = self.check_conflicts()

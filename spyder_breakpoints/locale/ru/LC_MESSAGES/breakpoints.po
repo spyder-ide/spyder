@@ -1,0 +1,51 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2016-03-21 06:04+0300\n"
+"PO-Revision-Date: 2016-04-18 19:58+0300\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.5.4\n"
+"Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: ru\n"
+
+#: spyplugins/ui/breakpoints/breakpoints.py:41
+msgid "Breakpoints"
+msgstr "Точки останова"
+
+#: spyplugins/ui/breakpoints/breakpoints.py:75
+msgid "List breakpoints"
+msgstr "Список точек останова"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Condition"
+msgstr "Условие"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "File"
+msgstr "Файл"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:87
+msgid "Line"
+msgstr "Строка"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:170
+msgid "Clear breakpoints in all files"
+msgstr "Очистить все точки останова"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:177
+msgid "Clear this breakpoint"
+msgstr "Убрать эту точку останова"
+
+#: spyplugins/ui/breakpoints/widgets/breakpointsgui.py:183
+msgid "Edit this breakpoint"
+msgstr "Редактировать эту точку останова"

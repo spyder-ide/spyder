@@ -16,6 +16,7 @@ Important note regarding shortcuts:
 
 # Standard library imports
 from collections import namedtuple
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -27,6 +28,14 @@ from spyderlib.config.main import CONF
 from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import syntaxhighlighters as sh
+
+
+# Run cell shortcuts
+if sys.platform == 'darwin':
+    RUN_CELL_SHORTCUT = Qt.META + Qt.Key_Return
+else:
+    RUN_CELL_SHORTCUT = Qt.CTRL + Qt.Key_Return
+RUN_CELL_AND_ADVANCE_SHORTCUT = Qt.SHIFT + Qt.Key_Return
 
 
 # To save metadata about widget shortcuts (needed to build our
@@ -90,9 +99,9 @@ def set_font(font, section='main', option='font'):
     FONT_CACHE[(section, option)] = font
 
 
-def get_shortcut(context, name, default=NoDefault):
+def get_shortcut(context, name):
     """Get keyboard shortcut (key sequence string)"""
-    return CONF.get('shortcuts', '%s/%s' % (context, name), default=default)
+    return CONF.get('shortcuts', '%s/%s' % (context, name))
 
 
 def set_shortcut(context, name, keystr):
@@ -100,18 +109,23 @@ def set_shortcut(context, name, keystr):
     CONF.set('shortcuts', '%s/%s' % (context, name), keystr)
 
 
-def new_shortcut(keystr, parent, action):
-    """Define a new shortcut according to a keysequence string"""
+def fixed_shortcut(keystr, parent, action):
+    """Define a fixed shortcut according to a keysequence string"""
     sc = QShortcut(QKeySequence(keystr), parent, action)
     sc.setContext(Qt.WidgetWithChildrenShortcut)
     return sc
 
 
-def create_shortcut(action, context, name, parent):
-    """Creates a Shortcut namedtuple for a widget"""
+def config_shortcut(action, context, name, parent):
+    """
+    Create a Shortcut namedtuple for a widget
+    
+    The data contained in this tuple will be registered in
+    our shortcuts preferences page
+    """
     keystr = get_shortcut(context, name)
-    qsc = new_shortcut(keystr, parent, action)
-    sc = Shortcut(data=(qsc, name, keystr))
+    qsc = fixed_shortcut(keystr, parent, action)
+    sc = Shortcut(data=(qsc, context, name))
     return sc
 
 
@@ -120,17 +134,6 @@ def iter_shortcuts():
     for option in CONF.options('shortcuts'):
         context, name = option.split("/", 1)
         yield context, name, get_shortcut(context, name)
-
-
-def remove_deprecated_shortcuts(data):
-    """Remove deprecated shortcuts (shortcuts in CONF but not registered)"""
-    section = 'shortcuts'
-    options = [('%s/%s' % (context, name)).lower() for (context, name) in data]
-    for option, _ in CONF.items(section, raw=CONF.raw):
-        if option not in options:
-            CONF.remove_option(section, option)
-            if len(CONF.items(section, raw=CONF.raw)) == 0:
-                CONF.remove_section(section)
 
 
 def reset_shortcuts():

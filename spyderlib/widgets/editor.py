@@ -29,13 +29,14 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
 
 # Local imports
 from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
-from spyderlib.config.gui import create_shortcut, new_shortcut
+from spyderlib.config.gui import (config_shortcut, fixed_shortcut,
+                                  RUN_CELL_SHORTCUT,
+                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyderlib.config.utils import get_edit_extensions
 from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import (codeanalysis, encoding, sourcecode,
                              syntaxhighlighters)
-from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.utils.qthelpers import (add_actions, create_action,
                                        create_toolbutton, get_filetype_icon,
                                        mimedata2url)
@@ -302,11 +303,15 @@ class EditorStack(QWidget):
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str ,int)
-    plugin_load = Signal(str)
+    plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     split_vertically = Signal()
     split_horizontally = Signal()
     sig_new_file = Signal((str,), ())
+    sig_save_as = Signal()
+    sig_prev_edit_pos = Signal()
+    sig_prev_cursor = Signal()
+    sig_next_cursor = Signal()
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -402,13 +407,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        self.introspector = IntrospectionManager(self)
-
-        self.introspector.send_to_help.connect(self.send_to_help)
-        self.introspector.edit_goto.connect(
-             lambda fname, lineno, name:
-             self.edit_goto.emit(fname, lineno, name))
-
+        self.introspector = None
         self.__file_status_flag = False
 
         # Real-time code analysis
@@ -425,34 +424,69 @@ class EditorStack(QWidget):
 
     def create_shortcuts(self):
         """Create local shortcuts"""
-        # Configurable shortcuts
-        inspect = create_shortcut(self.inspect_current_object, context='Editor',
+        # --- Configurable shortcuts
+        inspect = config_shortcut(self.inspect_current_object, context='Editor',
                                   name='Inspect current object', parent=self)
-        breakpoint = create_shortcut(self.set_or_clear_breakpoint,
-                                     context='Editor', name='Breakpoint',
-                                     parent=self)
-        cbreakpoint = create_shortcut(self.set_or_edit_conditional_breakpoint,
-                                      context='Editor',
-                                      name='Conditional breakpoint',
-                                      parent=self)
-        gotoline = create_shortcut(self.go_to_line, context='Editor',
+        set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
+                                         context='Editor', name='Breakpoint',
+                                         parent=self)
+        set_cond_breakpoint = config_shortcut(
+                                    self.set_or_edit_conditional_breakpoint,
+                                    context='Editor',
+                                    name='Conditional breakpoint',
+                                    parent=self)
+        gotoline = config_shortcut(self.go_to_line, context='Editor',
                                    name='Go to line', parent=self)
-        tab = create_shortcut(self.go_to_previous_file, context='Editor',
+        tab = config_shortcut(self.go_to_previous_file, context='Editor',
                               name='Go to previous file', parent=self)
-        tabshift = create_shortcut(self.go_to_next_file, context='Editor',
+        tabshift = config_shortcut(self.go_to_next_file, context='Editor',
                                    name='Go to next file', parent=self)
+        run_selection = config_shortcut(self.run_selection, context='Editor',
+                                        name='Run selection', parent=self)
+        new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
+                                   context='Editor', name='New file',
+                                   parent=self)
+        open_file = config_shortcut(lambda : self.plugin_load[()].emit(),
+                                    context='Editor', name='Open file',
+                                    parent=self)
+        save_file = config_shortcut(self.save, context='Editor',
+                                    name='Save file', parent=self)
+        save_all = config_shortcut(self.save_all, context='Editor',
+                                   name='Save all', parent=self)
+        save_as = config_shortcut(lambda : self.sig_save_as.emit(),
+                                  context='Editor', name='Save As',
+                                  parent=self)
+        close_all = config_shortcut(self.close_all_files, context='Editor',
+                                    name='Close all', parent=self)
+        prev_edit_pos = config_shortcut(lambda : self.sig_prev_edit_pos.emit(),
+                                        context="Editor",
+                                        name="Last edit location",
+                                        parent=self)
+        prev_cursor = config_shortcut(lambda : self.sig_prev_cursor.emit(),
+                                      context="Editor",
+                                      name="Previous cursor position",
+                                      parent=self)
+        next_cursor = config_shortcut(lambda : self.sig_next_cursor.emit(),
+                                      context="Editor",
+                                      name="Next cursor position",
+                                      parent=self)
 
-        # Fixed shortcuts
-        new_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
-        new_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
-        new_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
-        new_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
-        new_shortcut("Ctrl+W", self, self.close_file)
-        new_shortcut("Ctrl+F4", self, self.close_file)
+        # --- Fixed shortcuts
+        fixed_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
+        fixed_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
+        fixed_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
+        fixed_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
+        fixed_shortcut("Ctrl+W", self, self.close_file)
+        fixed_shortcut("Ctrl+F4", self, self.close_file)
+        fixed_shortcut(QKeySequence(RUN_CELL_SHORTCUT), self, self.run_cell)
+        fixed_shortcut(QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT), self,
+                       self.run_cell_and_advance)
 
         # Return configurable ones
-        return [inspect, breakpoint, cbreakpoint, gotoline, tab,
-                tabshift]
+        return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
+                tabshift, run_selection, new_file, open_file, save_file,
+                save_all, save_as, close_all, prev_edit_pos, prev_cursor,
+                next_cursor]
 
     def get_shortcut_data(self):
         """
@@ -861,6 +895,9 @@ class EditorStack(QWidget):
 
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
+
+    def set_introspector(self, introspector):
+        self.introspector = introspector
 
     #------ Stacked widget management
     def get_stack_index(self):
@@ -1773,12 +1810,21 @@ class EditorStack(QWidget):
 
     #------ Run
     def run_selection(self):
-        """Run selected text or current line in console"""
+        """
+        Run selected text or current line in console. If no text is selected, 
+        then advance cursor to next line.
+        """
         text = self.get_current_editor().get_selection_as_executable_code()
-        if not text:
-            line = self.get_current_editor().get_current_line()
+        if text:
+            move_next_line = False
+        else:
+            editor = self.get_current_editor()
+            line = editor.get_current_line()
             text = line.lstrip()
+            move_next_line = True
         self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        if move_next_line:
+            editor.move_cursor_to_next('line', 'down')
 
     def run_cell(self):
         """Run current cell"""
@@ -2003,7 +2049,7 @@ class EditorWidget(QSplitter):
         self.plugin = plugin
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.plugin.register_widget_shortcuts("Editor", self.find_widget)
+        self.plugin.register_widget_shortcuts(self.find_widget)
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorerWidget(self,
                                             show_fullpath=show_fullpath,
@@ -2183,13 +2229,14 @@ class EditorPluginExample(QSplitter):
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
                                                      show_all_files=False)
         self.outlineexplorer.edit_goto.connect(self.go_to_file)
+        self.editor_splitter = EditorSplitter(self, self, menu_actions,
+                                              first=True)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-        editor_layout.addWidget(EditorSplitter(self, self, menu_actions,
-                                               first=True))
+        editor_layout.addWidget(self.editor_splitter)
         editor_layout.addWidget(self.find_widget)
 
         self.setContentsMargins(0, 0, 0, 0)
@@ -2287,7 +2334,7 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
-    @Slot(int, int)
+    @Slot(str, int)
     def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
@@ -2297,7 +2344,7 @@ class EditorPluginExample(QSplitter):
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
@@ -2306,7 +2353,7 @@ class EditorPluginExample(QSplitter):
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(int, int)
+    @Slot(str, int, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
                                             index, filename):
         """A file was renamed in data in editorstack, this notifies others"""
@@ -2314,7 +2361,7 @@ class EditorPluginExample(QSplitter):
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(index, filename)
 
-    def register_widget_shortcuts(self, context, widget):
+    def register_widget_shortcuts(self, widget):
         """Fake!"""
         pass
 
@@ -2322,12 +2369,19 @@ class EditorPluginExample(QSplitter):
 def test():
     from spyderlib.utils.qthelpers import qapplication
     from spyderlib.config.base import get_module_path
+    from spyderlib.utils.introspection.manager import IntrospectionManager
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
     app = qapplication(test_time=8)
+    introspector = IntrospectionManager()
+
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
+
+    editorstack = test.editor_splitter.editorstack
+    editorstack.set_introspector(introspector)
+    introspector.set_editor_widget(editorstack)
 
     import time
     t0 = time.time()

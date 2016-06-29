@@ -311,6 +311,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.chdir(os.path.join(getcwd(), os.path.pardir))
 
     @Slot(str)
+    @Slot(str, bool)
+    @Slot(str, bool, bool)
     def chdir(self, directory, browsing_history=False,
               refresh_explorer=True):
         """Set directory as working directory"""

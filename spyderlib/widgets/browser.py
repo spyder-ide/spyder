@@ -13,7 +13,8 @@ import sys
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
                             QVBoxLayout, QWidget)
-from qtpy.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings, QWebEngineView
+from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
+                                     QWebEngineView, WEBENGINE)
 
 # Local imports
 from spyderlib.config.base import _, DEV
@@ -25,8 +26,28 @@ from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 
 
+class WebPage(QWebEnginePage):
+    """
+    Web page subclass to manage hyperlinks for WebEngine
+
+    Note: This can't be used for WebKit because the
+    acceptNavigationRequest method has a different
+    functionality for it.
+    """
+    linkClicked = Signal(QUrl)
+
+    def acceptNavigationRequest(self, url, navigation_type, isMainFrame):
+        """
+        Overloaded method to handle links ourselves
+        """
+        if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
+            self.linkClicked.emit(url)
+            return False
+        return True
+
+
 class WebView(QWebEngineView):
-    """Web page"""
+    """Web view"""
     def __init__(self, parent):
         QWebEngineView.__init__(self, parent)
         self.zoom_factor = 1.
@@ -36,18 +57,26 @@ class WebView(QWebEngineView):
         self.zoom_in_action = create_action(self, _("Zoom in"),
                                             icon=ima.icon('zoom_in'),
                                             triggered=self.zoom_in)
-        
+        if WEBENGINE:
+            web_page = WebPage(self)
+            self.setPage(web_page)
+
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False,
                   regexp=False):
         """Find text"""
-        findflag = QWebEnginePage.FindWrapsAroundDocument
+        if not WEBENGINE:
+            findflag = QWebEnginePage.FindWrapsAroundDocument
+        else:
+            findflag = 0
+
         if not forward:
             findflag = findflag | QWebEnginePage.FindBackward
         if case:
             findflag = findflag | QWebEnginePage.FindCaseSensitively
-        return self.findText(text, findflag)
-    
+
+        return self.findText(text, QWebEnginePage.FindFlags(findflag))
+
     def get_selected_text(self):
         """Return text selected by current text cursor"""
         return self.selectedText()
@@ -106,7 +135,7 @@ class WebView(QWebEngineView):
                    self.pageAction(QWebEnginePage.SelectAll),
                    self.pageAction(QWebEnginePage.Copy), None,
                    self.zoom_in_action, self.zoom_out_action]
-        if DEV:
+        if DEV and not WEBENGINE:
             settings = self.page().settings()
             settings.setAttribute(QWebEngineSettings.DeveloperExtrasEnabled, True)
             actions += [None, self.pageAction(QWebEnginePage.InspectElement)]
@@ -153,13 +182,14 @@ class WebBrowser(QWidget):
         self.webview.loadStarted.connect(progressbar.show)
         self.webview.loadProgress.connect(progressbar.setValue)
         self.webview.loadFinished.connect(lambda _state: progressbar.hide())
-        
+
         label = QLabel(self.get_label())
-        
+
         self.url_combo = UrlComboBox(self)
         self.url_combo.valid.connect(self.url_combo_activated)
-        self.webview.iconChanged.connect(self.icon_changed)
-        
+        if not WEBENGINE:
+            self.webview.iconChanged.connect(self.icon_changed)
+
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
@@ -260,22 +290,17 @@ class FrameWebView(QFrame):
 
         self.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
 
-        self._webview.linkClicked.connect(self.linkClicked)
+        if WEBENGINE:
+            self._webview.page().linkClicked.connect(self.linkClicked)
+        else:
+            self._webview.linkClicked.connect(self.linkClicked)
 
-    def set_font(self, font, fixed_font=None):
-        self._webview.set_font(font, fixed_font=fixed_font)
+    def __getattr__(self, name):
+        return getattr(self._webview, name)
 
-    def setHtml(self, html_text, base_url):
-        self._webview.setHtml(html_text, base_url)
-
-    def url(self):
-        return self._webview.url()
-
-    def load(self, url):
-        self._webview.load(url)
-
-    def page(self):
-        return self._webview.page()
+    @property
+    def web_widget(self):
+        return self._webview
 
 
 def test():

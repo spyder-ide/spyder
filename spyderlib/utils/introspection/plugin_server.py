@@ -5,6 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 import sys
+import time
 import traceback
 
 import zmq
@@ -37,23 +38,41 @@ class AsyncServer(object):
     def run(self):
         """Handle requests from the client.
         """
+        t0 = time.time()
+        initialized = False
         while 1:
             # Poll for events, handling a timeout.
-            events = self.socket.poll(TIMEOUT)
-            if events == 0:
-                print('Timed out')
+            try:
+                events = self.socket.poll(TIMEOUT)
+            except KeyboardInterrupt:
+                time.sleep(0.1)
+                continue
+            if events == 0 and not initialized:
+                delta = int(time.time() - t0)
+                print('Timed out after %s sec' % delta)
                 return
+            initialized = True
             # Drain all exising requests, handling quit and heartbeat.
             requests = []
             while 1:
-                request = self.socket.recv_pyobj()
+                try:
+                    request = self.socket.recv_pyobj()
+                except KeyboardInterrupt:
+                    time.sleep(0.1)
+                    continue
                 if request['func_name'] == 'server_quit':
                     print('Quitting')
                     sys.stdout.flush()
                     return
                 elif request['func_name'] != 'server_heartbeat':
                     requests.append(request)
-                events = self.socket.poll(0)
+                else:
+                    print('Got heartbeat')
+                try:
+                    events = self.socket.poll(0)
+                except KeyboardInterrupt:
+                    time.sleep(0.1)
+                    continue
                 if events == 0:
                     break
             # Select the most recent request.

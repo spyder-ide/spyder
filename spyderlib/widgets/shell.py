@@ -28,7 +28,7 @@ from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolTip
 
 # Local import
 from spyderlib.config.base import _, DEBUG, get_conf_path, STDERR
-from spyderlib.config.gui import create_shortcut, get_shortcut, new_shortcut
+from spyderlib.config.gui import config_shortcut, get_shortcut, fixed_shortcut
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import (builtins, is_string, is_text_string,
                                  PY3, to_text_string)
@@ -686,11 +686,11 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
 
         # Local shortcuts
         self.shortcuts = self.create_shortcuts()
-    
+
     def create_shortcuts(self):
-        new_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
-        new_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())        
-        inspectsc = create_shortcut(self.inspect_current_object,
+        fixed_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
+        fixed_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
+        inspectsc = config_shortcut(self.inspect_current_object,
                                     context='Console',
                                     name='Inspect current object',
                                     parent=self)

@@ -651,14 +651,14 @@ class IPythonConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts("Editor", self.find_widget)
+        self.register_widget_shortcuts(self.find_widget)
         layout.addWidget(self.find_widget)
-        
+
         self.setLayout(layout)
-            
+
         # Accepting drops
         self.setAcceptDrops(True)
-    
+
     #------ SpyderPluginMixin API ---------------------------------------------
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
@@ -751,9 +751,10 @@ class IPythonConsole(SpyderPluginWidget):
                                       "to open a new one") % ctrl)
         create_client_action = create_action(self,
                                 _("Open a new console"),
-                                QKeySequence("Ctrl+T"), ima.icon('ipython_console'),
-                                triggered=self.create_new_client)
-        create_client_action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+                                QKeySequence("Ctrl+T"),
+                                ima.icon('ipython_console'),
+                                triggered=self.create_new_client,
+                                context=Qt.WidgetWithChildrenShortcut)
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -1158,7 +1159,7 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot()
     def show_guiref(self):
         """Show qtconsole help"""
-        from IPython.core.usage import gui_reference
+        from qtconsole.usage import gui_reference
         self.help.show_rich_text(gui_reference, collapse=True)
 
     @Slot()

@@ -463,15 +463,15 @@ class ExternalConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts("Editor", self.find_widget)
-        
+        self.register_widget_shortcuts(self.find_widget)
+
         layout.addWidget(self.find_widget)
-        
+
         self.setLayout(layout)
-            
+
         # Accepting drops
         self.setAcceptDrops(True)
-        
+
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)
@@ -772,7 +772,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.sig_pdb.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
-            self.register_widget_shortcuts("Console", shellwidget.shell)
+            self.register_widget_shortcuts(shellwidget.shell)
         else:
             if os.name == 'posix':
                 cmd = 'gnome-terminal'
@@ -1170,6 +1170,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.hide()
 
     #------ Public API ---------------------------------------------------------
+    @Slot(bool)
     @Slot(str)
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
@@ -1194,6 +1195,7 @@ class ExternalConsole(SpyderPluginWidget):
                    interact=True, debug=False, python=True, ipykernel=True,
                    ipyclient=client, give_ipyclient_focus=give_focus)
 
+    @Slot(bool)
     @Slot(str)
     def open_terminal(self, wdir=None):
         """Open terminal"""

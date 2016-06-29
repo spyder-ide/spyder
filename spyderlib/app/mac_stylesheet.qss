@@ -107,12 +107,12 @@ QTabBar::scroller#plugin-tab {
 QTabBar#plugin-tab QToolButton::left-arrow {
     background: lightgrey;
     border-right: 1px solid darkgrey;
-    image: url(spyderlib/images/chevron-left.png);
+    image: url($IMAGE_PATH/chevron-left.png);
 }
 
 QTabBar#plugin-tab QToolButton::right-arrow {
     background: lightgrey;
-    image: url(spyderlib/images/chevron-right.png);
+    image: url($IMAGE_PATH/chevron-right.png);
 }
 
 

@@ -44,15 +44,16 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyderlib.config.base import get_conf_path, _, DEBUG
-from spyderlib.config.gui import create_shortcut, get_shortcut, new_shortcut
+from spyderlib.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
+                                  RUN_CELL_SHORTCUT,
+                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyderlib.config.main import CONF
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import syntaxhighlighters as sh
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       mimedata2url)
+from spyderlib.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyderlib.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyderlib.widgets.editortools import PythonCFM
@@ -513,28 +514,28 @@ class CodeEditor(TextEditBaseWidget):
         self.painted.connect(self._draw_editor_cell_divider)
 
         self.verticalScrollBar().valueChanged.connect(
-                                       lambda value: self.rehighlight_cells())                                 
+                                       lambda value: self.rehighlight_cells())
 
     def create_shortcuts(self):
-        codecomp = create_shortcut(self.do_completion, context='Editor',
+        codecomp = config_shortcut(self.do_completion, context='Editor',
                                    name='Code Completion', parent=self)
-        duplicate_line = create_shortcut(self.duplicate_line, context='Editor',
+        duplicate_line = config_shortcut(self.duplicate_line, context='Editor',
                                          name='Duplicate line', parent=self)
-        copyline = create_shortcut(self.copy_line, context='Editor',
+        copyline = config_shortcut(self.copy_line, context='Editor',
                                    name='Copy line', parent=self)
-        deleteline = create_shortcut(self.delete_line, context='Editor',
+        deleteline = config_shortcut(self.delete_line, context='Editor',
                                      name='Delete line', parent=self)
-        movelineup = create_shortcut(self.move_line_up, context='Editor',
+        movelineup = config_shortcut(self.move_line_up, context='Editor',
                                      name='Move line up', parent=self)
-        movelinedown = create_shortcut(self.move_line_down, context='Editor',
+        movelinedown = config_shortcut(self.move_line_down, context='Editor',
                                        name='Move line down', parent=self)
-        gotodef = create_shortcut(self.do_go_to_definition, context='Editor',
+        gotodef = config_shortcut(self.do_go_to_definition, context='Editor',
                                   name='Go to definition', parent=self)
-        toggle_comment = create_shortcut(self.toggle_comment, context='Editor',
+        toggle_comment = config_shortcut(self.toggle_comment, context='Editor',
                                          name='Toggle comment', parent=self)
-        blockcomment = create_shortcut(self.blockcomment, context='Editor',
+        blockcomment = config_shortcut(self.blockcomment, context='Editor',
                                        name='Blockcomment', parent=self)
-        unblockcomment = create_shortcut(self.unblockcomment, context='Editor',
+        unblockcomment = config_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
 
         def cb_maker(attr):
@@ -547,61 +548,77 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             return cursor_move_event
 
-        line_start = create_shortcut(cb_maker('StartOfLine'), context='Editor',
+        line_start = config_shortcut(cb_maker('StartOfLine'), context='Editor',
                                      name='Start of line', parent=self)
-        line_end = create_shortcut(cb_maker('EndOfLine'), context='Editor',
+        line_end = config_shortcut(cb_maker('EndOfLine'), context='Editor',
                                    name='End of line', parent=self)
 
-        prev_line = create_shortcut(cb_maker('Up'), context='Editor',
+        prev_line = config_shortcut(cb_maker('Up'), context='Editor',
                                     name='Previous line', parent=self)
-        next_line = create_shortcut(cb_maker('Down'), context='Editor',
+        next_line = config_shortcut(cb_maker('Down'), context='Editor',
                                     name='Next line', parent=self)
 
-        prev_char = create_shortcut(cb_maker('Left'), context='Editor',
+        prev_char = config_shortcut(cb_maker('Left'), context='Editor',
                                     name='Previous char', parent=self)
-        next_char = create_shortcut(cb_maker('Right'), context='Editor',
+        next_char = config_shortcut(cb_maker('Right'), context='Editor',
                                     name='Next char', parent=self)
 
-        prev_word = create_shortcut(cb_maker('StartOfWord'), context='Editor',
+        prev_word = config_shortcut(cb_maker('StartOfWord'), context='Editor',
                                     name='Previous word', parent=self)
-        next_word = create_shortcut(cb_maker('EndOfWord'), context='Editor',
+        next_word = config_shortcut(cb_maker('EndOfWord'), context='Editor',
                                     name='Next word', parent=self)
 
-        kill_line_end = create_shortcut(self.kill_line_end, context='Editor',
+        kill_line_end = config_shortcut(self.kill_line_end, context='Editor',
                                         name='Kill to line end', parent=self)
-        kill_line_start = create_shortcut(self.kill_line_start,
+        kill_line_start = config_shortcut(self.kill_line_start,
                                           context='Editor',
                                           name='Kill to line start',
                                           parent=self)
-        yank = create_shortcut(self._kill_ring.yank, context='Editor',
+        yank = config_shortcut(self._kill_ring.yank, context='Editor',
                                name='Yank', parent=self)
-        kill_ring_rotate = create_shortcut(self._kill_ring.rotate,
+        kill_ring_rotate = config_shortcut(self._kill_ring.rotate,
                                            context='Editor',
                                            name='Rotate kill ring',
                                            parent=self)
 
-        kill_prev_word = create_shortcut(self.kill_prev_word, context='Editor',
+        kill_prev_word = config_shortcut(self.kill_prev_word, context='Editor',
                                          name='Kill previous word',
                                          parent=self)
-        kill_next_word = create_shortcut(self.kill_next_word, context='Editor',
+        kill_next_word = config_shortcut(self.kill_next_word, context='Editor',
                                          name='Kill next word', parent=self)
 
-        start_doc = create_shortcut(cb_maker('Start'), context='Editor',
+        start_doc = config_shortcut(cb_maker('Start'), context='Editor',
                                     name='Start of Document', parent=self)
 
-        end_doc = create_shortcut(cb_maker('End'), context='Editor',
+        end_doc = config_shortcut(cb_maker('End'), context='Editor',
                                   name='End of document', parent=self)
 
+        undo = config_shortcut(self.undo, context='Editor',
+                               name='undo', parent=self)
+        redo = config_shortcut(self.redo, context='Editor',
+                               name='redo', parent=self)
+        cut = config_shortcut(self.cut, context='Editor',
+                              name='cut', parent=self)
+        copy = config_shortcut(self.copy, context='Editor',
+                               name='copy', parent=self)
+        paste = config_shortcut(self.paste, context='Editor',
+                                name='paste', parent=self)
+        delete = config_shortcut(self.delete, context='Editor',
+                                 name='delete', parent=self)
+        select_all = config_shortcut(self.selectAll, context='Editor',
+                                     name='Select All', parent=self)
+
         # Fixed shortcuts
-        new_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
-        new_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
+        fixed_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
+        fixed_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
                 unblockcomment, line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
-                kill_next_word, start_doc, end_doc]
+                kill_next_word, start_doc, end_doc, undo, redo, copy,
+                paste, delete, select_all]
 
     def get_shortcut_data(self):
         """
@@ -915,6 +932,12 @@ class CodeEditor(TextEditBaseWidget):
         source_code = to_text_string(self.toPlainText())
         offset = self.get_position('cursor')
         return sourcecode.get_primary_at(source_code, offset)
+
+    @Slot()
+    def delete(self):
+        """Remove selected text"""
+        if self.has_selected_text():
+            self.remove_selected_text()
 
     #------Find occurrences
     def __find_first(self, text):
@@ -2300,6 +2323,22 @@ class CodeEditor(TextEditBaseWidget):
                 match = self.find_brace_match(line_pos+pos, char, forward=True)
                 if (match is None) or (match > line_pos+len(text)):
                     return True
+            if char in [')', ']', '}']:
+                match = self.find_brace_match(line_pos+pos, char, forward=False)
+                if (match is None) or (match < line_pos):
+                    return True
+        return False
+
+    def __has_colon_not_in_brackets(self, text):
+        """
+        Return whether a string has a colon which is not between brackets.
+        This function returns True if the given string has a colon which is
+        not between a pair of (round, square or curly) brackets. It assumes
+        that the brackets in the string are balanced.
+        """
+        for pos, char in enumerate(text):
+            if char == ':' and not self.__unmatched_braces_in_line(text[:pos]):
+                return True
         return False
 
     def autoinsert_colons(self):
@@ -2314,6 +2353,8 @@ class CodeEditor(TextEditBaseWidget):
         elif self.__forbidden_colon_end_char(line_text):
             return False
         elif self.__unmatched_braces_in_line(line_text):
+            return False
+        elif self.__has_colon_not_in_brackets(line_text):
             return False
         else:
             return True
@@ -2414,24 +2455,18 @@ class CodeEditor(TextEditBaseWidget):
     def setup_context_menu(self):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
-                           shortcut=keybinding('Undo'),
-                           icon=ima.icon('undo'), triggered=self.undo)
+                             icon=ima.icon('undo'), triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
-                           shortcut=keybinding('Redo'),
-                           icon=ima.icon('redo'), triggered=self.redo)
+                             icon=ima.icon('redo'), triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
-                           shortcut=keybinding('Cut'),
-                           icon=ima.icon('editcut'), triggered=self.cut)
+                             icon=ima.icon('editcut'), triggered=self.cut)
         self.copy_action = create_action(self, _("Copy"),
-                           shortcut=keybinding('Copy'),
-                           icon=ima.icon('editcopy'), triggered=self.copy)
+                             icon=ima.icon('editcopy'), triggered=self.copy)
         self.paste_action = create_action(self, _("Paste"),
-                           shortcut=keybinding('Paste'),
-                           icon=ima.icon('editpaste'), triggered=self.paste)
+                             icon=ima.icon('editpaste'), triggered=self.paste)
         selectall_action = create_action(self, _("Select All"),
-                           shortcut=keybinding('SelectAll'),
-                           icon=ima.icon('selectall'),
-                           triggered=self.selectAll)
+                             icon=ima.icon('selectall'),
+                             triggered=self.selectAll)
         toggle_comment_action = create_action(self,
                                 _("Comment")+"/"+_("Uncomment"),
                                 icon=ima.icon('comment'),
@@ -2445,27 +2480,37 @@ class CodeEditor(TextEditBaseWidget):
                                                icon=ima.icon('python'))
         self.gotodef_action = create_action(self, _("Go to definition"),
                                    triggered=self.go_to_definition_from_cursor)
+
+        # Run actions
         self.run_cell_action = create_action(self,
                         _("Run cell"),
                         icon=ima.icon('run_cell'),
+                        shortcut=QKeySequence(RUN_CELL_SHORTCUT),
                         triggered=lambda: self.run_cell.emit())
         self.run_cell_and_advance_action = create_action(self,
                         _("Run cell and advance"),
                         icon=ima.icon('run_cell'),
+                        shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
                         triggered=lambda: self.run_cell_and_advance.emit())
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
                         icon=ima.icon('run_selection'),
                         triggered=lambda: self.run_selection.emit())
+
+        # Zoom actions
         zoom_in_action = create_action(self, _("Zoom in"),
-                      QKeySequence(QKeySequence.ZoomIn), icon=ima.icon('zoom_in'),
+                      QKeySequence(QKeySequence.ZoomIn),
+                      icon=ima.icon('zoom_in'),
                       triggered=lambda: self.zoom_in.emit())
         zoom_out_action = create_action(self, _("Zoom out"),
-                      QKeySequence(QKeySequence.ZoomOut), icon=ima.icon('zoom_out'),
+                      QKeySequence(QKeySequence.ZoomOut),
+                      icon=ima.icon('zoom_out'),
                       triggered=lambda: self.zoom_out.emit())
         zoom_reset_action = create_action(self, _("Zoom reset"),
                       QKeySequence("Ctrl+0"),
                       triggered=lambda: self.zoom_reset.emit())
+
+        # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
                      self.run_selection_action, self.gotodef_action, None,

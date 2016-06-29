@@ -37,5 +37,7 @@ def get_options():
     parser.add_option('--profile', action='store_true', default=False,
                       help="Profile mode (internal test, "
                            "not related with Python profiling)")
+    parser.add_option('--window-title', type=str, default=None,
+                      help="String to show in the main window title")
     options, args = parser.parse_args()
     return options, args

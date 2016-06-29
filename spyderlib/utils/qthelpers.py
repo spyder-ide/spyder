@@ -50,7 +50,7 @@ def get_image_label(name, default="not_found.png"):
 
 class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
-    open_external_file = Signal(str)
+    sig_open_external_file = Signal(str)
     
     def __init__(self, *args):
         QApplication.__init__(self, *args)
@@ -58,7 +58,7 @@ class MacApplication(QApplication):
     def event(self, event):
         if event.type() == QEvent.FileOpen:
             fname = str(event.file())
-            self.open_external_file.emit(fname)
+            self.sig_open_external_file.emit(fname)
         return QApplication.event(self, event)
 
 
@@ -247,8 +247,6 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         if is_text_string(icon):
             icon = get_icon(icon)
         action.setIcon(icon)
-    if shortcut is not None:
-        action.setShortcut(shortcut)
     if tip is not None:
         action.setToolTip(tip)
         action.setStatusTip(tip)
@@ -256,10 +254,27 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setData(to_qvariant(data))
     if menurole is not None:
         action.setMenuRole(menurole)
-    #TODO: Hard-code all shortcuts and choose context=Qt.WidgetShortcut
-    # (this will avoid calling shortcuts from another dockwidget
-    #  since the context thing doesn't work quite well with these widgets)
-    action.setShortcutContext(context)
+
+    # Workround for Mac because setting context=Qt.WidgetShortcut
+    # there doesn't have any effect
+    if sys.platform == 'darwin':
+        action._shown_shortcut = None
+        if context == Qt.WidgetShortcut:
+            if shortcut is not None:
+                action._shown_shortcut = shortcut
+            else:
+                # This is going to be filled by
+                # main.register_shortcut
+                action._shown_shortcut = 'missing'
+        else:
+            if shortcut is not None:
+                action.setShortcut(shortcut)
+            action.setShortcutContext(context)
+    else:
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        action.setShortcutContext(context)
+
     return action
 
 
