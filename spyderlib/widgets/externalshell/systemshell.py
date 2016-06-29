@@ -42,13 +42,12 @@ class ExternalSystemShell(ExternalShellBase):
                                    menu_actions=menu_actions,
                                    show_buttons_inside=show_buttons_inside,
                                    show_elapsed_time=show_elapsed_time)
-        
+
         # Additional python path list
         self.path = path
-        
+
         # For compatibility with the other shells that can live in the external
         # console
-        self.is_ipykernel = False
         self.connection_file = None
 
     def get_icon(self):
