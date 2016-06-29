@@ -694,9 +694,6 @@ class ExternalConsole(SpyderPluginWidget):
             ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
             ar_state = CONF.get('variable_explorer', 'autorefresh')
 
-            if not ar_state:
-                ar_state = True
-
             sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
                            interact, debug, post_mortem=post_mortem,
