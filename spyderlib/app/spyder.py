@@ -880,7 +880,7 @@ class MainWindow(QMainWindow):
         # External console
         self.set_splash(_("Loading external console..."))
         from spyderlib.plugins.externalconsole import ExternalConsole
-        self.extconsole = ExternalConsole(self, light_mode=False)
+        self.extconsole = ExternalConsole(self)
         self.extconsole.register_plugin()
 
         # Namespace browser

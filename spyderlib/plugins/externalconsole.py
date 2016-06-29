@@ -385,13 +385,12 @@ class ExternalConsole(SpyderPluginWidget):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
-    
-    def __init__(self, parent, light_mode):
+
+    def __init__(self, parent):
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
-        self.light_mode = light_mode
         self.tabwidget = None
         self.menu_actions = None
 
@@ -708,13 +707,9 @@ class ExternalConsole(SpyderPluginWidget):
             if not ar_state and ipykernel:
                 ar_state = True
 
-            if self.light_mode:
-                from spyderlib.plugins.variableexplorer import VariableExplorer
-                sa_settings = VariableExplorer.get_settings()
-            else:
-                sa_settings = None
+            sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
-                           interact, debug, post_mortem=post_mortem, 
+                           interact, debug, post_mortem=post_mortem,
                            path=pythonpath,
                            python_args=python_args,
                            ipykernel=ipykernel,
