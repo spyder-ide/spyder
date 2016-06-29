@@ -214,7 +214,7 @@ class ExternalShellBase(QWidget):
                 pass
 
     def set_buttons_runnning_state(self, state):
-        self.run_button.setVisible(not state and not self.is_ipykernel)
+        self.run_button.setVisible(not state)
         self.kill_button.setVisible(state)
 
     @Slot(bool)

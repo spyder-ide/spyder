@@ -162,15 +162,13 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPythonShellWidget
     sig_pdb = Signal(str, int)
     open_file = Signal(str, int)
-    ipython_kernel_start_error = Signal(str)
-    create_ipython_client = Signal(str)
     started = Signal()
     sig_finished = Signal()
-    
+
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, post_mortem=False,
                  path=[], python_args='',
-                 ipykernel=False, arguments='', stand_alone=None,
+                 arguments='', stand_alone=None,
                  umr_enabled=True, umr_namelist=[], umr_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  external_interpreter=False,
@@ -188,7 +186,6 @@ class ExternalPythonShell(ExternalShellBase):
 
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         self.interact = interact
-        self.is_ipykernel = ipykernel
         self.pythonstartup = pythonstartup
         self.pythonexecutable = pythonexecutable
         self.external_interpreter = external_interpreter
@@ -226,19 +223,11 @@ class ExternalPythonShell(ExternalShellBase):
         if python_args:
             assert is_text_string(python_args)
             self.python_args = python_args
-        
+
         assert is_text_string(arguments)
         self.arguments = arguments
-        
-        self.connection_file = None
 
-        if self.is_ipykernel:
-            self.interact = False
-            # Running our custom startup script for IPython kernels:
-            # (see spyderlib/widgets/externalshell/start_ipython_kernel.py)
-            self.fname = get_module_source_path(
-                'spyderlib.widgets.externalshell', 'start_ipython_kernel.py')
-        
+        self.connection_file = None        
         self.shell.set_externalshell(self)
 
         self.toggle_globals_explorer(False)
@@ -434,11 +423,9 @@ class ExternalPythonShell(ExternalShellBase):
             env.append('SPYDER_EXCEPTHOOK=True')
 
         # Set standard input/output encoding for Python consoles
-        # (IPython handles it on its own)
         # See http://stackoverflow.com/q/26312400/438386, specifically
         # the comments of Martijn Pieters
-        if not self.is_ipykernel:
-            env.append('PYTHONIOENCODING=UTF-8')
+        env.append('PYTHONIOENCODING=UTF-8')
 
         # Monitor
         if self.monitor_enabled:
@@ -453,9 +440,6 @@ class ExternalPythonShell(ExternalShellBase):
             self.notification_thread.sig_pdb.connect(
                                               lambda fname, lineno:
                                               self.sig_pdb.emit(fname, lineno))
-            self.notification_thread.new_ipython_kernel.connect(
-                                         lambda args:
-                                         self.create_ipython_client.emit(args))
             self.notification_thread.open_file.connect(
                                             lambda fname, lineno:
                                             self.open_file.emit(fname, lineno))
@@ -465,12 +449,11 @@ class ExternalPythonShell(ExternalShellBase):
             env.append('SPYDER_N_PORT=%d' % notification_server.port)
 
         # External modules options
-        if not self.is_ipykernel:
-            env.append('ETS_TOOLKIT=%s' % self.ets_backend)
+        env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         if self.mpl_backend is not None:
             backends = {0: 'Automatic', 1: 'None', 2: 'TkAgg'}
             env.append('SPY_MPL_BACKEND=%s' % backends[self.mpl_backend])
-        if self.qt_api and not self.is_ipykernel:
+        if self.qt_api:
             env.append('QT_API=%s' % self.qt_api)
         env.append('COLORIZE_SYS_STDERR=%s' % self.colorize_sys_stderr)
 #        # Socket-based alternative (see input hook in sitecustomize.py):
@@ -490,9 +473,6 @@ class ExternalPythonShell(ExternalShellBase):
                 env.append('MATPLOTLIB_ION=True')
             else:
                 env.append('MATPLOTLIB_ION=False')
-
-        # IPython kernel
-        env.append('IPYTHON_KERNEL=%r' % self.is_ipykernel)
 
         # External interpreter
         env.append('EXTERNAL_INTERPRETER=%r' % self.external_interpreter)
@@ -546,13 +526,8 @@ class ExternalPythonShell(ExternalShellBase):
         running = self.process.waitForStarted(3000)
         self.set_running_state(running)
         if not running:
-            if self.is_ipykernel:
-                self.ipython_kernel_start_error.emit(
-                          _("The kernel failed to start!! That's all we know... "
-                            "Please close this console and open a new one."))
-            else:
-                QMessageBox.critical(self, _("Error"),
-                                     _("A Python console failed to start!"))
+            QMessageBox.critical(self, _("Error"),
+                                 _("A Python console failed to start!"))
         else:
             self.shell.setFocus()
             self.started.emit()
@@ -560,8 +535,6 @@ class ExternalPythonShell(ExternalShellBase):
 
     def finished(self, exit_code, exit_status):
         """Reimplement ExternalShellBase method"""
-        if self.is_ipykernel and exit_code == 1:
-            self.ipython_kernel_start_error.emit(self.shell.get_text_with_eol())
         ExternalShellBase.finished(self, exit_code, exit_status)
         self.introspection_socket = None
 
