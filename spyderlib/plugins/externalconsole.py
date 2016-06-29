@@ -617,14 +617,13 @@ class ExternalConsole(SpyderPluginWidget):
     def set_spyder_breakpoints(self):
         """Set all Spyder breakpoints into all shells"""
         for shellwidget in self.shellwidgets:
-            shellwidget.shell.set_spyder_breakpoints()    
-    
+            shellwidget.shell.set_spyder_breakpoints()
+
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
-              python=True, ipykernel=False, ipyclient=None,
-              give_ipyclient_focus=True, python_args='', post_mortem=True):
+              python=True, python_args='', post_mortem=True):
         """
         Start new console
-        
+
         fname:
           string: filename of script to run
           None: open an interpreter
@@ -633,8 +632,6 @@ class ExternalConsole(SpyderPluginWidget):
         interact: inspect script interactively after its execution
         debug: run pdb
         python: True: Python interpreter, False: terminal
-        ipykernel: True: IPython kernel
-        ipyclient: True: Automatically create an IPython client
         python_args: additionnal Python interpreter command line options
                    (option "-u" is mandatory, see widgets.externalshell package)
         """
@@ -679,7 +676,7 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 pythonexecutable = self.get_option('pythonexecutable')
                 external_interpreter = True
-            if self.get_option('pythonstartup/default') or ipykernel:
+            if self.get_option('pythonstartup/default'):
                 pythonstartup = None
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
@@ -697,14 +694,7 @@ class ExternalConsole(SpyderPluginWidget):
             ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
             ar_state = CONF.get('variable_explorer', 'autorefresh')
 
-            # CRUCIAL NOTE FOR IPYTHON KERNELS:
-            # autorefresh needs to be on so that our monitor
-            # can find __ipythonkernel__ in the globals namespace
-            # *after* the kernel has been started.
-            # Without the ns refresh provided by autorefresh, a
-            # client is *never* started (although the kernel is)
-            # Fix Issue 1595
-            if not ar_state and ipykernel:
+            if not ar_state:
                 ar_state = True
 
             sa_settings = None
@@ -712,7 +702,6 @@ class ExternalConsole(SpyderPluginWidget):
                            interact, debug, post_mortem=post_mortem,
                            path=pythonpath,
                            python_args=python_args,
-                           ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
                            pythonexecutable=pythonexecutable,
@@ -781,60 +770,10 @@ class ExternalConsole(SpyderPluginWidget):
             if self.main.editor is not None:
                 shellwidget.open_file.connect(self.open_file_in_spyder)
             if fname is None:
-                if ipykernel:
-                    # Connect client to any possible error while starting the
-                    # kernel
-                    shellwidget.ipython_kernel_start_error.connect(
-                              lambda error: ipyclient.show_kernel_error(error))
-                    
-                    # Detect if kernel and frontend match or not
-                    # Don't apply this for our Mac app because it's
-                    # failing, see Issue 2006
-                    if self.get_option('pythonexecutable/custom') and \
-                      not running_in_mac_app():
-                        frontend_ver = programs.get_module_version('IPython')
-                        old_vers = ['1', '2']
-                        if any([frontend_ver.startswith(v) for v in old_vers]):
-                            frontend_ver = '<3.0'
-                        else:
-                            frontend_ver = '>=3.0'
-                        kernel_and_frontend_match = \
-                          programs.is_module_installed('IPython',
-                                                  version=frontend_ver,
-                                                  interpreter=pythonexecutable)
-                    else:
-                        kernel_and_frontend_match = True
-
-                    # Create a a kernel tab only if frontend and kernel
-                    # versions match
-                    if kernel_and_frontend_match:
-                        tab_name = _("Kernel")
-                        tab_icon1 = ima.icon('ipython_console')
-                        tab_icon2 = ima.icon('ipython_console_t')
-                        shellwidget.create_ipython_client.connect(
-                                     lambda cf: self.register_ipyclient(cf,
-                                              ipyclient,
-                                              shellwidget,
-                                              give_focus=give_ipyclient_focus))
-                    else:
-                        shellwidget.ipython_kernel_start_error.emit(
-                          _("Either:"
-                            "<ol>"
-                            "<li>Your IPython frontend and kernel versions "
-                            "are <b>incompatible</b> or</li>"
-                            "<li>You <b>don't have</b> IPython installed in "
-                            "your external interpreter.</li>"
-                            "</ol>"
-                            "In any case, we're sorry but we can't create a "
-                            "console for you."))
-                        shellwidget.deleteLater()
-                        shellwidget = None
-                        return
-                else:
-                    self.python_count += 1
-                    tab_name = "Python %d" % self.python_count
-                    tab_icon1 = ima.icon('python')
-                    tab_icon2 = ima.icon('python_t')
+                self.python_count += 1
+                tab_name = "Python %d" % self.python_count
+                tab_icon1 = ima.icon('python')
+                tab_icon2 = ima.icon('python_t')
             else:
                 tab_name = osp.basename(fname)
                 tab_icon1 = ima.icon('run')
@@ -864,18 +803,15 @@ class ExternalConsole(SpyderPluginWidget):
         self.find_widget.set_editor(shellwidget.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget and not self.ismaximized and not ipykernel:
+        if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
-        
+
         shellwidget.set_icontext_visible(self.get_option('show_icontext'))
-        
+
         # Start process and give focus to console
         shellwidget.start_shell()
-        if not ipykernel:
-            self.activateWindow()
-            shellwidget.shell.setFocus()
-    
+
     def set_ipykernel_attrs(self, connection_file, kernel_widget, name):
         """Add the pid of the kernel process to an IPython kernel tab"""
         # Set connection file
