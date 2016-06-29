@@ -598,29 +598,23 @@ class ExternalConsole(SpyderPluginWidget):
         """Execute Python code in an already opened Python interpreter"""
         shellwidget = self.__find_python_shell(
                                         interpreter_only=interpreter_only)
-        if (shellwidget is not None) and (not shellwidget.is_ipykernel):
+        if shellwidget is not None:
             shellwidget.shell.execute_lines(to_text_string(lines))
             self.activateWindow()
             shellwidget.shell.setFocus()
             return True
         else:
             return False
-            
+
     def pdb_has_stopped(self, fname, lineno, shellwidget):
-        """Python debugger has just stopped at frame (fname, lineno)"""      
-        # This is a unique form of the edit_goto signal that is intended to 
+        """Python debugger has just stopped at frame (fname, lineno)"""
+        # This is a unique form of the edit_goto signal that is intended to
         # prevent keyboard input from accidentally entering the editor
-        # during repeated, rapid entry of debugging commands.    
+        # during repeated, rapid entry of debugging commands.
         self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
-        if shellwidget.is_ipykernel:
-            # Focus client widget, not kernel
-            ipw = self.main.ipyconsole.get_focus_widget()
-            self.main.ipyconsole.activateWindow()
-            ipw.setFocus()
-        else:
-            self.activateWindow()
-            shellwidget.shell.setFocus()
-    
+        self.activateWindow()
+        shellwidget.shell.setFocus()
+
     def set_spyder_breakpoints(self):
         """Set all Spyder breakpoints into all shells"""
         for shellwidget in self.shellwidgets:
