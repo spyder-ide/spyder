@@ -40,6 +40,7 @@ class AsyncServer(object):
         """
         t0 = time.time()
         initialized = False
+        timed_out = False
         while 1:
             # Poll for events, handling a timeout.
             try:
@@ -47,10 +48,14 @@ class AsyncServer(object):
             except KeyboardInterrupt:
                 time.sleep(0.1)
                 continue
-            if events == 0 and not initialized:
-                delta = int(time.time() - t0)
-                print('Timed out after %s sec' % delta)
-                return
+            if events == 0 and initialized:
+                if timed_out:
+                    delta = int(time.time() - t0)
+                    print('Timed out after %s sec' % delta)
+                    return
+                timed_out = True
+                continue
+            timed_out = False
             initialized = True
             # Drain all exising requests, handling quit and heartbeat.
             requests = []
