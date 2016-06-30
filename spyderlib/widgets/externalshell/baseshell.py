@@ -302,7 +302,9 @@ class ExternalShellBase(QWidget):
             self.buffer_lock.lock()
             self.buffer.append(self.get_stdout())
             self.buffer_lock.unlock()
-            return
+
+            if not self.write_lock.tryLock():
+                return
 
         self.shell.write(self.get_stdout(), flush=True)
 
@@ -310,14 +312,14 @@ class ExternalShellBase(QWidget):
             self.buffer_lock.lock()
             messages = self.buffer
             self.buffer = []
-            self.buffer_lock.unlock()
 
             if not messages:
-                break
+                self.write_lock.unlock()
+                self.buffer_lock.unlock()
+                return
 
-            self.shell.write("\n".join(messages), flush=True)                
-
-        self.write_lock.unlock()
+            self.buffer_lock.unlock()
+            self.shell.write("\n".join(messages), flush=True)
 
     def send_to_process(self, qstr):
         raise NotImplementedError
