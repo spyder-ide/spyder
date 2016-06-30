@@ -134,7 +134,8 @@ class AsyncClient(QObject):
         del self.notifier
         self.request('server_quit')
         self.process.waitForFinished(1000)
-        self.context.destroy(0)
+        # Note: context.destroy() is not thread safe
+        self.context.term()
 
     def _on_finished(self):
         """Handle a finished signal from the process.
