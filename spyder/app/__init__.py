@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.app
-=============
+spyder.app
+==========
 
 Modules related to starting and restarting the Spyder application
 """

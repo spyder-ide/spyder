@@ -34,7 +34,7 @@ for f in spyderlib/*/*.py; do
     if [[ $f == *tests/test_* ]]; then
         continue
     fi
-    if [[ $f == spyderlib/app/*.py ]]; then
+    if [[ $f == spyder/app/*.py ]]; then
         continue
     fi
     if [[ $f == spyderlib/plugins/*.py ]]; then

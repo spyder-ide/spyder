@@ -284,7 +284,7 @@ if 'setuptools' in sys.modules:
 
     setup_args['entry_points'] = {
         'gui_scripts': [
-            'spyder = spyderlib.app.start:main'
+            'spyder = spyder.app.start:main'
         ]
     }
 

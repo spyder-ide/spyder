@@ -19,7 +19,8 @@ Licensed under the terms of the MIT License
 # =============================================================================
 # Stdlib imports
 # =============================================================================
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
 import atexit
 import errno
 import os
@@ -123,7 +124,7 @@ from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    running_in_mac_app, get_module_path)
 from spyderlib.config.main import CONF, OPEN_FILES_PORT
 from spyderlib.config.utils import IMPORT_EXT, is_gtk_desktop
-from spyderlib.app.cli_options import get_options
+from spyder.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.config.user import NoDefault
@@ -154,7 +155,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.config.gui import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib.app import tour
+from spyder.app import tour
 
 
 #==============================================================================
@@ -2731,7 +2732,7 @@ class MainWindow(QMainWindow):
         restart_script = osp.join(spyder_start_directory, 'app', 'restart.py')
 
         # Get any initial argument passed when spyder was started
-        # Note: Variables defined in bootstrap.py and spyderlib/app/start.py
+        # Note: Variables defined in bootstrap.py and spyder/app/start.py
         env = os.environ.copy()
         bootstrap_args = env.pop('SPYDER_BOOTSTRAP_ARGS', None)
         spyder_args = env.pop('SPYDER_ARGS')

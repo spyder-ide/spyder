@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+
 # Std imports
 import atexit
 import os
@@ -10,7 +12,7 @@ import sys
 import time
 
 # Local imports
-from spyderlib.app.cli_options import get_options
+from spyder.app.cli_options import get_options
 from spyderlib.config.base import get_conf_path, running_in_mac_app, DEV, TEST
 from spyderlib.config.main import CONF
 from spyderlib.utils.external import lockfile
@@ -107,7 +109,7 @@ def main():
             # Then start Spyder as usual and *don't* continue
             # executing this script because it doesn't make
             # sense
-            from spyderlib.app import spyder
+            from spyder.app import spyder
             spyder.main()
             return
 
@@ -115,7 +117,7 @@ def main():
             # Start a new instance
             if TEST is None:
                 atexit.register(lock.unlock)
-            from spyderlib.app import spyder
+            from spyder.app import spyder
             spyder.main()
         else:
             # Pass args to Spyder or print an informative
@@ -126,7 +128,7 @@ def main():
                 print("Spyder is already running. If you want to open a new \n"
                       "instance, please pass to it the --new-instance option")
     else:
-        from spyderlib.app import spyder
+        from spyder.app import spyder
         spyder.main()
 
 
