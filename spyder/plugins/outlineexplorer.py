@@ -16,7 +16,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.plugins import SpyderPluginMixin
+from spyder.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.editortools import OutlineExplorerWidget

@@ -34,8 +34,8 @@ from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
                                   is_python_script, remove_backslashes)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
-from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
-from spyderlib.plugins.runconfig import get_run_configuration
+from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
@@ -744,7 +744,7 @@ class ExternalConsole(SpyderPluginWidget):
                 ar_state = True
 
             if self.light_mode:
-                from spyderlib.plugins.variableexplorer import VariableExplorer
+                from spyder.plugins.variableexplorer import VariableExplorer
                 sa_settings = VariableExplorer.get_settings()
             else:
                 sa_settings = None

@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.plugins
-=================
+spyder.plugins
+==============
 
 Here, 'plugins' are widgets designed specifically for Spyder
 These plugins inherit the following classes
@@ -34,7 +34,7 @@ from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyderlib.plugins.configdialog import SpyderConfigPage
+from spyder.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action, toggle_actions

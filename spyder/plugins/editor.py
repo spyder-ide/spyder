@@ -48,10 +48,10 @@ from spyderlib.widgets.editor import (EditorMainWindow, EditorSplitter,
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
                                       EOLStatus, ReadWriteStatus)
-from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
-from spyderlib.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                         get_run_configuration,
-                                         RunConfigDialog, RunConfigOneDialog)
+from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
+                                      get_run_configuration,
+                                      RunConfigDialog, RunConfigOneDialog)
 
 
 def _load_all_breakpoints():

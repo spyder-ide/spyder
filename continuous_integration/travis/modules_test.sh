@@ -37,10 +37,7 @@ for f in spyderlib/*/*.py; do
     if [[ $f == spyder/app/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/plugins/*.py ]]; then
-        continue
-    fi
-    if [[ $f == spyderlib/qt/*.py ]]; then
+    if [[ $f == spyder/plugins/*.py ]]; then
         continue
     fi
     if [[ $f == spyderlib/utils/qthelpers.py ]]; then

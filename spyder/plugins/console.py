@@ -33,7 +33,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action,
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
-from spyderlib.plugins import SpyderPluginWidget
+from spyder.plugins import SpyderPluginWidget
 from spyderlib.py3compat import getcwd, to_text_string
 
 

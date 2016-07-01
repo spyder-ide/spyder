@@ -13,7 +13,7 @@ from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 # Local imports
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
+from spyder.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.utils import programs
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS

@@ -661,7 +661,7 @@ def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyderlib.plugins.variableexplorer import VariableExplorer
+    from spyder.plugins.variableexplorer import VariableExplorer
     settings = VariableExplorer.get_settings()
 
     shell = ExternalPythonShell(pythonexecutable=sys.executable,

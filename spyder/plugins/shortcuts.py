@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 from spyder.config.base import _, debug_print
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
-from spyderlib.plugins.configdialog import GeneralConfigPage
+from spyder.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.utils.stringmatching import get_search_scores, get_search_regex

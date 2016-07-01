@@ -350,18 +350,18 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyderlib.plugins.configdialog import (MainConfigPage,
-                                                    ColorSchemeConfigPage)
-        from spyderlib.plugins.shortcuts import ShortcutsConfigPage
-        from spyderlib.plugins.runconfig import RunConfigPage
+        from spyder.plugins.configdialog import (MainConfigPage, 
+                                                 ColorSchemeConfigPage)
+        from spyder.plugins.shortcuts import ShortcutsConfigPage
+        from spyder.plugins.runconfig import RunConfigPage
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
                               ColorSchemeConfigPage, RunConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
 
         # Quick Layouts and Dialogs
-        from spyderlib.plugins.layoutdialog import (LayoutSaveDialog,
-                                                    LayoutSettingsDialog)
+        from spyder.plugins.layoutdialog import (LayoutSaveDialog,
+                                                 LayoutSettingsDialog)
         self.dialog_layout_save = LayoutSaveDialog
         self.dialog_layout_settings = LayoutSettingsDialog
 
@@ -779,7 +779,7 @@ class MainWindow(QMainWindow):
 
         # Internal console plugin
         self.debug_print("  ..plugin: internal console")
-        from spyderlib.plugins.console import Console
+        from spyder.plugins.console import Console
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
@@ -793,7 +793,7 @@ class MainWindow(QMainWindow):
 
         # Working directory plugin
         self.debug_print("  ..plugin: working directory")
-        from spyderlib.plugins.workingdirectory import WorkingDirectory
+        from spyder.plugins.workingdirectory import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
         self.toolbarslist.append(self.workingdirectory)
@@ -801,14 +801,14 @@ class MainWindow(QMainWindow):
         # Help plugin
         if CONF.get('help', 'enable'):
             self.set_splash(_("Loading help..."))
-            from spyderlib.plugins.help import Help
+            from spyder.plugins.help import Help
             self.help = Help(self)
             self.help.register_plugin()
 
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
             self.set_splash(_("Loading outline explorer..."))
-            from spyderlib.plugins.outlineexplorer import OutlineExplorer
+            from spyder.plugins.outlineexplorer import OutlineExplorer
             fullpath_sorting = CONF.get('editor', 'fullpath_sorting', True)
             self.outlineexplorer = OutlineExplorer(self,
                                         fullpath_sorting=fullpath_sorting)
@@ -816,7 +816,7 @@ class MainWindow(QMainWindow):
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
-        from spyderlib.plugins.editor import Editor
+        from spyder.plugins.editor import Editor
         self.editor = Editor(self)
         self.editor.register_plugin()
 
@@ -843,27 +843,27 @@ class MainWindow(QMainWindow):
         self.debug_print("  ..widgets")
         # Find in files
         if CONF.get('find_in_files', 'enable'):
-            from spyderlib.plugins.findinfiles import FindInFiles
+            from spyder.plugins.findinfiles import FindInFiles
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
 
         # Explorer
         if CONF.get('explorer', 'enable'):
             self.set_splash(_("Loading file explorer..."))
-            from spyderlib.plugins.explorer import Explorer
+            from spyder.plugins.explorer import Explorer
             self.explorer = Explorer(self)
             self.explorer.register_plugin()
 
         # History log widget
         if CONF.get('historylog', 'enable'):
             self.set_splash(_("Loading history plugin..."))
-            from spyderlib.plugins.history import HistoryLog
+            from spyder.plugins.history import HistoryLog
             self.historylog = HistoryLog(self)
             self.historylog.register_plugin()
 
         # Online help widget
         try:    # Qt >= v4.4
-            from spyderlib.plugins.onlinehelp import OnlineHelp
+            from spyder.plugins.onlinehelp import OnlineHelp
         except ImportError:    # Qt < v4.4
             OnlineHelp = None  # analysis:ignore
         if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
@@ -874,26 +874,26 @@ class MainWindow(QMainWindow):
         # Project explorer widget
         if CONF.get('project_explorer', 'enable'):
             self.set_splash(_("Loading project explorer..."))
-            from spyderlib.plugins.projectexplorer import ProjectExplorer
+            from spyder.plugins.projectexplorer import ProjectExplorer
             self.projectexplorer = ProjectExplorer(self)
             self.projectexplorer.register_plugin()
 
         # External console
         self.set_splash(_("Loading external console..."))
-        from spyderlib.plugins.externalconsole import ExternalConsole
+        from spyder.plugins.externalconsole import ExternalConsole
         self.extconsole = ExternalConsole(self, light_mode=False)
         self.extconsole.register_plugin()
 
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
-        from spyderlib.plugins.variableexplorer import VariableExplorer
+        from spyder.plugins.variableexplorer import VariableExplorer
         self.variableexplorer = VariableExplorer(self)
         self.variableexplorer.register_plugin()
 
         # IPython console
         if QTCONSOLE_INSTALLED:
             self.set_splash(_("Loading IPython console..."))
-            from spyderlib.plugins.ipythonconsole import IPythonConsole
+            from spyder.plugins.ipythonconsole import IPythonConsole
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
 
@@ -2585,7 +2585,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def edit_preferences(self):
         """Edit Spyder preferences"""
-        from spyderlib.plugins.configdialog import ConfigDialog
+        from spyder.plugins.configdialog import ConfigDialog
         dlg = ConfigDialog(self)
         dlg.size_change.connect(self.set_prefs_size)
         if self.prefs_dialog_size is not None:
