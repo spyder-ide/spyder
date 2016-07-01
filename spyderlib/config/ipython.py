@@ -14,7 +14,7 @@ from spyderlib.config.base import _
 
 
 # Constants
-QTCONSOLE_REQVER = '>=4.0'
+QTCONSOLE_REQVER = ">=4.2.0"
 ZMQ_REQVER = ">=13.0.0"
 NBCONVERT_REQVER = ">=4.0"
 
