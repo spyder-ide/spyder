@@ -16,7 +16,7 @@ requirements:
   run:
     - python
     - python.app  # [osx]
-    - pyqt5  # [osx]
+    - pyqt >=5.6.0  # [osx]
     - pyqt  # [not osx]
     - rope 0.9.*  # [py34 or py35]
     - rope  # [py27]
