@@ -1,6 +1,6 @@
 Before submitting your pull request be sure that:
 
-1. You haven't touched any file in the `spyderlib/defaults` directory.
+1. You haven't touched any file in the `spyder/defaults` directory.
   - There is *absolutely* no need to touch those files.
   - If you want to add new configuration options, please go to
     `spyder/config/main.py`.
