@@ -26,13 +26,6 @@ To release a new version of Spyder you need to follow these steps:
 
 * git push upstream --tags
 
-* Update to latest tag in
-    - continuous_integration/conda-recipes/spyder/meta.yaml
-    - continuous_integration/travis/run_test.sh
-    - continuous_integration/appveyor/run_test.bat
-
-* git add and git commit with [ci skip]
-
 * Optional: Create conda packages
     - conda build conda.recipe
     - anaconda upload spyder-*.tar.bz2 -u spyder-ide

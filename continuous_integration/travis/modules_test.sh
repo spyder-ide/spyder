@@ -16,6 +16,9 @@ fi
 
 # Depth 1
 for f in spyderlib/*.py; do
+    if [[ $f == *tests/test_* ]]; then
+        continue
+    fi
     if [[ $f == spyderlib/pyplot.py ]]; then
         continue
     fi
@@ -28,6 +31,9 @@ done
 
 # Depth 2
 for f in spyderlib/*/*.py; do
+    if [[ $f == *tests/test_* ]]; then
+        continue
+    fi
     if [[ $f == spyderlib/app/*.py ]]; then
         continue
     fi
@@ -56,6 +62,9 @@ done
 
 # Depth 3
 for f in spyderlib/*/*/*.py; do
+    if [[ $f == *tests/test_* ]]; then
+        continue
+    fi
     if [[ $f == spyderlib/external/*/*.py ]]; then
         continue
     fi
@@ -85,6 +94,19 @@ for f in spyderlib/*/*/*.py; do
         exit 1
     fi
 done
+
+
+# Depth 4
+for f in spyderlib/*/*/*/*.py; do
+    if [[ $f == *tests/test_* ]]; then
+        continue
+    fi
+    python "$f"
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+done
+
 
 # Spyderplugins
 for f in spyder_*/widgets/*.py; do
