@@ -30,12 +30,12 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import _, get_conf_path
-from spyderlib.config.gui import (RUN_CELL_SHORTCUT,
-                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyderlib.config.main import CONF
-from spyderlib.config.utils import (get_edit_filetypes, get_edit_filters,
-                                    get_filter)
+from spyder.config.base import _, get_conf_path
+from spyder.config.gui import (RUN_CELL_SHORTCUT,
+                               RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.main import CONF
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter)
 from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyderlib.utils import codeanalysis, encoding, programs, sourcecode
 from spyderlib.utils import icon_manager as ima

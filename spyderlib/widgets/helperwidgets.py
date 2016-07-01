@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
                             QVBoxLayout)
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
 

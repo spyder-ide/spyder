@@ -12,8 +12,8 @@ from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
-from spyderlib.config.base import get_image_path
-from spyderlib.config.main import CONF
+from spyder.config.base import get_image_path
+from spyder.config.main import CONF
 import qtawesome as qta
 
 

@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QInputDialog,
                             QTreeView, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.py3compat import (getcwd, str_lower, to_binary_string,
                                  to_text_string, PY2)
 from spyderlib.utils import icon_manager as ima

@@ -11,7 +11,7 @@ Spyder font variables
 import os
 import sys
 
-from spyderlib.config.utils import is_ubuntu
+from spyder.config.utils import is_ubuntu
 
 
 #==============================================================================

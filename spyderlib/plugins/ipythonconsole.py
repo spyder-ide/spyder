@@ -40,8 +40,8 @@ except ImportError:
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _
-from spyderlib.config.main import CONF
+from spyder.config.base import _
+from spyder.config.main import CONF
 from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima

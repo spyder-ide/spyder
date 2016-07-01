@@ -18,7 +18,7 @@ import os.path as osp
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
 from spyderlib.widgets.explorer import ExplorerWidget

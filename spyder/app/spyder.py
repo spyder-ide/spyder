@@ -103,7 +103,7 @@ MAIN_APP = qapplication()
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyderlib.config.base import _, get_image_path, DEV
+from spyder.config.base import _, get_image_path, DEV
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg'), 'svg'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
@@ -118,16 +118,16 @@ QApplication.processEvents()
 # Local utility imports
 #==============================================================================
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
-from spyderlib.config.base import (get_conf_path, get_module_data_path,
-                                   get_module_source_path, STDERR, DEBUG,
-                                   debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
-                                   running_in_mac_app, get_module_path)
-from spyderlib.config.main import CONF, OPEN_FILES_PORT
-from spyderlib.config.utils import IMPORT_EXT, is_gtk_desktop
+from spyder.config.base import (get_conf_path, get_module_data_path,
+                                get_module_source_path, STDERR, DEBUG,
+                                debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
+                                running_in_mac_app, get_module_path)
+from spyder.config.main import CONF, OPEN_FILES_PORT
+from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyderlib import dependencies
-from spyderlib.config.ipython import QTCONSOLE_INSTALLED
-from spyderlib.config.user import NoDefault
+from spyder.config.ipython import QTCONSOLE_INSTALLED
+from spyder.config.user import NoDefault
 from spyderlib.py3compat import (getcwd, is_text_string, to_text_string,
                                  PY3, qbytearray_to_str, u, configparser as cp)
 from spyderlib.utils import encoding, programs
@@ -153,7 +153,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_module_bookmark_actions,
                                        create_program_action, DialogManager,
                                        create_python_script_action, file_uri)
-from spyderlib.config.gui import get_shortcut
+from spyder.config.gui import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 

@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import get_conf_path, get_translation
+from spyder.config.base import get_conf_path, get_translation
 from spyderlib.py3compat import getcwd, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,

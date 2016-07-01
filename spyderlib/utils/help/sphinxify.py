@@ -32,8 +32,8 @@ import sphinx
 from sphinx.application import Sphinx
 
 # Local imports
-from spyderlib.config.base import (_, get_module_data_path,
-                                  get_module_source_path)
+from spyder.config.base import (_, get_module_data_path,
+                                get_module_source_path)
 from spyderlib.utils import encoding
 
 

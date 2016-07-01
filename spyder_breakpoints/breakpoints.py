@@ -16,7 +16,7 @@
 import os.path as osp
 
 # Local imports
-from spyderlib.config.base import get_translation
+from spyder.config.base import get_translation
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin

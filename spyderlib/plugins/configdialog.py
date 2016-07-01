@@ -26,12 +26,12 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QStyleFactory, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import (_, LANGUAGE_CODES, load_lang_conf,
-                                   running_in_mac_app, save_lang_conf)
-from spyderlib.config.gui import get_font, set_font
-from spyderlib.config.main import CONF
-from spyderlib.config.user import NoDefault
-from spyderlib.config.utils import is_gtk_desktop
+from spyder.config.base import (_, LANGUAGE_CODES, load_lang_conf,
+                                running_in_mac_app, save_lang_conf)
+from spyder.config.gui import get_font, set_font
+from spyder.config.main import CONF
+from spyder.config.user import NoDefault
+from spyder.config.utils import is_gtk_desktop
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import syntaxhighlighters

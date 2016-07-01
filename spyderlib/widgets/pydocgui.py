@@ -16,7 +16,7 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.py3compat import PY3, to_text_string
 from spyderlib.utils.misc import select_port
 from spyderlib.widgets.browser import WebBrowser

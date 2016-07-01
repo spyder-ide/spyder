@@ -16,7 +16,7 @@ import threading
 from qtpy.QtCore import QThread, Signal
 
 # Local imports
-from spyderlib.config.base import get_conf_path, DEBUG
+from spyder.config.base import get_conf_path, DEBUG
 from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 from spyderlib.utils.misc import select_port

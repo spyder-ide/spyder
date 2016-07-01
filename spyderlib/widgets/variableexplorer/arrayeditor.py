@@ -30,9 +30,9 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
 import numpy as np
 
 # Local imports
-from spyderlib.config.base import _
-from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.config.gui import get_font, fixed_shortcut
+from spyder.config.base import _
+from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.gui import get_font, fixed_shortcut
 from spyderlib.py3compat import (io, is_binary_string, is_string,
                                  is_text_string, PY3, to_binary_string,
                                  to_text_string)

@@ -23,8 +23,8 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 
 # Local imports
-from spyderlib.config.base import _, debug_print
-from spyderlib.config.main import CONF
+from spyder.config.base import _, debug_print
+from spyder.config.main import CONF
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.utils.misc import get_error_match, remove_backslashes

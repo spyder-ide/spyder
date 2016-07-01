@@ -31,11 +31,11 @@ from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
-from spyderlib.config.base import (_, get_conf_path, get_image_path,
-                                   get_module_source_path)
-from spyderlib.config.gui import (config_shortcut, get_font, get_shortcut,
-                                  fixed_shortcut)
-from spyderlib.config.main import CONF
+from spyder.config.base import (_, get_conf_path, get_image_path,
+                                get_module_source_path)
+from spyder.config.gui import (config_shortcut, get_font, get_shortcut,
+                               fixed_shortcut)
+from spyder.config.main import CONF
 from spyderlib.py3compat import PY3
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs, sourcecode

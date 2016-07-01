@@ -43,11 +43,11 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # %% This line is for cell execution testing
 
 # Local imports
-from spyderlib.config.base import get_conf_path, _, DEBUG
-from spyderlib.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
-                                  RUN_CELL_SHORTCUT,
-                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyderlib.config.main import CONF
+from spyder.config.base import get_conf_path, _, DEBUG
+from spyder.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
+                               RUN_CELL_SHORTCUT,
+                               RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.main import CONF
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import syntaxhighlighters as sh

@@ -177,7 +177,7 @@ if os.name == 'nt' and PY2:
 # Settings for our MacOs X app
 #==============================================================================
 if sys.platform == 'darwin':
-    from spyderlib.config.base import MAC_APP_NAME
+    from spyder.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
         if IS_EXT_INTERPRETER.lower() == "true":
             # Add a minimal library (with spyderlib) at the end of sys.path to
@@ -513,7 +513,7 @@ class SpyderPdb(pdb.Pdb):
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
         #------
-        from spyderlib.config.main import CONF
+        from spyder.config.main import CONF
         CONF.load_from_ini()
         if CONF.get('run', 'breakpoints/enabled', True):
             breakpoints = CONF.get('run', 'breakpoints', {})
@@ -907,7 +907,7 @@ def evalsc(command):
             programs.run_shell_command('ls')
             _print('\n')
     elif command == 'scientific':
-        from spyderlib.config import base
+        from spyder.config import base
         execfile(base.SCIENTIFIC_STARTUP, namespace)
     else:
         raise NotImplementedError("Unsupported command: '%s'" % command)

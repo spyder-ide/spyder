@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -19,7 +19,7 @@ import os
 if os.name == 'nt':
     import os.path as osp
     import sys
-    from spyderlib.config.base import get_module_source_path
+    from spyder.config.base import get_module_source_path
 
     dirname = get_module_source_path(__name__)
     if osp.isdir(osp.join(dirname, 'rope')):

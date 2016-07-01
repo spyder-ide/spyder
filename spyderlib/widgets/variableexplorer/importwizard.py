@@ -28,7 +28,7 @@ except ImportError:
     pd = None
 
 # Local import
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.py3compat import (INT_TYPES, io, TEXT_TYPES, to_text_string,
                                  zip_longest)
 from spyderlib.utils import programs

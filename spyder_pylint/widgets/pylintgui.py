@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import get_conf_path, get_translation
+from spyder.config.base import get_conf_path, get_translation
 from spyderlib.py3compat import getcwd, pickle, PY3, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs

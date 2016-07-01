@@ -23,8 +23,8 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _
-from spyderlib.config.main import CONF
+from spyder.config.base import _
+from spyder.config.main import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
 from spyderlib.utils.sourcecode import CELL_LANGUAGES
 

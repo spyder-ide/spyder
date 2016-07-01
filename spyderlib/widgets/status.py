@@ -15,8 +15,8 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _
-from spyderlib.config.gui import get_font
+from spyder.config.base import _
+from spyder.config.gui import get_font
 from spyderlib.py3compat import to_text_string
 
 

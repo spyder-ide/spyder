@@ -126,7 +126,7 @@ else:
 
 if options.debug:
     # safety check - Spyder config should not be imported at this point
-    if "spyderlib.config.base" in sys.modules:
+    if "spyder.config.base" in sys.modules:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
     print("0x. Switching debug mode on")
     os.environ["SPYDER_DEBUG"] = "True"

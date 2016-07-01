@@ -11,7 +11,7 @@ Rope introspection plugin
 import time
 import imp
 
-from spyderlib.config.base import get_conf_path, STDERR
+from spyder.config.base import get_conf_path, STDERR
 from spyderlib.utils import encoding, programs
 from spyderlib.py3compat import PY2
 from spyderlib.utils.dochelpers import getsignaturefromtext

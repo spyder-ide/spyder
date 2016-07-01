@@ -18,7 +18,7 @@ from qtpy.QtWidgets import QApplication
 import zmq
 
 # Local imports
-from spyderlib.config.base import debug_print, DEV, get_module_path
+from spyder.config.base import debug_print, DEV, get_module_path
 
 
 # Heartbeat timer in milliseconds

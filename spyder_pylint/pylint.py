@@ -19,7 +19,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
-from spyderlib.config.base import get_translation
+from spyder.config.base import get_translation
 from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action

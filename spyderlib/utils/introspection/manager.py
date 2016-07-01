@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _, DEBUG, debug_print, get_conf_path
+from spyder.config.base import _, DEBUG, debug_print, get_conf_path
 from spyderlib.utils import sourcecode
 from spyderlib.utils.introspection.plugin_client import PluginClient
 from spyderlib.utils.introspection.utils import CodeInfo

@@ -25,9 +25,9 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
 import numpy as np
 
 # Local imports
-from spyderlib.config.base import _
-from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.config.gui import get_font, fixed_shortcut
+from spyder.config.base import _
+from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.gui import get_font, fixed_shortcut
 from spyderlib.py3compat import io, is_text_string, PY2, to_text_string
 from spyderlib.utils import encoding
 from spyderlib.utils import icon_manager as ima

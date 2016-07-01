@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2012 The Spyder development team
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """
 Spyder GUI-related configuration management
-(for non-GUI configuration, see spyderlib/config/base.py)
+(for non-GUI configuration, see spyder/config/base.py)
 
 Important note regarding shortcuts:
     For compatibility with QWERTZ keyboards, one must avoid using the following
@@ -24,8 +24,8 @@ from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
 
 # Local imports
-from spyderlib.config.main import CONF
-from spyderlib.config.user import NoDefault
+from spyder.config.main import CONF
+from spyder.config.user import NoDefault
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import syntaxhighlighters as sh
 

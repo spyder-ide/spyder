@@ -23,7 +23,7 @@ from qtpy.QtGui import QFont
 from qtpy.QtWidgets import QComboBox, QCompleter, QSizePolicy, QToolTip
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.py3compat import to_text_string
 from spyderlib.widgets.helperwidgets import IconLineEdit
 

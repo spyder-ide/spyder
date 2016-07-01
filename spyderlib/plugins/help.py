@@ -22,9 +22,9 @@ from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _, get_conf_path, get_module_source_path
-from spyderlib.config.fonts import DEFAULT_SMALL_DELTA
-from spyderlib.config.ipython import QTCONSOLE_INSTALLED
+from spyder.config.base import _, get_conf_path, get_module_source_path
+from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import get_meth_class_inst, to_text_string
 from spyderlib.utils import icon_manager as ima

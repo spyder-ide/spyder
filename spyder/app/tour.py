@@ -12,7 +12,8 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import division
+from __future__ import division, absolute_import
+
 import sys
 
 # Third party imports
@@ -26,7 +27,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
                             QSpacerItem, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import _, get_image_path
+from spyder.config.base import _, get_image_path
 from spyderlib.utils.qthelpers import add_actions, create_action
 
 # FIXME: Known issues

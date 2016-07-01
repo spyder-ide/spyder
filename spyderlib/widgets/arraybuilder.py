@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
                             QWidget)
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.utils import icon_manager as ima
 from spyderlib.widgets.helperwidgets import HelperToolButton
 

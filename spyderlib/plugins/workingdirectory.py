@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
                             QToolBar, QVBoxLayout)
 
 # Local imports
-from spyderlib.config.base import _, get_conf_path, get_home_dir
+from spyder.config.base import _, get_conf_path, get_home_dir
 from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.py3compat import to_text_string, getcwd
 from spyderlib.utils import encoding

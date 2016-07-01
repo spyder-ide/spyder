@@ -37,8 +37,8 @@ from spyderlib.widgets.variableexplorer.objecteditor import oedit
 # TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
-from spyderlib.config.base import _, DEBUG, get_conf_path
-from spyderlib.config.main import CONF
+from spyder.config.base import _, DEBUG, get_conf_path
+from spyder.config.main import CONF
 
 
 builtins.oedit = oedit

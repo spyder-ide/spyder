@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QLineEdit,
                             QMenu, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import _, get_conf_path
+from spyder.config.base import _, get_conf_path
 from spyderlib.py3compat import is_text_string, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (add_actions, create_action,

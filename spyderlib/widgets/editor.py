@@ -28,11 +28,11 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
                             QWidget)
 
 # Local imports
-from spyderlib.config.base import _, DEBUG, STDERR, STDOUT
-from spyderlib.config.gui import (config_shortcut, fixed_shortcut,
-                                  RUN_CELL_SHORTCUT,
-                                  RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyderlib.config.utils import get_edit_extensions
+from spyder.config.base import _, DEBUG, STDERR, STDOUT
+from spyder.config.gui import (config_shortcut, fixed_shortcut,
+                               RUN_CELL_SHORTCUT,
+                               RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.utils import get_edit_extensions
 from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import (codeanalysis, encoding, sourcecode,
@@ -2368,7 +2368,7 @@ class EditorPluginExample(QSplitter):
 
 def test():
     from spyderlib.utils.qthelpers import qapplication
-    from spyderlib.config.base import get_module_path
+    from spyder.config.base import get_module_path
     from spyderlib.utils.introspection.manager import IntrospectionManager
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')

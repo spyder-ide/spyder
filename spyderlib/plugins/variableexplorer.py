@@ -11,8 +11,8 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 
 # Local imports
-from spyderlib.config.base import _
-from spyderlib.config.main import CONF
+from spyder.config.base import _
+from spyder.config.main import CONF
 from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.utils import programs
 from spyderlib.utils import icon_manager as ima

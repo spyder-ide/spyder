@@ -21,8 +21,8 @@ from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
                             QSizePolicy, QWidget)
 
 # Local imports
-from spyderlib.config.base import _
-from spyderlib.config.gui import config_shortcut, fixed_shortcut
+from spyder.config.base import _
+from spyder.config.gui import config_shortcut, fixed_shortcut
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_toolbutton, get_icon

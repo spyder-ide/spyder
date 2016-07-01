@@ -25,8 +25,8 @@ from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QVBoxLayout,
                             QWidget)
 
 # Local imports
-from spyderlib.config.base import get_translation
-from spyderlib.config.main import CONF
+from spyder.config.base import get_translation
+from spyder.config.main import CONF
 from spyderlib.utils.qthelpers import add_actions, create_action
 
 # This is needed for testing this module as a stand alone script

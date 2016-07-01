@@ -24,9 +24,9 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QTableView, QVBoxLayout)
 
 # Local imports
-from spyderlib.config.base import _, debug_print
-from spyderlib.config.gui import (get_shortcut, iter_shortcuts,
-                                  reset_shortcuts, set_shortcut)
+from spyder.config.base import _, debug_print
+from spyder.config.gui import (get_shortcut, iter_shortcuts,
+                               reset_shortcuts, set_shortcut)
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon

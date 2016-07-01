@@ -12,7 +12,7 @@ import os.path as osp
 import sys
 import time
 
-from spyderlib.config.base import debug_print
+from spyder.config.base import debug_print
 from spyderlib.utils import programs
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.utils.dochelpers import getsignaturefromtext

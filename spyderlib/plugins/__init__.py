@@ -30,10 +30,10 @@ from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow,
                             QShortcut, QTabBar, QWidget)
 
 # Local imports
-from spyderlib.config.base import _
-from spyderlib.config.gui import get_color_scheme, get_font
-from spyderlib.config.main import CONF
-from spyderlib.config.user import NoDefault
+from spyder.config.base import _
+from spyder.config.gui import get_color_scheme, get_font
+from spyder.config.main import CONF
+from spyder.config.user import NoDefault
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
 from spyderlib.utils import icon_manager as ima

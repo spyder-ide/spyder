@@ -371,7 +371,7 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.config.base import get_conf_path, STDERR
+from spyder.config.base import get_conf_path, STDERR
 
 SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
                       'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
@@ -463,7 +463,7 @@ def load_session(filename):
     return error_message
 
 
-from spyderlib.config.base import _
+from spyder.config.base import _
 
 class IOFunctions(object):
     def __init__(self):

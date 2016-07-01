@@ -17,7 +17,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
 
 # Local imports
-from spyderlib.config.base import _, STDOUT
+from spyder.config.base import _, STDOUT
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,

@@ -16,8 +16,8 @@ import tempfile
 import pytest
 
 # Local imports
-from spyderlib.config.user import UserConfig
-from spyderlib.config.main import CONF_VERSION, DEFAULTS
+from spyder.config.user import UserConfig
+from spyder.config.main import CONF_VERSION, DEFAULTS
 
 
 @pytest.fixture

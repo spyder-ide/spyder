@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QFileIconProvider, QHBoxLayout,
                             QMessageBox, QPushButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import _, get_image_path, STDERR
+from spyder.config.base import _, get_image_path, STDERR
 from spyderlib.py3compat import getcwd, pickle, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import misc

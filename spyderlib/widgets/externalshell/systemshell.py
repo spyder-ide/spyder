@@ -15,7 +15,7 @@ from qtpy.QtCore import QProcess, QProcessEnvironment, QTextCodec, Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.py3compat import is_text_string, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.programs import shell_split

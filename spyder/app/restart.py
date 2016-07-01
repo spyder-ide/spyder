@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2015 The Spyder Development Team
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -26,7 +26,7 @@ from qtpy.QtGui import QColor, QPixmap
 from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 
 # Local imports
-from spyderlib.config.base import _, get_image_path
+from spyder.config.base import _, get_image_path
 from spyderlib.py3compat import to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import qapplication

@@ -27,9 +27,9 @@ import sys
 from IPython.core.completerlib import module_list
 
 from spyderlib import __version__ as spy_version
-from spyderlib.config.main import EDIT_EXT
-from spyderlib.config.base import MAC_APP_NAME
-from spyderlib.utils.programs import find_program
+from spyder.config.main import EDIT_EXT
+from spyder.config.base import MAC_APP_NAME
+from spyder.utils.programs import find_program
 
 
 PY2 = sys.version[0] == '2'

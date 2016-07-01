@@ -14,7 +14,7 @@ import sys
 import traceback
 
 # Local imports
-from spyderlib.config.base import get_conf_path
+from spyder.config.base import get_conf_path
 from spyderlib.py3compat import PY2
 
 if PY2:

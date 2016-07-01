@@ -33,7 +33,7 @@ def kernel_config():
     import os
 
     from IPython.core.application import get_ipython_dir
-    from spyderlib.config.main import CONF
+    from spyder.config.main import CONF
     from spyderlib.utils.programs import is_module_installed
     from traitlets.config.loader import Config, load_pyconfig_files
 

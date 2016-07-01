@@ -27,9 +27,9 @@ from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
 from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolTip
 
 # Local import
-from spyderlib.config.base import _, DEBUG, get_conf_path, STDERR
-from spyderlib.config.gui import config_shortcut, get_shortcut, fixed_shortcut
-from spyderlib.config.main import CONF
+from spyder.config.base import _, DEBUG, get_conf_path, STDERR
+from spyder.config.gui import config_shortcut, get_shortcut, fixed_shortcut
+from spyder.config.main import CONF
 from spyderlib.py3compat import (builtins, is_string, is_text_string,
                                  PY3, to_text_string)
 from spyderlib.utils import encoding

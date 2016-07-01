@@ -27,8 +27,8 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QInputDialog,
 
 # Local imports
 from spyderlib import dependencies
-from spyderlib.config.base import _, running_in_mac_app, SCIENTIFIC_STARTUP
-from spyderlib.config.main import CONF
+from spyder.config.base import _, running_in_mac_app, SCIENTIFIC_STARTUP
+from spyder.config.main import CONF
 from spyderlib.utils import encoding, programs
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.misc import (get_error_match, get_python_executable,

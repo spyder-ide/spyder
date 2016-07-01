@@ -14,7 +14,7 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyderlib import __version__
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.py3compat import PY3
 from spyderlib.utils.programs import check_version, is_stable_version
 

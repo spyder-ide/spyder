@@ -19,8 +19,8 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import _
-from spyderlib.config.main import CONF
+from spyder.config.base import _
+from spyder.config.main import CONF
 from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import getcwd, to_text_string
 from spyderlib.utils import icon_manager as ima

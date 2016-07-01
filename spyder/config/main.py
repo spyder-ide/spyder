@@ -16,11 +16,11 @@ import sys
 import os.path as osp
 
 # Local import
-from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                   get_home_dir)
-from spyderlib.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
-from spyderlib.config.user import UserConfig
-from spyderlib.config.utils import IMPORT_EXT
+from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
+                                get_home_dir)
+from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
+from spyder.config.user import UserConfig
+from spyder.config.utils import IMPORT_EXT
 from spyderlib.utils import codeanalysis
 
 

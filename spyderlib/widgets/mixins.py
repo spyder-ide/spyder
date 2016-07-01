@@ -24,7 +24,7 @@ from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
 
 # Local imports
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.py3compat import is_text_string, to_text_string, u
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.dochelpers import (getargspecfromtext, getobj,

@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QFontDialog, QGroupBox, QHBoxLayout, QInputDialog,
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.config.base import _
+from spyder.config.base import _
 from spyderlib.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import is_text_string, to_text_string
 from spyderlib.utils import icon_manager as ima
