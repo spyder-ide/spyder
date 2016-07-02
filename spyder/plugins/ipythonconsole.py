@@ -44,10 +44,10 @@ from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import programs
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils.qthelpers import create_action
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils.misc import get_error_match, remove_backslashes
+from spyder.utils.qthelpers import create_action
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipython import IPythonClient
 from spyder.widgets.tabs import Tabs

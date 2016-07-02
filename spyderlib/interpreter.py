@@ -19,10 +19,10 @@ import pydoc
 from code import InteractiveConsole
 
 # Local imports:
-from spyderlib.utils.dochelpers import isdefined
-from spyderlib.utils import encoding, programs
+from spyder.utils.dochelpers import isdefined
+from spyder.utils import encoding, programs
 from spyderlib.py3compat import is_text_string, getcwd
-from spyderlib.utils.misc import remove_backslashes
+from spyder.utils.misc import remove_backslashes
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')

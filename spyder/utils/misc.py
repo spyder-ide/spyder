@@ -262,7 +262,7 @@ if __name__ == '__main__':
     else:
         assert get_common_path([
                                 '/Python/spyder-v21/spyder.widgets',
-                                '/Python/spyder/spyderlib/utils',
+                                '/Python/spyder/spyder.utils',
                                 '/Python/spyder/spyder.widgets',
-                                '/Python/spyder-v21/spyderlib/utils',
+                                '/Python/spyder-v21/spyder.utils',
                                 ]) == '/Python'

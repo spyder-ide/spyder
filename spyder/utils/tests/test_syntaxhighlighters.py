@@ -9,7 +9,7 @@ import pytest
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QTextDocument
 
-from spyderlib.utils.syntaxhighlighters import HtmlSH, PythonSH
+from spyder.utils.syntaxhighlighters import HtmlSH, PythonSH
 
 def compare_formats(actualFormats, expectedFormats, sh):
     assert len(actualFormats) == len(expectedFormats)

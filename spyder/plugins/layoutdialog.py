@@ -328,7 +328,7 @@ class LayoutSettingsDialog(QDialog):
 
 def test():
     """Run layout test widget test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
 
     app = qapplication()
     names = ['test', 'tester', '20', '30', '40']

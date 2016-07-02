@@ -34,7 +34,7 @@ from sphinx.application import Sphinx
 # Local imports
 from spyder.config.base import (_, get_module_data_path,
                                 get_module_source_path)
-from spyderlib.utils import encoding
+from spyder.utils import encoding
 
 
 #-----------------------------------------------------------------------------
@@ -43,18 +43,18 @@ from spyderlib.utils import encoding
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
-CONFDIR_PATH = get_module_source_path('spyderlib.utils.help')
+CONFDIR_PATH = get_module_source_path('spyder.utils.help')
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
 # To let Debian packagers redefine the MathJax and JQuery locations so they can
 # use their own packages for them. See Issue 1230, comment #7.
-MATHJAX_PATH = get_module_data_path('spyderlib',
+MATHJAX_PATH = get_module_data_path('spyder',
                                     relpath=osp.join('utils', 'help',
                                                      JS_PATH, 'mathjax'),
                                     attr_name='MATHJAXPATH')
 
-JQUERY_PATH = get_module_data_path('spyderlib',
+JQUERY_PATH = get_module_data_path('spyder',
                                    relpath=osp.join('utils', 'help',
                                                     JS_PATH),
                                    attr_name='JQUERYPATH')
@@ -197,7 +197,7 @@ def sphinxify(docstring, context, buildername='html'):
         confdir = encoding.to_unicode_from_fs(confdir)
         generate_configuration(confdir)
     else:
-        confdir = osp.join(get_module_source_path('spyderlib.utils.help'))
+        confdir = osp.join(get_module_source_path('spyder.utils.help'))
 
     confoverrides = {'html_context': context}
 
@@ -242,7 +242,7 @@ def generate_configuration(directory):
     """
     
     # conf.py file for Sphinx
-    conf = osp.join(get_module_source_path('spyderlib.utils.help'),
+    conf = osp.join(get_module_source_path('spyder.utils.help'),
                     'conf.py')
 
     # Docstring layout page (in Jinja):

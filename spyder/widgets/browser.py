@@ -19,9 +19,9 @@ from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
 # Local imports
 from spyder.config.base import _, DEV
 from spyderlib.py3compat import is_text_string, to_text_string
-from spyderlib.utils.qthelpers import (action2button, add_actions,
-                                       create_action, create_toolbutton)
-from spyderlib.utils import icon_manager as ima
+from spyder.utils.qthelpers import (action2button, add_actions,
+                                    create_action, create_toolbutton)
+from spyder.utils import icon_manager as ima
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
 
@@ -305,7 +305,7 @@ class FrameWebView(QFrame):
 
 def test():
     """Run web browser"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=8)
     widget = WebBrowser()
     widget.show()

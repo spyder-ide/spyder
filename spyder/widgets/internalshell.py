@@ -27,11 +27,11 @@ from spyderlib import get_versions
 from spyderlib.interpreter import Interpreter
 from spyderlib.py3compat import (builtins, getcwd, to_binary_string,
                                  to_text_string, u)
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import programs
-from spyderlib.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
-from spyderlib.utils.misc import get_error_match
-from spyderlib.utils.qthelpers import create_action
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
+from spyder.utils.misc import get_error_match
+from spyder.utils.qthelpers import create_action
 from spyder.widgets.shell import PythonShellWidget
 from spyder.widgets.variableexplorer.objecteditor import oedit
 # TODO: remove the CONF object and make it work anyway

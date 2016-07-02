@@ -18,13 +18,13 @@ from qtpy.QtWidgets import (QFontDialog, QGroupBox, QHBoxLayout, QInputDialog,
 
 
 # Local imports
-from spyderlib.utils import encoding
+from spyder.utils import encoding
 from spyder.config.base import _
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import is_text_string, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       create_toolbutton)
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton)
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.sourcecode import codeeditor
 from spyder.widgets.findreplace import FindReplace

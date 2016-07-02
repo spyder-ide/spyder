@@ -33,8 +33,8 @@ from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.config.utils import is_gtk_desktop
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import syntaxhighlighters
+from spyder.utils import icon_manager as ima
+from spyder.utils import syntaxhighlighters
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 

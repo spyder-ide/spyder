@@ -17,8 +17,8 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.config.base import _
 from spyderlib.py3compat import is_text_string, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.programs import shell_split
+from spyder.utils import icon_manager as ima
+from spyder.utils.programs import shell_split
 from spyder.widgets.externalshell.baseshell import (add_pathlist_to_PYTHONPATH,
                                                     ExternalShellBase)
 from spyder.widgets.shell import TerminalWidget
@@ -164,7 +164,7 @@ class ExternalSystemShell(ExternalShellBase):
 #==============================================================================
 def test():
     import os.path as osp
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=5)
     shell = ExternalSystemShell(wdir=osp.dirname(__file__),
                                 light_background=False)

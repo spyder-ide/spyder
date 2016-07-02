@@ -27,12 +27,12 @@ from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
 from spyderlib.py3compat import get_meth_class_inst, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import programs
-from spyderlib.utils.help.sphinxify import (CSS_PATH, generate_context,
-                                            sphinxify, usage, warning)
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       create_toolbutton)
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils.help.sphinxify import (CSS_PATH, generate_context,
+                                         sphinxify, usage, warning)
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton)
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.externalshell.pythonshell import ExtPythonShellWidget
@@ -266,7 +266,7 @@ class SphinxThread(QThread):
     doc : str or dict
         A string containing a raw rst text or a dict containing
         the doc string components to be rendered.
-        See spyderlib.utils.dochelpers.getdoc for description.
+        See spyder.utils.dochelpers.getdoc for description.
     context : dict
         A dict containing the substitution variables for the
         layout template
@@ -746,7 +746,7 @@ class Help(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
-        tutorial_path = get_module_source_path('spyderlib.utils.help')
+        tutorial_path = get_module_source_path('spyder.utils.help')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
         self.show_rich_text(text, collapse=True)

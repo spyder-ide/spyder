@@ -24,7 +24,7 @@ import time
 from spyderlib import __version__
 from spyder.config.base import (DEV, TEST, get_module_source_path,
                                 get_home_dir)
-from spyderlib.utils.programs import check_version
+from spyder.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
 

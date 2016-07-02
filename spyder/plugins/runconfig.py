@@ -23,7 +23,7 @@ from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import getcwd, to_text_string
-from spyderlib.utils import icon_manager as ima
+from spyder.utils import icon_manager as ima
 
 
 CURRENT_INTERPRETER = _("Execute in current Python or IPython console")

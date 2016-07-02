@@ -12,16 +12,16 @@ import time
 import imp
 
 from spyder.config.base import get_conf_path, STDERR
-from spyderlib.utils import encoding, programs
+from spyder.utils import encoding, programs
 from spyderlib.py3compat import PY2
-from spyderlib.utils.dochelpers import getsignaturefromtext
-from spyderlib.utils import sourcecode
-from spyderlib.utils.debug import log_last_error, log_dt
-from spyderlib.utils.introspection.manager import (
+from spyder.utils.dochelpers import getsignaturefromtext
+from spyder.utils import sourcecode
+from spyder.utils.debug import log_last_error, log_dt
+from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
-from spyderlib.utils.introspection.module_completion import (
+from spyder.utils.introspection.module_completion import (
     get_preferred_submodules)
-from spyderlib.utils.introspection.manager import ROPE_REQVER
+from spyder.utils.introspection.manager import ROPE_REQVER
 
 try:
     try:
@@ -285,7 +285,7 @@ class RopePlugin(IntrospectionPlugin):
 
 if __name__ == '__main__':
 
-    from spyderlib.utils.introspection.manager import CodeInfo
+    from spyder.utils.introspection.manager import CodeInfo
 
     p = RopePlugin()
     p.load_plugin()

@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QVBoxLayout,
 # Local imports
 from spyder.config.base import get_translation
 from spyder.config.main import CONF
-from spyderlib.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import add_actions, create_action
 
 # This is needed for testing this module as a stand alone script
 try:
@@ -261,7 +261,7 @@ class BreakpointWidget(QWidget):
 #==============================================================================
 def test():
     """Run breakpoint widget test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     widget = BreakpointWidget(None)
     widget.show()

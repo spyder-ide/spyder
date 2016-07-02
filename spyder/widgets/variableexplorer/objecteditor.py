@@ -113,7 +113,7 @@ def oedit(obj, modal=True, namespace=None):
     so it can be called directly from the interpreter)
     """
     # Local import
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     
     if modal:

@@ -13,7 +13,7 @@ from qtpy.QtGui import QTextCursor
 import pytest
 
 # Local imports
-from spyderlib.utils.qthelpers import qapplication
+from spyder.utils.qthelpers import qapplication
 from spyderlib.py3compat import to_text_string
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 

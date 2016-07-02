@@ -18,8 +18,8 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 # Local imports
 from spyder.config.base import get_translation
 from spyder.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
 
 

@@ -14,8 +14,8 @@ from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.plugins import PluginConfigPage, SpyderPluginMixin
-from spyderlib.utils import programs
-from spyderlib.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils import icon_manager as ima
 from spyder.widgets.externalshell.monitor import REMOTE_SETTINGS
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 

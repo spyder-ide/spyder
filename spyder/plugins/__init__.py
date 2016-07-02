@@ -36,8 +36,8 @@ from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.plugins.configdialog import SpyderConfigPage
 from spyderlib.py3compat import configparser, is_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action, toggle_actions
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action, toggle_actions
 
 
 class PluginConfigPage(SpyderConfigPage):

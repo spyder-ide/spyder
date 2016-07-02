@@ -29,11 +29,11 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
 # Local imports
 from spyder.config.base import _
 from spyderlib.py3compat import getcwd, to_text_string
-from spyderlib.utils import programs
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.misc import abspardir, get_common_path
-from spyderlib.utils.qthelpers import create_toolbutton, get_filetype_icon
-from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
+from spyder.utils import programs
+from spyder.utils import icon_manager as ima
+from spyder.utils.misc import abspardir, get_common_path
+from spyder.utils.qthelpers import create_toolbutton, get_filetype_icon
+from spyder.utils.vcs import is_hg_installed, get_vcs_root
 from spyder.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 
@@ -786,7 +786,7 @@ class FindInFilesWidget(QWidget):
             
 def test():
     """Run Find in Files widget test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     widget = FindInFilesWidget(None)
     widget.resize(640, 480)

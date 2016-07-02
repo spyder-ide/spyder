@@ -27,7 +27,7 @@ from qtpy.QtWidgets import QShortcut
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyderlib.py3compat import to_text_string
-from spyderlib.utils import syntaxhighlighters as sh
+from spyder.utils import syntaxhighlighters as sh
 
 
 # Run cell shortcuts

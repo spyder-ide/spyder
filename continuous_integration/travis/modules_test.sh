@@ -40,10 +40,10 @@ for f in spyderlib/*/*.py; do
     if [[ $f == spyder/plugins/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/qthelpers.py ]]; then
+    if [[ $f == spyder/utils/qthelpers.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/windows.py ]]; then
+    if [[ $f == spyder/utils/windows.py ]]; then
         continue
     fi
     # TODO: Understand why formlayout is failing in Travis!!
@@ -65,13 +65,13 @@ for f in spyderlib/*/*/*.py; do
     if [[ $f == spyderlib/external/*/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/external/*.py ]]; then
+    if [[ $f == spyder/utils/external/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/help/*.py ]]; then
+    if [[ $f == spyder/utils/help/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/introspection/plugin_client.py ]]; then
+    if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
     if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then

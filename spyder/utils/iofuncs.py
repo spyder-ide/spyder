@@ -45,7 +45,7 @@ class MatlabStruct(dict):
 
     Examples
     ========
-    >>> from spyderlib.utils.iofuncs import MatlabStruct
+    >>> from spyder.utils.iofuncs import MatlabStruct
     >>> a = MatlabStruct()
     >>> a.b = 'spam'  # a["b"] == 'spam'
     >>> a.c["d"] = 'eggs'  # a.c.d == 'eggs'

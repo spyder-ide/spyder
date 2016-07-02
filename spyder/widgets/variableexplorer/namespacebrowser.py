@@ -24,13 +24,13 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
 # Local imports
 from spyder.config.base import _, get_supported_types
 from spyderlib.py3compat import is_text_string, getcwd, to_text_string
-from spyderlib.utils import encoding
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.iofuncs import iofunctions
-from spyderlib.utils.misc import fix_reference_name
-from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       create_toolbutton)
+from spyder.utils import encoding
+from spyder.utils import icon_manager as ima
+from spyder.utils.iofuncs import iofunctions
+from spyder.utils.misc import fix_reference_name
+from spyder.utils.programs import is_module_installed
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton)
 from spyder.widgets.externalshell.monitor import (
     communicate, monitor_copy_global, monitor_del_global, monitor_get_global,
     monitor_load_globals, monitor_save_globals, monitor_set_global,

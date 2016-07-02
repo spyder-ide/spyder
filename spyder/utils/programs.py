@@ -19,7 +19,7 @@ import sys
 import tempfile
 
 # Local imports
-from spyderlib.utils import encoding
+from spyder.utils import encoding
 from spyderlib.py3compat import PY2, is_text_string
 
 

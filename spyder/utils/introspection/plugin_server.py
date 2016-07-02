@@ -111,7 +111,7 @@ class PluginServer(AsyncServer):
         """Initialize the object and return it.
         """
         mod_name = plugin_name + '_plugin'
-        mod = __import__('spyderlib.utils.introspection.' + mod_name,
+        mod = __import__('spyder.utils.introspection.' + mod_name,
                          fromlist=[mod_name])
         cls = getattr(mod, '%sPlugin' % plugin_name.capitalize())
         plugin = cls()

@@ -18,8 +18,8 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import get_std_icon
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import get_std_icon
 
 
 class HelperToolButton(QToolButton):
@@ -236,7 +236,7 @@ class IconLineEdit(QLineEdit):
 
 
 def test_msgcheckbox():
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     box = MessageCheckBox()
     box.setWindowTitle(_("Spyder updates"))

@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_image_path
-from spyderlib.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import add_actions, create_action
 
 # FIXME: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython

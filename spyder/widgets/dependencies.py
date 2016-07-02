@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyderlib import __version__
 from spyder.config.base import _
-from spyderlib.utils import icon_manager as ima
+from spyder.utils import icon_manager as ima
 
 
 class DependenciesTableModel(QAbstractTableModel):
@@ -188,7 +188,7 @@ def test():
     dependencies.add("sympy", "Symbolic Mathematics", ">=10.0")
     dependencies.add("foo", "Non-existent module", ">=1.0")
     
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     dlg = DependenciesDialog(None)
     dlg.set_data(dependencies.DEPENDENCIES)

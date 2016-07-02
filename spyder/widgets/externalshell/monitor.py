@@ -17,13 +17,13 @@ import struct
 import threading
 
 # Local imports
-from spyderlib.utils.misc import fix_reference_name
-from spyderlib.utils.debug import log_last_error
-from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
-                                        getobjdir, isdefined)
-from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
-                                       PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
-from spyderlib.utils.introspection.module_completion import module_completion
+from spyder.utils.misc import fix_reference_name
+from spyder.utils.debug import log_last_error
+from spyder.utils.dochelpers import (getargtxt, getdoc, getsource,
+                                     getobjdir, isdefined)
+from spyder.utils.bsdsocket import (communicate, read_packet, write_packet,
+                                    PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
+from spyder.utils.introspection.module_completion import module_completion
 from spyder.config.base import get_conf_path, get_supported_types, DEBUG
 from spyderlib.py3compat import getcwd, is_text_string, pickle, _thread
 
@@ -459,7 +459,7 @@ class Monitor(threading.Thread):
     def saveglobals(self):
         """Save globals() into filename"""
         ns = self.get_current_namespace()
-        from spyderlib.utils.iofuncs import iofunctions
+        from spyder.utils.iofuncs import iofunctions
         settings = read_packet(self.i_request)
         filename = read_packet(self.i_request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
@@ -470,7 +470,7 @@ class Monitor(threading.Thread):
     def loadglobals(self):
         """Load globals() from filename"""
         glbs = self.mglobals()
-        from spyderlib.utils.iofuncs import iofunctions
+        from spyder.utils.iofuncs import iofunctions
         filename = read_packet(self.i_request)
         ext = read_packet(self.i_request)
         load_func = iofunctions.load_funcs[ext]

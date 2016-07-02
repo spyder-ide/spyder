@@ -49,12 +49,12 @@ from spyder.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.main import CONF
 from spyderlib.py3compat import to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import syntaxhighlighters as sh
-from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils.qthelpers import add_actions, create_action, mimedata2url
-from spyderlib.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.utils import icon_manager as ima
+from spyder.utils import syntaxhighlighters as sh
+from spyder.utils import encoding, sourcecode
+from spyder.utils.dochelpers import getobj
+from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
+from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.editortools import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
@@ -2952,15 +2952,15 @@ class TestWidget(QSplitter):
 
 
 def test(fname):
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=5)
     win = TestWidget(None)
     win.show()
     win.load(fname)
     win.resize(900, 700)
 
-    from spyderlib.utils.codeanalysis import (check_with_pyflakes,
-                                              check_with_pep8)
+    from spyder.utils.codeanalysis import (check_with_pyflakes,
+                                           check_with_pep8)
     source_code = to_text_string(win.editor.toPlainText())
     results = check_with_pyflakes(source_code, fname) + \
               check_with_pep8(source_code, fname)

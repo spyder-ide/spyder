@@ -56,9 +56,9 @@ set_attached_console_visible = None
 is_attached_console_visible = None
 set_windows_appusermodelid = None
 if os.name == 'nt':
-    from spyderlib.utils.windows import (set_attached_console_visible,
-                                         is_attached_console_visible,
-                                         set_windows_appusermodelid)
+    from spyder.utils.windows import (set_attached_console_visible,
+                                      is_attached_console_visible,
+                                      set_windows_appusermodelid)
 
 
 #==============================================================================
@@ -96,7 +96,7 @@ from qtpy import QtWebEngineWidgets
 # Create our QApplication instance here because it's needed to render the
 # splash screen created below
 #==============================================================================
-from spyderlib.utils.qthelpers import qapplication
+from spyder.utils.qthelpers import qapplication
 MAIN_APP = qapplication()
 
 
@@ -130,12 +130,12 @@ from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.config.user import NoDefault
 from spyderlib.py3compat import (getcwd, is_text_string, to_text_string,
                                  PY3, qbytearray_to_str, u, configparser as cp)
-from spyderlib.utils import encoding, programs
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.introspection import module_completion
-from spyderlib.utils.iofuncs import load_session, save_session, reset_session
-from spyderlib.utils.programs import is_module_installed
-from spyderlib.utils.misc import select_port
+from spyder.utils import encoding, programs
+from spyder.utils import icon_manager as ima
+from spyder.utils.introspection import module_completion
+from spyder.utils.iofuncs import load_session, save_session, reset_session
+from spyder.utils.programs import is_module_installed
+from spyder.utils.misc import select_port
 
 #==============================================================================
 # Local gui imports
@@ -144,15 +144,15 @@ from spyderlib.utils.misc import select_port
 # are needed in MainWindow to speed up perceived startup time (i.e. the time
 # from clicking the Spyder icon to showing the splash screen).
 try:
-    from spyderlib.utils.environ import WinUserEnvDialog
+    from spyder.utils.environ import WinUserEnvDialog
 except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
 
-from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
-                                       add_shortcut_to_tooltip,
-                                       create_module_bookmark_actions,
-                                       create_program_action, DialogManager,
-                                       create_python_script_action, file_uri)
+from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
+                                    add_shortcut_to_tooltip,
+                                    create_module_bookmark_actions,
+                                    create_program_action, DialogManager,
+                                    create_python_script_action, file_uri)
 from spyder.config.gui import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyder.app import tour

@@ -10,7 +10,7 @@
 import os
 
 # Local imports
-from spyderlib.utils import programs
+from spyder.utils import programs
 
 
 class Dependency(object):

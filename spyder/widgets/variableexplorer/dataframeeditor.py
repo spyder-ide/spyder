@@ -29,10 +29,10 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, fixed_shortcut
 from spyderlib.py3compat import io, is_text_string, PY2, to_text_string
-from spyderlib.utils import encoding
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       keybinding, qapplication)
+from spyder.utils import encoding
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    keybinding, qapplication)
 from spyder.widgets.variableexplorer.arrayeditor import get_idx_rect
 
 # Supported Numbers and complex numbers

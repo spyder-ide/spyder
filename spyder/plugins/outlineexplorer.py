@@ -8,7 +8,7 @@
 
 Data for outline are provided by method .get_outlineexplorer_data() of
 highlighter of assigned editor. For example, for Python files code editor uses
-highlighter spyderlib.utils.syntaxhighlighters.PythonSH
+highlighter spyder.utils.syntaxhighlighters.PythonSH
 """
 
 # Third party imports
@@ -18,7 +18,7 @@ from qtpy.QtCore import Signal
 from spyder.config.base import _
 from spyder.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
-from spyderlib.utils import icon_manager as ima
+from spyder.utils import icon_manager as ima
 from spyder.widgets.editortools import OutlineExplorerWidget
 
 

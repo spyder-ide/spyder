@@ -26,7 +26,7 @@ from spyderlib import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyderlib.py3compat import builtins, is_text_string, to_text_string
-from spyderlib.utils.sourcecode import CELL_LANGUAGES
+from spyder.utils.sourcecode import CELL_LANGUAGES
 
 
 PYGMENTS_REQVER = '>=2.0'

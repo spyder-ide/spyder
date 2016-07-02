@@ -13,13 +13,13 @@ import sys
 import time
 
 from spyder.config.base import debug_print
-from spyderlib.utils import programs
-from spyderlib.utils.debug import log_last_error, log_dt
-from spyderlib.utils.dochelpers import getsignaturefromtext
-from spyderlib.utils.introspection.manager import (
+from spyder.utils import programs
+from spyder.utils.debug import log_last_error, log_dt
+from spyder.utils.dochelpers import getsignaturefromtext
+from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
-from spyderlib.utils.introspection.utils import get_parent_until
-from spyderlib.utils.introspection.manager import JEDI_REQVER
+from spyder.utils.introspection.utils import get_parent_until
+from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
     import jedi
@@ -235,7 +235,7 @@ class JediPlugin(IntrospectionPlugin):
 
 if __name__ == '__main__':
 
-    from spyderlib.utils.introspection.manager import CodeInfo
+    from spyder.utils.introspection.manager import CodeInfo
 
     p = JediPlugin()
     p.load_plugin()

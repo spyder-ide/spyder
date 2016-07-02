@@ -29,11 +29,11 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QInputDialog,
 from spyderlib import dependencies
 from spyder.config.base import _, running_in_mac_app, SCIENTIFIC_STARTUP
 from spyder.config.main import CONF
-from spyderlib.utils import encoding, programs
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.misc import (get_error_match, get_python_executable,
-                                  is_python_script, remove_backslashes)
-from spyderlib.utils.qthelpers import create_action, mimedata2url
+from spyder.utils import encoding, programs
+from spyder.utils import icon_manager as ima
+from spyder.utils.misc import (get_error_match, get_python_executable,
+                               is_python_script, remove_backslashes)
+from spyder.utils.qthelpers import create_action, mimedata2url
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
 from spyder.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd

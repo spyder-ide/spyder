@@ -21,7 +21,7 @@ import os
 import sys
 
 # Local imports
-from spyderlib.utils import encoding
+from spyder.utils import encoding
 from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
                                  to_text_string, is_text_string)
 

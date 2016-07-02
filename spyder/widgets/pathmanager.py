@@ -22,8 +22,8 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 # Local imports
 from spyder.config.base import _
 from spyderlib.py3compat import getcwd
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_toolbutton
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_toolbutton
 
 
 class PathManager(QDialog):
@@ -156,8 +156,8 @@ class PathManager(QDialog):
             remove = True
         else:
             remove = False
-        from spyderlib.utils.environ import (get_user_env, set_user_env,
-                                             listdict2envdict)
+        from spyder.utils.environ import (get_user_env, set_user_env,
+                                          listdict2envdict)
         env = get_user_env()
         if remove:
             ppath = self.pathlist+self.ro_pathlist
@@ -243,7 +243,7 @@ class PathManager(QDialog):
 
 def test():
     """Run path manager test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     _app = qapplication()  # analysis:ignore
     test = PathManager(None, pathlist=sys.path[:-10],
                        ro_pathlist=sys.path[-10:])

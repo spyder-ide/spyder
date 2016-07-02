@@ -26,10 +26,10 @@ from qtpy.QtWidgets import QApplication, QToolTip
 # Local imports
 from spyder.config.base import _
 from spyderlib.py3compat import is_text_string, to_text_string, u
-from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.dochelpers import (getargspecfromtext, getobj,
-                                        getsignaturefromtext)
-from spyderlib.utils.misc import get_error_match
+from spyder.utils import encoding, sourcecode
+from spyder.utils.dochelpers import (getargspecfromtext, getobj,
+                                     getsignaturefromtext)
+from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import NumpyArrayDialog
 
 

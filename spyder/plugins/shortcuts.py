@@ -28,9 +28,9 @@ from spyder.config.base import _, debug_print
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.plugins.configdialog import GeneralConfigPage
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import get_std_icon
-from spyderlib.utils.stringmatching import get_search_scores, get_search_regex
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import get_std_icon
+from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.widgets.helperwidgets import HelperToolButton
 
@@ -830,7 +830,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
 
 
 def test():
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     table = ShortcutsTable()
     table.show()

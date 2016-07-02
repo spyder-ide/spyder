@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2011-2012 Pierre Raybaut
+# Copyright © 20009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -37,11 +37,11 @@ from spyder.config.gui import (config_shortcut, get_font, get_shortcut,
                                fixed_shortcut)
 from spyder.config.main import CONF
 from spyderlib.py3compat import PY3
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import programs, sourcecode
-from spyderlib.utils.dochelpers import getargspecfromtext, getsignaturefromtext
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       create_toolbutton, restore_keyevent)
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs, sourcecode
+from spyder.utils.dochelpers import getargspecfromtext, getsignaturefromtext
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton, restore_keyevent)
 from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.browser import WebView
 from spyder.widgets.calltip import CallTipWidget
@@ -54,7 +54,7 @@ from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
 #-----------------------------------------------------------------------------
 # Using the same css file from the Help plugin for now. Maybe
 # later it'll be a good idea to create a new one.
-UTILS_PATH = get_module_source_path('spyderlib', 'utils')
+UTILS_PATH = get_module_source_path('spyder', 'utils')
 CSS_PATH = osp.join(UTILS_PATH, 'help', 'static', 'css')
 TEMPLATES_PATH = osp.join(UTILS_PATH, 'ipython', 'templates')
 

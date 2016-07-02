@@ -38,10 +38,10 @@ from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyderlib.py3compat import (io, is_binary_string, is_text_string,
                                  getcwd, PY3, to_text_string)
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.misc import fix_reference_name
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       mimedata2url)
+from spyder.utils import icon_manager as ima
+from spyder.utils.misc import fix_reference_name
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    mimedata2url)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
 from spyder.widgets.variableexplorer.texteditor import TextEditor
 from spyder.widgets.variableexplorer.utils import (
@@ -1458,7 +1458,7 @@ def get_test_data():
 
 def editor_test():
     """Collections editor test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
 
     app = qapplication()             #analysis:ignore
     dialog = CollectionsEditor()
@@ -1472,7 +1472,7 @@ def remote_editor_test():
     """Remote collections editor test"""
     from pprint import pprint
 
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer

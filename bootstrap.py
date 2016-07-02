@@ -97,7 +97,7 @@ if sys.excepthook != sys.__excepthook__:
 
 # --- Continue
 
-from spyderlib.utils.vcs import get_git_revision
+from spyder.utils.vcs import get_git_revision
 print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
@@ -145,7 +145,7 @@ print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
 
 
 # Check that we have the right qtpy version
-from spyderlib.utils import programs
+from spyder.utils import programs
 if not programs.is_module_installed('qtpy', '>=1.1.0'):
     print("")
     sys.exit("ERROR: Your qtpy version is outdated. Please install qtpy "

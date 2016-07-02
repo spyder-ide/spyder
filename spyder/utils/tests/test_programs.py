@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from spyderlib.utils.programs import run_python_script_in_terminal
+from spyder.utils.programs import run_python_script_in_terminal
 
 def test_run_python_script_in_terminal(tmpdir):
     scriptpath = tmpdir.join('write-done.py')

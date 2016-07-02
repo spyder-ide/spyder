@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.utils import icon_manager as ima
+from spyder.utils import icon_manager as ima
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
@@ -132,7 +132,7 @@ except ImportError:
 
 def main():
     """Run Windows environment variable editor"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     if os.name == 'nt':
         dialog = WinUserEnvDialog()

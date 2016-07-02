@@ -13,7 +13,7 @@ from numpy.testing import assert_array_equal
 import pytest
 
 # Local imports
-from spyderlib.utils.qthelpers import qapplication
+from spyder.utils.qthelpers import qapplication
 from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
 
 

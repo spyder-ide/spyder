@@ -31,9 +31,9 @@ except ImportError:
 from spyder.config.base import _
 from spyderlib.py3compat import (INT_TYPES, io, TEXT_TYPES, to_text_string,
                                  zip_longest)
-from spyderlib.utils import programs
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import add_actions, create_action
+from spyder.utils import programs
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import add_actions, create_action
 
 
 def try_to_parse(value):
@@ -629,7 +629,7 @@ class ImportWizard(QDialog):
 
 def test(text):
     """Test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     _app = qapplication()  # analysis:ignore
     dialog = ImportWizard(None, text)
     if dialog.exec_():

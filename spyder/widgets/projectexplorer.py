@@ -27,9 +27,9 @@ from qtpy.QtWidgets import (QAbstractItemView, QFileIconProvider, QHBoxLayout,
 # Local imports
 from spyder.config.base import _, get_image_path, STDERR
 from spyderlib.py3compat import getcwd, pickle, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import misc
-from spyderlib.utils.qthelpers import create_action, get_icon
+from spyder.utils import icon_manager as ima
+from spyder.utils import misc
+from spyder.utils.qthelpers import create_action, get_icon
 from spyder.widgets.explorer import FilteredDirView, fixpath, listdir
 from spyder.widgets.formlayout import fedit
 from spyder.widgets.pathmanager import PathManager
@@ -1367,7 +1367,7 @@ class Test(QWidget):
 
 
 def test():
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     test = Test()
     test.resize(640, 480)

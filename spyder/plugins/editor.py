@@ -37,11 +37,11 @@ from spyder.config.main import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
-from spyderlib.utils import codeanalysis, encoding, programs, sourcecode
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.introspection.manager import IntrospectionManager
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       get_filetype_icon)
+from spyder.utils import codeanalysis, encoding, programs, sourcecode
+from spyder.utils import icon_manager as ima
+from spyder.utils.introspection.manager import IntrospectionManager
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    get_filetype_icon)
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)

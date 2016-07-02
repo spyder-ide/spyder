@@ -29,10 +29,10 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
 from spyderlib import dependencies
 from spyder.config.base import get_conf_path, get_translation
 from spyderlib.py3compat import getcwd, pickle, PY3, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import programs
-from spyderlib.utils.encoding import to_unicode_from_fs
-from spyderlib.utils.qthelpers import create_toolbutton
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils.encoding import to_unicode_from_fs
+from spyder.utils.qthelpers import create_toolbutton
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -502,7 +502,7 @@ class PylintWidget(QWidget):
 #==============================================================================
 def test():
     """Run pylint widget test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=20)
     widget = PylintWidget(None)
     widget.resize(640, 480)

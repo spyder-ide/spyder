@@ -28,8 +28,8 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 # Local imports
 from spyder.config.base import _, get_image_path
 from spyderlib.py3compat import to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import qapplication
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import qapplication
 
 
 PY2 = sys.version[0] == '2'

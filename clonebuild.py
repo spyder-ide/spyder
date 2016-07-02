@@ -126,7 +126,7 @@ def get_pythonxy_plugindir(name):
 
 ## Building Python(x,y) plugin on Windows platforms, if 'unzip.exe' is available
 ## and if the `pythonxy` repository exists:
-from spyderlib.utils import programs
+from spyder.utils import programs
 unzip_exe = 'unzip.exe'
 plugin_dir = get_pythonxy_plugindir(name)
 if programs.is_program_installed(unzip_exe) and plugin_dir:

@@ -14,8 +14,8 @@ from qtpy.QtWidgets import QFontDialog
 from spyder.config.base import _
 from spyder.plugins import SpyderPluginMixin
 from spyderlib.py3compat import is_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action
 from spyder.widgets.projectexplorer import ProjectExplorerWidget
 
 

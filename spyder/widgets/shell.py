@@ -32,10 +32,10 @@ from spyder.config.gui import config_shortcut, get_shortcut, fixed_shortcut
 from spyder.config.main import CONF
 from spyderlib.py3compat import (builtins, is_string, is_text_string,
                                  PY3, to_text_string)
-from spyderlib.utils import encoding
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       restore_keyevent)
+from spyder.utils import encoding
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
+                                    restore_keyevent)
 from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
                                    TracebackLinksMixin)
@@ -667,7 +667,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
 
 # Example how to debug complex interclass call chains:
 #
-# from spyderlib.utils.debug import log_methods_calls
+# from spyder.utils.debug import log_methods_calls
 # log_methods_calls('log.log', ShellBaseWidget)
 
 class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,

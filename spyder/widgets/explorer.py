@@ -32,9 +32,9 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QInputDialog,
 from spyder.config.base import _
 from spyderlib.py3compat import (getcwd, str_lower, to_binary_string,
                                  to_text_string, PY2)
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import encoding, misc, programs, vcs
-from spyderlib.utils.qthelpers import add_actions, create_action, file_uri
+from spyder.utils import icon_manager as ima
+from spyder.utils import encoding, misc, programs, vcs
+from spyder.utils.qthelpers import add_actions, create_action, file_uri
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -1151,7 +1151,7 @@ class ProjectExplorerTest(QWidget):
 
 
 def test(file_explorer):
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     if file_explorer:
         test = FileExplorerTest()

@@ -24,9 +24,9 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
 from spyder.config.gui import get_shortcut
-from spyderlib.utils import programs
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.icon_manager import get_icon, get_std_icon
+from spyder.utils import programs
+from spyder.utils import icon_manager as ima
+from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyderlib.py3compat import is_text_string, to_text_string
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?

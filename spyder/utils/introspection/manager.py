@@ -16,9 +16,9 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyderlib import dependencies
 from spyder.config.base import _, DEBUG, debug_print, get_conf_path
-from spyderlib.utils import sourcecode
-from spyderlib.utils.introspection.plugin_client import PluginClient
-from spyderlib.utils.introspection.utils import CodeInfo
+from spyder.utils import sourcecode
+from spyder.utils.introspection.plugin_client import PluginClient
+from spyder.utils.introspection.utils import CodeInfo
 
 
 PLUGINS = ['rope', 'jedi', 'fallback']

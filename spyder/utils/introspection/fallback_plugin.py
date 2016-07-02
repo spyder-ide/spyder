@@ -17,11 +17,11 @@ import time
 
 from pygments.token import Token
 
-from spyderlib.utils.debug import log_dt
-from spyderlib.utils import sourcecode, encoding
-from spyderlib.utils.introspection.manager import (
+from spyder.utils.debug import log_dt
+from spyder.utils import sourcecode, encoding
+from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
-from spyderlib.utils.introspection.utils import (
+from spyder.utils.introspection.utils import (
     get_parent_until, memoize, find_lexer_for_filename, get_keywords)
 
 
@@ -308,7 +308,7 @@ def _complete_path(path=None):
 
 
 if __name__ == '__main__':
-    from spyderlib.utils.introspection.manager import CodeInfo
+    from spyder.utils.introspection.manager import CodeInfo
 
     p = FallbackPlugin()
 
@@ -356,7 +356,7 @@ if __name__ == '__main__':
     assert '.cpp' in ext and '.html' in ext
 
     path = get_parent_until(os.path.abspath(__file__))
-    assert path == 'spyderlib.utils.introspection.fallback_plugin'
+    assert path == 'spyder.utils.introspection.fallback_plugin'
 
     line = 'from spyder.widgets.sourcecode.codeeditor import CodeEditor'
     path = python_like_mod_finder(line)

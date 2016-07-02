@@ -31,7 +31,7 @@ def apply():
     """Monkey patching rope
 
     See [1], [2], [3], [4] and [5] in module docstring."""
-    from spyderlib.utils.programs import is_module_installed
+    from spyder.utils.programs import is_module_installed
     if is_module_installed('rope', '<0.9.4'):
         import rope
         raise ImportError("rope %s can't be patched" % rope.VERSION)
@@ -130,7 +130,7 @@ def apply():
     # 3. get_calltip
     # To easily get calltips of forced builtins
     from rope.contrib import codeassist
-    from spyderlib.utils.dochelpers import getdoc
+    from spyder.utils.dochelpers import getdoc
     from rope.base import exceptions
     class PatchedPyDocExtractor(codeassist.PyDocExtractor):
         def get_builtin_doc(self, pyobject):

@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.utils import icon_manager as ima
+from spyder.utils import icon_manager as ima
 from spyder.widgets.helperwidgets import HelperToolButton
 
 
@@ -390,7 +390,7 @@ class NumpyArrayDialog(QDialog):
 
 
 def test():  # pragma: no cover
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     dlg_table = NumpyArrayDialog(None, inline=False)
     dlg_inline = NumpyArrayDialog(None, inline=True)

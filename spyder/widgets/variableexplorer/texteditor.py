@@ -20,7 +20,7 @@ from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyderlib.py3compat import (is_binary_string, to_binary_string,
                                  to_text_string)
-from spyderlib.utils import icon_manager as ima
+from spyder.utils import icon_manager as ima
 
 
 class TextEditor(QDialog):
@@ -95,7 +95,7 @@ class TextEditor(QDialog):
 #==============================================================================
 def test():
     """Text editor demo"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     _app = qapplication()  # analysis:ignore
 
     text = """01234567890123456789012345678901234567890123456789012345678901234567890123456789

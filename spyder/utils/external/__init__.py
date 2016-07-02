@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.utils.external
-========================
+spyder.utils.external
+=====================
 
 External libraries needed for Spyder to work.
 Put here only untouched libraries, else put them in utils.

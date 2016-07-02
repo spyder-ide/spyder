@@ -17,8 +17,8 @@ import os.path as osp
 
 # Local imports
 from spyder.config.base import get_translation
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action
 from spyder.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string, is_text_string
 from .widgets.breakpointsgui import BreakpointWidget

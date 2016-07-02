@@ -18,7 +18,7 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import _
 from spyderlib.py3compat import PY3, to_text_string
-from spyderlib.utils.misc import select_port
+from spyder.utils.misc import select_port
 from spyder.widgets.browser import WebBrowser
 
 
@@ -127,7 +127,7 @@ class PydocBrowser(WebBrowser):
 
 def test():
     """Run web browser"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=8)
     widget = PydocBrowser(None)
     widget.show()

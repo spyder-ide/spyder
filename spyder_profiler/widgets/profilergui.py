@@ -31,10 +31,10 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
 # Local imports
 from spyder.config.base import get_conf_path, get_translation
 from spyderlib.py3compat import getcwd, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                       set_item_user_text)
-from spyderlib.utils.programs import shell_split
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
+                                    set_item_user_text)
+from spyder.utils.programs import shell_split
 from spyder.widgets.comboboxes import PythonModulesComboBox
 from spyder.widgets.externalshell import baseshell
 from spyder.widgets.variableexplorer.texteditor import TextEditor
@@ -51,7 +51,7 @@ locale_codec = QTextCodec.codecForLocale()
 
 
 def is_profiler_installed():
-    from spyderlib.utils.programs import is_module_installed
+    from spyder.utils.programs import is_module_installed
     return is_module_installed('cProfile') and is_module_installed('pstats')
 
 
@@ -670,7 +670,7 @@ def test():
     """Run widget test"""
     import inspect
     import tempfile
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
 
     primes_sc = inspect.getsource(primes)
     fd, script = tempfile.mkstemp(suffix='.py')

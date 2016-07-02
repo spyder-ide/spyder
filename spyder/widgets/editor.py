@@ -34,12 +34,12 @@ from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import get_edit_extensions
 from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import (codeanalysis, encoding, sourcecode,
-                             syntaxhighlighters)
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       create_toolbutton, get_filetype_icon,
-                                       mimedata2url)
+from spyder.utils import icon_manager as ima
+from spyder.utils import (codeanalysis, encoding, sourcecode,
+                          syntaxhighlighters)
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton, get_filetype_icon,
+                                    mimedata2url)
 from spyder.widgets.editortools import OutlineExplorerWidget
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
@@ -2367,9 +2367,9 @@ class EditorPluginExample(QSplitter):
 
 
 def test():
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     from spyder.config.base import get_module_path
-    from spyderlib.utils.introspection.manager import IntrospectionManager
+    from spyder.utils.introspection.manager import IntrospectionManager
 
     cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
     app = qapplication(test_time=8)

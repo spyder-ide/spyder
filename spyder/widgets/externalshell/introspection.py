@@ -17,9 +17,9 @@ from qtpy.QtCore import QThread, Signal
 
 # Local imports
 from spyder.config.base import get_conf_path, DEBUG
-from spyderlib.utils.debug import log_last_error
-from spyderlib.utils.bsdsocket import read_packet, write_packet
-from spyderlib.utils.misc import select_port
+from spyder.utils.debug import log_last_error
+from spyder.utils.bsdsocket import read_packet, write_packet
+from spyder.utils.misc import select_port
 
 
 LOG_FILENAME = get_conf_path('introspection.log')

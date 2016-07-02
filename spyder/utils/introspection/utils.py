@@ -14,9 +14,9 @@ import pickle
 import os.path as osp
 import re
 
-from spyderlib.utils.misc import memoize
+from spyder.utils.misc import memoize
 
-from spyderlib.utils.syntaxhighlighters import (
+from spyder.utils.syntaxhighlighters import (
     custom_extension_lexer_mapping
 )
 

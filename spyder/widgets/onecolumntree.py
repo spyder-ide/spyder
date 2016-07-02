@@ -10,9 +10,9 @@ from qtpy.QtWidgets import QTreeWidget, QMenu
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       get_item_user_text)
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    get_item_user_text)
 
 
 class OneColumnTree(QTreeWidget):

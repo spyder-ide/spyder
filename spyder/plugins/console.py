@@ -25,11 +25,11 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 # Local imports
 from spyder.config.base import _, debug_print
 from spyder.config.main import CONF
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.environ import EnvDialog
-from spyderlib.utils.misc import get_error_match, remove_backslashes
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       DialogManager, mimedata2url)
+from spyder.utils import icon_manager as ima
+from spyder.utils.environ import EnvDialog
+from spyder.utils.misc import get_error_match, remove_backslashes
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    DialogManager, mimedata2url)
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor

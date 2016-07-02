@@ -876,7 +876,7 @@ def evalsc(command):
     """Evaluate special commands
     (analog to IPython's magic commands but far less powerful/complete)"""
     assert command.startswith('%')
-    from spyderlib.utils import programs
+    from spyder.utils import programs
 
     namespace = _get_globals()
     command = command[1:].strip()  # Remove leading %

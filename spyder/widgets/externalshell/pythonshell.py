@@ -22,13 +22,13 @@ from spyder.config.base import (_, DEBUG, get_module_source_path,
                                 MAC_APP_NAME, running_in_mac_app)
 from spyderlib.py3compat import (is_text_string, to_binary_string,
                                  to_text_string)
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.bsdsocket import communicate, write_packet
-from spyderlib.utils.environ import RemoteEnvDialog
-from spyderlib.utils.misc import get_python_executable
-from spyderlib.utils.programs import get_python_args
-from spyderlib.utils.qthelpers import (add_actions, create_action,
-                                       create_toolbutton, DialogManager)
+from spyder.utils import icon_manager as ima
+from spyder.utils.bsdsocket import communicate, write_packet
+from spyder.utils.environ import RemoteEnvDialog
+from spyder.utils.misc import get_python_executable
+from spyder.utils.programs import get_python_args
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton, DialogManager)
 from spyder.widgets.externalshell.baseshell import (ExternalShellBase,
                                                     add_pathlist_to_PYTHONPATH)
 from spyder.widgets.shell import PythonShellWidget
@@ -658,7 +658,7 @@ class ExternalPythonShell(ExternalShellBase):
 
 
 def test():
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer

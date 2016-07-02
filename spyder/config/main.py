@@ -21,7 +21,7 @@ from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
 from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
-from spyderlib.utils import codeanalysis
+from spyder.utils import codeanalysis
 
 
 #==============================================================================

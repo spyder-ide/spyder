@@ -13,8 +13,8 @@ import os.path as osp
 import subprocess
 
 # Local imports
-from spyderlib.utils import programs
-from spyderlib.utils.misc import abspardir
+from spyder.utils import programs
+from spyder.utils.misc import abspardir
 from spyderlib.py3compat import PY3
 
 

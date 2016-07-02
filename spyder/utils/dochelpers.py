@@ -12,7 +12,7 @@ import inspect
 import re
 
 # Local imports:
-from spyderlib.utils import encoding
+from spyder.utils import encoding
 from spyderlib.py3compat import (is_text_string, builtins, get_meth_func,
                                  get_meth_class_inst, get_meth_class,
                                  get_func_defaults, to_text_string)
