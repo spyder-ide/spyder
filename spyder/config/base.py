@@ -193,7 +193,7 @@ def add_image_path(path):
         for dirname in dirnames:
             IMG_PATH.append(osp.join(dirpath, dirname))
 
-add_image_path(get_module_data_path('spyderlib', relpath='images'))
+add_image_path(get_module_data_path('spyder', relpath='images'))
 
 def get_image_path(name, default="not_found.png"):
     """Return image absolute path"""

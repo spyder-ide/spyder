@@ -289,7 +289,7 @@ class MainWindow(QMainWindow):
 
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
-            spy_path = get_module_source_path('spyderlib')
+            spy_path = get_module_source_path('spyder')
             img_path = osp.join(spy_path, 'images')
             mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
             mac_style = mac_style.replace('$IMAGE_PATH', img_path)
