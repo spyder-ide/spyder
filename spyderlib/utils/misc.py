@@ -261,8 +261,8 @@ if __name__ == '__main__':
                                 ]) == 'D:\\Python'
     else:
         assert get_common_path([
-                                '/Python/spyder-v21/spyderlib/widgets',
+                                '/Python/spyder-v21/spyder.widgets',
                                 '/Python/spyder/spyderlib/utils',
-                                '/Python/spyder/spyderlib/widgets',
+                                '/Python/spyder/spyder.widgets',
                                 '/Python/spyder-v21/spyderlib/utils',
                                 ]) == '/Python'

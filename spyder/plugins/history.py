@@ -25,9 +25,9 @@ from spyderlib.py3compat import is_text_string, to_text_string
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (add_actions, create_action,
                                        create_toolbutton)
-from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.sourcecode import codeeditor
-from spyderlib.widgets.findreplace import FindReplace
+from spyder.widgets.tabs import Tabs
+from spyder.widgets.sourcecode import codeeditor
+from spyder.widgets.findreplace import FindReplace
 
 
 class HistoryConfigPage(PluginConfigPage):

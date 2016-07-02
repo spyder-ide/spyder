@@ -33,11 +33,11 @@ from spyderlib.utils.help.sphinxify import (CSS_PATH, generate_context,
                                             sphinxify, usage, warning)
 from spyderlib.utils.qthelpers import (add_actions, create_action,
                                        create_toolbutton)
-from spyderlib.widgets.browser import FrameWebView
-from spyderlib.widgets.comboboxes import EditableComboBox
-from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.sourcecode import codeeditor
+from spyder.widgets.browser import FrameWebView
+from spyder.widgets.comboboxes import EditableComboBox
+from spyder.widgets.externalshell.pythonshell import ExtPythonShellWidget
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.sourcecode import codeeditor
 
 
 # Sphinx dependency
@@ -49,7 +49,7 @@ dependencies.add("sphinx", _("Show help for objects in the Editor and "
 #XXX: Hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
 if QTCONSOLE_INSTALLED:
-    from spyderlib.widgets.ipython import IPythonControlWidget
+    from spyder.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore
 

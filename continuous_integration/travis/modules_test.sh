@@ -47,7 +47,7 @@ for f in spyderlib/*/*.py; do
         continue
     fi
     # TODO: Understand why formlayout is failing in Travis!!
-    if [[ $f == spyderlib/widgets/formlayout.py ]]; then
+    if [[ $f == spyder/widgets/formlayout.py ]]; then
         continue
     fi
     python "$f"
@@ -74,16 +74,16 @@ for f in spyderlib/*/*/*.py; do
     if [[ $f == spyderlib/utils/introspection/plugin_client.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/systemshell.py ]]; then
+    if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/inputhooks.py ]]; then
+    if [[ $f == spyder/widgets/externalshell/inputhooks.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/sitecustomize.py ]]; then
+    if [[ $f == spyder/widgets/externalshell/sitecustomize.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/start_ipython_kernel.py ]]; then
+    if [[ $f == spyder/widgets/externalshell/start_ipython_kernel.py ]]; then
         continue
     fi
     python "$f"

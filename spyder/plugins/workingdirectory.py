@@ -29,7 +29,7 @@ from spyderlib.py3compat import to_text_string, getcwd
 from spyderlib.utils import encoding
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.comboboxes import PathComboBox
+from spyder.widgets.comboboxes import PathComboBox
 
 
 class WorkingDirectoryConfigPage(PluginConfigPage):

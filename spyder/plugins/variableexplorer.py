@@ -16,8 +16,8 @@ from spyder.config.main import CONF
 from spyder.plugins import PluginConfigPage, SpyderPluginMixin
 from spyderlib.utils import programs
 from spyderlib.utils import icon_manager as ima
-from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
-from spyderlib.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
+from spyder.widgets.externalshell.monitor import REMOTE_SETTINGS
+from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 
 
 class VariableExplorerConfigPage(PluginConfigPage):
@@ -133,7 +133,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         shellwidget_id = id(shellwidget)
         # Add shell only once: this method may be called two times in a row
         # by the External console plugin (dev. convenience)
-        from spyderlib.widgets.externalshell import systemshell
+        from spyder.widgets.externalshell import systemshell
         if isinstance(shellwidget, systemshell.ExternalSystemShell):
             return
         if shellwidget_id not in self.shellwidgets:

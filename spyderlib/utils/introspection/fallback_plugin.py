@@ -358,7 +358,7 @@ if __name__ == '__main__':
     path = get_parent_until(os.path.abspath(__file__))
     assert path == 'spyderlib.utils.introspection.fallback_plugin'
 
-    line = 'from spyderlib.widgets.sourcecode.codeeditor import CodeEditor'
+    line = 'from spyder.widgets.sourcecode.codeeditor import CodeEditor'
     path = python_like_mod_finder(line)
     assert path.endswith('codeeditor.py')
     path = python_like_mod_finder(line, stop_token='sourcecode')

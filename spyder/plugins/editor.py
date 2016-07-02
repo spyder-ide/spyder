@@ -42,12 +42,12 @@ from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.introspection.manager import IntrospectionManager
 from spyderlib.utils.qthelpers import (add_actions, create_action,
                                        get_filetype_icon)
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editor import (EditorMainWindow, EditorSplitter,
-                                      EditorStack, Printer)
-from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
-from spyderlib.widgets.status import (CursorPositionStatus, EncodingStatus,
-                                      EOLStatus, ReadWriteStatus)
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
+                                   EditorStack, Printer)
+from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
+                                   EOLStatus, ReadWriteStatus)
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
 from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,

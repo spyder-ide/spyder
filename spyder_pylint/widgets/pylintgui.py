@@ -33,10 +33,10 @@ from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs
 from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import create_toolbutton
-from spyderlib.widgets.comboboxes import (is_module_or_package,
-                                          PythonModulesComboBox)
-from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.widgets.variableexplorer.texteditor import TextEditor
+from spyder.widgets.comboboxes import (is_module_or_package,
+                                       PythonModulesComboBox)
+from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 
 # This is needed for testing this module as a stand alone script

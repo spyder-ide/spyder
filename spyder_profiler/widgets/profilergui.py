@@ -35,9 +35,9 @@ from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
 from spyderlib.utils.programs import shell_split
-from spyderlib.widgets.comboboxes import PythonModulesComboBox
-from spyderlib.widgets.externalshell import baseshell
-from spyderlib.widgets.variableexplorer.texteditor import TextEditor
+from spyder.widgets.comboboxes import PythonModulesComboBox
+from spyder.widgets.externalshell import baseshell
+from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
 try:

@@ -21,7 +21,7 @@ from qtpy.QtCore import Signal
 from spyder.config.base import _
 from spyder.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
-from spyderlib.widgets.explorer import ExplorerWidget
+from spyder.widgets.explorer import ExplorerWidget
 
 
 class Explorer(ExplorerWidget, SpyderPluginMixin):

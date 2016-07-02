@@ -6,7 +6,7 @@ from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout, QLabel,
                             QLineEdit, QMainWindow, QWidget)
 
 # Local imports
-from spyderlib.widgets.internalshell import InternalShell
+from spyder.widgets.internalshell import InternalShell
 
 
 class MyWidget(QWidget):

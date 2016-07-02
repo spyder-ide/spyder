@@ -38,7 +38,7 @@ def create_executable():
     except ImportError:
         pass
     dist.includes += ['spyderlib.scientific_startup',
-                      'spyderlib.widgets.externalshell.sitecustomize']
+                      'spyder.widgets.externalshell.sitecustomize']
 
     #XXX: ...until we are able to distribute them (see guidata.disthelpers)
     dist.excludes += ['sphinx', 'zmq', 'IPython']

@@ -48,9 +48,9 @@ from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import programs
 from spyderlib.utils.misc import get_error_match, remove_backslashes
 from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.ipython import IPythonClient
-from spyderlib.widgets.tabs import Tabs
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.ipython import IPythonClient
+from spyder.widgets.tabs import Tabs
 
 
 SYMPY_REQVER = '>=0.7.3'

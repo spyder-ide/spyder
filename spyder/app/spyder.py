@@ -199,8 +199,8 @@ def get_focus_python_shell():
     """Extract and return Python shell from widget
     Return None if *widget* is not a Python shell (e.g. IPython kernel)"""
     widget = QApplication.focusWidget()
-    from spyderlib.widgets.shell import PythonShellWidget
-    from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
+    from spyder.widgets.shell import PythonShellWidget
+    from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
     if isinstance(widget, PythonShellWidget):
         return widget
     elif isinstance(widget, ExternalPythonShell):
@@ -212,8 +212,8 @@ def get_focus_widget_properties():
     Returns tuple (widget, properties) where properties is a tuple of
     booleans: (is_console, not_readonly, readwrite_editor)"""
     widget = QApplication.focusWidget()
-    from spyderlib.widgets.shell import ShellBaseWidget
-    from spyderlib.widgets.editor import TextEditBaseWidget
+    from spyder.widgets.shell import ShellBaseWidget
+    from spyder.widgets.editor import TextEditBaseWidget
     textedit_properties = None
     if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
         console = isinstance(widget, ShellBaseWidget)
@@ -1080,7 +1080,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions += [None, about_action]
 
         # Status bar widgets
-        from spyderlib.widgets.status import MemoryStatus, CPUStatus
+        from spyder.widgets.status import MemoryStatus, CPUStatus
         self.mem_status = MemoryStatus(self, status)
         self.cpu_status = CPUStatus(self, status)
         self.apply_statusbar_settings()
@@ -1968,7 +1968,7 @@ class MainWindow(QMainWindow):
             if self.help is not None:
                 #  Help may be disabled in .spyder.ini
                 self.help.set_shell(shell)
-            from spyderlib.widgets.externalshell import pythonshell
+            from spyder.widgets.externalshell import pythonshell
             if isinstance(shell, pythonshell.ExtPythonShellWidget):
                 shell = shell.parent()
             self.variableexplorer.set_shellwidget_from_id(id(shell))
@@ -2342,7 +2342,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def show_dependencies(self):
         """Show Spyder's Dependencies dialog box"""
-        from spyderlib.widgets.dependencies import DependenciesDialog
+        from spyder.widgets.dependencies import DependenciesDialog
         dlg = DependenciesDialog(None)
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.show()
@@ -2415,7 +2415,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         action = self.sender()
         callback = from_qvariant(action.data(), to_text_string)
-        from spyderlib.widgets.editor import TextEditBaseWidget
+        from spyder.widgets.editor import TextEditBaseWidget
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
 
@@ -2509,7 +2509,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def path_manager_callback(self):
         """Spyder path manager"""
-        from spyderlib.widgets.pathmanager import PathManager
+        from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
         project_pathlist = self.projectexplorer.get_pythonpath()
         dialog = PathManager(self, self.path, project_pathlist, sync=True)
@@ -2794,7 +2794,7 @@ class MainWindow(QMainWindow):
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
         """Called by WorkerUpdates when ready"""
-        from spyderlib.widgets.helperwidgets import MessageCheckBox
+        from spyder.widgets.helperwidgets import MessageCheckBox
 
         # feedback` = False is used on startup, so only positive feedback is
         # given. `feedback` = True is used when after startup (when using the

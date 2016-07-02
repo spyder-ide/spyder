@@ -35,8 +35,8 @@ from spyder.config.utils import is_gtk_desktop
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils import syntaxhighlighters
-from spyderlib.widgets.colors import ColorLayout
-from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.widgets.colors import ColorLayout
+from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 
 class ConfigAccessMixin(object):

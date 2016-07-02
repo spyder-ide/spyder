@@ -37,10 +37,10 @@ from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
 from spyder.plugins.runconfig import get_run_configuration
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
-from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
-from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.tabs import Tabs
+from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
+from spyder.widgets.externalshell.systemshell import ExternalSystemShell
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.tabs import Tabs
 
 
 MPL_REQVER = '>=1.0'
@@ -542,7 +542,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     def set_path(self):
         """Set consoles PYTHONPATH if changed by the user"""
-        from spyderlib.widgets.externalshell import pythonshell
+        from spyder.widgets.externalshell import pythonshell
         for sw in self.shellwidgets:
             if isinstance(sw, pythonshell.ExternalPythonShell):
                 if sw.is_interpreter and sw.is_running():
@@ -553,7 +553,7 @@ class ExternalConsole(SpyderPluginWidget):
         current_index = self.tabwidget.currentIndex()
         if current_index == -1:
             return
-        from spyderlib.widgets.externalshell import pythonshell
+        from spyder.widgets.externalshell import pythonshell
         for index in [current_index]+list(range(self.tabwidget.count())):
             shellwidget = self.tabwidget.widget(index)
             if isinstance(shellwidget, pythonshell.ExternalPythonShell):
@@ -579,7 +579,7 @@ class ExternalConsole(SpyderPluginWidget):
         current_index = self.tabwidget.currentIndex()
         if current_index == -1:
             return
-        from spyderlib.widgets.externalshell import pythonshell
+        from spyder.widgets.externalshell import pythonshell
         shellwidgets = [self.tabwidget.widget(index)
                         for index in range(self.tabwidget.count())]
         shellwidgets = [_w for _w in shellwidgets
@@ -1157,7 +1157,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.show()
             self.dockwidget.raise_()
             # Start a console in case there are none shown
-            from spyderlib.widgets.externalshell import pythonshell
+            from spyder.widgets.externalshell import pythonshell
             consoles = None
             for sw in self.shellwidgets:
                 if isinstance(sw, pythonshell.ExternalPythonShell):

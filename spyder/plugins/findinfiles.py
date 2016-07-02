@@ -22,7 +22,7 @@ from spyder.plugins import SpyderPluginMixin
 from spyderlib.py3compat import getcwd
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.findinfiles import FindInFilesWidget
+from spyder.widgets.findinfiles import FindInFilesWidget
 
 
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):

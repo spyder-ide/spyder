@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 # Local imports
 from spyder.config.base import _
 from spyderlib.utils import icon_manager as ima
-from spyderlib.widgets.variableexplorer.collectionseditor import CollectionsEditor
+from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 def envdict2listdict(envdict):

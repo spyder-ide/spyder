@@ -31,8 +31,8 @@ from spyder.plugins.configdialog import GeneralConfigPage
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.utils.stringmatching import get_search_scores, get_search_regex
-from spyderlib.widgets.helperwidgets import HTMLDelegate
-from spyderlib.widgets.helperwidgets import HelperToolButton
+from spyder.widgets.helperwidgets import HTMLDelegate
+from spyder.widgets.helperwidgets import HelperToolButton
 
 
 MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,

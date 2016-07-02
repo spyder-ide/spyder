@@ -78,7 +78,7 @@ def check_with_pyflakes(source_code, filename=None):
                     results.append((warning.message % warning.message_args,
                                     warning.lineno))
     except Exception:
-        # Never return None to avoid lock in spyderlib/widgets/editor.py
+        # Never return None to avoid lock in spyder/widgets/editor.py
         # See Issue 1547
         results = []
         if DEBUG_EDITOR:
@@ -170,7 +170,7 @@ def check_with_pep8(source_code, filename=None):
         args = get_checker_executable('pep8')
         results = check(args, source_code, filename=filename, options=['-r'])
     except Exception:
-        # Never return None to avoid lock in spyderlib/widgets/editor.py
+        # Never return None to avoid lock in spyder/widgets/editor.py
         # See Issue 1547
         results = []
         if DEBUG_EDITOR:

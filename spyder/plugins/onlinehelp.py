@@ -16,7 +16,7 @@ from qtpy.QtCore import Signal
 from spyder.config.base import _, get_conf_path
 from spyder.plugins import SpyderPluginMixin
 from spyderlib.py3compat import to_text_string
-from spyderlib.widgets.pydocgui import PydocBrowser
+from spyder.widgets.pydocgui import PydocBrowser
 
 
 class OnlineHelp(PydocBrowser, SpyderPluginMixin):
