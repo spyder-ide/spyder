@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -21,7 +21,7 @@ from code import InteractiveConsole
 # Local imports:
 from spyder.utils.dochelpers import isdefined
 from spyder.utils import encoding, programs
-from spyderlib.py3compat import is_text_string, getcwd
+from spyder.py3compat import is_text_string, getcwd
 from spyder.utils.misc import remove_backslashes
 
 # Force Python to search modules in the current directory first:

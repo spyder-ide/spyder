@@ -33,7 +33,7 @@ from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_SHORTCUT,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import get_edit_extensions
-from spyderlib.py3compat import qbytearray_to_str, to_text_string, u
+from spyder.py3compat import qbytearray_to_str, to_text_string, u
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
                           syntaxhighlighters)

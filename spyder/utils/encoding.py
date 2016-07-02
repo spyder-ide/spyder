@@ -18,8 +18,8 @@ import sys
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32, getincrementaldecoder
 
 # Local imports
-from spyderlib.py3compat import (is_string, to_text_string, is_binary_string,
-                                 is_unicode)
+from spyder.py3compat import (is_string, to_text_string, is_binary_string,
+                              is_unicode)
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()

@@ -30,8 +30,8 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QInputDialog,
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.py3compat import (getcwd, str_lower, to_binary_string,
-                                 to_text_string, PY2)
+from spyder.py3compat import (getcwd, str_lower, to_binary_string,
+                              to_text_string, PY2)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, misc, programs, vcs
 from spyder.utils.qthelpers import add_actions, create_action, file_uri

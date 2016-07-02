@@ -11,7 +11,7 @@ from sphinx import __version__ as sphinx_version
 
 # Local imports
 from spyder.config.main import CONF
-from spyderlib.py3compat import u
+from spyder.py3compat import u
 
 #==============================================================================
 # General configuration

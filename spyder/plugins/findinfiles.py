@@ -19,7 +19,7 @@ from qtpy.QtCore import Signal, Slot
 from spyder.config.base import _
 from spyder.config.utils import get_edit_extensions
 from spyder.plugins import SpyderPluginMixin
-from spyderlib.py3compat import getcwd
+from spyder.py3compat import getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.findinfiles import FindInFilesWidget

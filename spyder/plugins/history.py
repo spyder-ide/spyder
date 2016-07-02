@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QFontDialog, QGroupBox, QHBoxLayout, QInputDialog,
 from spyder.utils import encoding
 from spyder.config.base import _
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)

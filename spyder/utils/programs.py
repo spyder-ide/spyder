@@ -20,7 +20,7 @@ import tempfile
 
 # Local imports
 from spyder.utils import encoding
-from spyderlib.py3compat import PY2, is_text_string
+from spyder.py3compat import PY2, is_text_string
 
 
 class ProgramError(Exception):

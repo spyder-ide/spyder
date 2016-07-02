@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import shell_split
 from spyder.widgets.externalshell.baseshell import (add_pathlist_to_PYTHONPATH,

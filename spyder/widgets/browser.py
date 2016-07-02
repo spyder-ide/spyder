@@ -18,7 +18,7 @@ from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
 
 # Local imports
 from spyder.config.base import _, DEV
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.qthelpers import (action2button, add_actions,
                                     create_action, create_toolbutton)
 from spyder.utils import icon_manager as ima

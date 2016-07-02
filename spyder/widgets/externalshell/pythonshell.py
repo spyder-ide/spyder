@@ -20,8 +20,8 @@ from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QSplitter
 # Local imports
 from spyder.config.base import (_, DEBUG, get_module_source_path,
                                 MAC_APP_NAME, running_in_mac_app)
-from spyderlib.py3compat import (is_text_string, to_binary_string,
-                                 to_text_string)
+from spyder.py3compat import (is_text_string, to_binary_string,
+                              to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.bsdsocket import communicate, write_packet
 from spyder.utils.environ import RemoteEnvDialog

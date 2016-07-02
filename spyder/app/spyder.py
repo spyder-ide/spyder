@@ -128,8 +128,8 @@ from spyder.app.cli_options import get_options
 from spyderlib import dependencies
 from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.config.user import NoDefault
-from spyderlib.py3compat import (getcwd, is_text_string, to_text_string,
-                                 PY3, qbytearray_to_str, u, configparser as cp)
+from spyder.py3compat import (getcwd, is_text_string, to_text_string,
+                              PY3, qbytearray_to_str, u, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion

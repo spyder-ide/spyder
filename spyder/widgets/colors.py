@@ -10,7 +10,7 @@ from qtpy.QtGui import QColor, QIcon, QPixmap
 from qtpy.QtWidgets import QColorDialog, QHBoxLayout, QLineEdit, QPushButton
 
 # Local imports
-from spyderlib.py3compat import is_text_string
+from spyder.py3compat import is_text_string
 
 
 class ColorButton(QPushButton):

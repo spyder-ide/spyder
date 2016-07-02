@@ -20,7 +20,7 @@ import traceback
 # Local imports
 from spyder.config.base import DEBUG, STDERR
 DEBUG_EDITOR = DEBUG >= 3
-from spyderlib.py3compat import pickle
+from spyder.py3compat import pickle
 PICKLE_HIGHEST_PROTOCOL = 2
 
 

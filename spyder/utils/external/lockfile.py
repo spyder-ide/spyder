@@ -16,7 +16,7 @@ import errno, os
 
 from time import time as _uniquefloat
 
-from spyderlib.py3compat import PY2, to_binary_string
+from spyder.py3compat import PY2, to_binary_string
 
 def unique():
     if PY2:

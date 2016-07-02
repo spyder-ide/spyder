@@ -25,7 +25,7 @@ from qtpy.QtWidgets import QApplication
 from spyderlib import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyderlib.py3compat import builtins, is_text_string, to_text_string
+from spyder.py3compat import builtins, is_text_string, to_text_string
 from spyder.utils.sourcecode import CELL_LANGUAGES
 
 

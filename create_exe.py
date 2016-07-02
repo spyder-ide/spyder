@@ -37,7 +37,7 @@ def create_executable():
         dist.add_modules('guiqwt')
     except ImportError:
         pass
-    dist.includes += ['spyderlib.scientific_startup',
+    dist.includes += ['spyder.scientific_startup',
                       'spyder.widgets.externalshell.sitecustomize']
 
     #XXX: ...until we are able to distribute them (see guidata.disthelpers)

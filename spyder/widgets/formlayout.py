@@ -67,7 +67,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QColorDialog, QComboBox,
 
 # Local imports
 from spyder.config.base import _, DEBUG, STDERR
-from spyderlib.py3compat import is_string, is_text_string, to_text_string
+from spyder.py3compat import is_string, is_text_string, to_text_string
 
 
 __version__ = '1.0.15'

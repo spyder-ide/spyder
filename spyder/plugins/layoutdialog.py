@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QComboBox, QDialog,
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.py3compat import to_text_string
+from spyder.py3compat import to_text_string
 
 
 class LayoutModel(QAbstractTableModel):

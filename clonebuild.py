@@ -18,7 +18,7 @@ import re
 import sys
 
 import spyderlib as mod
-from spyderlib.py3compat import getcwd
+from spyder.py3compat import getcwd
 
 name = 'spyder'
 version = mod.__version__

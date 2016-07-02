@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.py3compat import getcwd, to_text_string
+from spyder.py3compat import getcwd, to_text_string
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import abspardir, get_common_path

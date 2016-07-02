@@ -27,7 +27,7 @@ from spyder.config.gui import get_shortcut
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.icon_manager import get_icon, get_std_icon
-from spyderlib.py3compat import is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----

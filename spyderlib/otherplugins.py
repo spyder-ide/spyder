@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -15,7 +15,7 @@ import traceback
 
 # Local imports
 from spyder.config.base import get_conf_path
-from spyderlib.py3compat import PY2
+from spyder.py3compat import PY2
 
 if PY2:
     import imp

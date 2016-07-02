@@ -13,9 +13,9 @@ import re
 
 # Local imports:
 from spyder.utils import encoding
-from spyderlib.py3compat import (is_text_string, builtins, get_meth_func,
-                                 get_meth_class_inst, get_meth_class,
-                                 get_func_defaults, to_text_string)
+from spyder.py3compat import (is_text_string, builtins, get_meth_func,
+                              get_meth_class_inst, get_meth_class,
+                              get_func_defaults, to_text_string)
 
 
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"

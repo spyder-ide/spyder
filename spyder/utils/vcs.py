@@ -15,7 +15,7 @@ import subprocess
 # Local imports
 from spyder.utils import programs
 from spyder.utils.misc import abspardir
-from spyderlib.py3compat import PY3
+from spyder.py3compat import PY3
 
 
 SUPPORTED = [

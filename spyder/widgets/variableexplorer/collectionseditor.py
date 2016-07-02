@@ -36,8 +36,8 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
-from spyderlib.py3compat import (io, is_binary_string, is_text_string,
-                                 getcwd, PY3, to_text_string)
+from spyder.py3compat import (io, is_binary_string, is_text_string,
+                              getcwd, PY3, to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import fix_reference_name
 from spyder.utils.qthelpers import (add_actions, create_action,

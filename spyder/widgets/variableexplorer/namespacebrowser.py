@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
 
 # Local imports
 from spyder.config.base import _, get_supported_types
-from spyderlib.py3compat import is_text_string, getcwd, to_text_string
+from spyder.py3compat import is_text_string, getcwd, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.iofuncs import iofunctions

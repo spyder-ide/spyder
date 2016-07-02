@@ -36,7 +36,7 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
 from spyder.config.gui import (config_shortcut, get_font, get_shortcut,
                                fixed_shortcut)
 from spyder.config.main import CONF
-from spyderlib.py3compat import PY3
+from spyder.py3compat import PY3
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs, sourcecode
 from spyder.utils.dochelpers import getargspecfromtext, getsignaturefromtext

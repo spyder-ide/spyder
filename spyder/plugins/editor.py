@@ -36,7 +36,7 @@ from spyder.config.gui import (RUN_CELL_SHORTCUT,
 from spyder.config.main import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyderlib.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager

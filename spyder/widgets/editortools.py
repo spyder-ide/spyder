@@ -18,7 +18,7 @@ from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import _, STDOUT
-from spyderlib.py3compat import to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text)

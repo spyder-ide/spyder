@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import fixed_shortcut
-from spyderlib.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,

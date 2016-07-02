@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 from spyderlib import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyderlib.py3compat import to_text_string
+from spyder.py3compat import to_text_string
 
 
 if not os.name == 'nt':

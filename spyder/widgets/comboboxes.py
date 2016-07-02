@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QComboBox, QCompleter, QSizePolicy, QToolTip
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.py3compat import to_text_string
+from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import IconLineEdit
 
 

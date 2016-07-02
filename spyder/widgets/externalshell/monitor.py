@@ -25,7 +25,7 @@ from spyder.utils.bsdsocket import (communicate, read_packet, write_packet,
                                     PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
 from spyder.utils.introspection.module_completion import module_completion
 from spyder.config.base import get_conf_path, get_supported_types, DEBUG
-from spyderlib.py3compat import getcwd, is_text_string, pickle, _thread
+from spyder.py3compat import getcwd, is_text_string, pickle, _thread
 
 
 SUPPORTED_TYPES = {}

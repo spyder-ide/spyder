@@ -15,7 +15,7 @@ from __future__ import print_function
 from qtpy.QtCore import QObject
 
 # Local imports
-from spyderlib.py3compat import is_text_string
+from spyder.py3compat import is_text_string
 
 
 class DialogKeeper(QObject):

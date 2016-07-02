@@ -48,7 +48,7 @@ from spyder.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
                                RUN_CELL_SHORTCUT,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.main import CONF
-from spyderlib.py3compat import to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode

@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QFrame, QLabel, QTextEdit, QPlainTextEdit, QStyle,
                             QStyleOptionFrame, QStylePainter, QToolTip)
 
 # Local imports
-from spyderlib.py3compat import to_text_string
+from spyder.py3compat import to_text_string
 
 
 class CallTipWidget(QLabel):

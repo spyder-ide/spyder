@@ -33,7 +33,7 @@ except:
     pd = None            #analysis:ignore
 
 # Local imports
-from spyderlib.py3compat import pickle, to_text_string, getcwd, PY2
+from spyder.py3compat import pickle, to_text_string, getcwd, PY2
 
 
 class MatlabStruct(dict):
@@ -557,7 +557,7 @@ def save_auto(data, filename):
 
 
 if __name__ == "__main__":
-    from spyderlib.py3compat import u
+    from spyder.py3compat import u
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)

@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.py3compat
--------------------
+spyder.py3compat
+----------------
 
 Transitional module providing compatibility functions intended to help
 migrating from Python 2 to Python 3.

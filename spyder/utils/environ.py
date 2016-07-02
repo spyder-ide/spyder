@@ -62,7 +62,7 @@ class EnvDialog(RemoteEnvDialog):
 
 # For Windows only
 try:
-    from spyderlib.py3compat import winreg
+    from spyder.py3compat import winreg
 
     def get_user_env():
         """Return HKCU (current user) environment variables"""

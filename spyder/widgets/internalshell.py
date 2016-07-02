@@ -25,8 +25,8 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyderlib import get_versions
 from spyderlib.interpreter import Interpreter
-from spyderlib.py3compat import (builtins, getcwd, to_binary_string,
-                                 to_text_string, u)
+from spyder.py3compat import (builtins, getcwd, to_binary_string,
+                              to_text_string, u)
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource

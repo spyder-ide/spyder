@@ -30,8 +30,8 @@ from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolTip
 from spyder.config.base import _, DEBUG, get_conf_path, STDERR
 from spyder.config.gui import config_shortcut, get_shortcut, fixed_shortcut
 from spyder.config.main import CONF
-from spyderlib.py3compat import (builtins, is_string, is_text_string,
-                                 PY3, to_text_string)
+from spyder.py3compat import (builtins, is_string, is_text_string,
+                              PY3, to_text_string)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,

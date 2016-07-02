@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 
 # Local imports
 from spyder.config.base import _
-from spyderlib.py3compat import iteritems, to_text_string
+from spyder.py3compat import iteritems, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HelperToolButton, HTMLDelegate

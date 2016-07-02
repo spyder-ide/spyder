@@ -43,7 +43,7 @@ from spyderlib import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
-from spyderlib.py3compat import to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.misc import get_error_match, remove_backslashes

@@ -36,7 +36,7 @@ from spyder.utils.misc import (get_error_match, get_python_executable,
 from spyder.utils.qthelpers import create_action, mimedata2url
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget
 from spyder.plugins.runconfig import get_run_configuration
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd
+from spyder.py3compat import to_text_string, is_text_string, getcwd
 from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyder.widgets.externalshell.systemshell import ExternalSystemShell
 from spyder.widgets.findreplace import FindReplace

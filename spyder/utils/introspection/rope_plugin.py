@@ -13,7 +13,7 @@ import imp
 
 from spyder.config.base import get_conf_path, STDERR
 from spyder.utils import encoding, programs
-from spyderlib.py3compat import PY2
+from spyder.py3compat import PY2
 from spyder.utils.dochelpers import getsignaturefromtext
 from spyder.utils import sourcecode
 from spyder.utils.debug import log_last_error, log_dt

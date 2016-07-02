@@ -35,7 +35,7 @@ from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.plugins.configdialog import SpyderConfigPage
-from spyderlib.py3compat import configparser, is_text_string
+from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, toggle_actions
 

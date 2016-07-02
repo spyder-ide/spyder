@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 # Local imports
 from spyder.config.gui import get_font
 from spyder.config.main import CONF
-from spyderlib.py3compat import PY3, str_lower, to_text_string
+from spyder.py3compat import PY3, str_lower, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin

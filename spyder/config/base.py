@@ -22,8 +22,8 @@ import sys
 
 # Local imports
 from spyder.utils import encoding
-from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
-                                 to_text_string, is_text_string)
+from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
+                              to_text_string, is_text_string)
 
 
 #==============================================================================
@@ -176,8 +176,7 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyderlib'), osp.pardir))
 
 
-SCIENTIFIC_STARTUP = get_module_source_path('spyderlib',
-                                            'scientific_startup.py')
+SCIENTIFIC_STARTUP = get_module_source_path('spyder', 'scientific_startup.py')
 
 
 #==============================================================================
