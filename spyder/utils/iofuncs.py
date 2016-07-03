@@ -524,7 +524,7 @@ class IOFunctions(object):
 
     def get_3rd_party_funcs(self):
         other_funcs = []
-        from spyderlib.otherplugins import get_spyderplugins_mods
+        from spyder.otherplugins import get_spyderplugins_mods
         for mod in get_spyderplugins_mods(io=True):
             try:
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
