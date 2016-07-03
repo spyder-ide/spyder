@@ -408,10 +408,10 @@ class NamespaceBrowser(QWidget):
         return communicate(self._get_sock(), "%s.ndim" % name)
         
     def plot(self, name, funcname):
-        command = "import spyderlib.pyplot; "\
-                  "__fig__ = spyderlib.pyplot.figure(); "\
-                  "__items__ = getattr(spyderlib.pyplot, '%s')(%s); "\
-                  "spyderlib.pyplot.show(); "\
+        command = "import spyder.pyplot; "\
+                  "__fig__ = spyder.pyplot.figure(); "\
+                  "__items__ = getattr(spyder.pyplot, '%s')(%s); "\
+                  "spyder.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
         if self.is_ipykernel:
             self.ipyclient.shellwidget.execute("%%varexp --%s %s" % (funcname,
@@ -420,10 +420,10 @@ class NamespaceBrowser(QWidget):
             self.shellwidget.send_to_process(command)
         
     def imshow(self, name):
-        command = "import spyderlib.pyplot; " \
-                  "__fig__ = spyderlib.pyplot.figure(); " \
-                  "__items__ = spyderlib.pyplot.imshow(%s); " \
-                  "spyderlib.pyplot.show(); del __fig__, __items__;" % name
+        command = "import spyder.pyplot; " \
+                  "__fig__ = spyder.pyplot.figure(); " \
+                  "__items__ = spyder.pyplot.imshow(%s); " \
+                  "spyder.pyplot.show(); del __fig__, __items__;" % name
         if self.is_ipykernel:
             self.ipyclient.shellwidget.execute("%%varexp --imshow %s" % name)
         else:

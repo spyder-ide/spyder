@@ -1177,7 +1177,7 @@ class CollectionsEditorTableView(BaseTableView):
     def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()
-        import spyderlib.pyplot as plt
+        import spyder.pyplot as plt
         plt.figure()
         getattr(plt, funcname)(data[key])
         plt.show()
@@ -1185,7 +1185,7 @@ class CollectionsEditorTableView(BaseTableView):
     def imshow(self, key):
         """Show item's image"""
         data = self.model.get_data()
-        import spyderlib.pyplot as plt
+        import spyder.pyplot as plt
         plt.figure()
         plt.imshow(data[key])
         plt.show()

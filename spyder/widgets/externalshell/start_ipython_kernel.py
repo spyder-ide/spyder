@@ -163,10 +163,10 @@ def varexp(line):
     """
     ip = get_ipython()       #analysis:ignore
     funcname, name = line.split()
-    import spyderlib.pyplot
-    __fig__ = spyderlib.pyplot.figure();
-    __items__ = getattr(spyderlib.pyplot, funcname[2:])(ip.user_ns[name])
-    spyderlib.pyplot.show()
+    import spyder.pyplot
+    __fig__ = spyder.pyplot.figure();
+    __items__ = getattr(spyder.pyplot, funcname[2:])(ip.user_ns[name])
+    spyder.pyplot.show()
     del __fig__, __items__
 
 # Remove this module's path from sys.path:
