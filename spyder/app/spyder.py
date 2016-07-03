@@ -2862,7 +2862,7 @@ class MainWindow(QMainWindow):
         """
         Check for spyder updates on github releases using a QThread.
         """
-        from spyderlib.workers.updates import WorkerUpdates
+        from spyder.workers.updates import WorkerUpdates
 
         # Disable check_updates_action while the thread is working
         self.check_updates_action.setDisabled(True)
