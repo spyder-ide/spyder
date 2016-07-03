@@ -39,7 +39,7 @@ except ImportError:
     pexpect = None
 
 # Local imports
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.plugins import PluginConfigPage, SpyderPluginWidget

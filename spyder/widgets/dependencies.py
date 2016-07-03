@@ -87,7 +87,7 @@ class DependenciesTableModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
-            from spyderlib.dependencies import Dependency
+            from spyder.dependencies import Dependency
             status = dep.get_status()
             if status == Dependency.NOK:
                 color = QColor(Qt.red)
@@ -174,13 +174,13 @@ class DependenciesDialog(QDialog):
         self.view.sortByColumn(0, Qt.DescendingOrder)
     
     def copy_to_clipboard(self):
-        from spyderlib.dependencies import status
+        from spyder.dependencies import status
         QApplication.clipboard().setText(status())
 
 
 def test():
     """Run dependency widget test"""
-    from spyderlib import dependencies
+    from spyder import dependencies
     
     # Test sample
     dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")

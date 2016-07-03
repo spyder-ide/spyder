@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QInputDialog,
                             QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.base import _, running_in_mac_app, SCIENTIFIC_STARTUP
 from spyder.config.main import CONF
 from spyder.utils import encoding, programs

@@ -125,7 +125,7 @@ from spyder.config.base import (get_conf_path, get_module_data_path,
 from spyder.config.main import CONF, OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.config.user import NoDefault
 from spyder.py3compat import (getcwd, is_text_string, to_text_string,

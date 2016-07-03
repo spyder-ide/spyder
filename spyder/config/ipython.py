@@ -9,7 +9,7 @@ IPython configuration variables needed by Spyder
 """
 
 from spyder.utils import programs
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.base import _
 
 

@@ -14,7 +14,7 @@ from qtpy.QtCore import QObject, QTimer, Signal
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.base import _, DEBUG, debug_print, get_conf_path
 from spyder.utils import sourcecode
 from spyder.utils.introspection.plugin_client import PluginClient

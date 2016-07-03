@@ -17,7 +17,7 @@ from spyder.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
                               is_text_string, is_binary_string, reprlib,
                               PY2, to_binary_string)
 from spyder.utils import programs
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.base import _
 
 

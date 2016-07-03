@@ -14,7 +14,7 @@ from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.py3compat import to_text_string

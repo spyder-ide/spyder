@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QGroupBox, QHBoxLayout,
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
-from spyderlib import dependencies
+from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.ipython import QTCONSOLE_INSTALLED

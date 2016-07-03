@@ -18,7 +18,7 @@ import traceback
 from spyder.config.base import _, DEBUG
 from spyder.utils import programs, encoding
 from spyder.py3compat import to_text_string, to_binary_string, PY3
-from spyderlib import dependencies
+from spyder import dependencies
 DEBUG_EDITOR = DEBUG >= 3
 
 #==============================================================================
