@@ -228,7 +228,7 @@ def get_available_translations():
     information that is found in the 'locale' folder to ensure that when a new
     language is added, LANGUAGE_CODES is updated.
     """
-    locale_path = get_module_data_path("spyderlib", relpath="locale",
+    locale_path = get_module_data_path("spyder", relpath="locale",
                                        attr_name='LOCALEPATH')
     listdir = os.listdir(locale_path)
     langs = [d for d in listdir if osp.isdir(osp.join(locale_path, d))]
@@ -332,7 +332,7 @@ def get_translation(modname, dirname=None):
         return translate_dumb
 
 # Translation callback
-_ = get_translation("spyderlib")
+_ = get_translation("spyder")
 
 
 #==============================================================================
