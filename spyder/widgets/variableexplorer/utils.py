@@ -86,7 +86,7 @@ else:
 # PIL Images support
 #==============================================================================
 try:
-    from spyderlib import pil_patch
+    from spyder import pil_patch
     Image = pil_patch.Image.Image
 except ImportError:
     Image = FakeObject  # analysis:ignore

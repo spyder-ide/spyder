@@ -402,7 +402,7 @@ class Monitor(threading.Thread):
         """Return True if object is an instance of class PIL.Image.Image"""
         ns = self.get_current_namespace()
         try:
-            from spyderlib.pil_patch import Image
+            from spyder.pil_patch import Image
             return isinstance(ns[name], Image.Image)
         except ImportError:
             return False

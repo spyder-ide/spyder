@@ -1416,7 +1416,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 def get_test_data():
     """Create test data"""
     import numpy as np
-    from spyderlib.pil_patch import Image
+    from spyder.pil_patch import Image
     image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
                             mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}

@@ -82,7 +82,7 @@ def create_dialog(obj, obj_name):
         if not dialog.setup_and_check(data, title=obj_name,
                                       readonly=readonly):
             return
-        from spyderlib.pil_patch import Image
+        from spyder.pil_patch import Image
         conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
     elif isinstance(obj, (DataFrame, Series)) and DataFrame is not FakeObject:
         dialog = DataFrameEditor()
@@ -149,7 +149,7 @@ def oedit(obj, modal=True, namespace=None):
 def test():
     """Run object editor test"""
     import datetime, numpy as np
-    from spyderlib.pil_patch import Image
+    from spyder.pil_patch import Image
     data = np.random.random_integers(255, size=(100, 100)).astype('uint8')
     image = Image.fromarray(data)
     example = {'str': 'kjkj kj k j j kj k jkj',

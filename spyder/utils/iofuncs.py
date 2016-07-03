@@ -214,7 +214,7 @@ except:
 
 
 try:
-    from spyderlib.pil_patch import Image
+    from spyder.pil_patch import Image
 
     if sys.byteorder == 'little':
         _ENDIAN = '<'
