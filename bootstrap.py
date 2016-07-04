@@ -136,7 +136,7 @@ if options.debug:
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
-from spyderlib import get_versions
+from spyder import get_versions
 versions = get_versions(reporev=False)
 print("03. Imported Spyder %s" % versions['spyder'])
 print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \

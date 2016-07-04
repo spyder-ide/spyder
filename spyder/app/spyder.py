@@ -117,7 +117,7 @@ QApplication.processEvents()
 #==============================================================================
 # Local utility imports
 #==============================================================================
-from spyderlib import __version__, __project_url__, __forum_url__, get_versions
+from spyder import __version__, __project_url__, __forum_url__, get_versions
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
                                 debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
@@ -919,7 +919,7 @@ class MainWindow(QMainWindow):
                                                 triggered=self.check_updates)
 
         # Spyder documentation
-        doc_path = get_module_data_path('spyderlib', relpath="doc",
+        doc_path = get_module_data_path('spyder', relpath="doc",
                                         attr_name='DOCPATH')
         # * Trying to find the chm doc
         spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
@@ -930,8 +930,8 @@ class MainWindow(QMainWindow):
             spyder_doc = osp.join(doc_path, "index.html")
         # * Trying to find the development-version html doc
         if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(get_module_source_path('spyderlib'),
-                                    os.pardir, 'build', 'lib', 'spyderlib',
+            spyder_doc = osp.join(get_module_source_path('spyder'),
+                                    os.pardir, 'build', 'lib', 'spyder',
                                     'doc', "index.html")
         # * If we totally fail, point to our web build
         if not osp.isfile(spyder_doc):
@@ -2728,7 +2728,7 @@ class MainWindow(QMainWindow):
         If reset True it allows to reset spyder on restart.
         """
         # Get start path to use in restart script
-        spyder_start_directory = get_module_path('spyderlib')
+        spyder_start_directory = get_module_path('spyder')
         restart_script = osp.join(spyder_start_directory, 'app', 'restart.py')
 
         # Get any initial argument passed when spyder was started
@@ -3033,9 +3033,9 @@ def main():
         return
     elif options.optimize:
         # Optimize the whole Spyder's source code directory
-        import spyderlib
+        import spyder
         programs.run_python_script(module="compileall",
-                                   args=[spyderlib.__path__[0]], p_args=['-O'])
+                                   args=[spyder.__path__[0]], p_args=['-O'])
         return
 
     if CONF.get('main', 'crash', False) and not DEV:

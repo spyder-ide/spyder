@@ -21,7 +21,7 @@ import shutil
 import time
 
 # Local imports
-from spyderlib import __version__
+from spyder import __version__
 from spyder.config.base import (DEV, TEST, get_module_source_path,
                                 get_home_dir)
 from spyder.utils.programs import check_version

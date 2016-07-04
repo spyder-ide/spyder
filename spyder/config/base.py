@@ -173,7 +173,7 @@ def get_module_source_path(modname, basename=None):
 
 def is_py2exe_or_cx_Freeze():
     """Return True if this is a py2exe/cx_Freeze distribution of Spyder"""
-    return osp.isfile(osp.join(get_module_path('spyderlib'), osp.pardir))
+    return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
 SCIENTIFIC_STARTUP = get_module_source_path('spyder', 'scientific_startup.py')

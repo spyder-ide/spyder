@@ -26,7 +26,7 @@ import sys
 
 from IPython.core.completerlib import module_list
 
-from spyderlib import __version__ as spy_version
+from spyder import __version__ as spy_version
 from spyder.config.main import EDIT_EXT
 from spyder.config.base import MAC_APP_NAME
 from spyder.utils.programs import find_program

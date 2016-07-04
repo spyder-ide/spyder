@@ -23,7 +23,7 @@ from qtpy.QtCore import QEventLoop, QObject, Signal, Slot
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyderlib import get_versions
+from spyder import get_versions
 from spyder.interpreter import Interpreter
 from spyder.py3compat import (builtins, getcwd, to_binary_string,
                               to_text_string, u)

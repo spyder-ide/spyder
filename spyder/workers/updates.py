@@ -12,7 +12,7 @@ import ssl
 from qtpy.QtCore import QObject, Signal
 
 # Local imports
-from spyderlib import __version__
+from spyder import __version__
 from spyder.config.base import _
 from spyder.py3compat import PY3
 from spyder.utils.programs import check_version, is_stable_version

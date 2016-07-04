@@ -47,7 +47,7 @@ if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
 #==============================================================================
 NAME = 'spyder'
 LIBNAME = 'spyderlib'
-from spyderlib import __version__, __project_url__
+from spyder import __version__, __project_url__
 
 
 #==============================================================================

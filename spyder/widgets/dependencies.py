@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QTableView, QVBoxLayout)
 
 # Local imports
-from spyderlib import __version__
+from spyder import __version__
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
 
