@@ -8,7 +8,7 @@ AUTHORS:
 - The Spyder Development Team: Several changes to make it work with Spyder
 
 Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
-Copyright (C) 2009- The Spyder Development Team
+Copyright (C) The Spyder Development Team
 Distributed under the terms of the BSD License
 
 Taken from the Sage project (www.sagemath.org).

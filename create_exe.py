@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Create a stand-alone executable"""
 
@@ -13,24 +13,24 @@ except ImportError:
 
 import os.path as osp
 import imp
-import spyderlib
+import spyder
 
 
 def create_executable():
     """Build executable using ``guidata.disthelpers``"""
     dist = Distribution()
     name = "spyder"
-    ver = spyderlib.__version__
+    ver = spyder.__version__
     try:
         imp.find_module('PyQt4')
         python_qt = 'pyqt'
     except ImportError:
         python_qt = 'pyside'
-    dist.setup(name="Spyder", version=ver, script="spyderlib/spyder.py",
+    dist.setup(name="Spyder", version=ver, script="spyder/spyder.py",
                description="Scientific PYthon Development EnviRonment",
                target_name="%s.exe" % name, icon="%s.ico" % name,
                target_dir="%s-win32-%s-sa-%s" % (name, python_qt, ver))
-    spyderlib.add_to_distribution(dist)
+    spyder.add_to_distribution(dist)
     dist.add_modules('matplotlib', 'h5py', 'scipy.io', 'guidata', 'pygments')
     try:
         import guiqwt  # analysis:ignore

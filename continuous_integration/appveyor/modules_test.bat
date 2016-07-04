@@ -2,14 +2,14 @@ setlocal enableextensions enabledelayedexpansion
 
 @echo off
 
-set SPYDERLIB=%APPVEYOR_BUILD_FOLDER%\spyderlib
+set SPYDER=%APPVEYOR_BUILD_FOLDER%\spyder
 set TEST_CI_WIDGETS=True
 
-:: Spyderlib
-for /r "%SPYDERLIB%" %%f in (*.py) do (
+:: Spyder
+for /r "%SPYDER%" %%f in (*.py) do (
     set file=%%f
 
-    if "%%f"=="%SPYDERLIB%\pyplot.py" (
+    if "%%f"=="%SPYDER%\pyplot.py" (
         echo --- NOT testing %%f ---
         echo.
     ) else if not "!file:app\=!"=="!file!" (
@@ -24,10 +24,10 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
         :: We don't want py.test's to be run here
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\utils\qthelpers.py" (
+    ) else if "%%f"=="%SPYDER%\utils\qthelpers.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\formlayout.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\formlayout.py" (
         echo --- NOT testing %%f ---
         echo.
     ) else if not "!file:external\=!"=="!file!" (
@@ -39,38 +39,38 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     ) else if not "!file:utils\help=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\utils\bsdsocket.py" (
+    ) else if "%%f"=="%SPYDER%\utils\bsdsocket.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\module_completion.py" (
+    ) else if "%%f"=="%SPYDER%\utils\introspection\module_completion.py" (
         :: This is failing randomly
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\utils\introspection\plugin_client.py" (
+    ) else if "%%f"=="%SPYDER%\utils\introspection\plugin_client.py" (
         :: We have to investigate this failure!
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\editor.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\editor.py" (
         :: This is making AppVeyor to time out!
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\systemshell.py" (
+    ) else if "%%f"=="%spyder%\widgets\externalshell\systemshell.py" (
         :: This is failing randomly
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\inputhooks.py" (
+    ) else if "%%f"=="%spyder%\widgets\externalshell\inputhooks.py" (
         :: It can't be tested outside of a Python console
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\sitecustomize.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\externalshell\sitecustomize.py" (
         :: It can't be tested outside of a Python console
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\externalshell\start_ipython_kernel.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\externalshell\start_ipython_kernel.py" (
         :: It can't be tested outside of a Qtconsole
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDERLIB%\widgets\sourcecode\codeeditor.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\sourcecode\codeeditor.py" (
         :: Testing file crashes on Python 2.7 without any reason
         if %PYTHON_VERSION%==2.7 (
             echo --- NOT testing %%f ---
@@ -80,7 +80,7 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
             python "%%f" || exit 1
             echo.
         )
-    ) else if "%%f"=="%SPYDERLIB%\widgets\browser.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\browser.py" (
         :: Not testing this file for now because m-labs builds doesn't have
         :: web widgets
         if %USE_QT_API%==PyQt5 (
@@ -91,7 +91,7 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
             python "%%f" || exit 1
             echo.
         )
-    ) else if "%%f"=="%SPYDERLIB%\widgets\ipython.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\ipython.py" (
         :: Not testing this file for now because m-labs builds doesn't have
         :: web widgets
         if %USE_QT_API%==PyQt5 (
@@ -102,7 +102,7 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
             python "%%f" || exit 1
             echo.
         )
-    ) else if "%%f"=="%SPYDERLIB%\widgets\pydocgui.py" (
+    ) else if "%%f"=="%SPYDER%\widgets\pydocgui.py" (
         :: Not testing this file for now because m-labs builds doesn't have
         :: web widgets
         if %USE_QT_API%==PyQt5 (

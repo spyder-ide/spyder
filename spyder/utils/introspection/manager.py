@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2015 The Spyder development team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 # Standard library imports
 from __future__ import print_function

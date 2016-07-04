@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2012 Jed Ludlow
+# Copyright © The Spyder Development Team
 # Based loosely on p_pylint.py by Pierre Raybaut
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Breakpoint Plugin"""
 

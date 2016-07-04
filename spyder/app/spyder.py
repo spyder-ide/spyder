@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Spyder, the Scientific PYthon Development EnviRonment
@@ -11,9 +11,9 @@ Spyder, the Scientific PYthon Development EnviRonment
 Developped and maintained by the Spyder Development
 Team
 
-Copyright © 2009- The Spyder Development Team
+Copyright © The Spyder Development Team
 Licensed under the terms of the MIT License
-(see spyderlib/__init__.py for details)
+(see spyder/__init__.py for details)
 """
 
 # =============================================================================
@@ -63,7 +63,7 @@ if os.name == 'nt':
 
 #==============================================================================
 # Workaround: importing rope.base.project here, otherwise this module can't
-# be imported if Spyder was executed from another folder than spyderlib
+# be imported if Spyder was executed from another folder than spyder
 #==============================================================================
 try:
     import rope.base.project  # analysis:ignore
@@ -2311,7 +2311,7 @@ class MainWindow(QMainWindow):
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
             <br>The Scientific PYthon Development EnviRonment
-            <br>Copyright &copy; 2009- The Spyder Development Team
+            <br>Copyright &copy; The Spyder Development Team
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the

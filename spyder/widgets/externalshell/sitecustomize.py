@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2009- The Spyder Development Team)
+# Copyright (c) The Spyder Development Team)
 # Licensed under the terms of the MIT License)
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 #
 # IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
 # site files
@@ -41,7 +41,7 @@ IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true
 #==============================================================================
 # Important Note:
 #
-# We avoid importing spyderlib here, so we are handling Python 3 compatiblity
+# We avoid importing spyder here, so we are handling Python 3 compatiblity
 # by hand.
 #==============================================================================
 def _print(*objects, **options):
@@ -138,20 +138,20 @@ if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":
 
 
 #==============================================================================
-# Prepending this spyderlib package's path to sys.path to be sure
-# that another version of spyderlib won't be imported instead:
+# Prepending this spyder package's path to sys.path to be sure
+# that another version of spyder won't be imported instead:
 #==============================================================================
-spyderlib_path = osp.dirname(__file__)
-while not osp.isdir(osp.join(spyderlib_path, 'spyderlib')):
-    spyderlib_path = osp.abspath(osp.join(spyderlib_path, os.pardir))
-if not spyderlib_path.startswith(sys.prefix):
+spyder_path = osp.dirname(__file__)
+while not osp.isdir(osp.join(spyder_path, 'spyder')):
+    spyder_path = osp.abspath(osp.join(spyder_path, os.pardir))
+if not spyder_path.startswith(sys.prefix):
     # Spyder is not installed: moving its parent directory to the top of
-    # sys.path to be sure that this spyderlib package will be imported in
+    # sys.path to be sure that this spyder package will be imported in
     # the remote process (instead of another installed version of Spyder)
-    while spyderlib_path in sys.path:
-        sys.path.remove(spyderlib_path)
-    sys.path.insert(0, spyderlib_path)
-os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
+    while spyder_path in sys.path:
+        sys.path.remove(spyder_path)
+    sys.path.insert(0, spyder_path)
+os.environ['SPYDER_PARENT_DIR'] = spyder_path
 
 
 #==============================================================================
@@ -180,7 +180,7 @@ if sys.platform == 'darwin':
     from spyder.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
         if IS_EXT_INTERPRETER.lower() == "true":
-            # Add a minimal library (with spyderlib) at the end of sys.path to
+            # Add a minimal library (with spyder) at the end of sys.path to
             # be able to connect our monitor to the external console
             py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
             app_pythonpath = '%s/Contents/Resources/lib/python%s' % (MAC_APP_NAME,
@@ -542,7 +542,7 @@ class SpyderPdb(pdb.Pdb):
 pdb.Pdb = SpyderPdb
 
 #XXX: I know, this function is now also implemented as is in utils/misc.py but
-#     I'm kind of reluctant to import spyderlib in sitecustomize, even if this
+#     I'm kind of reluctant to import spyder in sitecustomize, even if this
 #     import is very clean.
 def monkeypatch_method(cls, patch_name):
     # This function's code was inspired from the following thread:
@@ -644,13 +644,13 @@ if sys.version[0] == '2':
 #==============================================================================
 # Restoring (almost) original sys.path:
 #
-# NOTE: do not remove spyderlib_path from sys.path because if Spyder has been
+# NOTE: do not remove spyder_path from sys.path because if Spyder has been
 # installed using python setup.py install, then this could remove the
 # 'site-packages' directory from sys.path!
 #==============================================================================
 try:
-    sys.path.remove(osp.join(spyderlib_path,
-                             "spyderlib", "widgets", "externalshell"))
+    sys.path.remove(osp.join(spyder_path, "spyder", "widgets",
+                             "externalshell"))
 except ValueError:
     pass
 
@@ -669,7 +669,7 @@ class UserModuleReloader(object):
     def __init__(self, namelist=None, pathlist=None):
         if namelist is None:
             namelist = []
-        spy_modules = ['sitecustomize', 'spyderlib', 'spyderplugins']
+        spy_modules = ['sitecustomize', 'spyder', 'spyderplugins']
         mpl_modules = ['matplotlib', 'tkinter', 'Tkinter']
         self.namelist = namelist + spy_modules + mpl_modules
 

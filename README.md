@@ -1,6 +1,6 @@
 # Spyder - The Scientific PYthon Development EnviRonment
 
-Copyright © 2009- The Spyder Development Team.
+Copyright © The Spyder Development Team.
 
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)

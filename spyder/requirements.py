@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2013 Pierre Raybaut
-#           © 2012-2014 anatoly techtonik
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Module checking Spyder installation requirements"""
 

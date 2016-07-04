@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Miscellaneous utilities"""
 
@@ -254,10 +254,10 @@ def memoize(obj):
 if __name__ == '__main__':
     if os.name == 'nt':
         assert get_common_path([
-                                'D:\\Python\\spyder-v21\\spyderlib\\widgets',
-                                'D:\\Python\\spyder\\spyderlib\\utils',
-                                'D:\\Python\\spyder\\spyderlib\\widgets',
-                                'D:\\Python\\spyder-v21\\spyderlib\\utils',
+                                'D:\\Python\\spyder-v21\\spyder\\widgets',
+                                'D:\\Python\\spyder\\spyder\\utils',
+                                'D:\\Python\\spyder\\spyder\\widgets',
+                                'D:\\Python\\spyder-v21\\spyder\\utils',
                                 ]) == 'D:\\Python'
     else:
         assert get_common_path([

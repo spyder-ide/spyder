@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Editor Widget"""
 
@@ -2371,7 +2371,7 @@ def test():
     from spyder.config.base import get_module_path
     from spyder.utils.introspection.manager import IntrospectionManager
 
-    cur_dir = osp.join(get_module_path('spyderlib'), 'widgets')
+    cur_dir = osp.join(get_module_path('spyder'), 'widgets')
     app = qapplication(test_time=8)
     introspector = IntrospectionManager()
 

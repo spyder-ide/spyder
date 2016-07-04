@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Cloning Spyder mercurial orig_repo_name
@@ -17,7 +17,7 @@ import shutil
 import re
 import sys
 
-import spyderlib as mod
+import spyder as mod
 from spyder.py3compat import getcwd
 
 name = 'spyder'
@@ -74,7 +74,7 @@ def include_chm_doc(plugin_dir):
         return
     fname = osp.join('doctmp', 'Spyderdoc.chm')
     os.system('"%s" %s' % (hhc_exe, fname))
-    docdir = osp.join(plugin_dir, 'PURELIB', 'spyderlib', 'doc')
+    docdir = osp.join(plugin_dir, 'PURELIB', 'spyder', 'doc')
     shutil.rmtree(docdir)
     os.mkdir(docdir)
     shutil.copy(fname, osp.join(docdir, 'Spyderdoc.chm'))

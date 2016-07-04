@@ -3,7 +3,7 @@
 Spyder License Agreement (MIT License)
 --------------------------------------
 
-Copyright (c) 2009- The Spyder Development Team
+Copyright (c) The Spyder Development Team
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -51,7 +51,7 @@ def add_to_distribution(dist):
         dist.add_qt_bindings()
     except AttributeError:
         raise ImportError("This script requires guidata 1.5+")
-    for _modname in ('spyderlib', 'spyderplugins'):
+    for _modname in ('spyder', 'spyderplugins'):
         dist.add_module_data_files(_modname, ("", ),
                                    ('.png', '.svg', '.html', '.png', '.txt',
                                     '.js', '.inv', '.ico', '.css', '.doctree',

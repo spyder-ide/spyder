@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2012 Pierre Raybaut
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Windows-specific utilities"""
 
@@ -39,7 +39,7 @@ def is_attached_console_visible():
 def set_windows_appusermodelid():
     """Make sure correct icon is used on Windows 7 taskbar"""
     try:
-        return windll.shell32.SetCurrentProcessExplicitAppUserModelID("spyderlib.Spyder")
+        return windll.shell32.SetCurrentProcessExplicitAppUserModelID("spyder.Spyder")
     except AttributeError:
         return "SetCurrentProcessExplicitAppUserModelID not found"
 

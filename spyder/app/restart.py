@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Restart Spyder
@@ -165,7 +165,7 @@ def main():
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables
-    # Note: Variables defined in spyderlib\spyder.py 'restart()' method
+    # Note: Variables defined in app/spyder.py 'restart()' method
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)
@@ -210,8 +210,8 @@ def main():
     if is_bootstrap:
         spyder = osp.join(spyder_folder, 'bootstrap.py')
     else:
-        spyderlib = osp.join(spyder_folder, 'spyderlib')
-        spyder = osp.join(spyderlib, 'app', 'start.py')
+        spyderdir = osp.join(spyder_folder, 'spyder')
+        spyder = osp.join(spyderdir, 'app', 'start.py')
 
     command = '"{0}" "{1}" {2}'.format(python, spyder, args)
 

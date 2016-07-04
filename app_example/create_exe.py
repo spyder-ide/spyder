@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Create a stand-alone executable"""
 
@@ -11,7 +11,7 @@ try:
 except ImportError:
     raise ImportError("This script requires guidata 1.4+")
 
-import spyderlib
+import spyder
 
 
 def create_executable():
@@ -20,7 +20,7 @@ def create_executable():
     dist.setup(name="Example", version="1.1",
                description="Embedding Spyder Qt shell",
                script="example.pyw", target_name="example.exe")
-    spyderlib.add_to_distribution(dist)
+    spyder.add_to_distribution(dist)
     #dist.add_modules('matplotlib')  # Uncomment if you need matplotlib
     dist.excludes += ['IPython']
     # Building executable

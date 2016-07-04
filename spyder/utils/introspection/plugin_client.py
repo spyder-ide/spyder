@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2016 The Spyder development team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 # Local imports
 import imp
@@ -78,7 +78,7 @@ class AsyncClient(QObject):
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
         if (self.env and 'PYTHONPATH' not in self.env) or DEV:
-            python_path = osp.dirname(get_module_path('spyderlib'))
+            python_path = osp.dirname(get_module_path('spyder'))
             # Add the libs to the python path.
             for lib in self.libs:
                 try:

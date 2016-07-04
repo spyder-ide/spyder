@@ -15,7 +15,7 @@ else
 fi
 
 # Depth 1
-for f in spyderlib/*.py; do
+for f in spyder/*.py; do
     if [[ $f == *tests/test_* ]]; then
         continue
     fi
@@ -30,7 +30,7 @@ done
 
 
 # Depth 2
-for f in spyderlib/*/*.py; do
+for f in spyder/*/*.py; do
     if [[ $f == *tests/test_* ]]; then
         continue
     fi
@@ -58,11 +58,11 @@ done
 
 
 # Depth 3
-for f in spyderlib/*/*/*.py; do
+for f in spyder/*/*/*.py; do
     if [[ $f == *tests/test_* ]]; then
         continue
     fi
-    if [[ $f == spyderlib/external/*/*.py ]]; then
+    if [[ $f == spyder/external/*/*.py ]]; then
         continue
     fi
     if [[ $f == spyder/utils/external/*.py ]]; then
@@ -94,7 +94,7 @@ done
 
 
 # Depth 4
-for f in spyderlib/*/*/*/*.py; do
+for f in spyder/*/*/*/*.py; do
     if [[ $f == *tests/test_* ]]; then
         continue
     fi

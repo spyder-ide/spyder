@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- Spyder development team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the New BSD License
 #
 # DataFrameModel is based on the class ArrayModel from array editor

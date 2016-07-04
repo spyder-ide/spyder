@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Project Explorer"""
 
@@ -1339,7 +1339,7 @@ class Test(QWidget):
         self.explorer = ProjectExplorerWidget(None, show_all=True)
         self.explorer.set_workspace(osp.dirname(osp.abspath(__file__)))
 #        p1 = self.explorer.add_project(r"D:/Python/spyder")
-#        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
+#        p1.set_pythonpath([r"D:\Python\spyder\spyder"])
 #        p1.save()
 #        self.treewidget.close_projects(p1)
 #        _p2 = self.explorer.add_project(r"D:\Python\test_project")

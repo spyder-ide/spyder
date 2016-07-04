@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © The Spyder development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Patching rope:
@@ -45,7 +45,7 @@ def apply():
             def _default_config(self):
                 # py2exe/cx_Freeze distribution
                 from spyder.config.base import get_module_source_path
-                fname = get_module_source_path('spyderlib',
+                fname = get_module_source_path('spyder',
                                                'default_config.py')
                 return open(fname, 'rb').read()
         project.Project = PatchedProject

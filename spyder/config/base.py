@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder development Team
+# Copyright © The Spyder development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Spyder base configuration management
 
 This file only deals with non-GUI configuration features
 (in other words, we won't import any PyQt object here, avoiding any
-sip API incompatibility issue in spyderlib's non-gui modules)
+sip API incompatibility issue in spyder's non-gui modules)
 """
 
 from __future__ import print_function

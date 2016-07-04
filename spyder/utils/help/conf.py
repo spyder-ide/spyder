@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
-# Copyright (C) 2009- The Spyder Development Team
+# Copyright (C) The Spyder Development Team
 # Distributed under the terms of the BSD License
 
 """Sphinx conf file for the Help plugin rich text mode"""
@@ -54,7 +54,7 @@ master_doc = 'docstring'
 
 # General information about the project.
 project = u("Spyder Help plugin")
-copyright = u('2009--2013, The Spyder Development Team')
+copyright = u('The Spyder Development Team')
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.

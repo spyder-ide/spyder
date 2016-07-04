@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Editor widget based on QtGui.QPlainTextEdit
 """
 
-# TODO: Try to separate this module from spyderlib to create a self
+# TODO: Try to separate this module from spyder to create a self
 #       consistent editor module (Qt source code and shell widgets library)
 
 # %% This line is for cell execution testing
