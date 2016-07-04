@@ -46,8 +46,8 @@ Spyder is a Python development environment with a lot of features:
 
 * **History log**
 
-Spyder may also be used as a PyQt5/PyQt4 extension library (module 
-`spyderlib`). For example, the Python interactive shell widget used in
+Spyder may also be used as a PyQt5/PyQt4 extension library (module
+`spyder`). For example, the Python interactive shell widget used in
 Spyder may be embedded in your own PyQt5/PyQt4 application.
 
 
