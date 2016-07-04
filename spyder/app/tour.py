@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import division, absolute_import
+from __future__ import division
 
 import sys
 

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-
 # Std imports
 import atexit
 import os
@@ -109,16 +107,16 @@ def main():
             # Then start Spyder as usual and *don't* continue
             # executing this script because it doesn't make
             # sense
-            from spyder.app import spyder
-            spyder.main()
+            from spyder.app import mainwindow
+            mainwindow.main()
             return
 
         if lock_created:
             # Start a new instance
             if TEST is None:
                 atexit.register(lock.unlock)
-            from spyder.app import spyder
-            spyder.main()
+            from spyder.app import mainwindow
+            mainwindow.main()
         else:
             # Pass args to Spyder or print an informative
             # message
@@ -128,8 +126,8 @@ def main():
                 print("Spyder is already running. If you want to open a new \n"
                       "instance, please pass to it the --new-instance option")
     else:
-        from spyder.app import spyder
-        spyder.main()
+        from spyder.app import mainwindow
+        mainwindow.main()
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ Licensed under the terms of the MIT License
 # =============================================================================
 # Stdlib imports
 # =============================================================================
-from __future__ import print_function, absolute_import
+from __future__ import print_function
 
 import atexit
 import errno
