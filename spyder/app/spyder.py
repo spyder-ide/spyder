@@ -2903,7 +2903,7 @@ def initialize():
 
     #----Monkey patching rope
     try:
-        from spyderlib import rope_patch
+        from spyder import rope_patch
         rope_patch.apply()
     except ImportError:
         # rope is not installed
