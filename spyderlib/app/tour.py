@@ -990,7 +990,7 @@ class AnimatedTour(QWidget):
         current = '{0}/{1}'.format(step + 1, steps)
         frame = frames[step]
 
-        combobox_frames = ["{0}. {1}".format(i+1, f['title'])
+        combobox_frames = [u"{0}. {1}".format(i+1, f['title'])
                            for i, f in enumerate(frames)]
 
         title, content, image = '', '', None

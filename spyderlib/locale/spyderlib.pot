@@ -533,13 +533,13 @@ msgstr ""
 #: spyderlib/app/spyder.py:1325
 #, python-format
 msgid ""
-"<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><br><b>Please "
-"install them to avoid this message.</b><br><br><i>Note</i>: Spyder could "
-"work without some of these dependencies, however to have a smooth experience "
-"when using Spyder we <i>strongly</i> recommend you to install all the listed "
-"missing dependencies.<br>Failing to install these dependencies might result "
-"in bugs. Please be sure that any found bugs are not the direct result of "
-"missing dependencies, prior to reporting a new issue."
+"<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><br><b>"
+"Please install them to avoid this message.</b><br><br><i>Note</i>: "
+"Spyder could work without some of these dependencies, however to "
+"have a smooth experience when using Spyder we <i>strongly</i> recommend"
+" you to install all the listed missing dependencies.<br><br>Failing to "
+"install these dependencies might result in bugs. Please be sure that any "
+"found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
 msgstr ""
 
 #: spyderlib/app/spyder.py:1766
