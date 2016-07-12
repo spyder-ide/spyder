@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-03-19 17:55+0300\n"
-"PO-Revision-Date: 2016-07-11 11:41+0900\n"
+"PO-Revision-Date: 2016-07-12 09:04+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
 "Language: ja\n"
@@ -481,11 +481,11 @@ msgstr "Python(x,y) ドキュメントフォルダ"
 
 #: spyderlib/app/spyder.py:1067
 msgid "guidata documentation"
-msgstr "GUIデータドキュメント"
+msgstr "guidataドキュメント"
 
 #: spyderlib/app/spyder.py:1070
 msgid "guiqwt documentation"
-msgstr "GUIqwtドキュメント"
+msgstr "guiqwtドキュメント"
 
 #: spyderlib/app/spyder.py:1076
 msgid "NumPy documentation"
@@ -3780,11 +3780,11 @@ msgstr "winpdbでデバッグ"
 
 #: spyderlib/plugins/editor.py:724
 msgid "Debug file"
-msgstr "デバッグファイル"
+msgstr "ファイルをデバッグ開始"
 
 #: spyderlib/plugins/editor.py:728
 msgid "Step"
-msgstr "ステップ"
+msgstr "Step"
 
 #: spyderlib/plugins/editor.py:729
 msgid "Run current line"
