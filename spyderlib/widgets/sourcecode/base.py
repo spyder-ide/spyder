@@ -292,6 +292,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
                         (self.objectName(), background.name(), foreground.name())
                 self.setStyleSheet(style)
+        # FIXME: Temporal edit for darstyle
+        self.setStyleSheet("QPlainTextEdit {background-color: %s;}" %
+                           (background.name()))
 
 
     #------Extra selections
