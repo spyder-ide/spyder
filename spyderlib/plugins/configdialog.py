@@ -829,6 +829,13 @@ class MainConfigPage(GeneralConfigPage):
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
                                            'icon_theme', restart=True)
+
+        try:
+            import qdarkstyle
+            darkstyle_available = True
+        except ImportError:
+            darkstyle_available = False
+
         background_colors = ['Light', 'Dark']
         background_color_choices = list(
             zip(background_colors,
@@ -864,8 +871,11 @@ class MainConfigPage(GeneralConfigPage):
         cbs_layout.addWidget(style_combo.combobox, 0, 1)
         cbs_layout.addWidget(icons_combo.label, 1, 0)
         cbs_layout.addWidget(icons_combo.combobox, 1, 1)
-        cbs_layout.addWidget(background_color_combo.label, 2, 0)
-        cbs_layout.addWidget(background_color_combo.combobox, 2, 1)
+
+        if darkstyle_available:
+            cbs_layout.addWidget(background_color_combo.label, 2, 0)
+            cbs_layout.addWidget(background_color_combo.combobox, 2, 1)
+
         comboboxes_layout.addLayout(cbs_layout)
         comboboxes_layout.addStretch(1)
         
