@@ -73,7 +73,7 @@ except ImportError:
 #==============================================================================
 # Qt imports
 #==============================================================================
-from qtpy import API, PYQT5
+from qtpy import API, PYSIDE, PYQT4, PYQT5
 from qtpy.compat import from_qvariant, getopenfilename, getsavefilename
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot)
@@ -293,6 +293,32 @@ class MainWindow(QMainWindow):
             mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
             mac_style = mac_style.replace('$IMAGE_PATH', img_path)
             self.setStyleSheet(mac_style)
+
+        # Load light/dark theme
+        dark = None
+        try:
+            import qdarkstyle
+            dark = CONF.get('main', 'background_color_theme') == 'dark'
+        except ImportError:
+            pass
+
+        if dark:
+            if PYSIDE:
+                style_sheet = qdarkstyle.load_stylesheet()
+            elif PYQT4:
+                style_sheet = qdarkstyle.load_stylesheet(pyside=False)
+            elif PYQT5:
+                style_sheet = qdarkstyle.load_stylesheet_pyqt5()
+            qapp.setStyleSheet(style_sheet)
+
+            # Set ipython console and python console to dark themes
+            CONF.set('console', 'light_background', False)
+            CONF.set('ipython_console', 'light_color', False)
+            CONF.set('ipython_console', 'dark_color', True)
+        else:
+            CONF.set('console', 'light_background', True)
+            CONF.set('ipython_console', 'light_color', True)
+            CONF.set('ipython_console', 'dark_color', False)
 
         # Shortcut management data
         self.shortcut_data = []
