@@ -829,7 +829,14 @@ class MainConfigPage(GeneralConfigPage):
         icon_choices = list(zip(themes, [theme.lower() for theme in themes]))
         icons_combo = self.create_combobox(_('Icon theme'), icon_choices,
                                            'icon_theme', restart=True)
-
+        background_colors = ['Light', 'Dark']
+        background_color_choices = list(
+            zip(background_colors,
+                [theme.lower() for theme in background_colors]))
+        background_color_combo = self.create_combobox(_('Theme'),
+                                                      background_color_choices,
+                                                      'background_color_theme',
+                                                      restart=True)
 
         vertdock_box = newcb(_("Vertical title bars in panes"),
                              'vertical_dockwidget_titlebars')
@@ -857,6 +864,8 @@ class MainConfigPage(GeneralConfigPage):
         cbs_layout.addWidget(style_combo.combobox, 0, 1)
         cbs_layout.addWidget(icons_combo.label, 1, 0)
         cbs_layout.addWidget(icons_combo.combobox, 1, 1)
+        cbs_layout.addWidget(background_color_combo.label, 2, 0)
+        cbs_layout.addWidget(background_color_combo.combobox, 2, 1)
         comboboxes_layout.addLayout(cbs_layout)
         comboboxes_layout.addStretch(1)
         
