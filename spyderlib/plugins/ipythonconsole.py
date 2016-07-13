@@ -182,16 +182,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_layout.addWidget(comp_box)
         comp_group.setLayout(comp_layout)
 
-        # Background Color Group
-        bg_group = QGroupBox(_("Background color"))
-        light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color')
-        dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color')
-        bg_layout = QVBoxLayout()
-        bg_layout.addWidget(light_radio)
-        bg_layout.addWidget(dark_radio)
-        bg_group.setLayout(bg_layout)
+#        # Background Color Group
+#        bg_group = QGroupBox(_("Background color"))
+#        light_radio = self.create_radiobutton(_("Light background"),
+#                                              'light_color')
+#        dark_radio = self.create_radiobutton(_("Dark background"),
+#                                             'dark_color')
+#        bg_layout = QVBoxLayout()
+#        bg_layout.addWidget(light_radio)
+#        bg_layout.addWidget(dark_radio)
+#        bg_group.setLayout(bg_layout)
 
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
@@ -451,7 +451,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, comp_group,
-                                    bg_group, source_code_group), _("Display"))
+                                    source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),

@@ -107,16 +107,16 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         display_group.setLayout(display_layout)
         
         # Background Color Group
-        bg_group = QGroupBox(_("Background color"))
-        bg_label = QLabel(_("This option will be applied the next time "
-                            "a Python console or a terminal is opened."))
-        bg_label.setWordWrap(True)
-        lightbg_box = newcb(_("Light background (white color)"),
-                            'light_background')
-        bg_layout = QVBoxLayout()
-        bg_layout.addWidget(bg_label)
-        bg_layout.addWidget(lightbg_box)
-        bg_group.setLayout(bg_layout)
+#        bg_group = QGroupBox(_("Background color"))
+#        bg_label = QLabel(_("This option will be applied the next time "
+#                            "a Python console or a terminal is opened."))
+#        bg_label.setWordWrap(True)
+#        lightbg_box = newcb(_("Light background (white color)"),
+#                            'light_background')
+#        bg_layout = QVBoxLayout()
+#        bg_layout.addWidget(bg_label)
+#        bg_layout.addWidget(lightbg_box)
+#        bg_group.setLayout(bg_layout)
 
         # Advanced settings
         source_group = QGroupBox(_("Source code"))
@@ -321,8 +321,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                                     interpreter=interpreter))
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(interface_group, display_group,
-                                    bg_group),
+        tabs.addTab(self.create_tab(interface_group, display_group),
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
                     _("Introspection"))
