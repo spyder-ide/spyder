@@ -403,6 +403,7 @@ class EditorStack(QWidget):
         self.fullpath_sorting_enabled = None
         self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
+        self.create_new_file_if_empty = True
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
@@ -1163,7 +1164,7 @@ class EditorStack(QWidget):
                     new_index -= 1
                 self.set_stack_index(new_index)
 
-        if self.get_stack_count() == 0:
+        if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
 
@@ -2018,7 +2019,11 @@ class EditorSplitter(QSplitter):
             editorstack = splitter.widget(0)
             for index, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
-                editor.go_to_line(clines[index])
+                # FIXME: Temporal fix
+                try:
+                    editor.go_to_line(clines[index])
+                except IndexError:
+                    pass
             editorstack.set_current_filename(cfname)
         hexstate = settings.get('hexstate')
         if hexstate is not None:
