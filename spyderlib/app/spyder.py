@@ -376,7 +376,10 @@ class MainWindow(QMainWindow):
         self.selectall_action = None
         self.maximize_action = None
         self.fullscreen_action = None
-
+        self.new_project_action_ = None
+        self.open_project_action_ = None
+        self.close_project_action_ = None
+  
         # Menu bars
         self.file_menu = None
         self.file_menu_actions = []
@@ -442,7 +445,8 @@ class MainWindow(QMainWindow):
         if options.window_title is not None:
             title += ' -- ' + options.window_title
 
-        self.setWindowTitle(title)
+        self.base_title = title
+        self.update_window_title()
         resample = os.name != 'nt'
         icon = ima.icon('spyder', resample=resample)
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
@@ -1279,12 +1283,18 @@ class MainWindow(QMainWindow):
         if not self.extconsole.isvisible and not ipy_visible:
             self.historylog.add_history(get_conf_path('history.py'))
 
-        # Give focus to the Editor
-        if self.editor.dockwidget.isVisible():
-            try:
-                self.editor.get_focus_widget().setFocus()
-            except AttributeError:
-                pass
+        # Load last openned project (if a project was active when spyder closed)
+        if self.projectexplorer is not None:
+            self.projectexplorer.setup_projects()
+
+            # Give focus to the Editor setup opened files
+            if self.editor.dockwidget.isVisible():
+                # Load files
+                self.editor.setup_open_files()
+                try:
+                    self.editor.get_focus_widget().setFocus()
+                except AttributeError:
+                    pass
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
@@ -1294,6 +1304,15 @@ class MainWindow(QMainWindow):
         self.report_missing_dependencies()
 
         self.is_setting_up = False
+
+    def update_window_title(self):
+        """Update main spyder window title based on projects."""
+        title = self.base_title
+        if self.projectexplorer is not None:
+            path = self.projectexplorer.get_active_project_path()
+            if path:
+                title += ' - Project: {0}'.format(path)
+        self.setWindowTitle(title)
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
