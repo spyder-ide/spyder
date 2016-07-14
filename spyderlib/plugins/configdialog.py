@@ -836,14 +836,15 @@ class MainConfigPage(GeneralConfigPage):
         except ImportError:
             darkstyle_available = False
 
-        background_colors = ['Light', 'Dark']
-        background_color_choices = list(
-            zip(background_colors,
-                [theme.lower() for theme in background_colors]))
-        background_color_combo = self.create_combobox(_('Theme'),
-                                                      background_color_choices,
-                                                      'background_color_theme',
-                                                      restart=True)
+        if darkstyle_available:
+            background_colors = ['Light', 'Dark']
+            background_color_choices = list(
+                zip(background_colors,
+                    [theme.lower() for theme in background_colors]))
+            background_color_combo = self.create_combobox(_('Theme'),
+                                                          background_color_choices,
+                                                          'background_color_theme',
+                                                          restart=True)
 
         vertdock_box = newcb(_("Vertical title bars in panes"),
                              'vertical_dockwidget_titlebars')
