@@ -2455,21 +2455,33 @@ class CodeEditor(TextEditBaseWidget):
     def setup_context_menu(self):
         """Setup context menu"""
         self.undo_action = create_action(self, _("Undo"),
-                             icon=ima.icon('undo'), triggered=self.undo)
+                             icon=ima.icon('undo'), 
+                             shortcut=get_shortcut('editor', 'undo'), 
+                             triggered=self.undo)
         self.redo_action = create_action(self, _("Redo"),
-                             icon=ima.icon('redo'), triggered=self.redo)
+                             icon=ima.icon('redo'), 
+                             shortcut=get_shortcut('editor', 'redo'), 
+                             triggered=self.redo)
         self.cut_action = create_action(self, _("Cut"),
-                             icon=ima.icon('editcut'), triggered=self.cut)
+                             icon=ima.icon('editcut'), 
+                             shortcut=get_shortcut('editor', 'cut'), 
+                             triggered=self.cut)
         self.copy_action = create_action(self, _("Copy"),
-                             icon=ima.icon('editcopy'), triggered=self.copy)
+                             icon=ima.icon('editcopy'), 
+                             shortcut=get_shortcut('editor', 'copy'), 
+                             triggered=self.copy)
         self.paste_action = create_action(self, _("Paste"),
-                             icon=ima.icon('editpaste'), triggered=self.paste)
+                             icon=ima.icon('editpaste'), 
+                             shortcut=get_shortcut('editor', 'paste'), 
+                             triggered=self.paste)
         selectall_action = create_action(self, _("Select All"),
                              icon=ima.icon('selectall'),
+                             shortcut=get_shortcut('editor', 'select all'), 
                              triggered=self.selectAll)
         toggle_comment_action = create_action(self,
                                 _("Comment")+"/"+_("Uncomment"),
                                 icon=ima.icon('comment'),
+                                shortcut=get_shortcut('editor', 'toggle comment'), 
                                 triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(self,
                            _("Clear all ouput"), icon=ima.icon('ipython_console'),
@@ -2479,7 +2491,8 @@ class CodeEditor(TextEditBaseWidget):
                                                triggered=self.convert_notebook,
                                                icon=ima.icon('python'))
         self.gotodef_action = create_action(self, _("Go to definition"),
-                                   triggered=self.go_to_definition_from_cursor)
+                            shortcut=get_shortcut('editor', 'go to definition'), 
+                            triggered=self.go_to_definition_from_cursor)
 
         # Run actions
         self.run_cell_action = create_action(self,
@@ -2495,6 +2508,7 @@ class CodeEditor(TextEditBaseWidget):
         self.run_selection_action = create_action(self,
                         _("Run &selection or current line"),
                         icon=ima.icon('run_selection'),
+                        shortcut=get_shortcut('editor', 'run selection'), 
                         triggered=lambda: self.run_selection.emit())
 
         # Zoom actions
