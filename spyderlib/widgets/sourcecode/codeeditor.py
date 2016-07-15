@@ -617,7 +617,7 @@ class CodeEditor(TextEditBaseWidget):
                 unblockcomment, line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
-                kill_next_word, start_doc, end_doc, undo, redo, copy,
+                kill_next_word, start_doc, end_doc, undo, redo, cut, copy,
                 paste, delete, select_all]
 
     def get_shortcut_data(self):
