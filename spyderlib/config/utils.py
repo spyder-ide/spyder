@@ -96,7 +96,7 @@ def _get_pygments_extensions():
             lexer_exts = [le for le in lexer_exts if not le.endswith('_*')]
             extensions = extensions + list(lexer_exts) + list(other_exts)
 
-    return sorted(extensions)
+    return sorted(list(set(extensions)))
 
 
 #==============================================================================
