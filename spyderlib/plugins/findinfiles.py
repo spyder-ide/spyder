@@ -11,6 +11,9 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Standard library imports
+import sys
+
 # Third party imports
 from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Signal, Slot
@@ -18,11 +21,11 @@ from qtpy.QtCore import Signal, Slot
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.utils import get_edit_extensions
-from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.py3compat import getcwd
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.findinfiles import FindInFilesWidget
+from spyderlib.plugins import SpyderPluginMixin
 
 
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
@@ -94,14 +97,23 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         if text:
             self.find()
 
-    def include_patterns(self):
-        edit_ext = get_edit_extensions()
-        patterns = [r'|'.join(['\\'+_ext+r'$' for _ext in edit_ext if _ext])+\
+    @staticmethod
+    def include_patterns():
+        """Generate regex common usage patterns to include section."""
+        # Change special characters, like + and . to convert into valid re
+        clean_exts = []
+        for ext in get_edit_extensions():
+            ext = ext.replace('.', r'\.')
+            ext = ext.replace('+', r'\+')
+            clean_exts.append(ext)
+
+        patterns = [r'|'.join([ext + r'$' for ext in clean_exts if ext]) +
                     r'|README|INSTALL',
-                    r'\.pyw?$|\.ipy$|\.txt$|\.rst$',
-                    '.']
+                    r'\.ipy$|\.pyw?$|\.rst$|\.txt$',
+                    '.',
+                    ]
         return patterns
-    
+        
     #------ SpyderPluginMixin API ---------------------------------------------
     def switch_to_plugin(self):
         """Switch to plugin
@@ -171,3 +183,15 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
             self.set_option('in_python_path', in_python_path)
             self.set_option('more_options', more_options)
         return True
+
+
+def test():
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+    widget = FindInFiles()
+    widget.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    test()
