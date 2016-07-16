@@ -113,7 +113,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
                     '.',
                     ]
         return patterns
-        
+
     #------ SpyderPluginMixin API ---------------------------------------------
     def switch_to_plugin(self):
         """Switch to plugin
