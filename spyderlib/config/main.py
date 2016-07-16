@@ -288,7 +288,7 @@ DEFAULTS = [
               'search_text': [''],
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
               'in_python_path': False,
-              'more_options': True,
+              'more_options': False,
               }),
             ('workingdir',
              {
@@ -585,7 +585,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '27.1.0'
+CONF_VERSION = '27.2.0'
 
 
 # XXX: Previously we had load=(not DEV) here but DEV was set to *False*.

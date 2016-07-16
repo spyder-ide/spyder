@@ -80,15 +80,23 @@ def _get_pygments_extensions():
     """Return all file type extensions supported by Pygments"""
     # NOTE: Leave this import here to keep startup process fast!
     import pygments.lexers as lexers
+
     extensions = []
-    all_lexers = lexers.get_all_lexers()
-    for lx in all_lexers:
+    for lx in lexers.get_all_lexers():
         lexer_exts = lx[2]
+
         if lexer_exts:
-            lexer_exts = [le[1:] for le in lexer_exts]
+            # Reference: This line was included for leaving untrimmed the
+            # extensions not starting with `*`
+            other_exts = [le for le in lexer_exts if not le.startswith('*')]
+            # Reference: This commented line was replaced by the following one
+            # to trim only extensions that start with '*'
+            # lexer_exts = [le[1:] for le in lexer_exts]
+            lexer_exts = [le[1:] for le in lexer_exts if le.startswith('*')]
             lexer_exts = [le for le in lexer_exts if not le.endswith('_*')]
-            extensions = extensions + list(lexer_exts)
-    return extensions
+            extensions = extensions + list(lexer_exts) + list(other_exts)
+
+    return sorted(list(set(extensions)))
 
 
 #==============================================================================
