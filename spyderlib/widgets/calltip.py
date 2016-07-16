@@ -273,7 +273,7 @@ class CallTipWidget(QLabel):
         """ Hides the tooltip after some time has passed (assuming the cursor is
             not over the tooltip).
         """
-        if (not self._hide_timer.isActive() and
+        if (self.hide_timer_on and not self._hide_timer.isActive() and
             # If Enter events always came after Leave events, we wouldn't need
             # this check. But on Mac OS, it sometimes happens the other way
             # around when the tooltip is created.
