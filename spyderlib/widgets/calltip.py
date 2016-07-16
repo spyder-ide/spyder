@@ -67,6 +67,11 @@ class CallTipWidget(QLabel):
                 if key in (Qt.Key_Enter, Qt.Key_Return,
                            Qt.Key_Down, Qt.Key_Up):
                     self.hide()
+                elif key == Qt.Key_ParenRight and not self.hide_timer_on:
+                    position, commas = self._find_parenthesis(self._start_position,
+                                                              forward=False)
+                    if position != -1:
+                        self.hide()
                 elif key == Qt.Key_Escape:
                     self.hide()
                     return True
@@ -288,8 +293,3 @@ class CallTipWidget(QLabel):
         cursor = self._text_edit.textCursor()
         if cursor.position() <= self._start_position:
             self.hide()
-        else:
-            if not self.hide_timer_on:
-                position, commas = self._find_parenthesis(self._start_position + 1)
-                if position != -1:
-                    self.hide()
