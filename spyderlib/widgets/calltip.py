@@ -65,7 +65,7 @@ class CallTipWidget(QLabel):
             if etype == QEvent.KeyPress:
                 key = event.key()
                 if key in (Qt.Key_Enter, Qt.Key_Return,
-                           Qt.Key_Down):
+                           Qt.Key_Down, Qt.Key_Up):
                     self.hide()
                 elif key == Qt.Key_Escape:
                     self.hide()
