@@ -93,7 +93,14 @@ def get_data_files():
 
 def get_packages():
     """Return package list"""
-    packages = get_subpackages(LIBNAME) + get_subpackages('spyplugins')
+    packages = (
+        get_subpackages(LIBNAME)
+        + get_subpackages('spyder_breakpoints')
+        + get_subpackages('spyder_profiler')
+        + get_subpackages('spyder_pylint')
+        + get_subpackages('spyder_io_dcm')
+        + get_subpackages('spyder_io_hdf5')
+        )
     return packages
 
 
