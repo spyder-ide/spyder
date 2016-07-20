@@ -98,7 +98,7 @@ except ImportError:
 try:
     import bs4
     NavigableString = bs4.element.NavigableString
-except ImportError:
+except (ImportError, AttributeError):
     NavigableString = FakeObject  # analysis:ignore
 
 
