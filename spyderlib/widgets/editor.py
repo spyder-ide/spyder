@@ -581,10 +581,16 @@ class EditorStack(QWidget):
         """Open file list management dialog box"""
         if not self.tabs.count():
             return
+        if self.fileswitcher_dlg is not None and \
+          self.fileswitcher_dlg.is_visible:
+            self.fileswitcher_dlg.hide()
+            self.fileswitcher_dlg.is_visible = False
+            return
         self.fileswitcher_dlg = FileSwitcher(self, self.tabs, self.data)
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
         self.fileswitcher_dlg.sig_close_file.connect(self.close_file)
         self.fileswitcher_dlg.show()
+        self.fileswitcher_dlg.is_visible = True
 
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
