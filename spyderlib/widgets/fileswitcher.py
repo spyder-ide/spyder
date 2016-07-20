@@ -225,6 +225,7 @@ class FileSwitcher(QDialog):
         self.initial_path = None          # Fullpath of initial active editor
         self.initial_editor = None        # Initial active editor
         self.line_number = None           # Selected line number in filer
+        self.is_visible = False           # Is the switcher visible?
 
         help_text = _("Press <b>Enter</b> to switch files or <b>Esc</b> to "
                       "cancel.<br><br>Type to filter filenames.<br><br>"
@@ -326,12 +327,14 @@ class FileSwitcher(QDialog):
             self.initial_cursors[paths[i]] = editor.textCursor()
 
     def accept(self):
+        self.is_visible = False
         QDialog.accept(self)
         self.list.clear()
 
     def restore_initial_state(self):
         """Restores initial cursors and initial active editor."""
         self.list.clear()
+        self.is_visible = False
         editors = self.editors_by_path
 
         for path in self.initial_cursors:
