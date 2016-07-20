@@ -88,7 +88,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
-from qtpy import QtWebEngineWidgets
+from qtpy import QtWebEngineWidgets  # analysis:ignore
 
 
 #==============================================================================
@@ -126,7 +126,6 @@ from spyderlib.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyderlib.app.cli_options import get_options
 from spyderlib import dependencies
 from spyderlib.config.ipython import QTCONSOLE_INSTALLED
-from spyderlib.config.user import NoDefault
 from spyderlib.py3compat import (getcwd, is_text_string, to_text_string,
                                  PY3, qbytearray_to_str, u, configparser as cp)
 from spyderlib.utils import encoding, programs
@@ -2888,7 +2887,7 @@ def initialize():
     # possible
     app = qapplication()
 
-    #----Monkey patching PyQt4.QtGui.QApplication
+    #----Monkey patching QApplication
     class FakeQApplication(QApplication):
         """Spyder's fake QApplication"""
         def __init__(self, args):
@@ -2897,8 +2896,8 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from qtpy import QtGui
-    QtGui.QApplication = FakeQApplication
+    from qtpy import QtWidgets
+    QtWidgets.QApplication = FakeQApplication
 
     #----Monkey patching rope
     try:
