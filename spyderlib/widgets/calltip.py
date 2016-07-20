@@ -291,5 +291,12 @@ class CallTipWidget(QLabel):
         """ Updates the tip based on user cursor movement.
         """
         cursor = self._text_edit.textCursor()
-        if cursor.position() <= self._start_position:
+        position = cursor.position()
+        document = self._text_edit.document()
+        char = to_text_string(document.characterAt(position - 1))
+        if position <= self._start_position:
             self.hide()
+        elif char == ')':
+            pos, commas = self._find_parenthesis(self._start_position + 1)
+            if pos != -1:
+                self.hide()
