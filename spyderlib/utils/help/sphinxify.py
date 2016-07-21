@@ -109,12 +109,17 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
         plain text.
     collapse : bool
         Collapse sections
-    
+    img_path : str
+        Path for images relative to the file containing the docstring
+
     Returns
     -------
     A dict of strings to be used by Jinja to generate the webpage
     """
-    
+
+    if img_path and os.name == 'nt':
+        img_path = img_path.replace('\\', '/')
+
     context = \
     {
       # Arg dependent variables
