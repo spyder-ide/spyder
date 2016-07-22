@@ -41,7 +41,7 @@ from spyderlib.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
 try:
-    _ = get_translation("pylint", "spyplugins.ui.pylint")
+    _ = get_translation("pylint", "spyder_pylint")
 except KeyError as error:
     import gettext
     _ = gettext.gettext
