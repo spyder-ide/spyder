@@ -68,7 +68,7 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         # First add a mock module with the LOCALEPATH attribute so that the
         # helper method can find the locale on import
         mock = _ModuleMock()
-        mock.LOCALEPATH = osp.join(plugin_path, 'locale')
+        mock.LOCALEPATH = osp.join(plugin_path, module_name, 'locale')
         sys.modules[module_name] = mock
 
         if osp.isdir(osp.join(plugin_path, module_name)):
