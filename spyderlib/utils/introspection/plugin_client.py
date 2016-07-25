@@ -183,7 +183,7 @@ class AsyncClient(QObject):
         """Send an object to the server.
         """
         try:
-            self.socket.send_pyobj(obj)
+            self.socket.send_pyobj(obj, zmq.NOBLOCK)
         except Exception as e:
             debug_print(e)
             self.is_initialized = False
