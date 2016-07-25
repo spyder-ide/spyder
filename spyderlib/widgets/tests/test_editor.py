@@ -58,19 +58,15 @@ def test_run_last_nonempty_line(qtbot):
 def test_run_empty_line_in_middle(qtbot):
     editorStack, editor = setup_editor(qtbot)
     editor.go_to_line(3)
-    with qtbot.waitSignal(editorStack.exec_in_extconsole) as blocker:
+    with qtbot.assertNotEmitted(editorStack.exec_in_extconsole):
         editorStack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == ''
     assert editor.get_cursor_line_column() == (3, 0) # check cursor moves down
 
 
 def test_run_last_line_when_empty(qtbot):
     editorStack, editor = setup_editor(qtbot)
-    with qtbot.waitSignal(editorStack.exec_in_extconsole) as blocker:
+    with qtbot.assertNotEmitted(editorStack.exec_in_extconsole):
         editorStack.run_selection()
-    assert blocker.signal_triggered
-    assert blocker.args[0] == ''
     assert editor.get_cursor_line_column() == (4, 0) # check cursor doesn't move
 
 def test_run_last_line_when_nonempty(qtbot):
