@@ -76,11 +76,13 @@ def test_run_last_line_when_empty(qtbot):
 def test_run_last_line_when_nonempty(qtbot):
     editorStack, editor = setup_editor(qtbot)
     editor.stdkey_backspace() # delete empty line at end
+    old_text = editor.toPlainText()
     with qtbot.waitSignal(editorStack.exec_in_extconsole) as blocker:
         editorStack.run_selection()
     assert blocker.signal_triggered
     assert blocker.args[0] == 'x = 2'
-    assert editor.get_cursor_line_column() == (3, 5) # check cursor doesn't move
+    assert editor.toPlainText() == old_text + '\n' # check blank line got added
+    assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
     
 if __name__ == "__main__":
