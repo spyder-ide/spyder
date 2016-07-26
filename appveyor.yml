@@ -27,4 +27,5 @@ test_script:
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\modules_test.bat"
+  - if %USE_QT_API%==PyQt4 set PYTEST_QT_API=pyqt4v2
   - cd %APPVEYOR_BUILD_FOLDER% & python runtests.py
