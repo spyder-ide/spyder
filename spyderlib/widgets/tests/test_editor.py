@@ -9,7 +9,10 @@ Tests for editor.py
 """
 
 # Standard library imports
-from unittest.mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock # Python 2
 
 # Third party imports
 import pytest

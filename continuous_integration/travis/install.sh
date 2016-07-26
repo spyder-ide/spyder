@@ -56,7 +56,7 @@ install_conda()
         echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
         conda install conda-build;
         conda create -q -n test-environment python=$PY_VERSION;
-        conda install -q -y -n test-environment pytest pytest-cov pytest-qt
+        conda install -q -y -n test-environment pytest pytest-cov pytest-qt mock
     fi
 }
 
@@ -70,7 +70,7 @@ install_pip()
     fi
 
     # Install testing packages
-    pip install pytest pytest-cov pytest-qt
+    pip install pytest pytest-cov pytest-qt mock
 
     # Install extra packages
     EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
