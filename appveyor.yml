@@ -27,4 +27,4 @@ test_script:
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\modules_test.bat"
-  - "%CMD_IN_ENV% py.test %APPVEYOR_BUILD_FOLDER%\\spyderlib"
+  - cd %APPVEYOR_BUILD_FOLDER% & python runtests.py
