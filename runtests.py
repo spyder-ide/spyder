@@ -8,8 +8,10 @@
 File for running tests programmatically.
 """
 
+# Standard library imports
+import sys
+
 # Third party imports
-import qtpy
 import pytest
 
 
@@ -17,9 +19,9 @@ def main():
     """
     Run pytest tests.
     """
-    pytest.main(['-x', 'spyderlib',  '-v', '-rw', '--durations=10',
-                 '--cov=spyderlib', '--cov-report=term-missing'])
-
+    errno = pytest.main(['-x', 'spyderlib',  '-v', '-rw', '--durations=10',
+                         '--cov=spyderlib', '--cov-report=term-missing'])
+    sys.exit(errno)
 
 if __name__ == '__main__':
     main()
