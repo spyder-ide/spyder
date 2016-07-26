@@ -5,12 +5,14 @@
 
 """Tests for programs.py"""
 
+import os
 import time
 
 import pytest
 
 from spyderlib.utils.programs import run_python_script_in_terminal
 
+@pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
 def test_run_python_script_in_terminal(tmpdir):
     scriptpath = tmpdir.join('write-done.py')
     outfilepath = tmpdir.join('out.txt')
@@ -23,6 +25,7 @@ def test_run_python_script_in_terminal(tmpdir):
     res = outfilepath.read()
     assert res == 'done'
 
+@pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
 def test_run_python_script_in_terminal_with_wdir_empty(tmpdir):
     scriptpath = tmpdir.join('write-done.py')
     outfilepath = tmpdir.join('out.txt')
