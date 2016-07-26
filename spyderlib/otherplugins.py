@@ -23,6 +23,7 @@ else:
     import importlib
 
 
+USER_PLUGIN_DIR = "plugins"
 PLUGIN_PREFIX = "spyder_"
 IO_PREFIX = PLUGIN_PREFIX + "io_"
 
@@ -30,7 +31,7 @@ IO_PREFIX = PLUGIN_PREFIX + "io_"
 def get_spyderplugins_mods(io=False):
     """Import modules from plugins package and return the list"""
     # Create user directory
-    user_plugin_path = osp.join(get_conf_path(), "spyplugins")
+    user_plugin_path = osp.join(get_conf_path(), USER_PLUGIN_DIR)
     if not osp.isdir(user_plugin_path):
         os.makedirs(user_plugin_path)
 
@@ -67,7 +68,7 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
         # First add a mock module with the LOCALEPATH attribute so that the
         # helper method can find the locale on import
         mock = _ModuleMock()
-        mock.LOCALEPATH = osp.join(plugin_path, 'locale')
+        mock.LOCALEPATH = osp.join(plugin_path, module_name, 'locale')
         sys.modules[module_name] = mock
 
         if osp.isdir(osp.join(plugin_path, module_name)):

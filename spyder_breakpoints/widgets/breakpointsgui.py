@@ -31,7 +31,7 @@ from spyderlib.utils.qthelpers import add_actions, create_action
 
 # This is needed for testing this module as a stand alone script
 try:
-    _ = get_translation("breakpoints", "spyplugins.ui.breakpoints")
+    _ = get_translation("breakpoints", "spyder_breakpoints")
 except KeyError as error:
     import gettext
     _ = gettext.gettext
