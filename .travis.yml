@@ -49,6 +49,5 @@ script:
   - ./continuous_integration/travis/build_test.sh
   - ./continuous_integration/travis/run_test.sh
   - ./continuous_integration/travis/modules_test.sh
-  - if [ "${USE_QT_API}" = "PyQt4" ]; then export PYTEST_QT_API=pyqt4v2; fi
   - python runtests.py
   - coveralls
