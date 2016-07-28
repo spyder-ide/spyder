@@ -1837,7 +1837,7 @@ class EditorStack(QWidget):
         if text:
             self.exec_in_extconsole.emit(text, self.focus_to_editor)
         if editor.is_cursor_on_last_line() and text:
-            editor.append('\n')
+            editor.append(editor.get_line_separator())
         editor.move_cursor_to_next('line', 'down')
 
     def run_cell(self):

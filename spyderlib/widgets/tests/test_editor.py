@@ -80,7 +80,8 @@ def test_run_last_line_when_nonempty(qtbot):
         editorStack.run_selection()
     assert blocker.signal_triggered
     assert blocker.args[0] == 'x = 2'
-    assert editor.toPlainText() == old_text + '\n' # check blank line got added
+    expected_new_text = old_text + editor.get_line_separator()
+    assert editor.toPlainText() == expected_new_text # check blank line got added
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
     
