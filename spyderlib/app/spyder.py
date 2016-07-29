@@ -90,12 +90,14 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
+
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
 # be set before creating the application
 #==============================================================================
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the
