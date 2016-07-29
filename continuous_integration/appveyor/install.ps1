@@ -84,11 +84,11 @@ function UpdateConda ($python_home) {
     Write-Host "Updating conda..."
     $args = "update --yes conda"
     $spy_channel_args = "config --add channels spyder-ide"
-    $mlabs_channel_args = "config --add channels m-labs"
+    $qttesting_channel_args = "config --add channels qttesting"
     Write-Host $conda_path $args
     Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
     Start-Process -FilePath "$conda_path" -ArgumentList $spy_channel_args -Wait -Passthru
-    Start-Process -FilePath "$conda_path" -ArgumentList $mlabs_channel_args -Wait -Passthru
+    Start-Process -FilePath "$conda_path" -ArgumentList $qttesting_channel_args -Wait -Passthru
 }
 
 
