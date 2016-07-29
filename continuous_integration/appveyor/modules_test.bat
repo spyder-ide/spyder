@@ -87,10 +87,27 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
     )
 )
 
-:: Spyplugins
-for /r "%APPVEYOR_BUILD_FOLDER%\spyplugins" %%f in (*.py) do (
+:: Third-party plugins
+for /r "%APPVEYOR_BUILD_FOLDER%\spyder_breakpoints" %%f in (*.py) do (
     set file=%%f
+    if not "!file:widgets\=!"=="!file!" (
+        echo --- Testing %%f ---
+        python "%%f" || exit 1
+        echo.
+    )
+)
 
+for /r "%APPVEYOR_BUILD_FOLDER%\spyder_profiler" %%f in (*.py) do (
+    set file=%%f
+    if not "!file:widgets\=!"=="!file!" (
+        echo --- Testing %%f ---
+        python "%%f" || exit 1
+        echo.
+    )
+)
+
+for /r "%APPVEYOR_BUILD_FOLDER%\spyder_pylint" %%f in (*.py) do (
+    set file=%%f
     if not "!file:widgets\=!"=="!file!" (
         echo --- Testing %%f ---
         python "%%f" || exit 1
