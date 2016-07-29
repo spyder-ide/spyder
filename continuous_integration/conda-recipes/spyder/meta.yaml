@@ -21,7 +21,7 @@ requirements:
   run:
     - python
     - python.app  # [osx]
-    - {% if environ.get('USE_QT_API') == 'PyQt4' %} pyqt {% else %} pyqt5 {% endif %}
+    - {% if environ.get('USE_QT_API') == 'PyQt4' %} pyqt {% else %} pyqt5 {% endif %}  # [unix]
     - {% if environ.get('USE_QT_API') == 'PyQt4' %} qt 4.* {% else %} qt 5.* {% endif %}  # [win]
     - {% if environ.get('USE_QT_API') == 'PyQt4' %} pyqt 4.* {% else %} pyqt 5.* {% endif %}  # [win]
     - rope 0.9.*  # [py34 or py35]
