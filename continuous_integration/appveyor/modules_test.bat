@@ -80,39 +80,6 @@ for /r "%SPYDERLIB%" %%f in (*.py) do (
             python "%%f" || exit 1
             echo.
         )
-    ) else if "%%f"=="%SPYDERLIB%\widgets\browser.py" (
-        :: Not testing this file for now because m-labs builds doesn't have
-        :: web widgets
-        if %USE_QT_API%==PyQt5 (
-            echo --- NOT testing %%f ---
-            echo.
-        ) else (
-            echo --- Testing %%f ---
-            python "%%f" || exit 1
-            echo.
-        )
-    ) else if "%%f"=="%SPYDERLIB%\widgets\ipython.py" (
-        :: Not testing this file for now because m-labs builds doesn't have
-        :: web widgets
-        if %USE_QT_API%==PyQt5 (
-            echo --- NOT testing %%f ---
-            echo.
-        ) else (
-            echo --- Testing %%f ---
-            python "%%f" || exit 1
-            echo.
-        )
-    ) else if "%%f"=="%SPYDERLIB%\widgets\pydocgui.py" (
-        :: Not testing this file for now because m-labs builds doesn't have
-        :: web widgets
-        if %USE_QT_API%==PyQt5 (
-            echo --- NOT testing %%f ---
-            echo.
-        ) else (
-            echo --- Testing %%f ---
-            python "%%f" || exit 1
-            echo.
-        )
     ) else (
         echo --- Testing %%f ---
         python "%%f" || exit 1
