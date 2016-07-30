@@ -62,6 +62,7 @@ DEFAULTS = [
             ('main',
              {
               'icon_theme': 'spyder 3',
+              'background_color_theme': 'light',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
