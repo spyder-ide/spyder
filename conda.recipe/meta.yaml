@@ -16,8 +16,7 @@ requirements:
   run:
     - python
     - python.app  # [osx]
-    - pyqt >=5.6.0  # [osx]
-    - pyqt  # [not osx]
+    - pyqt >=5.6.0
     - rope 0.9.*  # [py34 or py35]
     - rope  # [py27]
     - pyflakes

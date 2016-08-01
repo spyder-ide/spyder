@@ -52,10 +52,11 @@ install_conda()
 
     # Install testing dependencies
     if [ "$USE_CONDA" = true ]; then
-        conda config --add channels spyder-ide;
-        echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
-        conda install conda-build;
-        conda create -q -n test-environment python=$PY_VERSION;
+        conda config --add channels spyder-ide
+        conda config --add channels qttesting
+        echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned
+        conda install conda-build
+        conda create -q -n test-environment python=$PY_VERSION
         conda install -q -y -n test-environment pytest pytest-cov pytest-qt mock
     fi
 }
