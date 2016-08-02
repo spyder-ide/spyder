@@ -53,6 +53,9 @@ install_conda()
     # Install testing dependencies
     if [ "$USE_CONDA" = true ]; then
         conda config --add channels spyder-ide;
+        if [ "$USE_QT_API" = "PyQt5" ]; then
+            conda config --add channels qttesting;
+        fi
         echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
         conda install conda-build;
         conda create -q -n test-environment python=$PY_VERSION;
@@ -63,11 +66,8 @@ install_conda()
 
 install_pip()
 {
-    if [ "$USE_QT_API" = "PyQt5" ]; then
-        conda install pyqt5;
-    elif [ "$USE_QT_API" = "PyQt4" ]; then
-        conda install pyqt;
-    fi
+    # Install PyQt
+    conda install pyqt;
 
     # Install testing packages
     pip install pytest pytest-cov pytest-qt mock
@@ -81,6 +81,7 @@ install_pip()
 #==============================================================================
 # Main
 #==============================================================================
+# Download Spyder code
 download_code;
 
 # Use conda even to test pip!

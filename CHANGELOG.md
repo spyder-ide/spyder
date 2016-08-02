@@ -1399,3 +1399,5 @@ Since version 2.1:
 * Editor/80-column vertical edge line: added options to show/hide this line and change the column number
 * Editor: added "Comment"/"Uncomment" actions to context menu
 * Source code and shell editor widgets: code refactoring/cleaning (this should help people using these widgets outside Spyder)
+
+Another bump
