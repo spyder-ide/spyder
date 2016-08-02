@@ -67,7 +67,11 @@ install_conda()
 install_pip()
 {
     # Install PyQt
-    conda install pyqt;
+    if [ "$USE_QT_API" = "PyQt5" ]; then
+        conda install pyqt=5.* qt=5.* -c  qttesting;
+    elif [ "$USE_QT_API" = "PyQt4" ]; then
+        conda install pyqt=4.* qt=4.*;
+    fi
 
     # Install testing packages
     pip install pytest pytest-cov pytest-qt mock
