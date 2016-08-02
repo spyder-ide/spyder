@@ -7,12 +7,6 @@ if [ "$USE_CONDA" = true ] ; then
     conda info
 
     cd continuous_integration/conda-recipes
-
-    # Custom build of qtconsole for pyqt5
-    if [ "$USE_QT_API" = "PyQt5" ]; then
-        conda build --python $TRAVIS_PYTHON_VERSION qtconsole
-    fi
-
     conda build spyder
 else
     # Print basic testing info
@@ -28,5 +22,5 @@ else
         git checkout master
     fi
 
-    python setup.py bdist_wheel --universal
+    python setup.py bdist_wheel
 fi
