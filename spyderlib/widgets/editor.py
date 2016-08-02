@@ -1868,15 +1868,12 @@ class EditorStack(QWidget):
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         if source.hasUrls() and source.urls():
-            if mimedata2url(source, extlist=get_edit_extensions()):
+            all_urls = mimedata2url(source)
+            text = [encoding.is_text_file(url) for url in all_urls]
+            if any(text):
                 event.acceptProposedAction()
             else:
-                all_urls = mimedata2url(source)
-                text = [encoding.is_text_file(url) for url in all_urls]
-                if any(text):
-                    event.acceptProposedAction()
-                else:
-                    event.ignore()
+                event.ignore()
         elif source.hasText():
             event.acceptProposedAction()
         elif os.name == 'nt':
@@ -1895,8 +1892,7 @@ class EditorStack(QWidget):
         if source.hasUrls():
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
-            supported_files = mimedata2url(source, extlist=get_edit_extensions())
-            files = set(files or []) | set(supported_files or [])
+            files = set(files or [])
             for fname in files:
                 self.plugin_load.emit(fname)
         elif source.hasText():
