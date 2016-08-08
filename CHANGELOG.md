@@ -242,7 +242,7 @@ In this release 103 pull requests were merged
 * [Issue 2984](../../issues/2984) - Can't access Preferences in spyder
 * [Issue 2983](../../issues/2983) - Freeze while assigning data from numpy array when the data is a string
 
-In this release they were closed 5 issues
+In this release 5 issues were closed
 
 
 ----
@@ -272,7 +272,7 @@ In this release they were closed 5 issues
 * [Issue 2783](../../issues/2783) - Spyder freezes on assigning a fits table data
 * [Issue 2744](../../issues/2744) - Spyder hangs when creating an empty DataFrame on Python 2
 
-In this release they were closed 6 issues
+In this release 6 issues were closed
 
 
 ----
@@ -305,13 +305,13 @@ In this release they were closed 6 issues
 * [Issue 2296](../../issues/2296) - Line numbers misaligned when zooming and scrolling in Mac
 * [Issue 2036](../../issues/2036) - Code analysis and tooltips are not displayed in Ubuntu
 
-In this release they were closed 11 issues
+In this release 11 issues were closed
 
 **Pull requests**
 
 * [PR 2650](../../pull/2650) - Failed sip import blocks fallback to PySide
 
-In this release they were merged 1 pull requests
+In this release 1 pull requests were merged
 
 
 ----
@@ -347,7 +347,7 @@ In this release they were merged 1 pull requests
 * [Issue 2413](../../issues/2413) - Don't ask to confirm exit on default untitled files
 * [Issue 2315](../../issues/2315) - Display object name in DataFrame editor
 
-In this release they were closed 12 issues
+In this release 12 issues were closed
 
 **Pull requests**
 
@@ -355,6 +355,7 @@ In this release they were closed 12 issues
 * [PR 2617](../../pull/2617) - Show call tips at right position when there are multiple screens
 * [PR 2615](../../pull/2615) - Fix error when indenting on the first line of a file
 
+In this release 3 pull requests were merged
 
 ----
 
@@ -401,7 +402,7 @@ Hence they are not listed here.
 * [Issue 1844](../../issues/1844) - "Set as current console's working directory" button not working on Python 3
 * [Issue 1615](../../issues/1615) - Mac app - Matplotlib does not work with Canopy
 
-In this release they were closed 22 issues
+In this release 22 issues were closed
 
 **Pull requests**
 
@@ -414,7 +415,7 @@ In this release they were closed 22 issues
 * [PR 2247](../../pull/2247) - Add support to run Python programs on xfce and xterm external terminals
 * [PR 2216](../../pull/2216) - Fix broken png files: libpng 1.6.2 and newer has stricter iCCP rules
 
-In this release they were merged 8 pull requests
+In this release 8 pull requests were merged
 
 
 ----
@@ -467,7 +468,7 @@ In this release they were merged 8 pull requests
 * [Issue 1321](../../issues/1321) - The PYTHONPATH manager on the Mac app does not work with the EPD64 interpreter
 * [Issue 1151](../../issues/1151) - Ctrl-C doesn't copy to clipboard in object inspector
 
-In this release they were closed 29 issues
+In this release 29 issues were closed
 
 **Pull requests**
 
@@ -478,7 +479,7 @@ In this release they were closed 29 issues
 * [PR 2219](../../pull/2219) - Open configuration file with utf-8 encoding on Windows and Python 2 
 * [PR 2214](../../pull/2214) - Fix zlib segmentation fault in Anaconda 3.4 Linux
 
-In this release they were merged 6 pull requests
+In this release 6 pull requests were merged
 
 
 ----
