@@ -51,7 +51,16 @@ def test_dataframemodel_sort_is_stable():   # cf. issue 3010
     assert col2 == [str(x) for x in [1, 3, 4, 6, 11, 12, 15, 17,
                                      2, 5, 7, 8, 9, 10, 13, 14, 16]]
 
+def test_dataframemodel_max_min_col_update():
+    df = DataFrame([[1, 2.0], [2, 2.5], [3, 9.0]])
+    dfm = DataFrameModel(df)
+    assert dfm.max_min_col == [[3, 1], [9.0, 2.0]]
+
+def test_dataframemodel_max_min_col_update_constant():
+    df = DataFrame([[1, 2.0], [1, 2.0], [1, 2.0]])
+    dfm = DataFrameModel(df)
+    assert dfm.max_min_col == [[1, 0], [2.0, 1.0]]
+
 
 if __name__ == "__main__":
     pytest.main()
-
