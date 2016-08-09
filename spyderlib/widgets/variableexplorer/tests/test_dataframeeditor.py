@@ -8,7 +8,7 @@ Tests for dataframeeditor.py
 """
 
 # Third party imports
-from pandas import DataFrame
+from pandas import DataFrame, date_range
 import pytest
 
 # Local imports
@@ -60,6 +60,18 @@ def test_dataframemodel_max_min_col_update_constant():
     df = DataFrame([[1, 2.0], [1, 2.0], [1, 2.0]])
     dfm = DataFrameModel(df)
     assert dfm.max_min_col == [[1, 0], [2.0, 1.0]]
+
+def test_dataframemodel_with_timezone_aware_timestamps(): # cf. issue 2940
+    df = DataFrame([x] for x in date_range('20150101', periods=5, tz='UTC'))
+    dfm = DataFrameModel(df)
+    assert dfm.max_min_col == [None]
+
+def test_dataframemodel_with_categories(): # cf. issue 3308
+    df = DataFrame({"id": [1, 2, 3, 4, 5, 6],
+                    "raw_grade": ['a', 'b', 'b', 'a', 'a', 'e']})
+    df["grade"] = df["raw_grade"].astype("category")
+    dfm = DataFrameModel(df)
+    assert dfm.max_min_col == [[6, 1], None, None]
 
 
 if __name__ == "__main__":
