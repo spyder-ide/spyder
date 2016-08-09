@@ -1,5 +1,113 @@
 # History of changes
 
+## Version 3.0beta3 (2016-06-06)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3145](https://github.com/spyder-ide/spyder/issues/3145) - Spyder doesn't work with Qt 5.6
+* [Issue 3129](https://github.com/spyder-ide/spyder/issues/3129) - Is there a way to modify the main window title?
+* [Issue 3122](https://github.com/spyder-ide/spyder/issues/3122) - Test array builder widget
+* [Issue 3115](https://github.com/spyder-ide/spyder/issues/3115) - Automatically advance to the next line after pressing F9
+* [Issue 3113](https://github.com/spyder-ide/spyder/issues/3113) - Cannot change font or font size
+* [Issue 3112](https://github.com/spyder-ide/spyder/issues/3112) - Cannot open preferences dialog because of missing PYQT5 constant
+* [Issue 3101](https://github.com/spyder-ide/spyder/issues/3101) - Migrate to qtpy
+* [Issue 3100](https://github.com/spyder-ide/spyder/issues/3100) - Migrate to qtpy: Remove internal Qt shim used by Spyder.
+* [Issue 3084](https://github.com/spyder-ide/spyder/issues/3084) - Variable Explorer generates an error while editing a DataFrame
+* [Issue 3078](https://github.com/spyder-ide/spyder/issues/3078) - (I)Python consoles are not setting PyQt API to #2
+* [Issue 3073](https://github.com/spyder-ide/spyder/issues/3073) - Spyder doesn't work with QtWebEngine
+* [Issue 3061](https://github.com/spyder-ide/spyder/issues/3061) - Different output for internal and external console on Windows
+* [Issue 3053](https://github.com/spyder-ide/spyder/issues/3053) - Ctrl+I doesn't seem to work on the editor on current tree on Windows 
+* [Issue 3041](https://github.com/spyder-ide/spyder/issues/3041) - Spyder crash with "too many files open" message
+* [Issue 3033](https://github.com/spyder-ide/spyder/issues/3033) - Create a Remote Procedure Call helper
+* [Issue 3022](https://github.com/spyder-ide/spyder/issues/3022) - Turn off module completion fallback
+* [Issue 3021](https://github.com/spyder-ide/spyder/issues/3021) - Ghost completions
+* [Issue 3013](https://github.com/spyder-ide/spyder/issues/3013) - "Goto definition" stopped working (3.0.0b2 Mac)
+* [Issue 3009](https://github.com/spyder-ide/spyder/issues/3009) - Spyder crashes with Python 3.5 and pyqt4 if there are no existing configuration files
+* [Issue 3000](https://github.com/spyder-ide/spyder/issues/3000) - Shortcuts: reset console / empty namespace
+* [Issue 2986](https://github.com/spyder-ide/spyder/issues/2986) - Add context menu option for %reset
+* [Issue 2968](https://github.com/spyder-ide/spyder/issues/2968) - Variable explorer gives an error when copying values
+* [Issue 2912](https://github.com/spyder-ide/spyder/issues/2912) - Change keybinding for re-running last script
+* [Issue 2910](https://github.com/spyder-ide/spyder/issues/2910) - Automatically set working directory in console
+* [Issue 2900](https://github.com/spyder-ide/spyder/issues/2900) - 'Commit' command in File explorer not working in Spyder 3.0.0b2
+* [Issue 2877](https://github.com/spyder-ide/spyder/issues/2877) - path module not available in 3.0.0b2
+* [Issue 2853](https://github.com/spyder-ide/spyder/issues/2853) - Set all fonts to be one and only one for all plugins in spyder
+* [Issue 2835](https://github.com/spyder-ide/spyder/issues/2835) - Control+C should not copy if it has nothing selected on the editor
+* [Issue 2724](https://github.com/spyder-ide/spyder/issues/2724) - Editor very slow on Mac Yosemite and El Capitan
+* [Issue 2703](https://github.com/spyder-ide/spyder/issues/2703) - File in Project Explorer is being executed(?) on dbl-click
+* [Issue 2619](https://github.com/spyder-ide/spyder/issues/2619) - Spyder fails to start on light mode because of check_updates code
+* [Issue 2438](https://github.com/spyder-ide/spyder/issues/2438) - Use a single font for all panes
+* [Issue 2407](https://github.com/spyder-ide/spyder/issues/2407) - very slow auto completion with pandas
+* [Issue 2376](https://github.com/spyder-ide/spyder/issues/2376) - Rename Object Inspector plug-in
+* [Issue 2354](https://github.com/spyder-ide/spyder/issues/2354) - Context menu for tabs in editor should allow "close all but this" and "close all to the right"
+* [Issue 2268](https://github.com/spyder-ide/spyder/issues/2268) - Start testing with pytest/pytest-qt and coverage for Spyder
+* [Issue 1996](https://github.com/spyder-ide/spyder/issues/1996) - Unable to change the interface colors despite saving them in the preferences.
+* [Issue 1750](https://github.com/spyder-ide/spyder/issues/1750) - Fail to do automatic indentation after comments
+* [Issue 1730](https://github.com/spyder-ide/spyder/issues/1730) - 2 or 4 spaces, not 3
+* [Issue 820](https://github.com/spyder-ide/spyder/issues/820) - Move all color-related options into Preferences -> Color scheme
+
+In this release 40 issues were closed
+
+**Pull requests**
+
+* [PR 3204](https://github.com/spyder-ide/spyder/pull/3204) - Make "Spyder 3" the default icon theme
+* [PR 3201](https://github.com/spyder-ide/spyder/pull/3201) - Fix AppVeyor failures
+* [PR 3198](https://github.com/spyder-ide/spyder/pull/3198) - Support PyQt 5.6
+* [PR 3151](https://github.com/spyder-ide/spyder/pull/3151) - More robust plugin initialization in layout
+* [PR 3146](https://github.com/spyder-ide/spyder/pull/3146) - Editor: Move to next line in run_selection() if nothing selected
+* [PR 3133](https://github.com/spyder-ide/spyder/pull/3133) - Add an option to set window title to the command line
+* [PR 3120](https://github.com/spyder-ide/spyder/pull/3120) - PR: Add pytests for array builder, code coverage and quantified code
+* [PR 3119](https://github.com/spyder-ide/spyder/pull/3119) - PR: fix Russian translation
+* [PR 3105](https://github.com/spyder-ide/spyder/pull/3105) - Remove our internal Qt shim in favor of QtPy
+* [PR 3098](https://github.com/spyder-ide/spyder/pull/3098) - PR: Migrate to qtpy
+* [PR 3086](https://github.com/spyder-ide/spyder/pull/3086) - Fix interrupt handling on Windows
+* [PR 3072](https://github.com/spyder-ide/spyder/pull/3072) - Added Russian translation. Updated POT file
+* [PR 3062](https://github.com/spyder-ide/spyder/pull/3062) - Fix consoles encoding in Python 3
+* [PR 3060](https://github.com/spyder-ide/spyder/pull/3060) - Start testing with Qt5 on Windows
+* [PR 3049](https://github.com/spyder-ide/spyder/pull/3049) - Implement a new Async Server approach based on pyzmq to get completions on the Editor
+* [PR 3043](https://github.com/spyder-ide/spyder/pull/3043) - Copying when nothing is selected no longer affects the clipboard.
+* [PR 3036](https://github.com/spyder-ide/spyder/pull/3036) - PR: Improve Syntax Coloring preferences page and set color scheme for all plugins there
+* [PR 3035](https://github.com/spyder-ide/spyder/pull/3035) - PR: Remove font groups from plugins and move to general preferences
+* [PR 3034](https://github.com/spyder-ide/spyder/pull/3034) - Report missing hard dependencies after startup
+* [PR 3032](https://github.com/spyder-ide/spyder/pull/3032) - Fix errant completions
+* [PR 3029](https://github.com/spyder-ide/spyder/pull/3029) - Add shebang line to default template.py
+* [PR 3023](https://github.com/spyder-ide/spyder/pull/3023) - Fix bug in get encoding from "coding" comment line
+* [PR 3018](https://github.com/spyder-ide/spyder/pull/3018) - PR: Remove Jedi special code in tests and other minor fixes
+* [PR 3015](https://github.com/spyder-ide/spyder/pull/3015) - Editor: Fix code completions when working with bootstrap
+* [PR 2997](https://github.com/spyder-ide/spyder/pull/2997) - Added context menu option to reset IPython namespace
+* [PR 2974](https://github.com/spyder-ide/spyder/pull/2974) - Center cell icon
+* [PR 2973](https://github.com/spyder-ide/spyder/pull/2973) - PR: Show all supported text files when opening files with "File > Open"
+* [PR 2971](https://github.com/spyder-ide/spyder/pull/2971) - Make run-cell icons pixel-perfect
+* [PR 2957](https://github.com/spyder-ide/spyder/pull/2957) - PR: Select the word under cursor if nothing is selected in Find/Replace
+* [PR 2955](https://github.com/spyder-ide/spyder/pull/2955) - PR: Make backspace move to parent directory in file explorer
+* [PR 2952](https://github.com/spyder-ide/spyder/pull/2952) - PR: Enable 'Save All' if there are files to be saved
+* [PR 2939](https://github.com/spyder-ide/spyder/pull/2939) - PR: More accurate test for text-like files
+* [PR 2935](https://github.com/spyder-ide/spyder/pull/2935) - PR: Improving Spyder 3 icon theme
+* [PR 2932](https://github.com/spyder-ide/spyder/pull/2932) - PR: Asynchronous introspection for the Editor
+* [PR 2930](https://github.com/spyder-ide/spyder/pull/2930) - PR: fix not decorated slots connected to 'triggered' and 'clicked' signals
+* [PR 2929](https://github.com/spyder-ide/spyder/pull/2929) - Hide Help plugin if Sphinx is not installed
+* [PR 2919](https://github.com/spyder-ide/spyder/pull/2919) - PR: Synchronize entry in Working Directory toolbar with console's current working directory
+* [PR 2917](https://github.com/spyder-ide/spyder/pull/2917) - PR: Create a new module called app and move there all modules related to our application
+* [PR 2913](https://github.com/spyder-ide/spyder/pull/2913) - Move to use Jupyter imports and remove support for IPython 3
+* [PR 2897](https://github.com/spyder-ide/spyder/pull/2897) - Fixed typos (thanks to Benjamin Weis)
+* [PR 2890](https://github.com/spyder-ide/spyder/pull/2890) - Added .idea folder to .gitignore for PyCharm users
+* [PR 2888](https://github.com/spyder-ide/spyder/pull/2888) - Add 3,5,6,7,8 spaces as options in indentation of the Editor
+* [PR 2886](https://github.com/spyder-ide/spyder/pull/2886) - Remove official support for PySide
+* [PR 2881](https://github.com/spyder-ide/spyder/pull/2881) - PR: Crashing on shortcut assignment with PyQt5
+* [PR 2879](https://github.com/spyder-ide/spyder/pull/2879) - Use PyQt5 as default API
+* [PR 2874](https://github.com/spyder-ide/spyder/pull/2874) - Remove light mode
+* [PR 2873](https://github.com/spyder-ide/spyder/pull/2873) - Rename Object Inspector plugin to Help
+* [PR 2669](https://github.com/spyder-ide/spyder/pull/2669) - PR: Use pygments in introspection
+* [PR 2519](https://github.com/spyder-ide/spyder/pull/2519) - Add "close all but this" and "close all to the right" entries to the Editor context menu
+* [PR 2184](https://github.com/spyder-ide/spyder/pull/2184) - Prevent cmd.exe shell windows popping up in the background when calling subprocess
+
+In this release 50 pull requests were merged
+
+
+----
+
+
 ## Version 3.0beta1/beta2 (2016-12-11)
 
 ### Bugfixes
