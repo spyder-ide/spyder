@@ -41,10 +41,21 @@ COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', '0']
 
-
+# Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
 LARGE_COLS = 60
+
+# Background colours
+BACKGROUND_NUMBER_MINHUE = 0.66
+BACKGROUND_NUMBER_HUERANGE = 0.33
+BACKGROUND_NUMBER_SATURATION = 0.7
+BACKGROUND_NUMBER_VALUE = 1.0
+BACKGROUND_NUMBER_ALPHA = 0.6 
+BACKGROUND_NONNUMBER_COLOR = Qt.lightGray
+BACKGROUND_INDEX_ALPHA = 0.8
+BACKGROUND_STRING_ALPHA = 0.05
+BACKGROUND_MISC_ALPHA = 0.3
 
 
 def bool_false_check(value):
@@ -83,12 +94,6 @@ class DataFrameModel(QAbstractTableModel):
         self.total_cols = self.df.shape[1]
         size = self.total_rows * self.total_cols
 
-        huerange = [.66, .99]  # Hue
-        self.sat = .7  # Saturation
-        self.val = 1.  # Value
-        self.alp = .6  # Alpha-channel
-        self.hue0 = huerange[0]
-        self.dhue = huerange[1]-huerange[0]
         self.max_min_col = None
         if size < LARGE_SIZE:
             self.max_min_col_update()
@@ -200,29 +205,31 @@ class DataFrameModel(QAbstractTableModel):
         """Background color depending on value"""
         column = index.column()
         if column == 0:
-            color = QColor(Qt.lightGray)
-            color.setAlphaF(.8)
+            color = QColor(BACKGROUND_NONNUMBER_COLOR)
+            color.setAlphaF(BACKGROUND_INDEX_ALPHA)
             return color
         if not self.bgcolor_enabled:
             return
         value = self.get_value(index.row(), column-1)
         if self.max_min_col[column - 1] is None:
-            color = QColor(Qt.lightGray)
+            color = QColor(BACKGROUND_NONNUMBER_COLOR)
             if is_text_string(value):
-                color.setAlphaF(.05)
+                color.setAlphaF(BACKGROUND_STRING_ALPHA)
             else:
-                color.setAlphaF(.3)
+                color.setAlphaF(BACKGROUND_MISC_ALPHA)
         else:
             if isinstance(value, COMPLEX_NUMBER_TYPES):
                 color_func = abs
             else:
                 color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column-1)
-            hue = self.hue0 + self.dhue*(vmax-color_func(value)) / (vmax-vmin)
+            hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
+                   (vmax - color_func(value)) / (vmax - vmin))
             hue = float(abs(hue))
             if hue > 1:
                 hue = 1
-            color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
+            color = QColor.fromHsvF(hue, BACKGROUND_NUMBER_SATURATION,
+                                    BACKGROUND_NUMBER_VALUE, BACKGROUND_NUMBER_ALPHA)
         return color
 
     def get_value(self, row, column):
