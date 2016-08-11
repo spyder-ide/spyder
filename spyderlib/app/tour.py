@@ -27,6 +27,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 
 # Local imports
 from spyderlib.config.base import _, get_image_path
+from spyderlib.py3compat import to_binary_string
 from spyderlib.utils.qthelpers import add_actions, create_action
 
 # FIXME: Known issues
@@ -337,7 +338,7 @@ class FadingDialog(QDialog):
         self._fade_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(self.effect, "opacity")
+        self.anim = QPropertyAnimation(self.effect, to_binary_string("opacity"))
 
     # --- public api
     def fade_in(self, on_finished_connect):
