@@ -16,8 +16,8 @@ import sys
 import os.path as osp
 
 # Local import
-from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, SUBFOLDER,
-                                   get_home_dir)
+from spyderlib.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
+                                   SUBFOLDER, TEST)
 from spyderlib.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
 from spyderlib.config.user import UserConfig
 from spyderlib.config.utils import IMPORT_EXT
@@ -587,11 +587,10 @@ DEFAULTS = [
 # 3. You don't need to touch this value if you're just adding a new option
 CONF_VERSION = '27.2.0'
 
-
-# XXX: Previously we had load=(not DEV) here but DEV was set to *False*.
-# Check if it *really* needs to be updated or not
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version=CONF_VERSION,
-                  subfolder=SUBFOLDER, backup=True, raw_mode=True)
+# Main configuration instance
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
+                  version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
+                  raw_mode=True)
 
 
 # Removing old .spyder.ini location:

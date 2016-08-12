@@ -11,7 +11,7 @@ import time
 
 # Local imports
 from spyderlib.app.cli_options import get_options
-from spyderlib.config.base import get_conf_path, running_in_mac_app, DEV, TEST
+from spyderlib.config.base import DEV, get_conf_path, running_in_mac_app
 from spyderlib.config.main import CONF
 from spyderlib.utils.external import lockfile
 from spyderlib.py3compat import is_unicode
@@ -113,8 +113,6 @@ def main():
 
         if lock_created:
             # Start a new instance
-            if TEST is None:
-                atexit.register(lock.unlock)
             from spyderlib.app import spyder
             spyder.main()
         else:

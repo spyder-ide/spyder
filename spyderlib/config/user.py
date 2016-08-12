@@ -21,9 +21,8 @@ import shutil
 import time
 
 # Local imports
-from spyderlib import __version__
-from spyderlib.config.base import (DEV, TEST, get_module_source_path,
-                                   get_home_dir)
+from spyderlib.config.base import (get_conf_path, get_home_dir,
+                                   get_module_source_path, TEST)
 from spyderlib.utils.programs import check_version
 from spyderlib.py3compat import configparser as cp
 from spyderlib.py3compat import PY2, is_text_string, to_text_string
@@ -31,6 +30,7 @@ from spyderlib.py3compat import PY2, is_text_string, to_text_string
 # Std imports for Python 2
 if PY2:
     import codecs
+
 
 #==============================================================================
 # Auxiliary classes
@@ -89,6 +89,10 @@ class DefaultsConfig(cp.ConfigParser):
         """
         Save config into the associated .ini file
         """
+        # Don't save settings if we are on testing mode
+        if TEST:
+            return
+
         # See Issue 1086 and 1242 for background on why this
         # method contains all the exception handling.
         fname = self.filename()
@@ -118,51 +122,20 @@ class DefaultsConfig(cp.ConfigParser):
 
     def filename(self):
         """
-        Create a .ini filename located in user home directory
+        Return the name of a .ini filename to save config settings
         """
-        if TEST is None:
-            folder = get_home_dir()
-        else:
-            import tempfile
-            folder = tempfile.gettempdir()
-        w_dot = osp.join(folder, '.%s.ini' % self.name)
         if self.subfolder is None:
-            return w_dot
+            config_file = osp.join(get_home_dir(), '.%s.ini' % self.name)
+            return config_file
         else:
-            folder = osp.join(folder, self.subfolder)
-            w_dot = osp.join(folder, '.%s.ini' % self.name)
+            folder = get_conf_path()
             # Save defaults in a "defaults" dir of .spyder2 to not pollute it
             if 'defaults' in self.name:
                 folder = osp.join(folder, 'defaults')
-            try:
-                # Copying old config dir for Spyder 3.0. The new config
-                # dir for 3.0+ is going to be simply ~/.spyder{-py3}
-                if __version__.split('.')[0] == '3':
-                    if PY2:
-                        old_confdir = '.spyder2'
-                    else:
-                        old_confdir = '.spyder2-py3'
-                    old_confdir = osp.join(get_home_dir(), old_confdir)
-                    new_confdir = osp.join(get_home_dir(), self.subfolder)
-                    if osp.isdir(old_confdir) and not osp.isdir(new_confdir):
-                        shutil.copytree(old_confdir, new_confdir)
-                    else:
-                        os.makedirs(folder)
-                else:
-                    os.makedirs(folder)
-            except os.error:
-                # Folder (or one of its parents) already exists
-                pass
-            old, new = w_dot, osp.join(folder, '%s.ini' % self.name)
-            if osp.isfile(old) and DEV is None:
-                try:
-                    if osp.isfile(new):
-                        os.remove(old)
-                    else:
-                        os.rename(old, new)
-                except OSError:
-                    pass
-            return new
+                if not osp.isdir(folder):
+                    os.mkdir(folder)
+            config_file = osp.join(folder, '%s.ini' % self.name)
+            return config_file
     
     def set_defaults(self, defaults):
         for section, options in defaults:

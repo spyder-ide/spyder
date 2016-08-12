@@ -71,10 +71,10 @@ def debug_print(*message):
 # since 3.0+ we've reverted back to use .spyder to simplify major
 # updates in version (required when we change APIs by Linux
 # packagers)
-if TEST is None:
-    SUBFOLDER = '.spyder'
+if sys.platform.startswith('linux'):
+    SUBFOLDER = 'spyder'
 else:
-    SUBFOLDER = 'spyder_test'
+    SUBFOLDER = '.spyder'
 
 
 # We can't have PY2 and PY3 settings in the same dir because:
@@ -111,11 +111,17 @@ def get_home_dir():
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
-    if TEST is None:
-        conf_dir = osp.join(get_home_dir(), SUBFOLDER)
+    # This makes us follow the XDG standard to save our settings
+    # on Linux, as it was requested on Issue 2629
+    if sys.platform.startswith('linux'):
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME', '')
+        if not xdg_config_home:
+            xdg_config_home = osp.join(get_home_dir(), '.config')
+        if not osp.isdir(xdg_config_home):
+            os.makedirs(xdg_config_home)
+        conf_dir = osp.join(xdg_config_home, SUBFOLDER)
     else:
-         import tempfile
-         conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)
+        conf_dir = osp.join(get_home_dir(), SUBFOLDER)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     if filename is None:
