@@ -127,7 +127,7 @@ QApplication.processEvents()
 from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    get_module_source_path, STDERR, DEBUG,
-                                   debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
+                                   debug_print, MAC_APP_NAME,
                                    running_in_mac_app, get_module_path)
 from spyderlib.config.main import CONF, OPEN_FILES_PORT
 from spyderlib.config.utils import IMPORT_EXT, is_gtk_desktop
@@ -1212,12 +1212,6 @@ class MainWindow(QMainWindow):
 
         # Remove our temporary dir
         atexit.register(self.remove_tmpdir)
-
-        # Remove settings test directory
-        if TEST is not None:
-            import tempfile
-            conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)
-            atexit.register(shutil.rmtree, conf_dir, ignore_errors=True)
 
         # [Workaround for Issue 880]
         # QDockWidget objects are not painted if restored as floating
