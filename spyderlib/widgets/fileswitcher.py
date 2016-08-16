@@ -541,7 +541,7 @@ class FileSwitcher(QDialog):
                 results.append((score_value, line, text, rich_text,
                                 fold_level, icons[index], token))
 
-        template_1 = '<code>{0}<big>{1}</big></code>'
+        template_1 = '<code>{0}</code>{1}'
 
         for (score, line, text, rich_text, fold_level, icon,
              token) in sorted(results):
