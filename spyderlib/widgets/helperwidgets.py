@@ -137,7 +137,6 @@ class HTMLDelegate(QStyledItemDelegate):
 
         doc = QTextDocument()
         doc.setHtml(options.text)
-        doc.setTextWidth(options.rect.width())
 
         return QSize(doc.idealWidth(), doc.size().height())
 
