@@ -496,7 +496,7 @@ class FileSwitcher(QDialog):
             index = result[1]
             text = result[-1]
             path = paths[index]
-            item = QListWidgetItem(self.tabs.tabIcon(index), text)
+            item = QListWidgetItem(ima.icon('FileIcon'), text)
             item.setToolTip(path)
             item.setSizeHint(QSize(0, 25))
             self.list.addItem(item)
