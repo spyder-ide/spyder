@@ -483,7 +483,7 @@ class FileSwitcher(QDialog):
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
-                text_item = '<big>' + rich_text + '</big>'
+                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
