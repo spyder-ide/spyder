@@ -443,7 +443,11 @@ class FileSwitcher(QDialog):
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
         """Get the object explorer data."""
-        return self.get_editor().highlighter.get_outlineexplorer_data()
+        try:
+            oedata = self.get_editor().highlighter.get_outlineexplorer_data()
+        except AttributeError:
+            oedata = {}
+        return oedata
 
     # --- Handlers
     def item_selection_changed(self):
