@@ -122,13 +122,14 @@ class HTMLDelegate(QStyledItemDelegate):
 
         textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
         painter.save()
-        if style.objectName() == 'oxygen':
-            painter.translate(textRect.topLeft() + QPoint(5, -9))
+        if style.objectName() in ['oxygen', 'qtcurve', 'breeze']:
+            if options.widget.files_list:
+                painter.translate(textRect.topLeft() + QPoint(2, -9))
+            else:
+                painter.translate(textRect.topLeft() + QPoint(2, 0))
         else:
-            painter.translate(textRect.topLeft())
-            painter.setClipRect(textRect.translated(-textRect.topLeft()))
+            painter.translate(textRect.topLeft() + QPoint(2, 4))
         doc.documentLayout().draw(painter, ctx)
-
         painter.restore()
 
     def sizeHint(self, option, index):

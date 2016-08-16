@@ -504,6 +504,9 @@ class FileSwitcher(QDialog):
             self.list.addItem(item)
             self.filtered_path.append(path)
 
+        # To adjust the delegate layout for KDE themes
+        self.list.files_list = True
+
         # Move selected item in list accordingly and update list size
         if current_path in self.filtered_path:
             self.set_current_row(self.filtered_path.index(current_path))
@@ -552,6 +555,9 @@ class FileSwitcher(QDialog):
             item = QListWidgetItem(icon, textline)
             item.setSizeHint(QSize(0, 16))
             self.list.addItem(item)
+
+        # To adjust the delegate layout for KDE themes
+        self.list.files_list = False
 
         # Move selected item in list accordingly
         # NOTE: Doing this is causing two problems:
