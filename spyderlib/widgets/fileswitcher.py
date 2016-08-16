@@ -487,9 +487,7 @@ class FileSwitcher(QDialog):
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
-                text_item += "<br><i>{0:}</i>".format(
-                    short_paths[index])
-
+                text_item += "<br><i>{0:}</i>".format(short_paths[index])
                 results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
@@ -512,7 +510,7 @@ class FileSwitcher(QDialog):
             self.set_current_row(self.filtered_path.index(current_path))
         elif self.filtered_path:
             self.set_current_row(0)
-        self.fix_size(short_paths)
+        self.fix_size(short_paths, extra=200)
 
         # If a line number is searched look for it
         self.line_number = line_number
