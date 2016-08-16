@@ -541,16 +541,14 @@ class FileSwitcher(QDialog):
                 results.append((score_value, line, text, rich_text,
                                 fold_level, icons[index], token))
 
-        template_1 = '<code>{0}<big>{1} {2}</big></code>'
-        template_2 = '<br><code>{0}</code><i>[Line {1}]</i>'
+        template_1 = '<code>{0}<big>{1}</big></code>'
 
         for (score, line, text, rich_text, fold_level, icon,
              token) in sorted(results):
             fold_space = '&nbsp;'*(fold_level)
             line_number = line + 1
             self.filtered_symbol_lines.append(line_number)
-            textline = template_1.format(fold_space, token, rich_text)
-            textline += template_2.format(fold_space, line_number)
+            textline = template_1.format(fold_space, rich_text)
             item = QListWidgetItem(icon, textline)
             item.setSizeHint(QSize(0, 16))
             self.list.addItem(item)
