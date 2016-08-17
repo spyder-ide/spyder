@@ -128,7 +128,8 @@ from spyderlib import __version__, __project_url__, __forum_url__, get_versions
 from spyderlib.config.base import (get_conf_path, get_module_data_path,
                                    get_module_source_path, STDERR, DEBUG,
                                    debug_print, MAC_APP_NAME,
-                                   running_in_mac_app, get_module_path)
+                                   running_in_mac_app, get_module_path,
+                                   reset_config_files)
 from spyderlib.config.main import CONF, OPEN_FILES_PORT
 from spyderlib.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyderlib.app.cli_options import get_options
@@ -139,7 +140,7 @@ from spyderlib.py3compat import (getcwd, is_text_string, to_text_string,
 from spyderlib.utils import encoding, programs
 from spyderlib.utils import icon_manager as ima
 from spyderlib.utils.introspection import module_completion
-from spyderlib.utils.iofuncs import load_session, save_session, reset_session
+from spyderlib.utils.iofuncs import load_session, save_session
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.misc import select_port
 
@@ -3016,16 +3017,15 @@ def main():
     options, args = get_options()
 
     if set_attached_console_visible is not None:
-        set_attached_console_visible(DEBUG or options.show_console\
-                                     or options.reset_session\
-                                     or options.reset_to_defaults\
+        set_attached_console_visible(DEBUG or options.show_console \
+                                     or options.reset_config_files \
+                                     or options.reset_to_defaults \
                                      or options.optimize)
 
     app = initialize()
-    if options.reset_session:
+    if options.reset_config_files:
         # <!> Remove all configuration files!
-        reset_session()
-#        CONF.reset_to_defaults(save=True)
+        reset_config_files()
         return
     elif options.reset_to_defaults:
         # Reset Spyder settings to defaults

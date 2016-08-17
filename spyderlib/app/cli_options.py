@@ -20,7 +20,7 @@ def get_options():
     parser.add_option('--defaults', dest="reset_to_defaults",
                       action='store_true', default=False,
                       help="Reset configuration settings to defaults")
-    parser.add_option('--reset', dest="reset_session",
+    parser.add_option('--reset', dest="reset_config_files",
                       action='store_true', default=False,
                       help="Remove all configuration files!")
     parser.add_option('--optimize', action='store_true', default=False,
