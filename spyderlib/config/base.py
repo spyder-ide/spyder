@@ -415,7 +415,7 @@ SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
                       'history.py', 'history_internal.py', 'workingdir',
                       '.projects', '.spyderproject', '.ropeproject',
                       'monitor.log', 'monitor_debug.log', 'rope.log',
-                      'langconfig')
+                      'langconfig', 'spyder.lock')
 
 
 def reset_config_files():
