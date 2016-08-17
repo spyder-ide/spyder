@@ -423,7 +423,7 @@ def reset_config_files():
     print("*** Reset Spyder settings to defaults ***", file=STDERR)
     for fname in SAVED_CONFIG_FILES:
         cfg_fname = get_conf_path(fname)
-        if osp.isfile(cfg_fname):
+        if osp.isfile(cfg_fname) or osp.islink(cfg_fname):
             os.remove(cfg_fname)
         elif osp.isdir(cfg_fname):
             shutil.rmtree(cfg_fname)
