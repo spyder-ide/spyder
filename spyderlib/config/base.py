@@ -18,6 +18,7 @@ import codecs
 import locale
 import os.path as osp
 import os
+import shutil
 import sys
 
 # Local imports
@@ -62,6 +63,7 @@ def debug_print(*message):
             print('', file=ss)
         else:
             print(*message, file=ss)
+
 
 #==============================================================================
 # Configuration paths
@@ -189,7 +191,6 @@ SCIENTIFIC_STARTUP = get_module_source_path('spyderlib',
 #==============================================================================
 # Image path list
 #==============================================================================
-
 IMG_PATH = []
 def add_image_path(path):
     if not osp.isdir(path):
@@ -346,7 +347,6 @@ _ = get_translation("spyderlib")
 #==============================================================================
 # Namespace Browser (Variable Explorer) configuration management
 #==============================================================================
-
 def get_supported_types():
     """
     Return a dictionnary containing types lists supported by the 
@@ -391,10 +391,10 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
 
+
 #==============================================================================
 # Mac application utilities
 #==============================================================================
-
 if PY3:
     MAC_APP_NAME = 'Spyder.app'
 else:
@@ -405,3 +405,28 @@ def running_in_mac_app():
         return True
     else:
         return False
+
+
+#==============================================================================
+# Reset config files
+#==============================================================================
+SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
+                      'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
+                      'history.py', 'history_internal.py', 'workingdir',
+                      '.projects', '.spyderproject', '.ropeproject',
+                      'monitor.log', 'monitor_debug.log', 'rope.log',
+                      'langconfig', 'spyder.lock')
+
+
+def reset_config_files():
+    """Remove all config files"""
+    print("*** Reset Spyder settings to defaults ***", file=STDERR)
+    for fname in SAVED_CONFIG_FILES:
+        cfg_fname = get_conf_path(fname)
+        if osp.isfile(cfg_fname) or osp.islink(cfg_fname):
+            os.remove(cfg_fname)
+        elif osp.isdir(cfg_fname):
+            shutil.rmtree(cfg_fname)
+        else:
+            continue
+        print("removing:", cfg_fname, file=STDERR)
