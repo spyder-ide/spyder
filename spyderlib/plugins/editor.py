@@ -978,8 +978,8 @@ class Editor(SpyderPluginWidget):
 
         file_menu_actions = [self.new_action, self.open_action,
                              self.recent_file_menu, self.save_action,
-                             save_as_action, save_copy_as_action,
-                             self.save_all_action, self.file_switcher_action,
+                             self.save_all_action, save_as_action,
+                              save_copy_as_action, self.file_switcher_action,
                              self.revert_action, None, print_preview_action,
                              self.print_action,  None, self.close_action,
                              self.close_all_action, None]
