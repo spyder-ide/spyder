@@ -677,6 +677,10 @@ class Editor(SpyderPluginWidget):
                 context=Qt.WidgetShortcut)
         self.register_shortcut(save_as_action, "Editor", "Save As")
 
+        save_copy_as_action = create_action(self, _("Save copy as..."), None,
+                ima.icon('filesaveas'), _("Save copy of current file as..."),
+                triggered=self.save_copy_as)
+
         print_preview_action = create_action(self, _("Print preview..."),
                 tip=_("Print preview..."), triggered=self.print_preview)
         self.print_action = create_action(self, _("&Print..."),
@@ -974,10 +978,10 @@ class Editor(SpyderPluginWidget):
 
         file_menu_actions = [self.new_action, self.open_action,
                              self.recent_file_menu, self.save_action,
-                             self.save_all_action, save_as_action,
-                             self.file_switcher_action, self.revert_action,
-                             None, print_preview_action, self.print_action,
-                             None, self.close_action,
+                             save_as_action, save_copy_as_action,
+                             self.save_all_action, self.file_switcher_action,
+                             self.revert_action, None, print_preview_action,
+                             self.print_action,  None, self.close_action,
                              self.close_all_action, None]
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
@@ -1079,9 +1083,10 @@ class Editor(SpyderPluginWidget):
                      run_cell_advance_action, blockcomment_action,
                      unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
-                [self.save_action, save_as_action, print_preview_action,
-                 self.print_action, self.save_all_action, gotoline_action,
-                 workdir_action, self.close_action, self.close_all_action,
+                [self.save_action, save_as_action, save_copy_as_action,
+                 print_preview_action, self.print_action,
+                 self.save_all_action, gotoline_action, workdir_action,
+                 self.close_action, self.close_all_action,
                  self.toggle_comment_action, self.revert_action,
                  self.indent_action, self.unindent_action]
         self.stack_menu_actions = [gotoline_action, workdir_action]
@@ -1894,7 +1899,16 @@ class Editor(SpyderPluginWidget):
             if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
                 self.open_dir.emit(osp.dirname(fname))
             self.__add_recent_file(fname)
-    
+
+    @Slot()
+    def save_copy_as(self):
+        """Save *copy as* the currently edited file"""
+        editorstack = self.get_current_editorstack()
+        if editorstack.save_copy_as():
+            fname = editorstack.get_current_filename()
+            if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
+                self.emit(SIGNAL("open_dir(QString)"), osp.dirname(fname))
+
     @Slot()
     def save_all(self):
         """Save all opened files"""
