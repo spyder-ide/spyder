@@ -38,8 +38,6 @@ parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
 parser.add_option('--test', dest="test", action='store_true', default=False,
                   help="Test Spyder with a clean settings dir")
-parser.add_option('--no-apport', action='store_true',
-                  default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 
@@ -55,15 +53,13 @@ assert options.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
 if options.test:
     os.environ['SPYDER_TEST'] = 'True'
 
-# Prepare arguments for Spyder's main script
-sys.argv = [sys.argv[0]] + args
-
 
 print("Executing Spyder from source checkout")
 DEVPATH = osp.dirname(osp.abspath(__file__))
 
 # To activate/deactivate certain things for development
 os.environ['SPYDER_DEV'] = 'True'
+
 
 # --- Test environment for surprises
 
@@ -81,18 +77,13 @@ except UnicodeDecodeError:
     input("Press Enter to continue or Ctrl-C to abort...")
 
 # Warn if we're running under 3rd party exception hook, such as
-# apport_python_hook.py from Ubuntu
+# apport_python_hook.py from Ubuntu as it affects error reporting
 if sys.excepthook != sys.__excepthook__:
    if sys.excepthook.__name__ != 'apport_excepthook':
      print("WARNING: 3rd party Python exception hook is active: '%s'"
             % sys.excepthook.__name__)
    else:
-     if not options.no_apport:
-       print("WARNING: Ubuntu Apport exception hook is detected")
-       print("         Use --no-apport option to disable it")
-     else:
-       sys.excepthook = sys.__excepthook__
-       print("NOTICE: Ubuntu Apport exception hook is disabed")
+     print("WARNING: Ubuntu Apport exception hook is detected")
 
 
 # --- Continue
@@ -100,9 +91,11 @@ if sys.excepthook != sys.__excepthook__:
 from spyderlib.utils.vcs import get_git_revision
 print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
-sys.path.insert(0, DEVPATH)
-print("01. Patched sys.path with %s" % DEVPATH)
-
+print("01. Adding %s to PYTHONPATH" % DEVPATH)
+if os.environ.get('PYTHONPATH', ''):
+    os.environ['PYTHONPATH'] += os.pathsep + DEVPATH
+else:
+    os.environ['PYTHONPATH'] = DEVPATH
 
 # Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
@@ -156,10 +149,9 @@ if not programs.is_module_installed('qtpy', '>=1.1.0'):
 
 if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
-    sys.argv.append("--show-console")  # Windows only: show parent console
+    args.append("--show-console")  # Windows only: show parent console
 
 print("04. Running Spyder")
-from spyderlib.app import start
 
 time_lapse = time.time()-time_start
 print("Bootstrap completed in " +
@@ -167,4 +159,8 @@ print("Bootstrap completed in " +
     # gmtime() converts float into tuple, but loses milliseconds
     ("%.4f" % time_lapse).split('.')[1])
 
-start.main()
+import subprocess
+cmd = [sys.executable, '-m', 'spyderlib.app.start']
+cmd += args
+subprocess.Popen(cmd).communicate()
+
