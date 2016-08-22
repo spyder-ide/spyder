@@ -12,6 +12,7 @@ import os
 import os.path as osp
 import subprocess
 
+
 if os.name == 'nt':
     # Find pygettext.py source on a windows install
     pygettext = ['python',
@@ -20,6 +21,7 @@ if os.name == 'nt':
 else:
     pygettext = ['pygettext']
     msgfmt = ['msgfmt']
+
 
 def get_files(modname):
     if not osp.isdir(modname):
@@ -33,8 +35,9 @@ def get_files(modname):
                    for f in filenames if f.endswith(".py") or f.endswith(".pyw") ]
     return files
 
-def get_lang( modname ):
-    localedir = osp.join( modname, "locale")
+
+def get_lang(modname):
+    localedir = osp.join(modname, "locale")
     for _dirname, dirnames, _filenames in os.walk(localedir):
         break # we just want the list of first level directories
     return dirnames
@@ -44,7 +47,8 @@ def do_rescan(modname):
     files = get_files(modname)
     dirname = modname
     do_rescan_files(files, modname, dirname)
-        
+
+
 def do_rescan_files(files, modname, dirname):
     localedir = osp.join(dirname, "locale")
     potfile = modname+".pot"
@@ -81,7 +85,8 @@ def do_compile(modname, dirname=None):
         pofilepath = osp.join(localedir, lang, "LC_MESSAGES", modname+".po")
         subprocess.call( msgfmt+[pofilepath] )
 
-def main( modname ):
+
+def main(modname):
     if len(sys.argv)<2:
         cmd = "help"
     else:
