@@ -1,5 +1,56 @@
 # History of changes
 
+## Version 3.0beta5 (2016-08-22)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3351](https://github.com/spyder-ide/spyder/issues/3351) - Spyder not opening because of problems with spyder.lock
+* [Issue 3327](https://github.com/spyder-ide/spyder/issues/3327) - Drag and drop from OS file explorer is not working
+* [Issue 3308](https://github.com/spyder-ide/spyder/issues/3308) - Variable Explorer fails to display DataFrame with categories
+* [Issue 3306](https://github.com/spyder-ide/spyder/issues/3306) - Spyder unresponsive, requires forced quit (OS X)
+* [Issue 3297](https://github.com/spyder-ide/spyder/issues/3297) - Pressing Ctrl+P twice opens file switcher twice
+* [Issue 3293](https://github.com/spyder-ide/spyder/issues/3293) - F9 does not auto advance when it's at the last line
+* [Issue 3288](https://github.com/spyder-ide/spyder/issues/3288) - "Quit Spyder" menu entry doesn't work in 3.0.0b4 (OS X 10.11)
+* [Issue 3287](https://github.com/spyder-ide/spyder/issues/3287) - Spyder can't open a console because of problems with Beautiful Soup
+* [Issue 3282](https://github.com/spyder-ide/spyder/issues/3282) - QApplication is used from QtGui instead of QtWidgets in app/spyder.py
+* [Issue 2940](https://github.com/spyder-ide/spyder/issues/2940) - Variable explorer can't show Pandas objects containing timezone aware columns
+* [Issue 2629](https://github.com/spyder-ide/spyder/issues/2629) - Use XDG_CONFIG_HOME for config directory on Linux
+* [Issue 2465](https://github.com/spyder-ide/spyder/issues/2465) - Images are not rendered by the Help pane on Windows
+* [Issue 2119](https://github.com/spyder-ide/spyder/issues/2119) - Spyder doesn't render well on HighDpi screens
+
+In this release 13 issues were closed
+
+**Pull requests**
+
+* [PR 3366](https://github.com/spyder-ide/spyder/pull/3366) - Fix "Quit Spyder" action on OS X
+* [PR 3357](https://github.com/spyder-ide/spyder/pull/3357) - Remove lock file as part of --reset
+* [PR 3353](https://github.com/spyder-ide/spyder/pull/3353) - Rewrite computation of max and min in dataframe editor
+* [PR 3352](https://github.com/spyder-ide/spyder/pull/3352) - Use XDG_CONFIG_HOME to save our settings on Linux
+* [PR 3339](https://github.com/spyder-ide/spyder/pull/3339) - Fix dragging and dropping files to the Editor
+* [PR 3338](https://github.com/spyder-ide/spyder/pull/3338) - Testing: Use Qt/PyQt 5.6 packages in Travis
+* [PR 3336](https://github.com/spyder-ide/spyder/pull/3336) - PR: Update readme and organize badges
+* [PR 3333](https://github.com/spyder-ide/spyder/pull/3333) - Enable high DPI scaling on Qt >= 5.6
+* [PR 3325](https://github.com/spyder-ide/spyder/pull/3325) - Fix further freezes because of pyzmq
+* [PR 3324](https://github.com/spyder-ide/spyder/pull/3324) - Make 'run line' add a blank line if on last line.
+* [PR 3319](https://github.com/spyder-ide/spyder/pull/3319) - Test Spyder with Qt 5.6 in AppVeyor
+* [PR 3315](https://github.com/spyder-ide/spyder/pull/3315) - Fix showing images in the Help plugin for Windows
+* [PR 3313](https://github.com/spyder-ide/spyder/pull/3313) - Toggle file switcher when pressing its keyboard shortcut
+* [PR 3312](https://github.com/spyder-ide/spyder/pull/3312) - Fix monkey-patching of QApplication
+* [PR 3310](https://github.com/spyder-ide/spyder/pull/3310) - Fix error when Beautiful Soup is installed incorrectly
+* [PR 3300](https://github.com/spyder-ide/spyder/pull/3300) - Re-include plugins in setup.py packages
+* [PR 3295](https://github.com/spyder-ide/spyder/pull/3295) - PR: Fix/Find in files
+* [PR 3294](https://github.com/spyder-ide/spyder/pull/3294) - Add keyboard shortcuts to context menu in editor
+* [PR 3285](https://github.com/spyder-ide/spyder/pull/3285) - Japanese translation
+* [PR 3273](https://github.com/spyder-ide/spyder/pull/3273) - Testing: Don't use particular tags when installing local conda packages
+
+In this release 20 pull requests were merged
+
+
+----
+
+
 ## Version 3.0beta4 (2016-07-01)
 
 ### Bugfixes
