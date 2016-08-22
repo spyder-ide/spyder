@@ -457,9 +457,9 @@ class FileSwitcher(QDialog):
 
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
-        """Get the object explorer data."""
+        """Get the list of symbols present in the file."""
         try:
-            oedata = self.get_editor().highlighter.get_outlineexplorer_data()
+            oedata = self.get_editor().get_outlineexplorer_data()
         except AttributeError:
             oedata = {}
         return oedata
