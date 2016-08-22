@@ -151,7 +151,7 @@ class BaseTabs(QTabWidget):
         corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
 
         self.set_corner_widgets(corner_widgets)
-        
+
     def update_browse_tabs_menu(self):
         """Update browse tabs menu"""
         self.browse_tabs_menu.clear()
@@ -178,7 +178,7 @@ class BaseTabs(QTabWidget):
                 if offset <= 3:
                     # Common path is not a path but a drive letter...
                     offset = None
-                
+
         for index, text in enumerate(names):
             tab_action = create_action(self, text[offset:],
                                        icon=self.tabIcon(index),
@@ -187,7 +187,7 @@ class BaseTabs(QTabWidget):
                                        tip=self.tabToolTip(index))
             tab_action.setChecked(index == self.currentIndex())
             self.browse_tabs_menu.addAction(tab_action)
-        
+
     def set_corner_widgets(self, corner_widgets):
         """
         Set tabs corner widgets

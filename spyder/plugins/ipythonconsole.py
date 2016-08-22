@@ -1160,8 +1160,7 @@ class IPythonConsole(SpyderPluginWidget):
     def add_tab(self, widget, name):
         """Add tab"""
         self.clients.append(widget)
-        index = self.tabwidget.addTab(widget, ima.icon('ipython_console'),
-                                      name)
+        index = self.tabwidget.addTab(widget, name)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)

@@ -32,14 +32,12 @@ from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_SHORTCUT,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyder.config.utils import get_edit_extensions
 from spyder.py3compat import qbytearray_to_str, to_text_string, u
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
                           syntaxhighlighters)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, get_filetype_icon,
-                                    mimedata2url)
+                                    create_toolbutton, mimedata2url)
 from spyder.widgets.editortools import OutlineExplorerWidget
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
@@ -978,8 +976,7 @@ class EditorStack(QWidget):
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
-        self.tabs.insertTab(index, editor, get_filetype_icon(fname),
-                            self.get_tab_text(fname))
+        self.tabs.insertTab(index, editor, self.get_tab_text(fname))
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
@@ -991,14 +988,13 @@ class EditorStack(QWidget):
         self.tabs.blockSignals(True)
         self.tabs.clear()
         for finfo in self.data:
-            icon = get_filetype_icon(finfo.filename)
             if finfo.newly_created:
                 is_modified = True
             else:
                 is_modified = None
             tab_text = self.get_tab_text(finfo.filename, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
-            index = self.tabs.addTab(finfo.editor, icon, tab_text)
+            index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
         self.tabs.blockSignals(False)
         self.update_fileswitcher_dlg()
