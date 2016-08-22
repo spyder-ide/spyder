@@ -1462,7 +1462,7 @@ class EditorStack(QWidget):
             return True
         except EnvironmentError as error:
             QMessageBox.critical(self, _("Save"),
-                                 _("<b>Unable to save script '%s'</b>"
+                                 _("<b>Unable to save file '%s'</b>"
                                    "<br><br>Error message:<br>%s"
                                    ) % (osp.basename(finfo.filename),
                                         str(error)))
@@ -1544,12 +1544,11 @@ class EditorStack(QWidget):
         txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, filename, finfo.encoding)
-            self.emit(SIGNAL('file_saved(QString,int,QString)'),
-                      str(id(self)), index, filename)
+            self.self.file_saved.emit(str(id(self)), index, filename)
             return True
         except EnvironmentError as error:
             QMessageBox.critical(self, _("Save"),
-                                 _("<b>Unable to save script '%s'</b>"
+                                 _("<b>Unable to save file '%s'</b>"
                                    "<br><br>Error message:<br>%s"
                                    ) % (osp.basename(finfo.filename),
                                         str(error)))
