@@ -364,7 +364,10 @@ class FileSwitcher(QDialog):
         self.move(left, top + self.tabs.tabBar().geometry().height() + 1)
 
     def fix_size(self, content, extra=50):
-        """Adjusts the width of the file switcher, based on the content."""
+        """
+        Adjusts the width and height of the file switcher,
+        based on its content.
+        """
         # Update size of dialog based on longest shortened path
         strings = []
         if content:
@@ -373,8 +376,20 @@ class FileSwitcher(QDialog):
                 label.setTextFormat(Qt.PlainText)
                 strings.append(label.text())
                 fm = label.fontMetrics()
-            max_width = max([fm.width(s)*1.3 for s in strings])
+
+            # Max width
+            max_width = max([fm.width(s) * 1.3 for s in strings])
             self.list.setMinimumWidth(max_width + extra)
+
+            # Max height
+            if len(strings) < 8:
+                max_entries = len(strings)
+            else:
+                max_entries = 8
+            max_height = fm.height() * max_entries * 2.5
+            self.list.setMinimumHeight(max_height)
+
+            # Set position according to size
             self.set_dialog_position()
 
     # --- Helper methods: List widget
