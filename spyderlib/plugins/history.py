@@ -13,8 +13,8 @@ import sys
 # Third party imports
 from qtpy import PYQT5
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import (QFontDialog, QGroupBox, QHBoxLayout, QInputDialog,
-                            QMenu, QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
+                            QToolButton, QVBoxLayout, QWidget)
 
 
 # Local imports
@@ -78,7 +78,6 @@ class HistoryLog(SpyderPluginWidget):
         
         self.editors = []
         self.filenames = []
-        self.icons = []
         if PYQT5:        
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
@@ -203,11 +202,9 @@ class HistoryLog(SpyderPluginWidget):
         """
         filename = self.filenames.pop(index_from)
         editor = self.editors.pop(index_from)
-        icon = self.icons.pop(index_from)
         
         self.filenames.insert(index_to, filename)
         self.editors.insert(index_to, editor)
-        self.icons.insert(index_to, icon)
         
     #------ Public API ---------------------------------------------------------
     def add_history(self, filename):
@@ -221,10 +218,8 @@ class HistoryLog(SpyderPluginWidget):
         editor = codeeditor.CodeEditor(self)
         if osp.splitext(filename)[1] == '.py':
             language = 'py'
-            icon = ima.icon('python')
         else:
             language = 'bat'
-            icon = ima.icon('cmdprompt')
         editor.setup_editor(linenumbers=False, language=language,
                             scrollflagarea=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
@@ -239,11 +234,9 @@ class HistoryLog(SpyderPluginWidget):
         
         self.editors.append(editor)
         self.filenames.append(filename)
-        self.icons.append(icon)
         index = self.tabwidget.addTab(editor, osp.basename(filename))
         self.find_widget.set_editor(editor)
         self.tabwidget.setTabToolTip(index, filename)
-        self.tabwidget.setTabIcon(index, icon)
         self.tabwidget.setCurrentIndex(index)
         
     def append_to_history(self, filename, command):
