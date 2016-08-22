@@ -364,7 +364,10 @@ class FileSwitcher(QDialog):
         self.move(left, top + self.tabs.tabBar().geometry().height() + 1)
 
     def fix_size(self, content, extra=50):
-        """Adjusts the width of the file switcher, based on the content."""
+        """
+        Adjusts the width and height of the file switcher,
+        based on its content.
+        """
         # Update size of dialog based on longest shortened path
         strings = []
         if content:
@@ -373,8 +376,20 @@ class FileSwitcher(QDialog):
                 label.setTextFormat(Qt.PlainText)
                 strings.append(label.text())
                 fm = label.fontMetrics()
-            max_width = max([fm.width(s)*1.3 for s in strings])
+
+            # Max width
+            max_width = max([fm.width(s) * 1.3 for s in strings])
             self.list.setMinimumWidth(max_width + extra)
+
+            # Max height
+            if len(strings) < 8:
+                max_entries = len(strings)
+            else:
+                max_entries = 8
+            max_height = fm.height() * max_entries * 2.5
+            self.list.setMinimumHeight(max_height)
+
+            # Set position according to size
             self.set_dialog_position()
 
     # --- Helper methods: List widget
@@ -442,8 +457,12 @@ class FileSwitcher(QDialog):
 
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
-        """Get the object explorer data."""
-        return self.get_editor().highlighter.get_outlineexplorer_data()
+        """Get the list of symbols present in the file."""
+        try:
+            oedata = self.get_editor().get_outlineexplorer_data()
+        except AttributeError:
+            oedata = {}
+        return oedata
 
     # --- Handlers
     def item_selection_changed(self):
@@ -483,13 +502,11 @@ class FileSwitcher(QDialog):
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
-                text_item = '<big>' + rich_text + '</big>'
+                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
-                text_item += "<br><i>{0:}</i>".format(
-                    short_paths[index])
-
+                text_item += "<br><i>{0:}</i>".format(short_paths[index])
                 results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
@@ -498,18 +515,21 @@ class FileSwitcher(QDialog):
             index = result[1]
             text = result[-1]
             path = paths[index]
-            item = QListWidgetItem(self.tabs.tabIcon(index), text)
+            item = QListWidgetItem(ima.icon('FileIcon'), text)
             item.setToolTip(path)
             item.setSizeHint(QSize(0, 25))
             self.list.addItem(item)
             self.filtered_path.append(path)
+
+        # To adjust the delegate layout for KDE themes
+        self.list.files_list = True
 
         # Move selected item in list accordingly and update list size
         if current_path in self.filtered_path:
             self.set_current_row(self.filtered_path.index(current_path))
         elif self.filtered_path:
             self.set_current_row(0)
-        self.fix_size(short_paths)
+        self.fix_size(short_paths, extra=200)
 
         # If a line number is searched look for it
         self.line_number = line_number
@@ -541,19 +561,20 @@ class FileSwitcher(QDialog):
                 results.append((score_value, line, text, rich_text,
                                 fold_level, icons[index], token))
 
-        template_1 = '<code>{0}<big>{1} {2}</big></code>'
-        template_2 = '<br><code>{0}</code><i>[Line {1}]</i>'
+        template = '{0}{1}'
 
         for (score, line, text, rich_text, fold_level, icon,
              token) in sorted(results):
             fold_space = '&nbsp;'*(fold_level)
             line_number = line + 1
             self.filtered_symbol_lines.append(line_number)
-            textline = template_1.format(fold_space, token, rich_text)
-            textline += template_2.format(fold_space, line_number)
+            textline = template.format(fold_space, rich_text)
             item = QListWidgetItem(icon, textline)
             item.setSizeHint(QSize(0, 16))
             self.list.addItem(item)
+
+        # To adjust the delegate layout for KDE themes
+        self.list.files_list = False
 
         # Move selected item in list accordingly
         # NOTE: Doing this is causing two problems:

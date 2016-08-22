@@ -1521,6 +1521,10 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 self.highlighter.rehighlight()
 
+    def get_outlineexplorer_data(self):
+        """Get data provided by the Outline Explorer"""
+        return self.highlighter.get_outlineexplorer_data()
+
     def set_font(self, font, color_scheme=None):
         """Set font"""
         # Note: why using this method to set color scheme instead of

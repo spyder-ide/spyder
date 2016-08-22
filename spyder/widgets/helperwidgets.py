@@ -122,13 +122,22 @@ class HTMLDelegate(QStyledItemDelegate):
 
         textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
         painter.save()
-        if style.objectName() == 'oxygen':
-            painter.translate(textRect.topLeft() + QPoint(5, -9))
-        else:
-            painter.translate(textRect.topLeft())
-            painter.setClipRect(textRect.translated(-textRect.topLeft()))
-        doc.documentLayout().draw(painter, ctx)
 
+        # Adjustments for the file switcher
+        if hasattr(options.widget, 'files_list'):
+            if style.objectName() in ['oxygen', 'qtcurve', 'breeze']:
+                if options.widget.files_list:
+                    painter.translate(textRect.topLeft() + QPoint(4, -9))
+                else:
+                    painter.translate(textRect.topLeft())
+            else:
+                if options.widget.files_list:
+                    painter.translate(textRect.topLeft() + QPoint(4, 4))
+                else:
+                    painter.translate(textRect.topLeft() + QPoint(2, 4))
+        else:
+            painter.translate(textRect.topLeft() + QPoint(0, -3))
+        doc.documentLayout().draw(painter, ctx)
         painter.restore()
 
     def sizeHint(self, option, index):
@@ -137,9 +146,8 @@ class HTMLDelegate(QStyledItemDelegate):
 
         doc = QTextDocument()
         doc.setHtml(options.text)
-        doc.setTextWidth(options.rect.width())
 
-        return QSize(doc.idealWidth(), doc.size().height())
+        return QSize(doc.idealWidth(), doc.size().height() - 2)
 
 
 class IconLineEdit(QLineEdit):
