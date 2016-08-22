@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import os.path as osp
 import sys
 
 # Third party imports
@@ -23,9 +24,11 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
 # Local imports
 from spyderlib.config.base import _
 from spyderlib.config.gui import fixed_shortcut
-from spyderlib.py3compat import PY2
+from spyderlib.py3compat import PY2, to_text_string
 from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import add_actions, create_toolbutton
+from spyderlib.utils.misc import get_common_path
+from spyderlib.utils.qthelpers import (add_actions, create_action,
+                                       create_toolbutton)
 
 
 class TabBar(QTabBar):
@@ -138,8 +141,53 @@ class BaseTabs(QTabWidget):
             corner_widgets = {}
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
+        self.browse_button = create_toolbutton(self,
+                                          icon=ima.icon('browse_tab'),
+                                          tip=_("Browse tabs"))
+        self.browse_tabs_menu = QMenu(self)
+        self.browse_button.setMenu(self.browse_tabs_menu)
+        self.browse_button.setPopupMode(self.browse_button.InstantPopup)
+        self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
+        corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
+
         self.set_corner_widgets(corner_widgets)
+
+    def update_browse_tabs_menu(self):
+        """Update browse tabs menu"""
+        self.browse_tabs_menu.clear()
+        names = []
+        dirnames = []
+        for index in range(self.count()):
+            if self.menu_use_tooltips:
+                text = to_text_string(self.tabToolTip(index))
+            else:
+                text = to_text_string(self.tabText(index))
+            names.append(text)
+            if osp.isfile(text):
+                # Testing if tab names are filenames
+                dirnames.append(osp.dirname(text))
+        offset = None
         
+        # If tab names are all filenames, removing common path:
+        if len(names) == len(dirnames):
+            common = get_common_path(dirnames)
+            if common is None:
+                offset = None
+            else:
+                offset = len(common)+1
+                if offset <= 3:
+                    # Common path is not a path but a drive letter...
+                    offset = None
+
+        for index, text in enumerate(names):
+            tab_action = create_action(self, text[offset:],
+                                       icon=self.tabIcon(index),
+                                       toggled=lambda state, index=index:
+                                               self.setCurrentIndex(index),
+                                       tip=self.tabToolTip(index))
+            tab_action.setChecked(index == self.currentIndex())
+            self.browse_tabs_menu.addAction(tab_action)
+
     def set_corner_widgets(self, corner_widgets):
         """
         Set tabs corner widgets
