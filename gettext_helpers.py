@@ -83,7 +83,9 @@ def do_compile(modname, dirname=None):
     localedir = osp.join(dirname, "locale")
     for lang in get_lang(dirname):
         pofilepath = osp.join(localedir, lang, "LC_MESSAGES", modname+".po")
-        subprocess.call( msgfmt+[pofilepath] )
+        mofilepath = osp.join(localedir, lang, "LC_MESSAGES", modname+".mo")
+        cmd = msgfmt + ['-o', mofilepath, pofilepath]
+        subprocess.call(cmd)
 
 
 def main(modname):
