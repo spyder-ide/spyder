@@ -5,10 +5,10 @@ Process docstrings with Sphinx
 
 AUTHORS:
 - Tim Joseph Dumol (2009-09-29): initial version
-- The Spyder Development Team: Several changes to make it work with Spyder
+- The Spyder Project Contributors: Several changes to make it work with Spyder
 
 Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
-Copyright (C) The Spyder Development Team
+Copyright (C) Spyder Project Contributors
 Distributed under the terms of the BSD License
 
 Taken from the Sage project (www.sagemath.org).

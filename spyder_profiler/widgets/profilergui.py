@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # based on pylintgui.py by Pierre Raybaut
 #
 # Licensed under the terms of the MIT License

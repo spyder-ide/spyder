@@ -1,4 +1,4 @@
-Copyright (c) The Spyder Development Team
+Copyright (c) Spyder Project Contributors
 Licensed under the terms of the MIT License
 (see spyder/__init__.py for details)
 

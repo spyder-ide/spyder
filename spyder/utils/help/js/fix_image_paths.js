@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------------
 //  Set absolute path for images
 //
-//  Copyright 2014 by The Spyder development team
+//  Copyright (c) Spyder Project Contributors
 //
 //  Distributed under the terms of the MIT License
 //----------------------------------------------------------------------------

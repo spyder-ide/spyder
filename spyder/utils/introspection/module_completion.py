@@ -14,7 +14,7 @@
 #
 #  Distributed under the terms of the BSD License.
 #  Copyright (C) 2010-2011 The IPython Development Team.
-#  Copyright (C) 2013 The Spyder Development Team
+#  Copyright (C) Spyder Project Contributors
 #
 #------------------------------------------------------------------------------
 

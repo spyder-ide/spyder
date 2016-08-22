@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------------
 //  Math configuration options and hacks
 //
-//  Copyright (C) 2012 - The Spyder Team
+//  Copyright (C) Spyder Project Contributors
 //
 //  Distributed under the terms of the MIT License.
 //----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
@@ -8,10 +8,10 @@
 Spyder, the Scientific PYthon Development EnviRonment
 =====================================================
 
-Developped and maintained by the Spyder Development
-Team
+Developped and maintained by the Spyder Project
+Contributors
 
-Copyright © The Spyder Development Team
+Copyright © Spyder Project Contributors
 Licensed under the terms of the MIT License
 (see spyder/__init__.py for details)
 """
@@ -2314,11 +2314,11 @@ class MainWindow(QMainWindow):
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
             <br>The Scientific PYthon Development EnviRonment
-            <br>Copyright &copy; The Spyder Development Team
+            <br>Copyright &copy; The Spyder Project Contributors
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the
-            <a href="%s/blob/master/AUTHORS">Spyder Development Team</a>
+            <a href="%s/blob/master/AUTHORS">Spyder Project Contributors</a>
             <br>Many thanks to all the Spyder beta-testers and regular users.
             <p>Most of the icons come from the Crystal Project
             (&copy; 2006-2007 Everaldo Coelho). Other icons by

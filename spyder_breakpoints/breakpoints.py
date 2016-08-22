@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # Based loosely on p_pylint.py by Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)

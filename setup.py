@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
@@ -236,7 +236,7 @@ PyQt4 application: source code editor with syntax highlighting and
 code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
-      author="The Spyder Development Team",
+      author="The Spyder Project Contributors",
       url=__project_url__,
       license='MIT',
       keywords='PyQt5 PyQt4 editor shell console widgets IDE',

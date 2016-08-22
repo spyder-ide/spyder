@@ -1,6 +1,6 @@
 # Copyright (c) 2005 Divmod, Inc.
 # Copyright (c) Twisted Matrix Laboratories.
-# Copyright (c) 2013 The Spyder Development Team
+# Copyright (c) Spyder Project Contributors
 # Twisted is distributed under the MIT license.
 
 """
