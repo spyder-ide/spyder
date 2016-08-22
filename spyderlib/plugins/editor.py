@@ -1907,7 +1907,7 @@ class Editor(SpyderPluginWidget):
         if editorstack.save_copy_as():
             fname = editorstack.get_current_filename()
             if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.emit(SIGNAL("open_dir(QString)"), osp.dirname(fname))
+                self.open_dir.emit(osp.dirname(fname))
 
     @Slot()
     def save_all(self):
