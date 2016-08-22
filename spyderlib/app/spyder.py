@@ -323,7 +323,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.load_session,
                                         tip=_("Load Spyder session"))
         self.save_session_action = create_action(self,
-                                        _("Save session and quit..."),
+                                        _("Save session..."),
                                         None, ima.icon('filesaveas'),
                                         triggered=self.save_session,
                                         tip=_("Save current session "
