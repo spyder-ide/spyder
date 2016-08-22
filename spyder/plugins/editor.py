@@ -777,8 +777,8 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(debug_return_action, "_", "Debug Step Return",
                                add_sc_to_tip=True)
 
-        debug_exit_action = create_action(self, _("Exit"),
-               icon=ima.icon('stop_debug'), tip=_("Exit Debug"),
+        debug_exit_action = create_action(self, _("Stop"),
+               icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
                triggered=lambda: self.debug_command("exit"))
         self.register_shortcut(debug_exit_action, "_", "Debug Exit",
                                add_sc_to_tip=True)
@@ -1253,6 +1253,7 @@ class Editor(SpyderPluginWidget):
         editorstack.save_breakpoints.connect(self.save_breakpoints)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
+        editorstack.plugin_load.connect(self.load)
         editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
         editorstack.sig_save_as.connect(self.save_as)

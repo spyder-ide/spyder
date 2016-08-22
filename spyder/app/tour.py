@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_image_path
+from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 
 # FIXME: Known issues
@@ -338,7 +339,7 @@ class FadingDialog(QDialog):
         self._fade_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(self.effect, "opacity")
+        self.anim = QPropertyAnimation(self.effect, to_binary_string("opacity"))
 
     # --- public api
     def fade_in(self, on_finished_connect):
@@ -991,7 +992,7 @@ class AnimatedTour(QWidget):
         current = '{0}/{1}'.format(step + 1, steps)
         frame = frames[step]
 
-        combobox_frames = ["{0}. {1}".format(i+1, f['title'])
+        combobox_frames = [u"{0}. {1}".format(i+1, f['title'])
                            for i, f in enumerate(frames)]
 
         title, content, image = '', '', None

@@ -33,6 +33,7 @@ except:
     pd = None            #analysis:ignore
 
 # Local imports
+from spyder.config.base import get_conf_path
 from spyder.py3compat import pickle, to_text_string, getcwd, PY2
 
 
@@ -369,29 +370,6 @@ def load_dictionary(filename):
         error_message = to_text_string(error)
     os.chdir(old_cwd)
     return data, error_message
-
-
-from spyder.config.base import get_conf_path, STDERR
-
-SAVED_CONFIG_FILES = ('help', 'onlinehelp', 'path', 'pylint.results',
-                      'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
-                      'history.py', 'history_internal.py', 'workingdir',
-                      '.projects', '.spyderproject', '.ropeproject',
-                      'monitor.log', 'monitor_debug.log', 'rope.log',
-                      'langconfig')
-
-def reset_session():
-    """Remove all config files"""
-    print("*** Reset Spyder settings to defaults ***", file=STDERR)
-    for fname in SAVED_CONFIG_FILES:
-        cfg_fname = get_conf_path(fname)
-        if osp.isfile(cfg_fname):
-            os.remove(cfg_fname)
-        elif osp.isdir(cfg_fname):
-            shutil.rmtree(cfg_fname)
-        else:
-            continue
-        print("removing:", cfg_fname, file=STDERR)
 
 
 def save_session(filename):

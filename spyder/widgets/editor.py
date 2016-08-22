@@ -581,10 +581,16 @@ class EditorStack(QWidget):
         """Open file list management dialog box"""
         if not self.tabs.count():
             return
+        if self.fileswitcher_dlg is not None and \
+          self.fileswitcher_dlg.is_visible:
+            self.fileswitcher_dlg.hide()
+            self.fileswitcher_dlg.is_visible = False
+            return
         self.fileswitcher_dlg = FileSwitcher(self, self.tabs, self.data)
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
         self.fileswitcher_dlg.sig_close_file.connect(self.close_file)
         self.fileswitcher_dlg.show()
+        self.fileswitcher_dlg.is_visible = True
 
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
@@ -1811,20 +1817,28 @@ class EditorStack(QWidget):
     #------ Run
     def run_selection(self):
         """
-        Run selected text or current line in console. If no text is selected, 
-        then advance cursor to next line.
+        Run selected text or current line in console. 
+
+        If some text is selected, then execute that text in console.
+
+        If no text is selected, then execute current line, unless current line
+        is empty. Then, advance cursor to next line. If cursor is on last line
+        and that line is not empty, then add a new blank line and move the
+        cursor there. If cursor is on last line and that line is empty, then do
+        not move cursor.
         """
         text = self.get_current_editor().get_selection_as_executable_code()
         if text:
-            move_next_line = False
-        else:
-            editor = self.get_current_editor()
-            line = editor.get_current_line()
-            text = line.lstrip()
-            move_next_line = True
-        self.exec_in_extconsole.emit(text, self.focus_to_editor)
-        if move_next_line:
-            editor.move_cursor_to_next('line', 'down')
+            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+            return
+        editor = self.get_current_editor()
+        line = editor.get_current_line()
+        text = line.lstrip()
+        if text:
+            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        if editor.is_cursor_on_last_line() and text:
+            editor.append(editor.get_line_separator())
+        editor.move_cursor_to_next('line', 'down')
 
     def run_cell(self):
         """Run current cell"""
@@ -1854,15 +1868,12 @@ class EditorStack(QWidget):
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         if source.hasUrls() and source.urls():
-            if mimedata2url(source, extlist=get_edit_extensions()):
+            all_urls = mimedata2url(source)
+            text = [encoding.is_text_file(url) for url in all_urls]
+            if any(text):
                 event.acceptProposedAction()
             else:
-                all_urls = mimedata2url(source)
-                text = [encoding.is_text_file(url) for url in all_urls]
-                if any(text):
-                    event.acceptProposedAction()
-                else:
-                    event.ignore()
+                event.ignore()
         elif source.hasText():
             event.acceptProposedAction()
         elif os.name == 'nt':
@@ -1881,8 +1892,7 @@ class EditorStack(QWidget):
         if source.hasUrls():
             files = mimedata2url(source)
             files = [f for f in files if encoding.is_text_file(f)]
-            supported_files = mimedata2url(source, extlist=get_edit_extensions())
-            files = set(files or []) | set(supported_files or [])
+            files = set(files or [])
             for fname in files:
                 self.plugin_load.emit(fname)
         elif source.hasText():

@@ -36,15 +36,26 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.variableexplorer.arrayeditor import get_idx_rect
 
 # Supported Numbers and complex numbers
-_sup_nr = (float, int, np.int64, np.int32)
-_sup_com = (complex, np.complex64, np.complex128)
+REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
+COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', '0']
 
-
+# Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
 LARGE_COLS = 60
+
+# Background colours
+BACKGROUND_NUMBER_MINHUE = 0.66 # hue for largest number
+BACKGROUND_NUMBER_HUERANGE = 0.33 # (hue for smallest) minus (hue for largest)
+BACKGROUND_NUMBER_SATURATION = 0.7
+BACKGROUND_NUMBER_VALUE = 1.0
+BACKGROUND_NUMBER_ALPHA = 0.6 
+BACKGROUND_NONNUMBER_COLOR = Qt.lightGray
+BACKGROUND_INDEX_ALPHA = 0.8
+BACKGROUND_STRING_ALPHA = 0.05
+BACKGROUND_MISC_ALPHA = 0.3
 
 
 def bool_false_check(value):
@@ -59,7 +70,8 @@ def bool_false_check(value):
 
 def global_max(col_vals, index):
     """Returns the global maximum and minimum"""
-    max_col, min_col = zip(*col_vals)
+    col_vals_without_None = [x for x in col_vals if x is not None]
+    max_col, min_col = zip(*col_vals_without_None)
     return max(max_col), min(min_col)
 
 
@@ -82,12 +94,6 @@ class DataFrameModel(QAbstractTableModel):
         self.total_cols = self.df.shape[1]
         size = self.total_rows * self.total_cols
 
-        huerange = [.66, .99]  # Hue
-        self.sat = .7  # Saturation
-        self.val = 1.  # Value
-        self.alp = .6  # Alpha-channel
-        self.hue0 = huerange[0]
-        self.dhue = huerange[1]-huerange[0]
         self.max_min_col = None
         if size < LARGE_SIZE:
             self.max_min_col_update()
@@ -115,34 +121,36 @@ class DataFrameModel(QAbstractTableModel):
                 self.cols_loaded = self.total_cols
 
     def max_min_col_update(self):
-        """Determines the maximum and minimum number in each column"""
-        # If there are no rows to compute max/min then return
-        if self.df.shape[0] == 0:
+        """
+        Determines the maximum and minimum number in each column.
+        
+        The result is a list whose k-th entry is [vmax, vmin], where vmax and
+        vmin denote the maximum and minimum of the k-th column (ignoring NaN). 
+        This list is stored in self.max_min_col.
+        
+        If the k-th column has a non-numerical dtype, then the k-th entry
+        is set to None. If the dtype is complex, then compute the maximum and
+        minimum of the absolute values. If vmax equals vmin, then vmin is 
+        decreased by one.
+        """
+        if self.df.shape[0] == 0: # If no rows to compute max/min then return
             return
-        max_r = self.df.max(numeric_only=True)
-        min_r = self.df.min(numeric_only=True)
-        self.max_min_col = list(zip(max_r, min_r))
-        if len(self.max_min_col) != self.df.shape[1]:
-            # Then it contain complex numbers or other types
-            float_intran = self.df.applymap(lambda e: isinstance(e, _sup_nr))
-            self.complex_intran = self.df.applymap(lambda e:
-                                                   isinstance(e, _sup_com))
-            mask = float_intran & (~ self.complex_intran)
-            try:
-                df_abs = self.df[self.complex_intran].abs()
-            except TypeError:
-                df_abs = self.df[self.complex_intran]
-            max_c = df_abs.max(skipna=True)
-            min_c = df_abs.min(skipna=True)
-            df_real = self.df[mask]
-            max_r = df_real.max(skipna=True)
-            min_r = df_real.min(skipna=True)
-            self.max_min_col = list(zip(DataFrame([max_c,
-                                                   max_r]).max(skipna=True),
-                                        DataFrame([min_c,
-                                                   min_r]).min(skipna=True)))
-        self.max_min_col = [[vmax, vmin-1] if vmax == vmin else [vmax, vmin]
-                            for vmax, vmin in self.max_min_col]
+        self.max_min_col = []
+        for dummy, col in self.df.iteritems():
+            if col.dtype in REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES:
+                if col.dtype in REAL_NUMBER_TYPES:
+                    vmax = col.max(skipna=True)
+                    vmin = col.min(skipna=True)
+                else:
+                    vmax = col.abs().max(skipna=True)
+                    vmin = col.abs().min(skipna=True)
+                if vmax != vmin:
+                    max_min = [vmax, vmin]
+                else:
+                    max_min = [vmax, vmin - 1]
+            else:
+                max_min = None
+            self.max_min_col.append(max_min)
 
     def get_format(self):
         """Return current format"""
@@ -197,29 +205,31 @@ class DataFrameModel(QAbstractTableModel):
         """Background color depending on value"""
         column = index.column()
         if column == 0:
-            color = QColor(Qt.lightGray)
-            color.setAlphaF(.8)
+            color = QColor(BACKGROUND_NONNUMBER_COLOR)
+            color.setAlphaF(BACKGROUND_INDEX_ALPHA)
             return color
         if not self.bgcolor_enabled:
             return
         value = self.get_value(index.row(), column-1)
-        if isinstance(value, _sup_com):
-            color_func = abs
+        if self.max_min_col[column - 1] is None:
+            color = QColor(BACKGROUND_NONNUMBER_COLOR)
+            if is_text_string(value):
+                color.setAlphaF(BACKGROUND_STRING_ALPHA)
+            else:
+                color.setAlphaF(BACKGROUND_MISC_ALPHA)
         else:
-            color_func = float
-        if isinstance(value, _sup_nr+_sup_com) and self.bgcolor_enabled:
+            if isinstance(value, COMPLEX_NUMBER_TYPES):
+                color_func = abs
+            else:
+                color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column-1)
-            hue = self.hue0 + self.dhue*(vmax-color_func(value)) / (vmax-vmin)
+            hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
+                   (vmax - color_func(value)) / (vmax - vmin))
             hue = float(abs(hue))
             if hue > 1:
                 hue = 1
-            color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
-        elif is_text_string(value):
-            color = QColor(Qt.lightGray)
-            color.setAlphaF(.05)
-        else:
-            color = QColor(Qt.lightGray)
-            color.setAlphaF(.3)
+            color = QColor.fromHsvF(hue, BACKGROUND_NUMBER_SATURATION,
+                                    BACKGROUND_NUMBER_VALUE, BACKGROUND_NUMBER_ALPHA)
         return color
 
     def get_value(self, row, column):
@@ -318,8 +328,9 @@ class DataFrameModel(QAbstractTableModel):
             current_value = self.get_value(row, column-1)
             if isinstance(current_value, bool):
                 val = bool_false_check(val)
-            if isinstance(current_value, ((bool,) + _sup_nr + _sup_com)) or \
-               is_text_string(current_value):
+            supported_types = (bool,) + REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES
+            if (isinstance(current_value, supported_types) or 
+                    is_text_string(current_value)):
                 try:
                     self.df.iloc[row, column-1] = current_value.__class__(val)
                 except ValueError as e:

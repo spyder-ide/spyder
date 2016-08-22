@@ -41,7 +41,7 @@ from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
 try:
-    _ = get_translation("profiler", "spyplugins.ui.profiler")
+    _ = get_translation("profiler", "spyder_profiler")
 except KeyError as error:
     import gettext
     _ = gettext.gettext

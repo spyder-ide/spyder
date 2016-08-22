@@ -11,7 +11,7 @@ import time
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import get_conf_path, running_in_mac_app, DEV, TEST
+from spyder.config.base import DEV, get_conf_path, running_in_mac_app
 from spyder.config.main import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
@@ -72,7 +72,7 @@ def main():
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
-      and not running_in_mac_app():
+      and not options.reset_config_files and not running_in_mac_app():
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
@@ -113,8 +113,6 @@ def main():
 
         if lock_created:
             # Start a new instance
-            if TEST is None:
-                atexit.register(lock.unlock)
             from spyder.app import mainwindow
             mainwindow.main()
         else:

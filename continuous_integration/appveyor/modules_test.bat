@@ -80,39 +80,6 @@ for /r "%SPYDER%" %%f in (*.py) do (
             python "%%f" || exit 1
             echo.
         )
-    ) else if "%%f"=="%SPYDER%\widgets\browser.py" (
-        :: Not testing this file for now because m-labs builds doesn't have
-        :: web widgets
-        if %USE_QT_API%==PyQt5 (
-            echo --- NOT testing %%f ---
-            echo.
-        ) else (
-            echo --- Testing %%f ---
-            python "%%f" || exit 1
-            echo.
-        )
-    ) else if "%%f"=="%SPYDER%\widgets\ipython.py" (
-        :: Not testing this file for now because m-labs builds doesn't have
-        :: web widgets
-        if %USE_QT_API%==PyQt5 (
-            echo --- NOT testing %%f ---
-            echo.
-        ) else (
-            echo --- Testing %%f ---
-            python "%%f" || exit 1
-            echo.
-        )
-    ) else if "%%f"=="%SPYDER%\widgets\pydocgui.py" (
-        :: Not testing this file for now because m-labs builds doesn't have
-        :: web widgets
-        if %USE_QT_API%==PyQt5 (
-            echo --- NOT testing %%f ---
-            echo.
-        ) else (
-            echo --- Testing %%f ---
-            python "%%f" || exit 1
-            echo.
-        )
     ) else (
         echo --- Testing %%f ---
         python "%%f" || exit 1
@@ -120,10 +87,27 @@ for /r "%SPYDER%" %%f in (*.py) do (
     )
 )
 
-:: Spyplugins
-for /r "%APPVEYOR_BUILD_FOLDER%\spyplugins" %%f in (*.py) do (
+:: Third-party plugins
+for /r "%APPVEYOR_BUILD_FOLDER%\spyder_breakpoints" %%f in (*.py) do (
     set file=%%f
+    if not "!file:widgets\=!"=="!file!" (
+        echo --- Testing %%f ---
+        python "%%f" || exit 1
+        echo.
+    )
+)
 
+for /r "%APPVEYOR_BUILD_FOLDER%\spyder_profiler" %%f in (*.py) do (
+    set file=%%f
+    if not "!file:widgets\=!"=="!file!" (
+        echo --- Testing %%f ---
+        python "%%f" || exit 1
+        echo.
+    )
+)
+
+for /r "%APPVEYOR_BUILD_FOLDER%\spyder_pylint" %%f in (*.py) do (
+    set file=%%f
     if not "!file:widgets\=!"=="!file!" (
         echo --- Testing %%f ---
         python "%%f" || exit 1

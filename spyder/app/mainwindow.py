@@ -89,7 +89,15 @@ from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
-from qtpy import QtWebEngineWidgets
+from qtpy import QtWebEngineWidgets  # analysis:ignore
+
+
+#==============================================================================
+# Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+# be set before creating the application
+#==============================================================================
+if hasattr(Qt, 'AA_EnableHighDpiScaling'):
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
 #==============================================================================
@@ -120,8 +128,9 @@ QApplication.processEvents()
 from spyder import __version__, __project_url__, __forum_url__, get_versions
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
-                                debug_print, TEST, SUBFOLDER, MAC_APP_NAME,
-                                running_in_mac_app, get_module_path)
+                                debug_print, MAC_APP_NAME,
+                                running_in_mac_app, get_module_path,
+                                reset_config_files)
 from spyder.config.main import CONF, OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
@@ -133,7 +142,7 @@ from spyder.py3compat import (getcwd, is_text_string, to_text_string,
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
-from spyder.utils.iofuncs import load_session, save_session, reset_session
+from spyder.utils.iofuncs import load_session, save_session
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
 
@@ -316,7 +325,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.load_session,
                                         tip=_("Load Spyder session"))
         self.save_session_action = create_action(self,
-                                        _("Save session and quit..."),
+                                        _("Save session..."),
                                         None, ima.icon('filesaveas'),
                                         triggered=self.save_session,
                                         tip=_("Save current session "
@@ -1206,12 +1215,6 @@ class MainWindow(QMainWindow):
 
         # Remove our temporary dir
         atexit.register(self.remove_tmpdir)
-
-        # Remove settings test directory
-        if TEST is not None:
-            import tempfile
-            conf_dir = osp.join(tempfile.gettempdir(), SUBFOLDER)
-            atexit.register(shutil.rmtree, conf_dir, ignore_errors=True)
 
         # [Workaround for Issue 880]
         # QDockWidget objects are not painted if restored as floating
@@ -2889,7 +2892,7 @@ def initialize():
     # possible
     app = qapplication()
 
-    #----Monkey patching PyQt4.QtGui.QApplication
+    #----Monkey patching QApplication
     class FakeQApplication(QApplication):
         """Spyder's fake QApplication"""
         def __init__(self, args):
@@ -2898,8 +2901,8 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from qtpy import QtGui
-    QtGui.QApplication = FakeQApplication
+    from qtpy import QtWidgets
+    QtWidgets.QApplication = FakeQApplication
 
     #----Monkey patching rope
     try:
@@ -3016,16 +3019,15 @@ def main():
     options, args = get_options()
 
     if set_attached_console_visible is not None:
-        set_attached_console_visible(DEBUG or options.show_console\
-                                     or options.reset_session\
-                                     or options.reset_to_defaults\
+        set_attached_console_visible(DEBUG or options.show_console \
+                                     or options.reset_config_files \
+                                     or options.reset_to_defaults \
                                      or options.optimize)
 
     app = initialize()
-    if options.reset_session:
+    if options.reset_config_files:
         # <!> Remove all configuration files!
-        reset_session()
-#        CONF.reset_to_defaults(save=True)
+        reset_config_files()
         return
     elif options.reset_to_defaults:
         # Reset Spyder settings to defaults
