@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Pylint widget"""
 
@@ -26,17 +26,17 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib import dependencies
-from spyderlib.config.base import get_conf_path, get_translation
-from spyderlib.py3compat import getcwd, pickle, PY3, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils import programs
-from spyderlib.utils.encoding import to_unicode_from_fs
-from spyderlib.utils.qthelpers import create_toolbutton
-from spyderlib.widgets.comboboxes import (is_module_or_package,
-                                          PythonModulesComboBox)
-from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.widgets.variableexplorer.texteditor import TextEditor
+from spyder import dependencies
+from spyder.config.base import get_conf_path, get_translation
+from spyder.py3compat import getcwd, pickle, PY3, to_text_string
+from spyder.utils import icon_manager as ima
+from spyder.utils import programs
+from spyder.utils.encoding import to_unicode_from_fs
+from spyder.utils.qthelpers import create_toolbutton
+from spyder.widgets.comboboxes import (is_module_or_package,
+                                       PythonModulesComboBox)
+from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 
 # This is needed for testing this module as a stand alone script
@@ -502,7 +502,7 @@ class PylintWidget(QWidget):
 #==============================================================================
 def test():
     """Run pylint widget test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=20)
     widget = PylintWidget(None)
     widget.resize(640, 480)

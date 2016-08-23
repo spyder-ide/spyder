@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Cloning Spyder mercurial orig_repo_name
@@ -17,8 +17,8 @@ import shutil
 import re
 import sys
 
-import spyderlib as mod
-from spyderlib.py3compat import getcwd
+import spyder as mod
+from spyder.py3compat import getcwd
 
 name = 'spyder'
 version = mod.__version__
@@ -74,7 +74,7 @@ def include_chm_doc(plugin_dir):
         return
     fname = osp.join('doctmp', 'Spyderdoc.chm')
     os.system('"%s" %s' % (hhc_exe, fname))
-    docdir = osp.join(plugin_dir, 'PURELIB', 'spyderlib', 'doc')
+    docdir = osp.join(plugin_dir, 'PURELIB', 'spyder', 'doc')
     shutil.rmtree(docdir)
     os.mkdir(docdir)
     shutil.copy(fname, osp.join(docdir, 'Spyderdoc.chm'))
@@ -126,7 +126,7 @@ def get_pythonxy_plugindir(name):
 
 ## Building Python(x,y) plugin on Windows platforms, if 'unzip.exe' is available
 ## and if the `pythonxy` repository exists:
-from spyderlib.utils import programs
+from spyder.utils import programs
 unzip_exe = 'unzip.exe'
 plugin_dir = get_pythonxy_plugindir(name)
 if programs.is_program_installed(unzip_exe) and plugin_dir:
