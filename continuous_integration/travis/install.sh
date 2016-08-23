@@ -3,7 +3,6 @@
 set -ex
 
 PY_VERSION=$TRAVIS_PYTHON_VERSION
-WHEELHOUSE_URI=travis-wheels.scikit-image.org
 
 #==============================================================================
 # Utility functions
@@ -56,7 +55,7 @@ install_conda()
         if [ "$USE_QT_API" = "PyQt5" ]; then
             conda config --add channels qttesting;
         fi
-        echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
+        #echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
         conda install conda-build;
         conda create -q -n test-environment python=$PY_VERSION;
         conda install -q -y -n test-environment pytest pytest-cov pytest-qt mock
@@ -66,19 +65,15 @@ install_conda()
 
 install_pip()
 {
-    # Install PyQt
-    if [ "$USE_QT_API" = "PyQt5" ]; then
-        conda install pyqt=5.* qt=5.* -c  qttesting;
-    elif [ "$USE_QT_API" = "PyQt4" ]; then
-        conda install pyqt=4.* qt=4.*;
-    fi
+    # Install PyQt5
+    conda install -c qttesting pyqt;
 
     # Install testing packages
     pip install pytest pytest-cov pytest-qt mock
 
     # Install extra packages
     EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
-    pip install --no-index --trusted-host $WHEELHOUSE_URI --find-links=http://$WHEELHOUSE_URI/ $EXTRA_PACKAGES
+    pip install $EXTRA_PACKAGES
 }
 
 
