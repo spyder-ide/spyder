@@ -65,7 +65,7 @@ def get_doc_from_pyobject(pyobject):
     return pydocextractor.get_doc(pyobject)
 
 
-from spyderlib import rope_patch
+from spyder import rope_patch
 rope_patch.apply()
 
 def other_features():

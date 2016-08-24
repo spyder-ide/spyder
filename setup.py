@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Spyder
@@ -46,8 +46,8 @@ if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
 # Constants
 #==============================================================================
 NAME = 'spyder'
-LIBNAME = 'spyderlib'
-from spyderlib import __version__, __project_url__
+LIBNAME = 'spyder'
+from spyder import __version__, __project_url__
 
 
 #==============================================================================
@@ -164,7 +164,7 @@ try:
             build = self.get_finalized_command('build')
             sys.path.insert(0, os.path.abspath(build.build_lib))
             dirname = self.distribution.get_command_obj('build').build_purelib
-            self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
+            self.builder_target_dir = osp.join(dirname, 'spyder', 'doc')
 
             if not osp.exists(self.builder_target_dir):
                 os.mkdir(self.builder_target_dir)
@@ -187,7 +187,7 @@ try:
                 fname = osp.join(self.builder_target_dir, 'Spyderdoc.chm')
                 subprocess.call('"%s" %s' % (hhc_exe, fname), shell=True)
                 if osp.isfile(fname):
-                    dest = osp.join(dirname, 'spyderlib')
+                    dest = osp.join(dirname, 'spyder')
                     try:
                         shutil.move(fname, dest)
                     except shutil.Error:
@@ -236,7 +236,7 @@ PyQt4 application: source code editor with syntax highlighting and
 code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
-      author="The Spyder Development Team",
+      author="The Spyder Project Contributors",
       url=__project_url__,
       license='MIT',
       keywords='PyQt5 PyQt4 editor shell console widgets IDE',
@@ -291,7 +291,7 @@ if 'setuptools' in sys.modules:
 
     setup_args['entry_points'] = {
         'gui_scripts': [
-            'spyder = spyderlib.app.start:main'
+            'spyder = spyder.app.start:main'
         ]
     }
 

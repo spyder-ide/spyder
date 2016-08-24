@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
 
@@ -20,8 +20,8 @@ def main():
     """
     Run pytest tests.
     """
-    errno = pytest.main(['-x', 'spyderlib',  '-v', '-rw', '--durations=10',
-                         '--cov=spyderlib', '--cov-report=term-missing'])
+    errno = pytest.main(['-x', 'spyder',  '-v', '-rw', '--durations=10',
+                         '--cov=spyder', '--cov-report=term-missing'])
     sys.exit(errno)
 
 if __name__ == '__main__':

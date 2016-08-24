@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Pylint Code Analysis Plugin."""
 
@@ -19,10 +19,10 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
-from spyderlib.config.base import get_translation
-from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action
+from spyder.config.base import get_translation
+from spyder.plugins import PluginConfigPage, SpyderPluginMixin
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action
 from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
 
 
