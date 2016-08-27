@@ -1192,19 +1192,6 @@ class ExplorerTreeWidget(FilteredDirView):
 
 class WorkspaceSelector(QWidget):
     """Workspace selector widget"""
-    TITLE = _('Select an existing workspace directory, or create a new one')
-    TIP = _("<u><b>What is the workspace?</b></u>"
-            "<br><br>"
-            "A <b>Spyder workspace</b> is a directory on your filesystem that "
-            "contains Spyder projects and <b>.spyderworkspace</b> configuration "
-            "file."
-            "<br><br>"
-            "A <b>Spyder project</b> is a directory with source code (and other "
-            "related files) and a configuration file (named "
-            "<b>.spyderproject</b>) with project settings (PYTHONPATH, linked "
-            "projects, ...).<br>"
-            )
-    
     selected_workspace = Signal(str)
 
     def __init__(self, parent):
@@ -1222,46 +1209,12 @@ class WorkspaceSelector(QWidget):
         """Setup workspace selector widget"""
         self.line_edit = QLineEdit()
         self.line_edit.setAlignment(Qt.AlignRight)
-        self.line_edit.setToolTip(_("This is the current workspace directory")\
-                                  +'<br><br>'+self.TIP)
         self.line_edit.setReadOnly(True)
-        self.line_edit.setDisabled(True)
-        self.browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
-        self.browse_btn.setToolTip(self.TITLE)
-        self.browse_btn.clicked.connect(self.select_directory)
+
         layout = QHBoxLayout()
         layout.addWidget(self.line_edit)
-        layout.addWidget(self.browse_btn)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
-    
-    def select_directory(self):
-        """Select directory"""
-        if self.first_time:
-            QMessageBox.information(self, self.TITLE, self.TIP)
-            self.first_time = False
-        basedir = to_text_string(self.line_edit.text())
-        if not osp.isdir(basedir):
-            basedir = getcwd()
-        while True:
-            self.parent().redirect_stdio.emit(False)
-            directory = getexistingdirectory(self, self.TITLE, basedir)
-            self.parent().redirect_stdio.emit(True)
-            if not directory:
-                break
-            path = osp.join(directory, Workspace.CONFIG_NAME)
-            if not osp.isfile(path):
-                answer = QMessageBox.warning(self, self.TITLE,
-                              _("The following directory is not a Spyder "
-                                "workspace:<br>%s<br><br>Do you want to "
-                                "create a new workspace in this directory?"
-                                ) % directory, QMessageBox.Yes|QMessageBox.No)
-                if answer == QMessageBox.No:
-                    continue
-            directory = osp.abspath(osp.normpath(directory))
-            self.set_workspace(directory)
-            self.selected_workspace.emit(directory)
-            break
 
 
 class ProjectExplorerWidget(QWidget):
