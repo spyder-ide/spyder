@@ -12,7 +12,7 @@ import os
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QFontDialog, QMenu
+from qtpy.QtWidgets import QMenu
 
 # Local imports
 from spyder.config.base import _, get_home_dir
@@ -77,9 +77,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-#        new_project_act = create_action(self, text=_('New project...'),
-#                                        icon=ima.icon('project_expanded'),
-#                                        triggered=self.create_new_project)
         self.new_project_action = create_action(self,
                                     _("New Project..."),
                                     triggered=self.create_new_project)
@@ -98,10 +95,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.edit_project_preferences_action =\
             create_action(self, _("Project Preferences"),
                           triggered=self.edit_project_preferences)
-        font_action = create_action(self, _("&Font..."),
-                                    None, 'font.png', _("Set font style"),
-                                    triggered=self.change_font)
-        self.treewidget.common_actions += (None, font_action)
 
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
 
@@ -294,15 +287,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         for fname in self.main.editor.get_filenames():
             if self.treewidget.workspace.is_file_in_closed_project(fname):
                 self.main.editor.close_file_from_name(fname)
-
-    @Slot()    
-    def change_font(self):
-        """Change font"""
-        font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
-                                          _("Select a new font"))
-        if valid:
-            self.set_font(font)
-            self.set_plugin_font(font)
             
     def set_font(self, font):
         """Set project explorer widget font"""
