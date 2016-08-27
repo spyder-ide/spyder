@@ -105,25 +105,15 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
 
-#        self.main.file_menu_actions.insert(1, new_project_act)
-        file_menu_actions = self.main.file_menu_actions
-        file_menu_actions.insert(1, self.new_project_action)
-        pos = 6
-        file_menu_actions.insert(pos, self.open_project_action)
-        file_menu_actions.insert(pos+1, self.close_project_action)
-        file_menu_actions.insert(pos+2, self.recent_project_menu)
+        self.main.projects_menu_actions += [self.new_project_action,
+                                            None,
+                                            self.open_project_action,
+                                            self.close_project_action,
+                                            None,
+                                            self.recent_project_menu]
 
         self.setup_menu_actions()
-
         return []
-#        font_action = create_action(self, _("&Font..."),
-#                                    None, ima.icon('font'), _("Set font style"),
-#                                    triggered=self.change_font)
-#        self.treewidget.common_actions += (None, font_action)
-        
-#        self.main.file_menu_actions.insert(1, new_project_act)
-        
-#        return []
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

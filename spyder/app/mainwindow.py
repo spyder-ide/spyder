@@ -386,9 +386,6 @@ class MainWindow(QMainWindow):
         self.selectall_action = None
         self.maximize_action = None
         self.fullscreen_action = None
-        self.new_project_action_ = None
-        self.open_project_action_ = None
-        self.close_project_action_ = None
   
         # Menu bars
         self.file_menu = None
@@ -405,6 +402,8 @@ class MainWindow(QMainWindow):
         self.debug_menu_actions = []
         self.consoles_menu = None
         self.consoles_menu_actions = []
+        self.projects_menu = None
+        self.projects_menu_actions = []
         self.tools_menu = None
         self.tools_menu_actions = []
         self.external_tools_menu = None # We must keep a reference to this,
@@ -630,6 +629,9 @@ class MainWindow(QMainWindow):
 
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
+
+        # Projects menu
+        self.projects_menu = self.menuBar().addMenu(_("&Projects"))
 
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
@@ -1157,6 +1159,7 @@ class MainWindow(QMainWindow):
         add_actions(self.run_menu, self.run_menu_actions)
         add_actions(self.debug_menu, self.debug_menu_actions)
         add_actions(self.consoles_menu, self.consoles_menu_actions)
+        add_actions(self.projects_menu, self.projects_menu_actions)
         add_actions(self.tools_menu, self.tools_menu_actions)
         add_actions(self.external_tools_menu,
                     self.external_tools_menu_actions)
