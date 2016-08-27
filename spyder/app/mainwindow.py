@@ -142,7 +142,6 @@ from spyder.py3compat import (getcwd, is_text_string, to_text_string,
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
-from spyder.utils.iofuncs import load_session, save_session
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
 
@@ -165,12 +164,6 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
 from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
-
-
-#==============================================================================
-# To save and load temp sessions
-#==============================================================================
-TEMP_SESSION_PATH = get_conf_path('temp.session.tar')
 
 
 #==============================================================================
@@ -315,21 +308,6 @@ class MainWindow(QMainWindow):
             self.path = [name for name in self.path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
-        self.load_temp_session_action = create_action(self,
-                                        _("Reload last session"),
-                                        triggered=lambda:
-                                        self.load_session(TEMP_SESSION_PATH))
-        self.load_session_action = create_action(self,
-                                        _("Load session..."),
-                                        None, ima.icon('fileopen'),
-                                        triggered=self.load_session,
-                                        tip=_("Load Spyder session"))
-        self.save_session_action = create_action(self,
-                                        _("Save session..."),
-                                        None, ima.icon('filesaveas'),
-                                        triggered=self.save_session,
-                                        tip=_("Save current session "
-                                              "and quit application"))
 
         # Plugins
         self.console = None
@@ -502,10 +480,6 @@ class MainWindow(QMainWindow):
         # the window is in fullscreen mode:
         self.maximized_flag = None
 
-        # Session manager
-        self.next_session_name = None
-        self.save_session_name = None
-
         # Track which console plugin type had last focus
         # True: Console plugin
         # False: IPython console plugin
@@ -598,7 +572,6 @@ class MainWindow(QMainWindow):
         self.debug_print("  ..toolbars")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
-        self.file_menu.aboutToShow.connect(self.update_file_menu)
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
 
@@ -849,10 +822,7 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.load_temp_session_action,
-                                    self.load_session_action,
-                                    self.save_session_action,
-                                    None, restart_action, quit_action]
+        self.file_menu_actions += [None, restart_action, quit_action]
         self.set_splash("")
 
         self.debug_print("  ..widgets")
@@ -2034,10 +2004,6 @@ class MainWindow(QMainWindow):
                 if element._shown_shortcut is not None:
                     element.setShortcut(QKeySequence())
 
-    def update_file_menu(self):
-        """Update file menu"""
-        self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
-
     def update_edit_menu(self):
         """Update edit menu"""
         if self.menuBar().hasFocus():
@@ -2679,31 +2645,7 @@ class MainWindow(QMainWindow):
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
 
-    #---- Sessions
-    @Slot()
-    def load_session(self, filename=None):
-        """Load session"""
-        if filename is None:
-            self.redirect_internalshell_stdio(False)
-            filename, _selfilter = getopenfilename(self, _("Open session"),
-                        getcwd(), _("Spyder sessions")+" (*.session.tar)")
-            self.redirect_internalshell_stdio(True)
-            if not filename:
-                return
-        if self.close():
-            self.next_session_name = filename
-
-    @Slot()
-    def save_session(self):
-        """Save session and quit application"""
-        self.redirect_internalshell_stdio(False)
-        filename, _selfilter = getsavefilename(self, _("Save session"),
-                        getcwd(), _("Spyder sessions")+" (*.session.tar)")
-        self.redirect_internalshell_stdio(True)
-        if filename:
-            if self.close():
-                self.save_session_name = filename
-
+    # -- Open files server
     def start_open_files_server(self):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
@@ -3022,17 +2964,11 @@ def run_spyder(app, options, args):
     return main
 
 
-def __remove_temp_session():
-    if osp.isfile(TEMP_SESSION_PATH):
-        os.remove(TEMP_SESSION_PATH)
-
-
 #==============================================================================
 # Main
 #==============================================================================
 def main():
-    """Session manager"""
-    __remove_temp_session()
+    """Main function"""
 
     # **** Collect command line options ****
     # Note regarding Options:
@@ -3062,6 +2998,7 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
+    # Show crash dialog
     if CONF.get('main', 'crash', False) and not DEV:
         CONF.set('main', 'crash', False)
         SPLASH.hide()
@@ -3083,46 +3020,20 @@ def main():
             "" % (get_conf_path(), __project_url__,
                   __forum_url__, __project_url__))
 
-    next_session_name = options.startup_session
-    while is_text_string(next_session_name):
-        if next_session_name:
-            error_message = load_session(next_session_name)
-            if next_session_name == TEMP_SESSION_PATH:
-                __remove_temp_session()
-            if error_message is None:
-                CONF.load_from_ini()
-            else:
-                print(error_message)
-                QMessageBox.critical(None, "Load session",
-                    u("<b>Unable to load '%s'</b><br><br>Error message:<br>%s")
-                    % (osp.basename(next_session_name), error_message))
-        mainwindow = None
-        try:
-            mainwindow = run_spyder(app, options, args)
-        except BaseException:
-            CONF.set('main', 'crash', True)
-            import traceback
-            traceback.print_exc(file=STDERR)
-            traceback.print_exc(file=open('spyder_crash.log', 'w'))
-        if mainwindow is None:
-            # An exception occured
-            SPLASH.hide()
-            return
-        next_session_name = mainwindow.next_session_name
-        save_session_name = mainwindow.save_session_name
-        if next_session_name is not None:
-            #-- Loading session
-            # Saving current session in a temporary file
-            # but only if we are not currently trying to reopen it!
-            if next_session_name != TEMP_SESSION_PATH:
-                save_session_name = TEMP_SESSION_PATH
-        if save_session_name:
-            #-- Saving session
-            error_message = save_session(save_session_name)
-            if error_message is not None:
-                QMessageBox.critical(None, "Save session",
-                    u("<b>Unable to save '%s'</b><br><br>Error message:<br>%s")
-                    % (osp.basename(save_session_name), error_message))
+    # Create main window
+    mainwindow = None
+    try:
+        mainwindow = run_spyder(app, options, args)
+    except BaseException:
+        CONF.set('main', 'crash', True)
+        import traceback
+        traceback.print_exc(file=STDERR)
+        traceback.print_exc(file=open('spyder_crash.log', 'w'))
+    if mainwindow is None:
+        # An exception occured
+        SPLASH.hide()
+        return
+
     ORIGINAL_SYS_EXIT()
 
 

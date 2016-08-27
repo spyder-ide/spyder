@@ -15,8 +15,6 @@ def get_options():
     parser.add_option('--new-instance', action='store_true', default=False,
                       help="Run a new instance of Spyder, even if the single "
                            "instance mode has been turned on (default)")
-    parser.add_option('--session', dest="startup_session", default='',
-                      help="Startup session")
     parser.add_option('--defaults', dest="reset_to_defaults",
                       action='store_true', default=False,
                       help="Reset configuration settings to defaults")
