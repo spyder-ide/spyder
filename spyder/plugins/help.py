@@ -25,7 +25,8 @@ from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.ipython import QTCONSOLE_INSTALLED
-from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins import SpyderPluginWidget
+from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs

@@ -48,7 +48,8 @@ from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
-from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins import SpyderPluginWidget
+from spyder.plugins.configdialog import PluginConfigPage
 from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)

@@ -42,7 +42,8 @@ except ImportError:
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins import SpyderPluginWidget
+from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
