@@ -790,11 +790,10 @@ class GeneralConfigPage(SpyderConfigPage):
 
 class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
-    
     NAME = _("General")
-    ICON = ima.icon('genprefs')
 
     def setup_page(self):
+        self.ICON = ima.icon('genprefs')
         newcb = self.create_checkbox
 
         # --- Interface
@@ -995,11 +994,11 @@ class MainConfigPage(GeneralConfigPage):
 
 class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
-
     NAME = _("Syntax coloring")
-    ICON = ima.icon('eyedropper')
 
     def setup_page(self):
+        self.ICON = ima.icon('eyedropper')
+
         names = self.get_option("names")
         try:
             names.pop(names.index(u'Custom'))
