@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright © Spyder Project Contributors
+#
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+"""Configuration dialog for projects"""
+
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 
 from spyder.config.base import _

@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-IMPORTANT NOTES:
-1. If you want to *change* the default value of a current option, you need to
-   do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
-2. If you want to *remove* options that are no longer needed in our codebase,
-   you need to do a MAJOR update in version, e.g. from 3.0.0 to 4.0.0
-3. You don't need to touch this value if you're just adding a new option
-"""
+# -----------------------------------------------------------------------------
+# Copyright © Spyder Project Contributors
+#
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+"""Configuration options for projects"""
 
 # Standard library imports
 import os

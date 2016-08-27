@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-""" """
+# -----------------------------------------------------------------------------
+# Copyright © Spyder Project Contributors
+#
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+"""Project types"""
 
 import os
 import os.path as osp
@@ -206,6 +212,5 @@ class BaseProject(object):
 
 
 class EmptyProject(BaseProject):
-    """
-    """
+    """Empty Project"""
     PROJECT_TYPE_NAME = _('Empty project')
