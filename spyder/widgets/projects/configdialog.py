@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-from qtpy.QtWidgets import QVBoxLayout, QGroupBox
+from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 
 from spyder.config.base import _
 from spyder.plugins.configdialog import ConfigDialog, GeneralConfigPage
+from spyder.utils.qthelpers import get_icon
 from spyder.config.user import NoDefault
 from spyder.widgets.projects import EmptyProject
 from spyder.widgets.projects.config import (WORKSPACE, VCS, ENCODING,
                                             CODESTYLE)
-
-from spyder.utils.qthelpers import get_icon
 
 
 class ProjectPreferences(ConfigDialog):
@@ -172,9 +171,12 @@ class VersionConfigPage(ProjectConfigPage):
 
 
 if __name__ == "__main__":
+    import os.path as osp
+    import tempfile
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    proj = EmptyProject("D:\\spyspy\\.spyproject")
+    proj_dir = tempfile.mkdtemp() + osp.sep + '.spyproject'
+    proj = EmptyProject(proj_dir)
     dlg = ProjectPreferences(None, proj)
     dlg.show()
     app.exec_()

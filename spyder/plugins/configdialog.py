@@ -171,7 +171,8 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         # Signals and slots
-        self.button_reset.clicked.connect(self.main.reset_spyder)
+        if self.main:
+            self.button_reset.clicked.connect(self.main.reset_spyder)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
                                              self.pages_widget.setCurrentIndex)
@@ -231,7 +232,10 @@ class ConfigDialog(QDialog):
         scrollarea.setWidget(widget)
         self.pages_widget.addWidget(scrollarea)
         item = QListWidgetItem(self.contents_widget)
-        item.setIcon(widget.get_icon())
+        try:
+            item.setIcon(widget.get_icon())
+        except TypeError:
+            pass
         item.setText(widget.get_name())
         item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
