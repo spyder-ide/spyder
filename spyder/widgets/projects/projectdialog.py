@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Contributors Project
 #
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 """Project creation dialog."""
 
@@ -26,10 +26,10 @@ from qtpy.QtWidgets import (QVBoxLayout, QLabel, QLineEdit, QPushButton,
 
 
 # Local imports
-from spyderlib.config.base import _, get_home_dir
-from spyderlib.utils.qthelpers import get_std_icon
-from spyderlib.py3compat import to_text_string
-from spyderlib.widgets.projects import get_available_project_types
+from spyder.config.base import _, get_home_dir
+from spyder.utils.qthelpers import get_std_icon
+from spyder.py3compat import to_text_string
+from spyder.widgets.projects import get_available_project_types
 
 
 def is_writable(path):
@@ -186,7 +186,7 @@ class ProjectDialog(QDialog):
 
 def test():        
     """Local test."""
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
     app = qapplication()
     dlg = ProjectDialog(None)
     dlg.show()

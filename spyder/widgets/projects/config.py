@@ -12,7 +12,7 @@ IMPORTANT NOTES:
 import os
 
 # Local imports
-from spyderlib.config.user import UserConfig
+from spyder.config.user import UserConfig
 
 PROJECT_FILENAME = '.spyproj'
 PROJECT_FOLDER = '.spyproject'

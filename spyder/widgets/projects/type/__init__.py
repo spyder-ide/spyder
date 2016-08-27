@@ -4,16 +4,16 @@
 import os
 import os.path as osp
 
-from spyderlib.config.base import _
-from spyderlib.py3compat import to_text_string
-from spyderlib.widgets.projects.config import (ProjectConfig, CODESTYLE,
-                                               CODESTYLE_DEFAULTS,
-                                               CODESTYLE_VERSION, WORKSPACE,
-                                               WORKSPACE_DEFAULTS,
-                                               WORKSPACE_VERSION,
-                                               ENCODING, ENCODING_DEFAULTS,
-                                               ENCODING_VERSION,
-                                               VCS, VCS_DEFAULTS, VCS_VERSION)
+from spyder.config.base import _
+from spyder.py3compat import to_text_string
+from spyder.widgets.projects.config import (ProjectConfig, CODESTYLE,
+                                            CODESTYLE_DEFAULTS,
+                                            CODESTYLE_VERSION, WORKSPACE,
+                                            WORKSPACE_DEFAULTS,
+                                            WORKSPACE_VERSION,
+                                            ENCODING, ENCODING_DEFAULTS,
+                                            ENCODING_VERSION,
+                                            VCS, VCS_DEFAULTS, VCS_VERSION)
 
 
 class BaseProject(object):

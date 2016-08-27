@@ -4,8 +4,8 @@
 import os
 import os.path as osp
 
-from spyderlib.config.base import _
-from spyderlib.widgets.projects.type import EmptyProject
+from spyder.config.base import _
+from spyder.widgets.projects.type import EmptyProject
 
 
 class PythonProject(EmptyProject):

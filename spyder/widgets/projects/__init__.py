@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Project Contributors
 #
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 """Projects"""
 
 # Local imports
-from spyderlib.widgets.projects.type import EmptyProject
-from spyderlib.widgets.projects.type.python import PythonProject
+from spyder.widgets.projects.type import EmptyProject
+from spyder.widgets.projects.type.python import PythonProject
 
 
 def get_available_project_types():
