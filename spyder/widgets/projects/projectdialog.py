@@ -157,7 +157,7 @@ class ProjectDialog(QDialog):
         if location:
             if is_writable(location):
                 self.location = location
-                self.update_location_text()
+                self.update_location()
 
     def update_location(self, text=''):
         """Update text of location."""
