@@ -100,7 +100,9 @@ class ProjectDialog(QDialog):
         self.combo_python_version.setCurrentIndex(
             python_versions.index(current_python_version))
         self.setWindowTitle(_('Create new project'))
-        self.setFixedWidth(400)
+        self.setFixedWidth(500)
+        self.label_python_version.setVisible(False)
+        self.combo_python_version.setVisible(False)
 
         # Layouts        
         layout_top = QHBoxLayout()

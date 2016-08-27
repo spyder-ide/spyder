@@ -16,7 +16,7 @@ def get_available_project_types():
     """ """
 #    return [EmptyProject, PythonProject, PythonPackageProject, DjangoProject,
 #            SpyderPluginProject] + get_available_project_types_plugins()
-    return ([PythonProject] +
+    return ([EmptyProject] +
             get_available_project_types_plugins())
 
 
