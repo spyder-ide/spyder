@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # based on pylintgui.py by Pierre Raybaut
 #
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Profiler widget
@@ -29,19 +29,19 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import get_conf_path, get_translation
-from spyderlib.py3compat import getcwd, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                       set_item_user_text)
-from spyderlib.utils.programs import shell_split
-from spyderlib.widgets.comboboxes import PythonModulesComboBox
-from spyderlib.widgets.externalshell import baseshell
-from spyderlib.widgets.variableexplorer.texteditor import TextEditor
+from spyder.config.base import get_conf_path, get_translation
+from spyder.py3compat import getcwd, to_text_string
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
+                                    set_item_user_text)
+from spyder.utils.programs import shell_split
+from spyder.widgets.comboboxes import PythonModulesComboBox
+from spyder.widgets.externalshell import baseshell
+from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
 try:
-    _ = get_translation("profiler", "spyplugins.ui.profiler")
+    _ = get_translation("profiler", "spyder_profiler")
 except KeyError as error:
     import gettext
     _ = gettext.gettext
@@ -51,7 +51,7 @@ locale_codec = QTextCodec.codecForLocale()
 
 
 def is_profiler_installed():
-    from spyderlib.utils.programs import is_module_installed
+    from spyder.utils.programs import is_module_installed
     return is_module_installed('cProfile') and is_module_installed('pstats')
 
 
@@ -670,7 +670,7 @@ def test():
     """Run widget test"""
     import inspect
     import tempfile
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
 
     primes_sc = inspect.getsource(primes)
     fd, script = tempfile.mkstemp(suffix='.py')

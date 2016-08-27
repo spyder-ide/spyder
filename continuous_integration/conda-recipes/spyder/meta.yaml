@@ -1,18 +1,15 @@
 package:
   name: spyder
-  version: {{ environ.get('GIT_DESCRIBE_TAG', '').replace('v', '') }}  # [unix]
-  version: 3.99.0  # [win]
+  version: {{ GIT_DESCRIBE_TAG|replace('v', '') }}  # [unix]
+  version: 99.99.0  # [win]
 
 build:
-  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}  # [unix]
+  number: {{ GIT_DESCRIBE_NUMBER|int }}  # [unix]
   number: 0  # [win]
-  osx_is_app: True
 
 source:
-  fn:  spyder-3.0.0.dev0.zip  # [win]
-  url: {{ ['file:///', environ.get('APPVEYOR_BUILD_FOLDER'), '\dist\spyder-3.0.0.dev0.zip']|join }}  # [win]
-  git_url: {{ environ.get('FULL_SPYDER_CLONE') }}  # [unix]
-  git_tag: {% if environ.get('TRAVIS_PULL_REQUEST') != 'false' %} {{ ['travis_pr_', environ.get('TRAVIS_PULL_REQUEST')]|join }} {% else %} master {% endif %}  # [unix]
+  git_url: {{ APPVEYOR_BUILD_FOLDER }}  # [win]
+  git_url: {{ FULL_SPYDER_CLONE }}  # [unix]
 
 requirements:
   build:
@@ -21,7 +18,8 @@ requirements:
   run:
     - python
     - python.app  # [osx]
-    - {% if environ.get('USE_QT_API') == 'PyQt4' %} pyqt {% else %} pyqt5 {% endif %}
+    - {% if environ.get('USE_QT_API') == 'PyQt4' %} qt 4.* {% else %} qt 5.* {% endif %}
+    - {% if environ.get('USE_QT_API') == 'PyQt4' %} pyqt 4.* {% else %} pyqt 5.* {% endif %}
     - rope 0.9.*  # [py34 or py35]
     - rope  # [py27]
     - pyflakes

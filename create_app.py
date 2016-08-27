@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2012 The Spyder development team
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Create a stand-alone Mac OS X app using py2app
@@ -26,10 +26,10 @@ import sys
 
 from IPython.core.completerlib import module_list
 
-from spyderlib import __version__ as spy_version
-from spyderlib.config.main import EDIT_EXT
-from spyderlib.config.base import MAC_APP_NAME
-from spyderlib.utils.programs import find_program
+from spyder import __version__ as spy_version
+from spyder.config.main import EDIT_EXT
+from spyder.config.base import MAC_APP_NAME
+from spyder.utils.programs import find_program
 
 
 PY2 = sys.version[0] == '2'
@@ -73,7 +73,7 @@ shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 APP = [APP_MAIN_SCRIPT]
 DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
-PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
+PACKAGES = ['spyder', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
             'IPython', 'ipykernel', 'ipython_genutils', 'jupyter_client',
             'jupyter_core', 'traitlets', 'qtconsole', 'pexpect',
@@ -120,8 +120,8 @@ system_python_lib = get_python_lib()
 app_python_lib = osp.join(resources, 'lib', 'python%s' % py_ver)
 
 # Add our docs to the app
-docs_orig = 'build/lib/spyderlib/doc'
-docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
+docs_orig = 'build/lib/spyder/doc'
+docs_dest = osp.join(app_python_lib, 'spyder', 'doc')
 shutil.copytree(docs_orig, docs_dest)
 
 # Create a minimal library inside Resources to add it to PYTHONPATH instead of
@@ -130,7 +130,7 @@ shutil.copytree(docs_orig, docs_dest)
 # inside the app.
 minimal_lib = osp.join(app_python_lib, 'minimal-lib')
 os.mkdir(minimal_lib)
-minlib_pkgs = ['spyderlib', 'spyderplugins']
+minlib_pkgs = ['spyder', 'spyderplugins']
 for p in minlib_pkgs:
     shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
 

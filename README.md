@@ -1,13 +1,17 @@
 # Spyder - The Scientific PYthon Development EnviRonment
 
-Copyright © 2009- The Spyder Development Team.
+Copyright © Spyder Project Contributors.
 
+## Project details
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
-[![pypi downloads](https://img.shields.io/pypi/dm/spyder.svg)](https://pypi.python.org/pypi/spyder)
+[![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
+
+## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/awb92if4tl555fuy/branch/master?svg=true)](https://ci.appveyor.com/project/ccordoba12/spyder/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
+[![Code Issues](https://www.quantifiedcode.com/api/v1/project/bc88bbc67a4a4c34b58d65070be4fa9e/badge.svg)](https://www.quantifiedcode.com/app/project/bc88bbc67a4a4c34b58d65070be4fa9e)
 
 ## Overview
 
@@ -46,8 +50,8 @@ Spyder is a Python development environment with a lot of features:
 
 * **History log**
 
-Spyder may also be used as a PyQt5/PyQt4 extension library (module 
-`spyderlib`). For example, the Python interactive shell widget used in
+Spyder may also be used as a PyQt5/PyQt4 extension library (module
+`spyder`). For example, the Python interactive shell widget used in
 Spyder may be embedded in your own PyQt5/PyQt4 application.
 
 

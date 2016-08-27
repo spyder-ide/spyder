@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2012 Jed Ludlow
+# Copyright © Spyder Project Contributors
 # Based loosely on p_pylint.py by Pierre Raybaut
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Breakpoint Plugin"""
 
@@ -16,11 +16,11 @@
 import os.path as osp
 
 # Local imports
-from spyderlib.config.base import get_translation
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action
-from spyderlib.plugins import SpyderPluginMixin
-from spyderlib.py3compat import to_text_string, is_text_string
+from spyder.config.base import get_translation
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action
+from spyder.plugins import SpyderPluginMixin
+from spyder.py3compat import to_text_string, is_text_string
 from .widgets.breakpointsgui import BreakpointWidget
 
 _ = get_translation("breakpoints", "spyder_breakpoints")
