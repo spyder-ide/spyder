@@ -193,7 +193,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
     def edit_project_preferences(self):
         """Edit Spyder active project preferences"""
-        from spyderlib.widgets.projects.configdialog import ProjectPreferences
+        from spyder.widgets.projects.configdialog import ProjectPreferences
         if self.project_active:
             active_project = self.project_list[0]
             dlg = ProjectPreferences(self, active_project)
