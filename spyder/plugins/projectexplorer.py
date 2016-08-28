@@ -20,7 +20,7 @@ from spyder.plugins import SpyderPluginMixin
 from spyder.py3compat import is_text_string, getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, get_icon
-from spyder.widgets.projectexplorer import ProjectExplorerWidget
+from spyder.widgets.projects.explorer import ProjectExplorerWidget
 from spyder.widgets.projects.projectdialog import ProjectDialog
 from spyder.widgets.projects.type.python import PythonProject
 

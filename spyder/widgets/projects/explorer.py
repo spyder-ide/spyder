@@ -92,10 +92,10 @@ class ExplorerTreeWidget(FilteredDirView):
         action = event.dropAction()
         if action not in (Qt.MoveAction, Qt.CopyAction):
             return
-        
-#        # QTreeView must not remove the source items even in MoveAction mode:
-#        event.setDropAction(Qt.CopyAction)
-        
+
+        # QTreeView must not remove the source items even in MoveAction mode:
+        # event.setDropAction(Qt.CopyAction)
+
         dst = self.get_filename(self.indexAt(event.pos()))
         yes_to_all, no_to_all = None, None
         src_list = [to_text_string(url.toString())
@@ -168,7 +168,7 @@ class ProjectExplorerWidget(QWidget):
         QWidget.__init__(self, parent)
         self.treewidget = None
         self.setup_layout(name_filters, show_all, show_hscrollbar)
-        
+
     def setup_layout(self, name_filters, show_all, show_hscrollbar):
         """Setup project explorer widget layout"""
 
@@ -178,16 +178,16 @@ class ProjectExplorerWidget(QWidget):
 
         # FIXME!!
         self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
-        self.treewidget.set_folder_names(['variableexplorer'])
+        self.treewidget.set_folder_names(['type'])
         self.treewidget.setup_project_view()
-        
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
     def check_for_io_errors(self):
-        """Check for I/O errors that may occured when loading/saving 
+        """Check for I/O errors that may occured when loading/saving
         projects or the workspace itself and warn the user"""
         self.treewidget.check_for_io_errors()
 
@@ -211,7 +211,7 @@ class Test(QWidget):
 
         self.explorer = ProjectExplorerWidget(None, show_all=True)
         vlayout.addWidget(self.explorer)
-        
+
         hlayout1 = QHBoxLayout()
         vlayout.addLayout(hlayout1)
         label = QLabel("<b>Open file:</b>")
@@ -220,7 +220,7 @@ class Test(QWidget):
         self.label1 = QLabel()
         hlayout1.addWidget(self.label1)
         self.explorer.sig_open_file.connect(self.label1.setText)
-        
+
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)
         label = QLabel("<b>Option changed:</b>")
