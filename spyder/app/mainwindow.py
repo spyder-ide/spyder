@@ -1187,9 +1187,6 @@ class MainWindow(QMainWindow):
         was triggered"""
         self.restore_scrollbar_position.emit()
 
-        if self.projectexplorer is not None:
-            self.projectexplorer.check_for_io_errors()
-
         # Remove our temporary dir
         atexit.register(self.remove_tmpdir)
 

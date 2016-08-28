@@ -295,14 +295,12 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""
         self.set_option('recent_projects', self.recent_projects)
-        self.set_option('workspace', self.get_workspace())
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.treewidget.get_scrollbar_position())
         
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
-        self.set_workspace(self.get_option('workspace', None))
         expanded_state = self.get_option('expanded_state', None)
         # Sometimes the expanded state option may be truncated in .ini file
         # (for an unknown reason), in this case it would be converted to a
