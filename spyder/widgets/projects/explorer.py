@@ -167,16 +167,20 @@ class ProjectExplorerWidget(QWidget):
         QWidget.__init__(self, parent)
         self.treewidget = None
         self.emptywidget = None
-        self.setup_layout(name_filters, show_all, show_hscrollbar)
+        self.name_filters = name_filters
+        self.show_all = show_all
+        self.show_hscrollbar = show_hscrollbar
+        self.setup_layout()
 
-    def setup_layout(self, name_filters, show_all, show_hscrollbar):
+    def setup_layout(self):
         """Setup project explorer widget layout"""
 
-        self.emptywidget = ExplorerTreeWidget(self, show_hscrollbar=show_hscrollbar)
+        self.emptywidget = ExplorerTreeWidget(self)
         self.emptywidget.hide()
 
-        self.treewidget = ExplorerTreeWidget(self, show_hscrollbar=show_hscrollbar)
-        self.treewidget.setup(name_filters=name_filters, show_all=show_all)
+        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
+        self.treewidget.setup(name_filters=self.name_filters,
+                              show_all=self.show_all)
         self.treewidget.setup_view()
 
         layout = QVBoxLayout()
