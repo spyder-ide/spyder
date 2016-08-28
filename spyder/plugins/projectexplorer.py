@@ -89,15 +89,16 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.edit_project_preferences_action =\
             create_action(self, _("Project Preferences"),
                           triggered=self.edit_project_preferences)
-
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
+        explorer_action = self.toggle_view_action
 
         self.main.projects_menu_actions += [self.new_project_action,
                                             None,
                                             self.open_project_action,
                                             self.close_project_action,
                                             None,
-                                            self.recent_project_menu]
+                                            self.recent_project_menu,
+                                            explorer_action]
 
         self.setup_menu_actions()
         return []

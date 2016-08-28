@@ -278,7 +278,6 @@ class SpyderPluginMixin(object):
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
-        self.plugin_actions = self.get_plugin_actions()
         if self.show_message is not None:
             self.show_message.connect(self.__show_message)
         if self.update_plugin_title is not None:
@@ -287,6 +286,7 @@ class SpyderPluginMixin(object):
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
         self.create_toggle_view_action()
+        self.plugin_actions = self.get_plugin_actions()
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
