@@ -43,14 +43,6 @@ class ExplorerTreeWidget(FilteredDirView):
         self.setDragDropMode(FilteredDirView.DragDrop)
 
     #------DirView API---------------------------------------------------------
-    def setup_view(self):
-        """Setup view"""
-        FilteredDirView.setup_view(self)
-
-    def create_context_menu_actions(self):
-        """Reimplement DirView method"""
-        return FilteredDirView.create_context_menu_actions(self)
-
     def setup_common_actions(self):
         """Setup context menu common actions"""
         actions = FilteredDirView.setup_common_actions(self)
@@ -80,28 +72,7 @@ class ExplorerTreeWidget(FilteredDirView):
         """Return global PYTHONPATH (for all opened projects"""
         # FIXME!!
         return []
-    
-    def show_properties(self, fnames):
-        """Show properties"""
-        pathlist = sorted(fnames)
-        dirlist = [path for path in pathlist if osp.isdir(path)]
-        for path in pathlist[:]:
-            for folder in dirlist:
-                if path != folder and path.startswith(folder):
-                    pathlist.pop(pathlist.index(path))
-        files, lines = 0, 0
-        for path in pathlist:
-            f, l = misc.count_lines(path)
-            files += f
-            lines += l
-        QMessageBox.information(self, _("Project Explorer"),
-                                _("Statistics on source files only:<br>"
-                                  "(Python, Cython, IPython, Enaml,"
-                                  "C/C++, Fortran)<br><br>"
-                                  "<b>%s</b> files.<br>"
-                                  "<b>%s</b> lines of code."
-                                  ) % (str(files), str(lines)))
-            
+
     #---- Internal drag & drop
     def dragMoveEvent(self, event):
         """Reimplement Qt method"""
