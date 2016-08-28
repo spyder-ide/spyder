@@ -21,12 +21,14 @@ import shutil
 # Third party imports
 from qtpy import API, is_pyqt46
 from qtpy.compat import getsavefilename, getexistingdirectory
-from qtpy.QtCore import (QDir, QMimeData, QSize, QSortFilterProxyModel, Qt,
-                         QTimer, QUrl, Signal, Slot)
+from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
+                         QSortFilterProxyModel, Qt, QTimer, QUrl,
+                         Signal, Slot)
 from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QInputDialog,
-                            QLabel, QLineEdit, QMenu, QMessageBox, QToolButton,
-                            QTreeView, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
+                            QInputDialog, QLabel, QLineEdit, QMenu,
+                            QMessageBox, QToolButton, QTreeView, QVBoxLayout,
+                            QWidget)
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import (getcwd, str_lower, to_binary_string,
@@ -81,6 +83,27 @@ def has_subdirectories(path, include, exclude, show_all):
         return False
 
 
+class IconProvider(QFileIconProvider):
+    """Project tree widget icon provider"""
+    def __init__(self, treeview):
+        super(IconProvider, self).__init__()
+        self.treeview = treeview
+
+    @Slot(int)
+    @Slot(QFileInfo)
+    def icon(self, icontype_or_qfileinfo):
+        """Reimplement Qt method"""
+        if isinstance(icontype_or_qfileinfo, QFileIconProvider.IconType):
+            return super(IconProvider, self).icon(icontype_or_qfileinfo)
+        else:
+            qfileinfo = icontype_or_qfileinfo
+            fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
+            if osp.isdir(fname):
+                return ima.icon('DirOpenIcon')
+            else:
+                return ima.icon('FileIcon')
+
+
 class DirView(QTreeView):
     """Base file/directory tree view"""
     def __init__(self, parent=None):
@@ -117,6 +140,8 @@ class DirView(QTreeView):
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
+        self.fsmodel.modelReset.connect(self.reset_icon_provider)
+        self.reset_icon_provider()
         
     def set_name_filters(self, name_filters):
         """Set name filters"""
@@ -159,13 +184,18 @@ class DirView(QTreeView):
     def setup(self, name_filters=['*.py', '*.pyw'], show_all=False):
         """Setup tree widget"""
         self.setup_view()
-        
+
         self.set_name_filters(name_filters)
         self.show_all = show_all
         
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
+
+    def reset_icon_provider(self):
+        """Reset file system model icon provider
+        The purpose of this is to refresh files/directories icons"""
+        self.fsmodel.setIconProvider(IconProvider(self))
         
     #---- Context menu
     def setup_common_actions(self):

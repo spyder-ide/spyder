@@ -10,50 +10,24 @@
 
 # Standard library imports
 from __future__ import print_function
-import os
+
 import os.path as osp
-import re
+
 import shutil
-import xml.etree.ElementTree as ElementTree
+
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import QFileInfo, Qt, Signal, Slot
-from qtpy.QtWidgets import (QAbstractItemView, QFileIconProvider, QHBoxLayout,
-                            QHeaderView, QInputDialog, QLabel, QLineEdit,
-                            QMessageBox, QPushButton, QVBoxLayout, QWidget)
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
+                            QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _, get_image_path, STDERR
-from spyder.py3compat import getcwd, pickle, to_text_string
-from spyder.utils import icon_manager as ima
+from spyder.config.base import _
+from spyder.py3compat import to_text_string
 from spyder.utils import misc
-from spyder.utils.qthelpers import create_action, get_icon
-from spyder.widgets.explorer import FilteredDirView, fixpath, listdir
-from spyder.widgets.formlayout import fedit
-from spyder.widgets.pathmanager import PathManager
-
-
-class IconProvider(QFileIconProvider):
-    """Project tree widget icon provider"""
-    def __init__(self, treeview):
-        super(IconProvider, self).__init__()
-        self.treeview = treeview
-        
-    @Slot(int)
-    @Slot(QFileInfo)
-    def icon(self, icontype_or_qfileinfo):
-        """Reimplement Qt method"""
-        if isinstance(icontype_or_qfileinfo, QFileIconProvider.IconType):
-            return super(IconProvider, self).icon(icontype_or_qfileinfo)
-        else:
-            qfileinfo = icontype_or_qfileinfo
-            fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
-            if osp.isdir(fname):
-                return ima.icon('DirOpenIcon')
-            else:
-                return ima.icon('FileIcon')
+from spyder.utils.qthelpers import create_action
+from spyder.widgets.explorer import FilteredDirView
 
 
 class ExplorerTreeWidget(FilteredDirView):
@@ -61,8 +35,6 @@ class ExplorerTreeWidget(FilteredDirView):
 
     def __init__(self, parent, show_hscrollbar=True):
         FilteredDirView.__init__(self, parent)
-        self.fsmodel.modelReset.connect(self.reset_icon_provider)
-        self.reset_icon_provider()
         self.last_folder = None
         self.setSelectionMode(FilteredDirView.ExtendedSelection)
         self.setHeaderHidden(True)
@@ -105,11 +77,6 @@ class ExplorerTreeWidget(FilteredDirView):
             self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         else:
             self.header().setResizeMode(QHeaderView.ResizeToContents)
-
-    def reset_icon_provider(self):
-        """Reset file system model icon provider
-        The purpose of this is to refresh files/directories icons"""
-        self.fsmodel.setIconProvider(IconProvider(self))
 
     def get_pythonpath(self):
         """Return global PYTHONPATH (for all opened projects"""
