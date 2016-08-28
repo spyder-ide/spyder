@@ -27,7 +27,6 @@ from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QInputDialog,
                             QLabel, QLineEdit, QMenu, QMessageBox, QToolButton,
                             QTreeView, QVBoxLayout, QWidget)
-
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import (getcwd, str_lower, to_binary_string,
@@ -865,6 +864,15 @@ class FilteredDirView(DirView):
             path = self.fsmodel.filePath(self.proxymodel.mapToSource(index))
             return osp.normpath(to_text_string(path))
 
+    def setup_project_view(self):
+        """Setup view for projects"""
+        for i in [1, 2, 3]:
+            self.hideColumn(i)
+        self.setHeaderHidden(True)
+        model = self.model()
+        for idx in model.persistentIndexList():
+            self.setExpanded(idx, True)
+
 
 class ExplorerTreeWidget(DirView):
     """File/directory explorer tree widget
@@ -1146,7 +1154,8 @@ class ProjectExplorerTest(QWidget):
         self.treewidget = FilteredDirView(self)
         self.treewidget.setup_view()
         self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
-        self.treewidget.set_folder_names(['variableexplorer', 'sourcecode'])
+        self.treewidget.set_folder_names(['variableexplorer'])
+        self.treewidget.setup_project_view()
         vlayout.addWidget(self.treewidget)
 
 
