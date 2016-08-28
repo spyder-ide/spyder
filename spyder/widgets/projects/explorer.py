@@ -35,7 +35,6 @@ class ExplorerTreeWidget(FilteredDirView):
         FilteredDirView.__init__(self, parent)
         self.last_folder = None
         self.setSelectionMode(FilteredDirView.ExtendedSelection)
-        self.setHeaderHidden(True)
         self.show_hscrollbar = show_hscrollbar
 
         # Enable drag & drop events
@@ -176,11 +175,6 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
         self.treewidget.setup_view()
 
-        # FIXME!!
-        self.treewidget.set_root_path(osp.dirname(osp.abspath(__file__)))
-        self.treewidget.set_folder_names(['type'])
-        self.treewidget.setup_project_view()
-
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.treewidget)
@@ -199,6 +193,14 @@ class ProjectExplorerWidget(QWidget):
         """Return PYTHONPATH"""
         return self.treewidget.get_pythonpath()
 
+    def set_project_dir(self, directory):
+        if directory is not None:
+            project = directory.split(osp.sep)[-1]
+            self.treewidget.set_root_path(osp.dirname(directory))
+            self.treewidget.set_folder_names([project])
+        self.treewidget.setup_project_view()
+
+
 
 #==============================================================================
 # Tests
@@ -210,6 +212,7 @@ class Test(QWidget):
         self.setLayout(vlayout)
 
         self.explorer = ProjectExplorerWidget(None, show_all=True)
+        self.explorer.set_project_dir(osp.dirname(osp.abspath(__file__)))
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()

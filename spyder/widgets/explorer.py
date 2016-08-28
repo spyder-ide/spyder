@@ -900,8 +900,11 @@ class FilteredDirView(DirView):
             self.hideColumn(i)
         self.setHeaderHidden(True)
         model = self.model()
-        for idx in model.persistentIndexList():
-            self.setExpanded(idx, True)
+        try:
+            for idx in model.persistentIndexList():
+                self.setExpanded(idx, True)
+        except:
+            pass
 
 
 class ExplorerTreeWidget(DirView):

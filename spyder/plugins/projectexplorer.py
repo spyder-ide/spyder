@@ -133,7 +133,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""
-        pass
+        self.set_project_dir(self.get_active_project_path())
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -255,6 +255,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         # Needs a safer test of project existence!
         if current_project_path and os.path.isdir(current_project_path):
             self.open_project(path=current_project_path)
+
+        self.refresh_plugin()
 
     def get_project_filenames(self):
         recent_files = []
