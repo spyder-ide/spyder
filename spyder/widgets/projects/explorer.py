@@ -166,10 +166,14 @@ class ProjectExplorerWidget(QWidget):
                  show_all=False, show_hscrollbar=True):
         QWidget.__init__(self, parent)
         self.treewidget = None
+        self.emptywidget = None
         self.setup_layout(name_filters, show_all, show_hscrollbar)
 
     def setup_layout(self, name_filters, show_all, show_hscrollbar):
         """Setup project explorer widget layout"""
+
+        self.emptywidget = ExplorerTreeWidget(self, show_hscrollbar=show_hscrollbar)
+        self.emptywidget.hide()
 
         self.treewidget = ExplorerTreeWidget(self, show_hscrollbar=show_hscrollbar)
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
@@ -177,6 +181,7 @@ class ProjectExplorerWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
@@ -194,12 +199,17 @@ class ProjectExplorerWidget(QWidget):
         return self.treewidget.get_pythonpath()
 
     def set_project_dir(self, directory):
+        """Set the project directory"""
         if directory is not None:
             project = directory.split(osp.sep)[-1]
             self.treewidget.set_root_path(osp.dirname(directory))
             self.treewidget.set_folder_names([project])
         self.treewidget.setup_project_view()
 
+    def clear(self):
+        """Show an empty view"""
+        self.treewidget.hide()
+        self.emptywidget.show()
 
 
 #==============================================================================

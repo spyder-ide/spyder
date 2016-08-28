@@ -240,6 +240,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             self.set_option('current_project_path', None)
             self.setup_menu_actions()
             self.sig_project_closed.emit(path)
+            self.clear()
 
     def clear_recent_projects(self):
         """ """
