@@ -123,12 +123,18 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.sig_open_file.connect(self.main.open_file)
 
         # New project connections. Order matters!
-        self.sig_project_loaded.connect(lambda v: self.main.workingdirectory.chdir(v))
-        self.sig_project_loaded.connect(lambda v: self.main.update_window_title())
-        self.sig_project_loaded.connect(lambda v: self.main.editor.setup_open_files())
-        self.sig_project_closed[object].connect(lambda v: self.main.workingdirectory.chdir(self.get_last_working_dir()))
-        self.sig_project_closed.connect(lambda v: self.main.update_window_title())
-        self.sig_project_closed.connect(lambda v: self.main.editor.setup_open_files())
+        self.sig_project_loaded.connect(
+            lambda v: self.main.workingdirectory.chdir(v))
+        self.sig_project_loaded.connect(
+            lambda v: self.main.update_window_title())
+        self.sig_project_loaded.connect(
+            lambda v: self.main.editor.setup_open_files())
+        self.sig_project_closed[object].connect(
+            lambda v: self.main.workingdirectory.chdir(self.get_last_working_dir()))
+        self.sig_project_closed.connect(
+            lambda v: self.main.update_window_title())
+        self.sig_project_closed.connect(
+            lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
     def refresh_plugin(self):
