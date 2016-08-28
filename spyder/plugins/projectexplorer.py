@@ -66,7 +66,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return _("Project explorer")
+        return _("Project")
     
     def get_focus_widget(self):
         """
