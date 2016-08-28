@@ -1291,12 +1291,6 @@ class Test(QWidget):
 
         self.explorer = ProjectExplorerWidget(None, show_all=True)
         self.explorer.set_workspace(osp.dirname(osp.abspath(__file__)))
-#        p1 = self.explorer.add_project(r"D:/Python/spyder")
-#        p1.set_pythonpath([r"D:\Python\spyder\spyder"])
-#        p1.save()
-#        self.treewidget.close_projects(p1)
-#        _p2 = self.explorer.add_project(r"D:\Python\test_project")
-        
         vlayout.addWidget(self.explorer)
         
         hlayout1 = QHBoxLayout()
