@@ -41,8 +41,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
     # Path, project type, packages
     sig_project_created = Signal(object, object, object)
-    sig_project_loaded = Signal(object)  # project folder path
-    sig_project_closed = Signal(object)  # project folder path
+    sig_project_loaded = Signal(object)
+    sig_project_closed = Signal(object)
 
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
@@ -57,6 +57,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
         # Initialize plugin
         self.initialize_plugin()
+        self.setup_project(self.get_active_project_path())
         self.load_config()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
@@ -79,9 +80,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.open_project_action = create_action(self,
                                     _("Open Project"),
                                     triggered=lambda v: self.open_project())
-        self.open_project_new_window_action =\
-            create_action(self, _("Open Project in New Window"),
-                          triggered=self.open_project_in_new_window)
         self.close_project_action = create_action(self,
                                     _("Close Project"),
                                     triggered=self.close_project)
@@ -127,6 +125,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             lambda v: self.main.update_window_title())
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
+        self.sig_project_loaded.connect(self.update_tree)
         self.sig_project_closed[object].connect(
             lambda v: self.main.workingdirectory.chdir(self.get_last_working_dir()))
         self.sig_project_closed.connect(
@@ -137,7 +136,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""
-        self.setup_project(self.get_active_project_path())
+        pass
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -197,12 +196,10 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
             pass
-#        if self.dockwidget.isHidden():
-#            self.dockwidget.show()
-#        self.dockwidget.raise_()
-#        if not self.treewidget.new_project():
-#            # Notify dockwidget to schedule a repaint
-#            self.dockwidget.update()
+        if self.dockwidget.isHidden():
+            self.dockwidget.show()
+        self.dockwidget.raise_()
+        self.dockwidget.update()
 
     def _create_project(self, path, ptype, packages):
         """Create a new project."""
@@ -232,9 +229,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
 
-    def open_project_in_new_window(self):
-        """ """
-
     def close_project(self):
         """ """
         if self.current_active_project:
@@ -260,8 +254,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         # Needs a safer test of project existence!
         if current_project_path and os.path.isdir(current_project_path):
             self.open_project(path=current_project_path)
-
-        self.refresh_plugin()
 
     def get_project_filenames(self):
         recent_files = []
@@ -308,3 +300,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         scrollbar_pos = self.get_option('scrollbar_position', None)
         if scrollbar_pos is not None:
             self.treewidget.set_scrollbar_position(scrollbar_pos)
+
+    def update_tree(self):
+        """Update explorer tree"""
+        self.setup_project(self.get_active_project_path())

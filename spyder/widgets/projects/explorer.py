@@ -176,7 +176,6 @@ class ProjectExplorerWidget(QWidget):
         """Setup project explorer widget layout"""
 
         self.emptywidget = ExplorerTreeWidget(self)
-        self.treewidget = self.emptywidget
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -211,7 +210,8 @@ class ProjectExplorerWidget(QWidget):
 
     def setup_project(self, directory):
         """Setup project"""
-        self.treewidget.hide()
+        if self.treewidget is not None:
+            self.treewidget.hide()
 
         # Setup a new tree widget
         self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
