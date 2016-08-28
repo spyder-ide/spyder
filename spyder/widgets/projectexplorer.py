@@ -12,9 +12,7 @@
 from __future__ import print_function
 
 import os.path as osp
-
 import shutil
-
 
 # Third party imports
 from qtpy import PYQT5
