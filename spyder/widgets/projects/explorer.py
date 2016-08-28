@@ -176,17 +176,11 @@ class ProjectExplorerWidget(QWidget):
         """Setup project explorer widget layout"""
 
         self.emptywidget = ExplorerTreeWidget(self)
-        self.emptywidget.hide()
-
-        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup(name_filters=self.name_filters,
-                              show_all=self.show_all)
-        self.treewidget.setup_view()
+        self.treewidget = self.emptywidget
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.emptywidget)
-        layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
     def check_for_io_errors(self):
@@ -215,6 +209,22 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget.hide()
         self.emptywidget.show()
 
+    def setup_project(self, directory):
+        """Setup project"""
+        self.treewidget.hide()
+
+        # Setup a new tree widget
+        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
+        self.treewidget.setup(name_filters=self.name_filters,
+                              show_all=self.show_all)
+        self.treewidget.setup_view()
+        self.emptywidget.hide()
+        self.treewidget.show()
+        self.layout().addWidget(self.treewidget)
+
+        # Setup the directory shown by the tree
+        self.set_project_dir(directory)
+
 
 #==============================================================================
 # Tests
@@ -226,7 +236,7 @@ class Test(QWidget):
         self.setLayout(vlayout)
 
         self.explorer = ProjectExplorerWidget(None, show_all=True)
-        self.explorer.set_project_dir(osp.dirname(osp.abspath(__file__)))
+        self.explorer.setup_project(osp.dirname(osp.abspath(__file__)))
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()

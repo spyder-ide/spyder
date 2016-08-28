@@ -57,8 +57,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
         # Initialize plugin
         self.initialize_plugin()
-
-        self.treewidget.header().hide()
         self.load_config()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
@@ -139,7 +137,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""
-        self.set_project_dir(self.get_active_project_path())
+        self.setup_project(self.get_active_project_path())
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
