@@ -32,7 +32,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     open_terminal = Signal(str)
     open_interpreter = Signal(str)
     pythonpath_changed = Signal()
-    sig_projects_were_closed = Signal()
     create_module = Signal(str)
     edit = Signal(str)
     removed = Signal(str)
@@ -113,7 +112,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.pythonpath_changed.connect(self.main.pythonpath_changed)
-        self.sig_projects_were_closed.connect(self.projects_were_closed)
         self.create_module.connect(self.main.editor.new)
         self.edit.connect(self.main.editor.load)
         self.removed.connect(self.main.editor.removed)
@@ -279,13 +277,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def get_last_working_dir(self):
         return self.main.editor.get_option('last_working_dir',
                                            default=getcwd())
-
-    def projects_were_closed(self):
-        """Project were just closed: checking if related files are opened in 
-        the editor and closing them"""
-        for fname in self.main.editor.get_filenames():
-            if self.treewidget.workspace.is_file_in_closed_project(fname):
-                self.main.editor.close_file_from_name(fname)
 
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""
