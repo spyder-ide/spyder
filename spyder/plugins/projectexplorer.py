@@ -60,7 +60,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.initialize_plugin()
 
         self.treewidget.header().hide()
-        self.set_font(self.get_plugin_font())
         self.load_config()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
@@ -287,11 +286,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         for fname in self.main.editor.get_filenames():
             if self.treewidget.workspace.is_file_in_closed_project(fname):
                 self.main.editor.close_file_from_name(fname)
-            
-    def set_font(self, font):
-        """Set project explorer widget font"""
-        self.treewidget.setFont(font)
-        
+
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""
         self.set_option('recent_projects', self.recent_projects)
