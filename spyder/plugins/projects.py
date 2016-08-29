@@ -218,7 +218,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.pythonpath_changed.emit()
             self.restart_consoles()
 
-    def _create_project(self, path, ptype, packages):
+    def _create_project(self, path):
         """Create a new project."""
         self.open_project(path=path)
         self.setup_menu_actions()
