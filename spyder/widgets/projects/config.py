@@ -88,8 +88,9 @@ class ProjectConfig(UserConfig):
             os.makedirs(self._root_path)
 
         # Add file
-        with open(os.path.join(root_path, PROJECT_FILENAME), 'w') as f:
-            f.write('spyder-ide project\n')
+        # NOTE: We have to think better about the uses of this file
+        # with open(os.path.join(root_path, PROJECT_FILENAME), 'w') as f:
+        #    f.write('spyder-ide project\n')
 
         UserConfig.__init__(self, name, defaults=defaults, load=load,
                             version=version, subfolder=None, backup=False,
