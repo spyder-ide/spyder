@@ -165,7 +165,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.update_project_actions()
 
     def update_project_actions(self):
-        """ """
+        """Update actions of the Projects menu"""
         if self.recent_projects:
             self.clear_recent_projects_action.setEnabled(True)
         else:
@@ -210,7 +210,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             self.recent_projects.insert(0, path)
 
     def open_project(self, path=None):
-        """ """
+        """Open the project located in `path`"""
         if path is None:
             basedir = get_home_dir()
             path = getexistingdirectory(parent=self,
@@ -233,7 +233,10 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.sig_project_loaded.emit(path)
 
     def close_project(self):
-        """ """
+        """
+        Close current project and return to a window without an active
+        project
+        """
         if self.current_active_project:
             path = self.current_active_project.root_path
             self.set_project_filenames(self.main.editor.get_open_filenames())
@@ -264,6 +267,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             self.open_project(path=current_project_path)
 
     def get_project_filenames(self):
+        """Get the list of recent filenames of a project"""
         recent_files = []
         if self.current_active_project:
             recent_files = self.current_active_project.get_recent_files()     
@@ -272,16 +276,19 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         return recent_files
 
     def set_project_filenames(self, recent_files):
+        """Set the list of open file names in a project"""
         if self.current_active_project:
             self.current_active_project.set_recent_files(recent_files)
 
     def get_active_project_path(self):
+        """Get path of the active project"""
         active_project_path = None
         if self.current_active_project:
             active_project_path = self.current_active_project.root_path
         return active_project_path
 
     def get_last_working_dir(self):
+        """Get the path of the last working directory"""
         return self.main.editor.get_option('last_working_dir',
                                            default=getcwd())
 
