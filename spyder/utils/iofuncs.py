@@ -272,7 +272,11 @@ def load_pickle(filename):
 def load_json(filename):
     """Load a json file as a dictionary"""
     try:
-        with open(filename, 'rb') as fid:
+        if PY2:
+            args = 'rb'
+        else:
+            args = 'r'
+        with open(filename, args) as fid:
             data = json.load(fid)
         return data, None
     except Exception as err:
