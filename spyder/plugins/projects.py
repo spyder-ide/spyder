@@ -199,12 +199,14 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     @Slot()
     def create_new_project(self):
         """Create new project"""
+        active_project = self.current_active_project
         dlg = ProjectDialog(self)
         dlg.sig_project_creation_requested.connect(self._create_project)
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
             pass
-            self.show_explorer()
+            if active_project is None:
+                self.show_explorer()
 
     def _create_project(self, path, ptype, packages):
         """Create a new project."""
