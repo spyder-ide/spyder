@@ -128,7 +128,7 @@ QApplication.processEvents()
 from spyder import __version__, __project_url__, __forum_url__, get_versions
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
-                                debug_print, MAC_APP_NAME,
+                                debug_print, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import CONF, OPEN_FILES_PORT
@@ -1285,7 +1285,8 @@ class MainWindow(QMainWindow):
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
-                title += ' - Project: {0}'.format(path)
+                path = path.replace(get_home_dir(), '~')
+                title = '{0} - {1}'.format(path, title)
         self.setWindowTitle(title)
 
     def report_missing_dependencies(self):
