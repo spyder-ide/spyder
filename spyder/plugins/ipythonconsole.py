@@ -42,7 +42,8 @@ except ImportError:
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins import SpyderPluginWidget
+from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
@@ -1008,6 +1009,18 @@ class IPythonConsole(SpyderPluginWidget):
         related_clients = self.get_related_clients(client)
         for cl in related_clients:
             self.close_client(client=cl, force=True)
+
+    def restart(self):
+        """
+        Restart the console
+
+        This is needed when we switch projects to update PYTHONPATH
+        and in the selected interpreter
+        """
+        self.master_clients = 0
+        for client in self.clients:
+            self.close_client(client=client, force=True)
+        self.create_new_client(give_focus=False)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):

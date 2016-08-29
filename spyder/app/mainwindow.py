@@ -128,7 +128,7 @@ QApplication.processEvents()
 from spyder import __version__, __project_url__, __forum_url__, get_versions
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
-                                debug_print, MAC_APP_NAME,
+                                debug_print, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import CONF, OPEN_FILES_PORT
@@ -142,7 +142,6 @@ from spyder.py3compat import (getcwd, is_text_string, to_text_string,
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
-from spyder.utils.iofuncs import load_session, save_session
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
 
@@ -165,12 +164,6 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
 from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
-
-
-#==============================================================================
-# To save and load temp sessions
-#==============================================================================
-TEMP_SESSION_PATH = get_conf_path('temp.session.tar')
 
 
 #==============================================================================
@@ -315,21 +308,6 @@ class MainWindow(QMainWindow):
             self.path = [name for name in self.path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
-        self.load_temp_session_action = create_action(self,
-                                        _("Reload last session"),
-                                        triggered=lambda:
-                                        self.load_session(TEMP_SESSION_PATH))
-        self.load_session_action = create_action(self,
-                                        _("Load session..."),
-                                        None, ima.icon('fileopen'),
-                                        triggered=self.load_session,
-                                        tip=_("Load Spyder session"))
-        self.save_session_action = create_action(self,
-                                        _("Save session..."),
-                                        None, ima.icon('filesaveas'),
-                                        triggered=self.save_session,
-                                        tip=_("Save current session "
-                                              "and quit application"))
 
         # Plugins
         self.console = None
@@ -338,7 +316,7 @@ class MainWindow(QMainWindow):
         self.explorer = None
         self.help = None
         self.onlinehelp = None
-        self.projectexplorer = None
+        self.projects = None
         self.outlineexplorer = None
         self.historylog = None
         self.extconsole = None
@@ -402,6 +380,8 @@ class MainWindow(QMainWindow):
         self.debug_menu_actions = []
         self.consoles_menu = None
         self.consoles_menu_actions = []
+        self.projects_menu = None
+        self.projects_menu_actions = []
         self.tools_menu = None
         self.tools_menu_actions = []
         self.external_tools_menu = None # We must keep a reference to this,
@@ -452,7 +432,8 @@ class MainWindow(QMainWindow):
         if options.window_title is not None:
             title += ' -- ' + options.window_title
 
-        self.setWindowTitle(title)
+        self.base_title = title
+        self.update_window_title()
         resample = os.name != 'nt'
         icon = ima.icon('spyder', resample=resample)
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
@@ -498,10 +479,6 @@ class MainWindow(QMainWindow):
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
         self.maximized_flag = None
-
-        # Session manager
-        self.next_session_name = None
-        self.save_session_name = None
 
         # Track which console plugin type had last focus
         # True: Console plugin
@@ -595,7 +572,6 @@ class MainWindow(QMainWindow):
         self.debug_print("  ..toolbars")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
-        self.file_menu.aboutToShow.connect(self.update_file_menu)
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
 
@@ -626,6 +602,9 @@ class MainWindow(QMainWindow):
 
         # Consoles menu/toolbar
         self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
+
+        # Projects menu
+        self.projects_menu = self.menuBar().addMenu(_("&Projects"))
 
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
@@ -843,10 +822,7 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.load_temp_session_action,
-                                    self.load_session_action,
-                                    self.save_session_action,
-                                    None, restart_action, quit_action]
+        self.file_menu_actions += [None, restart_action, quit_action]
         self.set_splash("")
 
         self.debug_print("  ..widgets")
@@ -883,9 +859,10 @@ class MainWindow(QMainWindow):
         # Project explorer widget
         if CONF.get('project_explorer', 'enable'):
             self.set_splash(_("Loading project explorer..."))
-            from spyder.plugins.projectexplorer import ProjectExplorer
-            self.projectexplorer = ProjectExplorer(self)
-            self.projectexplorer.register_plugin()
+            from spyder.plugins.projects import Projects
+            self.projects = Projects(self)
+            self.projects.register_plugin()
+            self.project_path = self.projects.get_pythonpath(at_start=True)
 
         # External console
         self.set_splash(_("Loading external console..."))
@@ -1153,6 +1130,7 @@ class MainWindow(QMainWindow):
         add_actions(self.run_menu, self.run_menu_actions)
         add_actions(self.debug_menu, self.debug_menu_actions)
         add_actions(self.consoles_menu, self.consoles_menu_actions)
+        add_actions(self.projects_menu, self.projects_menu_actions)
         add_actions(self.tools_menu, self.tools_menu_actions)
         add_actions(self.external_tools_menu,
                     self.external_tools_menu_actions)
@@ -1209,9 +1187,6 @@ class MainWindow(QMainWindow):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
         self.restore_scrollbar_position.emit()
-
-        if self.projectexplorer is not None:
-            self.projectexplorer.check_for_io_errors()
 
         # Remove our temporary dir
         atexit.register(self.remove_tmpdir)
@@ -1283,12 +1258,18 @@ class MainWindow(QMainWindow):
         if not self.extconsole.isvisible and not ipy_visible:
             self.historylog.add_history(get_conf_path('history.py'))
 
-        # Give focus to the Editor
-        if self.editor.dockwidget.isVisible():
-            try:
-                self.editor.get_focus_widget().setFocus()
-            except AttributeError:
-                pass
+        # Load last openned project (if a project was active when spyder closed)
+        if self.projects is not None:
+            self.projects.reopen_last_project()
+
+            # Give focus to the Editor setup opened files
+            if self.editor.dockwidget.isVisible():
+                # Load files
+                self.editor.setup_open_files()
+                try:
+                    self.editor.get_focus_widget().setFocus()
+                except AttributeError:
+                    pass
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
@@ -1298,6 +1279,16 @@ class MainWindow(QMainWindow):
         self.report_missing_dependencies()
 
         self.is_setting_up = False
+
+    def update_window_title(self):
+        """Update main spyder window title based on projects."""
+        title = self.base_title
+        if self.projects is not None:
+            path = self.projects.get_active_project_path()
+            if path:
+                path = path.replace(get_home_dir(), '~')
+                title = '{0} - {1}'.format(path, title)
+        self.setWindowTitle(title)
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
@@ -1477,7 +1468,7 @@ class MainWindow(QMainWindow):
         console_ext = self.extconsole
         console_int = self.console
         outline = self.outlineexplorer
-        explorer_project = self.projectexplorer
+        explorer_project = self.projects
         explorer_file = self.explorer
         explorer_variable = self.variableexplorer
         history = self.historylog
@@ -2012,10 +2003,6 @@ class MainWindow(QMainWindow):
                 if element._shown_shortcut is not None:
                     element.setShortcut(QKeySequence())
 
-    def update_file_menu(self):
-        """Update file menu"""
-        self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
-
     def update_edit_menu(self):
         """Update edit menu"""
         if self.menuBar().hasFocus():
@@ -2514,8 +2501,8 @@ class MainWindow(QMainWindow):
         """Spyder path manager"""
         from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
-        project_pathlist = self.projectexplorer.get_pythonpath()
-        dialog = PathManager(self, self.path, project_pathlist, sync=True)
+        project_path = self.projects.get_pythonpath()
+        dialog = PathManager(self, self.path, project_path, sync=True)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
@@ -2523,9 +2510,9 @@ class MainWindow(QMainWindow):
         self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):
-        """Project Explorer PYTHONPATH contribution has changed"""
+        """Projects PYTHONPATH contribution has changed"""
         self.remove_path_from_sys_path()
-        self.project_path = self.projectexplorer.get_pythonpath()
+        self.project_path = self.projects.get_pythonpath()
         self.add_path_to_sys_path()
         self.sig_pythonpath_changed.emit()
 
@@ -2598,7 +2585,7 @@ class MainWindow(QMainWindow):
             widget.initialize()
             dlg.add_page(widget)
         for plugin in [self.workingdirectory, self.editor,
-                       self.projectexplorer, self.extconsole, self.ipyconsole,
+                       self.projects, self.extconsole, self.ipyconsole,
                        self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles
                        ]+self.thirdparty_plugins:
@@ -2657,31 +2644,7 @@ class MainWindow(QMainWindow):
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
 
-    #---- Sessions
-    @Slot()
-    def load_session(self, filename=None):
-        """Load session"""
-        if filename is None:
-            self.redirect_internalshell_stdio(False)
-            filename, _selfilter = getopenfilename(self, _("Open session"),
-                        getcwd(), _("Spyder sessions")+" (*.session.tar)")
-            self.redirect_internalshell_stdio(True)
-            if not filename:
-                return
-        if self.close():
-            self.next_session_name = filename
-
-    @Slot()
-    def save_session(self):
-        """Save session and quit application"""
-        self.redirect_internalshell_stdio(False)
-        filename, _selfilter = getsavefilename(self, _("Save session"),
-                        getcwd(), _("Spyder sessions")+" (*.session.tar)")
-        self.redirect_internalshell_stdio(True)
-        if filename:
-            if self.close():
-                self.save_session_name = filename
-
+    # -- Open files server
     def start_open_files_server(self):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
@@ -3000,17 +2963,11 @@ def run_spyder(app, options, args):
     return main
 
 
-def __remove_temp_session():
-    if osp.isfile(TEMP_SESSION_PATH):
-        os.remove(TEMP_SESSION_PATH)
-
-
 #==============================================================================
 # Main
 #==============================================================================
 def main():
-    """Session manager"""
-    __remove_temp_session()
+    """Main function"""
 
     # **** Collect command line options ****
     # Note regarding Options:
@@ -3040,6 +2997,7 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
+    # Show crash dialog
     if CONF.get('main', 'crash', False) and not DEV:
         CONF.set('main', 'crash', False)
         SPLASH.hide()
@@ -3061,46 +3019,20 @@ def main():
             "" % (get_conf_path(), __project_url__,
                   __forum_url__, __project_url__))
 
-    next_session_name = options.startup_session
-    while is_text_string(next_session_name):
-        if next_session_name:
-            error_message = load_session(next_session_name)
-            if next_session_name == TEMP_SESSION_PATH:
-                __remove_temp_session()
-            if error_message is None:
-                CONF.load_from_ini()
-            else:
-                print(error_message)
-                QMessageBox.critical(None, "Load session",
-                    u("<b>Unable to load '%s'</b><br><br>Error message:<br>%s")
-                    % (osp.basename(next_session_name), error_message))
-        mainwindow = None
-        try:
-            mainwindow = run_spyder(app, options, args)
-        except BaseException:
-            CONF.set('main', 'crash', True)
-            import traceback
-            traceback.print_exc(file=STDERR)
-            traceback.print_exc(file=open('spyder_crash.log', 'w'))
-        if mainwindow is None:
-            # An exception occured
-            SPLASH.hide()
-            return
-        next_session_name = mainwindow.next_session_name
-        save_session_name = mainwindow.save_session_name
-        if next_session_name is not None:
-            #-- Loading session
-            # Saving current session in a temporary file
-            # but only if we are not currently trying to reopen it!
-            if next_session_name != TEMP_SESSION_PATH:
-                save_session_name = TEMP_SESSION_PATH
-        if save_session_name:
-            #-- Saving session
-            error_message = save_session(save_session_name)
-            if error_message is not None:
-                QMessageBox.critical(None, "Save session",
-                    u("<b>Unable to save '%s'</b><br><br>Error message:<br>%s")
-                    % (osp.basename(save_session_name), error_message))
+    # Create main window
+    mainwindow = None
+    try:
+        mainwindow = run_spyder(app, options, args)
+    except BaseException:
+        CONF.set('main', 'crash', True)
+        import traceback
+        traceback.print_exc(file=STDERR)
+        traceback.print_exc(file=open('spyder_crash.log', 'w'))
+    if mainwindow is None:
+        # An exception occured
+        SPLASH.hide()
+        return
+
     ORIGINAL_SYS_EXIT()
 
 

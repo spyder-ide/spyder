@@ -264,7 +264,7 @@ DEFAULTS = [
              {
               'enable': True,
               'name_filters': NAME_FILTERS,
-              'show_all': False,
+              'show_all': True,
               'show_hscrollbar': True
               }),
             ('explorer',
@@ -585,7 +585,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '27.2.0'
+CONF_VERSION = '27.3.0'
 
 # Main configuration instance
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),

@@ -48,7 +48,8 @@ from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
-from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins import SpyderPluginWidget
+from spyder.plugins.configdialog import PluginConfigPage
 from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)
@@ -383,7 +384,7 @@ class Editor(SpyderPluginWidget):
                 '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
-        self.projectexplorer = None
+        self.projects = None
         self.outlineexplorer = None
         self.help = None
 
@@ -469,23 +470,8 @@ class Editor(SpyderPluginWidget):
                     str(state).encode('utf-8')) )
         
         self.recent_files = self.get_option('recent_files', [])
-        
         self.untitled_num = 0
-                
-        filenames = self.get_option('filenames', [])
-        if filenames and not ignore_last_opened_files:
-            self.load(filenames)
-            layout = self.get_option('layout_settings', None)
-            if layout is not None:
-                self.editorsplitter.set_layout_settings(layout)
-            win_layout = self.get_option('windows_layout_settings', None)
-            if win_layout:
-                for layout_settings in win_layout:
-                    self.editorwindows_to_be_created.append(layout_settings)
-            self.set_last_focus_editorstack(self, self.editorstacks[0])
-        else:
-            self.__load_temp_file()
-                
+
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
@@ -503,13 +489,13 @@ class Editor(SpyderPluginWidget):
         self.update_cursorpos_actions()
         self.set_path()
         
-    def set_projectexplorer(self, projectexplorer):
-        self.projectexplorer = projectexplorer
+    def set_projects(self, projects):
+        self.projects = projects
 
     @Slot()
-    def show_hide_project_explorer(self):
-        if self.projectexplorer is not None:
-            dw = self.projectexplorer.dockwidget
+    def show_hide_projects(self):
+        if self.projects is not None:
+            dw = self.projects.dockwidget
             if dw.isVisible():
                 dw.hide()
             else:
@@ -597,12 +583,21 @@ class Editor(SpyderPluginWidget):
         self.set_option('splitter_state', qbytearray_to_str(state))
         filenames = []
         editorstack = self.editorstacks[0]
-        filenames += [finfo.filename for finfo in editorstack.data]
+
+        active_project_path = None
+        if self.projects is not None:
+             active_project_path = self.projects.get_active_project_path()
+        if not active_project_path:
+            self.set_open_filenames()
+        else:
+            self.projects.set_project_filenames(
+                [finfo.filename for finfo in editorstack.data])
+
         self.set_option('layout_settings',
                         self.editorsplitter.get_layout_settings())
         self.set_option('windows_layout_settings',
                     [win.get_layout_settings() for win in self.editorwindows])
-        self.set_option('filenames', filenames)
+#        self.set_option('filenames', filenames)
         self.set_option('recent_files', self.recent_files)
         try:
             if not editorstack.save_if_changed(cancelable) and cancelable:
@@ -624,7 +619,7 @@ class Editor(SpyderPluginWidget):
                                name="Show/hide outline")
         self.toggle_project_action = create_action(self,
                                 _("Show/hide project explorer"),
-                                triggered=self.show_hide_project_explorer,
+                                triggered=self.show_hide_projects,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_project_action, context="Editor",
                                name="Show/hide project explorer")
@@ -972,13 +967,25 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
-        file_menu_actions = [self.new_action, self.open_action,
-                             self.recent_file_menu, self.save_action,
-                             self.save_all_action, save_as_action,
-                             self.file_switcher_action, self.revert_action,
-                             None, print_preview_action, self.print_action,
-                             None, self.close_action,
-                             self.close_all_action, None]
+        file_menu_actions = [self.new_action,
+                             None,
+                             self.open_action,
+                             self.recent_file_menu,
+                             None,
+                             None,
+                             self.save_action,
+                             self.save_all_action,
+                             save_as_action,
+                             self.file_switcher_action,
+                             self.revert_action,
+                             None,
+                             print_preview_action,
+                             self.print_action,
+                             None,
+                             self.close_action,
+                             self.close_all_action,
+                             None]                     
+
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
                                 self.save_action, self.save_all_action,
@@ -1691,13 +1698,9 @@ class Editor(SpyderPluginWidget):
                 recent_files.append(fname)
         self.recent_file_menu.clear()
         if recent_files:
-            for i, fname in enumerate(recent_files):
-                if i < 10:
-                    accel = "%d" % ((i+1) % 10)
-                else:
-                    accel = chr(i-10+ord('a'))
-                action = create_action(self, "&%s %s" % (accel, fname),
-                                       icon=get_filetype_icon(fname),
+            for fname in recent_files:
+                action = create_action(self, fname,
+                                       icon=ima.icon('FileIcon'),
                                        triggered=self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
@@ -2504,3 +2507,59 @@ class Editor(SpyderPluginWidget):
                     finfo.run_todo_finder()
                 if pyflakes_n in options or pep8_n in options:
                     finfo.run_code_analysis(pyflakes_o, pep8_o)
+
+    # --- Open files
+    def get_open_filenames(self):
+        """Get the list of open files in the current stack"""
+        editorstack = self.editorstacks[0]
+        filenames = []
+        filenames += [finfo.filename for finfo in editorstack.data]
+        return filenames
+        
+    def set_open_filenames(self):
+        """
+        Set the recent opened files on editor based on active project.
+
+        If no project is active, then editor filenames are saved, otherwise
+        the opened filenames are stored in the project config info.
+        """
+        if self.projects is not None:
+            if not self.projects.get_active_project():
+                filenames = self.get_open_filenames()
+                self.set_option('filenames', filenames)
+ 
+    def setup_open_files(self):
+        """Open the list of saved files per project"""
+        self.set_create_new_file_if_empty(False)
+        active_project_path = None
+        if self.projects is not None:
+             active_project_path = self.projects.get_active_project_path()
+
+        if active_project_path:
+            filenames = self.projects.get_project_filenames()
+        else:
+            filenames = self.get_option('filenames', default=[])
+        self.close_all_files()
+ 
+        if filenames:
+            self.load(filenames)
+            layout = self.get_option('layout_settings', None)
+            if layout is not None:
+                self.editorsplitter.set_layout_settings(layout)
+            win_layout = self.get_option('windows_layout_settings', None)
+            if win_layout:
+                for layout_settings in win_layout:
+                    self.editorwindows_to_be_created.append(layout_settings)
+            self.set_last_focus_editorstack(self, self.editorstacks[0])
+        else:
+            self.__load_temp_file()
+        self.set_create_new_file_if_empty(True)
+
+    def save_open_files(self):
+        """Save the list of open files"""
+        self.set_option('filenames', self.get_open_filenames())
+
+    def set_create_new_file_if_empty(self, value):
+        """Change the value of create_new_file_if_empty"""
+        for editorstack in self.editorstacks:
+            editorstack.create_new_file_if_empty = value

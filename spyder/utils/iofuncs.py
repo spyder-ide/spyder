@@ -33,7 +33,7 @@ except:
     pd = None            #analysis:ignore
 
 # Local imports
-from spyder.config.base import get_conf_path
+from spyder.config.base import _, get_conf_path
 from spyder.py3compat import pickle, to_text_string, getcwd, PY2
 
 
@@ -272,7 +272,11 @@ def load_pickle(filename):
 def load_json(filename):
     """Load a json file as a dictionary"""
     try:
-        with open(filename, 'rb') as fid:
+        if PY2:
+            args = 'rb'
+        else:
+            args = 'r'
+        with open(filename, args) as fid:
             data = json.load(fid)
         return data, None
     except Exception as err:
@@ -371,77 +375,6 @@ def load_dictionary(filename):
     os.chdir(old_cwd)
     return data, error_message
 
-
-def save_session(filename):
-    """Save Spyder session"""
-    local_fname = get_conf_path(osp.basename(filename))
-    filename = osp.abspath(filename)
-    old_cwd = getcwd()
-    os.chdir(get_conf_path())
-    error_message = None
-    try:
-        tar = tarfile.open(local_fname, "w")
-        for fname in SAVED_CONFIG_FILES:
-            if osp.isfile(fname):
-                tar.add(fname)
-        tar.close()
-        shutil.move(local_fname, filename)
-    except Exception as error:
-        error_message = to_text_string(error)
-    os.chdir(old_cwd)
-    return error_message
-
-
-def load_session(filename):
-    """Load Spyder session"""
-    filename = osp.abspath(filename)
-    old_cwd = getcwd()
-    os.chdir(osp.dirname(filename))
-    error_message = None
-    renamed = False
-    try:
-        tar = tarfile.open(filename, "r")
-        extracted_files = tar.getnames()
-
-        # Rename original config files
-        for fname in extracted_files:
-            orig_name = get_conf_path(fname)
-            bak_name = get_conf_path(fname+'.bak')
-            if osp.isfile(bak_name):
-                os.remove(bak_name)
-            if osp.isfile(orig_name):
-                os.rename(orig_name, bak_name)
-        renamed = True
-
-        tar.extractall()
-
-        for fname in extracted_files:
-            shutil.move(fname, get_conf_path(fname))
-
-    except Exception as error:
-        error_message = to_text_string(error)
-        if renamed:
-            # Restore original config files
-            for fname in extracted_files:
-                orig_name = get_conf_path(fname)
-                bak_name = get_conf_path(fname+'.bak')
-                if osp.isfile(orig_name):
-                    os.remove(orig_name)
-                if osp.isfile(bak_name):
-                    os.rename(bak_name, orig_name)
-
-    finally:
-        # Removing backup config files
-        for fname in extracted_files:
-            bak_name = get_conf_path(fname+'.bak')
-            if osp.isfile(bak_name):
-                os.remove(bak_name)
-
-    os.chdir(old_cwd)
-    return error_message
-
-
-from spyder.config.base import _
 
 class IOFunctions(object):
     def __init__(self):

@@ -34,27 +34,9 @@ from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.plugins.configdialog import SpyderConfigPage
 from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, toggle_actions
-
-
-class PluginConfigPage(SpyderConfigPage):
-    """Plugin configuration dialog box page widget"""
-    def __init__(self, plugin, parent):
-        self.plugin = plugin
-        self.get_option = plugin.get_option
-        self.set_option = plugin.set_option
-        self.get_font = plugin.get_plugin_font
-        self.apply_settings = plugin.apply_plugin_settings
-        SpyderConfigPage.__init__(self, parent)
-    
-    def get_name(self):
-        return self.plugin.get_plugin_title()
-
-    def get_icon(self):
-        return self.plugin.get_plugin_icon()
 
 
 class TabFilter(QObject):
@@ -296,6 +278,7 @@ class SpyderPluginMixin(object):
         
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
+        self.create_toggle_view_action()
         self.plugin_actions = self.get_plugin_actions()
         if self.show_message is not None:
             self.show_message.connect(self.__show_message)
@@ -304,7 +287,6 @@ class SpyderPluginMixin(object):
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
-        self.create_toggle_view_action()
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""

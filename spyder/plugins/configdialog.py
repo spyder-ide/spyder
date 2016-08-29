@@ -171,7 +171,8 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         # Signals and slots
-        self.button_reset.clicked.connect(self.main.reset_spyder)
+        if self.main:
+            self.button_reset.clicked.connect(self.main.reset_spyder)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
                                              self.pages_widget.setCurrentIndex)
@@ -231,7 +232,10 @@ class ConfigDialog(QDialog):
         scrollarea.setWidget(widget)
         self.pages_widget.addWidget(scrollarea)
         item = QListWidgetItem(self.contents_widget)
-        item.setIcon(widget.get_icon())
+        try:
+            item.setIcon(widget.get_icon())
+        except TypeError:
+            pass
         item.setText(widget.get_name())
         item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
@@ -717,6 +721,23 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
 
+class PluginConfigPage(SpyderConfigPage):
+    """Plugin configuration dialog box page widget"""
+    def __init__(self, plugin, parent):
+        self.plugin = plugin
+        self.get_option = plugin.get_option
+        self.set_option = plugin.set_option
+        self.get_font = plugin.get_plugin_font
+        self.apply_settings = plugin.apply_plugin_settings
+        SpyderConfigPage.__init__(self, parent)
+
+    def get_name(self):
+        return self.plugin.get_plugin_title()
+
+    def get_icon(self):
+        return self.plugin.get_plugin_icon()
+
+
 class GeneralConfigPage(SpyderConfigPage):
     """Config page that maintains reference to main Spyder window
        and allows to specify page name and icon declaratively
@@ -773,11 +794,10 @@ class GeneralConfigPage(SpyderConfigPage):
 
 class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
-    
     NAME = _("General")
-    ICON = ima.icon('genprefs')
 
     def setup_page(self):
+        self.ICON = ima.icon('genprefs')
         newcb = self.create_checkbox
 
         # --- Interface
@@ -978,11 +998,11 @@ class MainConfigPage(GeneralConfigPage):
 
 class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
-
     NAME = _("Syntax coloring")
-    ICON = ima.icon('eyedropper')
 
     def setup_page(self):
+        self.ICON = ima.icon('eyedropper')
+
         names = self.get_option("names")
         try:
             names.pop(names.index(u'Custom'))

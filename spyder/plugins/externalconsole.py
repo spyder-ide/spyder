@@ -34,7 +34,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (get_error_match, get_python_executable,
                                is_python_script, remove_backslashes)
 from spyder.utils.qthelpers import create_action, mimedata2url
-from spyder.plugins import PluginConfigPage, SpyderPluginWidget
+from spyder.plugins import SpyderPluginWidget
+from spyder.plugins.configdialog import PluginConfigPage
 from spyder.plugins.runconfig import get_run_configuration
 from spyder.py3compat import to_text_string, is_text_string, getcwd
 from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
@@ -1070,7 +1071,7 @@ class ExternalConsole(SpyderPluginWidget):
         if expl is not None:
             expl.open_terminal.connect(self.open_terminal)
             expl.open_interpreter.connect(self.open_interpreter)
-        pexpl = self.main.projectexplorer
+        pexpl = self.main.projects
         if pexpl is not None:
             pexpl.open_terminal.connect(self.open_terminal)
             pexpl.open_interpreter.connect(self.open_interpreter)
@@ -1080,7 +1081,19 @@ class ExternalConsole(SpyderPluginWidget):
         for shellwidget in self.shellwidgets:
             shellwidget.close()
         return True
-    
+
+    def restart(self):
+        """
+        Restart the console
+
+        This is needed when we switch project to update PYTHONPATH
+        and the selected interpreter
+        """
+        self.python_count = 0
+        for i in range(len(self.shellwidgets)):
+            self.close_console(from_ipyclient=True)
+        self.open_interpreter()
+
     def refresh_plugin(self):
         """Refresh tabwidget"""
         shellwidget = None
