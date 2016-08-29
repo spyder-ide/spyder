@@ -173,6 +173,7 @@ _qtaargs = {
     'MessageBoxInformation':   [('fa.info',), {'color': '3775a9'}],
     'DirOpenIcon':             [('fa.folder-open',), {}],
     'FileIcon':                [('fa.file-o',), {}],
+    'project':                 [('fa.folder-open-o',), {}],
     'DriveHDIcon':             [('fa.hdd-o',), {}],
     'arrow':                   [('fa.arrow-right',), {}],
     'collapse':                [('spyder.inward',), {}],

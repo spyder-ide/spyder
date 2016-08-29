@@ -12,7 +12,7 @@ updating the file tree explorer associated with a project
 """
 
 # Standard library imports
-import os
+import os.path as osp
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -165,13 +165,15 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.recent_projects_actions = []
         if self.recent_projects:
             for project in self.recent_projects:
-                if os.path.isdir(project):
-                    action = create_action(
-                        self,
-                        _(project),
+                if osp.isdir(project):
+                    name = project.replace(get_home_dir(), '~')
+                    action = create_action(self,
+                        name,
+                        icon = ima.icon('project'),
                         triggered=lambda v, path=project: self.open_project(path=path))
                     self.recent_projects_actions.append(action)
-            self.recent_projects_actions += [None, self.clear_recent_projects_action]
+            self.recent_projects_actions += [None,
+                                             self.clear_recent_projects_action]
         else:
             self.recent_projects_actions = [self.clear_recent_projects_action]
         add_actions(self.recent_project_menu, self.recent_projects_actions)
@@ -222,6 +224,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.setup_menu_actions()
         if path not in self.recent_projects:
             self.recent_projects.insert(0, path)
+            self.recent_projects = self.recent_projects[:10]
 
     def open_project(self, path=None, restart_consoles=True):
         """Open the project located in `path`"""
@@ -284,7 +287,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                                default=None)
 
         # Needs a safer test of project existence!
-        if current_project_path and os.path.isdir(current_project_path):
+        if current_project_path and osp.isdir(current_project_path):
             self.open_project(path=current_project_path,
                               restart_consoles=False)
             self.load_config()
