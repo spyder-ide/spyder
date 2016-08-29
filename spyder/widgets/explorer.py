@@ -850,6 +850,13 @@ class ProxyModel(QSortFilterProxyModel):
             else:
                 return False
 
+    def data(self, index, role):
+        """Show tooltip with full path only for the root directory"""
+        if role == Qt.ToolTipRole:
+            root_dir = self.path_list[0].split(osp.sep)[-1]
+            if index.data() == root_dir:
+                return osp.join(self.root_path, root_dir)
+        return QSortFilterProxyModel.data(self, index, role)
 
 class FilteredDirView(DirView):
     """Filtered file/directory tree view"""
