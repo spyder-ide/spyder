@@ -224,9 +224,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         """Create a new project."""
         self.open_project(path=path)
         self.setup_menu_actions()
-        if path not in self.recent_projects:
-            self.recent_projects.insert(0, path)
-            self.recent_projects = self.recent_projects[:10]
+        self.add_to_recent(path)
 
     def open_project(self, path=None, restart_consoles=True):
         """Open the project located in `path`"""
@@ -239,6 +237,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                 QMessageBox.critical(self, _('Error'),
                                 _("<b>%s</b> is not a Spyder project!" % path))
                 return
+            else:
+                self.add_to_recent(path)
 
         # A project was not open before
         if self.current_active_project is None:
@@ -382,3 +382,13 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             return True
         else:
             return False
+
+    def add_to_recent(self, project):
+        """
+        Add an entry to recent projetcs
+
+        We only maintain the list of the 10 most recent projects
+        """
+        if project not in self.recent_projects:
+            self.recent_projects.insert(0, project)
+            self.recent_projects = self.recent_projects[:10]
