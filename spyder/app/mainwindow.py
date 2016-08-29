@@ -316,7 +316,7 @@ class MainWindow(QMainWindow):
         self.explorer = None
         self.help = None
         self.onlinehelp = None
-        self.projectexplorer = None
+        self.projects = None
         self.outlineexplorer = None
         self.historylog = None
         self.extconsole = None
@@ -859,9 +859,9 @@ class MainWindow(QMainWindow):
         # Project explorer widget
         if CONF.get('project_explorer', 'enable'):
             self.set_splash(_("Loading project explorer..."))
-            from spyder.plugins.projectexplorer import ProjectExplorer
-            self.projectexplorer = ProjectExplorer(self)
-            self.projectexplorer.register_plugin()
+            from spyder.plugins.projects import Projects
+            self.projects = Projects(self)
+            self.projects.register_plugin()
 
         # External console
         self.set_splash(_("Loading external console..."))
@@ -1258,8 +1258,8 @@ class MainWindow(QMainWindow):
             self.historylog.add_history(get_conf_path('history.py'))
 
         # Load last openned project (if a project was active when spyder closed)
-        if self.projectexplorer is not None:
-            self.projectexplorer.reopen_last_project()
+        if self.projects is not None:
+            self.projects.reopen_last_project()
 
             # Give focus to the Editor setup opened files
             if self.editor.dockwidget.isVisible():
@@ -1282,8 +1282,8 @@ class MainWindow(QMainWindow):
     def update_window_title(self):
         """Update main spyder window title based on projects."""
         title = self.base_title
-        if self.projectexplorer is not None:
-            path = self.projectexplorer.get_active_project_path()
+        if self.projects is not None:
+            path = self.projects.get_active_project_path()
             if path:
                 title += ' - Project: {0}'.format(path)
         self.setWindowTitle(title)
@@ -1466,7 +1466,7 @@ class MainWindow(QMainWindow):
         console_ext = self.extconsole
         console_int = self.console
         outline = self.outlineexplorer
-        explorer_project = self.projectexplorer
+        explorer_project = self.projects
         explorer_file = self.explorer
         explorer_variable = self.variableexplorer
         history = self.historylog
@@ -2499,7 +2499,7 @@ class MainWindow(QMainWindow):
         """Spyder path manager"""
         from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
-        project_pathlist = self.projectexplorer.get_pythonpath()
+        project_pathlist = self.projects.get_pythonpath()
         dialog = PathManager(self, self.path, project_pathlist, sync=True)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
@@ -2510,7 +2510,7 @@ class MainWindow(QMainWindow):
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
         self.remove_path_from_sys_path()
-        self.project_path = self.projectexplorer.get_pythonpath()
+        self.project_path = self.projects.get_pythonpath()
         self.add_path_to_sys_path()
         self.sig_pythonpath_changed.emit()
 
@@ -2583,7 +2583,7 @@ class MainWindow(QMainWindow):
             widget.initialize()
             dlg.add_page(widget)
         for plugin in [self.workingdirectory, self.editor,
-                       self.projectexplorer, self.extconsole, self.ipyconsole,
+                       self.projects, self.extconsole, self.ipyconsole,
                        self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles
                        ]+self.thirdparty_plugins:

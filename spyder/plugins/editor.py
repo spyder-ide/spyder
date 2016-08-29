@@ -384,7 +384,7 @@ class Editor(SpyderPluginWidget):
                 '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
-        self.projectexplorer = None
+        self.projects = None
         self.outlineexplorer = None
         self.help = None
 
@@ -489,13 +489,13 @@ class Editor(SpyderPluginWidget):
         self.update_cursorpos_actions()
         self.set_path()
         
-    def set_projectexplorer(self, projectexplorer):
-        self.projectexplorer = projectexplorer
+    def set_projects(self, projects):
+        self.projects = projects
 
     @Slot()
-    def show_hide_project_explorer(self):
-        if self.projectexplorer is not None:
-            dw = self.projectexplorer.dockwidget
+    def show_hide_projects(self):
+        if self.projects is not None:
+            dw = self.projects.dockwidget
             if dw.isVisible():
                 dw.hide()
             else:
@@ -585,12 +585,12 @@ class Editor(SpyderPluginWidget):
         editorstack = self.editorstacks[0]
 
         active_project_path = None
-        if self.projectexplorer is not None:
-             active_project_path = self.projectexplorer.get_active_project_path()
+        if self.projects is not None:
+             active_project_path = self.projects.get_active_project_path()
         if not active_project_path:
             self.set_open_filenames()
         else:
-            self.projectexplorer.set_project_filenames(
+            self.projects.set_project_filenames(
                 [finfo.filename for finfo in editorstack.data])
 
         self.set_option('layout_settings',
@@ -619,7 +619,7 @@ class Editor(SpyderPluginWidget):
                                name="Show/hide outline")
         self.toggle_project_action = create_action(self,
                                 _("Show/hide project explorer"),
-                                triggered=self.show_hide_project_explorer,
+                                triggered=self.show_hide_projects,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_project_action, context="Editor",
                                name="Show/hide project explorer")
@@ -2527,8 +2527,8 @@ class Editor(SpyderPluginWidget):
         If no project is active, then editor filenames are saved, otherwise
         the opened filenames are stored in the project config info.
         """
-        if self.projectexplorer:
-            if not self.projectexplorer.get_active_project():
+        if self.projects is not None:
+            if not self.projects.get_active_project():
                 filenames = self.get_open_filenames()
                 self.set_option('filenames', filenames)
  
@@ -2536,13 +2536,13 @@ class Editor(SpyderPluginWidget):
         """Open the list of saved files per project"""
         self.set_create_new_file_if_empty(False)
         active_project_path = None
-        if self.projectexplorer:
-             active_project_path = self.projectexplorer.get_active_project_path()
+        if self.projects is not None:
+             active_project_path = self.projects.get_active_project_path()
 
         if active_project_path:
-            filenames = self.projectexplorer.get_project_filenames()
+            filenames = self.projects.get_project_filenames()
         else:
-            filenames = self.get_option('filenames')
+            filenames = self.get_option('filenames', default=[])
         self.close_all_files()
  
         if filenames:

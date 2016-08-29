@@ -30,8 +30,9 @@ from spyder.widgets.projects.projectdialog import ProjectDialog
 from spyder.widgets.projects.type.python import PythonProject
 
 
-class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
-    """Project explorer plugin"""
+class Projects(ProjectExplorerWidget, SpyderPluginMixin):
+    """Projects plugin"""
+
     CONF_SECTION = 'project_explorer'
 
     open_terminal = Signal(str)
@@ -66,18 +67,18 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.initialize_plugin()
         self.setup_project(self.get_active_project_path())
 
-    #------ SpyderPluginWidget API ---------------------------------------------    
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Project explorer")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         self.new_project_action = create_action(self,
@@ -108,7 +109,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
         self.setup_menu_actions()
         return []
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.pythonpath_changed()
@@ -120,7 +121,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.removed.connect(self.main.editor.removed)
         self.removed_tree.connect(self.main.editor.removed_tree)
         self.renamed.connect(self.main.editor.renamed)
-        self.main.editor.set_projectexplorer(self)
+        self.main.editor.set_projects(self)
         self.main.add_dockwidget(self)
 
         self.sig_open_file.connect(self.main.open_file)
@@ -144,13 +145,13 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def refresh_plugin(self):
         """Refresh project explorer widget"""
         pass
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
         self.closing_widget()
         return True
-        
+
     #------ Public API ---------------------------------------------------------
     def setup_menu_actions(self):
         """Setup and update the menu actions."""
@@ -229,7 +230,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             self.show_explorer()
         else:
             self.set_project_filenames(self.main.editor.get_open_filenames())
-            
+
         self.current_active_project = PythonProject(path)
         self.latest_project = PythonProject(path)
         self.set_option('current_project_path', self.get_active_project_path())
@@ -276,9 +277,9 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         """Get the list of recent filenames of a project"""
         recent_files = []
         if self.current_active_project:
-            recent_files = self.current_active_project.get_recent_files()     
+            recent_files = self.current_active_project.get_recent_files()
         elif self.latest_project:
-            recent_files = self.latest_project.get_recent_files()     
+            recent_files = self.latest_project.get_recent_files()
         return recent_files
 
     def set_project_filenames(self, recent_files):
@@ -304,7 +305,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.treewidget.get_scrollbar_position())
-        
+
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
         expanded_state = self.get_option('expanded_state', None)
@@ -315,7 +316,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             expanded_state = None
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)
-        
+
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = self.get_option('scrollbar_position', None)

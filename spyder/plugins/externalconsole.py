@@ -1071,7 +1071,7 @@ class ExternalConsole(SpyderPluginWidget):
         if expl is not None:
             expl.open_terminal.connect(self.open_terminal)
             expl.open_interpreter.connect(self.open_interpreter)
-        pexpl = self.main.projectexplorer
+        pexpl = self.main.projects
         if pexpl is not None:
             pexpl.open_terminal.connect(self.open_terminal)
             pexpl.open_interpreter.connect(self.open_interpreter)
