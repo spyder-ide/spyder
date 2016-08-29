@@ -715,6 +715,9 @@ class DirView(QTreeView):
         filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
         create_func = lambda fname: self.parent_widget.create_module.emit(fname)
         self.create_new_file(basedir, title, filters, create_func)
+
+    def go_to_parent_directory(self):
+        pass
         
     #----- VCS actions
     def vcs_command(self, fnames, action):
