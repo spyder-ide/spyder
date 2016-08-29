@@ -4,7 +4,12 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Project Explorer Plugin"""
+"""
+Projects Plugin
+
+It handles closing, opening and switching among projetcs and also
+updating the file tree explorer associated with a project
+"""
 
 # Standard library imports
 import os
