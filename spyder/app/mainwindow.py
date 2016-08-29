@@ -364,7 +364,7 @@ class MainWindow(QMainWindow):
         self.selectall_action = None
         self.maximize_action = None
         self.fullscreen_action = None
-  
+
         # Menu bars
         self.file_menu = None
         self.file_menu_actions = []
@@ -1259,7 +1259,7 @@ class MainWindow(QMainWindow):
 
         # Load last openned project (if a project was active when spyder closed)
         if self.projectexplorer is not None:
-            self.projectexplorer.setup_projects()
+            self.projectexplorer.reopen_last_project()
 
             # Give focus to the Editor setup opened files
             if self.editor.dockwidget.isVisible():

@@ -244,15 +244,20 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             self.clear()
 
     def clear_recent_projects(self):
-        """ """
+        """Clear the list of recent projects"""
         self.recent_projects = []
         self.setup_menu_actions()
 
     def get_active_project(self):
+        """Get the active project"""
         return self.current_active_project
 
-    def setup_projects(self):
-        current_project_path = self.get_option('current_project_path', default=None)
+    def reopen_last_project(self):
+        """
+        Reopen the active project when Spyder was closed last time, if any
+        """
+        current_project_path = self.get_option('current_project_path',
+                                               default=None)
 
         # Needs a safer test of project existence!
         if current_project_path and os.path.isdir(current_project_path):
