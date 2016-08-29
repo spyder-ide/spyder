@@ -214,6 +214,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             if active_project is None:
                 self.show_explorer()
             self.pythonpath_changed.emit()
+            self.restart_consoles()
 
     def _create_project(self, path, ptype, packages):
         """Create a new project."""
@@ -222,7 +223,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         if path not in self.recent_projects:
             self.recent_projects.insert(0, path)
 
-    def open_project(self, path=None):
+    def open_project(self, path=None, restart_consoles=True):
         """Open the project located in `path`"""
         if path is None:
             basedir = get_home_dir()
@@ -246,6 +247,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
         self.pythonpath_changed.emit()
+        if restart_consoles:
+            self.restart_consoles()
 
     def close_project(self):
         """
@@ -262,6 +265,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.pythonpath_changed.emit()
             self.dockwidget.close()
             self.clear()
+            self.restart_consoles()
 
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
@@ -281,7 +285,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         # Needs a safer test of project existence!
         if current_project_path and os.path.isdir(current_project_path):
-            self.open_project(path=current_project_path)
+            self.open_project(path=current_project_path,
+                              restart_consoles=False)
             self.load_config()
 
     def get_project_filenames(self):
@@ -355,3 +360,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.dockwidget.show()
         self.dockwidget.raise_()
         self.dockwidget.update()
+
+    def restart_consoles(self):
+        """Restart consoles when closing, opening and switching projects"""
+        self.main.extconsole.restart()
+        if self.main.ipyconsole:
+            self.main.ipyconsole.restart()

@@ -1010,6 +1010,18 @@ class IPythonConsole(SpyderPluginWidget):
         for cl in related_clients:
             self.close_client(client=cl, force=True)
 
+    def restart(self):
+        """
+        Restart the console
+
+        This is needed when we switch projects to update PYTHONPATH
+        and in the selected interpreter
+        """
+        self.master_clients = 0
+        for client in self.clients:
+            self.close_client(client=client, force=True)
+        self.create_new_client(give_focus=False)
+
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
         if sys.platform == 'win32':

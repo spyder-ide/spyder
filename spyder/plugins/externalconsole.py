@@ -1081,7 +1081,19 @@ class ExternalConsole(SpyderPluginWidget):
         for shellwidget in self.shellwidgets:
             shellwidget.close()
         return True
-    
+
+    def restart(self):
+        """
+        Restart the console
+
+        This is needed when we switch project to update PYTHONPATH
+        and the selected interpreter
+        """
+        self.python_count = 0
+        for i in range(len(self.shellwidgets)):
+            self.close_console(from_ipyclient=True)
+        self.open_interpreter()
+
     def refresh_plugin(self):
         """Refresh tabwidget"""
         shellwidget = None
