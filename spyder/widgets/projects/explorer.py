@@ -176,11 +176,6 @@ class ProjectExplorerWidget(QWidget):
         layout.addWidget(self.emptywidget)
         self.setLayout(layout)
 
-    def check_for_io_errors(self):
-        """Check for I/O errors that may occured when loading/saving
-        projects or the workspace itself and warn the user"""
-        self.treewidget.check_for_io_errors()
-
     def closing_widget(self):
         """Perform actions before widget is closed"""
         pass
