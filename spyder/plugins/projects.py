@@ -27,7 +27,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, get_icon
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
 from spyder.widgets.projects.projectdialog import ProjectDialog
-from spyder.widgets.projects.type.python import PythonProject
+from spyder.widgets.projects import EmptyProject
 
 
 class Projects(ProjectExplorerWidget, SpyderPluginMixin):
@@ -248,8 +248,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         else: # we are switching projects
             self.set_project_filenames(self.editor.get_open_filenames())
 
-        self.current_active_project = PythonProject(path)
-        self.latest_project = PythonProject(path)
+        self.current_active_project = EmptyProject(path)
+        self.latest_project = EmptyProject(path)
         self.set_option('current_project_path', self.get_active_project_path())
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
