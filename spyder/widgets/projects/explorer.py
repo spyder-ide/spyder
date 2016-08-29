@@ -67,11 +67,6 @@ class ExplorerTreeWidget(FilteredDirView):
         else:
             self.header().setResizeMode(QHeaderView.ResizeToContents)
 
-    def get_pythonpath(self):
-        """Return global PYTHONPATH (for all opened projects"""
-        # FIXME!!
-        return []
-
     #---- Internal drag & drop
     def dragMoveEvent(self, event):
         """Reimplement Qt method"""
@@ -160,7 +155,6 @@ class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    pythonpath_changed = Signal()
 
     def __init__(self, parent, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_hscrollbar=True):
@@ -190,10 +184,6 @@ class ProjectExplorerWidget(QWidget):
     def closing_widget(self):
         """Perform actions before widget is closed"""
         pass
-
-    def get_pythonpath(self):
-        """Return PYTHONPATH"""
-        return self.treewidget.get_pythonpath()
 
     def set_project_dir(self, directory):
         """Set the project directory"""

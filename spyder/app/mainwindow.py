@@ -862,6 +862,7 @@ class MainWindow(QMainWindow):
             from spyder.plugins.projects import Projects
             self.projects = Projects(self)
             self.projects.register_plugin()
+            self.project_path = self.projects.get_pythonpath(at_start=True)
 
         # External console
         self.set_splash(_("Loading external console..."))
@@ -2500,8 +2501,8 @@ class MainWindow(QMainWindow):
         """Spyder path manager"""
         from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
-        project_pathlist = self.projects.get_pythonpath()
-        dialog = PathManager(self, self.path, project_pathlist, sync=True)
+        project_path = self.projects.get_pythonpath()
+        dialog = PathManager(self, self.path, project_path, sync=True)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
@@ -2509,7 +2510,7 @@ class MainWindow(QMainWindow):
         self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):
-        """Project Explorer PYTHONPATH contribution has changed"""
+        """Projects PYTHONPATH contribution has changed"""
         self.remove_path_from_sys_path()
         self.project_path = self.projects.get_pythonpath()
         self.add_path_to_sys_path()

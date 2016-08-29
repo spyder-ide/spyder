@@ -207,6 +207,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             pass
             if active_project is None:
                 self.show_explorer()
+            self.pythonpath_changed.emit()
 
     def _create_project(self, path, ptype, packages):
         """Create a new project."""
@@ -238,6 +239,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.set_option('current_project_path', self.get_active_project_path())
         self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
+        self.pythonpath_changed.emit()
 
     def close_project(self):
         """
@@ -251,6 +253,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.set_option('current_project_path', None)
             self.setup_menu_actions()
             self.sig_project_closed.emit(path)
+            self.pythonpath_changed.emit()
             self.dockwidget.close()
             self.clear()
 
@@ -295,6 +298,18 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         if self.current_active_project:
             active_project_path = self.current_active_project.root_path
         return active_project_path
+
+    def get_pythonpath(self, at_start=False):
+        """Get project path as a list to be added to PYTHONPATH"""
+        if at_start:
+            current_path = self.get_option('current_project_path',
+                                           default=None)
+        else:
+            current_path = self.get_active_project_path()
+        if current_path is None:
+            return []
+        else:
+            return [current_path]
 
     def get_last_working_dir(self):
         """Get the path of the last working directory"""
