@@ -63,6 +63,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.current_active_project = None
         self.latest_project = None
 
+        self.editor = None
+        self.workingdirectory = None
+
         # Initialize plugin
         self.initialize_plugin()
         self.setup_project(self.get_active_project_path())
@@ -112,34 +115,37 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
+        self.editor = self.main.editor
+        self.workingdirectory = self.main.workingdirectory
+
         self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.pythonpath_changed.connect(self.main.pythonpath_changed)
-        self.create_module.connect(self.main.editor.new)
-        self.edit.connect(self.main.editor.load)
-        self.removed.connect(self.main.editor.removed)
-        self.removed_tree.connect(self.main.editor.removed_tree)
-        self.renamed.connect(self.main.editor.renamed)
-        self.main.editor.set_projects(self)
+        self.create_module.connect(self.editor.new)
+        self.edit.connect(self.editor.load)
+        self.removed.connect(self.editor.removed)
+        self.removed_tree.connect(self.editor.removed_tree)
+        self.renamed.connect(self.editor.renamed)
+        self.editor.set_projects(self)
         self.main.add_dockwidget(self)
 
         self.sig_open_file.connect(self.main.open_file)
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
-            lambda v: self.main.workingdirectory.chdir(v))
+            lambda v: self.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
             lambda v: self.main.update_window_title())
         self.sig_project_loaded.connect(
-            lambda v: self.main.editor.setup_open_files())
+            lambda v: self.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
         self.sig_project_closed[object].connect(
-            lambda v: self.main.workingdirectory.chdir(self.get_last_working_dir()))
+            lambda v: self.workingdirectory.chdir(self.get_last_working_dir()))
         self.sig_project_closed.connect(
             lambda v: self.main.update_window_title())
         self.sig_project_closed.connect(
-            lambda v: self.main.editor.setup_open_files())
+            lambda v: self.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
     def refresh_plugin(self):
@@ -228,11 +234,11 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         # A project was not open before
         if self.current_active_project is None:
-            self.main.editor.save_open_files()
-            self.main.editor.set_option('last_working_dir', getcwd())
+            self.editor.save_open_files()
+            self.editor.set_option('last_working_dir', getcwd())
             self.show_explorer()
         else:
-            self.set_project_filenames(self.main.editor.get_open_filenames())
+            self.set_project_filenames(self.editor.get_open_filenames())
 
         self.current_active_project = PythonProject(path)
         self.latest_project = PythonProject(path)
@@ -248,7 +254,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         """
         if self.current_active_project:
             path = self.current_active_project.root_path
-            self.set_project_filenames(self.main.editor.get_open_filenames())
+            self.set_project_filenames(self.editor.get_open_filenames())
             self.current_active_project = None
             self.set_option('current_project_path', None)
             self.setup_menu_actions()
@@ -313,8 +319,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def get_last_working_dir(self):
         """Get the path of the last working directory"""
-        return self.main.editor.get_option('last_working_dir',
-                                           default=getcwd())
+        return self.editor.get_option('last_working_dir', default=getcwd())
 
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""
