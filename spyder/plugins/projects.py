@@ -17,7 +17,7 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QMenu
+from qtpy.QtWidgets import QMenu, QMessageBox
 
 # Local imports
 from spyder.config.base import _, get_home_dir
@@ -88,7 +88,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                     _("New Project..."),
                                     triggered=self.create_new_project)
         self.open_project_action = create_action(self,
-                                    _("Open Project"),
+                                    _("Open Project..."),
                                     triggered=lambda v: self.open_project())
         self.close_project_action = create_action(self,
                                     _("Close Project"),
@@ -165,7 +165,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.recent_projects_actions = []
         if self.recent_projects:
             for project in self.recent_projects:
-                if osp.isdir(project):
+                if self.is_valid_project(project):
                     name = project.replace(get_home_dir(), '~')
                     action = create_action(self,
                         name,
@@ -233,15 +233,17 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             path = getexistingdirectory(parent=self,
                                         caption=_("Open project"),
                                         basedir=basedir)
-
-        # TODO: Check that is a valid spyder project
+            if not self.is_valid_project(path):
+                QMessageBox.critical(self, _('Error'),
+                                _("<b>%s</b> is not a Spyder project!" % path))
+                return
 
         # A project was not open before
         if self.current_active_project is None:
             self.editor.save_open_files()
             self.editor.set_option('last_working_dir', getcwd())
             self.show_explorer()
-        else:
+        else: # we are switching projects
             self.set_project_filenames(self.editor.get_open_filenames())
 
         self.current_active_project = PythonProject(path)
@@ -287,7 +289,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                                default=None)
 
         # Needs a safer test of project existence!
-        if current_project_path and osp.isdir(current_project_path):
+        if current_project_path and \
+          self.is_valid_project(current_project_path):
             self.open_project(path=current_project_path,
                               restart_consoles=False)
             self.load_config()
@@ -369,3 +372,11 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.main.extconsole.restart()
         if self.main.ipyconsole:
             self.main.ipyconsole.restart()
+
+    def is_valid_project(self, path):
+        """Check if a directory is a valid Spyder project"""
+        spy_project_dir = osp.join(path, '.spyproject')
+        if osp.isdir(path) and osp.isdir(spy_project_dir):
+            return True
+        else:
+            return False
