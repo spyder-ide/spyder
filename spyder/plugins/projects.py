@@ -172,6 +172,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                         icon = ima.icon('project'),
                         triggered=lambda v, path=project: self.open_project(path=path))
                     self.recent_projects_actions.append(action)
+                else:
+                    self.recent_projects.remove(project)
             self.recent_projects_actions += [None,
                                              self.clear_recent_projects_action]
         else:
