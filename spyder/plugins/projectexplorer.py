@@ -198,10 +198,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
             pass
-        if self.dockwidget.isHidden():
-            self.dockwidget.show()
-        self.dockwidget.raise_()
-        self.dockwidget.update()
+            self.show_explorer()
 
     def _create_project(self, path, ptype, packages):
         """Create a new project."""
@@ -224,6 +221,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         if self.current_active_project is None:
             self.main.editor.save_open_files()
             self.main.editor.set_option('last_working_dir', getcwd())
+            self.show_explorer()
         else:
             self.set_project_filenames(self.main.editor.get_open_filenames())
             
@@ -245,6 +243,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             self.set_option('current_project_path', None)
             self.setup_menu_actions()
             self.sig_project_closed.emit(path)
+            self.dockwidget.close()
             self.clear()
 
     def clear_recent_projects(self):
@@ -321,3 +320,10 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def update_tree(self):
         """Update explorer tree"""
         self.setup_project(self.get_active_project_path())
+
+    def show_explorer(self):
+        """Show the explorer"""
+        if self.dockwidget.isHidden():
+            self.dockwidget.show()
+        self.dockwidget.raise_()
+        self.dockwidget.update()
