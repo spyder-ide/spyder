@@ -6,14 +6,13 @@
 """Tests for programs.py"""
 
 import os
-import time
 
 import pytest
 
 from spyder.utils.programs import run_python_script_in_terminal
 
 @pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
-def test_run_python_script_in_terminal(tmpdir):
+def test_run_python_script_in_terminal(tmpdir, qtbot):
     scriptpath = tmpdir.join('write-done.py')
     outfilepath = tmpdir.join('out.txt')
     script = ("with open('out.txt', 'w') as f:\n"
@@ -21,19 +20,19 @@ def test_run_python_script_in_terminal(tmpdir):
     scriptpath.write(script)
     run_python_script_in_terminal(scriptpath.strpath, tmpdir.strpath, '',
                                   False, False, '')
-    time.sleep(1) # wait for script to finish
+    qtbot.wait(1000) # wait for script to finish
     res = outfilepath.read()
     assert res == 'done'
 
 @pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
-def test_run_python_script_in_terminal_with_wdir_empty(tmpdir):
+def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     scriptpath = tmpdir.join('write-done.py')
     outfilepath = tmpdir.join('out.txt')
     script = ("with open('{}', 'w') as f:\n"
               "    f.write('done')\n").format(outfilepath.strpath)
     scriptpath.write(script)
     run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
-    time.sleep(1) # wait for script to finish
+    qtbot.wait(1000) # wait for script to finish
     res = outfilepath.read()
     assert res == 'done'
 
