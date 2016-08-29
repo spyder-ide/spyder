@@ -470,23 +470,8 @@ class Editor(SpyderPluginWidget):
                     str(state).encode('utf-8')) )
         
         self.recent_files = self.get_option('recent_files', [])
-        
         self.untitled_num = 0
-                
-#        filenames = self.get_option('filenames', [])
-#        if filenames and not ignore_last_opened_files:
-#            self.load(filenames)
-#            layout = self.get_option('layout_settings', None)
-#            if layout is not None:
-#                self.editorsplitter.set_layout_settings(layout)
-#            win_layout = self.get_option('windows_layout_settings', None)
-#            if win_layout:
-#                for layout_settings in win_layout:
-#                    self.editorwindows_to_be_created.append(layout_settings)
-#            self.set_last_focus_editorstack(self, self.editorstacks[0])
-#        else:
-#            self.__load_temp_file()
-                
+
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
@@ -598,14 +583,15 @@ class Editor(SpyderPluginWidget):
         self.set_option('splitter_state', qbytearray_to_str(state))
         filenames = []
         editorstack = self.editorstacks[0]
-#        filenames += [finfo.filename for finfo in editorstack.data]
+
         active_project_path = None
-        if self.projectexplorer:
+        if self.projectexplorer is not None:
              active_project_path = self.projectexplorer.get_active_project_path()
         if not active_project_path:
             self.set_open_filenames()
         else:
-            self.projectexplorer.set_project_filenames = [finfo.filename for finfo in editorstack.data]
+            self.projectexplorer.set_project_filenames(
+                [finfo.filename for finfo in editorstack.data])
 
         self.set_option('layout_settings',
                         self.editorsplitter.get_layout_settings())
