@@ -127,7 +127,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
             lambda v: self.main.update_window_title())
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
-        self.sig_project_loaded.connect(self.update_tree)
+        self.sig_project_loaded.connect(self.update_explorer)
         self.sig_project_closed[object].connect(
             lambda v: self.main.workingdirectory.chdir(self.get_last_working_dir()))
         self.sig_project_closed.connect(
@@ -317,7 +317,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         if scrollbar_pos is not None:
             self.treewidget.set_scrollbar_position(scrollbar_pos)
 
-    def update_tree(self):
+    def update_explorer(self):
         """Update explorer tree"""
         self.setup_project(self.get_active_project_path())
 
