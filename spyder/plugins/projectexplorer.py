@@ -223,6 +223,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         if self.current_active_project is None:
             self.main.editor.save_open_files()
             self.main.editor.set_option('last_working_dir', getcwd())
+        else:
+            self.set_project_filenames(self.main.editor.get_open_filenames())
             
         self.current_active_project = PythonProject(path)
         self.latest_project = PythonProject(path)
