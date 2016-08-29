@@ -55,7 +55,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
                     name_filters=self.get_option('name_filters'),
-                    show_all=self.get_option('show_all', False),
+                    show_all=self.get_option('show_all'),
                     show_hscrollbar=self.get_option('show_hscrollbar'))
         SpyderPluginMixin.__init__(self, parent)
 

@@ -156,8 +156,8 @@ class ProjectExplorerWidget(QWidget):
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
 
-    def __init__(self, parent, name_filters=['*.py', '*.pyw'],
-                 show_all=False, show_hscrollbar=True):
+    def __init__(self, parent, name_filters=[],
+                 show_all=True, show_hscrollbar=True):
         QWidget.__init__(self, parent)
         self.treewidget = None
         self.emptywidget = None

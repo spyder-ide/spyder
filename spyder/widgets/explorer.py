@@ -865,7 +865,6 @@ class FilteredDirView(DirView):
     def install_model(self):
         """Install proxy model"""
         if self.root_path is not None:
-            self.fsmodel.setNameFilters(self.name_filters)
             self.setModel(self.proxymodel)
         
     def set_root_path(self, root_path):
