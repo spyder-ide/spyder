@@ -32,6 +32,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     open_terminal = Signal(str)
     open_interpreter = Signal(str)
     pythonpath_changed = Signal()
+
+    # File operations
     create_module = Signal(str)
     edit = Signal(str)
     removed = Signal(str)
@@ -39,7 +41,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     renamed = Signal(str, str)
     redirect_stdio = Signal(bool)
 
-    # Path, project type, packages
+    # Project handling
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
@@ -58,8 +60,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         self.setup_project(self.get_active_project_path())
-        self.load_config()
-        
+
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -265,6 +266,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         # Needs a safer test of project existence!
         if current_project_path and os.path.isdir(current_project_path):
             self.open_project(path=current_project_path)
+            self.load_config()
 
     def get_project_filenames(self):
         """Get the list of recent filenames of a project"""
