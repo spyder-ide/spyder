@@ -1698,13 +1698,9 @@ class Editor(SpyderPluginWidget):
                 recent_files.append(fname)
         self.recent_file_menu.clear()
         if recent_files:
-            for i, fname in enumerate(recent_files):
-                if i < 10:
-                    accel = "%d" % ((i+1) % 10)
-                else:
-                    accel = chr(i-10+ord('a'))
-                action = create_action(self, "&%s %s" % (accel, fname),
-                                       icon=get_filetype_icon(fname),
+            for fname in recent_files:
+                action = create_action(self, fname,
+                                       icon=ima.icon('FileIcon'),
                                        triggered=self.load)
                 action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
