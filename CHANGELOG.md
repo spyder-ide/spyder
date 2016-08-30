@@ -1,5 +1,44 @@
 # History of changes
 
+## Version 3.0beta6 (2016-08-30)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3363](https://github.com/spyder-ide/spyder/issues/3363) - Spyder wont start unless file ".spyderproject" is deleted. UnpicklingError
+* [Issue 3274](https://github.com/spyder-ide/spyder/issues/3274) - Text not visible in new file switcher in KDE
+* [Issue 3211](https://github.com/spyder-ide/spyder/issues/3211) - Edited syntax coloring preferences are not applied or saved
+* [Issue 3128](https://github.com/spyder-ide/spyder/issues/3128) - Project Explorer filename filter (minor)
+* [Issue 3099](https://github.com/spyder-ide/spyder/issues/3099) - Can existing files be added to a Spyder project?
+* [Issue 2887](https://github.com/spyder-ide/spyder/issues/2887) - Make .spyderproject a textfile
+* [Issue 2636](https://github.com/spyder-ide/spyder/issues/2636) - Problems with filename extension for saved sessions 
+* [Issue 2595](https://github.com/spyder-ide/spyder/issues/2595) - Spyder project renames/creates folders by removing first letter of imported directories
+* [Issue 2460](https://github.com/spyder-ide/spyder/issues/2460) - Design for Projects in 3.0
+* [Issue 1964](https://github.com/spyder-ide/spyder/issues/1964) - Project explorer doesn't refresh its contents
+* [Issue 1947](https://github.com/spyder-ide/spyder/issues/1947) - New Project not getting created
+* [Issue 1642](https://github.com/spyder-ide/spyder/issues/1642) - Files excluded by the filter list are displayed in the project explorer after start of spyder
+* [Issue 1554](https://github.com/spyder-ide/spyder/issues/1554) - Add project's path to our PYTHONPATH so that it can be imported in the console
+* [Issue 1320](https://github.com/spyder-ide/spyder/issues/1320) - Reorganize Spyder repository
+* [Issue 1317](https://github.com/spyder-ide/spyder/issues/1317) - Make Project Explorer remember state of open files when reopening
+
+In this release 15 issues were closed
+
+**Pull requests**
+
+* [PR 3377](https://github.com/spyder-ide/spyder/pull/3377) - Completely rewrite our support for Projects
+* [PR 3370](https://github.com/spyder-ide/spyder/pull/3370) - Some improvements to our CI services
+* [PR 3369](https://github.com/spyder-ide/spyder/pull/3369) - Remove some old files and directories
+* [PR 3356](https://github.com/spyder-ide/spyder/pull/3356) - Remove icons from tabs for the Editor and IPython Console
+* [PR 3355](https://github.com/spyder-ide/spyder/pull/3355) - Some improvements to our file switcher
+* [PR 3277](https://github.com/spyder-ide/spyder/pull/3277) - Finish reorganization of the Spyder repo
+
+In this release 6 pull requests were merged
+
+
+----
+
+
 ## Version 3.0beta5 (2016-08-22)
 
 ### Bugfixes
