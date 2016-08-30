@@ -8,7 +8,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update version in `__init__.py` (set release version, remove 'dev0')
 
-* git add and git commit
+* git add and git commit with `Release X.X.X`
 
 * python setup.py sdist upload
 
@@ -16,11 +16,11 @@ To release a new version of Spyder you need to follow these steps:
 
 * python3 setup.py bdist_wheel upload
 
-* git tag -a vX.X.X -m 'comment'
+* git tag -a vX.X.X -m 'Release X.X.X'
 
 * Update version in `__init__.py` (add 'dev0' and increment minor)
 
-* git add and git commit
+* git add and git commit with `[ci skip]`
 
 * git push upstream master
 
