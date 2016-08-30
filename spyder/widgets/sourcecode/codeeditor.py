@@ -375,6 +375,8 @@ class CodeEditor(TextEditBaseWidget):
                 self.setObjectName('help')
             elif 'historylog' in plugin_name.lower():
                 self.setObjectName('historylog')
+            elif 'configdialog' in plugin_name.lower():
+                self.setObjectName('configdialog')
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
