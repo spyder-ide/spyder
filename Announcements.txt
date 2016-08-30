@@ -140,22 +140,32 @@ Enjoy!
 Beta release
 ============
 
-Subject: [ANN] Spyder 3.0 fifth public beta release
+Subject: [ANN] Spyder 3.0 sixth public beta release
 
 
 Hi all,
 
-On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the fifth beta of our next major version: Spyder 3.0.
+On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce the sixth beta of our next major version: Spyder 3.0.
 
 We've been working on this version for more than two years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-seven weeks after our fourth one and it includes almost 100 commits.
+one week after our sixth one and it includes almost 140 commits.
 
 Spyder 3.0 comes with several interesting and exciting new features. The most
 important ones are:
 
+* Third-party plugins: External developers can now create plugins that extend Spyder in
+  novel and interesting ways. For example, we already have plugins for the line-profiler
+  and memory-profiler projects, and also a graphical frontend for the conda package
+  manager. These plugins can be distributed as pip and/or conda packages for authors
+  convenience.
+* Improved projects support: Projects have been revamped and improved significantly in
+  Spyder 3.0. With our new projects support, people will have the possibility of easily
+  working on different coding efforts at the same time. That's because projects save the
+  state of open files in the Editor and allow Python packages created as part of the
+  project in our consoles.
 * Support for much more programming languages: Spyder relies now on the excellent Pygments
   library to provide syntax highlight and suggest code completions in the Editor, for all
   programming languages supported by it.
@@ -182,7 +192,7 @@ You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
     conda install -c qttesting qt pyqt
-    conda install -c spyder-ide spyder==3.0.0b5
+    conda install -c spyder-ide spyder==3.0.0b6
 
 Or you can use pip with this command:
 
