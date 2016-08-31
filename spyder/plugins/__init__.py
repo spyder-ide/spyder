@@ -37,6 +37,7 @@ from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, toggle_actions
+from spyder.plugins.configdialog import PluginConfigPage  # Plugin compatibility
 
 
 class TabFilter(QObject):
