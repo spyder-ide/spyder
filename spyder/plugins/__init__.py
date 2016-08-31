@@ -518,6 +518,8 @@ class SpyderPluginMixin(object):
     
     def toggle_view(self, checked):
         """Toggle view"""
+        if not self.dockwidget:
+            return
         if checked:
             self.dockwidget.show()
             self.dockwidget.raise_()
