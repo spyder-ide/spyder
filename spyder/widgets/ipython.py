@@ -31,12 +31,12 @@ from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
-from spyder.config.base import (_, get_conf_path, get_image_path,
-                                get_module_source_path)
+from spyder.config.base import (_, DEV, get_conf_path, get_image_path,
+                                get_module_path, get_module_source_path)
 from spyder.config.gui import (config_shortcut, get_font, get_shortcut,
                                fixed_shortcut)
 from spyder.config.main import CONF
-from spyder.py3compat import PY3
+from spyder.py3compat import PY3, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.dochelpers import getargspecfromtext, getsignaturefromtext
@@ -670,7 +670,25 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Refresh namespace browser"""
         if self.namespacebrowser:
             self.namespacebrowser.refresh_table()
-    
+
+    def set_editor(self):
+        """Set the editor used by the %edit magic"""
+        python = sys.executable
+        if DEV:
+            spyder_start_directory = get_module_path('spyder')
+            bootstrap_script = osp.join(osp.dirname(spyder_start_directory),
+                                        'bootstrap.py')
+            editor = u'{0} {1} --'.format(python, bootstrap_script)
+        else:
+            import1 = "import sys"
+            import2 = "from spyder.app.start import send_args_to_spyder"
+            code = "send_args_to_spyder([sys.argv[-1]])"
+            editor = u"{0} -c '{1}; {2}; {3}'".format(python,
+                                                      import1,
+                                                      import2,
+                                                      code)
+        return to_text_string(editor)
+
     def shellwidget_config(self):
         """
         Generate a Config instance for shell widgets using our config
@@ -722,6 +740,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             spy_cfg.JupyterWidget.in_prompt = in_prompt_o
         if out_prompt_o:
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
+
+        # Editor for %edit
+        if CONF.get('main', 'single_instance'):
+            spy_cfg.JupyterWidget.editor = self.set_editor()
         
         # Merge IPython and Spyder configs. Spyder prefs will have prevalence
         # over IPython ones

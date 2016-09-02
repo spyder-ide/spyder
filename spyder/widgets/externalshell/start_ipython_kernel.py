@@ -154,16 +154,6 @@ def kernel_config():
     return ip_cfg
 
 
-def change_edit_magic(shell):
-    """Use %edit to open files in Spyder"""
-    try:
-        shell.magics_manager.magics['line']['ed'] = \
-          shell.magics_manager.magics['line']['edit']
-        shell.magics_manager.magics['line']['edit'] = open_in_spyder  #analysis:ignore
-    except:
-        pass
-
-
 def varexp(line):
     """
     Spyder's variable explorer magic
@@ -217,10 +207,8 @@ def main():
     __ipythonkernel__ = ipk_temp
     del ipk_temp
 
-    # Change %edit to open files inside Spyder
     # NOTE: Leave this and other magic modifications *after* setting
     # __ipythonkernel__ to not have problems while starting kernels
-    change_edit_magic(__ipythonshell__)
     __ipythonshell__.register_magic_function(varexp)
 
     # Start the (infinite) kernel event loop.
