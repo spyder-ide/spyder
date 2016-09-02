@@ -936,7 +936,7 @@ class ExternalConsole(SpyderPluginWidget):
         """
         self.python_count = 0
         for i in range(len(self.shellwidgets)):
-            self.close_console(from_ipyclient=True)
+            self.close_console()
         self.open_interpreter()
 
     def refresh_plugin(self):
