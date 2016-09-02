@@ -51,11 +51,11 @@ def kernel_config():
     # ---- IPython config ----
     try:
         profile_path = osp.join(get_ipython_dir(), 'profile_default')
-        ip_cfg = load_pyconfig_files(['ipython_config.py',
-                                      'ipython_qtconsole_config.py'],
-                                      profile_path)
+        cfg = load_pyconfig_files(['ipython_config.py',
+                                   'ipython_kernel_config.py'],
+                                  profile_path)
     except:
-        ip_cfg = Config()
+        cfg = Config()
     
     # ---- Spyder config ----
     spy_cfg = Config()
@@ -150,8 +150,8 @@ def kernel_config():
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
-    ip_cfg._merge(spy_cfg)
-    return ip_cfg
+    cfg._merge(spy_cfg)
+    return cfg
 
 
 def varexp(line):
