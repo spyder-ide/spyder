@@ -8,9 +8,9 @@
 IPython client's widget
 """
 
-
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
+
 from string import Template
 import os
 import os.path as osp
@@ -18,14 +18,14 @@ import re
 import sys
 import time
 
-# Third party imports
+# Third party imports (qtpy)
 from qtpy.QtCore import Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QTextEdit,
                             QToolButton, QVBoxLayout, QWidget)
 
-# Third party imports (IPython/Jupyter)
-from IPython.core.application import get_ipython_dir
+# Third party imports (Jupyter)
+from jupyter_core.paths import jupyter_config_dir
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from traitlets.config.loader import Config, load_pyconfig_files
@@ -166,7 +166,7 @@ class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
 #-----------------------------------------------------------------------------
 class IPythonShellWidget(RichJupyterWidget):
     """
-    Spyder's IPython shell widget
+    Spyder's Jupyter shell widget
 
     This class has custom control and page_control widgets, additional methods
     to provide missing functionality and a couple more keyboard shortcuts.
@@ -175,7 +175,7 @@ class IPythonShellWidget(RichJupyterWidget):
     new_client = Signal()
     
     def __init__(self, *args, **kw):
-        # To override the Qt widget used by RichIPythonWidget
+        # To override the Qt widget used by RichJupyterWidget
         self.custom_control = IPythonControlWidget
         self.custom_page_control = IPythonPageControlWidget
         super(IPythonShellWidget, self).__init__(*args, **kw)
@@ -362,7 +362,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     """
     IPython client or frontend for Spyder
 
-    This is a widget composed of a shell widget (i.e. RichIPythonWidget
+    This is a widget composed of a shell widget (i.e. RichJupyterWidget
     + our additions = IPythonShellWidget) and a WebView info widget to
     print kernel error and other messages.
     """
@@ -676,59 +676,57 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         Generate a Config instance for shell widgets using our config
         system
         
-        This lets us create each widget with its own config (as opposed to
-        IPythonQtConsoleApp, where all widgets have the same config)
+        This lets us create each widget with its own config
         """
-        # ---- IPython config ----
+        # ---- Jupyter config ----
         try:
-            profile_path = osp.join(get_ipython_dir(), 'profile_default')
-            full_ip_cfg = load_pyconfig_files(['ipython_qtconsole_config.py'],
-                                              profile_path)
+            full_cfg = load_pyconfig_files(['jupyter_qtconsole_config.py'],
+                                           jupyter_config_dir())
             
-            # From the full config we only select the IPythonWidget section
+            # From the full config we only select the JupyterWidget section
             # because the others have no effect here.
-            ip_cfg = Config({'IPythonWidget': full_ip_cfg.IPythonWidget})
+            cfg = Config({'JupyterWidget': full_cfg.JupyterWidget})
         except:
-            ip_cfg = Config()
+            cfg = Config()
        
         # ---- Spyder config ----
         spy_cfg = Config()
         
         # Make the pager widget a rich one (i.e a QTextEdit)
-        spy_cfg.IPythonWidget.kind = 'rich'
+        spy_cfg.JupyterWidget.kind = 'rich'
         
         # Gui completion widget
         completion_type_o = CONF.get('ipython_console', 'completion_type')
         completions = {0: "droplist", 1: "ncurses", 2: "plain"}
-        spy_cfg.IPythonWidget.gui_completion = completions[completion_type_o]
+        spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
 
         # Pager
         pager_o = self.get_option('use_pager')
         if pager_o:
-            spy_cfg.IPythonWidget.paging = 'inside'
+            spy_cfg.JupyterWidget.paging = 'inside'
         else:
-            spy_cfg.IPythonWidget.paging = 'none'
+            spy_cfg.JupyterWidget.paging = 'none'
         
         # Calltips
         calltips_o = self.get_option('show_calltips')
-        spy_cfg.IPythonWidget.enable_calltips = calltips_o
+        spy_cfg.JupyterWidget.enable_calltips = calltips_o
 
         # Buffer size
         buffer_size_o = self.get_option('buffer_size')
-        spy_cfg.IPythonWidget.buffer_size = buffer_size_o
+        spy_cfg.JupyterWidget.buffer_size = buffer_size_o
         
         # Prompts
         in_prompt_o = self.get_option('in_prompt')
         out_prompt_o = self.get_option('out_prompt')
         if in_prompt_o:
-            spy_cfg.IPythonWidget.in_prompt = in_prompt_o
+            spy_cfg.JupyterWidget.in_prompt = in_prompt_o
         if out_prompt_o:
-            spy_cfg.IPythonWidget.out_prompt = out_prompt_o
+            spy_cfg.JupyterWidget.out_prompt = out_prompt_o
         
         # Merge IPython and Spyder configs. Spyder prefs will have prevalence
         # over IPython ones
-        ip_cfg._merge(spy_cfg)
-        return ip_cfg
+        cfg._merge(spy_cfg)
+        return cfg
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
