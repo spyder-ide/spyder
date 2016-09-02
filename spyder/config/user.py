@@ -13,6 +13,7 @@ It's based on the ConfigParser module (present in the standard library).
 from __future__ import print_function
 
 # Std imports
+import ast
 import os
 import re
 import os.path as osp
@@ -20,7 +21,6 @@ import shutil
 import time
 
 # Local imports
-from spyder import __version__
 from spyder.config.base import (get_conf_path, get_home_dir,
                                 get_module_source_path, TEST)
 from spyder.utils.programs import check_version
@@ -378,9 +378,10 @@ class UserConfig(DefaultsConfig):
                 return default
             
         value = cp.ConfigParser.get(self, section, option, raw=self.raw)
+        # Use type of default_value to parse value correctly
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
-            value = eval(value)
+            value = ast.literal_eval(value)
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
@@ -393,8 +394,8 @@ class UserConfig(DefaultsConfig):
                     pass
             try:
                 # lists, tuples, ...
-                value = eval(value)
-            except:
+                value = ast.literal_eval(value)
+            except (SyntaxError, ValueError):
                 pass
         return value
 
