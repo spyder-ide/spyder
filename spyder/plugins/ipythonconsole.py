@@ -1188,6 +1188,9 @@ class IPythonConsole(SpyderPluginWidget):
         Taken from jupyter_client/console_app.py
         Licensed under the BSD license
         """
+        # Check if jupyter_runtime_dir exists (Spyder addition)
+        if not osp.isdir(jupyter_runtime_dir()):
+            os.mkdir(jupyter_runtime_dir())
         cf = ''
         while not cf:
             ident = str(uuid.uuid4()).split('-')[-1]
