@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 from gettext_helpers import do_rescan, do_rescan_files
 
 if __name__ == "__main__":
-    do_rescan("spyderlib")
+    do_rescan("spyder")
     do_rescan_files(["spyder_pylint/pylint.py",
                      "spyder_pylint/widgets/pylintgui.py"],
                      "pylint", "spyder_pylint")

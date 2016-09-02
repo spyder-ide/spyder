@@ -7,6 +7,11 @@ environment:
       PYTHON_ARCH:    "64"
       USE_QT_API:     "PyQt5"
 
+    - PYTHON:         "C:\\Python27_64"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH:    "64"
+      USE_QT_API:     "PyQt5"
+
     - PYTHON:         "C:\\Python35_64"
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH:    "64"
@@ -27,3 +32,4 @@ test_script:
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
   - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\modules_test.bat"
+  - cd %APPVEYOR_BUILD_FOLDER% & python runtests.py

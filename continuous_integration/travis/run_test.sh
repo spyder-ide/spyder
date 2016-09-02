@@ -10,14 +10,7 @@ export TEST_CI_APP=True
 # We install them here and not in travis_install.sh to see if
 # Spyder is correctly pulling its deps (some of them are shared
 # with mpl)
-export EXTRA_PACKAGES="nomkl pandas sympy pillow"
-
-
-# Don't install mpl for PyQt5 because it pulls PyQt4
-if [ "$USE_QT_API" = "PyQt4" ]; then
-    EXTRA_PACKAGES+=" matplotlib"
-fi
-
+export EXTRA_PACKAGES="nomkl pandas sympy pillow matplotlib"
 
 # Install our builds of Spyder
 if [ "$USE_CONDA" = true ] ; then
@@ -26,7 +19,7 @@ if [ "$USE_CONDA" = true ] ; then
     cd ~/tmp
 
     # Install and run the package
-    conda install --use-local spyder==3.0.0b3
+    conda install --use-local spyder
 
     # Install extra packages
     conda install -q $EXTRA_PACKAGES

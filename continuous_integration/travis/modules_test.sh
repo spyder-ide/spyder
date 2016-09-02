@@ -15,8 +15,11 @@ else
 fi
 
 # Depth 1
-for f in spyderlib/*.py; do
-    if [[ $f == spyderlib/pyplot.py ]]; then
+for f in spyder/*.py; do
+    if [[ $f == *tests/test_* ]]; then
+        continue
+    fi
+    if [[ $f == spyder/pyplot.py ]]; then
         continue
     fi
     python "$f"
@@ -27,24 +30,24 @@ done
 
 
 # Depth 2
-for f in spyderlib/*/*.py; do
-    if [[ $f == spyderlib/app/*.py ]]; then
+for f in spyder/*/*.py; do
+    if [[ $f == *tests/test_* ]]; then
         continue
     fi
-    if [[ $f == spyderlib/plugins/*.py ]]; then
+    if [[ $f == spyder/app/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/qt/*.py ]]; then
+    if [[ $f == spyder/plugins/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/qthelpers.py ]]; then
+    if [[ $f == spyder/utils/qthelpers.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/windows.py ]]; then
+    if [[ $f == spyder/utils/windows.py ]]; then
         continue
     fi
     # TODO: Understand why formlayout is failing in Travis!!
-    if [[ $f == spyderlib/widgets/formlayout.py ]]; then
+    if [[ $f == spyder/widgets/formlayout.py ]]; then
         continue
     fi
     python "$f"
@@ -55,29 +58,32 @@ done
 
 
 # Depth 3
-for f in spyderlib/*/*/*.py; do
-    if [[ $f == spyderlib/external/*/*.py ]]; then
+for f in spyder/*/*/*.py; do
+    if [[ $f == *tests/test_* ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/external/*.py ]]; then
+    if [[ $f == spyder/external/*/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/help/*.py ]]; then
+    if [[ $f == spyder/utils/external/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/utils/introspection/plugin_client.py ]]; then
+    if [[ $f == spyder/utils/help/*.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/systemshell.py ]]; then
+    if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/inputhooks.py ]]; then
+    if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/sitecustomize.py ]]; then
+    if [[ $f == spyder/widgets/externalshell/inputhooks.py ]]; then
         continue
     fi
-    if [[ $f == spyderlib/widgets/externalshell/start_ipython_kernel.py ]]; then
+    if [[ $f == spyder/widgets/externalshell/sitecustomize.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/widgets/externalshell/start_ipython_kernel.py ]]; then
         continue
     fi
     python "$f"
@@ -85,6 +91,19 @@ for f in spyderlib/*/*/*.py; do
         exit 1
     fi
 done
+
+
+# Depth 4
+for f in spyder/*/*/*/*.py; do
+    if [[ $f == *tests/test_* ]]; then
+        continue
+    fi
+    python "$f"
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+done
+
 
 # Spyderplugins
 for f in spyder_*/widgets/*.py; do

@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # based on p_pylint.py by Pierre Raybaut
 #
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Profiler Plugin."""
 
@@ -16,10 +16,12 @@ from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
-from spyderlib.config.base import get_translation
-from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action
+from spyder.config.base import get_translation
+from spyder.plugins import SpyderPluginMixin
+from spyder.plugins.configdialog import PluginConfigPage
+from spyder.plugins.runconfig import get_run_configuration
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
 
 
@@ -136,7 +138,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
         pythonpath = self.main.get_spyder_pythonpath()
-        runconf = runconfig.get_run_configuration(filename)
+        runconf = get_run_configuration(filename)
         wdir, args = None, []
         if runconf is not None:
             if runconf.wdir_enabled:

@@ -2,14 +2,11 @@ Command line options
 ====================
 
 Spyder's command line options are the following:
-(type 'python spyder.py --help' to show the text below)
 
 Options:
   -h, --help            show this help message and exit
   --new-instance        Run a new instance of Spyder, even if the single
                         instance mode has been turned on (default)
-  --session=STARTUP_SESSION
-                        Startup session
   --defaults            Reset configuration settings to defaults
   --reset               Remove all configuration files!
   --optimize            Optimize Spyder bytecode (this may require
@@ -20,3 +17,6 @@ Options:
   --multithread         Internal console is executed in another thread
                         (separate from main application thread)
   --profile             Profile mode (internal test, not related with Python
+                        profiling)
+  --window-title=WINDOW_TITLE
+                        String to show in the main window title
