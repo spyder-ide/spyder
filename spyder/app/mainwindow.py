@@ -2449,7 +2449,7 @@ class MainWindow(QMainWindow):
             console = self.ipyconsole
         console.visibility_changed(True)
         console.raise_()
-        console.execute_python_code(lines)
+        console.execute_code(lines)
         if focus_to_editor:
             self.editor.visibility_changed(True)
 

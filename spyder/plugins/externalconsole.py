@@ -577,7 +577,7 @@ class ExternalConsole(SpyderPluginWidget):
         if post_mortem:
             line += ', post_mortem=True'
         line += ")"
-        if not self.execute_python_code(line, interpreter_only=True):
+        if not self.execute_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
                 _("No Python console is currently selected to run <b>%s</b>."
                   "<br><br>Please select or open a new Python console "
@@ -594,8 +594,8 @@ class ExternalConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.shell.set_cwd(directory)
 
-    def execute_python_code(self, lines, interpreter_only=False):
-        """Execute Python code in an already opened Python interpreter"""
+    def execute_code(self, lines, interpreter_only=False):
+        """Execute code in an already opened Python interpreter"""
         shellwidget = self.__find_python_shell(
                                         interpreter_only=interpreter_only)
         if shellwidget is not None:

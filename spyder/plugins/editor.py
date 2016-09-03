@@ -2196,14 +2196,14 @@ class Editor(SpyderPluginWidget):
         """Debug actions"""
         if self.main.ipyconsole is not None:
             if self.main.last_console_plugin_focus_was_python:
-                self.main.extconsole.execute_python_code(command)
+                self.main.extconsole.execute_code(command)
             else:
                 self.main.ipyconsole.write_to_stdin(command)
                 focus_widget = self.main.ipyconsole.get_focus_widget()
                 if focus_widget:
                     focus_widget.setFocus()
         else:
-            self.main.extconsole.execute_python_code(command)
+            self.main.extconsole.execute_code(command)
     
     #------ Run Python script
     @Slot()

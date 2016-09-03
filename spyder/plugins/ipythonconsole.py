@@ -836,7 +836,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
-            self.execute_python_code(line)
+            self.execute_code(line)
             self.visibility_changed(True)
             self.raise_()
         else:
@@ -846,7 +846,7 @@ class IPythonConsole(SpyderPluginWidget):
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
 
-    def execute_python_code(self, lines):
+    def execute_code(self, lines):
         sw = self.get_current_shellwidget()
         if sw is not None:
             sw.execute(to_text_string(lines))
