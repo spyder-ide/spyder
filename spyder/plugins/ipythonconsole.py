@@ -806,6 +806,12 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client
 
+    def get_current_shellwidget(self):
+        """Return the shellwidget of the current client"""
+        client = self.get_current_client()
+        if client is not None:
+            return client.shellwidget
+
     def run_script_in_current_client(self, filename, wdir, args, debug,
             post_mortem):
         """Run script in current client, if any"""
@@ -841,16 +847,16 @@ class IPythonConsole(SpyderPluginWidget):
                   ) % osp.basename(filename), QMessageBox.Ok)
 
     def execute_python_code(self, lines):
-        client = self.get_current_client()
-        if client is not None:
-            client.shellwidget.execute(to_text_string(lines))
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            sw.execute(to_text_string(lines))
             self.activateWindow()
-            client.get_control().setFocus()
+            self.get_current_client().get_control().setFocus()
 
     def write_to_stdin(self, line):
-        client = self.get_current_client()
-        if client is not None:
-            client.shellwidget.write_to_stdin(line)
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            sw.write_to_stdin(line)
 
     @Slot()
     def create_new_client(self, give_focus=True):
@@ -896,9 +902,9 @@ class IPythonConsole(SpyderPluginWidget):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file)
-        widget = client.shellwidget
-        widget.kernel_manager = km
-        widget.kernel_client = kc
+        shellwidget = client.shellwidget
+        shellwidget.kernel_manager = km
+        shellwidget.kernel_client = kc
 
     def register_client(self, client, give_focus=True):
         """Register new client"""
