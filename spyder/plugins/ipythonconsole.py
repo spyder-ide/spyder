@@ -1031,7 +1031,7 @@ class IPythonConsole(SpyderPluginWidget):
         Restart the console
 
         This is needed when we switch projects to update PYTHONPATH
-        and in the selected interpreter
+        and the selected interpreter
         """
         self.master_clients = 0
         for client in self.clients:
@@ -1139,6 +1139,11 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client.start_channels(shell=True, iopub=True)
 
         return kernel_manager, kernel_client
+
+    def kernel_execute(self, code):
+        """Execute code in the kernel without increasing the prompt"""
+        sw = self.get_current_shellwidget()
+        sw.kernel_client.execute(to_text_string(code), silent=True)
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name):
