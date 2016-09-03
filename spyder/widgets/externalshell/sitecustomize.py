@@ -6,7 +6,7 @@
 # IMPORTANT NOTE: Don't add a coding line here! It's not necessary for
 # site files
 #
-# Spyder's ExternalPythonShell sitecustomize
+# Spyder consoles sitecustomize
 #
 
 import sys
@@ -34,7 +34,7 @@ if not hasattr(sys, 'argv'):
 #==============================================================================
 # Main constants
 #==============================================================================
-IS_IPYTHON = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
+IS_IPYKERNEL = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
 
@@ -65,8 +65,7 @@ def _print(*objects, **options):
 #==============================================================================
 # Execfile functions
 # 
-# The definitions for Python 2 on Windows were taken from the IPython
-# project (present in IPython.utils.py3compat)
+# The definitions for Python 2 on Windows were taken from the IPython project
 # Copyright (C) The IPython Development Team
 # Distributed under the terms of the modified BSD license
 #==============================================================================
@@ -286,7 +285,7 @@ else:
     builtins.open_in_spyder = open_in_spyder
 
     # Our own input hook, monitor based and for Windows only
-    if os.name == 'nt' and matplotlib and not IS_IPYTHON:
+    if os.name == 'nt' and matplotlib and not IS_IPYKERNEL:
         # Qt imports
         if os.environ["QT_API"] == 'pyqt5':
             from PyQt5 import QtCore
@@ -344,7 +343,7 @@ else:
 # Matplotlib settings
 #==============================================================================
 if matplotlib is not None:
-    if not IS_IPYTHON:
+    if not IS_IPYKERNEL:
         mpl_backend = os.environ.get("SPY_MPL_BACKEND", "")
         mpl_ion = os.environ.get("MATPLOTLIB_ION", "")
 
@@ -444,9 +443,9 @@ if matplotlib is not None:
 
 
 #==============================================================================
-# IPython adjustments
+# IPython kernel adjustments
 #==============================================================================
-if IS_IPYTHON:
+if IS_IPYKERNEL:
     # Use ipydb as the debugger to patch on IPython consoles
     from IPython.core.debugger import Pdb as ipyPdb
     pdb.Pdb = ipyPdb
@@ -469,7 +468,7 @@ if IS_IPYTHON:
 # Pandas adjustments
 #==============================================================================
 try:
-    # Make Pandas recognize our IPython consoles as proper qtconsoles
+    # Make Pandas recognize our Jupyter consoles as proper qtconsoles
     # Fixes Issue 2015
     def in_qtconsole():
         return True
@@ -712,15 +711,14 @@ class UserModuleReloader(object):
 __umr__ = None
 
 
-#===============================================================================
+#==============================================================================
 # Handle Post Mortem Debugging and Traceback Linkage to Spyder
-#===============================================================================
-
+#==============================================================================
 def clear_post_mortem():
     """
     Remove the post mortem excepthook and replace with a standard one.
     """
-    if IS_IPYTHON:
+    if IS_IPYKERNEL:
         from IPython.core.getipython import get_ipython
         ipython_shell = get_ipython()
         if ipython_shell:
@@ -735,7 +733,7 @@ def post_mortem_excepthook(type, value, tb):
     mortem debugging.
     """
     clear_post_mortem()
-    if IS_IPYTHON:
+    if IS_IPYKERNEL:
         from IPython.core.getipython import get_ipython
         ipython_shell = get_ipython()
         ipython_shell.showtraceback((type, value, tb))
@@ -768,7 +766,7 @@ def set_post_mortem():
     """
     Enable the post mortem debugging excepthook.
     """
-    if IS_IPYTHON:
+    if IS_IPYKERNEL:
         from IPython.core.getipython import get_ipython
         def ipython_post_mortem_debug(shell, etype, evalue, tb,
                    tb_offset=None):
@@ -924,4 +922,3 @@ try:
 except KeyError:
     if os.environ.get('PYTHONPATH') is not None:
         del os.environ['PYTHONPATH']
-
