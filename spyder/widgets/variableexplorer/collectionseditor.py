@@ -1476,7 +1476,7 @@ def remote_editor_test():
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer
-    from spyder.widgets.externalshell.monitor import make_remote_view
+    from spyder.widgets.variableexplorer.utils import make_remote_view
 
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
     pprint(remote)

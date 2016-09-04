@@ -17,6 +17,8 @@ import struct
 import threading
 
 # Local imports
+from spyder.config.base import get_conf_path, DEBUG
+from spyder.py3compat import getcwd, is_text_string, pickle, _thread
 from spyder.utils.misc import fix_reference_name
 from spyder.utils.debug import log_last_error
 from spyder.utils.dochelpers import (getargtxt, getdoc, getsource,
@@ -24,70 +26,17 @@ from spyder.utils.dochelpers import (getargtxt, getdoc, getsource,
 from spyder.utils.bsdsocket import (communicate, read_packet, write_packet,
                                     PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
 from spyder.utils.introspection.module_completion import module_completion
-from spyder.config.base import get_conf_path, get_supported_types, DEBUG
-from spyder.py3compat import getcwd, is_text_string, pickle, _thread
+from spyder.widgets.variableexplorer.utils import (get_remote_data,
+                                                   make_remote_view)
 
-
-SUPPORTED_TYPES = {}
 
 LOG_FILENAME = get_conf_path('monitor.log')
-
 DEBUG_MONITOR = DEBUG >= 2
-
 if DEBUG_MONITOR:
     import logging
     logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
                         level=logging.DEBUG)
 
-REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
-                   'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'truncate', 'minmax',
-                   'remote_editing', 'autorefresh')
-
-def get_remote_data(data, settings, mode, more_excluded_names=None):
-    """
-    Return globals according to filter described in *settings*:
-        * data: data to be filtered (dictionary)
-        * settings: variable explorer settings (dictionary)
-        * mode (string): 'editable' or 'picklable'
-        * more_excluded_names: additional excluded names (list)
-    """
-    from spyder.widgets.variableexplorer.utils import globalsfilter
-    global SUPPORTED_TYPES
-    if not SUPPORTED_TYPES:
-        SUPPORTED_TYPES = get_supported_types()
-    assert mode in list(SUPPORTED_TYPES.keys())
-    excluded_names = settings['excluded_names']
-    if more_excluded_names is not None:
-        excluded_names += more_excluded_names
-    return globalsfilter(data, check_all=settings['check_all'],
-                         filters=tuple(SUPPORTED_TYPES[mode]),
-                         exclude_private=settings['exclude_private'],
-                         exclude_uppercase=settings['exclude_uppercase'],
-                         exclude_capitalized=settings['exclude_capitalized'],
-                         exclude_unsupported=settings['exclude_unsupported'],
-                         excluded_names=excluded_names)
-
-def make_remote_view(data, settings, more_excluded_names=None):
-    """
-    Make a remote view of dictionary *data*
-    -> globals explorer
-    """
-    from spyder.widgets.variableexplorer.utils import (get_human_readable_type,
-                                    get_size, get_color_name, value_to_display)
-    assert all([name in REMOTE_SETTINGS for name in settings])
-    data = get_remote_data(data, settings, mode='editable',
-                           more_excluded_names=more_excluded_names)
-    remote = {}
-    for key, value in list(data.items()):
-        view = value_to_display(value, truncate=settings['truncate'],
-                                minmax=settings['minmax'])
-        remote[key] = {'type':  get_human_readable_type(value),
-                       'size':  get_size(value),
-                       'color': get_color_name(value),
-                       'view':  view}
-    return remote
-    
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
@@ -116,10 +65,10 @@ def monitor_copy_global(sock, orig_name, new_name):
     return communicate(sock, '__copy_global__("%s", "%s")' \
                        % (orig_name, new_name))
 
-
 def _getcdlistdir():
     """Return current directory list dir"""
     return os.listdir(getcwd())
+
 
 class Monitor(threading.Thread):
     """Monitor server"""

@@ -33,12 +33,11 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.widgets.externalshell.monitor import (
     communicate, monitor_copy_global, monitor_del_global, monitor_get_global,
-    monitor_load_globals, monitor_save_globals, monitor_set_global,
-    REMOTE_SETTINGS)
+    monitor_load_globals, monitor_save_globals, monitor_set_global)
 from spyder.widgets.variableexplorer.collectionseditor import (
     CollectionsEditorTableView, RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
-from spyder.widgets.variableexplorer.utils import globalsfilter
+from spyder.widgets.variableexplorer.utils import globalsfilter, REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -330,7 +329,6 @@ class NamespaceBrowser(QWidget):
                     self.editor.set_data(interpreter.namespace)
                     self.editor.adjust_columns()
             elif self.shellwidget.is_running():
-    #            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
                 sock = self._get_sock()
                 if sock is None:
                     return
