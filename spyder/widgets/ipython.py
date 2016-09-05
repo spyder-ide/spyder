@@ -680,6 +680,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def set_namespacebrowser(self, namespacebrowser):
         """Set namespace browser widget"""
         self.namespacebrowser = namespacebrowser
+        self.configure_namespacebrowser()
+
+    def configure_namespacebrowser(self):
+        """Configure associated namespace browser widget"""
+        self.namespacebrowser.set_ipyclient(self)
 
     def auto_refresh_namespacebrowser(self):
         """Refresh namespace browser"""

@@ -35,9 +35,9 @@ from spyder.widgets.externalshell.monitor import (
     communicate, monitor_copy_global, monitor_del_global, monitor_get_global,
     monitor_load_globals, monitor_save_globals, monitor_set_global)
 from spyder.widgets.variableexplorer.collectionseditor import (
-    CollectionsEditorTableView, RemoteCollectionsEditorTableView)
+    RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
-from spyder.widgets.variableexplorer.utils import globalsfilter, REMOTE_SETTINGS
+from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -265,7 +265,7 @@ class NamespaceBrowser(QWidget):
     def toggle_auto_refresh(self, state):
         """Toggle auto refresh state"""
         self.autorefresh = state
-        if not self.setup_in_progress:
+        if not self.setup_in_progress and not self.ipyclient:
             communicate(self._get_sock(),
                         "set_monitor_auto_refresh(%r)" % state)
 
@@ -284,7 +284,9 @@ class NamespaceBrowser(QWidget):
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            if self.shellwidget.is_running():
+            if self.ipyclient is not None:
+                pass
+            elif self.shellwidget.is_running():
                 sock = self._get_sock()
                 if sock is None:
                     return

@@ -902,6 +902,11 @@ class IPythonConsole(SpyderPluginWidget):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file)
+
+        kc.started_channels.connect(lambda c=client: self.process_started(c))
+        kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
+        kc.start_channels(shell=True, iopub=True)
+
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
@@ -1139,7 +1144,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Kernel client
         kernel_client = kernel_manager.client()
-        kernel_client.start_channels(shell=True, iopub=True)
 
         return kernel_manager, kernel_client
 
@@ -1211,6 +1215,14 @@ class IPythonConsole(SpyderPluginWidget):
             cf = os.path.join(jupyter_runtime_dir(), 'kernel-%s.json' % ident)
             cf = cf if not os.path.exists(cf) else ''
         return cf
+
+    def process_started(self, client):
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(client)
+
+    def process_finished(self, client):
+        if self.variableexplorer is not None:
+            self.variableexplorer.remove_shellwidget(id(client))
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
