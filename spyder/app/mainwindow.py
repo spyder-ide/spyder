@@ -883,10 +883,6 @@ class MainWindow(QMainWindow):
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
 
-        nsb = self.variableexplorer.add_shellwidget(self.console.shell)
-        self.console.shell.refresh.connect(nsb.refresh_table)
-        nsb.auto_refresh_button.setEnabled(False)
-
         self.set_splash(_("Setting up main window..."))
 
         # Help menu

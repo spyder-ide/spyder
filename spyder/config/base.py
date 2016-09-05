@@ -354,7 +354,6 @@ def get_supported_types():
          
     See:
     get_remote_data function in spyder/widgets/variableexplorer/utils/monitor.py
-    get_internal_shell_filter method in namespacebrowser.py
     
     Note:
     If you update this list, don't forget to update doc/variablexplorer.rst

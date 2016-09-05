@@ -52,7 +52,6 @@ class NamespaceBrowser(QWidget):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
-        self.is_internal_shell = None
         self.ipyclient = None
         self.is_ipykernel = None
         self.is_visible = True
@@ -110,32 +109,26 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
             return
 
-        # Dict editor:
-        if self.is_internal_shell:
-            self.editor = CollectionsEditorTableView(self, None,
-                                                     truncate=truncate,
-                                                     minmax=minmax)
-        else:
-            self.editor = RemoteCollectionsEditorTableView(self, None,
-                            truncate=truncate, minmax=minmax,
-                            remote_editing=remote_editing,
-                            get_value_func=self.get_value,
-                            set_value_func=self.set_value,
-                            new_value_func=self.set_value,
-                            remove_values_func=self.remove_values,
-                            copy_value_func=self.copy_value,
-                            is_list_func=self.is_list,
-                            get_len_func=self.get_len,
-                            is_array_func=self.is_array,
-                            is_image_func=self.is_image,
-                            is_dict_func=self.is_dict,
-                            is_data_frame_func=self.is_data_frame,
-                            is_series_func=self.is_series,                       
-                            get_array_shape_func=self.get_array_shape,
-                            get_array_ndim_func=self.get_array_ndim,
-                            oedit_func=self.oedit,
-                            plot_func=self.plot, imshow_func=self.imshow,
-                            show_image_func=self.show_image)
+        self.editor = RemoteCollectionsEditorTableView(self, None,
+                        truncate=truncate, minmax=minmax,
+                        remote_editing=remote_editing,
+                        get_value_func=self.get_value,
+                        set_value_func=self.set_value,
+                        new_value_func=self.set_value,
+                        remove_values_func=self.remove_values,
+                        copy_value_func=self.copy_value,
+                        is_list_func=self.is_list,
+                        get_len_func=self.get_len,
+                        is_array_func=self.is_array,
+                        is_image_func=self.is_image,
+                        is_dict_func=self.is_dict,
+                        is_data_frame_func=self.is_data_frame,
+                        is_series_func=self.is_series,
+                        get_array_shape_func=self.get_array_shape,
+                        get_array_ndim_func=self.get_array_ndim,
+                        oedit_func=self.oedit,
+                        plot_func=self.plot, imshow_func=self.imshow,
+                        show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
 
@@ -175,13 +168,7 @@ class NamespaceBrowser(QWidget):
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
-        from spyder.widgets import internalshell
-        self.is_internal_shell = isinstance(self.shellwidget,
-                                            internalshell.InternalShell)
-        # TODO: Fix this!!
-        self.is_ipykernel = False
-        if not self.is_internal_shell:
-            shellwidget.set_namespacebrowser(self)
+        shellwidget.set_namespacebrowser(self)
 
     def set_ipyclient(self, ipyclient):
         """Bind ipyclient instance to namespace browser"""
@@ -254,10 +241,9 @@ class NamespaceBrowser(QWidget):
     def option_changed(self, option, value):
         """Option has changed"""
         setattr(self, to_text_string(option), value)
-        if not self.is_internal_shell:
-            settings = self.get_view_settings()
-            communicate(self._get_sock(),
-                        'set_remote_view_settings()', settings=[settings])
+        settings = self.get_view_settings()
+        communicate(self._get_sock(),
+                    'set_remote_view_settings()', settings=[settings])
 
     def visibility_changed(self, enable):
         """Notify the widget whether its container (the namespace browser
@@ -279,35 +265,13 @@ class NamespaceBrowser(QWidget):
     def toggle_auto_refresh(self, state):
         """Toggle auto refresh state"""
         self.autorefresh = state
-        if not self.setup_in_progress and not self.is_internal_shell:
+        if not self.setup_in_progress:
             communicate(self._get_sock(),
                         "set_monitor_auto_refresh(%r)" % state)
-            
+
     def _get_sock(self):
         """Return socket connection"""
         return self.shellwidget.introspection_socket
-    
-    def get_internal_shell_filter(self, mode, check_all=None):
-        """
-        Return internal shell data types filter:
-            * check_all: check all elements data types for sequences
-              (dict, list, tuple)
-            * mode (string): 'editable' or 'picklable'
-        """
-        assert mode in list(SUPPORTED_TYPES.keys())
-        if check_all is None:
-            check_all = self.check_all
-        def wsfilter(input_dict, check_all=check_all,
-                     filters=tuple(SUPPORTED_TYPES[mode])):
-            """Keep only objects that can be pickled"""
-            return globalsfilter(
-                         input_dict, check_all=check_all, filters=filters,
-                         exclude_private=self.exclude_private,
-                         exclude_uppercase=self.exclude_uppercase,
-                         exclude_capitalized=self.exclude_capitalized,
-                         exclude_unsupported=self.exclude_unsupported,
-                         excluded_names=self.excluded_names)
-        return wsfilter
 
     def get_view_settings(self):
         """Return dict editor view settings"""
@@ -320,15 +284,7 @@ class NamespaceBrowser(QWidget):
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            if self.is_internal_shell:
-                # Internal shell
-                wsfilter = self.get_internal_shell_filter('editable')
-                self.editor.set_filter(wsfilter)
-                interpreter = self.shellwidget.interpreter
-                if interpreter is not None:
-                    self.editor.set_data(interpreter.namespace)
-                    self.editor.adjust_columns()
-            elif self.shellwidget.is_running():
+            if self.shellwidget.is_running():
                 sock = self._get_sock()
                 if sock is None:
                     return
@@ -498,34 +454,20 @@ class NamespaceBrowser(QWidget):
                 error_message = None
                 try:
                     text, _encoding = encoding.read(self.filename)
-                    if self.is_internal_shell:
-                        self.editor.import_from_string(text)
-                    else:
-                        base_name = osp.basename(self.filename)
-                        editor = ImportWizard(self, text, title=base_name,
-                                      varname=fix_reference_name(base_name))
-                        if editor.exec_():
-                            var_name, clip_data = editor.get_data()
-                            monitor_set_global(self._get_sock(),
-                                               var_name, clip_data)
+                    base_name = osp.basename(self.filename)
+                    editor = ImportWizard(self, text, title=base_name,
+                                  varname=fix_reference_name(base_name))
+                    if editor.exec_():
+                        var_name, clip_data = editor.get_data()
+                        monitor_set_global(self._get_sock(),
+                                           var_name, clip_data)
                 except Exception as error:
                     error_message = str(error)
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                if self.is_internal_shell:
-                    namespace, error_message = load_func(self.filename)
-                    interpreter = self.shellwidget.interpreter
-                    for key in list(namespace.keys()):
-                        new_key = fix_reference_name(key,
-                                     blacklist=list(interpreter.namespace.keys()))
-                        if new_key != key:
-                            namespace[new_key] = namespace.pop(key)
-                    if error_message is None:
-                        interpreter.namespace.update(namespace)
-                else:
-                    error_message = monitor_load_globals(self._get_sock(),
-                                                         self.filename, ext)
+                error_message = monitor_load_globals(self._get_sock(),
+                                                     self.filename, ext)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
@@ -552,15 +494,9 @@ class NamespaceBrowser(QWidget):
                 return False
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
-        if self.is_internal_shell:
-            wsfilter = self.get_internal_shell_filter('picklable',
-                                                      check_all=True)
-            namespace = wsfilter(self.shellwidget.interpreter.namespace).copy()
-            error_message = iofunctions.save(namespace, filename)
-        else:
-            settings = self.get_view_settings()
-            error_message = monitor_save_globals(self._get_sock(),
-                                                 settings, filename)
+        settings = self.get_view_settings()
+        error_message = monitor_save_globals(self._get_sock(), settings,
+                                             filename)
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
