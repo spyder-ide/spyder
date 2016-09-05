@@ -12,7 +12,6 @@
 # pylint: disable=R0201
 
 # Standard library imports
-import atexit
 import os
 import os.path as osp
 import sys
@@ -27,7 +26,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QInputDialog,
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, running_in_mac_app, SCIENTIFIC_STARTUP
+from spyder.config.base import _, SCIENTIFIC_STARTUP
 from spyder.config.main import CONF
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
