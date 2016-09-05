@@ -11,11 +11,12 @@ IPython client's widget
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
 
-from string import Template
 import os
 import os.path as osp
 import re
+from string import Template
 import sys
+from threading import Thread
 import time
 
 # Third party imports (qtpy)
@@ -61,6 +62,20 @@ TEMPLATES_PATH = osp.join(UTILS_PATH, 'ipython', 'templates')
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
+
+
+#-----------------------------------------------------------------------------
+# Auxiliary functions
+#-----------------------------------------------------------------------------
+def background(f):
+    """
+    Call a function in a simple thread, to prevent blocking
+
+    Taken from the Jupyter Qtconsole project
+    """
+    t = Thread(target=f)
+    t.start()
+    return t
 
 
 #-----------------------------------------------------------------------------
@@ -371,7 +386,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     append_to_history = Signal(str, str)
 
     def __init__(self, plugin, name, history_filename, connection_file=None,
-                 hostname=None, menu_actions=None):
+                 hostname=None, menu_actions=None, slave=False):
         super(IPythonClient, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
 
@@ -381,6 +396,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.connection_file = connection_file
         self.hostname = hostname
         self.menu_actions = menu_actions
+        self.slave = slave
 
         # --- Other attrs
         self.options_button = None
@@ -579,12 +595,11 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
-    def shutdown_kernel(self):
+    def shutdown(self):
         """Shutdown kernel"""
-        try:
+        if self.get_kernel() is not None and not self.slave:
             self.shellwidget.kernel_manager.shutdown_kernel()
-        except:
-            pass
+        background(self.shellwidget.kernel_client.stop_channels)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

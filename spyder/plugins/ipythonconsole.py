@@ -720,7 +720,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Perform actions before parent main window is closed"""
         self.mainwindow_close = True
         for client in self.clients:
-            client.shutdown_kernel()
+            client.shutdown()
             client.close()
         return True
 
@@ -976,20 +976,21 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
-        if not self.mainwindow_close and not force and \
-          isinstance(client, IPythonClient):
+        if not self.mainwindow_close and not force:
             close_all = True
-            if len(self.get_related_clients(client)) > 0 and \
-              self.get_option('ask_before_closing'):
-                ans = QMessageBox.question(self, self.get_plugin_title(),
-                       _("Do you want to close all other consoles connected "
-                         "to the same kernel as this one?"),
-                       QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-                if ans == QMessageBox.Cancel:
+            if self.get_option('ask_before_closing'):
+                close = QMessageBox.question(self, self.get_plugin_title(),
+                                       _("Do you want to close this console?"),
+                                       QMessageBox.Yes | QMessageBox.No)
+                if close == QMessageBox.No:
                     return
-                close_all = ans == QMessageBox.Yes
-            if close_all:
-                client.shutdown_kernel()
+            if len(self.get_related_clients(client)) > 0:
+                close_all = QMessageBox.question(self, self.get_plugin_title(),
+                         _("Do you want to close all other consoles connected "
+                           "to the same kernel as this one?"),
+                           QMessageBox.Yes | QMessageBox.No)
+            client.shutdown()
+            if close_all == QMessageBox.Yes:
                 self.close_related_clients(client)
         client.close()
 
@@ -1034,7 +1035,9 @@ class IPythonConsole(SpyderPluginWidget):
         and the selected interpreter
         """
         self.master_clients = 0
-        for client in self.clients:
+        for i in range(len(self.clients)):
+            client = self.clients[-1]
+            client.shutdown()
             self.close_client(client=client, force=True)
         self.create_new_client(give_focus=False)
 
@@ -1250,7 +1253,8 @@ class IPythonConsole(SpyderPluginWidget):
                                history_filename='history.py',
                                connection_file=connection_file, 
                                menu_actions=self.menu_actions,
-                               hostname=hostname)
+                               hostname=hostname,
+                               slave=True)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
