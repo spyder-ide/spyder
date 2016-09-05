@@ -53,7 +53,6 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.ipyclient = None
-        self.is_ipykernel = None
         self.is_visible = True
         self.setup_in_progress = None
 
@@ -104,7 +103,7 @@ class NamespaceBrowser(QWidget):
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
             # Don't turn autorefresh on for IPython kernels
             # See Issue 1450
-            if not self.is_ipykernel:
+            if self.ipyclient is not None:
                 self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
@@ -370,7 +369,7 @@ class NamespaceBrowser(QWidget):
                   "__items__ = getattr(spyder.pyplot, '%s')(%s); "\
                   "spyder.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
-        if self.is_ipykernel:
+        if self.ipyclient is not None:
             self.ipyclient.shellwidget.execute("%%varexp --%s %s" % (funcname,
                                                                    name))
         else:
@@ -381,14 +380,14 @@ class NamespaceBrowser(QWidget):
                   "__fig__ = spyder.pyplot.figure(); " \
                   "__items__ = spyder.pyplot.imshow(%s); " \
                   "spyder.pyplot.show(); del __fig__, __items__;" % name
-        if self.is_ipykernel:
+        if self.ipyclient is not None:
             self.ipyclient.shellwidget.execute("%%varexp --imshow %s" % name)
         else:
             self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
         command = "%s.show()" % name
-        if self.is_ipykernel:
+        if self.ipyclient is not None:
             self.ipyclient.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
