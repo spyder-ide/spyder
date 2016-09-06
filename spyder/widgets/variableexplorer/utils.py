@@ -298,6 +298,8 @@ def value_to_display(value, minmax=False):
         elif isinstance(value, NavigableString):
             # Fixes Issue 2448
             display = to_text_string(value)
+        elif isinstance(value, DatetimeIndex):
+            display = value.summary()
         elif is_binary_string(value):
             try:
                 display = to_text_string(value, 'utf8')
