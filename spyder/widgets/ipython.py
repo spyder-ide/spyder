@@ -456,7 +456,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.update_history)
 
         # To update the Variable Explorer after execution
-        self.shellwidget.executed.connect(self.auto_refresh_namespacebrowser)
+        self.shellwidget.executed.connect(self.refresh_namespacebrowser)
 
         # To enable the stop button when executing a process
         self.shellwidget.executing.connect(self.enable_stop_button)
@@ -686,7 +686,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Configure associated namespace browser widget"""
         self.namespacebrowser.set_ipyclient(self)
 
-    def auto_refresh_namespacebrowser(self):
+    def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
             self.namespacebrowser.refresh_table()
