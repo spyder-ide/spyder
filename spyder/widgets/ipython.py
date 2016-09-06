@@ -11,9 +11,11 @@ IPython client's widget
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
 
+import ast
 import os
 import os.path as osp
 import re
+import uuid
 from string import Template
 import sys
 from threading import Thread
@@ -188,6 +190,7 @@ class IPythonShellWidget(RichJupyterWidget):
     """
     focus_changed = Signal()
     new_client = Signal()
+    sig_process_remote_view = Signal(object)
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -201,6 +204,9 @@ class IPythonShellWidget(RichJupyterWidget):
 
         # --- Keyboard shortcuts ---
         self.shortcuts = self.create_shortcuts()
+
+        # --- To communicate with Spyder ---
+        self._commands = {}
 
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
@@ -324,7 +330,59 @@ These commands were executed:
         else:
             return ''
 
-    #---- IPython private methods ---------------------------------------------
+    def silent_exec_command(self, code, command):
+        """Silently execute code in the kernel
+
+        Parameters
+        ----------
+        code : string
+            Valid string to be executed by the kernel.
+        command : string
+            String that determines how to handle the results of the
+            execution (e.g. by emmiting different Qt signals)
+
+        See Also
+        --------
+        handle_exec_command : Private method that deals with with the reply
+
+        Note
+        ----
+        This is based on the _silent_exec_callback method of
+        RichJupyterWidget. Therefore this is licensed BSD
+
+        """
+
+        # Generate uuid, which would be used as an indication of whether or
+        # not the unique request originated from here
+        local_uuid = to_text_string(uuid.uuid1())
+        code = to_text_string(code)
+        msg_id = self.kernel_client.execute('', silent=True,
+                                            user_expressions={ local_uuid:code })
+        self._commands[local_uuid] = command
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
+                                                         'silent_exec_command')
+
+    def handle_exec_command(self, msg):
+        """
+        Handle data returned by silent executions with commands
+        on the kernel.
+
+        This is based on the _handle_exec_callback of RichJupyterWidget.
+        Therefore this is licensed BSD.
+        """
+        user_exp = msg['content'].get('user_expressions')
+        if not user_exp:
+            return
+        for expression in user_exp:
+            if expression in self._commands:
+                command = self._commands[expression]
+                reply = user_exp[expression]
+                data = reply.get('data')
+                if command == 'remote_view':
+                    view = ast.literal_eval(data['text/plain'])
+                    self.sig_process_remote_view.emit(view)
+
+    #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(IPythonShellWidget, self)._context_menu_make(pos)
@@ -343,9 +401,8 @@ These commands were executed:
 
     def _handle_inspect_reply(self, rep):
         """
-        Reimplement call tips to only show signatures, using the same style
-        from our Editor and External Console too
-        Note: For IPython 3+
+        Reimplement call tips to only show signatures, using the same
+        style from our Editor and External Console too
         """
         cursor = self._get_cursor()
         info = self._request_info.get('call_tip')
@@ -357,7 +414,23 @@ These commands were executed:
                 if signature:
                     self._control.show_calltip(_("Arguments"), signature,
                                                signature=True, color='#2D62FF')
-    
+
+    def _handle_execute_reply(self, msg):
+        """
+        Reimplemented to handle communications between Spyder
+        and the kernel
+        """
+        msg_id = msg['parent_header']['msg_id']
+        info = self._request_info['execute'].get(msg_id)
+        # unset reading flag, because if execute finished, raw_input can't
+        # still be pending.
+        self._reading = False
+        if info and info.kind == 'silent_exec_command' and not self._hidden:
+            self.handle_exec_command(msg)
+            self._request_info['execute'].pop(msg_id)
+        else:
+            super(IPythonShellWidget, self)._handle_execute_reply(msg)
+
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
@@ -684,12 +757,19 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def configure_namespacebrowser(self):
         """Configure associated namespace browser widget"""
+        # Tell it that we are connected to client
         self.namespacebrowser.set_ipyclient(self)
+
+        # Update view
+        self.shellwidget.sig_process_remote_view.connect(lambda data:
+            self.namespacebrowser.process_remote_view(data))
 
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
-            self.namespacebrowser.refresh_table()
+            sw = self.shellwidget
+            sw.silent_exec_command('get_ipython().kernel.update_remote_view()',
+                                   'remote_view')
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
@@ -769,6 +849,13 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         # over IPython ones
         cfg._merge(spy_cfg)
         return cfg
+
+    def set_remote_view_settings(self):
+        """Set the namespace remote view settings"""
+        settings = to_text_string(self.namespacebrowser.get_view_settings())
+        code = u"get_ipython().kernel.remote_view_settings = {}".format(settings)
+        self.shellwidget.kernel_client.execute(to_text_string(code),
+                                               silent=True)
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

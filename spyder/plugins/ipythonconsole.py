@@ -935,6 +935,7 @@ class IPythonConsole(SpyderPluginWidget):
             nsb.auto_refresh_button.setChecked(True)
             nsb.auto_refresh_button.setChecked(False)
             nsb.auto_refresh_button.setEnabled(False)
+            client.set_remote_view_settings()
 
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)

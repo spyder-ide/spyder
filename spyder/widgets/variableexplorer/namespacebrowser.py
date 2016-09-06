@@ -283,9 +283,7 @@ class NamespaceBrowser(QWidget):
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            if self.ipyclient is not None:
-                pass
-            elif self.shellwidget.is_running():
+            if self.shellwidget.is_running():
                 sock = self._get_sock()
                 if sock is None:
                     return
