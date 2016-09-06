@@ -52,7 +52,7 @@ class NamespaceBrowser(QWidget):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
-        self.ipyclient = None
+        self.is_ipyclient = False
         self.is_visible = True
         self.setup_in_progress = None
 
@@ -101,9 +101,9 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
-            # Don't turn autorefresh on for IPython kernels
+            # Don't turn autorefresh on for IPython clients
             # See Issue 1450
-            if self.ipyclient is not None:
+            if not self.is_ipyclient:
                 self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
@@ -169,10 +169,6 @@ class NamespaceBrowser(QWidget):
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
 
-    def set_ipyclient(self, ipyclient):
-        """Bind ipyclient instance to namespace browser"""
-        self.ipyclient = ipyclient
-        
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported, autorefresh):
         """Setup toolbar"""
@@ -264,7 +260,7 @@ class NamespaceBrowser(QWidget):
     def toggle_auto_refresh(self, state):
         """Toggle auto refresh state"""
         self.autorefresh = state
-        if not self.setup_in_progress and not self.ipyclient:
+        if not self.setup_in_progress and not self.is_ipyclient:
             communicate(self._get_sock(),
                         "set_monitor_auto_refresh(%r)" % state)
 
@@ -367,9 +363,8 @@ class NamespaceBrowser(QWidget):
                   "__items__ = getattr(spyder.pyplot, '%s')(%s); "\
                   "spyder.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
-        if self.ipyclient is not None:
-            self.ipyclient.shellwidget.execute("%%varexp --%s %s" % (funcname,
-                                                                   name))
+        if self.is_ipyclient:
+            self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
         else:
             self.shellwidget.send_to_process(command)
         
@@ -378,15 +373,15 @@ class NamespaceBrowser(QWidget):
                   "__fig__ = spyder.pyplot.figure(); " \
                   "__items__ = spyder.pyplot.imshow(%s); " \
                   "spyder.pyplot.show(); del __fig__, __items__;" % name
-        if self.ipyclient is not None:
-            self.ipyclient.shellwidget.execute("%%varexp --imshow %s" % name)
+        if self.is_ipyclient:
+            self.shellwidget.execute("%%varexp --imshow %s" % name)
         else:
             self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
         command = "%s.show()" % name
-        if self.ipyclient is not None:
-            self.ipyclient.shellwidget.execute(command)
+        if self.is_ipyclient:
+            self.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
 

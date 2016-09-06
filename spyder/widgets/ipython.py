@@ -758,7 +758,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def configure_namespacebrowser(self):
         """Configure associated namespace browser widget"""
         # Tell it that we are connected to client
-        self.namespacebrowser.set_ipyclient(self)
+        self.namespacebrowser.is_ipyclient = True
 
         # Update view
         self.shellwidget.sig_process_remote_view.connect(lambda data:
