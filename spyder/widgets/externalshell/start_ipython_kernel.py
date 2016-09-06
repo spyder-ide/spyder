@@ -190,7 +190,10 @@ def main():
 
     # Fire up the kernel instance.
     from ipykernel.kernelapp import IPKernelApp
+    from spyder.widgets.externalshell.spyder_kernel import SpyderKernel
+
     ipk_temp = IPKernelApp.instance()
+    ipk_temp.kernel_class = SpyderKernel
     try:
         ipk_temp.config = kernel_config()
     except:
