@@ -383,8 +383,8 @@ def get_supported_types():
     except ImportError:
         pass
     try:
-        from pandas import DataFrame, Series
-        editable_types += [DataFrame, Series]
+        from pandas import DataFrame, Series, DatetimeIndex
+        editable_types += [DataFrame, Series, DatetimeIndex]
     except ImportError:
         pass
     picklable_types = editable_types[:]

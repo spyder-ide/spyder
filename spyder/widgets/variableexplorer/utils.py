@@ -82,9 +82,9 @@ def get_numpy_dtype(obj):
 # Pandas support
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, Series
+    from pandas import DataFrame, DatetimeIndex, Series
 else:
-    DataFrame = Series = FakeObject      # analysis:ignore
+    DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
 
 
 #==============================================================================
@@ -201,7 +201,8 @@ COLORS = {
            MaskedArray,
            matrix,
            DataFrame,
-           Series):           ARRAY_COLOR,
+           Series,
+           DatetimeIndex):    ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
