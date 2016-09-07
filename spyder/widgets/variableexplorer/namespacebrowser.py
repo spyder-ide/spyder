@@ -52,7 +52,6 @@ class NamespaceBrowser(QWidget):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
-        self.is_ipyclient = False
         self.is_visible = True
         self.setup_in_progress = None
 
@@ -73,9 +72,13 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
-        
+
         self.filename = None
-            
+
+        # For IPython clients
+        self.is_ipyclient = False
+        self.var_properties = {}
+
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
@@ -293,8 +296,11 @@ class NamespaceBrowser(QWidget):
         """Process remote view"""
         if remote_view is not None:
             self.set_data(remote_view)
+
+    def set_var_properties(self, properties):
+        self.var_properties = properties
         
-    #------ Remote Python process commands ------------------------------------
+    #------ Remote commands ------------------------------------
     def get_value(self, name):
         value = monitor_get_global(self._get_sock(), name)
         if value is None:
@@ -320,42 +326,69 @@ class NamespaceBrowser(QWidget):
         
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
-        return communicate(self._get_sock(),
-                           'isinstance(%s, (tuple, list))' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_list']
+        else:
+            return communicate(self._get_sock(),
+                               'isinstance(%s, (tuple, list))' % name)
         
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
-        return communicate(self._get_sock(), 'isinstance(%s, dict)' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_dict']
+        else:
+            return communicate(self._get_sock(), 'isinstance(%s, dict)' % name)
         
     def get_len(self, name):
         """Return sequence length"""
-        return communicate(self._get_sock(), "len(%s)" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['len']
+        else:
+            return communicate(self._get_sock(), "len(%s)" % name)
         
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
-        return communicate(self._get_sock(), 'is_array("%s")' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_array']
+        else:
+            return communicate(self._get_sock(), 'is_array("%s")' % name)
         
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
-        return communicate(self._get_sock(), 'is_image("%s")' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_image']
+        else:
+            return communicate(self._get_sock(), 'is_image("%s")' % name)
 
     def is_data_frame(self, name):
         """Return True if variable is a DataFrame"""
-        return communicate(self._get_sock(),
-             "isinstance(globals()['%s'], DataFrame)" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_data_frame']
+        else:
+            return communicate(self._get_sock(),
+                               "isinstance(globals()['%s'], DataFrame)" % name)
 
     def is_series(self, name):
         """Return True if variable is a Series"""
-        return communicate(self._get_sock(),
-             "isinstance(globals()['%s'], Series)" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_series']
+        else:
+            return communicate(self._get_sock(),
+                               "isinstance(globals()['%s'], Series)" % name)
 
     def get_array_shape(self, name):
         """Return array's shape"""
-        return communicate(self._get_sock(), "%s.shape" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['array_shape']
+        else:
+            return communicate(self._get_sock(), "%s.shape" % name)
         
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        return communicate(self._get_sock(), "%s.ndim" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['array_ndim']
+        else:
+            return communicate(self._get_sock(), "%s.ndim" % name)
         
     def plot(self, name, funcname):
         command = "import spyder.pyplot; "\

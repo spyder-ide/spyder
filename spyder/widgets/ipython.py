@@ -191,6 +191,7 @@ class IPythonShellWidget(RichJupyterWidget):
     focus_changed = Signal()
     new_client = Signal()
     sig_namespace_view = Signal(object)
+    sig_var_properties = Signal(object)
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -381,6 +382,9 @@ These commands were executed:
                 if command == 'get_namespace_view':
                     view = ast.literal_eval(data['text/plain'])
                     self.sig_namespace_view.emit(view)
+                elif command == 'get_var_properties':
+                    properties = ast.literal_eval(data['text/plain'])
+                    self.sig_var_properties.emit(properties)
 
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):
@@ -764,12 +768,17 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_namespace_view.connect(lambda data:
             self.namespacebrowser.process_remote_view(data))
 
+        self.shellwidget.sig_var_properties.connect(lambda data:
+            self.namespacebrowser.set_var_properties(data))
+
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
             sw = self.shellwidget
             sw.silent_exec_command('get_ipython().kernel.get_namespace_view()',
                                    'get_namespace_view')
+            sw.silent_exec_command('get_ipython().kernel.get_var_properties()',
+                                   'get_var_properties')
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
