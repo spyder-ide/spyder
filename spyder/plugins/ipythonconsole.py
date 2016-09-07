@@ -1148,11 +1148,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         return kernel_manager, kernel_client
 
-    def kernel_execute(self, code):
-        """Execute code in the kernel without increasing the prompt"""
-        sw = self.get_current_shellwidget()
-        sw.kernel_client.execute(to_text_string(code), silent=True)
-
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name):
         """Add tab"""

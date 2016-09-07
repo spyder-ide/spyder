@@ -850,12 +850,16 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         cfg._merge(spy_cfg)
         return cfg
 
+    def silent_execute(self, code):
+        """Execute code in the kernel without increasing the prompt"""
+        self.shellwidget.kernel_client.execute(to_text_string(code),
+                                               silent=True)
+
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
         settings = to_text_string(self.namespacebrowser.get_view_settings())
-        code = u"get_ipython().kernel.namespace_view_settings = {}".format(settings)
-        self.shellwidget.kernel_client.execute(to_text_string(code),
-                                               silent=True)
+        code = u"get_ipython().kernel.namespace_view_settings = %s" % settings
+        self.silent_execute(code)
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
