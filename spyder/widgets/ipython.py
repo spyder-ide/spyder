@@ -354,10 +354,10 @@ These commands were executed:
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
-            self.silent_exec_command('get_ipython().kernel.get_namespace_view()',
-                                     'get_namespace_view')
-            self.silent_exec_command('get_ipython().kernel.get_var_properties()',
-                                     'get_var_properties')
+            self.silent_exec_command(
+                'get_ipython().kernel.get_namespace_view()')
+            self.silent_exec_command(
+                'get_ipython().kernel.get_var_properties()')
 
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
@@ -369,16 +369,13 @@ These commands were executed:
         """Execute code in the kernel without increasing the prompt"""
         self.kernel_client.execute(to_text_string(code), silent=True)
 
-    def silent_exec_command(self, code, command):
+    def silent_exec_command(self, code):
         """Silently execute code in the kernel
 
         Parameters
         ----------
         code : string
             Valid string to be executed by the kernel.
-        command : string
-            String that determines how to handle the results of the
-            execution (e.g. by emmiting different Qt signals)
 
         See Also
         --------
@@ -388,7 +385,6 @@ These commands were executed:
         ----
         This is based on the _silent_exec_callback method of
         RichJupyterWidget. Therefore this is licensed BSD
-
         """
 
         # Generate uuid, which would be used as an indication of whether or
@@ -397,6 +393,7 @@ These commands were executed:
         code = to_text_string(code)
         msg_id = self.kernel_client.execute('', silent=True,
                                             user_expressions={ local_uuid:code })
+        command = code.split('.')[-1]
         self._commands[local_uuid] = command
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
                                                          'silent_exec_command')
@@ -417,10 +414,10 @@ These commands were executed:
                 command = self._commands[expression]
                 reply = user_exp[expression]
                 data = reply.get('data')
-                if command == 'get_namespace_view':
+                if command == 'get_namespace_view()':
                     view = ast.literal_eval(data['text/plain'])
                     self.sig_namespace_view.emit(view)
-                elif command == 'get_var_properties':
+                elif command == 'get_var_properties()':
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
 
