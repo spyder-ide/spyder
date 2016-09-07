@@ -22,20 +22,28 @@ class SpyderKernel(IPythonKernel):
         super(SpyderKernel, self).__init__(*args, **kwargs)
         self.pdb_frame = None
         self.pdb_locals = {}
-        self.remote_view_settings = {}
+        self.namespace_view_settings = {}
 
-    def update_remote_view(self):
-        """Return namespace view
-
-        This is going to be rendered by the NamespaceBrowser
-        widget
+    def get_namespace_view(self):
         """
-        settings = self.remote_view_settings
+        Return the namespace view
+
+        This is a dictionary with the following structure
+
+        {'a': {'color': '#800000', 'size': 1, 'type': 'str', 'view': '1'}}
+
+        Here:
+        * 'a' is the variable name
+        * 'color' is the color used to show it
+        * 'size' and 'type' are self-evident
+        * and'view' is its value or the text shown in the last column
+        """
+        settings = self.namespace_view_settings
         if settings:
             ns = self.get_current_namespace()
             more_excluded_names = ['In', 'Out']
-            remote_view = make_remote_view(ns, settings, more_excluded_names)
-            return remote_view
+            view = make_remote_view(ns, settings, more_excluded_names)
+            return view
 
     def get_current_namespace(self, with_magics=False):
         """

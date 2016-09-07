@@ -190,7 +190,7 @@ class IPythonShellWidget(RichJupyterWidget):
     """
     focus_changed = Signal()
     new_client = Signal()
-    sig_process_remote_view = Signal(object)
+    sig_namespace_view = Signal(object)
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -378,9 +378,9 @@ These commands were executed:
                 command = self._commands[expression]
                 reply = user_exp[expression]
                 data = reply.get('data')
-                if command == 'remote_view':
+                if command == 'get_namespace_view':
                     view = ast.literal_eval(data['text/plain'])
-                    self.sig_process_remote_view.emit(view)
+                    self.sig_namespace_view.emit(view)
 
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):
@@ -761,15 +761,15 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.namespacebrowser.is_ipyclient = True
 
         # Update view
-        self.shellwidget.sig_process_remote_view.connect(lambda data:
+        self.shellwidget.sig_namespace_view.connect(lambda data:
             self.namespacebrowser.process_remote_view(data))
 
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
             sw = self.shellwidget
-            sw.silent_exec_command('get_ipython().kernel.update_remote_view()',
-                                   'remote_view')
+            sw.silent_exec_command('get_ipython().kernel.get_namespace_view()',
+                                   'get_namespace_view')
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
@@ -850,10 +850,10 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         cfg._merge(spy_cfg)
         return cfg
 
-    def set_remote_view_settings(self):
-        """Set the namespace remote view settings"""
+    def set_namespace_view_settings(self):
+        """Set the namespace view settings"""
         settings = to_text_string(self.namespacebrowser.get_view_settings())
-        code = u"get_ipython().kernel.remote_view_settings = {}".format(settings)
+        code = u"get_ipython().kernel.namespace_view_settings = {}".format(settings)
         self.shellwidget.kernel_client.execute(to_text_string(code),
                                                silent=True)
 
