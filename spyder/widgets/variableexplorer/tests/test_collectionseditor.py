@@ -49,6 +49,7 @@ def test_collectionsmodel_with_datetimeindex():
     coll = {'rng': rng}
     cm = CollectionsModel(None, coll)
     assert data(cm, 0, 0) == 'rng'
+    assert data(cm, 0, 1) == 'DatetimeIndex'
     assert data(cm, 0, 3) == rng.summary()
 
 
