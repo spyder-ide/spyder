@@ -9,6 +9,7 @@ Spyder kernel for Jupyter
 """
 
 # Third-party imports
+from ipykernel.datapub import publish_data
 from ipykernel.ipkernel import IPythonKernel
 
 # Local imports
@@ -25,7 +26,7 @@ class SpyderKernel(IPythonKernel):
         self.pdb_locals = {}
         self.namespace_view_settings = {}
 
-    # -- Public API
+    # -- Public API ---------------------------------------------------
     def get_namespace_view(self):
         """
         Return the namespace view
@@ -76,7 +77,13 @@ class SpyderKernel(IPythonKernel):
         else:
             return {}
 
-    # -- Private API
+    def get_value(self, name):
+        """Get value of a variable"""
+        ns = self._get_current_namespace()
+        value = ns[name]
+        publish_data({'__spy_data__': value})
+
+    # -- Private API ---------------------------------------------------
     def _get_current_namespace(self, with_magics=False):
         """
         Return current namespace
