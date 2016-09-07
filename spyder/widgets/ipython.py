@@ -202,6 +202,7 @@ class IPythonShellWidget(RichJupyterWidget):
 
         # --- Spyder variables ---
         self.ipyclient = None
+        self.namespacebrowser = None
 
         # --- Keyboard shortcuts ---
         self.shortcuts = self.create_shortcuts()
@@ -293,6 +294,7 @@ These commands were executed:
 
         return [inspect, clear_console]
 
+    # ---- For the Help plugin ----------------------------------------
     def clean_invalid_var_chars(self, var):
         """
         Replace invalid variable chars in a string by underscores
@@ -330,6 +332,38 @@ These commands were executed:
             return signature
         else:
             return ''
+
+    #---- For commnucation with the Variable Explorer -------------------
+    def set_namespacebrowser(self, namespacebrowser):
+        """Set namespace browser widget"""
+        self.namespacebrowser = namespacebrowser
+        self.configure_namespacebrowser()
+
+    def configure_namespacebrowser(self):
+        """Configure associated namespace browser widget"""
+        # Tell it that we are connected to client
+        self.namespacebrowser.is_ipyclient = True
+
+        # Update view
+        self.sig_namespace_view.connect(lambda data:
+            self.namespacebrowser.process_remote_view(data))
+
+        self.sig_var_properties.connect(lambda data:
+            self.namespacebrowser.set_var_properties(data))
+
+    def refresh_namespacebrowser(self):
+        """Refresh namespace browser"""
+        if self.namespacebrowser:
+            self.silent_exec_command('get_ipython().kernel.get_namespace_view()',
+                                     'get_namespace_view')
+            self.silent_exec_command('get_ipython().kernel.get_var_properties()',
+                                     'get_var_properties')
+
+    def set_namespace_view_settings(self):
+        """Set the namespace view settings"""
+        settings = to_text_string(self.namespacebrowser.get_view_settings())
+        code = u"get_ipython().kernel.namespace_view_settings = %s" % settings
+        self.silent_execute(code)
 
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
@@ -485,7 +519,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.stop_icon = ima.icon('stop')
         self.get_option = plugin.get_option
         self.history = []
-        self.namespacebrowser = None
 
         # --- Widgets
         self.shellwidget = IPythonShellWidget(config=self.shellwidget_config(),
@@ -537,7 +570,8 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.update_history)
 
         # To update the Variable Explorer after execution
-        self.shellwidget.executed.connect(self.refresh_namespacebrowser)
+        self.shellwidget.executed.connect(
+            self.shellwidget.refresh_namespacebrowser)
 
         # To enable the stop button when executing a process
         self.shellwidget.executing.connect(self.enable_stop_button)
@@ -758,32 +792,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             self.shellwidget._append_plain_text(message + '\n')
             self.shellwidget.execute("%gui inline\n%gui qt")
 
-    def set_namespacebrowser(self, namespacebrowser):
-        """Set namespace browser widget"""
-        self.namespacebrowser = namespacebrowser
-        self.configure_namespacebrowser()
-
-    def configure_namespacebrowser(self):
-        """Configure associated namespace browser widget"""
-        # Tell it that we are connected to client
-        self.namespacebrowser.is_ipyclient = True
-
-        # Update view
-        self.shellwidget.sig_namespace_view.connect(lambda data:
-            self.namespacebrowser.process_remote_view(data))
-
-        self.shellwidget.sig_var_properties.connect(lambda data:
-            self.namespacebrowser.set_var_properties(data))
-
-    def refresh_namespacebrowser(self):
-        """Refresh namespace browser"""
-        if self.namespacebrowser:
-            sw = self.shellwidget
-            sw.silent_exec_command('get_ipython().kernel.get_namespace_view()',
-                                   'get_namespace_view')
-            sw.silent_exec_command('get_ipython().kernel.get_var_properties()',
-                                   'get_var_properties')
-
     def set_editor(self):
         """Set the editor used by the %edit magic"""
         python = sys.executable
@@ -862,12 +870,6 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         # over IPython ones
         cfg._merge(spy_cfg)
         return cfg
-
-    def set_namespace_view_settings(self):
-        """Set the namespace view settings"""
-        settings = to_text_string(self.namespacebrowser.get_view_settings())
-        code = u"get_ipython().kernel.namespace_view_settings = %s" % settings
-        self.shellwidget.silent_execute(code)
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

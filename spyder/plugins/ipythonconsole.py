@@ -924,7 +924,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Additional settings for the variable explorer
         if self.variableexplorer is not None:
-            nsb = client.namespacebrowser
+            nsb = shellwidget.namespacebrowser
             # When the autorefresh button is active, our kernels
             # start to consume more and more CPU during time
             # Fix Issue 1450
@@ -935,7 +935,7 @@ class IPythonConsole(SpyderPluginWidget):
             nsb.auto_refresh_button.setChecked(True)
             nsb.auto_refresh_button.setChecked(False)
             nsb.auto_refresh_button.setEnabled(False)
-            client.set_namespace_view_settings()
+            shellwidget.set_namespace_view_settings()
 
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)
@@ -1214,11 +1214,11 @@ class IPythonConsole(SpyderPluginWidget):
 
     def process_started(self, client):
         if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(client)
+            self.variableexplorer.add_shellwidget(client.shellwidget)
 
     def process_finished(self, client):
         if self.variableexplorer is not None:
-            self.variableexplorer.remove_shellwidget(id(client))
+            self.variableexplorer.remove_shellwidget(id(client.shellwidget))
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
