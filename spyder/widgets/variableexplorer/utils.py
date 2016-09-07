@@ -132,7 +132,7 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
-    if isinstance(item, (DataFrame, Series)):
+    if isinstance(item, (DataFrame, DatetimeIndex, Series)):
         return item.shape
     else:
         return 1
