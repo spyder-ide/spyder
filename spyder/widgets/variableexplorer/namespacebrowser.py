@@ -16,7 +16,7 @@ import socket
 
 # Third library imports
 from qtpy.compat import getsavefilename, getopenfilenames
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Qt, QEventLoop, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
@@ -78,6 +78,7 @@ class NamespaceBrowser(QWidget):
         # For IPython clients
         self.is_ipyclient = False
         self.var_properties = {}
+        self.kernel_values = None
 
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
@@ -298,17 +299,36 @@ class NamespaceBrowser(QWidget):
             self.set_data(remote_view)
 
     def set_var_properties(self, properties):
+        """Set properties of variables"""
         self.var_properties = properties
+
+    def set_ipykernel_data(self, data):
+        """Assign to an attribute the data returned by the kernel"""
+        self.ipykernel_data = data
         
     #------ Remote commands ------------------------------------
     def get_value(self, name):
-        value = monitor_get_global(self._get_sock(), name)
-        if value is None:
-            if communicate(self._get_sock(), '%s is not None' % name):
-                import pickle
-                msg = to_text_string(_("Object <b>%s</b> is not picklable")
-                                     % name)
-                raise pickle.PicklingError(msg)
+        if self.is_ipyclient:
+            # Wait until the kernel returns the value
+            wait_loop = QEventLoop()
+            self.shellwidget.sig_send_value.connect(wait_loop.quit)
+            self.shellwidget.get_value(name)
+            wait_loop.exec_()
+
+            # Remove loop connection and loop
+            self.shellwidget.sig_send_value.disconnect(wait_loop.quit)
+            wait_loop = None
+
+            # Get the value
+            value = self.ipykernel_data
+        else:
+            value = monitor_get_global(self._get_sock(), name)
+            if value is None:
+                if communicate(self._get_sock(), '%s is not None' % name):
+                    import pickle
+                    msg = to_text_string(_("Object <b>%s</b> is not picklable")
+                                         % name)
+                    raise pickle.PicklingError(msg)
         return value
         
     def set_value(self, name, value):

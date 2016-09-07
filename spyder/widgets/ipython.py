@@ -28,6 +28,8 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QTextEdit,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Third party imports (Jupyter)
+from ipykernel.pickleutil import CannedObject
+from ipykernel.serialize import deserialize_object
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 
@@ -190,6 +192,7 @@ class IPythonShellWidget(RichJupyterWidget):
     new_client = Signal()
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
+    sig_send_value = Signal(object)
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -331,7 +334,7 @@ These commands were executed:
         else:
             return ''
 
-    #---- For commnucation with the Variable Explorer -------------------
+    #---- For the Variable Explorer -------------------
     def set_namespacebrowser(self, namespacebrowser):
         """Set namespace browser widget"""
         self.namespacebrowser = namespacebrowser
@@ -342,12 +345,18 @@ These commands were executed:
         # Tell it that we are connected to client
         self.namespacebrowser.is_ipyclient = True
 
-        # Update view
+        # Update namespace view
         self.sig_namespace_view.connect(lambda data:
             self.namespacebrowser.process_remote_view(data))
 
+        # Update properties of variables
         self.sig_var_properties.connect(lambda data:
             self.namespacebrowser.set_var_properties(data))
+
+        # Assign data returned by the kernel to a variable
+        # in namespacebrowser to be used by its editors
+        self.sig_send_value.connect(lambda data:
+            self.namespacebrowser.set_ipykernel_data(data))
 
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
@@ -418,6 +427,22 @@ These commands were executed:
                 elif command == 'get_var_properties()':
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
+
+    def get_value(self, name):
+        """Ask kernel for a value"""
+        self.silent_execute("get_ipython().kernel.get_value('%s')" % name)
+
+    def _handle_data_message(self, msg):
+        """Handle raw (serialized) data sent by the kernel"""
+        # Deserialize data
+        data = deserialize_object(msg['buffers'])[0]
+
+        # We only handle data asked by Spyder
+        value = data.get('__spy_data__', None)
+        if value is not None:
+            if isinstance(value, CannedObject):
+                value = value.get_object()
+            self.sig_send_value.emit(value)
 
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):
