@@ -391,24 +391,24 @@ class NamespaceBrowser(QWidget):
             return communicate(self._get_sock(), "%s.ndim" % name)
         
     def plot(self, name, funcname):
-        command = "import spyder.pyplot; "\
+        if self.is_ipyclient:
+            self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
+        else:
+            command = "import spyder.pyplot; "\
                   "__fig__ = spyder.pyplot.figure(); "\
                   "__items__ = getattr(spyder.pyplot, '%s')(%s); "\
                   "spyder.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
-        if self.is_ipyclient:
-            self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
-        else:
             self.shellwidget.send_to_process(command)
         
     def imshow(self, name):
-        command = "import spyder.pyplot; " \
-                  "__fig__ = spyder.pyplot.figure(); " \
-                  "__items__ = spyder.pyplot.imshow(%s); " \
-                  "spyder.pyplot.show(); del __fig__, __items__;" % name
         if self.is_ipyclient:
             self.shellwidget.execute("%%varexp --imshow %s" % name)
         else:
+            command = "import spyder.pyplot; " \
+                  "__fig__ = spyder.pyplot.figure(); " \
+                  "__items__ = spyder.pyplot.imshow(%s); " \
+                  "spyder.pyplot.show(); del __fig__, __items__;" % name
             self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
