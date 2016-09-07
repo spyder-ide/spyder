@@ -25,7 +25,7 @@ import sys
 # Third party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_client.kernelspec import KernelSpec
-from jupyter_core.paths import jupyter_runtime_dir
+from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy import PYQT5
@@ -36,6 +36,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
                             QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
                             QTabWidget, QVBoxLayout, QWidget)
+from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 try:
     import pexpect
@@ -44,7 +45,8 @@ except ImportError:
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, get_home_dir, get_module_source_path
+from spyder.config.base import (_, DEV, get_home_dir, get_module_path,
+                                get_module_source_path)
 from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
@@ -867,7 +869,8 @@ class IPythonConsole(SpyderPluginWidget):
         name = "%d/A" % self.master_clients
         client = IPythonClient(self, name=name, history_filename='history.py',
                                menu_actions=self.menu_actions,
-                               connection_file=self._new_connection_file())
+                               connection_file=self._new_connection_file(),
+                               config_options=self.config_options())
         self.add_tab(client, name=client.get_name())
 
         # Check if ipykernel is present in the external interpreter.
@@ -912,6 +915,85 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
+
+    def set_editor(self):
+        """Set the editor used by the %edit magic"""
+        python = sys.executable
+        if DEV:
+            spyder_start_directory = get_module_path('spyder')
+            bootstrap_script = osp.join(osp.dirname(spyder_start_directory),
+                                        'bootstrap.py')
+            editor = u'{0} {1} --'.format(python, bootstrap_script)
+        else:
+            import1 = "import sys"
+            import2 = "from spyder.app.start import send_args_to_spyder"
+            code = "send_args_to_spyder([sys.argv[-1]])"
+            editor = u"{0} -c '{1}; {2}; {3}'".format(python,
+                                                      import1,
+                                                      import2,
+                                                      code)
+        return to_text_string(editor)
+
+    def config_options(self):
+        """
+        Generate a Config instance for shell widgets using our config
+        system
+
+        This lets us create each widget with its own config
+        """
+        # ---- Jupyter config ----
+        try:
+            full_cfg = load_pyconfig_files(['jupyter_qtconsole_config.py'],
+                                           jupyter_config_dir())
+
+            # From the full config we only select the JupyterWidget section
+            # because the others have no effect here.
+            cfg = Config({'JupyterWidget': full_cfg.JupyterWidget})
+        except:
+            cfg = Config()
+
+        # ---- Spyder config ----
+        spy_cfg = Config()
+
+        # Make the pager widget a rich one (i.e a QTextEdit)
+        spy_cfg.JupyterWidget.kind = 'rich'
+
+        # Gui completion widget
+        completion_type_o = CONF.get('ipython_console', 'completion_type')
+        completions = {0: "droplist", 1: "ncurses", 2: "plain"}
+        spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
+
+        # Pager
+        pager_o = self.get_option('use_pager')
+        if pager_o:
+            spy_cfg.JupyterWidget.paging = 'inside'
+        else:
+            spy_cfg.JupyterWidget.paging = 'none'
+
+        # Calltips
+        calltips_o = self.get_option('show_calltips')
+        spy_cfg.JupyterWidget.enable_calltips = calltips_o
+
+        # Buffer size
+        buffer_size_o = self.get_option('buffer_size')
+        spy_cfg.JupyterWidget.buffer_size = buffer_size_o
+
+        # Prompts
+        in_prompt_o = self.get_option('in_prompt')
+        out_prompt_o = self.get_option('out_prompt')
+        if in_prompt_o:
+            spy_cfg.JupyterWidget.in_prompt = in_prompt_o
+        if out_prompt_o:
+            spy_cfg.JupyterWidget.out_prompt = out_prompt_o
+
+        # Editor for %edit
+        if CONF.get('main', 'single_instance'):
+            spy_cfg.JupyterWidget.editor = self.set_editor()
+
+        # Merge IPython and Spyder configs. Spyder prefs will have prevalence
+        # over IPython ones
+        cfg._merge(spy_cfg)
+        return cfg
 
     def register_client(self, client, give_focus=True):
         """Register new client"""
@@ -1259,6 +1341,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Creating the client
         client = IPythonClient(self, name=name,
                                history_filename='history.py',
+                               config_options=self.config_options(),
                                connection_file=connection_file, 
                                menu_actions=self.menu_actions,
                                hostname=hostname,
