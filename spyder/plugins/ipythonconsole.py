@@ -881,13 +881,17 @@ class IPythonConsole(SpyderPluginWidget):
             ipykernel_present = programs.is_module_installed('ipykernel',
                                                             interpreter=pyexec)
             if not ipykernel_present:
-                client.show_kernel_error(_("You are using an external "
-                                     "interpreter and you don't seem to have "
-                                     "the <tt>ipykernel</tt> module installed "
-                                     "on it.<br><br>"
-                                     "Without this module is not possible for "
-                                     "Spyder to create an IPython console for "
-                                     "you."))
+                client.show_kernel_error(_("Your Python environment or "
+                                     "installation doesn't "
+                                     "have the <tt>ipykernel</tt> module "
+                                     "installed on it. Without this module is "
+                                     "not possible for Spyder to create a "
+                                     "console for you.<br><br>"
+                                     "You can install <tt>ipykernel</tt> by "
+                                     "running in a terminal:<br><br>"
+                                     "<tt>pip install ipykernel</tt><br><br>"
+                                     "or<br><br>"
+                                     "<tt>conda install ipykernel</tt>"))
                 return
 
         self.connect_client_to_kernel(client)
