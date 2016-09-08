@@ -489,7 +489,11 @@ class CollectionsDelegate(QItemDelegate):
             editor = QLineEdit(parent)
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignLeft)
-            editor.returnPressed.connect(self.commitAndCloseEditor)
+            # This is making Spyder crash because the QLineEdit that it's
+            # been modified is removed and a new one is created after
+            # evaluation. So the object on which this method is trying to
+            # act doesn't exist anymore.
+            # editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = CollectionsEditor for an arbitrary object
         else:
