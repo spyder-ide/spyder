@@ -98,7 +98,7 @@ class SpyderKernel(IPythonKernel):
 
     def set_value(self, name, value):
         """Set the value of a variable"""
-        ns = self.shell.user_ns
+        ns = self._get_reference_namespace(name)
         value = deserialize_object(value)[0]
         if isinstance(value, CannedObject):
             value = value.get_object()
@@ -130,6 +130,22 @@ class SpyderKernel(IPythonKernel):
             ns.update(cell_magics)
 
         return ns
+
+    def _get_reference_namespace(self, name):
+        """
+        Return namespace where reference name is defined
+
+        It returns the globals() if reference has not yet been defined
+        """
+        glbs = self._mglobals()
+        if self.pdb_frame is None:
+            return glbs
+        else:
+            lcls = self.pdb_locals
+            if name in lcls:
+                return lcls
+            else:
+                return glbs
 
     def _mglobals(self):
         """Return current globals -- handles Pdb frames"""
