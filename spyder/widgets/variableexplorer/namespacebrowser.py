@@ -14,12 +14,18 @@ This is the main widget used in the Variable Explorer plugin
 import os.path as osp
 import socket
 
-# Third library imports
+# Third library imports (qtpy)
 from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, QEventLoop, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
+
+# Third party imports (others)
+try:
+    from ipykernel.serialize import serialize_object
+except ImportError:
+    serialize_object = None
 
 # Local imports
 from spyder.config.base import _, get_supported_types
@@ -283,16 +289,19 @@ class NamespaceBrowser(QWidget):
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            if self.shellwidget.is_running():
-                sock = self._get_sock()
-                if sock is None:
-                    return
-                try:
-                    communicate(sock, "refresh()")
-                except socket.error:
-                    # Process was terminated before calling this method
-                    pass                
-                
+            if self.is_ipyclient:
+                self.shellwidget.refresh_namespacebrowser()
+            else:
+                if self.shellwidget.is_running():
+                    sock = self._get_sock()
+                    if sock is None:
+                        return
+                    try:
+                        communicate(sock, "refresh()")
+                    except socket.error:
+                        # Process was terminated before calling this method
+                        pass
+
     def process_remote_view(self, remote_view):
         """Process remote view"""
         if remote_view is not None:
@@ -332,7 +341,12 @@ class NamespaceBrowser(QWidget):
         return value
         
     def set_value(self, name, value):
-        monitor_set_global(self._get_sock(), name, value)
+        if self.is_ipyclient:
+            if serialize_object is not None:
+                value = serialize_object(value)
+                self.shellwidget.set_value(name, value)
+        else:
+            monitor_set_global(self._get_sock(), name, value)
         self.refresh_table()
         
     def remove_values(self, names):

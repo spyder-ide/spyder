@@ -11,14 +11,15 @@ Spyder kernel for Jupyter
 # Standard library imports
 import os
 
-# Check if we are running under an external interpreter
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
 # Third-party imports
 from ipykernel.datapub import publish_data
 from ipykernel.ipkernel import IPythonKernel
+from ipykernel.pickleutil import CannedObject
+from ipykernel.serialize import deserialize_object
 
-# Local imports
+# Check if we are running under an external interpreter
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+
 if not IS_EXT_INTERPRETER:
     from spyder.widgets.variableexplorer.utils import (get_remote_data,
                                                        make_remote_view)
@@ -90,10 +91,18 @@ class SpyderKernel(IPythonKernel):
             return {}
 
     def get_value(self, name):
-        """Get value of a variable"""
+        """Get the value of a variable"""
         ns = self._get_current_namespace()
         value = ns[name]
         publish_data({'__spy_data__': value})
+
+    def set_value(self, name, value):
+        """Set the value of a variable"""
+        ns = self.shell.user_ns
+        value = deserialize_object(value)[0]
+        if isinstance(value, CannedObject):
+            value = value.get_object()
+        ns[name] = value
 
     # -- Private API ---------------------------------------------------
     def _get_current_namespace(self, with_magics=False):

@@ -442,7 +442,7 @@ These commands were executed:
         """
         Handle raw (serialized) data sent by the kernel
 
-        We only handle data asked by Spyder, in case people uses
+        We only handle data asked by Spyder, in case people use
         publish_data for other purposes.
         """
         # Deserialize data
@@ -454,6 +454,12 @@ These commands were executed:
             if isinstance(value, CannedObject):
                 value = value.get_object()
             self.sig_send_value.emit(value)
+
+    def set_value(self, name, value):
+        """Set value for a variable"""
+        value = to_text_string(value)
+        self.silent_execute("get_ipython().kernel.set_value('%s', %s)" %
+                            (name, value))
 
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):
