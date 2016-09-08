@@ -104,6 +104,11 @@ class SpyderKernel(IPythonKernel):
             value = value.get_object()
         ns[name] = value
 
+    def remove_value(self, name):
+        """Remove a variable"""
+        ns = self._get_reference_namespace(name)
+        ns.pop(name)
+
     # -- Private API ---------------------------------------------------
     def _get_current_namespace(self, with_magics=False):
         """

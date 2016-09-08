@@ -351,7 +351,10 @@ class NamespaceBrowser(QWidget):
         
     def remove_values(self, names):
         for name in names:
-            monitor_del_global(self._get_sock(), name)
+            if self.is_ipyclient:
+                self.shellwidget.remove_value(name)
+            else:
+                monitor_del_global(self._get_sock(), name)
         self.refresh_table()
         
     def copy_value(self, orig_name, new_name):
