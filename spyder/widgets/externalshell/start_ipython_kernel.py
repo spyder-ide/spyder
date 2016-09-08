@@ -8,9 +8,14 @@
 File used to start IPython kernels
 """
 
+# Standard library imports
 import os
 import os.path as osp
 import sys
+
+
+# Check if we are running under an external interpreter
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
 
 def sympy_config(mpl_backend):
@@ -32,13 +37,9 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options"""
-    external_interpreter = \
-                   os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
-
     from IPython.core.application import get_ipython_dir
     from traitlets.config.loader import Config, load_pyconfig_files
-    if not external_interpreter:
+    if not IS_EXT_INTERPRETER:
         from spyder.config.main import CONF
         from spyder.utils.programs import is_module_installed
     else:
@@ -77,7 +78,7 @@ def kernel_config():
 
     if mpl_installed and pylab_o:
         # Get matplotlib backend
-        if not external_interpreter:
+        if not IS_EXT_INTERPRETER:
             if os.environ["QT_API"] == 'pyqt5':
                 qt_backend = 'qt5'
             else:
@@ -190,7 +191,14 @@ def main():
 
     # Fire up the kernel instance.
     from ipykernel.kernelapp import IPKernelApp
-    from spyder.widgets.externalshell.spyder_kernel import SpyderKernel
+
+    if not IS_EXT_INTERPRETER:
+        from spyder.widgets.externalshell.spyder_kernel import SpyderKernel
+    else:
+        # We add "spyder" to sys.path for external interpreters,
+        # so this works!
+        # See create_kernel_spec of plugins/ipythonconsole
+        from widgets.externalshell.spyder_kernel import SpyderKernel
 
     ipk_temp = IPKernelApp.instance()
     ipk_temp.kernel_class = SpyderKernel

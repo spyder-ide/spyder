@@ -8,13 +8,25 @@
 Spyder kernel for Jupyter
 """
 
+# Standard library imports
+import os
+
+# Check if we are running under an external interpreter
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+
 # Third-party imports
 from ipykernel.datapub import publish_data
 from ipykernel.ipkernel import IPythonKernel
 
 # Local imports
-from spyder.widgets.variableexplorer.utils import (get_remote_data,
-                                                   make_remote_view)
+if not IS_EXT_INTERPRETER:
+    from spyder.widgets.variableexplorer.utils import (get_remote_data,
+                                                       make_remote_view)
+else:
+    # We add "spyder" to sys.path for external interpreters, so this works!
+    # See create_kernel_spec of plugins/ipythonconsole
+    from widgets.variableexplorer.utils import (get_remote_data,
+                                                make_remote_view)
 
 
 class SpyderKernel(IPythonKernel):
