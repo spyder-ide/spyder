@@ -208,8 +208,9 @@ class IPythonShellWidget(RichJupyterWidget):
         # --- Keyboard shortcuts ---
         self.shortcuts = self.create_shortcuts()
 
-        # --- To communicate with Spyder ---
-        self._commands = {}
+        # --- To save the replies of kernel method executions
+        #     (except getting values of variables)
+        self._kernel_methods = {}
 
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
@@ -361,9 +362,9 @@ These commands were executed:
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
-            self.silent_exec_command(
+            self.silent_exec_method(
                 'get_ipython().kernel.get_namespace_view()')
-            self.silent_exec_command(
+            self.silent_exec_method(
                 'get_ipython().kernel.get_var_properties()')
 
     def set_namespace_view_settings(self):
@@ -376,39 +377,44 @@ These commands were executed:
         """Execute code in the kernel without increasing the prompt"""
         self.kernel_client.execute(to_text_string(code), silent=True)
 
-    def silent_exec_command(self, code):
-        """Silently execute code in the kernel
+    def silent_exec_method(self, code):
+        """Silently execute a kernel method and save its reply
+
+        The methods passed here **don't** involve getting a value
+        of a variable but instead replies that can be handled by
+        ast.literal_eval.
+
+        To get a value see `get_value`
 
         Parameters
         ----------
         code : string
-            Valid string to be executed by the kernel.
+            Code that contains the kernel method as part of its
+            string
 
         See Also
         --------
-        handle_exec_command : Private method that deals with the reply
+        handle_exec_method : Method that deals with the reply
 
         Note
         ----
         This is based on the _silent_exec_callback method of
         RichJupyterWidget. Therefore this is licensed BSD
         """
-
         # Generate uuid, which would be used as an indication of whether or
         # not the unique request originated from here
         local_uuid = to_text_string(uuid.uuid1())
         code = to_text_string(code)
         msg_id = self.kernel_client.execute('', silent=True,
                                             user_expressions={ local_uuid:code })
-        command = code.split('.')[-1]
-        self._commands[local_uuid] = command
+        method = code.split('.')[-1]
+        self._kernel_methods[local_uuid] = method
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
-                                                         'silent_exec_command')
+                                                         'silent_exec_method')
 
-    def handle_exec_command(self, msg):
+    def handle_exec_method(self, msg):
         """
-        Handle data returned by silent executions with commands
-        on the kernel.
+        Handle data returned by silent executions of kernel methods
 
         This is based on the _handle_exec_callback of RichJupyterWidget.
         Therefore this is licensed BSD.
@@ -417,14 +423,14 @@ These commands were executed:
         if not user_exp:
             return
         for expression in user_exp:
-            if expression in self._commands:
-                command = self._commands[expression]
+            if expression in self._kernel_methods:
+                method = self._kernel_methods[expression]
                 reply = user_exp[expression]
                 data = reply.get('data')
-                if command == 'get_namespace_view()':
+                if method == 'get_namespace_view()':
                     view = ast.literal_eval(data['text/plain'])
                     self.sig_namespace_view.emit(view)
-                elif command == 'get_var_properties()':
+                elif method == 'get_var_properties()':
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
 
@@ -433,7 +439,12 @@ These commands were executed:
         self.silent_execute("get_ipython().kernel.get_value('%s')" % name)
 
     def _handle_data_message(self, msg):
-        """Handle raw (serialized) data sent by the kernel"""
+        """
+        Handle raw (serialized) data sent by the kernel
+
+        We only handle data asked by Spyder, in case people uses
+        publish_data for other purposes.
+        """
         # Deserialize data
         data = deserialize_object(msg['buffers'])[0]
 
@@ -487,8 +498,8 @@ These commands were executed:
         # unset reading flag, because if execute finished, raw_input can't
         # still be pending.
         self._reading = False
-        if info and info.kind == 'silent_exec_command' and not self._hidden:
-            self.handle_exec_command(msg)
+        if info and info.kind == 'silent_exec_method' and not self._hidden:
+            self.handle_exec_method(msg)
             self._request_info['execute'].pop(msg_id)
         else:
             super(IPythonShellWidget, self)._handle_execute_reply(msg)
