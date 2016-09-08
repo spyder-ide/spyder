@@ -246,9 +246,13 @@ class NamespaceBrowser(QWidget):
     def option_changed(self, option, value):
         """Option has changed"""
         setattr(self, to_text_string(option), value)
-        settings = self.get_view_settings()
-        communicate(self._get_sock(),
-                    'set_remote_view_settings()', settings=[settings])
+        if self.is_ipyclient:
+            self.shellwidget.set_namespace_view_settings()
+            self.refresh_table()
+        else:
+            settings = self.get_view_settings()
+            communicate(self._get_sock(),
+                        'set_remote_view_settings()', settings=[settings])
 
     def visibility_changed(self, enable):
         """Notify the widget whether its container (the namespace browser
