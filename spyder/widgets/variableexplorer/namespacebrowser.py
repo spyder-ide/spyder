@@ -358,7 +358,10 @@ class NamespaceBrowser(QWidget):
         self.refresh_table()
         
     def copy_value(self, orig_name, new_name):
-        monitor_copy_global(self._get_sock(), orig_name, new_name)
+        if self.is_ipyclient:
+            self.shellwidget.copy_value(orig_name, new_name)
+        else:
+            monitor_copy_global(self._get_sock(), orig_name, new_name)
         self.refresh_table()
         
     def is_list(self, name):

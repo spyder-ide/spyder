@@ -109,6 +109,11 @@ class SpyderKernel(IPythonKernel):
         ns = self._get_reference_namespace(name)
         ns.pop(name)
 
+    def copy_value(self, orig_name, new_name):
+        """Copy a variable"""
+        ns = self._get_reference_namespace(orig_name)
+        ns[new_name] = ns[orig_name]
+
     # -- Private API ---------------------------------------------------
     def _get_current_namespace(self, with_magics=False):
         """

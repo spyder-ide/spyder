@@ -465,6 +465,11 @@ These commands were executed:
         """Remove a variable"""
         self.silent_execute("get_ipython().kernel.remove_value('%s')" % name)
 
+    def copy_value(self, orig_name, new_name):
+        """Copy a variable"""
+        self.silent_execute("get_ipython().kernel.copy_value('%s', '%s')" %
+                            (orig_name, new_name))
+
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
