@@ -918,7 +918,13 @@ class BaseTableView(QTableView):
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.model.keys[idx_rows[0]]
-        new_key, valid = QInputDialog.getText(self, _( 'Rename'), _( 'Key:'),
+        if erase_original:
+            title = _('Rename')
+            field_text = _('New variable name:')
+        else:
+            title = _('Duplicate')
+            field_text = _('Variable name:')
+        new_key, valid = QInputDialog.getText(self, title, field_text,
                                               QLineEdit.Normal, orig_key)
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
