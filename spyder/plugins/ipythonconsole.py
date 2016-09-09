@@ -622,6 +622,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.master_clients = 0
         self.clients = []
         self.mainwindow_close = False
+        self.create_new_client_if_empty = True
         self.default_interpreter = CONF.get('console',
                                             'pythonexecutable/default')
 
@@ -1079,6 +1080,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
+        if not self.tabwidget.count() and self.create_new_client_if_empty:
+            self.create_new_client()
         self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
@@ -1117,11 +1120,13 @@ class IPythonConsole(SpyderPluginWidget):
         and the selected interpreter
         """
         self.master_clients = 0
+        self.create_new_client_if_empty = False
         for i in range(len(self.clients)):
             client = self.clients[-1]
             client.shutdown()
             self.close_client(client=client, force=True)
         self.create_new_client(give_focus=False)
+        self.create_new_client_if_empty = True
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
