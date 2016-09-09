@@ -2437,10 +2437,10 @@ class MainWindow(QMainWindow):
         """
         fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
-        if self.variableexplorer is not None and ext in IMPORT_EXT:
-            self.variableexplorer.import_data(fname)
-        elif encoding.is_text_file(fname):
+        if encoding.is_text_file(fname):
             self.editor.load(fname)
+        elif self.variableexplorer is not None and ext in IMPORT_EXT:
+            self.variableexplorer.import_data(fname)
         elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
