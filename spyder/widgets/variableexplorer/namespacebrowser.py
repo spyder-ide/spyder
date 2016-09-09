@@ -587,8 +587,22 @@ class NamespaceBrowser(QWidget):
                 return False
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
-        settings = self.get_view_settings()
-        error_message = monitor_save_globals(self._get_sock(), settings,
+        if self.is_ipyclient:
+            # Wait until the kernel tries to load the file
+            wait_loop = QEventLoop()
+            self.shellwidget.sig_error_message.connect(wait_loop.quit)
+            self.shellwidget.save_namespace(self.filename)
+            wait_loop.exec_()
+
+            # Remove loop connection and loop
+            self.shellwidget.sig_error_message.disconnect(wait_loop.quit)
+            wait_loop = None
+
+            # Get the error message, if any
+            error_message = self.ipykernel_message
+        else:
+            settings = self.get_view_settings()
+            error_message = monitor_save_globals(self._get_sock(), settings,
                                              filename)
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()

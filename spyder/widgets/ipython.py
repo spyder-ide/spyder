@@ -442,6 +442,9 @@ These commands were executed:
                 elif 'load_data' in method:
                     error_message = ast.literal_eval(data['text/plain'])
                     self.sig_error_message.emit(error_message)
+                elif 'save_namespace' in method:
+                    error_message = ast.literal_eval(data['text/plain'])
+                    self.sig_error_message.emit(error_message)
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
@@ -485,6 +488,10 @@ These commands were executed:
     def load_data(self, filename, ext):
         self.silent_exec_method(
                 "get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
+
+    def save_namespace(self, filename):
+        self.silent_exec_method("get_ipython().kernel.save_namespace('%s')" %
+                                filename)
 
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):

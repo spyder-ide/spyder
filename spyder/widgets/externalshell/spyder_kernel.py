@@ -141,6 +141,14 @@ class SpyderKernel(IPythonKernel):
 
         return None
 
+    def save_namespace(self, filename):
+        """Save namespace into filename"""
+        ns = self._get_current_namespace()
+        settings = self.namespace_view_settings
+        data = get_remote_data(ns, settings, mode='picklable',
+                               more_excluded_names=['In', 'Out']).copy()
+        return iofunctions.save(data, filename)
+
     # -- Private API ---------------------------------------------------
     def _get_current_namespace(self, with_magics=False):
         """
