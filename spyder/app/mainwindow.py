@@ -1254,14 +1254,22 @@ class MainWindow(QMainWindow):
         if not self.extconsole.isvisible and not ipy_visible:
             self.historylog.add_history(get_conf_path('history.py'))
 
-        # Load last openned project (if a project was active when spyder closed)
         if self.projects is not None:
+            # Load last project (if a project was active when Spyder
+            # was closed)
             self.projects.reopen_last_project()
 
-            # Give focus to the Editor setup opened files
+            # Open last session files and give focus to the Editor
             if self.editor.dockwidget.isVisible():
                 # Load files
                 self.editor.setup_open_files()
+
+                # Open a new file if Editor is empty
+                editorstack = self.editor.get_current_editorstack()
+                if editorstack.get_stack_count() == 0 and \
+                  editorstack.create_new_file_if_empty:
+                    editorstack.sig_new_file[()].emit()
+
                 try:
                     self.editor.get_focus_widget().setFocus()
                 except AttributeError:
