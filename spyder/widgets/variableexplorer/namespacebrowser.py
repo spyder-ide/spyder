@@ -210,8 +210,11 @@ class NamespaceBrowser(QWidget):
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
 
-        toolbar += [refresh_button, self.auto_refresh_button, load_button,
-                    self.save_button, save_as_button]
+        if self.is_ipyclient:
+            toolbar += [load_button, self.save_button, save_as_button]
+        else:
+            toolbar += [refresh_button, self.auto_refresh_button, load_button,
+                        self.save_button, save_as_button]
         
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
