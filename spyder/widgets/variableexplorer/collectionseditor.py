@@ -899,7 +899,7 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove selected item?")
+        one = _("Do you want to remove the selected item?")
         more = _("Do you want to remove all selected items?")
         answer = QMessageBox.question(self, _( "Remove"),
                                       one if len(indexes) == 1 else more,
