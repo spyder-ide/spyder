@@ -112,9 +112,7 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
-            # Don't turn autorefresh on for IPython clients
-            # See Issue 1450
-            if not self.is_ipyclient:
+            if self.auto_refresh_button is not None:
                 self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
@@ -187,14 +185,19 @@ class NamespaceBrowser(QWidget):
                           
         toolbar = []
 
-        refresh_button = create_toolbutton(self, text=_('Refresh'),
-                                           icon=ima.icon('reload'),
-                                           triggered=self.refresh_table)
-        self.auto_refresh_button = create_toolbutton(self,
-                                           text=_('Refresh periodically'),
-                                           icon=ima.icon('auto_reload'),
-                                           toggled=self.toggle_auto_refresh)
-        self.auto_refresh_button.setChecked(autorefresh)
+        # There is no need of refreshes for ipyclients
+        if not self.is_ipyclient:
+            refresh_button = create_toolbutton(self, text=_('Refresh'),
+                                               icon=ima.icon('reload'),
+                                               triggered=self.refresh_table)
+            self.auto_refresh_button = create_toolbutton(self,
+                                              text=_('Refresh periodically'),
+                                              icon=ima.icon('auto_reload'),
+                                              toggled=self.toggle_auto_refresh)
+            self.auto_refresh_button.setChecked(autorefresh)
+        else:
+            refresh_button = self.auto_refresh_button = None
+
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
                                         triggered=lambda: self.import_data())
@@ -207,11 +210,8 @@ class NamespaceBrowser(QWidget):
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
 
-        if self.is_ipyclient:
-            toolbar += [load_button, self.save_button, save_as_button]
-        else:
-            toolbar += [refresh_button, self.auto_refresh_button, load_button,
-                        self.save_button, save_as_button]
+        toolbar += [refresh_button, self.auto_refresh_button, load_button,
+                    self.save_button, save_as_button]
         
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
