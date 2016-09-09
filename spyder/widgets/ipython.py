@@ -193,7 +193,7 @@ class IPythonShellWidget(RichJupyterWidget):
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
     sig_get_value = Signal()
-    sig_error_message = Signal(object)
+    sig_error_message = Signal()
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -213,8 +213,9 @@ class IPythonShellWidget(RichJupyterWidget):
         #     (except getting values of variables)
         self._kernel_methods = {}
 
-        # --- To temporaly save values returned by the kernel ---
+        # --- To save values and messages returned by the kernel ---
         self.kernel_value = None
+        self.kernel_message = None
 
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
@@ -358,11 +359,6 @@ These commands were executed:
         self.sig_var_properties.connect(lambda data:
             self.namespacebrowser.set_var_properties(data))
 
-        # Assign error messages returned by the kernel to
-        # a variable in namespacebrowser
-        self.sig_error_message.connect(lambda message:
-            self.namespacebrowser.set_ipykernel_message(message))
-
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
@@ -437,12 +433,9 @@ These commands were executed:
                 elif 'get_var_properties' in method:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
-                elif 'load_data' in method:
-                    error_message = ast.literal_eval(data['text/plain'])
-                    self.sig_error_message.emit(error_message)
-                elif 'save_namespace' in method:
-                    error_message = ast.literal_eval(data['text/plain'])
-                    self.sig_error_message.emit(error_message)
+                elif 'load_data' in method or 'save_namespace' in method:
+                    self.kernel_message = ast.literal_eval(data['text/plain'])
+                    self.sig_error_message.emit()
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
@@ -495,12 +488,32 @@ These commands were executed:
                             (orig_name, new_name))
 
     def load_data(self, filename, ext):
+        # Wait until the kernel tries to load the file
+        wait_loop = QEventLoop()
+        self.sig_error_message.connect(wait_loop.quit)
         self.silent_exec_method(
                 "get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
+        wait_loop.exec_()
+
+        # Remove loop connection and loop
+        self.sig_error_message.disconnect(wait_loop.quit)
+        wait_loop = None
+
+        return self.kernel_message
 
     def save_namespace(self, filename):
+        # Wait until the kernel tries to save the file
+        wait_loop = QEventLoop()
+        self.sig_error_message.connect(wait_loop.quit)
         self.silent_exec_method("get_ipython().kernel.save_namespace('%s')" %
                                 filename)
+        wait_loop.exec_()
+
+        # Remove loop connection and loop
+        self.sig_error_message.disconnect(wait_loop.quit)
+        wait_loop = None
+
+        return self.kernel_message
 
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):
