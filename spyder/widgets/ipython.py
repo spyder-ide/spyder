@@ -193,6 +193,7 @@ class IPythonShellWidget(RichJupyterWidget):
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
     sig_send_value = Signal(object)
+    sig_error_message = Signal(object)
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -359,6 +360,11 @@ These commands were executed:
         self.sig_send_value.connect(lambda data:
             self.namespacebrowser.set_ipykernel_data(data))
 
+        # Assign error messages returned by the kernel to
+        # a variable in namespacebrowser
+        self.sig_error_message.connect(lambda message:
+            self.namespacebrowser.set_ipykernel_message(message))
+
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
@@ -380,7 +386,7 @@ These commands were executed:
     def silent_exec_method(self, code):
         """Silently execute a kernel method and save its reply
 
-        The methods passed here **don't** involve getting a value
+        The methods passed here **don't** involve getting the value
         of a variable but instead replies that can be handled by
         ast.literal_eval.
 
@@ -407,10 +413,9 @@ These commands were executed:
         code = to_text_string(code)
         msg_id = self.kernel_client.execute('', silent=True,
                                             user_expressions={ local_uuid:code })
-        method = code.split('.')[-1]
-        self._kernel_methods[local_uuid] = method
+        self._kernel_methods[local_uuid] = code
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
-                                                         'silent_exec_method')
+                                                          'silent_exec_method')
 
     def handle_exec_method(self, msg):
         """
@@ -424,15 +429,22 @@ These commands were executed:
             return
         for expression in user_exp:
             if expression in self._kernel_methods:
+                # Process kernel reply
                 method = self._kernel_methods[expression]
                 reply = user_exp[expression]
                 data = reply.get('data')
-                if method == 'get_namespace_view()':
+                if 'get_namespace_view' in method:
                     view = ast.literal_eval(data['text/plain'])
                     self.sig_namespace_view.emit(view)
-                elif method == 'get_var_properties()':
+                elif 'get_var_properties' in method:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
+                elif 'load_data' in method:
+                    error_message = ast.literal_eval(data['text/plain'])
+                    self.sig_error_message.emit(error_message)
+
+                # Remove method after being processed
+                self._kernel_methods.pop(expression)
 
     def get_value(self, name):
         """Ask kernel for a value"""
@@ -469,6 +481,10 @@ These commands were executed:
         """Copy a variable"""
         self.silent_execute("get_ipython().kernel.copy_value('%s', '%s')" %
                             (orig_name, new_name))
+
+    def load_data(self, filename, ext):
+        self.silent_exec_method(
+                "get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
 
     #---- Private methods ---------------------------------------------
     def _context_menu_make(self, pos):

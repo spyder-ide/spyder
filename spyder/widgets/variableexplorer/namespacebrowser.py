@@ -84,7 +84,8 @@ class NamespaceBrowser(QWidget):
         # For IPython clients
         self.is_ipyclient = False
         self.var_properties = {}
-        self.kernel_values = None
+        self.ipykernel_data = None
+        self.ipykernel_message = None
 
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
@@ -322,7 +323,11 @@ class NamespaceBrowser(QWidget):
     def set_ipykernel_data(self, data):
         """Assign to an attribute the data returned by the kernel"""
         self.ipykernel_data = data
-        
+
+    def set_ipykernel_message(self, message):
+        """Assign to an attribute a message returned by the kernel"""
+        self.ipykernel_message = message
+
     #------ Remote commands ------------------------------------
     def get_value(self, name):
         if self.is_ipyclient:
@@ -534,15 +539,28 @@ class NamespaceBrowser(QWidget):
                                   varname=fix_reference_name(base_name))
                     if editor.exec_():
                         var_name, clip_data = editor.get_data()
-                        monitor_set_global(self._get_sock(),
-                                           var_name, clip_data)
+                        self.set_value(var_name, clip_data)
                 except Exception as error:
                     error_message = str(error)
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                error_message = monitor_load_globals(self._get_sock(),
-                                                     self.filename, ext)
+                if self.is_ipyclient:
+                    # Wait until the kernel tries to load the file
+                    wait_loop = QEventLoop()
+                    self.shellwidget.sig_error_message.connect(wait_loop.quit)
+                    self.shellwidget.load_data(self.filename, ext)
+                    wait_loop.exec_()
+
+                    # Remove loop connection and loop
+                    self.shellwidget.sig_error_message.disconnect(wait_loop.quit)
+                    wait_loop = None
+
+                    # Get the error message, if any
+                    error_message = self.ipykernel_message
+                else:
+                    error_message = monitor_load_globals(self._get_sock(),
+                                                         self.filename, ext)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     

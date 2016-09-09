@@ -20,12 +20,17 @@ from ipykernel.serialize import deserialize_object
 # Check if we are running under an external interpreter
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
+# Local imports
 if not IS_EXT_INTERPRETER:
+    from spyder.utils.iofuncs import iofunctions
+    from spyder.utils.misc import fix_reference_name
     from spyder.widgets.variableexplorer.utils import (get_remote_data,
                                                        make_remote_view)
 else:
     # We add "spyder" to sys.path for external interpreters, so this works!
     # See create_kernel_spec of plugins/ipythonconsole
+    from utils.iofuncs import iofunctions
+    from utils.misc import fix_reference_name
     from widgets.variableexplorer.utils import (get_remote_data,
                                                 make_remote_view)
 
@@ -113,6 +118,28 @@ class SpyderKernel(IPythonKernel):
         """Copy a variable"""
         ns = self._get_reference_namespace(orig_name)
         ns[new_name] = ns[orig_name]
+
+    def load_data(self, filename, ext):
+        """Load data from filename"""
+        glbs = self._mglobals()
+
+        load_func = iofunctions.load_funcs[ext]
+        data, error_message = load_func(filename)
+
+        if error_message:
+            return error_message
+
+        for key in list(data.keys()):
+            new_key = fix_reference_name(key, blacklist=list(glbs.keys()))
+            if new_key != key:
+                data[new_key] = data.pop(key)
+
+        try:
+            glbs.update(data)
+        except Exception as error:
+            return str(error)
+
+        return None
 
     # -- Private API ---------------------------------------------------
     def _get_current_namespace(self, with_magics=False):
