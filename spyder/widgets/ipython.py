@@ -22,7 +22,7 @@ from threading import Thread
 import time
 
 # Third party imports (qtpy)
-from qtpy.QtCore import Qt, QUrl, Signal, Slot
+from qtpy.QtCore import Qt, QEventLoop, QUrl, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QTextEdit,
                             QToolButton, QVBoxLayout, QWidget)
@@ -192,7 +192,7 @@ class IPythonShellWidget(RichJupyterWidget):
     new_client = Signal()
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
-    sig_send_value = Signal(object)
+    sig_get_value = Signal()
     sig_error_message = Signal(object)
     
     def __init__(self, *args, **kw):
@@ -212,6 +212,9 @@ class IPythonShellWidget(RichJupyterWidget):
         # --- To save the replies of kernel method executions
         #     (except getting values of variables)
         self._kernel_methods = {}
+
+        # --- To temporaly save values returned by the kernel ---
+        self.kernel_value = None
 
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
@@ -355,11 +358,6 @@ These commands were executed:
         self.sig_var_properties.connect(lambda data:
             self.namespacebrowser.set_var_properties(data))
 
-        # Assign data returned by the kernel to a variable
-        # in namespacebrowser to be used by its editors
-        self.sig_send_value.connect(lambda data:
-            self.namespacebrowser.set_ipykernel_data(data))
-
         # Assign error messages returned by the kernel to
         # a variable in namespacebrowser
         self.sig_error_message.connect(lambda message:
@@ -451,7 +449,17 @@ These commands were executed:
 
     def get_value(self, name):
         """Ask kernel for a value"""
+        # Wait until the kernel returns the value
+        wait_loop = QEventLoop()
+        self.sig_get_value.connect(wait_loop.quit)
         self.silent_execute("get_ipython().kernel.get_value('%s')" % name)
+        wait_loop.exec_()
+
+        # Remove loop connection and loop
+        self.sig_get_value.disconnect(wait_loop.quit)
+        wait_loop = None
+
+        return self.kernel_value
 
     def _handle_data_message(self, msg):
         """
@@ -468,7 +476,8 @@ These commands were executed:
         if value is not None:
             if isinstance(value, CannedObject):
                 value = value.get_object()
-            self.sig_send_value.emit(value)
+            self.kernel_value = value
+            self.sig_get_value.emit()
 
     def set_value(self, name, value):
         """Set value for a variable"""

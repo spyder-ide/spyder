@@ -323,10 +323,6 @@ class NamespaceBrowser(QWidget):
         """Set properties of variables"""
         self.var_properties = properties
 
-    def set_ipykernel_data(self, data):
-        """Assign to an attribute the data returned by the kernel"""
-        self.ipykernel_data = data
-
     def set_ipykernel_message(self, message):
         """Assign to an attribute a message returned by the kernel"""
         self.ipykernel_message = message
@@ -334,18 +330,11 @@ class NamespaceBrowser(QWidget):
     #------ Remote commands ------------------------------------
     def get_value(self, name):
         if self.is_ipyclient:
-            # Wait until the kernel returns the value
-            wait_loop = QEventLoop()
-            self.shellwidget.sig_send_value.connect(wait_loop.quit)
-            self.shellwidget.get_value(name)
-            wait_loop.exec_()
+            value = self.shellwidget.get_value(name)
 
-            # Remove loop connection and loop
-            self.shellwidget.sig_send_value.disconnect(wait_loop.quit)
-            wait_loop = None
-
-            # Get the value
-            value = self.ipykernel_data
+            # Reset temporal variable where value is saved to
+            # save memory
+            self.shellwidget.kernel_value = None
         else:
             value = monitor_get_global(self._get_sock(), name)
             if value is None:
