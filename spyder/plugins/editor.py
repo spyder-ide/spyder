@@ -2541,7 +2541,7 @@ class Editor(SpyderPluginWidget):
             filenames = self.get_option('filenames', default=[])
         self.close_all_files()
  
-        if filenames:
+        if filenames and any([osp.isfile(f) for f in filenames]):
             self.load(filenames)
             layout = self.get_option('layout_settings', None)
             if layout is not None:

@@ -1261,15 +1261,7 @@ class MainWindow(QMainWindow):
 
             # Open last session files and give focus to the Editor
             if self.editor.dockwidget.isVisible():
-                # Load files
                 self.editor.setup_open_files()
-
-                # Open a new file if Editor is empty
-                editorstack = self.editor.get_current_editorstack()
-                if editorstack.get_stack_count() == 0 and \
-                  editorstack.create_new_file_if_empty:
-                    editorstack.sig_new_file[()].emit()
-
                 try:
                     self.editor.get_focus_widget().setFocus()
                 except AttributeError:
