@@ -564,6 +564,19 @@ These commands were executed:
         else:
             super(IPythonShellWidget, self)._handle_execute_reply(msg)
 
+    def _handle_status(self, msg):
+        """
+        Reimplemented to refresh the namespacebrowser after kernel
+        restarts asked by the user
+        """
+        state = msg['content'].get('execution_state', '')
+        msg_type = msg['parent_header'].get('msg_type', '')
+        if state == 'idle' and msg_type == 'shutdown_request':
+            self.set_namespace_view_settings()
+            self.refresh_namespacebrowser()
+        else:
+            super(IPythonShellWidget, self)._handle_status(msg)
+
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
