@@ -216,6 +216,7 @@ class IPythonShellWidget(RichJupyterWidget):
         # --- To save values and messages returned by the kernel ---
         self.kernel_value = None
         self.kernel_message = None
+        self.__kernel_is_starting = True
 
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
@@ -558,6 +559,15 @@ These commands were executed:
         # unset reading flag, because if execute finished, raw_input can't
         # still be pending.
         self._reading = False
+
+        # Refresh namespacebrowser after the kernel starts running
+        exec_count = msg['content']['execution_count']
+        if exec_count == 0 and self.__kernel_is_starting:
+            self.set_namespace_view_settings()
+            self.refresh_namespacebrowser()
+            self.__kernel_is_starting = False
+
+        # Handle silent execution of kernel methods
         if info and info.kind == 'silent_exec_method' and not self._hidden:
             self.handle_exec_method(msg)
             self._request_info['execute'].pop(msg_id)
@@ -567,11 +577,16 @@ These commands were executed:
     def _handle_status(self, msg):
         """
         Reimplemented to refresh the namespacebrowser after kernel
-        restarts asked by the user
+        restarts
         """
         state = msg['content'].get('execution_state', '')
         msg_type = msg['parent_header'].get('msg_type', '')
-        if state == 'idle' and msg_type == 'shutdown_request':
+        if state == 'starting' and not self.__kernel_is_starting:
+            # This handles restarts when the kernel dies
+            # unexpectedly
+            self.__kernel_is_starting = True
+        elif state == 'idle' and msg_type == 'shutdown_request':
+            # This handles restarts asked by the user
             self.set_namespace_view_settings()
             self.refresh_namespacebrowser()
         else:

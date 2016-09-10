@@ -1010,10 +1010,6 @@ class IPythonConsole(SpyderPluginWidget):
         control = shellwidget._control
         page_control = shellwidget._page_control
 
-        # For the variable explorer
-        if self.variableexplorer is not None:
-            shellwidget.set_namespace_view_settings()
-
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)
 
