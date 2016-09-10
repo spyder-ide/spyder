@@ -14,7 +14,7 @@ Pandas DataFrame Editor Dialog
 """
 
 # Third party imports
-from pandas import DataFrame, Series
+from pandas import DataFrame, DatetimeIndex, Series
 from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
@@ -648,7 +648,8 @@ class DataFrameEditor(QDialog):
     def setup_and_check(self, data, title=''):
         """
         Setup DataFrameEditor:
-        return False if data is not supported, True otherwise
+        return False if data is not supported, True otherwise.
+        Supported types for data are DataFrame, Series and DatetimeIndex.
         """
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -660,6 +661,8 @@ class DataFrameEditor(QDialog):
         if isinstance(data, Series):
             self.is_series = True
             data = data.to_frame()
+        elif isinstance(data, DatetimeIndex):
+            data = DataFrame(data)
 
         self.setWindowTitle(title)
         self.resize(600, 500)
