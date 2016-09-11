@@ -51,7 +51,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("Console")
+        self.get_name = lambda: _("Python console")
 
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
@@ -706,7 +706,7 @@ class ExternalConsole(SpyderPluginWidget):
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        title = _('Console')
+        title = _('Python console')
         if self.filenames:
             index = self.tabwidget.currentIndex()
             fname = self.filenames[index]
