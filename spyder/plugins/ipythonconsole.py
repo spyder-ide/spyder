@@ -5,9 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-IPython Console plugin
-
-Handles IPython clients and kernels
+IPython Console plugin based on QtConsole
 """
 
 # pylint: disable=C0103
@@ -233,7 +231,7 @@ class KernelConnectionDialog(QDialog):
         self.rm_cb.stateChanged.connect(ssh_set_enabled)
 
     def select_connection_file(self):
-        cf = getopenfilename(self, _('Open IPython connection file'),
+        cf = getopenfilename(self, _('Open connection file'),
                              jupyter_runtime_dir(), '*.json;;*.*')[0]
         self.cf.setText(cf)
 
@@ -965,7 +963,7 @@ class IPythonConsole(SpyderPluginWidget):
         spy_cfg.JupyterWidget.kind = 'rich'
 
         # Gui completion widget
-        completion_type_o = CONF.get('ipython_console', 'completion_type')
+        completion_type_o = self.get_option('completion_type')
         completions = {0: "droplist", 1: "ncurses", 2: "plain"}
         spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
 
@@ -996,8 +994,8 @@ class IPythonConsole(SpyderPluginWidget):
         if CONF.get('main', 'single_instance'):
             spy_cfg.JupyterWidget.editor = self.set_editor()
 
-        # Merge IPython and Spyder configs. Spyder prefs will have prevalence
-        # over IPython ones
+        # Merge QtConsole and Spyder configs. Spyder prefs will have
+        # prevalence over QtConsole ones
         cfg._merge(spy_cfg)
         return cfg
 
