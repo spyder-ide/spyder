@@ -32,12 +32,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget):
     focus_changed = Signal()
     new_client = Signal()
 
-    def __init__(self, additional_options, *args, **kw):
+    def __init__(self, additional_options, interpreter_versions, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         super(ShellWidget, self).__init__(*args, **kw)
         self.additional_options = additional_options
+        self.interpreter_versions = interpreter_versions
 
         self.set_background_color()
 
@@ -55,9 +56,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget):
 
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
-        from IPython.core.usage import default_banner
-        banner = default_banner
+        # Default banner
+        from IPython.core.usage import quick_guide
+        banner_parts = [
+            'Python %s\n' % self.interpreter_versions['python_version'],
+            'Type "copyright", "credits" or "license" for more information.\n\n',
+            'IPython %s -- An enhanced Interactive Python.\n' % \
+            self.interpreter_versions['ipython_version'],
+            quick_guide
+        ]
+        banner = ''.join(banner_parts)
 
+        # Pylab additions
         pylab_o = self.additional_options['pylab']
         autoload_pylab_o = self.additional_options['autoload_pylab']
         mpl_installed = programs.is_module_installed('matplotlib')
@@ -66,6 +76,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget):
                              "numpy and matplotlib")
             banner = banner + pylab_message
 
+        # Sympy additions
         sympy_o = self.additional_options['sympy']
         if sympy_o:
             lines = """
@@ -81,11 +92,9 @@ These commands were executed:
 
     def short_banner(self):
         """Short banner with Python and QtConsole versions"""
-        from qtconsole._version import __version__
-        py_ver = '%d.%d.%d' % (sys.version_info[0], sys.version_info[1],
-                               sys.version_info[2])
-        banner = 'Python %s on %s -- QtConsole %s' % (py_ver, sys.platform,
-                                                      __version__)
+        banner = 'Python %s -- IPython %s' % (
+                                  self.interpreter_versions['python_version'],
+                                  self.interpreter_versions['ipython_version'])
         return banner
 
     def clear_console(self):

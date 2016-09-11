@@ -80,7 +80,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     append_to_history = Signal(str, str)
 
     def __init__(self, plugin, name, history_filename, config_options,
-                 additional_options, connection_file=None, hostname=None,
+                 additional_options, interpreter_versions,
+                 connection_file=None, hostname=None,
                  menu_actions=None, slave=False):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
@@ -102,6 +103,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
                                        additional_options=additional_options,
+                                       interpreter_versions=interpreter_versions,
                                        local_kernel=True)
         self.shellwidget.hide()
         self.infowidget = WebView(self)

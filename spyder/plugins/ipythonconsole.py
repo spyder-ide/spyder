@@ -871,6 +871,7 @@ class IPythonConsole(SpyderPluginWidget):
                               history_filename='history.py',
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
+                              interpreter_versions=self.interpreter_versions(),
                               connection_file=self._new_connection_file(),
                               menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
@@ -1000,6 +1001,36 @@ class IPythonConsole(SpyderPluginWidget):
         # prevalence over QtConsole ones
         cfg._merge(spy_cfg)
         return cfg
+
+    def interpreter_versions(self):
+        """Python and IPython versions used by clients"""
+        if self.default_interpreter:
+            from IPython.core import release
+            versions = dict(
+                python_version = sys.version.split("\n")[0].strip(),
+                ipython_version = release.version
+            )
+        else:
+            import subprocess
+            versions = {}
+            pyexec = CONF.get('console', 'pythonexecutable')
+            py_cmd = "%s -c 'import sys; print(sys.version.split(\"\\n\")[0])'" % \
+                     pyexec
+            ipy_cmd = "%s -c 'import IPython.core.release as r; print(r.version)'" \
+                      % pyexec
+            for cmd in [py_cmd, ipy_cmd]:
+                try:
+                    proc = programs.run_shell_command(cmd)
+                    output, _err = proc.communicate()
+                except subprocess.CalledProcessError:
+                    output = ''
+                output = output.decode().split('\n')[0].strip()
+                if 'IPython' in cmd:
+                    versions['ipython_version'] = output
+                else:
+                    versions['python_version'] = output
+
+        return versions
 
     def additional_options(self):
         """
@@ -1353,6 +1384,7 @@ class IPythonConsole(SpyderPluginWidget):
                               history_filename='history.py',
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
+                              interpreter_versions=self.interpreter_versions(),
                               connection_file=connection_file,
                               menu_actions=self.menu_actions,
                               hostname=hostname,
