@@ -193,12 +193,12 @@ def main():
     from ipykernel.kernelapp import IPKernelApp
 
     if not IS_EXT_INTERPRETER:
-        from spyder.widgets.externalshell.spyder_kernel import SpyderKernel
+        from spyder.utils.ipython.spyder_kernel import SpyderKernel
     else:
         # We add "spyder" to sys.path for external interpreters,
         # so this works!
         # See create_kernel_spec of plugins/ipythonconsole
-        from widgets.externalshell.spyder_kernel import SpyderKernel
+        from utils.ipython.spyder_kernel import SpyderKernel
 
     ipk_temp = IPKernelApp.instance()
     ipk_temp.kernel_class = SpyderKernel
