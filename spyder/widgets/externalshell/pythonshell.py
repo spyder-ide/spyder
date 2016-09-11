@@ -478,8 +478,9 @@ class ExternalPythonShell(ExternalShellBase):
 
         # Add sitecustomize path to path list
         pathlist = []
-        scpath = osp.dirname(osp.abspath(__file__))
-        pathlist.append(scpath)
+        spy_path = get_module_source_path('spyder')
+        sc_path = osp.join(spy_path, 'utils', 'site')
+        pathlist.append(sc_path)
         
         # Adding Spyder path
         pathlist += self.path

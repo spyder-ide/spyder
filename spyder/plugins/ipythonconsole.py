@@ -1199,8 +1199,8 @@ class IPythonConsole(SpyderPluginWidget):
         #    system to configure kernels started by exterrnal interpreters
         # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
         #    manager
-        sc_path = get_module_source_path('spyder.widgets.externalshell')
         spy_path = get_module_source_path('spyder')
+        sc_path = osp.join(spy_path, 'utils', 'site')
         spy_pythonpath = self.main.get_spyder_pythonpath()
 
         default_interpreter = CONF.get('main_interpreter', 'default')

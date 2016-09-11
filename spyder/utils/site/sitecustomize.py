@@ -64,7 +64,7 @@ def _print(*objects, **options):
 
 #==============================================================================
 # Execfile functions
-# 
+#
 # The definitions for Python 2 on Windows were taken from the IPython project
 # Copyright (C) The IPython Development Team
 # Distributed under the terms of the modified BSD license
@@ -103,7 +103,7 @@ except ImportError:
 
 
 #==============================================================================
-# Colorization of sys.stderr (standard Python interpreter) 
+# Colorization of sys.stderr (standard Python interpreter)
 #==============================================================================
 if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":
     class StderrProxy(object):
@@ -296,7 +296,7 @@ else:
 
         def qt_nt_inputhook():
             """Qt input hook for Windows
-            
+
             This input hook wait for available stdin data (notified by
             ExternalPythonShell through the monitor's inputhook_flag
             attribute), and in the meantime it processes Qt events.
@@ -314,7 +314,7 @@ else:
                 sys.stdin.tell()
             except IOError:
                 return 0
-    
+
             # Input hook
             app = QtCore.QCoreApplication.instance()
             if app and app.thread() is QtCore.QThread.currentThread():
@@ -325,7 +325,7 @@ else:
                     timer.start(50)
                     QtCore.QCoreApplication.exec_()
                     timer.stop()
-    
+
                 # Socket-based alternative:
                 #socket = QtNetwork.QLocalSocket()
                 #socket.connectToServer(os.environ['SPYDER_SHELL_ID'])
@@ -378,7 +378,7 @@ if matplotlib is not None:
                             ('PySide', 'Qt4Agg', 'pyqt')]
                 if not os.name == 'nt':
                      backends.append( ('_tkinter', 'TkAgg', None) )
-    
+
                 for b in backends:
                     mpl_backend = set_mpl_backend(b)
                     if mpl_backend:
@@ -537,7 +537,7 @@ class SpyderPdb(pdb.Pdb):
             if osp.isfile(fname) and monitor is not None:
                 monitor.notify_pdb_step(fname, lineno)
                 time.sleep(0.1)
-                
+
 pdb.Pdb = SpyderPdb
 
 #XXX: I know, this function is now also implemented as is in utils/misc.py but
@@ -628,7 +628,7 @@ if sys.version[0] == '2':
             lineno = frame.f_code.co_firstlineno
             if not lineno in self.breaks[filename]:
                 return False
-    
+
         # flag says ok to delete temp. bp
         (bp, flag) = effective(filename, lineno, frame)
         if bp:
@@ -659,7 +659,7 @@ except ValueError:
 #==============================================================================
 class UserModuleReloader(object):
     """
-    User Module Reloader (UMR) aims at deleting user modules 
+    User Module Reloader (UMR) aims at deleting user modules
     to force Python to deeply reload them during import
 
     pathlist [list]: blacklist in terms of module path
