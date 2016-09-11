@@ -1,0 +1,82 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
+"""
+Widgets that handle communications between QtConsole and the Help plugin
+"""
+
+from __future__ import absolute_import
+
+import re
+
+from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+
+from spyder.config.base import _
+from spyder.py3compat import PY3
+from spyder.utils.dochelpers import getargspecfromtext, getsignaturefromtext
+
+
+class HelpWidget(RichJupyterWidget):
+    """
+    Widget with the necessary attributes and methods to handle communications
+    between QtConsole and the Help plugin
+    """
+
+    def clean_invalid_var_chars(self, var):
+        """
+        Replace invalid variable chars in a string by underscores
+
+        Taken from http://stackoverflow.com/a/3305731/438386
+        """
+        if PY3:
+            return re.sub('\W|^(?=\d)', '_', var, re.UNICODE)
+        else:
+            return re.sub('\W|^(?=\d)', '_', var)
+
+    def get_signature(self, content):
+        """Get signature from inspect reply content"""
+        data = content.get('data', {})
+        text = data.get('text/plain', '')
+        if text:
+            text = ANSI_OR_SPECIAL_PATTERN.sub('', text)
+            self._control.current_prompt_pos = self._prompt_pos
+            line = self._control.get_current_line_to_cursor()
+            name = line[:-1].split('(')[-1]   # Take last token after a (
+            name = name.split('.')[-1]        # Then take last token after a .
+            # Clean name from invalid chars
+            try:
+                name = self.clean_invalid_var_chars(name).split('_')[-1]
+            except:
+                pass
+            argspec = getargspecfromtext(text)
+            if argspec:
+                # This covers cases like np.abs, whose docstring is
+                # the same as np.absolute and because of that a proper
+                # signature can't be obtained correctly
+                signature = name + argspec
+            else:
+                signature = getsignaturefromtext(text, name)
+            return signature
+        else:
+            return ''
+
+    #---- Private methods (overrode by us) ---------------------------------
+    def _handle_inspect_reply(self, rep):
+        """
+        Reimplement call tips to only show signatures, using the same
+        style from our Editor and External Console too
+        """
+        cursor = self._get_cursor()
+        info = self._request_info.get('call_tip')
+        if info and info.id == rep['parent_header']['msg_id'] and \
+          info.pos == cursor.position():
+            content = rep['content']
+            if content.get('status') == 'ok' and content.get('found', False):
+                signature = self.get_signature(content)
+                if signature:
+                    self._control.show_calltip(_("Arguments"), signature,
+                                               signature=True, color='#2D62FF')

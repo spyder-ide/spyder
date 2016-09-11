@@ -11,27 +11,18 @@ IPython client's widget
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
 
-import ast
 import os
 import os.path as osp
-import re
-import uuid
 from string import Template
 import sys
 from threading import Thread
 import time
 
 # Third party imports (qtpy)
-from qtpy.QtCore import Qt, QEventLoop, QUrl, Signal, Slot
+from qtpy.QtCore import Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QTextEdit,
-                            QToolButton, QVBoxLayout, QWidget)
-
-# Third party imports (Jupyter)
-from ipykernel.pickleutil import CannedObject
-from ipykernel.serialize import deserialize_object
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
+from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QToolButton,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import (_, get_conf_path, get_image_path,
@@ -39,17 +30,17 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
 from spyder.config.gui import (config_shortcut, get_font, get_shortcut,
                                fixed_shortcut)
 from spyder.config.main import CONF
-from spyder.py3compat import PY3, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, restore_keyevent)
+                                    create_toolbutton)
 from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
+from spyder.widgets.jupyter_qtconsole import ControlWidget, PageControlWidget
+from spyder.widgets.jupyter_qtconsole import NamepaceBrowserWidget
+from spyder.widgets.jupyter_qtconsole import HelpWidget
 from spyder.widgets.browser import WebView
-from spyder.widgets.calltip import CallTipWidget
-from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
-                                   SaveHistoryMixin, TracebackLinksMixin)
+from spyder.widgets.mixins import SaveHistoryMixin
 
 
 #-----------------------------------------------------------------------------
@@ -81,107 +72,9 @@ def background(f):
 
 
 #-----------------------------------------------------------------------------
-# Control widgets
-#-----------------------------------------------------------------------------
-class IPythonControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
-                           BaseEditMixin):
-    """
-    Subclass of QTextEdit with features from Spyder's mixins to use as the
-    control widget for IPython widgets
-    """
-    QT_CLASS = QTextEdit
-    visibility_changed = Signal(bool)
-    go_to_error = Signal(str)
-    focus_changed = Signal()
-    
-    def __init__(self, parent=None):
-        QTextEdit.__init__(self, parent)
-        BaseEditMixin.__init__(self)
-        TracebackLinksMixin.__init__(self)
-        GetHelpMixin.__init__(self)
-
-        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
-        self.found_results = []
-
-        # To not use Spyder calltips obtained through the monitor
-        self.calltips = False
-
-    def showEvent(self, event):
-        """Reimplement Qt Method"""
-        self.visibility_changed.emit(True)
-
-    def _key_question(self, text):
-        """ Action for '?' and '(' """
-        self.current_prompt_pos = self.parentWidget()._prompt_pos
-        if self.get_current_line_to_cursor():
-            last_obj = self.get_last_obj()
-            if last_obj and not last_obj.isdigit():
-                self.show_object_info(last_obj)
-        self.insert_text(text)
-    
-    def keyPressEvent(self, event):
-        """Reimplement Qt Method - Basic keypress event handler"""
-        event, text, key, ctrl, shift = restore_keyevent(event)
-        if key == Qt.Key_Question and not self.has_selected_text():
-            self._key_question(text)
-        elif key == Qt.Key_ParenLeft and not self.has_selected_text():
-            self._key_question(text)
-        else:
-            # Let the parent widget handle the key press event
-            QTextEdit.keyPressEvent(self, event)
-
-    def focusInEvent(self, event):
-        """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
-        return super(IPythonControlWidget, self).focusInEvent(event)
-    
-    def focusOutEvent(self, event):
-        """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
-        return super(IPythonControlWidget, self).focusOutEvent(event)
-
-
-class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
-    """
-    Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
-    use as the paging widget for IPython widgets
-    """
-    QT_CLASS = QTextEdit
-    visibility_changed = Signal(bool)
-    show_find_widget = Signal()
-    focus_changed = Signal()
-    
-    def __init__(self, parent=None):
-        QTextEdit.__init__(self, parent)
-        BaseEditMixin.__init__(self)
-        self.found_results = []
-    
-    def showEvent(self, event):
-        """Reimplement Qt Method"""
-        self.visibility_changed.emit(True)
-    
-    def keyPressEvent(self, event):
-        """Reimplement Qt Method - Basic keypress event handler"""
-        event, text, key, ctrl, shift = restore_keyevent(event)
-        
-        if key == Qt.Key_Slash and self.isVisible():
-            self.show_find_widget.emit()
-
-    def focusInEvent(self, event):
-        """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
-        return super(IPythonPageControlWidget, self).focusInEvent(event)
-    
-    def focusOutEvent(self, event):
-        """Reimplement Qt method to send focus change notification"""
-        self.focus_changed.emit()
-        return super(IPythonPageControlWidget, self).focusOutEvent(event)
-
-
-#-----------------------------------------------------------------------------
 # Shell widget
 #-----------------------------------------------------------------------------
-class IPythonShellWidget(RichJupyterWidget):
+class IPythonShellWidget(NamepaceBrowserWidget, HelpWidget):
     """
     Spyder's Jupyter shell widget
 
@@ -190,33 +83,20 @@ class IPythonShellWidget(RichJupyterWidget):
     """
     focus_changed = Signal()
     new_client = Signal()
-    sig_namespace_view = Signal(object)
-    sig_var_properties = Signal(object)
-    sig_get_value = Signal()
-    sig_error_message = Signal()
     
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
-        self.custom_control = IPythonControlWidget
-        self.custom_page_control = IPythonPageControlWidget
+        self.custom_control = ControlWidget
+        self.custom_page_control = PageControlWidget
         super(IPythonShellWidget, self).__init__(*args, **kw)
+
         self.set_background_color()
 
         # --- Spyder variables ---
         self.ipyclient = None
-        self.namespacebrowser = None
 
         # --- Keyboard shortcuts ---
         self.shortcuts = self.create_shortcuts()
-
-        # --- To save the replies of kernel method executions
-        #     (except getting values of variables)
-        self._kernel_methods = {}
-
-        # --- To save values and messages returned by the kernel ---
-        self.kernel_value = None
-        self.kernel_message = None
-        self.__kernel_is_starting = True
 
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
@@ -302,221 +182,11 @@ These commands were executed:
 
         return [inspect, clear_console]
 
-    # ---- For the Help plugin ----------------------------------------
-    def clean_invalid_var_chars(self, var):
-        """
-        Replace invalid variable chars in a string by underscores
-
-        Taken from http://stackoverflow.com/a/3305731/438386
-        """
-        if PY3:
-            return re.sub('\W|^(?=\d)', '_', var, re.UNICODE)
-        else:
-            return re.sub('\W|^(?=\d)', '_', var)
-
-    def get_signature(self, content):
-        """Get signature from inspect reply content"""
-        data = content.get('data', {})
-        text = data.get('text/plain', '')
-        if text:
-            text = ANSI_OR_SPECIAL_PATTERN.sub('', text)
-            self._control.current_prompt_pos = self._prompt_pos
-            line = self._control.get_current_line_to_cursor()
-            name = line[:-1].split('(')[-1]   # Take last token after a (
-            name = name.split('.')[-1]        # Then take last token after a .
-            # Clean name from invalid chars
-            try:
-                name = self.clean_invalid_var_chars(name).split('_')[-1]
-            except:
-                pass
-            argspec = getargspecfromtext(text)
-            if argspec:
-                # This covers cases like np.abs, whose docstring is
-                # the same as np.absolute and because of that a proper
-                # signature can't be obtained correctly
-                signature = name + argspec
-            else:
-                signature = getsignaturefromtext(text, name)
-            return signature
-        else:
-            return ''
-
-    #---- For the Variable Explorer -------------------
-    def set_namespacebrowser(self, namespacebrowser):
-        """Set namespace browser widget"""
-        self.namespacebrowser = namespacebrowser
-        self.configure_namespacebrowser()
-
-    def configure_namespacebrowser(self):
-        """Configure associated namespace browser widget"""
-        # Tell it that we are connected to client
-        self.namespacebrowser.is_ipyclient = True
-
-        # Update namespace view
-        self.sig_namespace_view.connect(lambda data:
-            self.namespacebrowser.process_remote_view(data))
-
-        # Update properties of variables
-        self.sig_var_properties.connect(lambda data:
-            self.namespacebrowser.set_var_properties(data))
-
-    def refresh_namespacebrowser(self):
-        """Refresh namespace browser"""
-        if self.namespacebrowser:
-            self.silent_exec_method(
-                'get_ipython().kernel.get_namespace_view()')
-            self.silent_exec_method(
-                'get_ipython().kernel.get_var_properties()')
-
-    def set_namespace_view_settings(self):
-        """Set the namespace view settings"""
-        settings = to_text_string(self.namespacebrowser.get_view_settings())
-        code = u"get_ipython().kernel.namespace_view_settings = %s" % settings
-        self.silent_execute(code)
-
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
         self.kernel_client.execute(to_text_string(code), silent=True)
 
-    def silent_exec_method(self, code):
-        """Silently execute a kernel method and save its reply
-
-        The methods passed here **don't** involve getting the value
-        of a variable but instead replies that can be handled by
-        ast.literal_eval.
-
-        To get a value see `get_value`
-
-        Parameters
-        ----------
-        code : string
-            Code that contains the kernel method as part of its
-            string
-
-        See Also
-        --------
-        handle_exec_method : Method that deals with the reply
-
-        Note
-        ----
-        This is based on the _silent_exec_callback method of
-        RichJupyterWidget. Therefore this is licensed BSD
-        """
-        # Generate uuid, which would be used as an indication of whether or
-        # not the unique request originated from here
-        local_uuid = to_text_string(uuid.uuid1())
-        code = to_text_string(code)
-        msg_id = self.kernel_client.execute('', silent=True,
-                                            user_expressions={ local_uuid:code })
-        self._kernel_methods[local_uuid] = code
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
-                                                          'silent_exec_method')
-
-    def handle_exec_method(self, msg):
-        """
-        Handle data returned by silent executions of kernel methods
-
-        This is based on the _handle_exec_callback of RichJupyterWidget.
-        Therefore this is licensed BSD.
-        """
-        user_exp = msg['content'].get('user_expressions')
-        if not user_exp:
-            return
-        for expression in user_exp:
-            if expression in self._kernel_methods:
-                # Process kernel reply
-                method = self._kernel_methods[expression]
-                reply = user_exp[expression]
-                data = reply.get('data')
-                if 'get_namespace_view' in method:
-                    view = ast.literal_eval(data['text/plain'])
-                    self.sig_namespace_view.emit(view)
-                elif 'get_var_properties' in method:
-                    properties = ast.literal_eval(data['text/plain'])
-                    self.sig_var_properties.emit(properties)
-                elif 'load_data' in method or 'save_namespace' in method:
-                    self.kernel_message = ast.literal_eval(data['text/plain'])
-                    self.sig_error_message.emit()
-
-                # Remove method after being processed
-                self._kernel_methods.pop(expression)
-
-    def get_value(self, name):
-        """Ask kernel for a value"""
-        # Wait until the kernel returns the value
-        wait_loop = QEventLoop()
-        self.sig_get_value.connect(wait_loop.quit)
-        self.silent_execute("get_ipython().kernel.get_value('%s')" % name)
-        wait_loop.exec_()
-
-        # Remove loop connection and loop
-        self.sig_get_value.disconnect(wait_loop.quit)
-        wait_loop = None
-
-        return self.kernel_value
-
-    def _handle_data_message(self, msg):
-        """
-        Handle raw (serialized) data sent by the kernel
-
-        We only handle data asked by Spyder, in case people use
-        publish_data for other purposes.
-        """
-        # Deserialize data
-        data = deserialize_object(msg['buffers'])[0]
-
-        # We only handle data asked by Spyder
-        value = data.get('__spy_data__', None)
-        if value is not None:
-            if isinstance(value, CannedObject):
-                value = value.get_object()
-            self.kernel_value = value
-            self.sig_get_value.emit()
-
-    def set_value(self, name, value):
-        """Set value for a variable"""
-        value = to_text_string(value)
-        self.silent_execute("get_ipython().kernel.set_value('%s', %s)" %
-                            (name, value))
-
-    def remove_value(self, name):
-        """Remove a variable"""
-        self.silent_execute("get_ipython().kernel.remove_value('%s')" % name)
-
-    def copy_value(self, orig_name, new_name):
-        """Copy a variable"""
-        self.silent_execute("get_ipython().kernel.copy_value('%s', '%s')" %
-                            (orig_name, new_name))
-
-    def load_data(self, filename, ext):
-        # Wait until the kernel tries to load the file
-        wait_loop = QEventLoop()
-        self.sig_error_message.connect(wait_loop.quit)
-        self.silent_exec_method(
-                "get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
-        wait_loop.exec_()
-
-        # Remove loop connection and loop
-        self.sig_error_message.disconnect(wait_loop.quit)
-        wait_loop = None
-
-        return self.kernel_message
-
-    def save_namespace(self, filename):
-        # Wait until the kernel tries to save the file
-        wait_loop = QEventLoop()
-        self.sig_error_message.connect(wait_loop.quit)
-        self.silent_exec_method("get_ipython().kernel.save_namespace('%s')" %
-                                filename)
-        wait_loop.exec_()
-
-        # Remove loop connection and loop
-        self.sig_error_message.disconnect(wait_loop.quit)
-        wait_loop = None
-
-        return self.kernel_message
-
-    #---- Private methods ---------------------------------------------
+    #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(IPythonShellWidget, self)._context_menu_make(pos)
@@ -532,65 +202,6 @@ These commands were executed:
             return self.long_banner()
         else:
             return self.short_banner()
-
-    def _handle_inspect_reply(self, rep):
-        """
-        Reimplement call tips to only show signatures, using the same
-        style from our Editor and External Console too
-        """
-        cursor = self._get_cursor()
-        info = self._request_info.get('call_tip')
-        if info and info.id == rep['parent_header']['msg_id'] and \
-          info.pos == cursor.position():
-            content = rep['content']
-            if content.get('status') == 'ok' and content.get('found', False):
-                signature = self.get_signature(content)
-                if signature:
-                    self._control.show_calltip(_("Arguments"), signature,
-                                               signature=True, color='#2D62FF')
-
-    def _handle_execute_reply(self, msg):
-        """
-        Reimplemented to handle communications between Spyder
-        and the kernel
-        """
-        msg_id = msg['parent_header']['msg_id']
-        info = self._request_info['execute'].get(msg_id)
-        # unset reading flag, because if execute finished, raw_input can't
-        # still be pending.
-        self._reading = False
-
-        # Refresh namespacebrowser after the kernel starts running
-        exec_count = msg['content']['execution_count']
-        if exec_count == 0 and self.__kernel_is_starting:
-            self.set_namespace_view_settings()
-            self.refresh_namespacebrowser()
-            self.__kernel_is_starting = False
-
-        # Handle silent execution of kernel methods
-        if info and info.kind == 'silent_exec_method' and not self._hidden:
-            self.handle_exec_method(msg)
-            self._request_info['execute'].pop(msg_id)
-        else:
-            super(IPythonShellWidget, self)._handle_execute_reply(msg)
-
-    def _handle_status(self, msg):
-        """
-        Reimplemented to refresh the namespacebrowser after kernel
-        restarts
-        """
-        state = msg['content'].get('execution_state', '')
-        msg_type = msg['parent_header'].get('msg_type', '')
-        if state == 'starting' and not self.__kernel_is_starting:
-            # This handles restarts when the kernel dies
-            # unexpectedly
-            self.__kernel_is_starting = True
-        elif state == 'idle' and msg_type == 'shutdown_request':
-            # This handles restarts asked by the user
-            self.set_namespace_view_settings()
-            self.refresh_namespacebrowser()
-        else:
-            super(IPythonShellWidget, self)._handle_status(msg)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
