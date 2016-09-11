@@ -1010,8 +1010,8 @@ class IPythonConsole(SpyderPluginWidget):
             pylab = self.get_option('pylab'),
             autoload_pylab = self.get_option('pylab/autoload'),
             sympy = self.get_option('symbolic_math'),
-            lightbg = self.get_option('light_color'),
-            banner = self.get_option('show_banner')
+            light_color = self.get_option('light_color'),
+            show_banner = self.get_option('show_banner')
         )
 
         return options

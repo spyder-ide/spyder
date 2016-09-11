@@ -110,8 +110,8 @@ These commands were executed:
         self.kernel_client.input(line)
 
     def set_background_color(self):
-        lightbg_o = self.additional_options['lightbg']
-        if not lightbg_o:
+        light_color_o = self.additional_options['light_color']
+        if not light_color_o:
             self.set_default_style(colors='linux')
 
     def create_shortcuts(self):
@@ -146,8 +146,8 @@ These commands were executed:
         Reimplement banner creation to let the user decide if he wants a
         banner or not
         """
-        banner_o = self.additional_options['banner']
-        if banner_o:
+        show_banner_o = self.additional_options['show_banner']
+        if show_banner_o:
             return self.long_banner()
         else:
             return self.short_banner()
