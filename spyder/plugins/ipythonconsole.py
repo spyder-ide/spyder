@@ -621,8 +621,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
-        self.default_interpreter = CONF.get('console',
-                                            'pythonexecutable/default')
+        self.default_interpreter = CONF.get('main_interpreter', 'default')
 
         # Initialize plugin
         self.initialize_plugin()
@@ -879,7 +878,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if ipykernel is present in the external interpreter.
         # Else we won't be able to create a client
         if not self.default_interpreter:
-            pyexec = CONF.get('console', 'pythonexecutable')
+            pyexec = CONF.get('main_interpreter', 'executable')
             ipykernel_present = programs.is_module_installed('ipykernel',
                                                             interpreter=pyexec)
             if not ipykernel_present:
@@ -1013,7 +1012,7 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             import subprocess
             versions = {}
-            pyexec = CONF.get('console', 'pythonexecutable')
+            pyexec = CONF.get('main_interpreter', 'executable')
             py_cmd = "%s -c 'import sys; print(sys.version.split(\"\\n\")[0])'" % \
                      pyexec
             ipy_cmd = "%s -c 'import IPython.core.release as r; print(r.version)'" \
@@ -1218,7 +1217,7 @@ class IPythonConsole(SpyderPluginWidget):
             # Avoid IPython adding the virtualenv on which Spyder is running
             # to the kernel sys.path
             os.environ.pop('VIRTUAL_ENV', None)
-            pyexec = CONF.get('console', 'pythonexecutable')
+            pyexec = CONF.get('main_interpreter', 'executable')
 
         # Command used to start kernels
         kernel_cmd = [
@@ -1232,9 +1231,10 @@ class IPythonConsole(SpyderPluginWidget):
         env_vars = {
             'IPYTHON_KERNEL': 'True',
             'EXTERNAL_INTERPRETER': not self.default_interpreter,
-            'UMR_ENABLED': CONF.get('console', 'umr/enabled'),
-            'UMR_VERBOSE': CONF.get('console', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(CONF.get('console', 'umr/namelist'))
+            'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
+            'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
+            'UMR_NAMELIST': ','.join(CONF.get('main_interpreter',
+                                              'umr/namelist'))
         }
 
         # Add our PYTHONPATH to env_vars

@@ -340,8 +340,10 @@ class MainWindow(QMainWindow):
                                                  ColorSchemeConfigPage)
         from spyder.plugins.shortcuts import ShortcutsConfigPage
         from spyder.plugins.runconfig import RunConfigPage
+        from spyder.plugins.maininterpreter import MainInterpreterConfigPage
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
-                              ColorSchemeConfigPage, RunConfigPage]
+                              ColorSchemeConfigPage, MainInterpreterConfigPage,
+                              RunConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
 

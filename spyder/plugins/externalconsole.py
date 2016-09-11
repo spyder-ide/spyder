@@ -20,9 +20,8 @@ import sys
 from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QInputDialog,
-                            QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
+                            QMessageBox, QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder import dependencies
@@ -53,13 +52,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Console")
-        self.cus_exec_radio = None
-        self.pyexec_edit = None
-
-    def initialize(self):
-        PluginConfigPage.initialize(self)
-        self.pyexec_edit.textChanged.connect(self.python_executable_changed)
-        self.cus_exec_radio.toggled.connect(self.python_executable_switched)
 
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
@@ -134,74 +126,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_layout.addWidget(comp_enter_box)
         source_layout.addWidget(calltips_box)
         source_group.setLayout(source_layout)
-
-        # UMR Group
-        umr_group = QGroupBox(_("User Module Reloader (UMR)"))
-        umr_label = QLabel(_("UMR forces Python to reload modules which were "
-                             "imported when executing a \nscript in the "
-                             "external console with the 'runfile' function."))
-        umr_enabled_box = newcb(_("Enable UMR"), 'umr/enabled',
-                                msg_if_enabled=True, msg_warning=_(
-                        "This option will enable the User Module Reloader (UMR) "
-                        "in Python/IPython consoles. UMR forces Python to "
-                        "reload deeply modules during import when running a "
-                        "Python script using the Spyder's builtin function "
-                        "<b>runfile</b>."
-                        "<br><br><b>1.</b> UMR may require to restart the "
-                        "console in which it will be called "
-                        "(otherwise only newly imported modules will be "
-                        "reloaded when executing scripts)."
-                        "<br><br><b>2.</b> If errors occur when re-running a "
-                        "PyQt-based program, please check that the Qt objects "
-                        "are properly destroyed (e.g. you may have to use the "
-                        "attribute <b>Qt.WA_DeleteOnClose</b> on your main "
-                        "window, using the <b>setAttribute</b> method)"),
-                                )
-        umr_verbose_box = newcb(_("Show reloaded modules list"),
-                                'umr/verbose', msg_info=_(
-                                "Please note that these changes will "
-                                "be applied only to new consoles"))
-        umr_namelist_btn = QPushButton(
-                            _("Set UMR excluded (not reloaded) modules"))
-        umr_namelist_btn.clicked.connect(self.plugin.set_umr_namelist)
-        
-        umr_layout = QVBoxLayout()
-        umr_layout.addWidget(umr_label)
-        umr_layout.addWidget(umr_enabled_box)
-        umr_layout.addWidget(umr_verbose_box)
-        umr_layout.addWidget(umr_namelist_btn)
-        umr_group.setLayout(umr_layout)
-        
-        # Python executable Group
-        pyexec_group = QGroupBox(_("Python executable"))
-        pyexec_bg = QButtonGroup(pyexec_group)
-        pyexec_label = QLabel(_("Select the Python interpreter executable "
-                                "binary in which Spyder will run scripts:"))
-        def_exec_radio = self.create_radiobutton(
-                                _("Default (i.e. the same as Spyder's)"),
-                                'pythonexecutable/default', 
-                                button_group=pyexec_bg)
-        self.cus_exec_radio = self.create_radiobutton(
-                                _("Use the following Python interpreter:"),
-                                'pythonexecutable/custom',
-                                button_group=pyexec_bg)
-        if os.name == 'nt':
-            filters = _("Executables")+" (*.exe)"
-        else:
-            filters = None
-        pyexec_file = self.create_browsefile('', 'pythonexecutable',
-                                             filters=filters)
-        for le in self.lineedits:
-            if self.lineedits[le][0] == 'pythonexecutable':
-                self.pyexec_edit = le
-        def_exec_radio.toggled.connect(pyexec_file.setDisabled)
-        self.cus_exec_radio.toggled.connect(pyexec_file.setEnabled)
-        pyexec_layout = QVBoxLayout()
-        pyexec_layout.addWidget(pyexec_label)
-        pyexec_layout.addWidget(def_exec_radio)
-        pyexec_layout.addWidget(self.cus_exec_radio)
-        pyexec_layout.addWidget(pyexec_file)
-        pyexec_group.setLayout(pyexec_layout)
         
         # PYTHONSTARTUP replacement
         pystartup_group = QGroupBox(_("PYTHONSTARTUP replacement"))
@@ -312,10 +236,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         ets_layout.addWidget(ets_edit)
         ets_group.setLayout(ets_layout)
 
-        if self.get_option('pythonexecutable/default'):
+        if CONF.get('main_interpreter','default'):
             interpreter = get_python_executable()
         else:
-            interpreter = self.get_option('pythonexecutable')
+            interpreter = CONF.get('main_interpreter', 'executable')
         ets_group.setEnabled(programs.is_module_installed(
                                                     "enthought.etsconfig.api",
                                                     interpreter=interpreter))
@@ -326,52 +250,13 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
                     _("Introspection"))
-        tabs.addTab(self.create_tab(pyexec_group, pystartup_group, umr_group),
-                    _("Advanced settings"))
+        tabs.addTab(self.create_tab(pystartup_group), _("Advanced settings"))
         tabs.addTab(self.create_tab(qt_group, mpl_group, ets_group),
                     _("External modules"))
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-
-    def python_executable_changed(self, pyexec):
-        """Custom Python executable value has been changed"""
-        if not self.cus_exec_radio.isChecked():
-            return
-        if not is_text_string(pyexec):
-            pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        self.warn_python_compatibility(pyexec)
-
-    def python_executable_switched(self, custom):
-        """Python executable default/custom radio button has been toggled"""
-        def_pyexec = get_python_executable()
-        cust_pyexec = self.pyexec_edit.text()
-        if not is_text_string(cust_pyexec):
-            cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
-        if def_pyexec != cust_pyexec:
-            if custom:
-                self.warn_python_compatibility(cust_pyexec)
-
-    def warn_python_compatibility(self, pyexec):
-        if not osp.isfile(pyexec):
-            return
-        spyder_version = sys.version_info[0]
-        try:
-            args = ["-c", "import sys; print(sys.version_info[0])"]
-            proc = programs.run_program(pyexec, args)
-            console_version = int(proc.communicate()[0])
-        except IOError:
-            console_version = spyder_version
-        if spyder_version != console_version:
-            QMessageBox.warning(self, _('Warning'),
-                _("You selected a <b>Python %d</b> interpreter for the console "
-                  "but Spyder is running on <b>Python %d</b>!.<br><br>"
-                  "Although this is possible, we recommend you to install and "
-                  "run Spyder directly with your selected interpreter, to avoid "
-                  "seeing false warnings and errors due to the incompatible "
-                  "syntax between these two Python versions."
-                  ) % (console_version, spyder_version), QMessageBox.Ok)
 
 
 class ExternalConsole(SpyderPluginWidget):
@@ -400,12 +285,6 @@ class ExternalConsole(SpyderPluginWidget):
 
         self.python_count = 0
         self.terminal_count = 0
-
-        # Python executable selection (initializing default values as well)
-        executable = self.get_option('pythonexecutable',
-                                     get_python_executable())
-        if self.get_option('pythonexecutable/default'):
-            executable = get_python_executable()
         
         # Python startup file selection
         if not osp.isfile(self.get_option('pythonstartup', '')):
@@ -413,20 +292,7 @@ class ExternalConsole(SpyderPluginWidget):
         # default/custom settings are mutually exclusive:
         self.set_option('pythonstartup/custom',
                         not self.get_option('pythonstartup/default'))
-        
-        if not osp.isfile(executable):
-            # This is absolutely necessary, in case the Python interpreter
-            # executable has been moved since last Spyder execution (following
-            # a Python distribution upgrade for example)
-            self.set_option('pythonexecutable', get_python_executable())
-        elif executable.endswith('pythonw.exe'):
-            # That should not be necessary because this case is already taken
-            # care of by the `get_python_executable` function but, this was
-            # implemented too late, so we have to fix it here too, in case
-            # the Python executable has already been set with pythonw.exe:
-            self.set_option('pythonexecutable',
-                            executable.replace("pythonw.exe", "python.exe"))
-        
+
         self.shellwidgets = []
         self.filenames = []
         self.icons = []
@@ -670,11 +536,11 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         show_elapsed_time = self.get_option('show_elapsed_time')
         if python:
-            if self.get_option('pythonexecutable/default'):
+            if CONF.get('main_interpreter', 'default'):
                 pythonexecutable = get_python_executable()
                 external_interpreter = False
             else:
-                pythonexecutable = self.get_option('pythonexecutable')
+                pythonexecutable = CONF.get('main_interpreter', 'executable')
                 external_interpreter = True
             if self.get_option('pythonstartup/default'):
                 pythonstartup = None
@@ -688,9 +554,9 @@ class ExternalConsole(SpyderPluginWidget):
                 qt_api = None
             merge_output_channels = self.get_option('merge_output_channels')
             colorize_sys_stderr = self.get_option('colorize_sys_stderr')
-            umr_enabled = self.get_option('umr/enabled')
-            umr_namelist = self.get_option('umr/namelist')
-            umr_verbose = self.get_option('umr/verbose')
+            umr_enabled = CONF.get('main_interpreter', 'umr/enabled')
+            umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
+            umr_verbose = CONF.get('main_interpreter', 'umr/verbose')
             ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
             ar_state = CONF.get('variable_explorer', 'autorefresh')
 
@@ -1056,34 +922,7 @@ class ExternalConsole(SpyderPluginWidget):
         if filename:
             self.start(fname=filename, wdir=None, args='',
                        interact=False, debug=False)
-        
-    def set_umr_namelist(self):
-        """Set UMR excluded modules name list"""
-        arguments, valid = QInputDialog.getText(self, _('UMR'),
-                                  _('UMR excluded modules:\n'
-                                          '(example: guidata, guiqwt)'),
-                                  QLineEdit.Normal,
-                                  ", ".join(self.get_option('umr/namelist')))
-        if valid:
-            arguments = to_text_string(arguments)
-            if arguments:
-                namelist = arguments.replace(' ', '').split(',')
-                fixed_namelist = [module_name for module_name in namelist
-                                  if programs.is_module_installed(module_name)]
-                invalid = ", ".join(set(namelist)-set(fixed_namelist))
-                if invalid:
-                    QMessageBox.warning(self, _('UMR'),
-                                        _("The following modules are not "
-                                          "installed on your machine:\n%s"
-                                          ) % invalid, QMessageBox.Ok)
-                QMessageBox.information(self, _('UMR'),
-                                    _("Please note that these changes will "
-                                      "be applied only to new Python/IPython "
-                                      "consoles"), QMessageBox.Ok)
-            else:
-                fixed_namelist = []
-            self.set_option('umr/namelist', fixed_namelist)
-        
+
     def go_to_error(self, text):
         """Go to error if relevant"""
         match = get_error_match(to_text_string(text))
