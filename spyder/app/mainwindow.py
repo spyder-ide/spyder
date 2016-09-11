@@ -75,7 +75,7 @@ except ImportError:
 # Qt imports
 #==============================================================================
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant, getopenfilename, getsavefilename
+from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import QColor, QDesktopServices, QKeySequence, QPixmap
@@ -136,9 +136,8 @@ from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.config.ipython import QTCONSOLE_INSTALLED
-from spyder.config.user import NoDefault
 from spyder.py3compat import (getcwd, is_text_string, to_text_string,
-                              PY3, qbytearray_to_str, u, configparser as cp)
+                              PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
