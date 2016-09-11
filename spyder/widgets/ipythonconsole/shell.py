@@ -15,7 +15,6 @@ from qtpy.QtWidgets import QMessageBox
 
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut, fixed_shortcut
-from spyder.config.main import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
@@ -33,11 +32,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget):
     focus_changed = Signal()
     new_client = Signal()
 
-    def __init__(self, *args, **kw):
+    def __init__(self, additional_options, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         super(ShellWidget, self).__init__(*args, **kw)
+        self.additional_options = additional_options
 
         self.set_background_color()
 
@@ -58,15 +58,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget):
         from IPython.core.usage import default_banner
         banner = default_banner
 
-        pylab_o = CONF.get('ipython_console', 'pylab', True)
-        autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload', True)
+        pylab_o = self.additional_options['pylab']
+        autoload_pylab_o = self.additional_options['autoload_pylab']
         mpl_installed = programs.is_module_installed('matplotlib')
         if mpl_installed and (pylab_o and autoload_pylab_o):
             pylab_message = ("\nPopulating the interactive namespace from "
                              "numpy and matplotlib")
             banner = banner + pylab_message
 
-        sympy_o = CONF.get('ipython_console', 'symbolic_math', True)
+        sympy_o = self.additional_options['sympy']
         if sympy_o:
             lines = """
 These commands were executed:
@@ -110,7 +110,7 @@ These commands were executed:
         self.kernel_client.input(line)
 
     def set_background_color(self):
-        lightbg_o = CONF.get('ipython_console', 'light_color')
+        lightbg_o = self.additional_options['lightbg']
         if not lightbg_o:
             self.set_default_style(colors='linux')
 
@@ -146,7 +146,7 @@ These commands were executed:
         Reimplement banner creation to let the user decide if he wants a
         banner or not
         """
-        banner_o = CONF.get('ipython_console', 'show_banner', True)
+        banner_o = self.additional_options['banner']
         if banner_o:
             return self.long_banner()
         else:

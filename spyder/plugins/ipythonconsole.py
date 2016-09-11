@@ -867,10 +867,12 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
-        client = ClientWidget(self, name=name, history_filename='history.py',
-                              menu_actions=self.menu_actions,
+        client = ClientWidget(self, name=name,
+                              history_filename='history.py',
+                              config_options=self.config_options(),
+                              additional_options=self.additional_options(),
                               connection_file=self._new_connection_file(),
-                              config_options=self.config_options())
+                              menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
 
         # Check if ipykernel is present in the external interpreter.
@@ -940,8 +942,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     def config_options(self):
         """
-        Generate a Config instance for shell widgets using our config
-        system
+        Generate a Trailets Config instance for shell widgets using our
+        config system
 
         This lets us create each widget with its own config
         """
@@ -998,6 +1000,21 @@ class IPythonConsole(SpyderPluginWidget):
         # prevalence over QtConsole ones
         cfg._merge(spy_cfg)
         return cfg
+
+    def additional_options(self):
+        """
+        Additional options for shell widgets that are not defined
+        in JupyterWidget config options
+        """
+        options = dict(
+            pylab = self.get_option('pylab'),
+            autoload_pylab = self.get_option('pylab/autoload'),
+            sympy = self.get_option('symbolic_math'),
+            lightbg = self.get_option('light_color'),
+            banner = self.get_option('show_banner')
+        )
+
+        return options
 
     def register_client(self, client, give_focus=True):
         """Register new client"""
@@ -1335,6 +1352,7 @@ class IPythonConsole(SpyderPluginWidget):
         client = ClientWidget(self, name=name,
                               history_filename='history.py',
                               config_options=self.config_options(),
+                              additional_options=self.additional_options(),
                               connection_file=connection_file,
                               menu_actions=self.menu_actions,
                               hostname=hostname,
