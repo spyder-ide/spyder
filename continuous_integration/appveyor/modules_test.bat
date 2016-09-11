@@ -50,6 +50,10 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: We have to investigate this failure!
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%SPYDER%\utils\ipython\start_kernel.py" (
+        :: It can't be tested outside of a Qtconsole
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDER%\widgets\editor.py" (
         :: This is making AppVeyor to time out!
         echo --- NOT testing %%f ---
@@ -64,10 +68,6 @@ for /r "%SPYDER%" %%f in (*.py) do (
         echo.
     ) else if "%%f"=="%SPYDER%\widgets\externalshell\sitecustomize.py" (
         :: It can't be tested outside of a Python console
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDER%\widgets\externalshell\start_ipython_kernel.py" (
-        :: It can't be tested outside of a Qtconsole
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDER%\widgets\sourcecode\codeeditor.py" (

@@ -1202,6 +1202,7 @@ class IPythonConsole(SpyderPluginWidget):
         sc_path = get_module_source_path('spyder.widgets.externalshell')
         spy_path = get_module_source_path('spyder')
         spy_pythonpath = self.main.get_spyder_pythonpath()
+
         default_interpreter = CONF.get('main_interpreter', 'default')
         if default_interpreter:
             pathlist = [sc_path] + spy_pythonpath
@@ -1220,9 +1221,10 @@ class IPythonConsole(SpyderPluginWidget):
             pyexec = CONF.get('main_interpreter', 'executable')
 
         # Command used to start kernels
+        utils_path = osp.join(spy_path, 'utils', 'ipython')
         kernel_cmd = [
             pyexec,
-            osp.join("%s" % sc_path, "start_ipython_kernel.py"),
+            osp.join("%s" % utils_path, "start_kernel.py"),
             '-f',
             '{connection_file}'
         ]

@@ -71,6 +71,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/help/*.py ]]; then
         continue
     fi
+    if [[ $f == spyder/utils/ipython/start_kernel.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
@@ -81,9 +84,6 @@ for f in spyder/*/*/*.py; do
         continue
     fi
     if [[ $f == spyder/widgets/externalshell/sitecustomize.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/widgets/externalshell/start_ipython_kernel.py ]]; then
         continue
     fi
     python "$f"
