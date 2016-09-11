@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-Widgets that handle communications between QtConsole and the Variable
-Explorer
+Widget that handle communications between the IPython Console and
+the Variable Explorer
 """
 
 from __future__ import absolute_import
@@ -26,7 +26,7 @@ from spyder.py3compat import to_text_string
 class NamepaceBrowserWidget(RichJupyterWidget):
     """
     Widget with the necessary attributes and methods to handle communications
-    between QtConsole and the Variable Explorer
+    between the IPython Console and the Variable Explorer
     """
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)

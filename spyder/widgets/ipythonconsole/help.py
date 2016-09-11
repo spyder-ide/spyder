@@ -5,7 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-Widgets that handle communications between QtConsole and the Help plugin
+Widgets that handle communications between the IPython Console and
+the Help plugin
 """
 
 from __future__ import absolute_import
@@ -23,7 +24,7 @@ from spyder.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 class HelpWidget(RichJupyterWidget):
     """
     Widget with the necessary attributes and methods to handle communications
-    between QtConsole and the Help plugin
+    between the IPython Console and the Help plugin
     """
 
     def clean_invalid_var_chars(self, var):

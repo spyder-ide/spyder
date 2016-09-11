@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Control widgets for our implementation of QtConsole"""
+"""Control widgets used by ShellWidget"""
 
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QTextEdit

@@ -5,7 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """
-Client widget for Spyder implementation of QtConsole
+Client widget for the IPython Console
+
+This is the widget used on all its tabs
 """
 
 # Standard library imports
@@ -32,7 +34,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.widgets.browser import WebView
 from spyder.widgets.mixins import SaveHistoryMixin
-from spyder.widgets.jupyter_qtconsole import ShellWidget
+from spyder.widgets.ipythonconsole import ShellWidget
 
 
 #-----------------------------------------------------------------------------
@@ -68,7 +70,7 @@ def background(f):
 #-----------------------------------------------------------------------------
 class ClientWidget(QWidget, SaveHistoryMixin):
     """
-    Client widget for Spyder implementation of QtConsole
+    Client widget for the IPython Console
 
     This is a widget composed of a shell widget and a WebView info widget
     to print different messages there.

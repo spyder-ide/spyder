@@ -56,7 +56,7 @@ from spyder.utils import programs
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
                                get_python_executable, remove_backslashes)
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.jupyter_qtconsole import ClientWidget
+from spyder.widgets.ipythonconsole import ClientWidget
 from spyder.widgets.tabs import Tabs
 
 

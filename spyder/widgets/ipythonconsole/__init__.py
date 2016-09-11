@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Widgets for our implementation of QtConsole
+Widgets for the IPython Console
 """
 
 from .control import ControlWidget, PageControlWidget

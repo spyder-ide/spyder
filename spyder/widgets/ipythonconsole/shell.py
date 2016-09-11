@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Shell Widget for QtConsole
+Shell Widget for the IPython Console
 """
 
 import sys
@@ -19,14 +19,14 @@ from spyder.config.main import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
-from spyder.widgets.jupyter_qtconsole import (ControlWidget, HelpWidget,
-                                              NamepaceBrowserWidget,
-                                              PageControlWidget)
+from spyder.widgets.ipythonconsole import (ControlWidget, HelpWidget,
+                                           NamepaceBrowserWidget,
+                                           PageControlWidget)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget):
     """
-    Shell widget for QtConsole
+    Shell widget for the IPython Console
 
     This is the widget in charge of executing code
     """
