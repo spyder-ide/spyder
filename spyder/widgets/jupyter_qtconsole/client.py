@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-IPython client's widget
+Client widget for Spyder implementation of QtConsole
 """
 
 # Standard library imports
@@ -66,13 +66,12 @@ def background(f):
 #-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
-class IPythonClient(QWidget, SaveHistoryMixin):
+class ClientWidget(QWidget, SaveHistoryMixin):
     """
-    IPython client or frontend for Spyder
+    Client widget for Spyder implementation of QtConsole
 
-    This is a widget composed of a shell widget (i.e. RichJupyterWidget
-    + our additions = IPythonShellWidget) and a WebView info widget to
-    print kernel error and other messages.
+    This is a widget composed of a shell widget and a WebView info widget
+    to print different messages there.
     """
 
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
@@ -81,7 +80,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def __init__(self, plugin, name, history_filename, config_options,
                  connection_file=None, hostname=None, menu_actions=None,
                  slave=False):
-        super(IPythonClient, self).__init__(plugin)
+        super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
 
         # --- Init attrs
@@ -195,7 +194,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
         """Return client name"""
         return ((_("Console") if self.hostname is None else self.hostname)
                 + " " + self.name)
-    
+
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
         # page_control is the widget used for paging
@@ -237,7 +236,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
             self.stop_button.clicked.connect(self.stop_button_click_handler)
         if self.stop_button is not None:
             buttons.append(self.stop_button)
-            
+
         if self.options_button is None:
             options = self.get_options_menu()
             if options:
@@ -277,7 +276,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
                            clear_console_action, reset_namespace_action,
                            None, quit_action))
         return menu
-    
+
     def set_font(self, font):
         """Set IPython widget's font"""
         self.shellwidget._control.setFont(font)
@@ -345,7 +344,7 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.clear_console()
-        
+
     @Slot()
     def reset_namespace(self):
         """Resets the namespace by removing all names defined by the user"""

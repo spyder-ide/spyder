@@ -58,7 +58,7 @@ from spyder.utils import programs
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
                                get_python_executable, remove_backslashes)
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.ipython import IPythonClient
+from spyder.widgets.jupyter_qtconsole import ClientWidget
 from spyder.widgets.tabs import Tabs
 
 
@@ -594,7 +594,7 @@ class IPythonConsole(SpyderPluginWidget):
     """
     IPython Console plugin
 
-    This is a widget with tabs where each one is an IPythonClient
+    This is a widget with tabs where each one is a ClientWidget
     """
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
@@ -797,7 +797,7 @@ class IPythonConsole(SpyderPluginWidget):
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
-        return [cl for cl in self.clients if isinstance(cl, IPythonClient)]
+        return [cl for cl in self.clients if isinstance(cl, ClientWidget)]
 
     def get_focus_client(self):
         """Return current client with focus, if any"""
@@ -869,10 +869,10 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
-        client = IPythonClient(self, name=name, history_filename='history.py',
-                               menu_actions=self.menu_actions,
-                               connection_file=self._new_connection_file(),
-                               config_options=self.config_options())
+        client = ClientWidget(self, name=name, history_filename='history.py',
+                              menu_actions=self.menu_actions,
+                              connection_file=self._new_connection_file(),
+                              config_options=self.config_options())
         self.add_tab(client, name=client.get_name())
 
         # Check if ipykernel is present in the external interpreter.
@@ -1334,13 +1334,13 @@ class IPythonConsole(SpyderPluginWidget):
         name = master_name + '/' + chr(slave_ord + 1)
 
         # Creating the client
-        client = IPythonClient(self, name=name,
-                               history_filename='history.py',
-                               config_options=self.config_options(),
-                               connection_file=connection_file, 
-                               menu_actions=self.menu_actions,
-                               hostname=hostname,
-                               slave=True)
+        client = ClientWidget(self, name=name,
+                              history_filename='history.py',
+                              config_options=self.config_options(),
+                              connection_file=connection_file,
+                              menu_actions=self.menu_actions,
+                              hostname=hostname,
+                              slave=True)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
