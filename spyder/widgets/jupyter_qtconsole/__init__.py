@@ -11,3 +11,4 @@ Widgets for our implementation of QtConsole
 from .control import ControlWidget, PageControlWidget
 from .help import HelpWidget
 from .namespacebrowser import NamepaceBrowserWidget
+from .shell import ShellWidget
