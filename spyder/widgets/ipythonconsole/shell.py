@@ -16,12 +16,12 @@ from spyder.config.gui import config_shortcut, fixed_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
-from spyder.widgets.ipythonconsole import (ControlWidget, HelpWidget,
-                                           NamepaceBrowserWidget,
+from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
+                                           HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
 
 
-class ShellWidget(NamepaceBrowserWidget, HelpWidget):
+class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     """
     Shell widget for the IPython Console
 
@@ -35,6 +35,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget):
     sig_var_properties = Signal(object)
     sig_get_value = Signal()
     sig_error_message = Signal()
+
+    # For DebuggingWidget
+    sig_input_reply = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
