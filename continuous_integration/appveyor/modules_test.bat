@@ -70,6 +70,10 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: This is failing randomly
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%spyder%\widgets\ipythonconsole\__init__.py" (
+        :: This is failing randomly
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDER%\widgets\sourcecode\codeeditor.py" (
         :: Testing file crashes on Python 2.7 without any reason
         if %PYTHON_VERSION%==2.7 (
