@@ -358,16 +358,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                               "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
-        backends = [(inline, 0), (automatic, 1), ("Qt", 2)]
-        # TODO: Add gtk3 when 0.13 is released
+        backends = [(inline, 0), (automatic, 1), ("Qt5", 2), ("Qt4", 3)]
+
         if sys.platform == 'darwin':
-            backends.append( ("Mac OSX", 3) )
-        if programs.is_module_installed('pygtk'):
-            backends.append( ("Gtk", 4) )
-        if programs.is_module_installed('wxPython'):
-            backends.append( ("Wx", 5) )
-        if programs.is_module_installed('_tkinter'):
-            backends.append( ("Tkinter", 6) )
+            backends.append( ("OS X", 4) )
+        if sys.platform.startswith('linux'):
+            backends.append( ("Gtk3", 5) )
+            backends.append( ("Gtk", 6) )
+        if PY2:
+            backends.append( ("Wx", 7) )
+        backends.append( ("Tkinter", 8) )
         backends = tuple(backends)
         
         backend_box = self.create_combobox( _("Backend:")+"   ", backends,

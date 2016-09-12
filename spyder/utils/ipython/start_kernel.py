@@ -78,18 +78,21 @@ def kernel_config():
 
     if mpl_installed and pylab_o:
         # Get matplotlib backend
-        if not IS_EXT_INTERPRETER:
-            if os.environ["QT_API"] == 'pyqt5':
-                qt_backend = 'qt5'
+        backend_o = CONF.get('ipython_console', 'pylab/backend')
+        if backend_o == 1:
+            if is_module_installed('PyQt5'):
+                auto_backend = 'qt5'
+            elif is_module_installed('PyQt4'):
+                auto_backend = 'qt4'
+            elif is_module_installed('_tkinter'):
+                auto_backend = 'tk'
             else:
-                qt_backend = 'qt'
-
-            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
-            backends = {0: 'inline', 1: qt_backend, 2: qt_backend, 3: 'osx',
-                        4: 'gtk', 5: 'wx', 6: 'tk'}
-            mpl_backend = backends[backend_o]
+                auto_backend = 'inline'
         else:
-            mpl_backend = 'inline'
+            auto_backend = ''
+        backends = {0: 'inline', 1: auto_backend, 2: 'qt5', 3: 'qt4',
+                    4: 'osx', 5: 'gtk3', 6: 'gtk', 7: 'wx', 8: 'tk'}
+        mpl_backend = backends[backend_o]
 
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
