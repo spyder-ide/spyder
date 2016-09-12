@@ -59,7 +59,8 @@ class TabFilter(QObject):
     def _get_plugin(self, index):
         """Get plugin reference based on tab index."""
         for plugin in self.main.widgetlist:
-            if plugin.get_plugin_title() == self.dock_tabbar.tabText(index):
+            tab_text = self.dock_tabbar.tabText(index).replace('&', '')
+            if plugin.get_plugin_title() == tab_text:
                 return plugin
 
     def _get_plugins(self):
