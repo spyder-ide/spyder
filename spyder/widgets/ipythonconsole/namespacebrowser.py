@@ -14,7 +14,7 @@ from __future__ import absolute_import
 import ast
 import uuid
 
-from qtpy.QtCore import QEventLoop, Signal
+from qtpy.QtCore import QEventLoop
 
 from ipykernel.pickleutil import CannedObject
 from ipykernel.serialize import deserialize_object
