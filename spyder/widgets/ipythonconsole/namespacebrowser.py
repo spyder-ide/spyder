@@ -152,6 +152,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         self.sig_get_value.disconnect(wait_loop.quit)
         wait_loop = None
 
+        # Handle exceptions
+        if self._kernel_value is None:
+            if self._kernel_message:
+                msg = self._kernel_message[:]
+                self._kernel_message = None
+                raise ValueError(msg)
+
         return self._kernel_value
 
     def set_value(self, name, value):

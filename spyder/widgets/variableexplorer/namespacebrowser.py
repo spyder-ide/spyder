@@ -333,13 +333,6 @@ class NamespaceBrowser(QWidget):
         if self.is_ipyclient:
             value = self.shellwidget.get_value(name)
 
-            # Handle exceptions
-            if value is None:
-                msg = self.shellwidget._kernel_message
-                if msg:
-                    self.shellwidget._kernel_message = None
-                    raise ValueError(msg)
-
             # Reset temporal variable where value is saved to
             # save memory
             self.shellwidget._kernel_value = None
