@@ -330,7 +330,7 @@ class NamespaceBrowser(QWidget):
 
             # Reset temporal variable where value is saved to
             # save memory
-            self.shellwidget.kernel_value = None
+            self.shellwidget._kernel_value = None
         else:
             value = monitor_get_global(self._get_sock(), name)
             if value is None:

@@ -44,8 +44,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         self._kernel_methods = {}
 
         # To save values and messages returned by the kernel
-        self.kernel_value = None
-        self.kernel_message = None
+        self._kernel_value = None
+        self._kernel_message = None
         self._kernel_is_starting = True
 
     # --- Public API --------------------------------------------------
@@ -138,7 +138,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
                 elif 'load_data' in method or 'save_namespace' in method:
-                    self.kernel_message = ast.literal_eval(data['text/plain'])
+                    self._kernel_message = ast.literal_eval(data['text/plain'])
                     self.sig_error_message.emit()
 
                 # Remove method after being processed
@@ -156,7 +156,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         self.sig_get_value.disconnect(wait_loop.quit)
         wait_loop = None
 
-        return self.kernel_value
+        return self._kernel_value
 
     def set_value(self, name, value):
         """Set value for a variable"""
@@ -185,7 +185,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         self.sig_error_message.disconnect(wait_loop.quit)
         wait_loop = None
 
-        return self.kernel_message
+        return self._kernel_message
 
     def save_namespace(self, filename):
         # Wait until the kernel tries to save the file
@@ -199,7 +199,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         self.sig_error_message.disconnect(wait_loop.quit)
         wait_loop = None
 
-        return self.kernel_message
+        return self._kernel_message
 
     # ---- Private API (defined by us) ------------------------------
     def _handle_data_message(self, msg):
@@ -217,7 +217,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if value is not None:
             if isinstance(value, CannedObject):
                 value = value.get_object()
-            self.kernel_value = value
+            self._kernel_value = value
             self.sig_get_value.emit()
 
     # ---- Private API (overrode by us) ----------------------------
