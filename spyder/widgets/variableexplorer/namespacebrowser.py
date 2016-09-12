@@ -22,10 +22,8 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
 # Third party imports (others)
-try:
-    from ipykernel.serialize import serialize_object
-except ImportError:
-    serialize_object = None
+import ipykernel.pickleutil
+from ipykernel.serialize import serialize_object
 
 # Local imports
 from spyder.config.base import _, get_supported_types
@@ -47,6 +45,15 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
+
+# XXX --- Disable canning for Numpy arrays for now ---
+# This allows getting values between a Python 3 frontend
+# and a Python 2 kernel, and viceversa for several types of
+# arrays.
+# See this link for interesting ideas on how to solve this
+# in the future:
+# http://stackoverflow.com/q/30698004/438386
+ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 class NamespaceBrowser(QWidget):
@@ -348,9 +355,8 @@ class NamespaceBrowser(QWidget):
         
     def set_value(self, name, value):
         if self.is_ipyclient:
-            if serialize_object is not None:
-                value = serialize_object(value)
-                self.shellwidget.set_value(name, value)
+            value = serialize_object(value)
+            self.shellwidget.set_value(name, value)
         else:
             monitor_set_global(self._get_sock(), name, value)
         self.refresh_table()

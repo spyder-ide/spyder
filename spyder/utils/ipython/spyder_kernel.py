@@ -14,6 +14,7 @@ import os
 # Third-party imports
 from ipykernel.datapub import publish_data
 from ipykernel.ipkernel import IPythonKernel
+import ipykernel.pickleutil
 from ipykernel.pickleutil import CannedObject
 from ipykernel.serialize import deserialize_object
 
@@ -33,6 +34,16 @@ else:
     from utils.misc import fix_reference_name
     from widgets.variableexplorer.utils import (get_remote_data,
                                                 make_remote_view)
+
+
+# XXX --- Disable canning for Numpy arrays for now ---
+# This allows getting values between a Python 3 frontend
+# and a Python 2 kernel, and viceversa for several types of
+# arrays.
+# See this link for interesting ideas on how to solve this
+# in the future:
+# http://stackoverflow.com/q/30698004/438386
+ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 class SpyderKernel(IPythonKernel):
