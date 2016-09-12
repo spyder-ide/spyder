@@ -268,7 +268,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
     def setup_page(self):
         newcb = self.create_checkbox
-        mpl_present = programs.is_module_installed("matplotlib")
         
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
@@ -339,21 +338,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                      "plotting libraries different to "
                                      "Matplotlib or to develop \nGUIs with "
                                      "Spyder."))
-        autoload_pylab_box.setEnabled(self.get_option('pylab') and mpl_present)
+        autoload_pylab_box.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(autoload_pylab_box.setEnabled)
         
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
         pylab_layout.addWidget(autoload_pylab_box)
         pylab_group.setLayout(pylab_layout)
-        
-        if not mpl_present:
-            self.set_option('pylab', False)
-            self.set_option('pylab/autoload', False)
-            pylab_group.setEnabled(False)
-            pylab_tip = _("This feature requires the Matplotlib library.\n"
-                          "It seems you don't have it installed.")
-            pylab_box.setToolTip(pylab_tip)
         
         # Pylab backend Group
         inline = _("Inline")
@@ -388,7 +379,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(bend_label)
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
-        backend_group.setEnabled(self.get_option('pylab') and mpl_present)
+        backend_group.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(backend_group.setEnabled)
         
         # Inline backend Group
@@ -432,7 +423,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_h_layout.addStretch(1)
         inline_v_layout.addLayout(inline_h_layout)
         inline_group.setLayout(inline_v_layout)
-        inline_group.setEnabled(self.get_option('pylab') and mpl_present)
+        inline_group.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
@@ -521,7 +512,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         sympy_label = QLabel(_("Perfom symbolic operations in the console "
                                "(e.g. integrals, derivatives, vector calculus, "
                                "etc) and get the outputs in a beautifully "
-                               "printed style."))
+                               "printed style (it requires the Sympy module)."))
         sympy_label.setWordWrap(True)
         sympy_box = newcb(_("Use symbolic math"), "symbolic_math",
                           tip=_("This option loads the Sympy library to work "
@@ -532,15 +523,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         sympy_layout.addWidget(sympy_label)
         sympy_layout.addWidget(sympy_box)
         sympy_group.setLayout(sympy_layout)
-        
-        sympy_present = programs.is_module_installed("sympy")
-        if not sympy_present:
-            self.set_option("symbolic_math", False)
-            sympy_box.setEnabled(False)
-            sympy_tip = _("This feature requires the Sympy library.\n"
-                          "It seems you don't have it installed.")
-            sympy_box.setToolTip(sympy_tip)
-        
+
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
         prompts_label = QLabel(_("Modify how Input and Output prompts are "

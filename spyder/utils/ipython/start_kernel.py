@@ -145,7 +145,7 @@ def kernel_config():
 
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
-    if sympy_o:
+    if sympy_o and is_module_installed('sympy'):
         lines = sympy_config(mpl_backend)
         spy_cfg.IPKernelApp.exec_lines.append(lines)
 
