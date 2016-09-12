@@ -54,6 +54,7 @@ class SpyderKernel(IPythonKernel):
         self.pdb_frame = None
         self.pdb_locals = {}
         self.namespace_view_settings = {}
+        self._pdb_step = None
 
     # -- Public API ---------------------------------------------------
     def get_namespace_view(self):
@@ -159,6 +160,10 @@ class SpyderKernel(IPythonKernel):
         data = get_remote_data(ns, settings, mode='picklable',
                                more_excluded_names=['In', 'Out']).copy()
         return iofunctions.save(data, filename)
+
+    def pdb_step(self):
+        """Return info about pdb current frame"""
+        return self._pdb_step
 
     # -- Private API ---------------------------------------------------
     def _get_current_namespace(self, with_magics=False):

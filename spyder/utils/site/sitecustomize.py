@@ -246,7 +246,7 @@ except ImportError:
 #==============================================================================
 # Monitor-based functionality
 #==============================================================================
-if os.environ.get('SPYDER_SHELL_ID') is None:
+if IS_IPYKERNEL or os.environ.get('SPYDER_SHELL_ID') is None:
     monitor = None
 else:
     from spyder.widgets.externalshell.monitor import Monitor
@@ -534,9 +534,15 @@ class SpyderPdb(pdb.Pdb):
                 pass
         lineno = frame.f_lineno
         if isinstance(fname, basestring) and isinstance(lineno, int):
-            if osp.isfile(fname) and monitor is not None:
-                monitor.notify_pdb_step(fname, lineno)
-                time.sleep(0.1)
+            if osp.isfile(fname):
+                if IS_IPYKERNEL:
+                    from IPython.core.getipython import get_ipython
+                    ipython_shell = get_ipython()
+                    if ipython_shell:
+                        ipython_shell.kernel._pdb_step = (fname, lineno)
+                elif monitor is not None:
+                    monitor.notify_pdb_step(fname, lineno)
+                    time.sleep(0.1)
 
 pdb.Pdb = SpyderPdb
 
