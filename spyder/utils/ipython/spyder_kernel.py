@@ -38,7 +38,7 @@ else:
 
 # XXX --- Disable canning for Numpy arrays for now ---
 # This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa for several types of
+# and a Python 2 kernel, and viceversa, for several types of
 # arrays.
 # See this link for interesting ideas on how to solve this
 # in the future:
