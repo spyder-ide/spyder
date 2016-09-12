@@ -268,7 +268,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                           icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
         reset_namespace_action = create_action(self, _("Reset namespace"),
-                                          QKeySequence("Ctrl+R"),
+                                          QKeySequence("Ctrl+Alt+R"),
                                           triggered=self.reset_namespace)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',

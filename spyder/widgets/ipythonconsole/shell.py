@@ -132,7 +132,7 @@ These commands were executed:
 
         # Fixed shortcuts
         fixed_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
-        fixed_shortcut("Ctrl+R", self, lambda: self.reset_namespace())
+        fixed_shortcut("Ctrl+Alt+R", self, lambda: self.reset_namespace())
         fixed_shortcut(SHORTCUT_INLINE, self,
                        lambda: self._control.enter_array_inline())
         fixed_shortcut(SHORTCUT_TABLE, self,
