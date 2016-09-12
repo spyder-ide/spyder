@@ -8,8 +8,6 @@
 Shell Widget for the IPython Console
 """
 
-import sys
-
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
@@ -29,6 +27,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget):
 
     This is the widget in charge of executing code
     """
+    # NOTE: Signals can't be assigned separately to each widget
+    #       That's why we define all needed signals here.
+
+    # For NamepaceBrowserWidget
+    sig_namespace_view = Signal(object)
+    sig_var_properties = Signal(object)
+    sig_get_value = Signal()
+    sig_error_message = Signal()
+
+    # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
 

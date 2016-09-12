@@ -28,10 +28,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     Widget with the necessary attributes and methods to handle communications
     between the IPython Console and the Variable Explorer
     """
-    sig_namespace_view = Signal(object)
-    sig_var_properties = Signal(object)
-    sig_get_value = Signal()
-    sig_error_message = Signal()
 
     def __init__(self, *args, **kw):
         super(NamepaceBrowserWidget, self).__init__(*args, **kw)
