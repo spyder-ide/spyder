@@ -42,6 +42,10 @@ for /r "%SPYDER%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDER%\utils\bsdsocket.py" (
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%spyder%\utils\inputhooks.py" (
+        :: It can't be tested outside of a Python console
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDER%\utils\introspection\module_completion.py" (
         :: This is failing randomly
         echo --- NOT testing %%f ---
@@ -54,20 +58,16 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: It can't be tested outside of a Qtconsole
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%SPYDER%\utils\site\sitecustomize.py" (
+        :: It can't be tested outside of a Python console
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDER%\widgets\editor.py" (
         :: This is making AppVeyor to time out!
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%spyder%\widgets\externalshell\systemshell.py" (
         :: This is failing randomly
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%spyder%\widgets\externalshell\inputhooks.py" (
-        :: It can't be tested outside of a Python console
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDER%\widgets\externalshell\sitecustomize.py" (
-        :: It can't be tested outside of a Python console
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDER%\widgets\sourcecode\codeeditor.py" (

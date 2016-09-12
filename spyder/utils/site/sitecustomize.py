@@ -395,7 +395,7 @@ if matplotlib is not None:
         if mpl_ion.lower() == "true":
             matplotlib.rcParams['interactive'] = True
 
-        from spyder.widgets.externalshell import inputhooks
+        from spyder.utils import inputhooks
         if mpl_backend:
             import ctypes
 
