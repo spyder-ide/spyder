@@ -84,8 +84,6 @@ class NamespaceBrowser(QWidget):
         # For IPython clients
         self.is_ipyclient = False
         self.var_properties = {}
-        self.ipykernel_data = None
-        self.ipykernel_message = None
 
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
