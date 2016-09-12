@@ -416,9 +416,11 @@ class CollectionsDelegate(QItemDelegate):
         try:
             value = self.get_value(index)
         except Exception as msg:
-            QMessageBox.critical(self.parent(), _("Edit item"),
-                                 _("<b>Unable to retrieve data.</b>"
-                                   "<br><br>Error message:<br>%s"
+            QMessageBox.critical(self.parent(), _("Error"),
+                                 _("Spyder was unable to retrieve the value of "
+                                   "this variable from the console.<br><br>"
+                                   "The error mesage was:<br>"
+                                   "<i>%s</i>"
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)

@@ -210,7 +210,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         publish_data for other purposes.
         """
         # Deserialize data
-        data = deserialize_object(msg['buffers'])[0]
+        try:
+            data = deserialize_object(msg['buffers'])[0]
+        except Exception as msg:
+            self._kernel_value = None
+            self._kernel_message = msg
+            self.sig_get_value.emit()
+            return
 
         # We only handle data asked by Spyder
         value = data.get('__spy_data__', None)

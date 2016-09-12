@@ -326,6 +326,13 @@ class NamespaceBrowser(QWidget):
         if self.is_ipyclient:
             value = self.shellwidget.get_value(name)
 
+            # Handle exceptions
+            if value is None:
+                msg = self.shellwidget._kernel_message
+                if msg:
+                    self.shellwidget._kernel_message = None
+                    raise ValueError(msg)
+
             # Reset temporal variable where value is saved to
             # save memory
             self.shellwidget._kernel_value = None
@@ -534,6 +541,7 @@ class NamespaceBrowser(QWidget):
                 if self.is_ipyclient:
                     error_message = self.shellwidget.load_data(self.filename,
                                                                ext)
+                    self.shellwidget._kernel_message = None
                 else:
                     error_message = monitor_load_globals(self._get_sock(),
                                                          self.filename, ext)
@@ -565,6 +573,7 @@ class NamespaceBrowser(QWidget):
         QApplication.processEvents()
         if self.is_ipyclient:
             error_message = self.shellwidget.save_namespace(self.filename)
+            self.shellwidget._kernel_message = None
         else:
             settings = self.get_view_settings()
             error_message = monitor_save_globals(self._get_sock(), settings,
