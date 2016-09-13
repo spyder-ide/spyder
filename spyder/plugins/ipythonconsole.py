@@ -583,7 +583,7 @@ class IPythonConsole(SpyderPluginWidget):
     
     # Signals
     focus_changed = Signal()
-    edit_goto = Signal(str, int, str)
+    edit_goto = Signal((str, int, str), (str, int, str, bool))
 
     def __init__(self, parent):
         if PYQT5:
@@ -768,8 +768,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.editor = self.main.editor
         
         self.focus_changed.connect(self.main.plugin_focus_changed)
+
         if self.editor is not None:
             self.edit_goto.connect(self.editor.load)
+            self.edit_goto[str, int, str, bool].connect(
+                             lambda fname, lineno, word, processevents:
+                                 self.editor.load(fname, lineno, word,
+                                                  processevents=processevents))
             self.editor.run_in_current_ipyclient.connect(
                                              self.run_script_in_current_client)
 
@@ -1043,6 +1048,10 @@ class IPythonConsole(SpyderPluginWidget):
         # For tracebacks
         control.go_to_error.connect(self.go_to_error)
 
+        shellwidget.sig_pdb_step.connect(
+                              lambda fname, lineno, shellwidget=shellwidget:
+                              self.pdb_has_stopped(fname, lineno, shellwidget))
+
         # Connect text widget to Help
         if self.help is not None:
             control.set_help(self.help)
@@ -1150,6 +1159,15 @@ class IPythonConsole(SpyderPluginWidget):
             self.close_client(client=client, force=True)
         self.create_new_client(give_focus=False)
         self.create_new_client_if_empty = True
+
+    def pdb_has_stopped(self, fname, lineno, shellwidget):
+        """Python debugger has just stopped at frame (fname, lineno)"""
+        # This is a unique form of the edit_goto signal that is intended to
+        # prevent keyboard input from accidentally entering the editor
+        # during repeated, rapid entry of debugging commands.
+        self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
+        self.activateWindow()
+        shellwidget._control.setFocus()
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):

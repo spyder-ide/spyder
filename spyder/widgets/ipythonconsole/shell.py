@@ -38,6 +38,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     # For DebuggingWidget
     sig_input_reply = Signal()
+    sig_pdb_step = Signal(str, int)
+    sig_prompt_ready = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
@@ -124,10 +126,6 @@ These commands were executed:
 
         if reply == QMessageBox.Yes:
             self.execute("%reset -f")
-
-    def write_to_stdin(self, line):
-        """Send raw characters to the IPython kernel through stdin"""
-        self.kernel_client.input(line)
 
     def set_background_color(self):
         light_color_o = self.additional_options['light_color']
