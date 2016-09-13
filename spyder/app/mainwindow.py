@@ -1952,19 +1952,16 @@ class MainWindow(QMainWindow):
         self.update_search_menu()
 
         # Now deal with Python shell and IPython plugins
-        shell = get_focus_python_shell()
-        if shell is not None:
-            # A Python shell widget has focus
-            self.last_console_plugin_focus_was_python = True
-        #    if self.help is not None:
-        #        #  Help may be disabled in .spyder.ini
-        #        self.help.set_shell(shell)
-        elif self.ipyconsole is not None:
+        if self.ipyconsole is not None:
             focus_client = self.ipyconsole.get_focus_client()
             if focus_client is not None:
                 self.last_console_plugin_focus_was_python = False
-        #       if self.help is not None:
-        #           self.help.set_shell(kw)
+        else:
+            shell = get_focus_python_shell()
+            if shell is not None:
+                self.last_console_plugin_focus_was_python = True
+                if self.help is not None:
+                    self.help.set_shell(shell)
 
     def show_shortcuts(self, menu):
         """Show action shortcuts in menu"""
