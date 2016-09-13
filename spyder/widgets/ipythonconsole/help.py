@@ -5,13 +5,15 @@
 # (see spyder/__init__.py for details)
 
 """
-Widgets that handle communications between the IPython Console and
+Widget that handles communications between the IPython Console and
 the Help plugin
 """
 
 from __future__ import absolute_import
 
 import re
+
+from qtpy.QtCore import QEventLoop
 
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -64,6 +66,21 @@ class HelpWidget(RichJupyterWidget):
             return signature
         else:
             return ''
+
+    def is_defined(self, objtxt, force_import=False):
+        """Return True if object is defined"""
+        wait_loop = QEventLoop()
+        self.sig_got_reply.connect(wait_loop.quit)
+        self.silent_exec_method(
+            "get_ipython().kernel.is_defined('%s', force_import=%s)"
+            % (objtxt, force_import))
+        wait_loop.exec_()
+
+        # Remove loop connection and loop
+        self.sig_got_reply.disconnect(wait_loop.quit)
+        wait_loop = None
+
+        return self._kernel_reply
 
     #---- Private methods (overrode by us) ---------------------------------
     def _handle_inspect_reply(self, rep):

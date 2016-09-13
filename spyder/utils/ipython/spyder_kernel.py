@@ -23,6 +23,7 @@ IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true
 
 # Local imports
 if not IS_EXT_INTERPRETER:
+    from spyder.utils.dochelpers import isdefined
     from spyder.utils.iofuncs import iofunctions
     from spyder.utils.misc import fix_reference_name
     from spyder.widgets.variableexplorer.utils import (get_remote_data,
@@ -30,6 +31,7 @@ if not IS_EXT_INTERPRETER:
 else:
     # We add "spyder" to sys.path for external interpreters, so this works!
     # See create_kernel_spec of plugins/ipythonconsole
+    from utils.dochelpers import isdefined
     from utils.iofuncs import iofunctions
     from utils.misc import fix_reference_name
     from widgets.variableexplorer.utils import (get_remote_data,
@@ -74,6 +76,7 @@ class SpyderKernel(IPythonKernel):
             return {}
 
     # -- Public API ---------------------------------------------------
+    # For the Variable Explorer
     def get_namespace_view(self):
         """
         Return the namespace view
@@ -178,11 +181,19 @@ class SpyderKernel(IPythonKernel):
                                more_excluded_names=['In', 'Out']).copy()
         return iofunctions.save(data, filename)
 
+    # --- For Pdb
     def get_pdb_step(self):
         """Return info about pdb current frame"""
         return self._pdb_step
 
+    # --- For the Help plugin
+    def is_defined(self, obj, force_import=False):
+        """Return True if object is defined in current namespace"""
+        ns = self._get_current_namespace(with_magics=True)
+        return isdefined(obj, force_import=force_import, namespace=ns)
+
     # -- Private API ---------------------------------------------------
+    # --- For the Variable Explorer
     def _get_current_namespace(self, with_magics=False):
         """
         Return current namespace
@@ -231,10 +242,6 @@ class SpyderKernel(IPythonKernel):
             return self._pdb_frame.f_globals
         else:
             return self.shell.user_ns
-
-    def _register_pdb_session(self, pdb_obj):
-        """Register Pdb session to use it later"""
-        self._pdb_obj = pdb_obj
 
     def _get_len(self, var):
         """Return sequence length"""
@@ -288,3 +295,8 @@ class SpyderKernel(IPythonKernel):
             return var.ndim
         except AttributeError:
             return None
+
+    # --- For Pdb
+    def _register_pdb_session(self, pdb_obj):
+        """Register Pdb session to use it later"""
+        self._pdb_obj = pdb_obj
