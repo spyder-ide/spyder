@@ -161,7 +161,7 @@ class SpyderKernel(IPythonKernel):
                                more_excluded_names=['In', 'Out']).copy()
         return iofunctions.save(data, filename)
 
-    def pdb_step(self):
+    def get_pdb_step(self):
         """Return info about pdb current frame"""
         return self._pdb_step
 
