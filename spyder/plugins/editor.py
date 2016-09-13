@@ -2278,10 +2278,13 @@ class Editor(SpyderPluginWidget):
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
-        editor = self.get_current_editor()
-        if editor.get_breakpoints():
-            time.sleep(0.5)
-            self.debug_command('continue')
+        # Fixes 2034
+        # FIXME: Stop doing this for now because it breaks debugging
+        # for IPython consoles
+        #editor = self.get_current_editor()
+        #if editor.get_breakpoints():
+        #    time.sleep(0.5)
+        #    self.debug_command('continue')
 
     @Slot()
     def re_run_file(self):
