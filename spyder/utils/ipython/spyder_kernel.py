@@ -51,10 +51,27 @@ class SpyderKernel(IPythonKernel):
 
     def __init__(self, *args, **kwargs):
         super(SpyderKernel, self).__init__(*args, **kwargs)
-        self.pdb_frame = None
-        self.pdb_locals = {}
+
         self.namespace_view_settings = {}
+        self._pdb_obj = None
         self._pdb_step = None
+
+    @property
+    def _pdb_frame(self):
+        """Return current Pdb frame if there is any"""
+        if self._pdb_obj is not None and self._pdb_obj.curframe is not None:
+            return self._pdb_obj.curframe
+
+    @property
+    def _pdb_locals(self):
+        """
+        Return current Pdb frame locals if available. Otherwise
+        return an empty dictionary
+        """
+        if self._pdb_frame:
+            return self._pdb_obj.curframe_locals
+        else:
+            return {}
 
     # -- Public API ---------------------------------------------------
     def get_namespace_view(self):
@@ -176,11 +193,11 @@ class SpyderKernel(IPythonKernel):
         ns = {}
         glbs = self._mglobals()
 
-        if self.pdb_frame is None:
+        if self._pdb_frame is None:
             ns.update(glbs)
         else:
             ns.update(glbs)
-            ns.update(self.pdb_locals)
+            ns.update(self._pdb_locals)
 
         # Add magics to ns so we can show help about them on the Help
         # plugin
@@ -199,10 +216,10 @@ class SpyderKernel(IPythonKernel):
         It returns the globals() if reference has not yet been defined
         """
         glbs = self._mglobals()
-        if self.pdb_frame is None:
+        if self._pdb_frame is None:
             return glbs
         else:
-            lcls = self.pdb_locals
+            lcls = self._pdb_locals
             if name in lcls:
                 return lcls
             else:
@@ -210,10 +227,14 @@ class SpyderKernel(IPythonKernel):
 
     def _mglobals(self):
         """Return current globals -- handles Pdb frames"""
-        if self.pdb_frame is not None:
-            return self.pdb_frame.f_globals
+        if self._pdb_frame is not None:
+            return self._pdb_frame.f_globals
         else:
             return self.shell.user_ns
+
+    def _register_pdb_session(self, pdb_obj):
+        """Register Pdb session to use it later"""
+        self._pdb_obj = pdb_obj
 
     def _get_len(self, var):
         """Return sequence length"""

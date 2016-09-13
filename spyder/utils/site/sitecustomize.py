@@ -49,7 +49,7 @@ def _print(*objects, **options):
     file = options.get('file', sys.stdout)
     sep = options.get('sep', ' ')
     string = sep.join([str(obj) for obj in objects])
-    if sys.version[0] == '3':
+    if not PY2:
         # Python 3
         local_dict = {}
         exec('printf = print', local_dict) # to avoid syntax error in Python 2
@@ -527,7 +527,7 @@ class SpyderPdb(pdb.Pdb):
         if not frame:
             return
         fname = self.canonic(frame.f_code.co_filename)
-        if sys.version[0] == '2':
+        if PY2:
             try:
                 fname = unicode(fname, "utf-8")
             except TypeError:
@@ -604,7 +604,12 @@ def interaction(self, frame, traceback):
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def reset(self):
     self._old_Pdb_reset()
-    if monitor is not None:
+    if IS_IPYKERNEL:
+        from IPython.core.getipython import get_ipython
+        ipython_shell = get_ipython()
+        if ipython_shell:
+            ipython_shell.kernel._register_pdb_session(self)
+    elif monitor is not None:
         monitor.register_pdb_session(self)
     self.set_spyder_breakpoints()
 
@@ -617,7 +622,7 @@ def postcmd(self, stop, line):
 
 # Breakpoints don't work for files with non-ascii chars in Python 2
 # Fixes Issue 1484
-if sys.version[0] == '2':
+if PY2:
     @monkeypatch_method(pdb.Pdb, 'Pdb')
     def break_here(self, frame):
         from bdb import effective
