@@ -30,20 +30,17 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     between the IPython Console and the Variable Explorer
     """
 
-    def __init__(self, *args, **kw):
-        super(NamepaceBrowserWidget, self).__init__(*args, **kw)
+    # Reference to the nsb widget connected to this client
+    namespacebrowser = None
 
-        # Reference to the nsb widget connected to this client
-        self.namespacebrowser = None
+    # To save the replies of kernel method executions (except
+    # getting values of variables)
+    _kernel_methods = {}
 
-        # To save the replies of kernel method executions (except
-        # getting values of variables)
-        self._kernel_methods = {}
-
-        # To save values and messages returned by the kernel
-        self._kernel_value = None
-        self._kernel_message = None
-        self._kernel_is_starting = True
+    # To save values and messages returned by the kernel
+    _kernel_value = None
+    _kernel_message = None
+    _kernel_is_starting = True
 
     # --- Public API --------------------------------------------------
     def set_namespacebrowser(self, namespacebrowser):
