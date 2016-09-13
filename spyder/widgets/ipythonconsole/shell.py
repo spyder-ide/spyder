@@ -8,6 +8,9 @@
 Shell Widget for the IPython Console
 """
 
+import ast
+import uuid
+
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
@@ -67,6 +70,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.ipyclient = ipyclient
         self.exit_requested.connect(ipyclient.exit_callback)
 
+    # --- To handle the banner
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
         # Default banner
@@ -110,6 +114,7 @@ These commands were executed:
                                   self.interpreter_versions['ipython_version'])
         return banner
 
+    # --- To define additional shortcuts
     def clear_console(self):
         self.execute("%clear")
 
@@ -149,9 +154,73 @@ These commands were executed:
 
         return [inspect, clear_console]
 
+    # --- To communicate with the kernel
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
         self.kernel_client.execute(to_text_string(code), silent=True)
+
+    def silent_exec_method(self, code):
+        """Silently execute a kernel method and save its reply
+
+        The methods passed here **don't** involve getting the value
+        of a variable but instead replies that can be handled by
+        ast.literal_eval.
+
+        To get a value see `get_value`
+
+        Parameters
+        ----------
+        code : string
+            Code that contains the kernel method as part of its
+            string
+
+        See Also
+        --------
+        handle_exec_method : Method that deals with the reply
+
+        Note
+        ----
+        This is based on the _silent_exec_callback method of
+        RichJupyterWidget. Therefore this is licensed BSD
+        """
+        # Generate uuid, which would be used as an indication of whether or
+        # not the unique request originated from here
+        local_uuid = to_text_string(uuid.uuid1())
+        code = to_text_string(code)
+        msg_id = self.kernel_client.execute('', silent=True,
+                                            user_expressions={ local_uuid:code })
+        self._kernel_methods[local_uuid] = code
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id,
+                                                          'silent_exec_method')
+
+    def handle_exec_method(self, msg):
+        """
+        Handle data returned by silent executions of kernel methods
+
+        This is based on the _handle_exec_callback of RichJupyterWidget.
+        Therefore this is licensed BSD.
+        """
+        user_exp = msg['content'].get('user_expressions')
+        if not user_exp:
+            return
+        for expression in user_exp:
+            if expression in self._kernel_methods:
+                # Process kernel reply
+                method = self._kernel_methods[expression]
+                reply = user_exp[expression]
+                data = reply.get('data')
+                if 'get_namespace_view' in method:
+                    view = ast.literal_eval(data['text/plain'])
+                    self.sig_namespace_view.emit(view)
+                elif 'get_var_properties' in method:
+                    properties = ast.literal_eval(data['text/plain'])
+                    self.sig_var_properties.emit(properties)
+                elif 'load_data' in method or 'save_namespace' in method:
+                    self._kernel_message = ast.literal_eval(data['text/plain'])
+                    self.sig_error_message.emit()
+
+                # Remove method after being processed
+                self._kernel_methods.pop(expression)
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
