@@ -15,7 +15,6 @@
 import os
 import os.path as osp
 import re
-import sys
 import time
 
 # Third party imports
@@ -40,8 +39,7 @@ from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    get_filetype_icon)
+from spyder.utils.qthelpers import add_actions, create_action
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
