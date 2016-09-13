@@ -34,7 +34,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     # To save values and messages returned by the kernel
     _kernel_value = None
-    _kernel_message = None
     _kernel_is_starting = True
 
     # --- Public API --------------------------------------------------
@@ -90,9 +89,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
         # Handle exceptions
         if self._kernel_value is None:
-            if self._kernel_message:
-                msg = self._kernel_message[:]
-                self._kernel_message = None
+            if self._kernel_reply:
+                msg = self._kernel_reply[:]
+                self._kernel_reply = None
                 raise ValueError(msg)
 
         return self._kernel_value
@@ -115,30 +114,30 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def load_data(self, filename, ext):
         # Wait until the kernel tries to load the file
         wait_loop = QEventLoop()
-        self.sig_error_message.connect(wait_loop.quit)
+        self.sig_got_reply.connect(wait_loop.quit)
         self.silent_exec_method(
                 "get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
         wait_loop.exec_()
 
         # Remove loop connection and loop
-        self.sig_error_message.disconnect(wait_loop.quit)
+        self.sig_got_reply.disconnect(wait_loop.quit)
         wait_loop = None
 
-        return self._kernel_message
+        return self._kernel_reply
 
     def save_namespace(self, filename):
         # Wait until the kernel tries to save the file
         wait_loop = QEventLoop()
-        self.sig_error_message.connect(wait_loop.quit)
+        self.sig_got_reply.connect(wait_loop.quit)
         self.silent_exec_method("get_ipython().kernel.save_namespace('%s')" %
                                 filename)
         wait_loop.exec_()
 
         # Remove loop connection and loop
-        self.sig_error_message.disconnect(wait_loop.quit)
+        self.sig_got_reply.disconnect(wait_loop.quit)
         wait_loop = None
 
-        return self._kernel_message
+        return self._kernel_reply
 
     # ---- Private API (defined by us) ------------------------------
     def _handle_data_message(self, msg):
@@ -153,7 +152,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             data = deserialize_object(msg['buffers'])[0]
         except Exception as msg:
             self._kernel_value = None
-            self._kernel_message = msg
+            self._kernel_reply = msg
             self.sig_get_value.emit()
             return
 

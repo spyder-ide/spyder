@@ -37,7 +37,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
     sig_get_value = Signal()
-    sig_error_message = Signal()
+    sig_got_reply = Signal()
 
     # For DebuggingWidget
     sig_input_reply = Signal()
@@ -63,6 +63,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
         # --- Keyboard shortcuts ---
         self.shortcuts = self.create_shortcuts()
+
+        # To save kernel replies in silent execution
+        self._kernel_reply = None
 
     #---- Public API ----------------------------------------------------------
     def set_ipyclient(self, ipyclient):
@@ -215,9 +218,9 @@ These commands were executed:
                 elif 'get_var_properties' in method:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
-                elif 'load_data' in method or 'save_namespace' in method:
-                    self._kernel_message = ast.literal_eval(data['text/plain'])
-                    self.sig_error_message.emit()
+                else:
+                    self._kernel_reply = ast.literal_eval(data['text/plain'])
+                    self.sig_got_reply.emit()
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)

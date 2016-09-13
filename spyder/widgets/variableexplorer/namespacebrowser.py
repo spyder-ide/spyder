@@ -544,7 +544,7 @@ class NamespaceBrowser(QWidget):
                 if self.is_ipyclient:
                     error_message = self.shellwidget.load_data(self.filename,
                                                                ext)
-                    self.shellwidget._kernel_message = None
+                    self.shellwidget._kernel_reply = None
                 else:
                     error_message = monitor_load_globals(self._get_sock(),
                                                          self.filename, ext)
@@ -576,7 +576,7 @@ class NamespaceBrowser(QWidget):
         QApplication.processEvents()
         if self.is_ipyclient:
             error_message = self.shellwidget.save_namespace(self.filename)
-            self.shellwidget._kernel_message = None
+            self.shellwidget._kernel_reply = None
         else:
             settings = self.get_view_settings()
             error_message = monitor_save_globals(self._get_sock(), settings,
