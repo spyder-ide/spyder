@@ -20,6 +20,7 @@ from ipykernel.pickleutil import CannedObject
 from ipykernel.serialize import deserialize_object
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
+from spyder.config.base import _
 from spyder.py3compat import to_text_string
 
 
@@ -142,6 +143,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def get_value(self, name):
         """Ask kernel for a value"""
+        # Don't ask for values while reading (ipdb) is active
+        if self._reading:
+            raise ValueError(_("Inspecting and setting values while debugging "
+                               "in IPython consoles is not supported yet by "
+                               "Spyder."))
+
         # Wait until the kernel returns the value
         wait_loop = QEventLoop()
         self.sig_get_value.connect(wait_loop.quit)
