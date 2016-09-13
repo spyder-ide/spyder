@@ -22,8 +22,11 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
 # Third party imports (others)
-import ipykernel.pickleutil
-from ipykernel.serialize import serialize_object
+try:
+    import ipykernel.pickleutil
+    from ipykernel.serialize import serialize_object
+except ImportError:
+    serialize_object = None
 
 # Local imports
 from spyder.config.base import _, get_supported_types
@@ -53,7 +56,8 @@ SUPPORTED_TYPES = get_supported_types()
 # See this link for interesting ideas on how to solve this
 # in the future:
 # http://stackoverflow.com/q/30698004/438386
-ipykernel.pickleutil.can_map.pop('numpy.ndarray')
+if serialize_object is not None:
+    ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 class NamespaceBrowser(QWidget):
