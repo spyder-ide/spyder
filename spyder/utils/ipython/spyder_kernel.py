@@ -23,7 +23,8 @@ IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true
 
 # Local imports
 if not IS_EXT_INTERPRETER:
-    from spyder.utils.dochelpers import isdefined
+    from spyder.py3compat import is_text_string
+    from spyder.utils.dochelpers import isdefined, getdoc
     from spyder.utils.iofuncs import iofunctions
     from spyder.utils.misc import fix_reference_name
     from spyder.widgets.variableexplorer.utils import (get_remote_data,
@@ -31,7 +32,8 @@ if not IS_EXT_INTERPRETER:
 else:
     # We add "spyder" to sys.path for external interpreters, so this works!
     # See create_kernel_spec of plugins/ipythonconsole
-    from utils.dochelpers import isdefined
+    from py3compat import is_text_string
+    from utils.dochelpers import isdefined, getdoc
     from utils.iofuncs import iofunctions
     from utils.misc import fix_reference_name
     from widgets.variableexplorer.utils import (get_remote_data,
@@ -192,6 +194,12 @@ class SpyderKernel(IPythonKernel):
         ns = self._get_current_namespace(with_magics=True)
         return isdefined(obj, force_import=force_import, namespace=ns)
 
+    def get_doc(self, objtxt):
+        """Get object documentation dictionary"""
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return getdoc(obj)
+
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
     def _get_current_namespace(self, with_magics=False):
@@ -300,3 +308,17 @@ class SpyderKernel(IPythonKernel):
     def _register_pdb_session(self, pdb_obj):
         """Register Pdb session to use it later"""
         self._pdb_obj = pdb_obj
+
+    # --- For the Help plugin
+    def _eval(self, text):
+        """
+        Evaluate text and return (obj, valid)
+        where *obj* is the object represented by *text*
+        and *valid* is True if object evaluation did not raise any exception
+        """
+        assert is_text_string(text)
+        ns = self._get_current_namespace(with_magics=True)
+        try:
+            return eval(text, ns), True
+        except:
+            return None, False
