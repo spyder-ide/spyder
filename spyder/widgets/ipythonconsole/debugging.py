@@ -51,6 +51,12 @@ class DebuggingWidget(RichJupyterWidget):
             fname = self._input_reply['fname']
             lineno = self._input_reply['lineno']
             self.sig_pdb_step.emit(fname, lineno)
+        elif 'get_namespace_view' in code:
+            view = self._input_reply
+            self.sig_namespace_view.emit(view)
+        elif 'get_var_properties' in code:
+            properties = self._input_reply
+            self.sig_var_properties.emit(properties)
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
@@ -71,7 +77,12 @@ class DebuggingWidget(RichJupyterWidget):
         """Commands to be run after writing to stdin"""
         pdb_commands = ['next', 'continue', 'step', 'return']
         if any([x == line for x in pdb_commands]):
+            # To open the file where the current pdb frame points to
             self.silent_exec_input("!get_ipython().kernel.get_pdb_step()")
+
+            # To refresh the Variable Explorer
+            self.silent_exec_input("!get_ipython().kernel.get_namespace_view()")
+            self.silent_exec_input("!get_ipython().kernel.get_var_properties()")
 
     # ---- Private API (overrode by us) -------------------------------
     def _handle_input_request(self, msg):
