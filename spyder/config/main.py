@@ -185,6 +185,8 @@ DEFAULTS = [
               'autorefresh': False,
               'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
+              'dataframe_format': '.3g', # no percent sign to avoid problems
+                                         # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
