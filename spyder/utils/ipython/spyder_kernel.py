@@ -24,7 +24,7 @@ IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true
 # Local imports
 if not IS_EXT_INTERPRETER:
     from spyder.py3compat import is_text_string
-    from spyder.utils.dochelpers import isdefined, getdoc
+    from spyder.utils.dochelpers import isdefined, getdoc, getsource
     from spyder.utils.iofuncs import iofunctions
     from spyder.utils.misc import fix_reference_name
     from spyder.widgets.variableexplorer.utils import (get_remote_data,
@@ -33,7 +33,7 @@ else:
     # We add "spyder" to sys.path for external interpreters, so this works!
     # See create_kernel_spec of plugins/ipythonconsole
     from py3compat import is_text_string
-    from utils.dochelpers import isdefined, getdoc
+    from utils.dochelpers import isdefined, getdoc, getsource
     from utils.iofuncs import iofunctions
     from utils.misc import fix_reference_name
     from widgets.variableexplorer.utils import (get_remote_data,
@@ -199,6 +199,12 @@ class SpyderKernel(IPythonKernel):
         obj, valid = self._eval(objtxt)
         if valid:
             return getdoc(obj)
+
+    def get_source(self, objtxt):
+        """Get object source"""
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return getsource(obj)
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
