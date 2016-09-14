@@ -900,7 +900,7 @@ class Help(SpyderPluginWidget):
                 shell = self.main.ipyconsole.get_current_shellwidget()
                 if shell is not None and shell.kernel_client is not None:
                     self.shell = shell
-            if self.shell is None:
+            if self.shell is None and self.main.extconsole is not None:
                 self.shell = self.main.extconsole.get_running_python_shell()
             if self.shell is None:
                 self.shell = self.internal_shell
