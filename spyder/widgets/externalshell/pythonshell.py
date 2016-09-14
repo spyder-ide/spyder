@@ -154,6 +154,10 @@ class ExtPythonShellWidget(PythonShellWidget):
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into debugging session"""
         return self.ask_monitor("set_spyder_breakpoints()")
+
+    def is_running(self):
+        """Check if parent is running"""
+        return self.parent().is_running()
         
 
 class ExternalPythonShell(ExternalShellBase):
