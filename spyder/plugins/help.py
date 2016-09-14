@@ -304,10 +304,11 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '':
+                    if doc['docstring'] == '' and \
+                      any([doc['name'], doc['argspec'], doc['note']]):
+                        msg = _("No further documentation available")
                         html_text += '<div class="hr"></div>'
-                        html_text += self.html_text_no_doc
-
+                        html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))
                     return
@@ -343,7 +344,7 @@ class Help(SpyderPluginWidget):
         # Initialize plugin
         self.initialize_plugin()
 
-        self.no_doc_string = _("No further documentation available")
+        self.no_doc_string = _("No documentation available")
 
         self._last_console_cb = None
         self._last_editor_cb = None
