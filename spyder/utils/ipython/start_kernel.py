@@ -203,30 +203,20 @@ def main():
         # See create_kernel_spec of plugins/ipythonconsole
         from utils.ipython.spyder_kernel import SpyderKernel
 
-    ipk_temp = IPKernelApp.instance()
-    ipk_temp.kernel_class = SpyderKernel
+    kernel = IPKernelApp.instance()
+    kernel.kernel_class = SpyderKernel
     try:
-        ipk_temp.config = kernel_config()
+        kernel.config = kernel_config()
     except:
         pass
-    ipk_temp.initialize()
-
-    # Grabbing the kernel's shell to share its namespace with our
-    # Variable Explorer
-    __ipythonshell__ = ipk_temp.shell
-
-    # Issue 977: Since kernel.initialize() has completed execution,
-    # we can now allow the monitor to communicate the availablility of
-    # the kernel to accept front end connections.
-    __ipythonkernel__ = ipk_temp
-    del ipk_temp
+    kernel.initialize()
 
     # NOTE: Leave this and other magic modifications *after* setting
     # __ipythonkernel__ to not have problems while starting kernels
-    __ipythonshell__.register_magic_function(varexp)
+    kernel.shell.register_magic_function(varexp)
 
     # Start the (infinite) kernel event loop.
-    __ipythonkernel__.start()
+    kernel.start()
 
 
 if __name__ == '__main__':
