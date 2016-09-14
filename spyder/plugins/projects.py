@@ -24,7 +24,7 @@ from spyder.config.base import _, get_home_dir
 from spyder.plugins import SpyderPluginMixin
 from spyder.py3compat import is_text_string, getcwd
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import add_actions, create_action, get_icon
+from spyder.utils.qthelpers import add_actions, create_action
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
 from spyder.widgets.projects.projectdialog import ProjectDialog
 from spyder.widgets.projects import EmptyProject
@@ -234,7 +234,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                         caption=_("Open project"),
                                         basedir=basedir)
             if not self.is_valid_project(path):
-                QMessageBox.critical(self, _('Error'),
+                if path:
+                    QMessageBox.critical(self, _('Error'),
                                 _("<b>%s</b> is not a Spyder project!" % path))
                 return
             else:
