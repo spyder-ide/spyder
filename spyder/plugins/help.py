@@ -36,7 +36,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
-from spyder.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.sourcecode import codeeditor
 
@@ -366,8 +365,6 @@ class Help(SpyderPluginWidget):
         self.set_rich_text_font(self.get_plugin_font('rich_text'))
 
         self.shell = None
-
-        self.external_console = None
 
         # locked = disable link with Console
         self.locked = False
@@ -893,13 +890,18 @@ class Help(SpyderPluginWidget):
         self.shell = shell
 
     def get_shell(self):
-        """Return shell which is currently bound to Help,
-        or another running shell if it has been terminated"""
-        if not isinstance(self.shell, ExtPythonShellWidget) \
-           or not self.shell.externalshell.is_running():
+        """
+        Return shell which is currently bound to Help,
+        or another running shell if it has been terminated
+        """
+        if not hasattr(self.shell, 'get_doc') or not self.shell.is_running():
             self.shell = None
-            if self.external_console is not None:
-                self.shell = self.external_console.get_running_python_shell()
+            if self.main.ipyconsole is not None:
+                shell = self.main.ipyconsole.get_current_shellwidget()
+                if shell is not None and shell.kernel_client is not None:
+                    self.shell = shell
+            if self.shell is None:
+                self.shell = self.main.extconsole.get_running_python_shell()
             if self.shell is None:
                 self.shell = self.internal_shell
         return self.shell
@@ -938,7 +940,7 @@ class Help(SpyderPluginWidget):
         obj_text = to_text_string(obj_text)
 
         if not shell.is_defined(obj_text):
-            if self.get_option('automatic_import') and\
+            if self.get_option('automatic_import') and \
                self.internal_shell.is_defined(obj_text, force_import=True):
                 shell = self.internal_shell
             else:
