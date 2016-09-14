@@ -1056,8 +1056,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect text widget to Help
         if self.help is not None:
             control.set_help(self.help)
-            control.set_help_enabled(CONF.get('help',
-                                              'connect/ipython_console'))
+            control.set_help_enabled(CONF.get('help', 'connect/ipython_console'))
 
         # Connect client to our history log
         if self.historylog is not None:

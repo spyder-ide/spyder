@@ -592,7 +592,6 @@ class GetHelpMixin(object):
     def set_help(self, help_plugin):
         """Set Help DockWidget reference"""
         self.help = help_plugin
-        self.help.set_shell(self)
 
     def set_help_enabled(self, state):
         self.help_enabled = state
@@ -612,7 +611,7 @@ class GetHelpMixin(object):
 
     def show_object_info(self, text, call=False, force=False):
         """Show signature calltip and/or docstring in the Help plugin"""
-        text = to_text_string(text) # Useful only for ExternalShellBase
+        text = to_text_string(text)
 
         # Show docstring
         help_enabled = self.help_enabled or force
@@ -622,7 +621,10 @@ class GetHelpMixin(object):
         if help_enabled and (self.help is not None) and \
            (self.help.dockwidget.isVisible()):
             # Help widget exists and is visible
-            self.help.set_shell(self)
+            if hasattr(self, 'get_doc'):
+                self.help.set_shell(self)
+            else:
+                self.help.set_shell(self.parent())
             self.help.set_object_text(text, ignore_unknown=False)
             self.setFocus() # if help was not at top level, raising it to
                             # top will automatically give it focus because of
