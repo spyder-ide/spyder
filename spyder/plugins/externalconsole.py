@@ -819,6 +819,7 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget:
             shellwidget.update_time_label_visibility()
             self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
+            self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
         self.update_plugin_title.emit()
 

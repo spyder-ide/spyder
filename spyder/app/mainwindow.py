@@ -1960,8 +1960,6 @@ class MainWindow(QMainWindow):
             shell = get_focus_python_shell()
             if shell is not None:
                 self.last_console_plugin_focus_was_python = True
-                if self.help is not None:
-                    self.help.set_shell(shell)
 
     def show_shortcuts(self, menu):
         """Show action shortcuts in menu"""

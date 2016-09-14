@@ -723,6 +723,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client:
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
+            self.help.set_shell(sw)
         self.main.last_console_plugin_focus_was_python = False
         self.update_plugin_title.emit()
 
@@ -1339,6 +1340,8 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def process_started(self, client):
+        if self.help is not None:
+            self.help.set_shell(client.shellwidget)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(client.shellwidget)
 
