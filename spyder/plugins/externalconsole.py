@@ -757,8 +757,6 @@ class ExternalConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
         self.help = self.main.help
-        if self.help is not None:
-            self.help.set_external_console(self)
         self.historylog = self.main.historylog
         self.edit_goto.connect(self.main.editor.load)
         self.edit_goto[str, int, str, bool].connect(

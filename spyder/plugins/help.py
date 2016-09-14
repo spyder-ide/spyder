@@ -755,9 +755,6 @@ class Help(SpyderPluginWidget):
             self.rich_text.webview.load(QUrl(url))
 
     #------ Public API ---------------------------------------------------------
-    def set_external_console(self, external_console):
-        self.external_console = external_console
-
     def force_refresh(self):
         if self.source_is_console():
             self.set_object_text(None, force_refresh=True)
