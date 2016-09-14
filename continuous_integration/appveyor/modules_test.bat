@@ -42,12 +42,24 @@ for /r "%SPYDER%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDER%\utils\bsdsocket.py" (
         echo --- NOT testing %%f ---
         echo.
+    ) else if "%%f"=="%spyder%\utils\inputhooks.py" (
+        :: It can't be tested outside of a Python console
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDER%\utils\introspection\module_completion.py" (
         :: This is failing randomly
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDER%\utils\introspection\plugin_client.py" (
         :: We have to investigate this failure!
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDER%\utils\ipython\start_kernel.py" (
+        :: It can't be tested outside of a Qtconsole
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if "%%f"=="%SPYDER%\utils\site\sitecustomize.py" (
+        :: It can't be tested outside of a Python console
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDER%\widgets\editor.py" (
@@ -58,16 +70,8 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: This is failing randomly
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%spyder%\widgets\externalshell\inputhooks.py" (
-        :: It can't be tested outside of a Python console
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDER%\widgets\externalshell\sitecustomize.py" (
-        :: It can't be tested outside of a Python console
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDER%\widgets\externalshell\start_ipython_kernel.py" (
-        :: It can't be tested outside of a Qtconsole
+    ) else if "%%f"=="%spyder%\widgets\ipythonconsole\__init__.py" (
+        :: This is failing randomly
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDER%\widgets\sourcecode\codeeditor.py" (

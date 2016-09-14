@@ -36,7 +36,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
-from spyder.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.sourcecode import codeeditor
 
@@ -46,13 +45,6 @@ dependencies.add("sphinx", _("Show help for objects in the Editor and "
                              "Consoles in a dedicated pane"),
                  required_version='>=0.6.6')
 
-
-#XXX: Hardcoded dependency on optional IPython plugin component
-#     that requires the hack to make this work without IPython
-if QTCONSOLE_INSTALLED:
-    from spyder.widgets.ipython import IPythonControlWidget
-else:
-    IPythonControlWidget = None  # analysis:ignore
 
 
 class ObjectComboBox(EditableComboBox):
@@ -312,10 +304,11 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '':
+                    if doc['docstring'] == '' and \
+                      any([doc['name'], doc['argspec'], doc['note']]):
+                        msg = _("No further documentation available")
                         html_text += '<div class="hr"></div>'
-                        html_text += self.html_text_no_doc
-
+                        html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))
                     return
@@ -351,7 +344,7 @@ class Help(SpyderPluginWidget):
         # Initialize plugin
         self.initialize_plugin()
 
-        self.no_doc_string = _("No further documentation available")
+        self.no_doc_string = _("No documentation available")
 
         self._last_console_cb = None
         self._last_editor_cb = None
@@ -373,8 +366,6 @@ class Help(SpyderPluginWidget):
         self.set_rich_text_font(self.get_plugin_font('rich_text'))
 
         self.shell = None
-
-        self.external_console = None
 
         # locked = disable link with Console
         self.locked = False
@@ -762,9 +753,6 @@ class Help(SpyderPluginWidget):
             self.rich_text.webview.load(QUrl(url))
 
     #------ Public API ---------------------------------------------------------
-    def set_external_console(self, external_console):
-        self.external_console = external_console
-
     def force_refresh(self):
         if self.source_is_console():
             self.set_object_text(None, force_refresh=True)
@@ -900,23 +888,21 @@ class Help(SpyderPluginWidget):
 
     def set_shell(self, shell):
         """Bind to shell"""
-        if IPythonControlWidget is not None:
-            # XXX(anatoli): hack to make Spyder run on systems without IPython
-            #               there should be a better way
-            if isinstance(shell, IPythonControlWidget):
-                # XXX: this ignores passed argument completely
-                self.shell = self.external_console.get_current_shell()
-        else:
-            self.shell = shell
+        self.shell = shell
 
     def get_shell(self):
-        """Return shell which is currently bound to Help,
-        or another running shell if it has been terminated"""
-        if not isinstance(self.shell, ExtPythonShellWidget) \
-           or not self.shell.externalshell.is_running():
+        """
+        Return shell which is currently bound to Help,
+        or another running shell if it has been terminated
+        """
+        if not hasattr(self.shell, 'get_doc') or not self.shell.is_running():
             self.shell = None
-            if self.external_console is not None:
-                self.shell = self.external_console.get_running_python_shell()
+            if self.main.ipyconsole is not None:
+                shell = self.main.ipyconsole.get_current_shellwidget()
+                if shell is not None and shell.kernel_client is not None:
+                    self.shell = shell
+            if self.shell is None and self.main.extconsole is not None:
+                self.shell = self.main.extconsole.get_running_python_shell()
             if self.shell is None:
                 self.shell = self.internal_shell
         return self.shell
@@ -955,7 +941,7 @@ class Help(SpyderPluginWidget):
         obj_text = to_text_string(obj_text)
 
         if not shell.is_defined(obj_text):
-            if self.get_option('automatic_import') and\
+            if self.get_option('automatic_import') and \
                self.internal_shell.is_defined(obj_text, force_import=True):
                 shell = self.internal_shell
             else:

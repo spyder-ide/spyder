@@ -416,9 +416,11 @@ class CollectionsDelegate(QItemDelegate):
         try:
             value = self.get_value(index)
         except Exception as msg:
-            QMessageBox.critical(self.parent(), _("Edit item"),
-                                 _("<b>Unable to retrieve data.</b>"
-                                   "<br><br>Error message:<br>%s"
+            QMessageBox.critical(self.parent(), _("Error"),
+                                 _("Spyder was unable to retrieve the value of "
+                                   "this variable from the console.<br><br>"
+                                   "The error mesage was:<br>"
+                                   "<i>%s</i>"
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
@@ -489,7 +491,11 @@ class CollectionsDelegate(QItemDelegate):
             editor = QLineEdit(parent)
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignLeft)
-            editor.returnPressed.connect(self.commitAndCloseEditor)
+            # This is making Spyder crash because the QLineEdit that it's
+            # been modified is removed and a new one is created after
+            # evaluation. So the object on which this method is trying to
+            # act doesn't exist anymore.
+            # editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = CollectionsEditor for an arbitrary object
         else:
@@ -895,7 +901,7 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove selected item?")
+        one = _("Do you want to remove the selected item?")
         more = _("Do you want to remove all selected items?")
         answer = QMessageBox.question(self, _( "Remove"),
                                       one if len(indexes) == 1 else more,
@@ -914,7 +920,13 @@ class BaseTableView(QTableView):
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.model.keys[idx_rows[0]]
-        new_key, valid = QInputDialog.getText(self, _( 'Rename'), _( 'Key:'),
+        if erase_original:
+            title = _('Rename')
+            field_text = _('New variable name:')
+        else:
+            title = _('Duplicate')
+            field_text = _('Variable name:')
+        new_key, valid = QInputDialog.getText(self, title, field_text,
                                               QLineEdit.Normal, orig_key)
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
@@ -1476,7 +1488,7 @@ def remote_editor_test():
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer
-    from spyder.widgets.externalshell.monitor import make_remote_view
+    from spyder.widgets.variableexplorer.utils import make_remote_view
 
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
     pprint(remote)

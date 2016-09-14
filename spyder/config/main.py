@@ -118,6 +118,14 @@ DEFAULTS = [
               'external_editor/gotoline': '-goto:',
               'light_background': True,
               }),
+            ('main_interpreter',
+             {
+              'default': True,
+              'custom': False,
+              'umr/enabled': True,
+              'umr/verbose': True,
+              'umr/namelist': [],
+              }),
             ('console',
              {
               'max_line_count': 500,
@@ -132,16 +140,11 @@ DEFAULTS = [
               'monitor/enabled': True,
               'qt/api': 'default',
               'matplotlib/backend/value': 0,
-              'umr/enabled': True,
-              'umr/verbose': True,
-              'umr/namelist': ['guidata', 'guiqwt'],
               'light_background': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
               'pythonstartup/default': True,
               'pythonstartup/custom': False,
-              'pythonexecutable/default': True,
-              'pythonexecutable/custom': False,
               'ets_backend': 'qt4'
               }),
             ('ipython_console',
@@ -150,7 +153,7 @@ DEFAULTS = [
               'completion_type': 0,
               'use_pager': False,
               'show_calltips': True,
-              'ask_before_closing': True,
+              'ask_before_closing': False,
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
@@ -585,7 +588,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '27.3.0'
+CONF_VERSION = '28.0.0'
 
 # Main configuration instance
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),

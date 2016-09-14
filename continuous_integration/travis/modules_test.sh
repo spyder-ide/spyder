@@ -40,6 +40,9 @@ for f in spyder/*/*.py; do
     if [[ $f == spyder/plugins/*.py ]]; then
         continue
     fi
+    if [[ $f == spyder/utils/inputhooks.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/utils/qthelpers.py ]]; then
         continue
     fi
@@ -71,19 +74,19 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/help/*.py ]]; then
         continue
     fi
+    if [[ $f == spyder/utils/ipython/start_kernel.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/utils/site/sitecustomize.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
     if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then
         continue
     fi
-    if [[ $f == spyder/widgets/externalshell/inputhooks.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/widgets/externalshell/sitecustomize.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/widgets/externalshell/start_ipython_kernel.py ]]; then
+    if [[ $f == spyder/widgets/ipythonconsole/__init__.py ]]; then
         continue
     fi
     python "$f"

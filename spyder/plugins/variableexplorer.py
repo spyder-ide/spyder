@@ -17,8 +17,8 @@ from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
-from spyder.widgets.externalshell.monitor import REMOTE_SETTINGS
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
+from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 class VariableExplorerConfigPage(PluginConfigPage):

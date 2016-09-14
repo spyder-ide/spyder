@@ -527,6 +527,8 @@ class ImportWizard(QDialog):
         btns_layout.addWidget(self.back_btn)
         self.back_btn.clicked.connect(ft_partial(self._set_step, step=-1))
         self.fwd_btn = QPushButton(_("Next"))
+        if not text:
+            self.fwd_btn.setEnabled(False)
         btns_layout.addWidget(self.fwd_btn)
         self.fwd_btn.clicked.connect(ft_partial(self._set_step, step=1))
         self.done_btn = QPushButton(_("Done"))
