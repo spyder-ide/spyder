@@ -73,6 +73,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.ipyclient = ipyclient
         self.exit_requested.connect(ipyclient.exit_callback)
 
+    def is_running(self):
+        if self.kernel_client is not None and \
+          self.kernel_client.channels_running:
+            return True
+        else:
+            return False
+
     # --- To handle the banner
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
