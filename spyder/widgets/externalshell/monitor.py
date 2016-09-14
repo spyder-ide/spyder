@@ -76,9 +76,6 @@ class Monitor(threading.Thread):
                  shell_id, timeout, auto_refresh):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-
-        self.ipykernel = None
-        self.ipython_shell = None
         
         self.pdb_obj = None
         
@@ -90,9 +87,6 @@ class Monitor(threading.Thread):
         
         self.inputhook_flag = False
         self.first_inputhook_call = True
-        
-        # To grab the IPython internal namespace
-        self.ip = None
         
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
@@ -172,20 +166,10 @@ class Monitor(threading.Thread):
                 self._mglobals = glbs
             else:
                 glbs = self._mglobals
-            if self.ipykernel is None and '__ipythonkernel__' in glbs:
-                self.ipykernel = glbs['__ipythonkernel__']
-                communicate(self.n_request,
-                            dict(command="ipykernel",
-                                 data=self.ipykernel.connection_file))
-            if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                # IPython kernel
-                self.ipython_shell = glbs['__ipythonshell__']
-                glbs = self.ipython_shell.user_ns
-                self.ip = self.ipython_shell.get_ipython()
             self._mglobals = glbs
             return glbs
     
-    def get_current_namespace(self, with_magics=False):
+    def get_current_namespace(self):
         """Return current namespace, i.e. globals() if not debugging,
         or a dictionary containing both locals() and globals() 
         for current frame when debugging"""
@@ -198,14 +182,6 @@ class Monitor(threading.Thread):
             ns.update(glbs)
             ns.update(self.pdb_locals)
 
-        # Add magics to ns so we can show help about them on the Help
-        # plugin
-        if self.ip and with_magics:
-            line_magics = self.ip.magics_manager.magics['line']
-            cell_magics = self.ip.magics_manager.magics['cell']
-            ns.update(line_magics)
-            ns.update(cell_magics)
-        
         return ns
     
     def get_reference_namespace(self, name):
@@ -228,7 +204,7 @@ class Monitor(threading.Thread):
     
     def isdefined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
-        ns = self.get_current_namespace(with_magics=True)
+        ns = self.get_current_namespace()
         return isdefined(obj, force_import=force_import, namespace=ns)
 
     def toggle_inputhook_flag(self, state):
@@ -291,7 +267,7 @@ class Monitor(threading.Thread):
         and *valid* is True if object evaluation did not raise any exception
         """
         assert is_text_string(text)
-        ns = self.get_current_namespace(with_magics=True)
+        ns = self.get_current_namespace()
         try:
             return eval(text, ns), True
         except:
@@ -400,8 +376,7 @@ class Monitor(threading.Thread):
         settings = self.remote_view_settings
         if settings:
             ns = self.get_current_namespace()
-            more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
-            remote_view = make_remote_view(ns, settings, more_excluded_names)
+            remote_view = make_remote_view(ns, settings)
             communicate(self.n_request,
                         dict(command="remote_view", data=remote_view))
         
@@ -411,9 +386,7 @@ class Monitor(threading.Thread):
         from spyder.utils.iofuncs import iofunctions
         settings = read_packet(self.i_request)
         filename = read_packet(self.i_request)
-        more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
-        data = get_remote_data(ns, settings, mode='picklable',
-                               more_excluded_names=more_excluded_names).copy()
+        data = get_remote_data(ns, settings, mode='picklable').copy()
         return iofunctions.save(data, filename)
         
     def loadglobals(self):
@@ -468,7 +441,6 @@ class Monitor(threading.Thread):
         self.refresh_after_eval = True
         
     def run(self):
-        self.ipython_shell = None
         while True:
             output = pickle.dumps(None, PICKLE_HIGHEST_PROTOCOL)
             glbs = self.mglobals()
