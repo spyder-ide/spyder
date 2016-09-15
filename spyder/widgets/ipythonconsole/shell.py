@@ -37,7 +37,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
     sig_get_value = Signal()
-    sig_got_reply = Signal()
 
     # For DebuggingWidget
     sig_input_reply = Signal()
@@ -47,6 +46,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
+    sig_got_reply = Signal()
 
     def __init__(self, additional_options, interpreter_versions, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
