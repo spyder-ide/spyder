@@ -2275,16 +2275,10 @@ class MainWindow(QMainWindow):
             <br>The Scientific PYthon Development EnviRonment
             <br>Copyright &copy; The Spyder Project Contributors
             <br>Licensed under the terms of the MIT License
-            <p>Created by Pierre Raybaut
+            <p>Created by Pierre Raybaut.
             <br>Developed and maintained by the
-            <a href="%s/blob/master/AUTHORS">Spyder Project Contributors</a>
-            <br>Many thanks to all the Spyder beta-testers and regular users.
-            <p>Most of the icons come from the Crystal Project
-            (&copy; 2006-2007 Everaldo Coelho). Other icons by
-            <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a>
-            (all rights reserved) and by
-            <a href="http://www.oxygen-icons.org/">
-            The Oxygen icon theme</a>.
+            <a href="%s/blob/master/AUTHORS">Spyder Project Contributors</a>.
+            <br>Many thanks to all the Spyder beta testers and regular users.
             <p>For bug reports and feature requests, please go
             to our <a href="%s">Github website</a>. For discussions around the
             project, please go to our <a href="%s">Google Group</a>
@@ -2293,9 +2287,16 @@ class MainWindow(QMainWindow):
             software development. The popular Python distributions
             <a href="http://continuum.io/downloads">Anaconda</a>,
             <a href="https://winpython.github.io/">WinPython</a> and
-            <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a>
+            <a href="http://python-xy.github.io/">Python(x,y)</a>
             also contribute to this plan.
-            <p>Python %s %dbits, Qt %s, %s %s on %s"""
+            <p>Python %s %dbits, Qt %s, %s %s on %s
+            <p><small>Most of the icons for the Spyder 2 theme come from the Crystal
+            Project (&copy; 2006-2007 Everaldo Coelho). Other icons for that
+            theme come from <a href="http://p.yusukekamiyamane.com/"> Yusuke
+            Kamiyamane</a> (all rights reserved) and from
+            <a href="http://www.oxygen-icons.org/">
+            The Oxygen icon theme</a></small>.
+            """
             % (versions['spyder'], revlink, __project_url__,
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
