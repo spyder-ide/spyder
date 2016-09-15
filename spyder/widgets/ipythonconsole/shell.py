@@ -36,7 +36,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     # For NamepaceBrowserWidget
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
-    sig_get_value = Signal()
 
     # For DebuggingWidget
     sig_input_reply = Signal()
@@ -226,7 +225,10 @@ These commands were executed:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
                 else:
-                    self._kernel_reply = ast.literal_eval(data['text/plain'])
+                    if data is not None:
+                        self._kernel_reply = ast.literal_eval(data['text/plain'])
+                    else:
+                        self._kernel_reply = None
                     self.sig_got_reply.emit()
 
                 # Remove method after being processed
