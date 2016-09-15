@@ -152,7 +152,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             data = deserialize_object(msg['buffers'])[0]
         except Exception as msg:
             self._kernel_value = None
-            self._kernel_reply = msg
+            self._kernel_reply = repr(msg)
             self.sig_get_value.emit()
             return
 
