@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # Std imports
-import atexit
 import os
 import os.path as osp
 import random
@@ -11,7 +10,7 @@ import time
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import DEV, get_conf_path, running_in_mac_app
+from spyder.config.base import get_conf_path, running_in_mac_app
 from spyder.config.main import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
@@ -53,18 +52,6 @@ def main():
     Spyder is already running, this will just parse and send command line
     options to the application.
     """
-    # Renaming old configuration files (the '.' prefix has been removed)
-    # (except for .spyder.ini --> spyder.ini, which is done in config/user.py)
-    if DEV is None:
-        cpath = get_conf_path()
-        for fname in os.listdir(cpath):
-            if fname.startswith('.'):
-                old, new = osp.join(cpath, fname), osp.join(cpath, fname[1:])
-                try:
-                    os.rename(old, new)
-                except OSError:
-                    pass
-
     # Parse command line options
     options, args = get_options()
 
