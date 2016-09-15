@@ -289,10 +289,13 @@ else:
         # Qt imports
         if os.environ["QT_API"] == 'pyqt5':
             from PyQt5 import QtCore
+            from PyQt5 import QtWidgets
         elif os.environ["QT_API"] == 'pyqt':
             from PyQt4 import QtCore           # analysis:ignore
+            from PyQt4 import QtGui as QtWidgets
         elif os.environ["QT_API"] == 'pyside':
             from PySide import QtCore          # analysis:ignore
+            from PySide import QtGui as QtWidgets
 
         def qt_nt_inputhook():
             """Qt input hook for Windows
@@ -304,27 +307,35 @@ else:
             # Refreshing variable explorer, except on first input hook call:
             # (otherwise, on slow machines, this may freeze Spyder)
             monitor.refresh_from_inputhook()
-            try:
+
+            # NOTE: This is making the inputhoook to fail completely!!
+            #       That's why it's commented.
+            #try:
                 # This call fails for Python without readline support
                 # (or on Windows platforms) when PyOS_InputHook is called
                 # for the second consecutive time, because the 100-bytes
                 # stdin buffer is full.
                 # For more details, see the `PyOS_StdioReadline` function
                 # in Python source code (Parser/myreadline.c)
-                sys.stdin.tell()
-            except IOError:
-                return 0
+            #    sys.stdin.tell()
+            #except IOError:
+            #    return 0
 
             # Input hook
             app = QtCore.QCoreApplication.instance()
+            if app is None:
+                app = QtWidgets.QApplication([" "])
             if app and app.thread() is QtCore.QThread.currentThread():
-                timer = QtCore.QTimer()
-                timer.timeout.connect(app.quit)
-                monitor.toggle_inputhook_flag(False)
-                while not monitor.inputhook_flag:
-                    timer.start(50)
-                    QtCore.QCoreApplication.exec_()
-                    timer.stop()
+                try:
+                    timer = QtCore.QTimer()
+                    timer.timeout.connect(app.quit)
+                    monitor.toggle_inputhook_flag(False)
+                    while not monitor.inputhook_flag:
+                        timer.start(50)
+                        QtCore.QCoreApplication.exec_()
+                        timer.stop()
+                except KeyboardInterrupt:
+                    _print("\nKeyboardInterrupt - Press Enter for new prompt")
 
                 # Socket-based alternative:
                 #socket = QtNetwork.QLocalSocket()
