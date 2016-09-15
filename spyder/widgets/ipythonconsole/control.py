@@ -42,23 +42,21 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
         """Reimplement Qt Method"""
         self.visibility_changed.emit(True)
 
-    def _key_question(self, text, force=False):
-        """ Action for '?' and '(' """
+    def _key_paren_left(self, text):
+        """ Action for '(' """
         self.current_prompt_pos = self.parentWidget()._prompt_pos
         if self.get_current_line_to_cursor():
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_object_info(last_obj, force=force)
+                self.show_object_info(last_obj)
         self.insert_text(text)
 
     def keyPressEvent(self, event):
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
-        if key == Qt.Key_Question and not self.has_selected_text():
-            self._key_question(text, force=True)
-        elif key == Qt.Key_ParenLeft and not self.has_selected_text() \
+        if key == Qt.Key_ParenLeft and not self.has_selected_text() \
           and self.help_enabled:
-            self._key_question(text)
+            self._key_paren_left(text)
         else:
             # Let the parent widget handle the key press event
             QTextEdit.keyPressEvent(self, event)
