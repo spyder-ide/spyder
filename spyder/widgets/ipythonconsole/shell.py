@@ -36,7 +36,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     # For NamepaceBrowserWidget
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
-    sig_get_value = Signal()
 
     # For DebuggingWidget
     sig_input_reply = Signal()

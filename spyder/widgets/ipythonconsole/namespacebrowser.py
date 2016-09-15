@@ -79,12 +79,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
         # Wait until the kernel returns the value
         wait_loop = QEventLoop()
-        self.sig_get_value.connect(wait_loop.quit)
+        self.sig_got_reply.connect(wait_loop.quit)
         self.silent_execute("get_ipython().kernel.get_value('%s')" % name)
         wait_loop.exec_()
 
         # Remove loop connection and loop
-        self.sig_get_value.disconnect(wait_loop.quit)
+        self.sig_got_reply.disconnect(wait_loop.quit)
         wait_loop = None
 
         # Handle exceptions
@@ -153,7 +153,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except Exception as msg:
             self._kernel_value = None
             self._kernel_reply = repr(msg)
-            self.sig_get_value.emit()
+            self.sig_got_reply.emit()
             return
 
         # We only handle data asked by Spyder
@@ -162,7 +162,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             if isinstance(value, CannedObject):
                 value = value.get_object()
             self._kernel_value = value
-            self.sig_get_value.emit()
+            self.sig_got_reply.emit()
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):
