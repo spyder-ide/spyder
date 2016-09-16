@@ -104,13 +104,23 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     @staticmethod
     def get_settings():
         """
-        Return Variable Explorer settings dictionary
-        (i.e. namespace browser settings according to Spyder's configuration file)
+        Retrieve all Variable Explorer configuration settings
+        
+        Specifically, return the settings in CONF_SECTION with keys in 
+        REMOTE_SETTINGS, and the setting 'dataframe_format'.
+        
+        Returns:
+            dict: settings
         """
         settings = {}
 #        CONF.load_from_ini() # necessary only when called from another process
         for name in REMOTE_SETTINGS:
             settings[name] = CONF.get(VariableExplorer.CONF_SECTION, name)
+
+        # dataframe_format is stored without percent sign in config
+        # to avoid interference with ConfigParser's interpolation
+        name = 'dataframe_format'
+        settings[name] = '%' + CONF.get(VariableExplorer.CONF_SECTION, name)
         return settings
 
     # ----- Stack accesors ----------------------------------------------------
@@ -131,6 +141,12 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
 
     # ----- Public API --------------------------------------------------------
     def add_shellwidget(self, shellwidget):
+        """
+        Register shell with variable explorer.
+
+        This function opens a new NamespaceBrowser for browsing the variables
+        in the shell.
+        """
         shellwidget_id = id(shellwidget)
         # Add shell only once: this method may be called two times in a row
         # by the External console plugin (dev. convenience)
