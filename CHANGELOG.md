@@ -1,5 +1,42 @@
 # History of changes
 
+## Version 3.0beta7 (2016-09-16)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3419](https://github.com/spyder-ide/spyder/issues/3419) - IPython console: help window hijacks `?` keypress
+* [Issue 3403](https://github.com/spyder-ide/spyder/issues/3403) - Error when opening project and cancelling
+* [Issue 3354](https://github.com/spyder-ide/spyder/issues/3354) - IPython console run code lines not being saved in preferences
+* [Issue 3109](https://github.com/spyder-ide/spyder/issues/3109) - Auto select the only IPython or Python console after startup
+* [Issue 3011](https://github.com/spyder-ide/spyder/issues/3011) - Cannot connect to existing kernel with full path specified
+* [Issue 2945](https://github.com/spyder-ide/spyder/issues/2945) - Cannot locate kernel json file when connecting to remote ipython kernel
+* [Issue 2918](https://github.com/spyder-ide/spyder/issues/2918) - Spyder always switches back to IPython kernel from IPyhton console
+* [Issue 2846](https://github.com/spyder-ide/spyder/issues/2846) - Import runfile() produces errors when using a virtualenv
+* [Issue 2844](https://github.com/spyder-ide/spyder/issues/2844) - Spyder won't connect to kernel / IPython console after switching to an external interpreter
+* [Issue 2790](https://github.com/spyder-ide/spyder/issues/2790) - Make "Ask for confirmation before closing tabs" in IPython console work for all consoles
+* [Issue 2696](https://github.com/spyder-ide/spyder/issues/2696) - Enter in the IPython console inserts new line instead of executing current line after kernel restart
+* [Issue 1860](https://github.com/spyder-ide/spyder/issues/1860) - Don't show IPython kernels in the Python console by default
+
+In this release 12 issues were closed
+
+**Pull requests**
+
+* [PR 3423](https://github.com/spyder-ide/spyder/pull/3423) - Try to fix plotting on Windows for the Python Console
+* [PR 3422](https://github.com/spyder-ide/spyder/pull/3422) - Don't try to use "?" to automatically get help in the IPython console
+* [PR 3421](https://github.com/spyder-ide/spyder/pull/3421) - Don't show a message when users press cancel in the "Open project" dialog
+* [PR 3420](https://github.com/spyder-ide/spyder/pull/3420) - Skip testing the Spyder kernel for IPython consoles
+* [PR 3386](https://github.com/spyder-ide/spyder/pull/3386) - Allow plugins with no dockwidgets
+* [PR 3368](https://github.com/spyder-ide/spyder/pull/3368) - Avoid eval() when reading config file
+* [PR 2878](https://github.com/spyder-ide/spyder/pull/2878) - PR: Remove IPython kernels from the Python console and connect directly to them
+
+In this release 7 pull requests were merged
+
+
+----
+
+
 ## Version 3.0beta6 (2016-08-30)
 
 ### Bugfixes
