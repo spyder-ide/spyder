@@ -140,18 +140,18 @@ Enjoy!
 Beta release
 ============
 
-Subject: [ANN] Spyder 3.0 sixth public beta release
+Subject: [ANN] Spyder 3.0 seventh public beta release
 
 
 Hi all,
 
 On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the sixth beta of our next major version: Spyder 3.0.
+I'm pleased to announce the seventh beta of our next major version: Spyder 3.0.
 
 We've been working on this version for more than two years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-one week after our fifth one and it includes almost 140 commits.
+two weeks after our sixth one and it includes more than 200 commits.
 
 Spyder 3.0 comes with several interesting and exciting new features. The most
 important ones are:
@@ -165,11 +165,11 @@ important ones are:
   Spyder 3.0. With our new projects support, people will have the possibility of easily
   working on different coding efforts at the same time. That's because projects save the
   state of open files in the Editor and allow Python packages created as part of the
-  project in our consoles.
+  project to be imported in our consoles.
 * Support for much more programming languages: Spyder relies now on the excellent Pygments
   library to provide syntax highlight and suggest code completions in the Editor, for all
   programming languages supported by it.
-* A new file switcher: Spyder 3.0 will come with a fancy file switcher, very similar in
+* A new file switcher: Spyder 3.0 comes with a fancy file switcher, very similar in
   spirit to the one present in Sublime Text. This is a dialog to select among the open
   files in the Editor, by doing a fuzzy search through their names. It also lets users to
   view the list of classes, methods and functions defined in the current file, and select
@@ -192,7 +192,7 @@ You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
     conda install -c qttesting qt pyqt
-    conda install -c spyder-ide spyder==3.0.0b6
+    conda install -c spyder-ide spyder==3.0.0b7
 
 Or you can use pip with this command:
 
