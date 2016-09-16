@@ -84,6 +84,9 @@ class NamespaceBrowser(QWidget):
         self.remote_editing = None
         self.autorefresh = None
         
+        # Other setting
+        self.dataframe_format = None
+
         self.editor = None
         self.exclude_private_action = None
         self.exclude_uppercase_action = None
@@ -99,9 +102,15 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, remote_editing=None,
-              autorefresh=None):
-        """Setup the namespace browser"""
+              truncate=None, minmax=None, dataframe_format=None,
+              remote_editing=None, autorefresh=None):
+        """
+        Setup the namespace browser with provided settings
+
+        Args:
+            dataframe_format (string): default floating-point format for 
+                DataFrame editor
+        """
         assert self.shellwidget is not None
         
         self.check_all = check_all
@@ -114,6 +123,7 @@ class NamespaceBrowser(QWidget):
         self.minmax = minmax
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
+        self.dataframe_format = dataframe_format
         
         if self.editor is not None:
             self.editor.setup_menu(truncate, minmax)
