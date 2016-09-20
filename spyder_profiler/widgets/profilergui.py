@@ -36,7 +36,7 @@ from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                     set_item_user_text)
 from spyder.utils.programs import shell_split
 from spyder.widgets.comboboxes import PythonModulesComboBox
-from spyder.widgets.externalshell import baseshell
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH
 from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
@@ -263,7 +263,7 @@ class ProfilerWidget(QWidget):
         if pythonpath is not None:
             env = [to_text_string(_pth)
                    for _pth in self.process.systemEnvironment()]
-            baseshell.add_pathlist_to_PYTHONPATH(env, pythonpath)
+            add_pathlist_to_PYTHONPATH(env, pythonpath)
             processEnvironment = QProcessEnvironment()
             for envItem in env:
                 envName, separator, envValue = envItem.partition('=')
