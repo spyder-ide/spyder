@@ -24,6 +24,14 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: We don't want py.test's to be run here
         echo --- NOT testing %%f ---
         echo.
+    ) else if not "!file:site\=!"=="!file!" (
+        :: We can't test our site files
+        echo --- NOT testing %%f ---
+        echo.
+    ) else if not "!file:ipython\=!"=="!file!" (
+        :: We can't test these files outside of our IPython console
+        echo --- NOT testing %%f ---
+        echo.
     ) else if "%%f"=="%SPYDER%\utils\qthelpers.py" (
         echo --- NOT testing %%f ---
         echo.
@@ -52,18 +60,6 @@ for /r "%SPYDER%" %%f in (*.py) do (
         echo.
     ) else if "%%f"=="%SPYDER%\utils\introspection\plugin_client.py" (
         :: We have to investigate this failure!
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDER%\utils\ipython\start_kernel.py" (
-        :: It can't be tested outside of a Qtconsole
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDER%\utils\ipython\spyder_kernel.py" (
-        :: It can't be tested outside of a Qtconsole
-        echo --- NOT testing %%f ---
-        echo.
-    ) else if "%%f"=="%SPYDER%\utils\site\sitecustomize.py" (
-        :: It can't be tested outside of a Python console
         echo --- NOT testing %%f ---
         echo.
     ) else if "%%f"=="%SPYDER%\widgets\editor.py" (
