@@ -1221,6 +1221,13 @@ class IPythonConsole(SpyderPluginWidget):
             os.environ.pop('VIRTUAL_ENV', None)
             pyexec = CONF.get('main_interpreter', 'executable')
 
+        # Fixes Issue #3427
+        if os.name == 'nt':
+            dir_pyexec = osp.dirname(pyexec)
+            pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
+            if osp.isfile(pyexec_w):
+                pyexec = pyexec_w
+
         # Command used to start kernels
         utils_path = osp.join(spy_path, 'utils', 'ipython')
         kernel_cmd = [
