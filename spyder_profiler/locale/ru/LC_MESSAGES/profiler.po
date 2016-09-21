@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2016-09-21 02:13+COT\n"
-"PO-Revision-Date: 2016-04-18 20:14+0300\n"
+"PO-Revision-Date: 2016-09-21 14:46+0300\n"
 "Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -161,6 +161,10 @@ msgstr "Локальное время"
 #: spyder_profiler/widgets/profilergui.py:391
 msgid "File:line"
 msgstr "Файл:строка"
+
+#: spyder_profiler/widgets/profilergui.py:537
+msgid "Function or module name"
+msgstr "Функция/Модуль"
 
 #: spyder_profiler/widgets/profilergui.py:541
 msgid "Time in function (including sub-functions)"
