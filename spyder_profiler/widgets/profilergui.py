@@ -534,7 +534,7 @@ class ProfilerDataTree(QTreeWidget):
             self.set_item_data(child_item, filename, line_number)
 
             # FIXME: indexes to data should be defined by a dictionary on init
-            child_item.setToolTip(0, 'Function or module name')
+            child_item.setToolTip(0, _('Function or module name'))
             child_item.setData(0, Qt.DisplayRole, function_name)
             child_item.setIcon(0, self.icon_list[node_type])
 

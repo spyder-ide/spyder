@@ -1869,6 +1869,10 @@ msgstr ""
 msgid "Decide which backend to use to display graphics. If unsure, please select the <b>Automatic</b> backend.<br><br><b>Note:</b> We support a very limited number of backends in our Python consoles. If you prefer to work with a different one, please use an IPython console."
 msgstr ""
 
+#: spyder/plugins/externalconsole.py:208
+msgid "None"
+msgstr ""
+
 #: spyder/plugins/externalconsole.py:213 spyder/plugins/ipythonconsole.py:373
 msgid "Backend:"
 msgstr ""
@@ -2219,6 +2223,14 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:295
 msgid "Decide what type of completion to use"
+msgstr ""
+
+#: spyder/plugins/ipythonconsole.py:297
+msgid "Graphical"
+msgstr ""
+
+#: spyder/plugins/ipythonconsole.py:297
+msgid "Plain"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:298
@@ -2600,6 +2612,10 @@ msgstr ""
 
 #: spyder/plugins/projects.py:234
 msgid "Open project"
+msgstr ""
+
+#: spyder/plugins/projects.py:239
+msgid "<b>%s</b> is not a Spyder project!"
 msgstr ""
 
 #: spyder/plugins/runconfig.py:29

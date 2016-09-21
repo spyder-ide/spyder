@@ -130,7 +130,7 @@ class EditorConfigPage(PluginConfigPage):
                                 'highlight_current_cell')
         occurrence_box = newcb(_("Highlight occurrences after"),
                               'occurrence_highlighting')
-        occurrence_spin = self.create_spinbox("", " ms",
+        occurrence_spin = self.create_spinbox("", _(" ms"),
                                              'occurrence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
         occurrence_box.toggled.connect(occurrence_spin.setEnabled)
@@ -258,7 +258,7 @@ class EditorConfigPage(PluginConfigPage):
                                             _("Perform analysis only "
                                                     "when saving file"),
                                             'onsave_analysis')
-        af_spin = self.create_spinbox("", " ms", 'realtime_analysis/timeout',
+        af_spin = self.create_spinbox("", _(" ms"), 'realtime_analysis/timeout',
                                       min_=100, max_=1000000, step=100)
         af_layout = QHBoxLayout()
         af_layout.addWidget(realtime_radio)

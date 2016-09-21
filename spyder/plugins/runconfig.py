@@ -471,7 +471,7 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.dedicated_radio)
         interpreter_layout.addWidget(self.systerm_radio)
         
-        general_group = QGroupBox("General settings")
+        general_group = QGroupBox(_("General settings"))
         wdir_bg = QButtonGroup(general_group)
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
