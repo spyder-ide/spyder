@@ -157,6 +157,10 @@ msgstr ""
 msgid "File:line"
 msgstr ""
 
+#: spyder_profiler/widgets/profilergui.py:537
+msgid "Function or module name"
+msgstr ""
+
 #: spyder_profiler/widgets/profilergui.py:541
 msgid "Time in function (including sub-functions)"
 msgstr ""
