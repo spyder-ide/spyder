@@ -80,10 +80,10 @@ function InstallCondaPackages ($python_home, $spec) {
 
 
 function InstallPipPackages ($python_home, $spec) {
-    $conda_path = $python_home + "\Scripts\pip.exe"
+    $pip_path = $python_home + "\Scripts\pip.exe"
     $args = "install " + $spec
     Write-Host ("pip " + $args)
-    Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
+    Start-Process -FilePath "$pip_path" -ArgumentList $args -Wait -Passthru
 }
 
 
