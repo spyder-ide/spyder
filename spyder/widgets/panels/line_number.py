@@ -13,6 +13,10 @@ from spyder.utils import icon_manager as ima
 
 class LineNumberArea(QWidget):
     """Line number area (on the left side of the text editor widget)"""
+
+    # --- Qt Overrides
+    # -----------------------------------------------------------------
+
     def __init__(self, editor):
         QWidget.__init__(self, editor)
         self.editor = editor
@@ -36,27 +40,15 @@ class LineNumberArea(QWidget):
         self._released = -1
 
     def sizeHint(self):
-        """Override Qt method"""
+        """Override Qt method."""
         return QSize(self.compute_width(), 0)
 
-    def compute_width(self):
-        """Compute and return line number area width"""
-        if not self._enabled:
-            return 0
-        digits = 1
-        maxb = max(1, self.editor.blockCount())
-        while maxb >= 10:
-            maxb /= 10
-            digits += 1
-        if self._margin:
-            margin = 3+self.editor.fontMetrics().width('9'*digits)
-        else:
-            margin = 0
-        return margin+self.get_markers_margin()
-
-
     def paintEvent(self, event):
-        """Painting line number area"""
+        """Override Qt method.
+
+        Painting line number area
+        """
+
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         # This is needed to make that the font size of line numbers
@@ -110,9 +102,10 @@ class LineNumberArea(QWidget):
                         draw_pixmap(top, self.bpc_pixmap)
 
     def mouseMoveEvent(self, event):
-        """Override Qt method"""
+        """Override Qt method.
 
-        """Handling line number area mouse move event"""
+        Show code analisis, if left button pressed select lines.
+        """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         block = self.editor.document().findBlockByNumber(line_number-1)
         data = block.userData()
@@ -121,7 +114,7 @@ class LineNumberArea(QWidget):
         # operation
         check = self._released == -1
         if data and data.code_analysis and check:
-            self.show_code_analysis_results(line_number, data.code_analysis)
+            self.editor.show_code_analysis_results(line_number, data.code_analysis)
 
         if event.buttons() == Qt.LeftButton:
             self._released = line_number
@@ -129,18 +122,20 @@ class LineNumberArea(QWidget):
 
 
     def mouseDoubleClickEvent(self, event):
-        """Override Qt method"""
+        """Override Qt method.
 
-        """Handling line number area mouse double-click event"""
+        Add or remove breakpoints.
+        """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.editor.add_remove_breakpoint(line_number, edit_condition=shift)
 
 
     def mousePressEvent(self, event):
-        """Override Qt method"""
+        """Override Qt method
 
-        """Handling line number area mouse double press event"""
+        Select line, and starts selection
+        """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         self._pressed = line_number
         self._released = line_number
@@ -148,15 +143,32 @@ class LineNumberArea(QWidget):
                                          self._released)
 
     def mouseReleaseEvent(self, event):
-        """Override Qt method"""
+        """Override Qt method."""
         self._released = -1
         self._pressed = -1
 
     def wheelEvent(self, event):
-        """Override Qt method"""
+        """Override Qt method."""
         self.editor.wheelEvent(event)
 
-    #-----markers
+    # --- Other methods
+    # -----------------------------------------------------------------
+
+    def compute_width(self):
+        """Compute and return line number area width"""
+        if not self._enabled:
+            return 0
+        digits = 1
+        maxb = max(1, self.editor.blockCount())
+        while maxb >= 10:
+            maxb /= 10
+            digits += 1
+        if self._margin:
+            margin = 3+self.editor.fontMetrics().width('9'*digits)
+        else:
+            margin = 0
+        return margin+self.get_markers_margin()
+
     def get_markers_margin(self):
         if self._markers_margin:
             return self._markers_margin_width
@@ -186,10 +198,10 @@ class LineNumberArea(QWidget):
     def setup_margins(self, linenumbers=True, markers=True):
         """
         Setup margin settings
-        (except font, now set in self.set_font)
+        (except font, now set in editor.set_font)
         """
         self._margin = linenumbers
-        self._margin = markers
+        self._markers_margin = markers
         self.set_enabled(linenumbers or markers)
 
 
