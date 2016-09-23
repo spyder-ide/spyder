@@ -59,6 +59,7 @@ from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.editortools import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
+from spyder.widgets.panels.line_number import LineNumberArea
 
 try:
     import nbformat as nbformat
@@ -154,40 +155,6 @@ class GoToLineDialog(QDialog):
 #===============================================================================
 # Viewport widgets
 #===============================================================================
-class LineNumberArea(QWidget):
-    """Line number area (on the left side of the text editor widget)"""
-    def __init__(self, editor):
-        QWidget.__init__(self, editor)
-        self.code_editor = editor
-        self.setMouseTracking(True)
-
-    def sizeHint(self):
-        """Override Qt method"""
-        return QSize(self.code_editor.compute_linenumberarea_width(), 0)
-
-    def paintEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.linenumberarea_paint_event(event)
-
-    def mouseMoveEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.linenumberarea_mousemove_event(event)
-
-    def mouseDoubleClickEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.linenumberarea_mousedoubleclick_event(event)
-
-    def mousePressEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.linenumberarea_mousepress_event(event)
-
-    def mouseReleaseEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.linenumberarea_mouserelease_event(event)
-
-    def wheelEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.wheelEvent(event)
 
 
 class ScrollFlagArea(QWidget):
@@ -388,23 +355,10 @@ class CodeEditor(TextEditBaseWidget):
         # Blanks enabled
         self.blanks_enabled = False
 
-        # Markers
-        self.markers_margin = True
-        self.markers_margin_width = 15
-        self.error_pixmap = ima.icon('error').pixmap(QSize(14, 14))
-        self.warning_pixmap = ima.icon('warning').pixmap(QSize(14, 14))
-        self.todo_pixmap = ima.icon('todo').pixmap(QSize(14, 14))
-        self.bp_pixmap = ima.icon('breakpoint_big').pixmap(QSize(14, 14))
-        self.bpc_pixmap = ima.icon('breakpoint_cond_big').pixmap(QSize(14, 14))
-
         # Line number area management
-        self.linenumbers_margin = True
-        self.linenumberarea_enabled = None
         self.linenumberarea = LineNumberArea(self)
-        self.blockCountChanged.connect(self.update_linenumberarea_width)
-        self.updateRequest.connect(self.update_linenumberarea)
-        self.linenumberarea_pressed = -1
-        self.linenumberarea_released = -1
+        self.blockCountChanged.connect(self.linenumberarea.update_width)
+        self.updateRequest.connect(self.linenumberarea.update_linenumberarea)
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
@@ -415,8 +369,6 @@ class CodeEditor(TextEditBaseWidget):
         self.unmatched_p_color = None
         self.normal_color = None
         self.comment_color = None
-
-        self.linenumbers_color = QColor(Qt.darkGray)
 
         # --- Syntax highlight entrypoint ---
         #
@@ -448,7 +400,7 @@ class CodeEditor(TextEditBaseWidget):
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
 
-        self.update_linenumberarea_width()
+        self.linenumberarea.update_width()
 
         self.document_id = id(self)
 
@@ -690,7 +642,7 @@ class CodeEditor(TextEditBaseWidget):
         # Line number area
         if cloned_from:
             self.setFont(font) # this is required for line numbers area
-        self.setup_margins(linenumbers, markers)
+        self.linenumberarea.setup_margins(linenumbers, markers)
 
         # Lexer
         self.set_language(language, filename)
@@ -713,7 +665,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
-            self.update_linenumberarea_width()
+            self.linenumberarea.update_width()
         elif font is not None:
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
@@ -894,15 +846,6 @@ class CodeEditor(TextEditBaseWidget):
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
 
-    def setup_margins(self, linenumbers=True, markers=True):
-        """
-        Setup margin settings
-        (except font, now set in self.set_font)
-        """
-        self.linenumbers_margin = linenumbers
-        self.markers_margin = markers
-        self.set_linenumberarea_enabled(linenumbers or markers)
-
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
         cursor = self.textCursor()
@@ -1079,113 +1022,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.found_results:
             self.clear_found_results()
 
-    #-----markers
-    def get_markers_margin(self):
-        if self.markers_margin:
-            return self.markers_margin_width
-        else:
-            return 0
-
-    #-----linenumberarea
-    def set_linenumberarea_enabled(self, state):
-        self.linenumberarea_enabled = state
-        self.linenumberarea.setVisible(state)
-        self.update_linenumberarea_width()
-
-    def get_linenumberarea_width(self):
-        """Return current line number area width"""
-        return self.linenumberarea.contentsRect().width()
-
-    def compute_linenumberarea_width(self):
-        """Compute and return line number area width"""
-        if not self.linenumberarea_enabled:
-            return 0
-        digits = 1
-        maxb = max(1, self.blockCount())
-        while maxb >= 10:
-            maxb /= 10
-            digits += 1
-        if self.linenumbers_margin:
-            linenumbers_margin = 3+self.fontMetrics().width('9'*digits)
-        else:
-            linenumbers_margin = 0
-        return linenumbers_margin+self.get_markers_margin()
-
-    def update_linenumberarea_width(self, new_block_count=None):
-        """
-        Update line number area width.
-
-        new_block_count is needed to handle blockCountChanged(int) signal
-        """
-        self.setViewportMargins(self.compute_linenumberarea_width(), 0,
-                                self.get_scrollflagarea_width(), 0)
-
-    def update_linenumberarea(self, qrect, dy):
-        """Update line number area"""
-        if dy:
-            self.linenumberarea.scroll(0, dy)
-        else:
-            self.linenumberarea.update(0, qrect.y(),
-                                       self.linenumberarea.width(),
-                                       qrect.height())
-        if qrect.contains(self.viewport().rect()):
-            self.update_linenumberarea_width()
-
-    def linenumberarea_paint_event(self, event):
-        """Painting line number area"""
-        painter = QPainter(self.linenumberarea)
-        painter.fillRect(event.rect(), self.sideareas_color)
-        # This is needed to make that the font size of line numbers
-        # be the same as the text one when zooming
-        # See Issue 2296
-        if sys.platform == 'darwin':
-            font = self.font()
-        else:
-            font = painter.font()
-        font_height = self.fontMetrics().height()
-
-        active_block = self.textCursor().block()
-        active_line_number = active_block.blockNumber() + 1
-
-        def draw_pixmap(ytop, pixmap):
-            painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2,
-                               pixmap)
-
-        for top, line_number, block in self.visible_blocks:
-            if self.linenumbers_margin:
-                if line_number == active_line_number:
-                    font.setWeight(font.Bold)
-                    painter.setFont(font)
-                    painter.setPen(self.normal_color)
-                else:
-                    font.setWeight(font.Normal)
-                    painter.setFont(font)
-                    painter.setPen(self.linenumbers_color)
-
-                painter.drawText(0, top, self.linenumberarea.width(),
-                                 font_height,
-                                 Qt.AlignRight | Qt.AlignBottom,
-                                 to_text_string(line_number))
-
-            data = block.userData()
-            if self.markers_margin and data:
-                if data.code_analysis:
-                    for _message, error in data.code_analysis:
-                        if error:
-                            break
-                    if error:
-                        draw_pixmap(top, self.error_pixmap)
-                    else:
-                        draw_pixmap(top, self.warning_pixmap)
-                if data.todo:
-                    draw_pixmap(top, self.todo_pixmap)
-                if data.breakpoint:
-                    if data.breakpoint_condition is None:
-                        draw_pixmap(top, self.bp_pixmap)
-                    else:
-                        draw_pixmap(top, self.bpc_pixmap)
-
-    def __get_linenumber_from_mouse_event(self, event):
+    def get_linenumber_from_mouse_event(self, event):
         """Return line number from mouse event"""
         block = self.firstVisibleBlock()
         line_number = block.blockNumber()
@@ -1201,43 +1038,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return line_number
 
-    def linenumberarea_mousemove_event(self, event):
-        """Handling line number area mouse move event"""
-        line_number = self.__get_linenumber_from_mouse_event(event)
-        block = self.document().findBlockByNumber(line_number-1)
-        data = block.userData()
-
-        # this disables pyflakes messages if there is an active drag/selection
-        # operation
-        check = self.linenumberarea_released == -1
-        if data and data.code_analysis and check:
-            self.__show_code_analysis_results(line_number, data.code_analysis)
-
-        if event.buttons() == Qt.LeftButton:
-            self.linenumberarea_released = line_number
-            self.linenumberarea_select_lines(self.linenumberarea_pressed,
-                                             self.linenumberarea_released)
-
-    def linenumberarea_mousedoubleclick_event(self, event):
-        """Handling line number area mouse double-click event"""
-        line_number = self.__get_linenumber_from_mouse_event(event)
-        shift = event.modifiers() & Qt.ShiftModifier
-        self.add_remove_breakpoint(line_number, edit_condition=shift)
-
-    def linenumberarea_mousepress_event(self, event):
-        """Handling line number area mouse double press event"""
-        line_number = self.__get_linenumber_from_mouse_event(event)
-        self.linenumberarea_pressed = line_number
-        self.linenumberarea_released = line_number
-        self.linenumberarea_select_lines(self.linenumberarea_pressed,
-                                         self.linenumberarea_released)
-
-    def linenumberarea_mouserelease_event(self, event):
-        """Handling line number area mouse release event"""
-        self.linenumberarea_released = -1
-        self.linenumberarea_pressed = -1
-
-    def linenumberarea_select_lines(self, linenumber_pressed,
+    def select_lines(self, linenumber_pressed,
                                     linenumber_released):
         """Select line(s) after a mouse press/mouse press drag event"""
         find_block_by_line_number = self.document().findBlockByLineNumber
@@ -1390,7 +1191,7 @@ class CodeEditor(TextEditBaseWidget):
         """Toggle scroll flag area visibility"""
         self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
-        self.update_linenumberarea_width()
+        self.linenumberarea.update_width()
 
     def get_scrollflagarea_width(self):
         """Return scroll flag area width"""
@@ -1462,7 +1263,7 @@ class CodeEditor(TextEditBaseWidget):
         cr = self.contentsRect()
         self.linenumberarea.setGeometry(\
                         QRect(cr.left(), cr.top(),
-                              self.compute_linenumberarea_width(), cr.height()))
+                              self.linenumberarea.compute_width(), cr.height()))
         self.__set_scrollflagarea_geometry(cr)
 
     def __set_scrollflagarea_geometry(self, contentrect):
@@ -1489,7 +1290,7 @@ class CodeEditor(TextEditBaseWidget):
         offset = self.contentOffset()
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
-            +self.get_linenumberarea_width() \
+            +self.linenumberarea.get_width() \
             +self.fontMetrics().width('9'*self.edge_line.column)+5
         cr = self.contentsRect()
         self.edge_line.setGeometry(QRect(x, cr.top(), 1, cr.bottom()))
@@ -1535,7 +1336,7 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
-        self.update_linenumberarea_width()
+        self.linenumberarea.update_width()
         self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
@@ -1697,7 +1498,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
 
-    def __show_code_analysis_results(self, line_number, code_analysis):
+    def show_code_analysis_results(self, line_number, code_analysis):
         """Show warning/error messages"""
         msglist = [ msg for msg, _error in code_analysis ]
         self.show_calltip(_("Code analysis"), msglist,
