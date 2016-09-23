@@ -19,7 +19,7 @@ if [ "$USE_CONDA" = true ] ; then
     cd ~/tmp
 
     # Install and run the package
-    conda install --use-local spyder
+    conda install --use-local spyder-dev
 
     # Install extra packages
     conda install -q $EXTRA_PACKAGES
