@@ -862,7 +862,7 @@ class MainConfigPage(GeneralConfigPage):
                                    "menu from the main window"))
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
-        margin_spin = self.create_spinbox("", "pixels", 'custom_margin',
+        margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
                                           0, 0, 30)
         margin_box.toggled.connect(margin_spin.setEnabled)
         margin_spin.setEnabled(self.get_option('use_custom_margin'))
@@ -895,7 +895,7 @@ class MainConfigPage(GeneralConfigPage):
 
         memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
                            tip=self.main.mem_status.toolTip())
-        memory_spin = self.create_spinbox("", " ms", 'memory_usage/timeout',
+        memory_spin = self.create_spinbox("", _(" ms"), 'memory_usage/timeout',
                                           min_=100, max_=1000000, step=100)
         memory_box.toggled.connect(memory_spin.setEnabled)
         memory_spin.setEnabled(self.get_option('memory_usage/enable'))
@@ -904,7 +904,7 @@ class MainConfigPage(GeneralConfigPage):
 
         cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
                         tip=self.main.cpu_status.toolTip())
-        cpu_spin = self.create_spinbox("", " ms", 'cpu_usage/timeout',
+        cpu_spin = self.create_spinbox("", _(" ms"), 'cpu_usage/timeout',
                                        min_=100, max_=1000000, step=100)
         cpu_box.toggled.connect(cpu_spin.setEnabled)
         cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))

@@ -36,7 +36,7 @@ from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                     set_item_user_text)
 from spyder.utils.programs import shell_split
 from spyder.widgets.comboboxes import PythonModulesComboBox
-from spyder.widgets.externalshell import baseshell
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH
 from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
@@ -263,7 +263,7 @@ class ProfilerWidget(QWidget):
         if pythonpath is not None:
             env = [to_text_string(_pth)
                    for _pth in self.process.systemEnvironment()]
-            baseshell.add_pathlist_to_PYTHONPATH(env, pythonpath)
+            add_pathlist_to_PYTHONPATH(env, pythonpath)
             processEnvironment = QProcessEnvironment()
             for envItem in env:
                 envName, separator, envValue = envItem.partition('=')
@@ -534,7 +534,7 @@ class ProfilerDataTree(QTreeWidget):
             self.set_item_data(child_item, filename, line_number)
 
             # FIXME: indexes to data should be defined by a dictionary on init
-            child_item.setToolTip(0, 'Function or module name')
+            child_item.setToolTip(0, _('Function or module name'))
             child_item.setData(0, Qt.DisplayRole, function_name)
             child_item.setIcon(0, self.icon_list[node_type])
 
