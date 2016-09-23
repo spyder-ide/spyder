@@ -46,5 +46,6 @@ script:
   - ./continuous_integration/travis/build_test.sh
   - ./continuous_integration/travis/run_test.sh
   - ./continuous_integration/travis/modules_test.sh
+  - pip install pytest-qt
   - python runtests.py
   - coveralls
