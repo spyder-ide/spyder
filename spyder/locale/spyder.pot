@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2016-09-21 02:13+COT\n"
+"POT-Creation-Date: 2016-09-24 04:20+COT\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -897,6 +897,7 @@ msgstr ""
 
 #: spyder/plugins/configdialog.py:836 spyder/plugins/editor.py:107
 #: spyder/plugins/externalconsole.py:57 spyder/plugins/ipythonconsole.py:273
+#: spyder/widgets/projects/configdialog.py:81
 msgid "Interface"
 msgstr ""
 
@@ -932,6 +933,10 @@ msgstr ""
 msgid "Custom margin for panes:"
 msgstr ""
 
+#: spyder/plugins/configdialog.py:865 spyder/plugins/editor.py:209
+msgid "pixels"
+msgstr ""
+
 #: spyder/plugins/configdialog.py:893
 msgid "Status bar"
 msgstr ""
@@ -942,6 +947,12 @@ msgstr ""
 
 #: spyder/plugins/configdialog.py:896
 msgid "Show memory usage every"
+msgstr ""
+
+#: spyder/plugins/configdialog.py:898 spyder/plugins/configdialog.py:907
+#: spyder/plugins/editor.py:133 spyder/plugins/editor.py:261
+#: spyder/plugins/variableexplorer.py:30
+msgid " ms"
 msgstr ""
 
 #: spyder/plugins/configdialog.py:905
@@ -1257,10 +1268,6 @@ msgstr ""
 
 #: spyder/plugins/editor.py:209
 msgid "Tab stop width:"
-msgstr ""
-
-#: spyder/plugins/editor.py:209
-msgid "pixels"
 msgstr ""
 
 #: spyder/plugins/editor.py:211
@@ -1873,6 +1880,10 @@ msgstr ""
 msgid "None"
 msgstr ""
 
+#: spyder/plugins/externalconsole.py:208 spyder/plugins/ipythonconsole.py:351
+msgid "Automatic"
+msgstr ""
+
 #: spyder/plugins/externalconsole.py:213 spyder/plugins/ipythonconsole.py:373
 msgid "Backend:"
 msgstr ""
@@ -1911,7 +1922,7 @@ msgstr ""
 msgid "Command Window"
 msgstr ""
 
-#: spyder/plugins/externalconsole.py:649
+#: spyder/plugins/externalconsole.py:649 spyder/plugins/ipythonconsole.py:297
 msgid "Terminal"
 msgstr ""
 
@@ -2280,10 +2291,6 @@ msgstr ""
 msgid "Inline"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole.py:351
-msgid "Automatic"
-msgstr ""
-
 #: spyder/plugins/ipythonconsole.py:352
 msgid "Graphics backend"
 msgstr ""
@@ -2472,19 +2479,19 @@ msgstr ""
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole.py:1357
+#: spyder/plugins/ipythonconsole.py:1364
 msgid "IPython"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole.py:1358
+#: spyder/plugins/ipythonconsole.py:1365
 msgid "Unable to connect to <b>%s</b>"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole.py:1415
+#: spyder/plugins/ipythonconsole.py:1422
 msgid "Connection error"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole.py:1416
+#: spyder/plugins/ipythonconsole.py:1423
 msgid ""
 "Could not open ssh tunnel. The error was:\n"
 "\n"
@@ -2634,7 +2641,7 @@ msgstr ""
 msgid "Always show %s on a first file run"
 msgstr ""
 
-#: spyder/plugins/runconfig.py:160
+#: spyder/plugins/runconfig.py:160 spyder/plugins/runconfig.py:474
 msgid "General settings"
 msgstr ""
 
@@ -2796,10 +2803,6 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer.py:29
 msgid "Refresh interval: "
-msgstr ""
-
-#: spyder/plugins/variableexplorer.py:30
-msgid " ms"
 msgstr ""
 
 #: spyder/plugins/variableexplorer.py:33
@@ -3914,11 +3917,6 @@ msgstr ""
 msgid "Project preferences"
 msgstr ""
 
-#: spyder/widgets/projects/configdialog.py:81
-#: spyder/widgets/projects/configdialog.py:155
-msgid ""
-msgstr ""
-
 #: spyder/widgets/projects/configdialog.py:82
 #: spyder/widgets/projects/configdialog.py:119
 msgid "Restore data on startup"
@@ -3948,6 +3946,7 @@ msgid "Workspace"
 msgstr ""
 
 #: spyder/widgets/projects/configdialog.py:148
+#: spyder/widgets/projects/configdialog.py:155
 msgid "Version control"
 msgstr ""
 
