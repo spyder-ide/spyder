@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-24 04:20+COT\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: 2016-07-12 09:04+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
@@ -625,16 +625,6 @@ msgstr "Spyderリセットエラー"
 #: spyder/app/restart.py:141
 msgid "Spyder restart error"
 msgstr "Spyder再起動エラー"
-
-#: spyder/app/restart.py:145
-msgid ""
-"\n"
-"\n"
-"{0}"
-msgstr ""
-"\n"
-"\n"
-"{0}"
 
 #: spyder/app/restart.py:165
 msgid "Closing Spyder"
@@ -5199,6 +5189,15 @@ msgstr ""
 #: spyder/workers/updates.py:96
 msgid "Unable to check for updates."
 msgstr "更新をチェックできません"
+
+#~ msgid ""
+#~ "\n"
+#~ "\n"
+#~ "{0}"
+#~ msgstr ""
+#~ "\n"
+#~ "\n"
+#~ "{0}"
 
 #~ msgid "Reload last session"
 #~ msgstr "前回のセッションをリロードする"

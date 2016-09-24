@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.3\n"
-"POT-Creation-Date: 2016-09-24 04:20+COT\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: 2015-02-26 03:04-0400\n"
 "Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
 "Language-Team: pt_BR\n"
@@ -628,13 +628,6 @@ msgstr "Spyder Editor"
 #, fuzzy
 msgid "Spyder restart error"
 msgstr "Tutorial do Spyder"
-
-#: spyder/app/restart.py:145
-msgid ""
-"\n"
-"\n"
-"{0}"
-msgstr ""
 
 #: spyder/app/restart.py:165
 msgid "Closing Spyder"

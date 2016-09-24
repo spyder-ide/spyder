@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-24 04:20+COT\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: 2016-09-21 14:48+0300\n"
 "Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
 "Language-Team: русский <LL@li.org>\n"
@@ -628,16 +628,6 @@ msgstr "Ошибка сброса настроек Spyder"
 #: spyder/app/restart.py:141
 msgid "Spyder restart error"
 msgstr "Ошибка перезапуска Spyder"
-
-#: spyder/app/restart.py:145
-msgid ""
-"\n"
-"\n"
-"{0}"
-msgstr ""
-"\n"
-"\n"
-"{0}"
 
 #: spyder/app/restart.py:165
 msgid "Closing Spyder"
@@ -5226,6 +5216,15 @@ msgstr ""
 #: spyder/workers/updates.py:96
 msgid "Unable to check for updates."
 msgstr "Не удалось проверить обновления."
+
+#~ msgid ""
+#~ "\n"
+#~ "\n"
+#~ "{0}"
+#~ msgstr ""
+#~ "\n"
+#~ "\n"
+#~ "{0}"
 
 #~ msgid "Reload last session"
 #~ msgstr "Перезапустить последнюю сессию"

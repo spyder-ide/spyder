@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2016-09-24 04:20+COT\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: 2016-09-24 04:41-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
@@ -628,13 +628,6 @@ msgstr "Error de restauración de Spyder"
 #: spyder/app/restart.py:141
 msgid "Spyder restart error"
 msgstr "Error de reinicio de Spyder"
-
-#: spyder/app/restart.py:145
-msgid ""
-"\n"
-"\n"
-"{0}"
-msgstr ""
 
 #: spyder/app/restart.py:165
 msgid "Closing Spyder"
