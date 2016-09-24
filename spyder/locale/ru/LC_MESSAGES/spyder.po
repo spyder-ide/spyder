@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: \n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: 2016-09-21 14:48+0300\n"
 "Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
 "Language-Team: русский <LL@li.org>\n"
@@ -552,8 +552,7 @@ msgstr "О %s"
 #: spyder/app/mainwindow.py:2400 spyder/plugins/editor.py:158
 #: spyder/plugins/runconfig.py:322 spyder/plugins/runconfig.py:444
 #: spyder/plugins/runconfig.py:449 spyder/utils/programs.py:285
-#: spyder/widgets/explorer.py:269
-#: spyder/widgets/externalshell/baseshell.py:127
+#: spyder/widgets/explorer.py:269 spyder/widgets/externalshell/baseshell.py:127
 msgid "Run"
 msgstr "Запуск"
 
@@ -629,16 +628,6 @@ msgstr "Ошибка сброса настроек Spyder"
 #: spyder/app/restart.py:141
 msgid "Spyder restart error"
 msgstr "Ошибка перезапуска Spyder"
-
-#: spyder/app/restart.py:145
-msgid ""
-"\n"
-"\n"
-"{0}"
-msgstr ""
-"\n"
-"\n"
-"{0}"
 
 #: spyder/app/restart.py:165
 msgid "Closing Spyder"
@@ -752,8 +741,8 @@ msgstr ""
 "Python также подключены к этой панели, и что Менеджер Переменных отображает "
 "только переменные текущей выбранной консоли."
 
-#: spyder/app/tour.py:195 spyder/plugins/help.py:485
-#: spyder/plugins/help.py:929 spyder/widgets/internalshell.py:270
+#: spyder/app/tour.py:195 spyder/plugins/help.py:485 spyder/plugins/help.py:929
+#: spyder/widgets/internalshell.py:270
 msgid "Help"
 msgstr "Справка"
 
@@ -1051,6 +1040,7 @@ msgstr "Переходить во встроенную консоль при п�
 
 #: spyder/plugins/configdialog.py:836 spyder/plugins/editor.py:107
 #: spyder/plugins/externalconsole.py:57 spyder/plugins/ipythonconsole.py:273
+#: spyder/widgets/projects/configdialog.py:81
 msgid "Interface"
 msgstr "Интерфейс"
 
@@ -1086,6 +1076,10 @@ msgstr "Отметьте для возможности отделить<br> лю
 msgid "Custom margin for panes:"
 msgstr "Настроить отступы панелей:"
 
+#: spyder/plugins/configdialog.py:865 spyder/plugins/editor.py:209
+msgid "pixels"
+msgstr "пикселей"
+
 #: spyder/plugins/configdialog.py:893
 msgid "Status bar"
 msgstr "Панель состояния"
@@ -1097,6 +1091,12 @@ msgstr "Показывать панель состояния"
 #: spyder/plugins/configdialog.py:896
 msgid "Show memory usage every"
 msgstr "Показывать использование памяти каждые"
+
+#: spyder/plugins/configdialog.py:898 spyder/plugins/configdialog.py:907
+#: spyder/plugins/editor.py:133 spyder/plugins/editor.py:261
+#: spyder/plugins/variableexplorer.py:30
+msgid " ms"
+msgstr " мс"
 
 #: spyder/plugins/configdialog.py:905
 msgid "Show CPU usage every"
@@ -1428,10 +1428,6 @@ msgstr "Табуляция"
 msgid "Tab stop width:"
 msgstr "Ширина табуляции:"
 
-#: spyder/plugins/editor.py:209
-msgid "pixels"
-msgstr "пикселей"
-
 #: spyder/plugins/editor.py:211
 msgid "Tab always indent"
 msgstr "Клавиша Tab - всегда отступ"
@@ -1723,8 +1719,7 @@ msgstr "Выполнить файл"
 msgid "&Configure..."
 msgstr "&Настроить"
 
-#: spyder/plugins/editor.py:788
-#: spyder/widgets/externalshell/pythonshell.py:304
+#: spyder/plugins/editor.py:788 spyder/widgets/externalshell/pythonshell.py:304
 msgid "Run settings"
 msgstr "Настройки Запуска"
 
@@ -2103,6 +2098,10 @@ msgstr ""
 msgid "None"
 msgstr "Отсутствует"
 
+#: spyder/plugins/externalconsole.py:208 spyder/plugins/ipythonconsole.py:351
+msgid "Automatic"
+msgstr "Автоматически"
+
 #: spyder/plugins/externalconsole.py:213 spyder/plugins/ipythonconsole.py:373
 msgid "Backend:"
 msgstr "Бэкенд:"
@@ -2151,7 +2150,7 @@ msgstr ""
 msgid "Command Window"
 msgstr "Командное окно"
 
-#: spyder/plugins/externalconsole.py:649
+#: spyder/plugins/externalconsole.py:649 spyder/plugins/ipythonconsole.py:297
 msgid "Terminal"
 msgstr "Терминал"
 
@@ -2251,8 +2250,7 @@ msgid "Source"
 msgstr "Исходник"
 
 #: spyder/plugins/help.py:385 spyder/plugins/runconfig.py:186
-#: spyder/plugins/runconfig.py:456
-#: spyder/widgets/externalshell/baseshell.py:94
+#: spyder/plugins/runconfig.py:456 spyder/widgets/externalshell/baseshell.py:94
 #: spyder/widgets/ipythonconsole/client.py:200
 msgid "Console"
 msgstr "Консоль"
@@ -2571,10 +2569,6 @@ msgstr ""
 msgid "Inline"
 msgstr "Встроенный"
 
-#: spyder/plugins/ipythonconsole.py:351
-msgid "Automatic"
-msgstr "Автоматически"
-
 #: spyder/plugins/ipythonconsole.py:352
 msgid "Graphics backend"
 msgstr "Графический бэкенд"
@@ -2671,8 +2665,8 @@ msgstr "Скупое автодополнение"
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable.<br>For example, you "
-"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth"
-"().&lt;Tab&gt;</tt>"
+"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins."
+"meth().&lt;Tab&gt;</tt>"
 msgstr ""
 "Включает автодополнение по <tt>Tab</tt> для элементов списков, результатов "
 "вызова функций, и т.п. <i>без</i> присвоения их переменной.<br>Например, Вы "
@@ -2694,8 +2688,8 @@ msgid ""
 "it becomes <i>str(43)</i> automatically."
 msgstr ""
 "Автовызов позволяет IPython автоматически вызывать объекты без явного ввода "
-"скобок.<br>Например, если Вы введете <i>str 43</i>, будет выполнено <i>str"
-"(43)</i> автоматически."
+"скобок.<br>Например, если Вы введете <i>str 43</i>, будет выполнено "
+"<i>str(43)</i> автоматически."
 
 #: spyder/plugins/ipythonconsole.py:494
 msgid "Smart"
@@ -2831,19 +2825,19 @@ msgid ""
 "one?"
 msgstr "Хотите закрыть все другие консоли, подключённые к тому же ядру?"
 
-#: spyder/plugins/ipythonconsole.py:1357
+#: spyder/plugins/ipythonconsole.py:1364
 msgid "IPython"
 msgstr "IPython"
 
-#: spyder/plugins/ipythonconsole.py:1358
+#: spyder/plugins/ipythonconsole.py:1365
 msgid "Unable to connect to <b>%s</b>"
 msgstr "Не удалось подключиться к <b>%s</b>"
 
-#: spyder/plugins/ipythonconsole.py:1415
+#: spyder/plugins/ipythonconsole.py:1422
 msgid "Connection error"
 msgstr "Ошибка соединения"
 
-#: spyder/plugins/ipythonconsole.py:1416
+#: spyder/plugins/ipythonconsole.py:1423
 msgid ""
 "Could not open ssh tunnel. The error was:\n"
 "\n"
@@ -3037,7 +3031,7 @@ msgstr "Выполнить во внешнем системном термина
 msgid "Always show %s on a first file run"
 msgstr "Всегда показывать %s при первом запуске файла"
 
-#: spyder/plugins/runconfig.py:160
+#: spyder/plugins/runconfig.py:160 spyder/plugins/runconfig.py:474
 msgid "General settings"
 msgstr "Основные настройки"
 
@@ -3209,10 +3203,6 @@ msgstr "Включить автообновление"
 #: spyder/plugins/variableexplorer.py:29
 msgid "Refresh interval: "
 msgstr "Интервал обновления: "
-
-#: spyder/plugins/variableexplorer.py:30
-msgid " ms"
-msgstr " мс"
 
 #: spyder/plugins/variableexplorer.py:33
 msgid "Filter"
@@ -4499,6 +4489,7 @@ msgid "Workspace"
 msgstr "Рабочая область"
 
 #: spyder/widgets/projects/configdialog.py:148
+#: spyder/widgets/projects/configdialog.py:155
 msgid "Version control"
 msgstr "Контроль версий"
 
@@ -5225,6 +5216,15 @@ msgstr ""
 #: spyder/workers/updates.py:96
 msgid "Unable to check for updates."
 msgstr "Не удалось проверить обновления."
+
+#~ msgid ""
+#~ "\n"
+#~ "\n"
+#~ "{0}"
+#~ msgstr ""
+#~ "\n"
+#~ "\n"
+#~ "{0}"
 
 #~ msgid "Reload last session"
 #~ msgstr "Перезапустить последнюю сессию"

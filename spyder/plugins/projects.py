@@ -236,7 +236,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             if not self.is_valid_project(path):
                 if path:
                     QMessageBox.critical(self, _('Error'),
-                                _("<b>%s</b> is not a Spyder project!" % path))
+                                _("<b>%s</b> is not a Spyder project!") % path)
                 return
             else:
                 self.add_to_recent(path)
