@@ -39,51 +39,6 @@ Enjoy!
 ----
 
 
-Minor release others
-====================
-
-Subject: [ANN] Spyder 2.3.8 is released!
-
-
-On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I’m pleased to announce that Spyder 2.3.8 has been released and is available for
-Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
-
-Spyder is a free, open-source (MIT license) interactive development environment
-for the Python language with advanced editing, interactive testing, debugging
-and introspection features. It was designed to provide MATLAB-like features
-(integrated help, interactive console, variable explorer with GUI-based editors
-for NumPy arrays and Pandas dataframes), it is strongly oriented towards scientific
-computing and software development.
-
-This release represents one month and a half of development since version 2.3.7
-and introduces several new features:
-
-* Python and IPython consoles
-    * Fix a sitecustomize error when using Matplotlib 1.5 with Python 2 on Linux
-* Variable Explorer
-    * Add support for Pandas Series when using Pamdas 0.17+
-    * Fix freeze when creating empty DataFrames in Python 2
-    * Fix freeze when working with big Numpy recarray's
-
-We also fixed 6 bugs. For a full list of fixes see our changelog:
-https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
-
-Don’t forget to follow Spyder updates/news:
-
-* on the project website: https://github.com/spyder-ide/spyder
-* and on our official blog: http://spyder-ide.blogspot.com/
-
-Last, but not least, we welcome any contribution that helps making Spyder an
-efficient scientific development/computing environment. Join us to help creating
-your favorite environment!
-
-Enjoy!
--Carlos
-
-----
-
-
 Major release to list
 =====================
 
