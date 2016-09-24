@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2016-09-24 04:20+COT\n"
-"PO-Revision-Date: 2016-09-24 03:37-0500\n"
+"PO-Revision-Date: 2016-09-24 04:41-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -148,9 +148,8 @@ msgid "C&onsoles"
 msgstr "&Terminales"
 
 #: spyder/app/mainwindow.py:608
-#, fuzzy
 msgid "&Projects"
-msgstr "Proyecto..."
+msgstr "&Proyectos"
 
 #: spyder/app/mainwindow.py:611 spyder/plugins/editor.py:1347
 msgid "&Tools"
@@ -838,9 +837,8 @@ msgstr ""
 "añadió a Spyder"
 
 #: spyder/config/ipython.py:23
-#, fuzzy
 msgid "Integrate the IPython console"
-msgstr "La Terminal de IPython"
+msgstr "Integración con la Terminal de IPython"
 
 #: spyder/config/ipython.py:25
 msgid "Manipulate Jupyter notebooks on the Editor"
@@ -1984,9 +1982,8 @@ msgid "Interactive data plotting in the consoles"
 msgstr "Graficar datos interactivamente en la terminal"
 
 #: spyder/plugins/externalconsole.py:54 spyder/plugins/externalconsole.py:709
-#, fuzzy
 msgid "Python console"
-msgstr "Terminal de IPython"
+msgstr "Terminal de Python"
 
 #: spyder/plugins/externalconsole.py:59
 msgid "One tab per script"
@@ -2130,7 +2127,7 @@ msgstr ""
 
 #: spyder/plugins/externalconsole.py:208
 msgid "None"
-msgstr ""
+msgstr "Ninguno"
 
 #: spyder/plugins/externalconsole.py:208 spyder/plugins/ipythonconsole.py:351
 msgid "Automatic"
@@ -2276,9 +2273,8 @@ msgid "No further documentation available"
 msgstr "No existe más documentación disponible"
 
 #: spyder/plugins/help.py:347
-#, fuzzy
 msgid "No documentation available"
-msgstr "No existe más documentación disponible"
+msgstr "No existe documentación disponible"
 
 #: spyder/plugins/help.py:378
 msgid "Source"
@@ -2493,9 +2489,8 @@ msgid "Password"
 msgstr "Contraseña"
 
 #: spyder/plugins/ipythonconsole.py:234
-#, fuzzy
 msgid "Open connection file"
-msgstr "Abrir un archivo de conexión de IPython"
+msgstr "Abrir un archivo de conexión"
 
 #: spyder/plugins/ipythonconsole.py:239
 msgid "Select ssh key"
@@ -2544,14 +2539,12 @@ msgid "Decide what type of completion to use"
 msgstr "Decidir que tipo de completado utilizar"
 
 #: spyder/plugins/ipythonconsole.py:297
-#, fuzzy
 msgid "Graphical"
-msgstr "Gráficas"
+msgstr "Gráfico"
 
 #: spyder/plugins/ipythonconsole.py:297
-#, fuzzy
 msgid "Plain"
-msgstr "Texto plano"
+msgstr "Plano"
 
 #: spyder/plugins/ipythonconsole.py:298
 msgid "Completion:"
@@ -2763,14 +2756,14 @@ msgid "Symbolic Mathematics"
 msgstr "Matemática simbólica"
 
 #: spyder/plugins/ipythonconsole.py:512
-#, fuzzy
 msgid ""
 "Perfom symbolic operations in the console (e.g. integrals, derivatives, "
 "vector calculus, etc) and get the outputs in a beautifully printed style (it "
 "requires the Sympy module)."
 msgstr ""
 "Realice operaciones simbólicas en la terminal (integrales, derivadas o "
-"cálculo vectorial) y obtenga los resultados en un bello estilo impreso."
+"cálculo vectorial) y obtenga los resultados en un bello estilo impreso "
+"(requiere el módulo Sympy)."
 
 #: spyder/plugins/ipythonconsole.py:517
 msgid "Use symbolic math"
@@ -2851,11 +2844,15 @@ msgid ""
 "running in a terminal:<br><br><tt>pip install ipykernel</"
 "tt><br><br>or<br><br><tt>conda install ipykernel</tt>"
 msgstr ""
+"Su entorno o instalación de Python no cuenta con el módulo <tt>ipykernel</"
+"tt>. Sin este módulo no es posible para Spyder el crear una terminal."
+"<br><br>Puede instalar <tt>ipykernel</tt> al ejecutar en una consola de "
+"comandos:<br><br><tt>pip install ipykernel</tt><br><br>o<br><br><tt>conda "
+"install ipykernel</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1098
-#, fuzzy
 msgid "Do you want to close this console?"
-msgstr "¿Está seguro de que borrar este esquema?"
+msgstr "¿Desea cerrar esta terminal?"
 
 #: spyder/plugins/ipythonconsole.py:1104
 msgid ""
@@ -2869,9 +2866,8 @@ msgid "IPython"
 msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole.py:1365
-#, fuzzy
 msgid "Unable to connect to <b>%s</b>"
-msgstr "No se pudo establecer conexión con el núcleo <b>`%s`"
+msgstr "No se pudo establecer conexión con <b>`%s`"
 
 #: spyder/plugins/ipythonconsole.py:1422
 msgid "Connection error"
@@ -2902,14 +2898,13 @@ msgid "Layout Display and Order"
 msgstr "Orden y visualización de las disposiciones"
 
 #: spyder/plugins/maininterpreter.py:31 spyder/plugins/maininterpreter.py:66
-#, fuzzy
 msgid "Python interpreter"
-msgstr "Abrir un &intérprete de Python"
+msgstr "Intérprete de Python"
 
 #: spyder/plugins/maininterpreter.py:68
-#, fuzzy
 msgid "Select the Python interpreter for all Spyder consoles"
-msgstr "Seleccionar la ruta al intérprete de Python que desee usar:"
+msgstr ""
+"Seleccionar el intérprete de Python para todas las terminales de Spyder"
 
 #: spyder/plugins/maininterpreter.py:71
 msgid "Default (i.e. the same as Spyder's)"
@@ -2928,20 +2923,18 @@ msgid "User Module Reloader (UMR)"
 msgstr "Recargador de Módulos del Usuario (RMU)"
 
 #: spyder/plugins/maininterpreter.py:95
-#, fuzzy
 msgid ""
 "UMR forces Python to reload modules which were imported when executing a "
 "file in a Python or IPython console with the <i>runfile</i> function."
 msgstr ""
-"El RMU obliga a Python a recargar los módulos que fueron importados\n"
-"durante la ejecución de un archivo en la terminal con la función 'runfile'."
+"El RMU obliga a Python a recargar los módulos que fueron importados durante "
+"la ejecución de un archivo en la terminal con la función 'runfile'."
 
 #: spyder/plugins/maininterpreter.py:100
 msgid "Enable UMR"
 msgstr "Activar el RMU"
 
 #: spyder/plugins/maininterpreter.py:101
-#, fuzzy
 msgid ""
 "This option will enable the User Module Reloader (UMR) in Python/IPython "
 "consoles. UMR forces Python to reload deeply modules during import when "
@@ -2960,10 +2953,10 @@ msgstr ""
 "<br><br><b>1.</b> El RMU puede requerir que se reinicie la terminal en la "
 "cual será utilizado (de otra forma, sólo los módulos que fueron importados "
 "en último lugar serán recargados al ejecutar un archivo).<br><br><b>2.</b> "
-"Si ocurre algún error al re-ejecutar programas basados en PyQt o PySide, por "
-"favor verifique que los objetos de Qt sean destruidos apropiadamente (por "
-"ejemplo, puede tener que usar el atributo <b>Qt.WA_DeleteOnClose</b> en su "
-"ventana principal, utilizando para ello el método <b>setAttribute</b>)."
+"Si ocurre algún error al re-ejecutar programas basados en PyQt, por favor "
+"verifique que los objetos de Qt sean destruidos apropiadamente (por ejemplo, "
+"puede tener que usar el atributo <b>Qt.WA_DeleteOnClose</b> en su ventana "
+"principal, utilizando para ello el método <b>setAttribute</b>)."
 
 #: spyder/plugins/maininterpreter.py:117
 msgid "Show reloaded modules list"
@@ -3000,7 +2993,7 @@ msgstr "RMU"
 
 #: spyder/plugins/maininterpreter.py:179
 msgid "Set the list of excluded modules as this: <i>numpy, scipy</i>"
-msgstr ""
+msgstr "Establezca la lista de módulos excluidos como: <i>numpy, scipy</i>"
 
 #: spyder/plugins/maininterpreter.py:192
 msgid ""
@@ -3032,38 +3025,32 @@ msgid "Project explorer"
 msgstr "Explorador de proyectos"
 
 #: spyder/plugins/projects.py:88
-#, fuzzy
 msgid "New Project..."
 msgstr "Nuevo proyecto..."
 
 #: spyder/plugins/projects.py:91
-#, fuzzy
 msgid "Open Project..."
-msgstr "Abrir proyecto"
+msgstr "Abrir proyecto..."
 
 #: spyder/plugins/projects.py:94
-#, fuzzy
 msgid "Close Project"
 msgstr "Cerrar proyecto"
 
 #: spyder/plugins/projects.py:100
-#, fuzzy
 msgid "Project Preferences"
-msgstr "Preferencias"
+msgstr "Preferencias del proyecto"
 
 #: spyder/plugins/projects.py:102
-#, fuzzy
 msgid "Recent Projects"
-msgstr "Proyectos relacionados"
+msgstr "Proyectos recientes"
 
 #: spyder/plugins/projects.py:234
 msgid "Open project"
 msgstr "Abrir proyecto"
 
 #: spyder/plugins/projects.py:239
-#, fuzzy
 msgid "<b>%s</b> is not a Spyder project!"
-msgstr "Un proyecto de Spyder existente"
+msgstr "<b>%s</b> no es un proyecto de Spyder!"
 
 #: spyder/plugins/runconfig.py:29
 msgid "Execute in current Python or IPython console"
@@ -4398,19 +4385,20 @@ msgid "Restart kernel?"
 msgstr "Reiniciar el núcleo?"
 
 #: spyder/widgets/ipythonconsole/client.py:325
-#, fuzzy
 msgid "Error restarting kernel: %s\n"
-msgstr "Ocurrió un error mientras iniciaba el núcleo"
+msgstr "Ocurrió un error al reiniciar el núcleo: %s\n"
 
 #: spyder/widgets/ipythonconsole/client.py:329
 msgid ""
 "<br>Restarting kernel...\n"
 "<hr><br>"
 msgstr ""
+"<br>Reiniciando el núcleo...\n"
+"<hr><br>"
 
 #: spyder/widgets/ipythonconsole/client.py:334
 msgid "Cannot restart a kernel not started by Spyder\n"
-msgstr ""
+msgstr "No es posible reiniciar un núcleo que no fue iniciado por Spyder\n"
 
 #: spyder/widgets/ipythonconsole/client.py:374
 msgid "Changing backend to Qt for Mayavi"
@@ -4425,6 +4413,8 @@ msgid ""
 "Inspecting and setting values while debugging in IPython consoles is not "
 "supported yet by Spyder."
 msgstr ""
+"Spyder aún no soporta inspeccionar y establecer valores mientras se está "
+"depurando."
 
 #: spyder/widgets/ipythonconsole/shell.py:135
 msgid "Reset IPython namespace"
@@ -4526,36 +4516,32 @@ msgstr ""
 "moverlo al principio de la lista?"
 
 #: spyder/widgets/projects/configdialog.py:30
-#, fuzzy
 msgid "Project preferences"
-msgstr "Preferencias de disposición"
+msgstr "Preferencias del proyecto"
 
 #: spyder/widgets/projects/configdialog.py:82
 #: spyder/widgets/projects/configdialog.py:119
-#, fuzzy
 msgid "Restore data on startup"
-msgstr "Buscar actualizaciones al inicio"
+msgstr "Restaurar datos al inicio"
 
 #: spyder/widgets/projects/configdialog.py:84
 #: spyder/widgets/projects/configdialog.py:121
-#, fuzzy
 msgid "Save data on exit"
-msgstr "Guardar datos"
+msgstr "Guardar datos al salir"
 
 #: spyder/widgets/projects/configdialog.py:86
 #: spyder/widgets/projects/configdialog.py:123
-#, fuzzy
 msgid "Save history"
 msgstr "Guardar el historial"
 
 #: spyder/widgets/projects/configdialog.py:88
 #: spyder/widgets/projects/configdialog.py:125
 msgid "Save non project files opened"
-msgstr ""
+msgstr "Guardar archivos abiertos que no pertenecen al proyecto"
 
 #: spyder/widgets/projects/configdialog.py:111
 msgid "Code"
-msgstr ""
+msgstr "Código"
 
 #: spyder/widgets/projects/configdialog.py:118
 msgid "Workspace"
@@ -4563,18 +4549,16 @@ msgstr "Espacio de trabajo"
 
 #: spyder/widgets/projects/configdialog.py:148
 #: spyder/widgets/projects/configdialog.py:155
-#, fuzzy
 msgid "Version control"
-msgstr "Control de depuración"
+msgstr "Control de versiones"
 
 #: spyder/widgets/projects/configdialog.py:156
-#, fuzzy
 msgid "Use version control"
-msgstr "Control de depuración"
+msgstr "Usar control de versiones"
 
 #: spyder/widgets/projects/configdialog.py:161
 msgid "Version control system"
-msgstr ""
+msgstr "Sistema de versión de controles"
 
 #: spyder/widgets/projects/explorer.py:50
 msgid "Show horizontal scrollbar"
@@ -4597,33 +4581,28 @@ msgid "move"
 msgstr "mover"
 
 #: spyder/widgets/projects/projectdialog.py:69
-#, fuzzy
 msgid "New directory"
-msgstr "Seleccionar directorio"
+msgstr "Nuevo directorio"
 
 #: spyder/widgets/projects/projectdialog.py:70
 msgid "Existing directory"
 msgstr "Un directorio existente"
 
 #: spyder/widgets/projects/projectdialog.py:72
-#, fuzzy
 msgid "Project name"
-msgstr "Nombre del proyecto:"
+msgstr "Nombre del proyecto"
 
 #: spyder/widgets/projects/projectdialog.py:73
-#, fuzzy
 msgid "Location"
-msgstr "Documentación"
+msgstr "Ubicación"
 
 #: spyder/widgets/projects/projectdialog.py:74
-#, fuzzy
 msgid "Project type"
-msgstr "Nombre del proyecto:"
+msgstr "Tipo del proyecto"
 
 #: spyder/widgets/projects/projectdialog.py:75
-#, fuzzy
 msgid "Python version"
-msgstr "Archivos Python"
+msgstr "Versión de Python"
 
 #: spyder/widgets/projects/projectdialog.py:83
 #: spyder/widgets/variableexplorer/importwizard.py:519
@@ -4632,27 +4611,23 @@ msgstr "Cancelar"
 
 #: spyder/widgets/projects/projectdialog.py:84
 msgid "Create"
-msgstr ""
+msgstr "Crear"
 
 #: spyder/widgets/projects/projectdialog.py:102
-#, fuzzy
 msgid "Create new project"
-msgstr "Proyectos relacionados"
+msgstr "Crear nuevo proyecto"
 
 #: spyder/widgets/projects/type/__init__.py:215
-#, fuzzy
 msgid "Empty project"
-msgstr "Abrir proyecto"
+msgstr "Proyecto vacío"
 
 #: spyder/widgets/projects/type/python.py:20
-#, fuzzy
 msgid "Python project"
-msgstr "Abrir proyecto"
+msgstr "Proyecto de Python"
 
 #: spyder/widgets/projects/type/python.py:76
-#, fuzzy
 msgid "Python package"
-msgstr "Manejador de rutas de Python"
+msgstr "Paquete de Python"
 
 #: spyder/widgets/pydocgui.py:110
 msgid "Module or package:"
@@ -4963,6 +4938,8 @@ msgid ""
 "Spyder was unable to retrieve the value of this variable from the console."
 "<br><br>The error mesage was:<br><i>%s</i>"
 msgstr ""
+"Spyder no fue capaz de extraer el valor de esta variable de la terminal."
+"<br><br>El mensaje de error fue:<br><i>%s</i>"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:579
 msgid "Edit item"
@@ -5014,7 +4991,6 @@ msgid "Duplicate"
 msgstr "Duplicar"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:904
-#, fuzzy
 msgid "Do you want to remove the selected item?"
 msgstr "¿Desea eliminar la variable seleccionada?"
 
@@ -5023,14 +4999,12 @@ msgid "Do you want to remove all selected items?"
 msgstr "¿Desea eliminar todas las variables seleccionadas?"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:925
-#, fuzzy
 msgid "New variable name:"
-msgstr "nombre_de_variable"
+msgstr "Nuevo nombre de variable:"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:928
-#, fuzzy
 msgid "Variable name:"
-msgstr "Nombre de variable"
+msgstr "Nombre de variable:"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:962
 msgid "Key:"
