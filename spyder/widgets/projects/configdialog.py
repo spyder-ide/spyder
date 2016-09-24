@@ -78,7 +78,7 @@ class WorkspaceConfigPage(ProjectConfigPage):
         newcb = self.create_checkbox
 
         # --- Workspace
-        interface_group = QGroupBox(_(""))
+        interface_group = QGroupBox(_("Interface"))
         restore_data_box = newcb(_("Restore data on startup"),
                                  'restore_data_on_startup')
         save_data_box = newcb(_("Save data on exit"),
@@ -152,7 +152,7 @@ class VersionConfigPage(ProjectConfigPage):
         newcb = self.create_checkbox
 
         # --- Workspace
-        vcs_group = QGroupBox(_(""))
+        vcs_group = QGroupBox(_("Version control"))
         use_version_control = newcb(_("Use version control"),
                                     'use_version_control')
 
