@@ -924,7 +924,7 @@ class MainWindow(QMainWindow):
         else:
             tut_action = None
 
-        shortcuts_action = create_action(self, _("Shortcuts Sumary"),
+        shortcuts_action = create_action(self, _("Shortcuts Summary"),
                                          shortcut="Meta+F1",
                                          triggered=self.show_shortcuts_dialog)
 
@@ -2630,7 +2630,6 @@ class MainWindow(QMainWindow):
     def show_shortcuts_dialog(self):
         from spyder.widgets.shortcuts import ShortCutsSummaryDialog
         dlg = ShortCutsSummaryDialog(None)
-        dlg.show()
         dlg.exec_()
 
     # -- Open files server

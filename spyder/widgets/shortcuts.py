@@ -2,12 +2,10 @@
 #
 # Copyright © 2009- The Spyder Development Team
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Shortcut Summary dialog"""
 
-# TODO:
-# calculate windows size from screen size
 
 # Standard library imports
 from operator import itemgetter
@@ -28,7 +26,16 @@ MAX_FONT_SIZE = 16
 MIN_FONT_SIZE = 8
 
 class ShortCutsSummaryDialog(QDialog):
-    def __init__(self, parent=None, offset=0, force_float=False):
+    """
+    Dialog window listing the spyder and plugins shortcuts.
+
+    It contains all the shortcuts avalaible through iter_shortcuts
+    function
+
+    The shortcuts are dysplayed in different columns, and grouped by
+    context (global, editor, console...)
+    """
+    def __init__(self, parent=None):
         QDialog.__init__(self, parent=parent)
 
         self._shortcuts_summary_title = _("Spyder Keyboard ShortCuts")
