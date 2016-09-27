@@ -19,7 +19,7 @@ import os.path as osp
 from spyder.config.base import get_translation
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
-from spyder.plugins import SpyderPluginMixin
+from spyder.api.plugins import SpyderPluginMixin
 from spyder.py3compat import to_text_string, is_text_string
 from .widgets.breakpointsgui import BreakpointWidget
 

@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
 # Local imports
 from spyder.utils import encoding
 from spyder.config.base import _
-from spyder.plugins import SpyderPluginWidget
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima

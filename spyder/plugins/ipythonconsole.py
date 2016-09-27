@@ -46,7 +46,7 @@ from spyder import dependencies
 from spyder.config.base import (_, DEV, get_home_dir, get_module_path,
                                 get_module_source_path)
 from spyder.config.main import CONF
-from spyder.plugins import SpyderPluginWidget
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
