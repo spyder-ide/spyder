@@ -33,7 +33,7 @@ from spyder.utils.misc import (get_error_match, get_python_executable,
                                is_python_script, remove_backslashes)
 from spyder.utils.qthelpers import create_action, mimedata2url
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.preferences import PluginConfigPage
 from spyder.plugins.runconfig import get_run_configuration
 from spyder.py3compat import to_text_string, is_text_string, getcwd
 from spyder.widgets.externalshell.pythonshell import ExternalPythonShell

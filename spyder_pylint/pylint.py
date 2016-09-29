@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 # Local imports
 from spyder.config.base import get_translation
 from spyder.api.plugins import SpyderPluginMixin
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
