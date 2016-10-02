@@ -464,6 +464,7 @@ class CollectionsDelegate(QItemDelegate):
             editor = DataFrameEditor()
             if not editor.setup_and_check(value, title=key):
                 return
+            editor.dataModel.set_format(index.model().dataframe_format)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
