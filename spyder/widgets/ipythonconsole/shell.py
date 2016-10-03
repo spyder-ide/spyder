@@ -47,7 +47,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     new_client = Signal()
     sig_got_reply = Signal()
 
-    def __init__(self, additional_options, interpreter_versions, *args, **kw):
+    def __init__(self, additional_options, interpreter_versions,
+                 external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -57,10 +58,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
         self.set_background_color()
 
-        # --- Spyder variables ---
+        # Additional variables
         self.ipyclient = None
+        self.external_kernel = external_kernel
 
-        # --- Keyboard shortcuts ---
+        # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
         # To save kernel replies in silent execution

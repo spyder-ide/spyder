@@ -1369,6 +1369,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Getting the master name that corresponds to the client
         # (i.e. the i in i/A)
         master_name = None
+        external_kernel = False
         slave_ord = ord('A') - 1
         kernel_manager = None
         for cl in self.get_clients():
@@ -1387,6 +1388,7 @@ class IPythonConsole(SpyderPluginWidget):
         if master_name is None:
             self.master_clients += 1
             master_name = to_text_string(self.master_clients)
+            external_kernel = True
 
         # Set full client name
         name = master_name + '/' + chr(slave_ord + 1)
@@ -1400,6 +1402,7 @@ class IPythonConsole(SpyderPluginWidget):
                               connection_file=connection_file,
                               menu_actions=self.menu_actions,
                               hostname=hostname,
+                              external_kernel=external_kernel,
                               slave=True)
 
         # Create kernel client
