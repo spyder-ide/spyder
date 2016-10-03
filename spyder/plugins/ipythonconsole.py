@@ -1359,7 +1359,7 @@ class IPythonConsole(SpyderPluginWidget):
                                   password):
         # Verifying if the connection file exists
         try:
-            find_connection_file(osp.basename(connection_file))
+            connection_file = find_connection_file(osp.basename(connection_file))
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to "
