@@ -247,6 +247,9 @@ These commands were executed:
         Reimplement banner creation to let the user decide if he wants a
         banner or not
         """
+        # Don't change banner for external kernels
+        if self.external_kernel:
+            return ''
         show_banner_o = self.additional_options['show_banner']
         if show_banner_o:
             return self.long_banner()
