@@ -18,7 +18,7 @@ from pandas import DataFrame, Series
 from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot
-from qtpy.QtGui import QColor, QCursor, QKeySequence
+from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
                             QMenu, QMessageBox, QPushButton, QTableView)
@@ -27,7 +27,7 @@ import numpy as np
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, fixed_shortcut
+from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import io, is_text_string, PY2, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -409,7 +409,8 @@ class DataFrameView(QTableView):
         self.header_class = self.horizontalHeader()
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        fixed_shortcut(QKeySequence.Copy, self, self.copy)
+        config_shortcut(self.copy, context='variable_explorer', name='copy',
+                        parent=self)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(

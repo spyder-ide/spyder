@@ -22,7 +22,7 @@ from qtpy import is_pyqt46
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
                          QThread, QTimer, Signal, Slot)
-from qtpy.QtGui import QFont, QKeySequence
+from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
                             QMessageBox, QMenu, QSplitter, QVBoxLayout,
                             QWidget)
@@ -471,23 +471,40 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="Next cursor position",
                                       parent=self)
-
-        # --- Fixed shortcuts
-        fixed_shortcut(QKeySequence.ZoomIn, self, lambda: self.zoom_in.emit())
-        fixed_shortcut("Ctrl+=", self, lambda: self.zoom_in.emit())
-        fixed_shortcut(QKeySequence.ZoomOut, self, lambda: self.zoom_out.emit())
-        fixed_shortcut("Ctrl+0", self, lambda: self.zoom_reset.emit())
-        fixed_shortcut("Ctrl+W", self, self.close_file)
-        fixed_shortcut("Ctrl+F4", self, self.close_file)
         fixed_shortcut(QKeySequence(RUN_CELL_SHORTCUT), self, self.run_cell)
         fixed_shortcut(QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT), self,
                        self.run_cell_and_advance)
+        zoom_in_1 = config_shortcut(lambda : self.zoom_in.emit(),
+                                      context="Editor",
+                                      name="zoom in 1",
+                                      parent=self)
+        zoom_in_2 = config_shortcut(lambda : self.zoom_in.emit(),
+                                      context="Editor",
+                                      name="zoom in 2",
+                                      parent=self)
+        zoom_out = config_shortcut(lambda : self.zoom_out.emit(),
+                                      context="Editor",
+                                      name="zoom out",
+                                      parent=self)
+        zoom_reset = config_shortcut(lambda: self.zoom_reset.emit(),
+                                      context="Editor",
+                                      name="zoom reset",
+                                      parent=self)
+        close_file_1 = config_shortcut(self.close_file,
+                                      context="Editor",
+                                      name="close file 1",
+                                      parent=self)
+        close_file_2 = config_shortcut(self.close_file,
+                                      context="Editor",
+                                      name="close file 2",
+                                      parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
                 tabshift, run_selection, new_file, open_file, save_file,
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
-                next_cursor]
+                next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
+                close_file_1, close_file_2]
 
     def get_shortcut_data(self):
         """

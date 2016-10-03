@@ -28,7 +28,7 @@ from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolTip
 
 # Local import
 from spyder.config.base import _, DEBUG, get_conf_path, STDERR
-from spyder.config.gui import config_shortcut, get_shortcut, fixed_shortcut
+from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.main import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
                               PY3, to_text_string)
@@ -36,7 +36,6 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
                                     restore_keyevent)
-from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
                                    TracebackLinksMixin)
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
@@ -688,13 +687,17 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         self.shortcuts = self.create_shortcuts()
 
     def create_shortcuts(self):
-        fixed_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
-        fixed_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
+        array_inline = config_shortcut(lambda: self.enter_array_inline(),
+                                       context='array_builder',
+                                       name='enter array inline', parent=self)
+        array_table = config_shortcut(lambda: self.enter_array_table(),
+                                      context='array_builder',
+                                      name='enter array table', parent=self)
         inspectsc = config_shortcut(self.inspect_current_object,
                                     context='Console',
                                     name='Inspect current object',
                                     parent=self)
-        return [inspectsc]
+        return [inspectsc, array_inline, array_table]
         
     def get_shortcut_data(self):
         """
