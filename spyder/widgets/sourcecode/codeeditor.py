@@ -44,10 +44,9 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyder.config.base import get_conf_path, _, DEBUG
-from spyder.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
-                               RUN_CELL_SHORTCUT,
-                               RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyder.config.main import CONF
+from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
+                                RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh

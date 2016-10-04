@@ -54,6 +54,12 @@ WIN = os.name == 'nt'
 MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
+# Run cell shortcuts
+if sys.platform == 'darwin':
+    RUN_CELL_SHORTCUT = 'Meta+Return'
+else:
+    RUN_CELL_SHORTCUT = 'Ctrl+Return'
+RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 
 # =============================================================================
 #  Defaults
@@ -410,6 +416,8 @@ DEFAULTS = [
               'editor/zoom reset': "Ctrl+0",
               'editor/close file 1': "Ctrl+W",
               'editor/close file 2': "Ctrl+F4",
+              'editor/run cell': RUN_CELL_SHORTCUT,
+              'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
