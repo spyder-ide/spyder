@@ -101,7 +101,11 @@ def set_shortcut(context, name, keystr):
 
 
 def fixed_shortcut(keystr, parent, action):
-    """Define a fixed shortcut according to a keysequence string"""
+    """
+    DEPRECATED: This function will be removed in Spyder 4.0
+
+    Define a fixed shortcut according to a keysequence string
+    """
     sc = QShortcut(QKeySequence(keystr), parent, action)
     sc.setContext(Qt.WidgetWithChildrenShortcut)
     return sc
@@ -115,7 +119,8 @@ def config_shortcut(action, context, name, parent):
     our shortcuts preferences page
     """
     keystr = get_shortcut(context, name)
-    qsc = fixed_shortcut(keystr, parent, action)
+    qsc = QShortcut(QKeySequence(keystr), parent, action)
+    qsc.setContext(Qt.WidgetWithChildrenShortcut)
     sc = Shortcut(data=(qsc, context, name))
     return sc
 
