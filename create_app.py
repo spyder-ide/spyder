@@ -27,7 +27,7 @@ import sys
 from IPython.core.completerlib import module_list
 
 from spyder import __version__ as spy_version
-from spyder.config.main import EDIT_EXT
+from spyder.config.utils import get_edit_extensions
 from spyder.config.base import MAC_APP_NAME
 from spyder.utils.programs import find_program
 
@@ -73,17 +73,18 @@ shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 APP = [APP_MAIN_SCRIPT]
 DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
-PACKAGES = ['spyder', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
+PACKAGES = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm', 'spyder_io_hdf5',
+            'spyder_profiler', 'spyder_pylint', 'sphinx', 'jinja2', 'docutils',
             'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
             'IPython', 'ipykernel', 'ipython_genutils', 'jupyter_client',
-            'jupyter_core', 'traitlets', 'qtconsole', 'pexpect',
-            'jsonschema', 'nbconvert', 'nbformat',
-            'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
+            'jupyter_core', 'traitlets', 'qtconsole', 'pexpect', 'jedi',
+            'jsonschema', 'nbconvert', 'nbformat', 'qtpy', 'qtawesome',
+            'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt5',
             'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
             'nose', 'patsy','statsmodels', 'seaborn', 'networkx']
 
 INCLUDES = get_stdlib_modules()
-EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
+EDIT_EXT = [ext[1:] for ext in get_edit_extensions()]
 
 OPTIONS = {
     'argv_emulation': True,
@@ -130,7 +131,8 @@ shutil.copytree(docs_orig, docs_dest)
 # inside the app.
 minimal_lib = osp.join(app_python_lib, 'minimal-lib')
 os.mkdir(minimal_lib)
-minlib_pkgs = ['spyder', 'spyderplugins']
+minlib_pkgs = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm',
+               'spyder_io_hdf5', 'spyder_profiler', 'spyder_pylint']
 for p in minlib_pkgs:
     shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
 
@@ -156,10 +158,10 @@ for i in deps:
         shutil.copy2(osp.join(system_python_lib, i),
                      osp.join(app_python_lib, i))
 
-# Copy dependencies for IPython/Jupyter
-IPYDEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
-           'mistune.so', 'pickleshare.py']
-for dep in IPYDEPS:
+# Single file dependencies
+SINGLE_DEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
+               'mistune.so', 'pickleshare.py', 'sip.so']
+for dep in SINGLE_DEPS:
     if osp.isfile(osp.join(system_python_lib, dep)):
         shutil.copyfile(osp.join(system_python_lib, dep),
                         osp.join(app_python_lib, dep))
