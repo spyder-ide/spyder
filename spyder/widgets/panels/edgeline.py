@@ -9,7 +9,7 @@ This module contains the edge line numebr panel
 """
 
 from qtpy.QtWidgets import QWidget
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QRect
 from qtpy.QtGui import QPainter, QColor
 
 
@@ -20,7 +20,7 @@ class EdgeLine(QWidget):
     # -----------------------------------------------------------------
     def __init__(self, editor, color=Qt.darkGray):
         QWidget.__init__(self, editor)
-        self.code_editor = editor
+        self.editor = editor
         self.column = 79
         self.color = color
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
@@ -46,3 +46,12 @@ class EdgeLine(QWidget):
         """Set edge line column value"""
         self.column = column
         self.update()
+
+    def set_geometry(self, cr):
+        # 79-column edge line
+        offset = self.editor.contentOffset()
+        x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
+            .translated(offset.x(), offset.y()).left() \
+            +self.editor.get_linenumberarea_width() \
+            +self.editor.fontMetrics().width('9'*self.column)+5
+        self.setGeometry(QRect(x, cr.top(), 1, cr.bottom()))

@@ -1458,14 +1458,8 @@ class CodeEditor(TextEditBaseWidget):
     #-----edgeline
     def viewportEvent(self, event):
         """Override Qt method"""
-        # 79-column edge line
-        offset = self.contentOffset()
-        x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
-            .translated(offset.x(), offset.y()).left() \
-            +self.get_linenumberarea_width() \
-            +self.fontMetrics().width('9'*self.edge_line.column)+5
         cr = self.contentsRect()
-        self.edge_line.setGeometry(QRect(x, cr.top(), 1, cr.bottom()))
+        self.edge_line.set_geometry(cr)
         self.__set_scrollflagarea_geometry(cr)
         return TextEditBaseWidget.viewportEvent(self, event)
 
