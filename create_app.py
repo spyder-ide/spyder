@@ -252,9 +252,6 @@ for line in fileinput.input(boot_file, inplace=True):
     else:
         print(line, end='')
 
-# To use the app's own Qt framework
-subprocess.call(['macdeployqt', 'dist/%s' % MAC_APP_NAME])
-
 # Workaround for what appears to be a bug with py2app and Homebrew
 # See https://bitbucket.org/ronaldoussoren/py2app/issue/26#comment-2092445
 PF_dir = get_config_var('PYTHONFRAMEWORKINSTALLDIR')
