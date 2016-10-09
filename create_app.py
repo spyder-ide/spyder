@@ -178,9 +178,9 @@ def _change_interpreter(program):
     try:
         for line in fileinput.input(program, inplace=True):
             if line.startswith('#!'):
-                print('#!' + sys.executable)
+                print('#!' + sys.executable, end='')
             else:
-                print(line)
+                print(line, end='')
     except:
         pass
 
