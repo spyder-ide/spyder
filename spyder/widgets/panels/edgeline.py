@@ -32,7 +32,13 @@ class EdgeLine(QWidget):
         painter = QPainter(self)
         color = QColor(self.color)
         color.setAlphaF(.5)
-        painter.fillRect(event.rect(), color)
+        rect = event.rect()
+        painter.setPen(color)
+
+        offsets = [col - min(self.columns) for col in self.columns]
+        for offset in offsets:
+            x = rect.left() + self.editor.fontMetrics().width(offset * '9')
+            painter.drawLine(x, rect.top(), x, rect.bottom())
 
     # --- Other methods
     # -----------------------------------------------------------------
@@ -48,10 +54,14 @@ class EdgeLine(QWidget):
         self.update()
 
     def set_geometry(self, cr):
-        # 79-column edge line
+        """Calculate and set geometry of edge line panel.
+            start --> fist line position
+            width --> max position - min position
+        """
+        width = self.editor.fontMetrics().width('9'*(max(self.columns) - min(self.columns))) + 1
         offset = self.editor.contentOffset()
         x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
             +self.editor.get_linenumberarea_width() \
-            +self.editor.fontMetrics().width('9'*self.columns[0])+5
-        self.setGeometry(QRect(x, cr.top(), 1, cr.bottom()))
+            +self.editor.fontMetrics().width('9'*min(self.columns))+5
+        self.setGeometry(QRect(x, cr.top(), width, cr.bottom()))
