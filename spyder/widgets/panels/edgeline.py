@@ -18,11 +18,11 @@ class EdgeLine(QWidget):
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor, color=Qt.darkGray, columns=[79]):
+    def __init__(self, editor, colors=[Qt.darkGray], columns=[79]):
         QWidget.__init__(self, editor)
         self.editor = editor
         self.columns = columns
-        self.color = color
+        self.colors = colors
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         self._enabled = True
@@ -30,13 +30,14 @@ class EdgeLine(QWidget):
     def paintEvent(self, event):
         """Override Qt method"""
         painter = QPainter(self)
-        color = QColor(self.color)
-        color.setAlphaF(.5)
         rect = event.rect()
-        painter.setPen(color)
 
         offsets = [col - min(self.columns) for col in self.columns]
-        for offset in offsets:
+        for offset, qcolor in zip(offsets, self.colors):
+            color = QColor(qcolor)
+            color.setAlphaF(.5)
+            painter.setPen(color)
+
             x = rect.left() + self.editor.fontMetrics().width(offset * '9')
             painter.drawLine(x, rect.top(), x, rect.bottom())
 
