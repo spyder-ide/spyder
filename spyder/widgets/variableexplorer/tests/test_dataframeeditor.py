@@ -9,6 +9,12 @@ Tests for dataframeeditor.py
 
 from __future__ import division
 
+# Standard library imports
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock # Python 2
+
 # Third party imports
 from pandas import DataFrame, date_range
 from qtpy.QtGui import QColor
@@ -16,7 +22,8 @@ import pytest
 
 # Local imports
 from spyder.widgets.variableexplorer import dataframeeditor
-from spyder.widgets.variableexplorer.dataframeeditor import DataFrameModel
+from spyder.widgets.variableexplorer.dataframeeditor import (
+    DataFrameEditor, DataFrameModel)
 
 # Helper functions
 def colorclose(color, hsva_expected):
@@ -46,7 +53,7 @@ def test_dataframemodel_basic():
     assert data(dfm, 1, 0) == '1'
     assert data(dfm, 1, 1) == '3'
     assert data(dfm, 1, 2) == 'a'
-    
+
 def test_dataframemodel_sort():
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
@@ -142,6 +149,17 @@ def test_dataframemodel_get_bgcolor_with_object():
     h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
     a = dataframeeditor.BACKGROUND_MISC_ALPHA
     assert colorclose(bgcolor(dfm, 0, 1), (h, s, v, a))
+
+def test_change_format_emits_signal(qtbot, monkeypatch):
+    mockQInputDialog = Mock()
+    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('%10.3e', True)
+    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor.QInputDialog', mockQInputDialog)
+    df = DataFrame([[0]])
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    with qtbot.waitSignal(editor.sig_option_changed) as blocker:
+        editor.change_format()
+    assert blocker.args == ['dataframe_format', '%10.3e']
 
 
 if __name__ == "__main__":
