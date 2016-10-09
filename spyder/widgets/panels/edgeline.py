@@ -18,10 +18,10 @@ class EdgeLine(QWidget):
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor, color=Qt.darkGray):
+    def __init__(self, editor, color=Qt.darkGray, columns=[79]):
         QWidget.__init__(self, editor)
         self.editor = editor
-        self.column = 79
+        self.columns = columns
         self.color = color
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
@@ -42,9 +42,9 @@ class EdgeLine(QWidget):
         self._enabled = state
         self.setVisible(state)
 
-    def set_column(self, column):
+    def set_column(self, column, index=0):
         """Set edge line column value"""
-        self.column = column
+        self.columns[index] = column
         self.update()
 
     def set_geometry(self, cr):
@@ -53,5 +53,5 @@ class EdgeLine(QWidget):
         x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
             +self.editor.get_linenumberarea_width() \
-            +self.editor.fontMetrics().width('9'*self.column)+5
+            +self.editor.fontMetrics().width('9'*self.columns[0])+5
         self.setGeometry(QRect(x, cr.top(), 1, cr.bottom()))
