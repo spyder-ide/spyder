@@ -127,6 +127,7 @@ class NamespaceBrowser(QWidget):
         
         if self.editor is not None:
             self.editor.setup_menu(truncate, minmax)
+            self.editor.set_dataframe_format(dataframe_format)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -138,6 +139,7 @@ class NamespaceBrowser(QWidget):
 
         self.editor = RemoteCollectionsEditorTableView(self, None,
                         truncate=truncate, minmax=minmax,
+                        dataframe_format=dataframe_format,
                         remote_editing=remote_editing,
                         get_value_func=self.get_value,
                         set_value_func=self.set_value,
