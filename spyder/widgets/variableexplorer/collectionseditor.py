@@ -465,6 +465,7 @@ class CollectionsDelegate(QItemDelegate):
             if not editor.setup_and_check(value, title=key):
                 return
             editor.dataModel.set_format(index.model().dataframe_format)
+            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -514,6 +515,17 @@ class CollectionsDelegate(QItemDelegate):
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
         
+    @Slot(str, object)
+    def change_option(self, option_name, new_value):
+        """
+        Change configuration option
+
+        This function is called when a `sig_option_changed` signal is received.
+        At the moment, this signal can only come from a DataFrameEditor.
+        """
+        assert option_name == 'dataframe_format'
+        self.parent().set_dataframe_format(new_value)
+
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]
         if not data['readonly']:
