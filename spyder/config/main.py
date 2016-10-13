@@ -420,7 +420,7 @@ DEFAULTS = [
             ('color_schemes',
              {
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
-                        'spyder', 'spyder/dark', 'zenburn'],
+                        'spyder', 'spyder/dark', 'zenburn', 'SolarizedDark', 'SolarizedLight'],
               'selected': 'spyder',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
@@ -503,7 +503,7 @@ DEFAULTS = [
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
-              'scintilla/currentcell': "#edfcdc",  
+              'scintilla/currentcell': "#edfcdc",
               'scintilla/occurrence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
@@ -522,7 +522,7 @@ DEFAULTS = [
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
-              'spyder/currentcell': "#fdfdde",              
+              'spyder/currentcell': "#fdfdde",
               'spyder/occurrence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
               'spyder/sideareas':   "#efefef",
@@ -574,9 +574,46 @@ DEFAULTS = [
               'zenburn/string':     ('#cc9393', False, False),
               'zenburn/number':     ('#8cd0d3', False, False),
               'zenburn/instance':   ('#dcdccc', False, True)
+              # ---- SolarizedDark ----
+              'solarizeddark/name':        "SolarizedDark",
+              #        Name            Color     Bold  Italic
+              'solarizeddark/background':  '#002b36',
+              'solarizeddark/currentline': '#073642',
+              'solarizeddark/currentcell': '#073642',
+              'solarizeddark/occurence':   '#657b83',
+              'solarizeddark/ctrlclick':   '#d33682',
+              'solarizeddark/sideareas':   '#073642',
+              'solarizeddark/matched_p':   '#93a1a1',
+              'solarizeddark/unmatched_p': '#dc322f',
+              'solarizeddark/normal':     ('#839496', False, False),
+              'solarizeddark/keyword':    ('#859900', False, False),
+              'solarizeddark/builtin':    ('#6c71c4', False, False),
+              'solarizeddark/definition': ('#268bd2', True, False),
+              'solarizeddark/comment':    ('#586e75', False, True),
+              'solarizeddark/string':     ('#2aa198', False, False),
+              'solarizeddark/number':     ('#cb4b16', False, False),
+              'solarizeddark/instance':   ('#b58900', False, True),
+              # ---- SolarizedLight ----
+              'solarizedlight/name':        "SolarizedLight",
+              #        Name            Color     Bold  Italic
+              'solarizedlight/background':  '#fdf6e3',
+              'solarizedlight/currentline': '#eee8d5',
+              'solarizedlight/currentcell': '#eee8d5',
+              'solarizedlight/occurence':   '#839496',
+              'solarizedlight/ctrlclick':   '#d33682',
+              'solarizedlight/sideareas':   '#eee8d5',
+              'solarizedlight/matched_p':   '#586e75',
+              'solarizedlight/unmatched_p': '#dc322f',
+              'solarizedlight/normal':     ('#657b83', False, False),
+              'solarizedlight/keyword':    ('#859900', False, False),
+              'solarizedlight/builtin':    ('#6c71c4', False, False),
+              'solarizedlight/definition': ('#268bd2', True, False),
+              'solarizedlight/comment':    ('#93a1a1', False, True),
+              'solarizedlight/string':     ('#2aa198', False, False),
+              'solarizedlight/number':     ('#cb4b16', False, False),
+              'solarizedlight/instance':   ('#b58900', False, True),
              })
             ]
-
 
 #==============================================================================
 # Config instance
