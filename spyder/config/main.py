@@ -573,7 +573,7 @@ DEFAULTS = [
               'zenburn/comment':    ('#7f9f7f', False, True),
               'zenburn/string':     ('#cc9393', False, False),
               'zenburn/number':     ('#8cd0d3', False, False),
-              'zenburn/instance':   ('#dcdccc', False, True)
+              'zenburn/instance':   ('#dcdccc', False, True),
               # ---- SolarizedDark ----
               'solarizeddark/name':        "SolarizedDark",
               #        Name            Color     Bold  Italic
@@ -611,7 +611,7 @@ DEFAULTS = [
               'solarizedlight/comment':    ('#93a1a1', False, True),
               'solarizedlight/string':     ('#2aa198', False, False),
               'solarizedlight/number':     ('#cb4b16', False, False),
-              'solarizedlight/instance':   ('#b58900', False, True),
+              'solarizedlight/instance':   ('#b58900', False, True)
              })
             ]
 
