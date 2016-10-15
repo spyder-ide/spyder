@@ -178,7 +178,7 @@ if os.name == 'nt' and PY2:
 if sys.platform == 'darwin':
     from spyder.config.base import MAC_APP_NAME
     if MAC_APP_NAME in __file__:
-        if IS_EXT_INTERPRETER.lower() == "true":
+        if IS_EXT_INTERPRETER:
             # Add a minimal library (with spyder) at the end of sys.path to
             # be able to connect our monitor to the external console
             py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
