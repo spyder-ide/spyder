@@ -27,7 +27,7 @@ import sys
 from IPython.core.completerlib import module_list
 
 from spyder import __version__ as spy_version
-from spyder.config.utils import get_edit_extensions
+from spyder.config.utils import EDIT_FILETYPES, _get_extensions
 from spyder.config.base import MAC_APP_NAME
 from spyder.utils.programs import find_program
 
@@ -84,7 +84,7 @@ PACKAGES = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm', 'spyder_io_hdf5',
             'nose', 'patsy','statsmodels', 'seaborn', 'networkx']
 
 INCLUDES = get_stdlib_modules()
-EDIT_EXT = [ext[1:] for ext in get_edit_extensions()]
+EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
 OPTIONS = {
     'argv_emulation': True,
