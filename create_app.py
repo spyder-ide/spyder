@@ -65,6 +65,26 @@ def get_stdlib_modules():
 
 
 #==============================================================================
+# Main message
+#==============================================================================
+main_message = """
+IMPORTANT NOTE
+==============
+
+Before running this script, please be sure of following the instructions
+present in
+
+https://github.com/spyder-ide/mac-application/blob/master/How to build the app.md
+
+This script only runs succesfully with those instructions!
+
+------
+"""
+
+print(main_message)
+
+
+#==============================================================================
 # App creation
 #==============================================================================
 APP_MAIN_SCRIPT = MAC_APP_NAME[:-4] + '.py'
