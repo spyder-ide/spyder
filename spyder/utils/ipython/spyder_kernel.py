@@ -299,14 +299,20 @@ class SpyderKernel(IPythonKernel):
     def _get_array_shape(self, var):
         """Return array's shape"""
         try:
-            return var.shape
+            if self._is_array(var):
+                return var.shape
+            else:
+                return None
         except AttributeError:
             return None
 
     def _get_array_ndim(self, var):
         """Return array's ndim"""
         try:
-            return var.ndim
+            if self._is_array(var):
+                return var.ndim
+            else:
+                return None
         except AttributeError:
             return None
 
