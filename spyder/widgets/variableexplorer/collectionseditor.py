@@ -1464,13 +1464,10 @@ def editor_test():
     dialog.setup(get_test_data())
     dialog.show()
     app.exec_()
-    print("out:", dialog.get_value())
 
 
 def remote_editor_test():
     """Remote collections editor test"""
-    from pprint import pprint
-
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
@@ -1478,14 +1475,9 @@ def remote_editor_test():
     from spyder.widgets.variableexplorer.utils import make_remote_view
 
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
-    pprint(remote)
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
-
-    if dialog.result():
-        print(dialog.get_value())
-
     app.exec_()
 
 
