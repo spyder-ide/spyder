@@ -50,9 +50,10 @@ try:
     from numpy import ndarray, array, matrix, recarray
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
+    from numpy import set_printoptions as np_set_printoptions
 except ImportError:
-    ndarray = array = matrix = recarray = MaskedArray = np_savetxt = FakeObject  # analysis:ignore
-
+    ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
+    np_set_printoptions = FakeObject
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -136,13 +137,16 @@ def get_size(item):
 
 #==============================================================================
 # Set limits for the amount of elements in the repr of collections (lists,
-# dicts, tuples and sets)
+# dicts, tuples and sets) and Numpy arrays
 #==============================================================================
 CollectionsRepr = reprlib.Repr()
 CollectionsRepr.maxlist = 10
 CollectionsRepr.maxdict = 10
 CollectionsRepr.maxtuple = 10
 CollectionsRepr.maxset = 10
+
+if np_set_printoptions is not FakeObject:
+    np_set_printoptions(threshold=10)
 
 
 #==============================================================================
