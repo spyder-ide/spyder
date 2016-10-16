@@ -1449,7 +1449,9 @@ def get_test_data():
             'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),
+            # Test for Issue #3518
+            'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
+                                                      ('param1', 'f8', 5000)]),
             }
 
 
