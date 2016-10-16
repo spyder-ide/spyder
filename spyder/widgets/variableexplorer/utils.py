@@ -253,8 +253,6 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
                     display = repr(value)
             else:
                 display = repr(value)
-        elif isinstance(value, ndarray):
-            display = repr(value)
         elif isinstance(value, (list, tuple, dict, set)):
             display = CollectionsRepr.repr(value)
         elif isinstance(value, Image):
@@ -294,11 +292,12 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             # display = repr(value)
             type_str = to_text_string(type(value))
             display = type_str[1:-1]
-            if truncate and len(display) > trunc_len:
-                display = display[:trunc_len].rstrip() + ' ...'
     except:
         type_str = to_text_string(type(value))
         display = type_str[1:-1]
+
+    if truncate and len(display) > trunc_len:
+        display = display[:trunc_len].rstrip() + ' ...'
 
     return display
 
