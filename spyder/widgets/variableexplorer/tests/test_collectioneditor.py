@@ -31,6 +31,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
                         MockDataFrameEditor)
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
+    qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
     editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
     mockDataFrameEditor_instance.dataModel.set_format.assert_called_once_with('%10d')
@@ -38,10 +39,12 @@ def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
 def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
+    qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
     assert editor.model.dataframe_format == '%10d'
     editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
+    qtbot.addWidget(dataframe_editor)
     dataframe_editor.sig_option_changed.emit('dataframe_format', '%5f')
     assert editor.model.dataframe_format == '%5f'
 
