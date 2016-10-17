@@ -24,8 +24,7 @@ def test_setup_sets_dataframe_format(qtbot):
     browser.set_shellwidget(Mock())
     browser.setup(exclude_private=True, exclude_uppercase=True,
                   exclude_capitalized=True, exclude_unsupported=True,
-                  truncate=False, minmax=False, dataframe_format='%10.5f',
-                  autorefresh=False)
+                  minmax=False, dataframe_format='%10.5f', autorefresh=False)
     assert browser.editor.model.dataframe_format == '%10.5f'
 
 

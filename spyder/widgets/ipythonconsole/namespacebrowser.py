@@ -203,7 +203,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self._kernel_is_starting = True
         elif state == 'idle' and msg_type == 'shutdown_request':
             # This handles restarts asked by the user
-            self.set_namespace_view_settings()
-            self.refresh_namespacebrowser()
+            if self.namespacebrowser is not None:
+                self.set_namespace_view_settings()
+                self.refresh_namespacebrowser()
         else:
             super(NamepaceBrowserWidget, self)._handle_status(msg)
