@@ -79,7 +79,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_capitalized = None
         self.exclude_unsupported = None
         self.excluded_names = None
-        self.truncate = None
         self.minmax = None
         self.remote_editing = None
         self.autorefresh = None
@@ -99,7 +98,7 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, remote_editing=None,
+              minmax=None, remote_editing=None,
               autorefresh=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
@@ -110,13 +109,12 @@ class NamespaceBrowser(QWidget):
         self.exclude_capitalized = exclude_capitalized
         self.exclude_unsupported = exclude_unsupported
         self.excluded_names = excluded_names
-        self.truncate = truncate
         self.minmax = minmax
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            self.editor.setup_menu(truncate, minmax)
+            self.editor.setup_menu(minmax)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -127,7 +125,7 @@ class NamespaceBrowser(QWidget):
             return
 
         self.editor = RemoteCollectionsEditorTableView(self, None,
-                        truncate=truncate, minmax=minmax,
+                        minmax=minmax,
                         remote_editing=remote_editing,
                         get_value_func=self.get_value,
                         set_value_func=self.set_value,
@@ -166,8 +164,7 @@ class NamespaceBrowser(QWidget):
         editor = self.editor
         actions = [self.exclude_private_action, self.exclude_uppercase_action,
                    self.exclude_capitalized_action,
-                   self.exclude_unsupported_action, None,
-                   editor.truncate_action]
+                   self.exclude_unsupported_action, None]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
         add_actions(menu, actions)
