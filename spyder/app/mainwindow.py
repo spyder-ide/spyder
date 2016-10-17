@@ -94,11 +94,16 @@ from qtpy import QtWebEngineWidgets  # analysis:ignore
 
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
-# be set before creating the application
+# be set before creating the application. 
 #==============================================================================
+from spyder.config.main import CONF
+if CONF.get('main', 'high_dpi_scaling'):
+    has_high_dpi_scaling=True
+else:
+    has_high_dpi_scaling=False
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, has_high_dpi_scaling)
+    
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the
@@ -131,7 +136,7 @@ from spyder.config.base import (get_conf_path, get_module_data_path,
                                 debug_print, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
-from spyder.config.main import CONF, OPEN_FILES_PORT
+from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
@@ -261,6 +266,7 @@ class MainWindow(QMainWindow):
 
         qapp = QApplication.instance()
         if PYQT5:
+            # Enabling scpaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
         self.default_style = str(qapp.style().objectName())
 
@@ -1171,7 +1177,7 @@ class MainWindow(QMainWindow):
             for child in self.menuBar().children():
                 if isinstance(child, QMenu) and child != self.help_menu:
                     child.setTearOffEnabled(True)
-
+        
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
