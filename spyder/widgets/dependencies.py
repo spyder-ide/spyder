@@ -145,7 +145,8 @@ class DependenciesDialog(QDialog):
                               "them.<br><br>"
                               "<b>Note</b>: You can safely use Spyder "
                               "without the following modules installed: "
-                              "<b>%s</b> and <b>%s</b>. Also note that new "
+                              "<b>%s</b> and <b>%s</b>.<br><br>"
+                              "Please also note that new "
                               "dependencies or changed ones will be correctly "
                               "detected only after Spyder is restarted.")
                               % (', '.join(opt_mods[:-1]), opt_mods[-1]))
