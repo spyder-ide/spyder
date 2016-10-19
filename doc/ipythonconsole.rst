@@ -44,5 +44,4 @@ Related plugins:
 
 * :doc:`help`
 * :doc:`editor`
-* :doc:`explorer`
-
+* :doc:`fileexplorer`

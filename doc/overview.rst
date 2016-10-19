@@ -71,7 +71,7 @@ Key features:
     
 * :doc:`onlinehelp`: automatically generated html documentation on installed Python modules
 * :doc:`findinfiles`: find string occurrences in a directory, a mercurial repository or directly in PYTHONPATH (support for regular expressions and  included/excluded string lists)
-* :doc:`explorer`
+* :doc:`fileexplorer`
 * :doc:`projects`
 
 

@@ -30,15 +30,15 @@ Contents:
     overview
     installation
     options
-    console
     ipythonconsole
     debugging
     variableexplorer
     help
+    projects
+    fileexplorer
+    console
     onlinehelp
     historylog
-    explorer
-    projects
     editor
     findinfiles
     pylint

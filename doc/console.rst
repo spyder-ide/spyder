@@ -33,7 +33,7 @@ Related plugins:
 * :doc:`help`
 * :doc:`historylog`
 * :doc:`editor`
-* :doc:`explorer`
+* :doc:`fileexplorer`
 
 
 Reloading modules: the User Module Deleter (UMD)
