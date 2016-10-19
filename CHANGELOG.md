@@ -1,5 +1,40 @@
 # History of changes
 
+## Version 3.0.1 (2016-10-19)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3528](https://github.com/spyder-ide/spyder/issues/3528) - Cannot see numpy datatypes in variable explorer
+* [Issue 3518](https://github.com/spyder-ide/spyder/issues/3518) - Spyder hangs with big numpy structured arrays
+* [Issue 3484](https://github.com/spyder-ide/spyder/issues/3484) - Fix menus in macOS
+* [Issue 3475](https://github.com/spyder-ide/spyder/issues/3475) - Cannot type left parenthesis in ipdb when automatic Help is turned on
+* [Issue 3472](https://github.com/spyder-ide/spyder/issues/3472) - Cannot connect to existing ipython kernel after upgrading to 3.0
+* [Issue 3471](https://github.com/spyder-ide/spyder/issues/3471) - "Local variable 'reply' referenced before assignment" on debugger exit
+* [Issue 3454](https://github.com/spyder-ide/spyder/issues/3454) - ImportError with create_app.py
+* [Issue 3453](https://github.com/spyder-ide/spyder/issues/3453) - Update docs for Projects
+* [Issue 3317](https://github.com/spyder-ide/spyder/issues/3317) - Console/Editor lose focus when auto-connected to help
+* [Issue 2284](https://github.com/spyder-ide/spyder/issues/2284) - Very slow boot time on Mac app
+
+In this release 10 issues were closed
+
+**Pull requests**
+
+* [PR 3560](https://github.com/spyder-ide/spyder/pull/3560) - Update documentation
+* [PR 3550](https://github.com/spyder-ide/spyder/pull/3550) - Prevent WebEngine to steal focus when setting html on the page
+* [PR 3548](https://github.com/spyder-ide/spyder/pull/3548) - Fix some ipdb issues
+* [PR 3546](https://github.com/spyder-ide/spyder/pull/3546) - Truncate all values shown in the Variable Explorer
+* [PR 3544](https://github.com/spyder-ide/spyder/pull/3544) - Don't try to get shape and ndim for objects that are not ndarrays
+* [PR 3541](https://github.com/spyder-ide/spyder/pull/3541) - Update create_app.py for Spyder 3.0
+* [PR 3540](https://github.com/spyder-ide/spyder/pull/3540) - Fix problems when connecting to external kernels
+* [PR 3501](https://github.com/spyder-ide/spyder/pull/3501) - PR: Handle Mac menubar icon bug
+* [PR 3499](https://github.com/spyder-ide/spyder/pull/3499) - Testing: Pin conda-build to 2.0.0
+
+
+----
+
+
 ## Version 3.0 (2016-09-24)
 
 ### New features
