@@ -38,7 +38,7 @@ Contents:
     onlinehelp
     historylog
     explorer
-    projectexplorer
+    projects
     editor
     findinfiles
     pylint
