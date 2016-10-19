@@ -47,7 +47,7 @@ Key features:
       
   * *to-do* lists (TODO, FIXME, XXX)
   * errors/warnings (real-time *code analysis* provided by `pyflakes`)
-  * integrated *`pylint` code analysis*
+  * integrated static code analysis (using `pylint`)
   * direct link to `winpdb` external debugger
     
 * :doc:`console`:
