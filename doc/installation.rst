@@ -41,12 +41,12 @@ Updating Spyder
 
 You can update Spyder by:
 
-* Updating Anaconda, WinPython, Python(x,y).
+* Updating Anaconda, WinPython or Python(x,y).
 
 * Or using this command (in case you *don't* use any of those scientific
   distributions)::
 
-        pip install --update spyder
+        pip install --upgrade spyder
 
   .. note::
 
@@ -223,7 +223,7 @@ Installation procedure
 
 2. If you don't use Anaconda, you need to run:
 
-   ``pip install --update spyder``
+   ``pip install --upgrade spyder``
 
 
 Run without installing
