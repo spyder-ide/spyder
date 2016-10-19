@@ -1,36 +1,28 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 2.3.9 is released!
+Subject: [ANN] Spyder 3.0.1 is released!
 
 
 Hi all,
 
-On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I’m pleased to announce that Spyder 2.3.9 has been released and is available for
+On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce that Spyder 3.0.1 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 5 months after version 2.3.8 and introduces several new features:
+This release comes 3 weeks after version 3.0.0 and fixes important errors when
+connecting to external IPython kernels, and other minor issues related to
+the IPython Console.
 
-* Preferences
-    * Fix a crash when using certain versions of colorama (which is a Jedi dependency)
-* Python and IPython consoles
-    * Filter a RuntimeWarning generated for DataFrames with nan values
-* Variable Explorer
-    * Fix a freeze when binary strings can't be converted to unicode in Python 2
-    * Fix a freeze with Numpy arrays containing strings
+We also fixed 10 bugs and merged 9 pull requests. For a full list of fixes, please
+see our changelog: https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md
 
-We also fixed 5 bugs. For a full list of fixes see our changelog:
-https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
-
-Don’t forget to follow Spyder updates/news:
-
-* on the project website: https://github.com/spyder-ide/spyder
-* and on our official blog: http://spyder-ide.blogspot.com/
+Don't forget to follow Spyder updates/news on the project Github website:
+https://github.com/spyder-ide/spyder
 
 Last, but not least, we welcome any contribution that helps making Spyder an
-efficient scientific development/computing environment. Join us to help creating
-your favorite environment!
+efficient scientific development and computing environment. Join us to help
+creating your favorite environment!
 
 Enjoy!
 -Carlos
