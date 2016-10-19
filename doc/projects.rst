@@ -13,20 +13,32 @@ main advantages:
 To create a project, it is necessary to select the *New Project* entry from the
 *Projects* menu:
 
+|
+
 .. image:: images/new_project.png
    :align: center
+
+|
 
 When a project is activated, the *Project explorer* pane is shown, which
 presents a tree view structure of the current project
 
+|
+
 .. image:: images/projectexplorer.png
    :align: center
+
+|
 
 Through this pane it is possible to make several operations on the files that
 belong to project
 
+|
+
 .. image:: images/projectexplorer2.png
    :align: center
+
+|
 
 .. note:: Projects are completely optional and not imposed on users, i.e. users
    can work without creating any project.
