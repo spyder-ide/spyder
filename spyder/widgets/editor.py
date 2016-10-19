@@ -32,6 +32,8 @@ from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_SHORTCUT,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter)
 from spyder.py3compat import qbytearray_to_str, to_text_string, u
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
@@ -1309,12 +1311,22 @@ class EditorStack(QWidget):
 
     def save_as(self, index=None):
         """Save file as..."""
+
         if index is None:
             # Save the currently edited file
+            if not self.get_stack_count():
+                return
             index = self.get_stack_index()
+
         finfo = self.data[index]
-        filename = self.select_savename(finfo.filename)
+
+        self.redirect_stdio.emit(False)
+        filename, _selfilter = getsavefilename(self, _("Save file"),
+                                               finfo.filename, get_edit_filters())
+        self.redirect_stdio.emit(True)
+
         if filename:
+            print("%s %s" % (finfo, index))
             ao_index = self.has_filename(filename)
             # Note: ao_index == index --> saving an untitled file
             if ao_index and ao_index != index:
@@ -1325,10 +1337,6 @@ class EditorStack(QWidget):
 
             new_index = self.rename_in_data(index, new_filename=filename)
 
-            # We pass self object ID as a QString, because otherwise it would
-            # depend on the platform: long for 64bit, int for 32bit. Replacing
-            # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
             self.file_renamed_in_data.emit(str(id(self)), index, filename)
 
             ok = self.save(index=new_index, force=True)

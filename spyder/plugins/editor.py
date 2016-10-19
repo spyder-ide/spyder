@@ -19,7 +19,8 @@ import time
 
 # Third party imports
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant, getsavefilename, getopenfilenames, to_qvariant
+from qtpy.compat import (from_qvariant, getsavefilename, getopenfilenames,
+                         to_qvariant)
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
@@ -1885,50 +1886,12 @@ class Editor(SpyderPluginWidget):
         """Save file"""
         editorstack = self.get_current_editorstack()
         return editorstack.save(index=index, force=force)
-    
+
     @Slot()
     def save_as(self, index=None):
         """Save file as..."""
+        self.get_current_editorstack().save_as(index=index)
 
-        editorstack = self.get_current_editorstack()
-        #results = editorstack.get_todo_results()
-
-        if index is None:
-            index = editorstack.get_stack_index()
-
-        finfo = editorstack.data[index]
-
-        #filename = editorstack.select_savename(finfo.filename)
-        self.redirect_stdio.emit(False)
-        filename, _selfilter = getsavefilename(self, _("Save file"),
-                                               finfo.filename, get_edit_filters())
-        self.redirect_stdio.emit(True)
-
-        if filename:
-            print("%s %s" % (finfo, index))
-            ao_index = editorstack.has_filename(filename)
-            # Note: ao_index == index --> saving an untitled file
-            if ao_index and ao_index != index:
-                if not editorstack.close_file(ao_index):
-                    return
-                if ao_index < index:
-                    index -= 1
-
-            new_index = editorstack.rename_in_data(index, new_filename=filename)
-
-            # We pass self object ID as a QString, because otherwise it would
-            # depend on the platform: long for 64bit, int for 32bit. Replacing
-            # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
-            editorstack.file_renamed_in_data.emit(str(id(self)), index, filename)
-
-            ok = editorstack.save(index=new_index, force=True)
-            editorstack.refresh(new_index)
-            editorstack.set_stack_index(new_index)
-            return ok
-        else:
-            return False
-    
     @Slot()
     def save_all(self):
         """Save all opened files"""
