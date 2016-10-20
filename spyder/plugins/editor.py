@@ -19,7 +19,8 @@ import time
 
 # Third party imports
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
+from qtpy.compat import (from_qvariant, getsavefilename, getopenfilenames,
+                         to_qvariant)
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
@@ -1885,17 +1886,12 @@ class Editor(SpyderPluginWidget):
         """Save file"""
         editorstack = self.get_current_editorstack()
         return editorstack.save(index=index, force=force)
-    
+
     @Slot()
-    def save_as(self):
-        """Save *as* the currently edited file"""
-        editorstack = self.get_current_editorstack()
-        if editorstack.save_as():
-            fname = editorstack.get_current_filename()
-            if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.open_dir.emit(osp.dirname(fname))
-            self.__add_recent_file(fname)
-    
+    def save_as(self, index=None):
+        """Save file as..."""
+        self.get_current_editorstack().save_as(index=index)
+
     @Slot()
     def save_all(self):
         """Save all opened files"""
