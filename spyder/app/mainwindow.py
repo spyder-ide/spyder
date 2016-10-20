@@ -98,12 +98,12 @@ from qtpy import QtWebEngineWidgets  # analysis:ignore
 #==============================================================================
 from spyder.config.main import CONF
 if CONF.get('main', 'high_dpi_scaling'):
-    has_high_dpi_scaling=True
+    high_dpi_scaling=True
 else:
-    has_high_dpi_scaling=False
+    high_dpi_scaling=False
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, has_high_dpi_scaling)
-    
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, high_dpi_scaling)
+
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the
@@ -266,7 +266,7 @@ class MainWindow(QMainWindow):
 
         qapp = QApplication.instance()
         if PYQT5:
-            # Enabling scpaling for high dpi
+            # Enabling scaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
         self.default_style = str(qapp.style().objectName())
 
