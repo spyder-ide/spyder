@@ -119,7 +119,7 @@ def get_edit_filetypes():
     other_exts = ['.ipynb', '.md']
     all_exts = tuple(pygments_exts + other_exts)
     text_filetypes = (_("Supported text files"), all_exts)
-    return EDIT_FILETYPES + [text_filetypes]
+    return [text_filetypes] + EDIT_FILETYPES
 
 
 def get_edit_filters():
