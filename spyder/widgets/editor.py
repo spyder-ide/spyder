@@ -25,7 +25,7 @@ from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
 from qtpy.QtGui import QFont, QKeySequence
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
                             QMessageBox, QMenu, QSplitter, QVBoxLayout,
-                            QWidget)
+                            QWidget, QFileDialog)
 
 # Local imports
 from spyder.config.base import _, DEBUG, STDERR, STDOUT
@@ -1321,12 +1321,15 @@ class EditorStack(QWidget):
         finfo = self.data[index]
 
         self.redirect_stdio.emit(False)
+        selectedfilter = ''
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                               finfo.filename, get_edit_filters())
+                                               finfo.filename,
+                                               get_edit_filters(),
+                                               selectedfilter=selectedfilter,
+                                               options=QFileDialog.HideNameFilterDetails)
         self.redirect_stdio.emit(True)
 
         if filename:
-            print("%s %s" % (finfo, index))
             ao_index = self.has_filename(filename)
             # Note: ao_index == index --> saving an untitled file
             if ao_index and ao_index != index:
