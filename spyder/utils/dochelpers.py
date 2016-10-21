@@ -15,7 +15,7 @@ import re
 from spyder.utils import encoding
 from spyder.py3compat import (is_text_string, builtins, get_meth_func,
                               get_meth_class_inst, get_meth_class,
-                              get_func_defaults, to_text_string)
+                              get_func_defaults, to_text_string, PY2)
 
 
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
@@ -112,10 +112,17 @@ def getdoc(obj):
             doc['note'] = 'Function'
         doc['name'] = obj.__name__
         if inspect.isfunction(obj):
-            args, varargs, varkw, defaults = inspect.getargspec(obj)
-            doc['argspec'] = inspect.formatargspec(args, varargs, varkw,
-                                              defaults,
-                                              formatvalue=lambda o:'='+repr(o))
+            if PY2:
+                args, varargs, varkw, defaults = inspect.getargspec(obj)
+                doc['argspec'] = inspect.formatargspec(
+                    args, varargs, varkw, defaults,
+                    formatvalue=lambda o:'='+repr(o))
+            else:
+                (args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
+                 annotations) = inspect.getfullargspec(obj)
+                doc['argspec'] = inspect.formatargspec(
+                    args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
+                    annotations, formatvalue=lambda o:'='+repr(o))
             if name == '<lambda>':
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses
