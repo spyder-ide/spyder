@@ -1715,7 +1715,7 @@ class Editor(SpyderPluginWidget):
     def change_max_recent_files(self):
         "Change max recent files entries"""
         editorstack = self.get_current_editorstack()
-        mrf, valid = QInputDialog.getInteger(editorstack, _('Editor'),
+        mrf, valid = QInputDialog.getInt(editorstack, _('Editor'),
                                _('Maximum number of recent files'),
                                self.get_option('max_recent_files'), 1, 35)
         if valid:

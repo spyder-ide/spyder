@@ -157,7 +157,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     @Slot()
     def change_history_depth(self):
         "Change history max entries"""
-        depth, valid = QInputDialog.getInteger(self, _('History'),
+        depth, valid = QInputDialog.getInt(self, _('History'),
                                        _('Maximum entries'),
                                        self.get_option('max_entries'),
                                        10, 10000)
