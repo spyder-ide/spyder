@@ -221,8 +221,11 @@ These commands were executed:
                 reply = user_exp[expression]
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
-                    view = ast.literal_eval(data['text/plain'])
-                    self.sig_namespace_view.emit(view)
+                    if 'text/plain' in data:
+                        view = ast.literal_eval(data['text/plain'])
+                        self.sig_namespace_view.emit(view)
+                    else:
+                        view = {}
                 elif 'get_var_properties' in method:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
