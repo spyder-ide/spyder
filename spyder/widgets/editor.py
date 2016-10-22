@@ -32,6 +32,8 @@ from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_SHORTCUT,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter)
 from spyder.py3compat import qbytearray_to_str, to_text_string, u
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
@@ -1302,7 +1304,11 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                               original_filename)
+                                               original_filename,
+                                               get_edit_filters(),
+                                               get_filter(get_edit_filetypes(),
+                                                          osp.splitext(original_filename)[1])
+                                               )
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
