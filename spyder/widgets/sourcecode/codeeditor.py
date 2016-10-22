@@ -1957,8 +1957,10 @@ class CodeEditor(TextEditBaseWidget):
                                 break
                 else:
                     if prevtext.strip():
-                        prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                        correct_indent = len(prevtext)-len(prevexpr)
+                        if len(re.split(r'\(|\{|\[', prevtext)) > 1:
+                            #correct indent only if there are still opening brackets
+                            prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                            correct_indent = len(prevtext)-len(prevexpr)
                     else:
                         correct_indent = len(prevtext)
 

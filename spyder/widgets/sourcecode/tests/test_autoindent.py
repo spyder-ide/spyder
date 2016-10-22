@@ -49,6 +49,9 @@ def test_def_with_indented_comment():
     text = get_indent_fix("def function():\n    # Comment\n")
     assert text == "def function():\n    # Comment\n    ", repr(text)
 
+def test_brackets_alone():
+    text = get_indent_fix("def function():\n    print []\n")
+    assert text == "def function():\n    print []\n    ", repr(text)
 
 # --- Failing tests
 # -----------------------------------------------------------------------------
@@ -68,12 +71,6 @@ def test_def_with_unindented_comment():
 def test_open_parenthesis():
     text = get_indent_fix("open_parenthesis(\n")
     assert text == "open_parenthesis(\n    ", repr(text)
-
-
-@pytest.mark.xfail
-def test_brackets_alone():
-    text = get_indent_fix("def function():\n    print []\n")
-    assert text == "def function():\n    print []\n    ", repr(text)
 
 
 if __name__ == "__main__":
