@@ -1177,7 +1177,7 @@ class MainWindow(QMainWindow):
             for child in self.menuBar().children():
                 if isinstance(child, QMenu) and child != self.help_menu:
                     child.setTearOffEnabled(True)
-        
+
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
