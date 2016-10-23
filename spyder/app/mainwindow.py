@@ -98,9 +98,9 @@ from qtpy import QtWebEngineWidgets  # analysis:ignore
 #==============================================================================
 from spyder.config.main import CONF
 if CONF.get('main', 'high_dpi_scaling'):
-    high_dpi_scaling=True
+    high_dpi_scaling = True
 else:
-    high_dpi_scaling=False
+    high_dpi_scaling = False
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, high_dpi_scaling)
 
