@@ -226,7 +226,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.setup_menu_actions()
         self.add_to_recent(path)
 
-    def open_project(self, path=None, restart_consoles=True):
+    def open_project(self, path=None, restart_consoles=True,
+                     save_previous_files=True):
         """Open the project located in `path`"""
         if path is None:
             basedir = get_home_dir()
@@ -243,7 +244,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         # A project was not open before
         if self.current_active_project is None:
-            self.editor.save_open_files()
+            if save_previous_files:
+                self.editor.save_open_files()
             self.editor.set_option('last_working_dir', getcwd())
             self.show_explorer()
         else: # we are switching projects
@@ -295,7 +297,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         if current_project_path and \
           self.is_valid_project(current_project_path):
             self.open_project(path=current_project_path,
-                              restart_consoles=False)
+                              restart_consoles=False,
+                              save_previous_files=False)
             self.load_config()
 
     def get_project_filenames(self):
