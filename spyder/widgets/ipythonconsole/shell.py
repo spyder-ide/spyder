@@ -225,7 +225,7 @@ These commands were executed:
                         view = ast.literal_eval(data['text/plain'])
                         self.sig_namespace_view.emit(view)
                     else:
-                        view = {}
+                        view = None
                 elif 'get_var_properties' in method:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
