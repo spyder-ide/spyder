@@ -1261,24 +1261,22 @@ class MainWindow(QMainWindow):
         if not self.extconsole.isvisible and not ipy_visible:
             self.historylog.add_history(get_conf_path('history.py'))
 
+        # Load last project if a project was active when Spyder
+        # was closed
         if self.projects is not None:
-            # Load last project (if a project was active when Spyder
-            # was closed)
             self.projects.reopen_last_project()
 
-            # Open last session files and give focus to the Editor
-            if self.editor.dockwidget.isVisible():
-                self.editor.setup_open_files()
-                try:
-                    self.editor.get_focus_widget().setFocus()
-                except AttributeError:
-                    pass
+        # If no project is active, load last session
+        if self.projects is not None and \
+          self.projects.get_active_project() is None:
+            self.editor.setup_open_files()
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
             self.check_updates()
 
+        # Show dialog with missing dependencies
         self.report_missing_dependencies()
 
         self.is_setting_up = False
