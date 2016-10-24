@@ -30,7 +30,7 @@ class EdgeLine(QWidget):
     def paintEvent(self, event):
         """Override Qt method"""
         painter = QPainter(self)
-        rect = event.rect()
+        size = self.size()
 
         offsets = [col - min(self.columns) for col in self.columns]
         for offset, qcolor in zip(offsets, self.colors):
@@ -38,8 +38,8 @@ class EdgeLine(QWidget):
             color.setAlphaF(.5)
             painter.setPen(color)
 
-            x = rect.left() + self.editor.fontMetrics().width(offset * '9')
-            painter.drawLine(x, rect.top(), x, rect.bottom())
+            x = self.editor.fontMetrics().width(offset * '9')
+            painter.drawLine(x, 0, x, size.height())
 
     # --- Other methods
     # -----------------------------------------------------------------
