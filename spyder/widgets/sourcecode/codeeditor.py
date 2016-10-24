@@ -60,6 +60,7 @@ from spyder.widgets.editortools import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
 from spyder.widgets.panels.line_number import LineNumberArea
+from spyder.widgets.panels.edgeline import EdgeLine
 
 try:
     import nbformat as nbformat
@@ -222,22 +223,6 @@ class ScrollFlagArea(QWidget):
         self.code_editor.wheelEvent(event)
 
 
-class EdgeLine(QWidget):
-    """Source code editor's edge line (default: 79 columns, PEP8)"""
-    def __init__(self, editor):
-        QWidget.__init__(self, editor)
-        self.code_editor = editor
-        self.column = 79
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
-
-    def paintEvent(self, event):
-        """Override Qt method"""
-        painter = QPainter(self)
-        color = QColor(Qt.darkGray)
-        color.setAlphaF(.5)
-        painter.fillRect(event.rect(), color)
-
-
 #===============================================================================
 # CodeEditor widget
 #===============================================================================
@@ -349,7 +334,6 @@ class CodeEditor(TextEditBaseWidget):
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
 
         # 79-col edge line
-        self.edge_line_enabled = True
         self.edge_line = EdgeLine(self)
 
         # Blanks enabled
@@ -633,8 +617,8 @@ class CodeEditor(TextEditBaseWidget):
         self.set_scrollflagarea_enabled(scrollflagarea)
 
         # Edge line
-        self.set_edge_line_enabled(edge_line)
-        self.set_edge_line_column(edge_line_column)
+        self.edge_line.set_enabled(edge_line)
+        self.edge_line.set_column(edge_line_column)
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
@@ -1160,17 +1144,6 @@ class CodeEditor(TextEditBaseWidget):
         """Trigger a calltip"""
         self.sig_show_object_info.emit(position)
 
-    #-----edge line
-    def set_edge_line_enabled(self, state):
-        """Toggle edge line visibility"""
-        self.edge_line_enabled = state
-        self.edge_line.setVisible(state)
-
-    def set_edge_line_column(self, column):
-        """Set edge line column value"""
-        self.edge_line.column = column
-        self.edge_line.update()
-    
     # -----blank spaces
     def set_blanks_enabled(self, state):
         """Toggle blanks visibility"""
@@ -1286,14 +1259,8 @@ class CodeEditor(TextEditBaseWidget):
     #-----edgeline
     def viewportEvent(self, event):
         """Override Qt method"""
-        # 79-column edge line
-        offset = self.contentOffset()
-        x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
-            .translated(offset.x(), offset.y()).left() \
-            +self.linenumberarea.get_width() \
-            +self.fontMetrics().width('9'*self.edge_line.column)+5
         cr = self.contentsRect()
-        self.edge_line.setGeometry(QRect(x, cr.top(), 1, cr.bottom()))
+        self.edge_line.set_geometry(cr)
         self.__set_scrollflagarea_geometry(cr)
         return TextEditBaseWidget.viewportEvent(self, event)
 
@@ -1758,8 +1725,10 @@ class CodeEditor(TextEditBaseWidget):
                                 break
                 else:
                     if prevtext.strip():
-                        prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                        correct_indent = len(prevtext)-len(prevexpr)
+                        if len(re.split(r'\(|\{|\[', prevtext)) > 1:
+                            #correct indent only if there are still opening brackets
+                            prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                            correct_indent = len(prevtext)-len(prevexpr)
                     else:
                         correct_indent = len(prevtext)
 

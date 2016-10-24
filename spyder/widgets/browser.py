@@ -142,7 +142,22 @@ class WebView(QWebEngineView):
         add_actions(menu, actions)
         menu.popup(event.globalPos())
         event.accept()
-                
+
+    def setHtml(self, html, baseUrl=QUrl()):
+        """
+        Reimplement Qt method to prevent WebEngine to steal focus
+        when setting html on the page
+
+        Solution taken from
+        https://bugreports.qt.io/browse/QTBUG-52999
+        """
+        if WEBENGINE:
+            self.setEnabled(False)
+            super(WebView, self).setHtml(html, baseUrl)
+            self.setEnabled(True)
+        else:
+            super(WebView, self).setHtml(html, baseUrl)
+
 
 class WebBrowser(QWidget):
     """

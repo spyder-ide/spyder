@@ -133,7 +133,7 @@ class DebuggingWidget(RichJupyterWidget):
                     self._input_reply = reply
                     self.sig_input_reply.emit()
                 else:
-                    self._input_reply = reply
+                    self._input_reply = None
                     self.sig_input_reply.emit()
             else:
                 self._input_reply = None

@@ -51,8 +51,7 @@ install_conda()
 
     # Install testing dependencies
     if [ "$USE_CONDA" = true ]; then
-        #echo 'conda-build ==1.18.1' > $HOME/miniconda/conda-meta/pinned;
-        conda install conda-build;
+        conda install conda-build=2.0.0;
         conda create -q -n test-environment python=$PY_VERSION;
         conda install -q -y -n test-environment pytest pytest-cov mock
     fi

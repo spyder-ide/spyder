@@ -32,6 +32,8 @@ from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_SHORTCUT,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter)
 from spyder.py3compat import qbytearray_to_str, to_text_string, u
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
@@ -731,14 +733,14 @@ class EditorStack(QWidget):
         self.edgeline_enabled = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_enabled(state)
+                finfo.editor.edge_line.set_enabled(state)
 
     def set_edgeline_column(self, column):
         # CONF.get(self.CONF_SECTION, 'edge_line_column')
         self.edgeline_column = column
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_column(column)
+                finfo.editor.edge_line.set_column(column)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
@@ -1302,7 +1304,11 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                               original_filename)
+                                               original_filename,
+                                               get_edit_filters(),
+                                               get_filter(get_edit_filetypes(),
+                                                          osp.splitext(original_filename)[1])
+                                               )
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)

@@ -9,15 +9,27 @@ function/class browser, horizontal/vertical splitting features, etc.
 
 Function/class/method browser:
 
+|
+
 .. image:: images/editor1.png
+   :align: center
+|
 
 Code analysis with `pyflakes`:
 
+|
+
 .. image:: images/editor2.png
+   :align: center
+|
 
 Horizontal/vertical splitting feature:
 
+|
+
 .. image:: images/editor3.png
+   :align: center
+|
 
 How to define a code cell
 --------------------------
@@ -37,5 +49,5 @@ Cells are separated by lines starting with:
 Related plugins:
 
 * :doc:`console`
-* :doc:`explorer`
+* :doc:`fileexplorer`
 * :doc:`findinfiles`
