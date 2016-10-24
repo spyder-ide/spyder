@@ -864,12 +864,11 @@ class MainWindow(QMainWindow):
             self.onlinehelp.register_plugin()
 
         # Project explorer widget
-        if CONF.get('project_explorer', 'enable'):
-            self.set_splash(_("Loading project explorer..."))
-            from spyder.plugins.projects import Projects
-            self.projects = Projects(self)
-            self.projects.register_plugin()
-            self.project_path = self.projects.get_pythonpath(at_start=True)
+        self.set_splash(_("Loading project explorer..."))
+        from spyder.plugins.projects import Projects
+        self.projects = Projects(self)
+        self.projects.register_plugin()
+        self.project_path = self.projects.get_pythonpath(at_start=True)
 
         # External console
         self.set_splash(_("Loading external console..."))
