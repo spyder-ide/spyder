@@ -1262,12 +1262,10 @@ class MainWindow(QMainWindow):
 
         # Load last project if a project was active when Spyder
         # was closed
-        if self.projects is not None:
-            self.projects.reopen_last_project()
+        self.projects.reopen_last_project()
 
         # If no project is active, load last session
-        if self.projects is not None and \
-          self.projects.get_active_project() is None:
+        if self.projects.get_active_project() is None:
             self.editor.setup_open_files()
 
         # Check for spyder updates
