@@ -733,14 +733,14 @@ class EditorStack(QWidget):
         self.edgeline_enabled = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_enabled(state)
+                finfo.editor.edge_line.set_enabled(state)
 
     def set_edgeline_column(self, column):
         # CONF.get(self.CONF_SECTION, 'edge_line_column')
         self.edgeline_column = column
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_column(column)
+                finfo.editor.edge_line.set_column(column)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
