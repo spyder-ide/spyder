@@ -281,10 +281,10 @@ def any(name, alternates):
 
 def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
-    kwlist = keyword.kwlist+additional_keywords
+    kwlist = keyword.kwlist + additional_keywords
     builtinlist = [str(name) for name in dir(builtins)
-                   if not name.startswith('_')]+additional_builtins
-    repeated = set(kwlist)&set(builtinlist)
+                   if not name.startswith('_')] + additional_builtins
+    repeated = set(kwlist) & set(builtinlist)
     for repeated_element in repeated:
         kwlist.remove(repeated_element)
     kw = r"\b" + any("keyword", kwlist) + r"\b"
