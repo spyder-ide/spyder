@@ -15,6 +15,7 @@ from qtpy.QtGui import QPainter, QColor
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 
+
 class LineNumberArea(QWidget):
     """Line number area (on the left side of the text editor widget)"""
 
@@ -118,7 +119,8 @@ class LineNumberArea(QWidget):
         # operation
         check = self._released == -1
         if data and data.code_analysis and check:
-            self.editor.show_code_analysis_results(line_number, data.code_analysis)
+            self.editor.show_code_analysis_results(line_number,
+                                                   data.code_analysis)
 
         if event.buttons() == Qt.LeftButton:
             self._released = line_number
@@ -142,7 +144,7 @@ class LineNumberArea(QWidget):
         self._pressed = line_number
         self._released = line_number
         self.editor.select_lines(self._pressed,
-                                         self._released)
+                                 self._released)
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
@@ -184,7 +186,8 @@ class LineNumberArea(QWidget):
         new_block_count is needed to handle blockCountChanged(int) signal
         """
         self.editor.setViewportMargins(self.compute_width(), 0,
-                                self.editor.get_scrollflagarea_width(), 0)
+                                       self.editor.get_scrollflagarea_width(),
+                                       0)
 
     def update_(self, qrect, dy):
         """Update line number area"""
@@ -192,8 +195,8 @@ class LineNumberArea(QWidget):
             self.scroll(0, dy)
         else:
             self.update(0, qrect.y(),
-                                       self.width(),
-                                       qrect.height())
+                        self.width(),
+                        qrect.height())
         if qrect.contains(self.editor.viewport().rect()):
             self.update_width()
 
