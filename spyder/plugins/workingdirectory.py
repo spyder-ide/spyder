@@ -24,8 +24,8 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _, get_conf_path, get_home_dir
-from spyder.plugins import SpyderPluginMixin
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginMixin
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string, getcwd
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima

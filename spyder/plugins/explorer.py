@@ -19,7 +19,7 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins import SpyderPluginMixin
+from spyder.api.plugins import SpyderPluginMixin
 from spyder.py3compat import to_text_string
 from spyder.widgets.explorer import ExplorerWidget
 
