@@ -8,9 +8,9 @@
 spyder.api
 ==========
 
-This package contains bases clases that could be use it to build
-plugins to extend Spyder IDE.
+This package contains bases classes that can be used it to create
+third-party plugins to extend Spyder.
 
 This API should be considered pre-release and is subject to change
-(final API version will be released with Spyder 4.0)
+The final API version will be released in Spyder 4.0
 """
