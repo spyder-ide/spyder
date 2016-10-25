@@ -5,7 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-Preferences API.
+API to create an entry in Spyder Preferences dialog associated to a
+given plugin.
 """
 
 # Local imports
@@ -22,9 +23,24 @@ class PluginConfigPage(SpyderConfigPage):
         SpyderConfigPage.__init__(self, parent)
 
     def get_name(self):
+        """
+        Return plugin name to use in preferences page title, and
+        message boxes.
+
+        Normally you do not have to reimplement it, as soon as the
+        plugin name in preferences page will be the same as the plugin
+        title.
+        """
         return self.plugin.get_plugin_title()
 
     def get_icon(self):
+        """
+        Return plugin icon to use in preferences page.
+
+        Normally you do not have to reimplement it, as soon as the
+        plugin icon in preferences page will be the same as the plugin
+        icon.
+        """
         return self.plugin.get_plugin_icon()
 
     def setup_page(self):

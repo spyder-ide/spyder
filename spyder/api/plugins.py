@@ -6,9 +6,9 @@
 
 """
 spyder.api.plugins
-==============
+==================
 
-Here, 'plugins' are widgets designed specifically for Spyder
+Here, 'plugins' are dock widgets designed specifically for Spyder
 These plugins inherit the following classes
 (SpyderPluginMixin & SpyderPluginWidget)
 """
