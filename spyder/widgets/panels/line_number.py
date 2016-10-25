@@ -186,7 +186,7 @@ class LineNumberArea(QWidget):
         self.editor.setViewportMargins(self.compute_width(), 0,
                                 self.editor.get_scrollflagarea_width(), 0)
 
-    def update_linenumberarea(self, qrect, dy):
+    def update_(self, qrect, dy):
         """Update line number area"""
         if dy:
             self.scroll(0, dy)

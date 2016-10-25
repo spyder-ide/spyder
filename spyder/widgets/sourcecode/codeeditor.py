@@ -342,7 +342,7 @@ class CodeEditor(TextEditBaseWidget):
         # Line number area management
         self.linenumberarea = LineNumberArea(self)
         self.blockCountChanged.connect(self.linenumberarea.update_width)
-        self.updateRequest.connect(self.linenumberarea.update_linenumberarea)
+        self.updateRequest.connect(self.linenumberarea.update_)
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
