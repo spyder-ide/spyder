@@ -103,7 +103,7 @@ class CompletionWidget(QListWidget):
         screen_bottom = srect.bottom()
         
         point = self.textedit.cursorRect().bottomRight()
-        point.setX(point.x()+self.textedit.get_linenumberarea_width())
+        point.setX(point.x()+self.textedit.linenumberarea.get_width())
         point = self.textedit.mapToGlobal(point)
 
         # Computing completion widget and its parent right positions

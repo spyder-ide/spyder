@@ -63,6 +63,6 @@ class EdgeLine(QWidget):
         offset = self.editor.contentOffset()
         x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
-            +self.editor.get_linenumberarea_width() \
+            +self.editor.linenumberarea.get_width() \
             +self.editor.fontMetrics().width('9'*min(self.columns))+5
         self.setGeometry(QRect(x, cr.top(), width, cr.bottom()))
