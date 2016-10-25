@@ -591,10 +591,14 @@ DEFAULTS = [
 CONF_VERSION = '29.0.0'
 
 # Main configuration instance
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
-                  version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                  raw_mode=True)
-
+try:
+    CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
+                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
+                      raw_mode=True)
+except:
+    CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
+                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
+                      raw_mode=True)
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
