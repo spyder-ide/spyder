@@ -1006,6 +1006,15 @@ class CodeEditor(TextEditBaseWidget):
         if self.found_results:
             self.clear_found_results()
 
+    def get_linenumberarea_width(self):
+        """
+        Return current line number area width.
+
+        This method is left for backward compatibility (BaseEditMixin
+        define it), any changes should be in LineNumberArea class.
+        """
+        return self.linenumberarea.get_width()
+
     def get_linenumber_from_mouse_event(self, event):
         """Return line number from mouse event"""
         block = self.firstVisibleBlock()
