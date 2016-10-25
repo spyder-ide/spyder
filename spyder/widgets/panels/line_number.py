@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
 """
-This module contains the line number panel
+This module contains the Line Number panel
 """
 import sys
 
@@ -120,7 +124,6 @@ class LineNumberArea(QWidget):
             self._released = line_number
             self.editor.select_lines(self._pressed, self._released)
 
-
     def mouseDoubleClickEvent(self, event):
         """Override Qt method.
 
@@ -129,7 +132,6 @@ class LineNumberArea(QWidget):
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.editor.add_remove_breakpoint(line_number, edit_condition=shift)
-
 
     def mousePressEvent(self, event):
         """Override Qt method
@@ -203,7 +205,6 @@ class LineNumberArea(QWidget):
         self._margin = linenumbers
         self._markers_margin = markers
         self.set_enabled(linenumbers or markers)
-
 
     def set_enabled(self, state):
         self._enabled = state
