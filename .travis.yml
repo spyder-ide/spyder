@@ -39,12 +39,14 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH";
   - if [ "${USE_CONDA}" = "true" ]; then
         source activate test-environment;
-        conda install ciocheck -c conda-forge;
+        conda install ciocheck -c conda-forge -c continuumcrew;
     fi
-  - pip install coveralls ciocheck
+  - pip install coveralls
 
 script:
-  - ciocheck spyder
+  - if [ "${USE_CONDA}" = "true" ]; then
+        ciocheck spyder;
+    fi
   - ./continuous_integration/travis/build_test.sh
   - ./continuous_integration/travis/run_test.sh
   - ./continuous_integration/travis/modules_test.sh
