@@ -10,8 +10,8 @@ machine:
     TRAVIS_OS_NAME: "linux"
     CONDA_CHANNELS: "spyder-ide"
     CONDA_DEPENDENCIES: >
-      jedi nbconvert pep8 psutil pyflakes pygments pylint pytest pytest-cov
-      pytest-qt pyyaml qtawesome qtconsole qtpy requests sphinx
+      jedi mock nbconvert numpy pandas pep8 psutil pyflakes pygments pylint
+      pytest pytest-cov pytest-qt pyyaml qtawesome qtpy requests sphinx
     PIP_DEPENDENCIES: "coveralls"
 
 dependencies:
@@ -24,8 +24,8 @@ dependencies:
       source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh &&
       export PATH="$HOME/miniconda/bin:$PATH" &&
       source activate test &&
-      conda install ciocheck -c conda-forge -c continuumcrew
-      python setup.py develop;
+      conda install ciocheck -c conda-forge -c continuumcrew &&
+      python setup.py install;
 
 test:
   override:
@@ -33,16 +33,13 @@ test:
     - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && ciocheck spyder: # note the colon
         parallel: true
     # PyQt5
-    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=5.* pyqt=5.* && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
+    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=5.* pyqt=5.* qtconsole && python runtests.py: # note the colon
         parallel: true
-    # PySide2
-#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=5.* pyside2 && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
+#    # PySide2
+#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=5.* pyside2 && python runtests.py: # note the colon
 #        parallel: true
     # PyQt4
-    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=4.* pyqt=4.* && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
-        parallel: true
-    # PySide
-#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=4.* pyside && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
+#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=4.* pyqt=4.* qtconsole && python runtests.py: # note the colon
 #        parallel: true
-    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls: # note the colon
-        parallel: true
+#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls: # note the colon
+#        parallel: true
