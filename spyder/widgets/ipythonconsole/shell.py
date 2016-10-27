@@ -101,7 +101,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         mpl_installed = programs.is_module_installed('matplotlib')
         if mpl_installed and (pylab_o and autoload_pylab_o):
             pylab_message = ("\nPopulating the interactive namespace from "
-                             "numpy and matplotlib")
+                             "numpy and matplotlib\n")
             banner = banner + pylab_message
 
         # Sympy additions
