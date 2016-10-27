@@ -1,3 +1,5 @@
+# https://circleci.com/gh/spyder-ide/spyder
+
 machine:
   environment:
     # Used by qthelpers to close widgets after a defined time
@@ -7,7 +9,9 @@ machine:
     # Environment variables used by astropy helpers
     TRAVIS_OS_NAME: "linux"
     CONDA_CHANNELS: "spyder-ide"
-    CONDA_DEPENDENCIES: "pyflakes pyqt pytest pytest-cov pytest-qt pyyaml qt qtawesome qtpy requests jedi qtconsole nbconvert pygments sphinx pep8 psutil pylint qtawesome"
+    CONDA_DEPENDENCIES: >
+      jedi nbconvert pep8 psutil pyflakes pygments pylint pytest pytest-cov
+      pytest-qt pyyaml qtawesome qtconsole qtpy requests sphinx
     PIP_DEPENDENCIES: "coveralls"
 
 dependencies:
@@ -18,11 +22,27 @@ dependencies:
       echo -e "PYTHON = $TRAVIS_PYTHON_VERSION \n============" &&
       git clone git://github.com/astropy/ci-helpers.git &&
       source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh &&
-      PATH="$HOME/miniconda/bin:$PATH" "$HOME/miniconda/envs/test/bin/python" setup.py install;
+      export PATH="$HOME/miniconda/bin:$PATH" &&
+      source activate test &&
+      conda install ciocheck -c conda-forge -c continuumcrew
+      python setup.py develop;
 
 test:
   override:
-    - PATH="$HOME/miniconda/bin:$PATH" "$HOME/miniconda/envs/test/bin/spyder": # note the colon
+    # Style checks
+    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && ciocheck spyder: # note the colon
         parallel: true
-
-
+    # PyQt5
+    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=5.* pyqt=5.* && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
+        parallel: true
+    # PySide2
+#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=5.* pyside2 && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
+#        parallel: true
+    # PyQt4
+    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=4.* pyqt=4.* && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
+        parallel: true
+    # PySide
+#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=4.* pyside && python runtests.py && ./continuous_integration/travis/run_test.sh && ./continuous_integration/travis/modules_test.sh: # note the colon
+#        parallel: true
+    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls: # note the colon
+        parallel: true
