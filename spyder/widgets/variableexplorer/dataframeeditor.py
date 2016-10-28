@@ -605,8 +605,12 @@ class DataFrameEditor(QDialog):
             try:
                 format % 1.1
             except:
-                QMessageBox.critical(self, _("Error"),
-                                     _("Format (%s) is incorrect") % format)
+                msg = _("Format ({}) is incorrect").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
+                return
+            if not format.startswith('%'):
+                msg = _("Format ({}) should start with '%'").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
                 return
             self.dataModel.set_format(format)
             self.sig_option_changed.emit('dataframe_format', format)

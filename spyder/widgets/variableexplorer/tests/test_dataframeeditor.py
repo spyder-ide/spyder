@@ -161,6 +161,19 @@ def test_change_format_emits_signal(qtbot, monkeypatch):
         editor.change_format()
     assert blocker.args == ['dataframe_format', '%10.3e']
 
+def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch):
+    mockQInputDialog = Mock()
+    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('xxx%f', True)
+    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor'
+                        '.QInputDialog', mockQInputDialog)
+    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor'
+                        '.QMessageBox.critical', Mock())
+    df = DataFrame([[0]])
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    with qtbot.assertNotEmitted(editor.sig_option_changed):
+        editor.change_format()
+
 
 if __name__ == "__main__":
     pytest.main()
