@@ -104,7 +104,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     @staticmethod
     def get_settings():
         """
-        Retrieve all Variable Explorer configuration settings
+        Retrieve all Variable Explorer configuration settings.
         
         Specifically, return the settings in CONF_SECTION with keys in 
         REMOTE_SETTINGS, and the setting 'dataframe_format'.
@@ -112,21 +112,21 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         Returns:
             dict: settings
         """
+        section = VariableExplorer.CONF_SECTION
         settings = {}
-#        CONF.load_from_ini() # necessary only when called from another process
         for name in REMOTE_SETTINGS:
-            settings[name] = CONF.get(VariableExplorer.CONF_SECTION, name)
+            settings[name] = CONF.get(section, name)
 
         # dataframe_format is stored without percent sign in config
         # to avoid interference with ConfigParser's interpolation
         name = 'dataframe_format'
-        settings[name] = '%' + CONF.get(VariableExplorer.CONF_SECTION, name)
+        settings[name] = '%{0}'.format(CONF.get(section, name))
         return settings
 
     @Slot(str, object)
     def change_option(self, option_name, new_value):
         """
-        Change a config option
+        Change a config option.
 
         This function is called if sig_option_changed is received. If the
         option changed is the dataframe format, then the leading '%' character

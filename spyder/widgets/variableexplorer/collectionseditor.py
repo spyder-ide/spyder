@@ -518,7 +518,7 @@ class CollectionsDelegate(QItemDelegate):
     @Slot(str, object)
     def change_option(self, option_name, new_value):
         """
-        Change configuration option
+        Change configuration option.
 
         This function is called when a `sig_option_changed` signal is received.
         At the moment, this signal can only come from a DataFrameEditor.
@@ -892,7 +892,7 @@ class BaseTableView(QTableView):
     @Slot(str)
     def set_dataframe_format(self, new_format):
         """
-        Set format to use in DataframeEditor
+        Set format to use in DataframeEditor.
 
         Args:
             new_format (string): e.g. "%.3f"

@@ -104,7 +104,7 @@ class NamespaceBrowser(QWidget):
               minmax=None, dataframe_format=None,
               remote_editing=None, autorefresh=None):
         """
-        Setup the namespace browser with provided settings
+        Setup the namespace browser with provided settings.
 
         Args:
             dataframe_format (string): default floating-point format for 

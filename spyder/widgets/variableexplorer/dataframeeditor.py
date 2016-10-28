@@ -503,7 +503,7 @@ class DataFrameView(QTableView):
 
 class DataFrameEditor(QDialog):
     """
-    Dialog for displaying and editing DataFrame and related objects
+    Dialog for displaying and editing DataFrame and related objects.
 
     Signals
     -------
