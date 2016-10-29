@@ -94,10 +94,15 @@ from qtpy import QtWebEngineWidgets  # analysis:ignore
 
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
-# be set before creating the application
+# be set before creating the application. 
 #==============================================================================
+from spyder.config.main import CONF
+if CONF.get('main', 'high_dpi_scaling'):
+    high_dpi_scaling = True
+else:
+    high_dpi_scaling = False
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, high_dpi_scaling)
 
 
 #==============================================================================
@@ -131,7 +136,7 @@ from spyder.config.base import (get_conf_path, get_module_data_path,
                                 debug_print, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
-from spyder.config.main import CONF, OPEN_FILES_PORT
+from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
@@ -261,6 +266,7 @@ class MainWindow(QMainWindow):
 
         qapp = QApplication.instance()
         if PYQT5:
+            # Enabling scaling for high dpi
             qapp.setAttribute(Qt.AA_UseHighDpiPixmaps)
         self.default_style = str(qapp.style().objectName())
 
@@ -858,12 +864,11 @@ class MainWindow(QMainWindow):
             self.onlinehelp.register_plugin()
 
         # Project explorer widget
-        if CONF.get('project_explorer', 'enable'):
-            self.set_splash(_("Loading project explorer..."))
-            from spyder.plugins.projects import Projects
-            self.projects = Projects(self)
-            self.projects.register_plugin()
-            self.project_path = self.projects.get_pythonpath(at_start=True)
+        self.set_splash(_("Loading project explorer..."))
+        from spyder.plugins.projects import Projects
+        self.projects = Projects(self)
+        self.projects.register_plugin()
+        self.project_path = self.projects.get_pythonpath(at_start=True)
 
         # External console
         self.set_splash(_("Loading external console..."))
@@ -1255,24 +1260,20 @@ class MainWindow(QMainWindow):
         if not self.extconsole.isvisible and not ipy_visible:
             self.historylog.add_history(get_conf_path('history.py'))
 
-        if self.projects is not None:
-            # Load last project (if a project was active when Spyder
-            # was closed)
-            self.projects.reopen_last_project()
+        # Load last project if a project was active when Spyder
+        # was closed
+        self.projects.reopen_last_project()
 
-            # Open last session files and give focus to the Editor
-            if self.editor.dockwidget.isVisible():
-                self.editor.setup_open_files()
-                try:
-                    self.editor.get_focus_widget().setFocus()
-                except AttributeError:
-                    pass
+        # If no project is active, load last session
+        if self.projects.get_active_project() is None:
+            self.editor.setup_open_files()
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
             self.check_updates()
 
+        # Show dialog with missing dependencies
         self.report_missing_dependencies()
 
         self.is_setting_up = False

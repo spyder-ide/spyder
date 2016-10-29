@@ -65,6 +65,7 @@ DEFAULTS = [
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
+              'high_dpi_scaling': False,
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
@@ -265,7 +266,6 @@ DEFAULTS = [
               }),
             ('project_explorer',
              {
-              'enable': True,
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True
@@ -588,13 +588,17 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '28.0.0'
+CONF_VERSION = '29.0.0'
 
 # Main configuration instance
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
-                  version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                  raw_mode=True)
-
+try:
+    CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
+                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
+                      raw_mode=True)
+except:
+    CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
+                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
+                      raw_mode=True)
 
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
