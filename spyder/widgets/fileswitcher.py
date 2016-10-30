@@ -237,7 +237,7 @@ class FileSwitcher(QDialog):
 
         # Either allow searching for a line number or a symbol but not both
         regex = QRegExp("([A-Za-z0-9_]{0,100}@[A-Za-z0-9_]{0,100})|" +
-                        "([A-Za-z]{0,100}:{0,1}[0-9]{0,100})")
+                        "([A-Za-z0-9_]{0,100}:{0,1}[0-9]{0,100})")
 
         # Widgets
         self.edit = QLineEdit(self)
