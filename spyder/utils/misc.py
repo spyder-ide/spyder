@@ -12,6 +12,8 @@ import os.path as osp
 import sys
 import stat
 
+from spyder.py3compat import is_text_string
+
 
 def __remove_pyc_pyo(fname):
     """Eventually remove .pyc and .pyo files associated to a Python script"""
@@ -19,6 +21,7 @@ def __remove_pyc_pyo(fname):
         for ending in ('c', 'o'):
             if osp.exists(fname+ending):
                 os.remove(fname+ending)
+
 
 def rename_file(source, dest):
     """
@@ -28,6 +31,7 @@ def rename_file(source, dest):
     os.rename(source, dest)
     __remove_pyc_pyo(source)
 
+
 def remove_file(fname):
     """
     Remove file *fname*
@@ -35,6 +39,7 @@ def remove_file(fname):
     """
     os.remove(fname)
     __remove_pyc_pyo(fname)
+
 
 def move_file(source, dest):
     """
@@ -229,6 +234,33 @@ def get_common_path(pathlist):
                 return osp.abspath(common)
 
 
+def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False,
+                               ipyconsole=False):
+    # PyQt API 1/2 compatibility-related tests:
+    assert isinstance(env, list)
+    assert all([is_text_string(path) for path in env])
+    
+    pypath = "PYTHONPATH"
+    pathstr = os.pathsep.join(pathlist)
+    if os.environ.get(pypath) is not None and not drop_env:
+        old_pypath = os.environ[pypath]
+        if not ipyconsole:
+            for index, var in enumerate(env[:]):
+                if var.startswith(pypath+'='):
+                    env[index] = var.replace(pypath+'=',
+                                             pypath+'='+pathstr+os.pathsep)
+            env.append('OLD_PYTHONPATH='+old_pypath)
+        else:
+            pypath =  {'PYTHONPATH': pathstr + os.pathsep + old_pypath,
+                       'OLD_PYTHONPATH': old_pypath}
+            return pypath
+    else:
+        if not ipyconsole:
+            env.append(pypath+'='+pathstr)
+        else:
+            return {'PYTHONPATH': pathstr}
+
+
 def memoize(obj):
     """
     Memoize objects to trade memory for execution speed
@@ -250,6 +282,7 @@ def memoize(obj):
             cache.popitem(last=False)
         return cache[key]
     return memoizer
+
 
 if __name__ == '__main__':
     if os.name == 'nt':

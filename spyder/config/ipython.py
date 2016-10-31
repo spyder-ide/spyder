@@ -20,7 +20,7 @@ NBCONVERT_REQVER = ">=4.0"
 
 
 # Dependencies
-dependencies.add("qtconsole", _("Jupyter Qtconsole integration"),
+dependencies.add("qtconsole", _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
 dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)

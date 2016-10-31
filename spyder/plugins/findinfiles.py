@@ -25,7 +25,7 @@ from spyder.py3compat import getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.findinfiles import FindInFilesWidget
-from spyder.plugins import SpyderPluginMixin
+from spyder.api.plugins import SpyderPluginMixin
 
 
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):

@@ -17,7 +17,9 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import get_translation
-from spyder.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
+from spyder.api.plugins import SpyderPluginMixin
+from spyder.api.preferences import PluginConfigPage
+from spyder.plugins.runconfig import get_run_configuration
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from .widgets.profilergui import (ProfilerWidget, is_profiler_installed)
@@ -136,7 +138,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
         pythonpath = self.main.get_spyder_pythonpath()
-        runconf = runconfig.get_run_configuration(filename)
+        runconf = get_run_configuration(filename)
         wdir, args = None, []
         if runconf is not None:
             if runconf.wdir_enabled:

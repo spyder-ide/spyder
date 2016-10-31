@@ -1131,7 +1131,7 @@ class AnimatedTour(QWidget):
         codelines = self.run
         console = self.widgets[0]
         for codeline in codelines:
-            console.execute_python_code(codeline)
+            console.execute_code(codeline)
 
     def set_tour(self, index, frames, spy_window):
         """ """

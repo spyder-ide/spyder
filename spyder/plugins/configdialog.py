@@ -171,7 +171,8 @@ class ConfigDialog(QDialog):
         self.setLayout(vlayout)
 
         # Signals and slots
-        self.button_reset.clicked.connect(self.main.reset_spyder)
+        if self.main:
+            self.button_reset.clicked.connect(self.main.reset_spyder)
         self.pages_widget.currentChanged.connect(self.current_page_changed)
         self.contents_widget.currentRowChanged.connect(
                                              self.pages_widget.setCurrentIndex)
@@ -231,7 +232,10 @@ class ConfigDialog(QDialog):
         scrollarea.setWidget(widget)
         self.pages_widget.addWidget(scrollarea)
         item = QListWidgetItem(self.contents_widget)
-        item.setIcon(widget.get_icon())
+        try:
+            item.setIcon(widget.get_icon())
+        except TypeError:
+            pass
         item.setText(widget.get_name())
         item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
@@ -773,11 +777,10 @@ class GeneralConfigPage(SpyderConfigPage):
 
 class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
-    
     NAME = _("General")
-    ICON = ima.icon('genprefs')
 
     def setup_page(self):
+        self.ICON = ima.icon('genprefs')
         newcb = self.create_checkbox
 
         # --- Interface
@@ -840,9 +843,12 @@ class MainConfigPage(GeneralConfigPage):
         tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
                              tip=_("Set this to detach any<br> "
                                    "menu from the main window"))
+        high_dpi_scaling_box = newcb(_("Enable high DPI scaling"), 
+                                     'high_dpi_scaling',
+                                     tip=_("Set this for high DPI displays"))
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
-        margin_spin = self.create_spinbox("", "pixels", 'custom_margin',
+        margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
                                           0, 0, 30)
         margin_box.toggled.connect(margin_spin.setEnabled)
         margin_spin.setEnabled(self.get_option('use_custom_margin'))
@@ -866,6 +872,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
+        interface_layout.addWidget(high_dpi_scaling_box)
         interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
 
@@ -875,7 +882,7 @@ class MainConfigPage(GeneralConfigPage):
 
         memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
                            tip=self.main.mem_status.toolTip())
-        memory_spin = self.create_spinbox("", " ms", 'memory_usage/timeout',
+        memory_spin = self.create_spinbox("", _(" ms"), 'memory_usage/timeout',
                                           min_=100, max_=1000000, step=100)
         memory_box.toggled.connect(memory_spin.setEnabled)
         memory_spin.setEnabled(self.get_option('memory_usage/enable'))
@@ -884,7 +891,7 @@ class MainConfigPage(GeneralConfigPage):
 
         cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
                         tip=self.main.cpu_status.toolTip())
-        cpu_spin = self.create_spinbox("", " ms", 'cpu_usage/timeout',
+        cpu_spin = self.create_spinbox("", _(" ms"), 'cpu_usage/timeout',
                                        min_=100, max_=1000000, step=100)
         cpu_box.toggled.connect(cpu_spin.setEnabled)
         cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
@@ -978,11 +985,11 @@ class MainConfigPage(GeneralConfigPage):
 
 class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
-
     NAME = _("Syntax coloring")
-    ICON = ima.icon('eyedropper')
 
     def setup_page(self):
+        self.ICON = ima.icon('eyedropper')
+
         names = self.get_option("names")
         try:
             names.pop(names.index(u'Custom'))

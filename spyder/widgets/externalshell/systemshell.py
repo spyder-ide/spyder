@@ -18,9 +18,8 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.config.base import _
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.programs import shell_split
-from spyder.widgets.externalshell.baseshell import (add_pathlist_to_PYTHONPATH,
-                                                    ExternalShellBase)
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH
+from spyder.widgets.externalshell.baseshell import ExternalShellBase
 from spyder.widgets.shell import TerminalWidget
 
 
@@ -42,13 +41,12 @@ class ExternalSystemShell(ExternalShellBase):
                                    menu_actions=menu_actions,
                                    show_buttons_inside=show_buttons_inside,
                                    show_elapsed_time=show_elapsed_time)
-        
+
         # Additional python path list
         self.path = path
-        
+
         # For compatibility with the other shells that can live in the external
         # console
-        self.is_ipykernel = False
         self.connection_file = None
 
     def get_icon(self):

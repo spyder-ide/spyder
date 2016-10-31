@@ -14,12 +14,19 @@ This is the main widget used in the Variable Explorer plugin
 import os.path as osp
 import socket
 
-# Third library imports
+# Third library imports (qtpy)
 from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
+
+# Third party imports (others)
+try:
+    import ipykernel.pickleutil
+    from ipykernel.serialize import serialize_object
+except ImportError:
+    serialize_object = None
 
 # Local imports
 from spyder.config.base import _, get_supported_types
@@ -33,15 +40,24 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.widgets.externalshell.monitor import (
     communicate, monitor_copy_global, monitor_del_global, monitor_get_global,
-    monitor_load_globals, monitor_save_globals, monitor_set_global,
-    REMOTE_SETTINGS)
+    monitor_load_globals, monitor_save_globals, monitor_set_global)
 from spyder.widgets.variableexplorer.collectionseditor import (
-    CollectionsEditorTableView, RemoteCollectionsEditorTableView)
+    RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
-from spyder.widgets.variableexplorer.utils import globalsfilter
+from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
+
+# XXX --- Disable canning for Numpy arrays for now ---
+# This allows getting values between a Python 3 frontend
+# and a Python 2 kernel, and viceversa, for several types of
+# arrays.
+# See this link for interesting ideas on how to solve this
+# in the future:
+# http://stackoverflow.com/q/30698004/438386
+if serialize_object is not None:
+    ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 class NamespaceBrowser(QWidget):
@@ -53,9 +69,6 @@ class NamespaceBrowser(QWidget):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
-        self.is_internal_shell = None
-        self.ipyclient = None
-        self.is_ipykernel = None
         self.is_visible = True
         self.setup_in_progress = None
 
@@ -66,7 +79,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_capitalized = None
         self.exclude_unsupported = None
         self.excluded_names = None
-        self.truncate = None
         self.minmax = None
         self.remote_editing = None
         self.autorefresh = None
@@ -76,13 +88,17 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
-        
+
         self.filename = None
-            
+
+        # For IPython clients
+        self.is_ipyclient = False
+        self.var_properties = {}
+
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, remote_editing=None,
+              minmax=None, remote_editing=None,
               autorefresh=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
@@ -93,50 +109,41 @@ class NamespaceBrowser(QWidget):
         self.exclude_capitalized = exclude_capitalized
         self.exclude_unsupported = exclude_unsupported
         self.excluded_names = excluded_names
-        self.truncate = truncate
         self.minmax = minmax
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            self.editor.setup_menu(truncate, minmax)
+            self.editor.setup_menu(minmax)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
-            # Don't turn autorefresh on for IPython kernels
-            # See Issue 1450
-            if not self.is_ipykernel:
+            if self.auto_refresh_button is not None:
                 self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
 
-        # Dict editor:
-        if self.is_internal_shell:
-            self.editor = CollectionsEditorTableView(self, None,
-                                                     truncate=truncate,
-                                                     minmax=minmax)
-        else:
-            self.editor = RemoteCollectionsEditorTableView(self, None,
-                            truncate=truncate, minmax=minmax,
-                            remote_editing=remote_editing,
-                            get_value_func=self.get_value,
-                            set_value_func=self.set_value,
-                            new_value_func=self.set_value,
-                            remove_values_func=self.remove_values,
-                            copy_value_func=self.copy_value,
-                            is_list_func=self.is_list,
-                            get_len_func=self.get_len,
-                            is_array_func=self.is_array,
-                            is_image_func=self.is_image,
-                            is_dict_func=self.is_dict,
-                            is_data_frame_func=self.is_data_frame,
-                            is_series_func=self.is_series,                       
-                            get_array_shape_func=self.get_array_shape,
-                            get_array_ndim_func=self.get_array_ndim,
-                            oedit_func=self.oedit,
-                            plot_func=self.plot, imshow_func=self.imshow,
-                            show_image_func=self.show_image)
+        self.editor = RemoteCollectionsEditorTableView(self, None,
+                        minmax=minmax,
+                        remote_editing=remote_editing,
+                        get_value_func=self.get_value,
+                        set_value_func=self.set_value,
+                        new_value_func=self.set_value,
+                        remove_values_func=self.remove_values,
+                        copy_value_func=self.copy_value,
+                        is_list_func=self.is_list,
+                        get_len_func=self.get_len,
+                        is_array_func=self.is_array,
+                        is_image_func=self.is_image,
+                        is_dict_func=self.is_dict,
+                        is_data_frame_func=self.is_data_frame,
+                        is_series_func=self.is_series,
+                        get_array_shape_func=self.get_array_shape,
+                        get_array_ndim_func=self.get_array_ndim,
+                        oedit_func=self.oedit,
+                        plot_func=self.plot, imshow_func=self.imshow,
+                        show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
 
@@ -157,8 +164,7 @@ class NamespaceBrowser(QWidget):
         editor = self.editor
         actions = [self.exclude_private_action, self.exclude_uppercase_action,
                    self.exclude_capitalized_action,
-                   self.exclude_unsupported_action, None,
-                   editor.truncate_action]
+                   self.exclude_unsupported_action, None]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
         add_actions(menu, actions)
@@ -176,17 +182,8 @@ class NamespaceBrowser(QWidget):
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
-        from spyder.widgets import internalshell
-        self.is_internal_shell = isinstance(self.shellwidget,
-                                            internalshell.InternalShell)
-        self.is_ipykernel = self.shellwidget.is_ipykernel
-        if not self.is_internal_shell:
-            shellwidget.set_namespacebrowser(self)
-    
-    def set_ipyclient(self, ipyclient):
-        """Bind ipyclient instance to namespace browser"""
-        self.ipyclient = ipyclient
-        
+        shellwidget.set_namespacebrowser(self)
+
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported, autorefresh):
         """Setup toolbar"""
@@ -194,14 +191,19 @@ class NamespaceBrowser(QWidget):
                           
         toolbar = []
 
-        refresh_button = create_toolbutton(self, text=_('Refresh'),
-                                           icon=ima.icon('reload'),
-                                           triggered=self.refresh_table)
-        self.auto_refresh_button = create_toolbutton(self,
-                                           text=_('Refresh periodically'),
-                                           icon=ima.icon('auto_reload'),
-                                           toggled=self.toggle_auto_refresh)
-        self.auto_refresh_button.setChecked(autorefresh)
+        # There is no need of refreshes for ipyclients
+        if not self.is_ipyclient:
+            refresh_button = create_toolbutton(self, text=_('Refresh'),
+                                               icon=ima.icon('reload'),
+                                               triggered=self.refresh_table)
+            self.auto_refresh_button = create_toolbutton(self,
+                                              text=_('Refresh periodically'),
+                                              icon=ima.icon('auto_reload'),
+                                              toggled=self.toggle_auto_refresh)
+            self.auto_refresh_button.setChecked(autorefresh)
+        else:
+            refresh_button = self.auto_refresh_button = None
+
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
                                         triggered=lambda: self.import_data())
@@ -213,8 +215,12 @@ class NamespaceBrowser(QWidget):
                                            text=_("Save data as..."),
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
-        toolbar += [refresh_button, self.auto_refresh_button, load_button,
-                    self.save_button, save_as_button]
+
+        if self.is_ipyclient:
+            toolbar += [load_button, self.save_button, save_as_button]
+        else:
+            toolbar += [refresh_button, self.auto_refresh_button, load_button,
+                        self.save_button, save_as_button]
         
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
@@ -254,7 +260,10 @@ class NamespaceBrowser(QWidget):
     def option_changed(self, option, value):
         """Option has changed"""
         setattr(self, to_text_string(option), value)
-        if not self.is_internal_shell:
+        if self.is_ipyclient:
+            self.shellwidget.set_namespace_view_settings()
+            self.refresh_table()
+        else:
             settings = self.get_view_settings()
             communicate(self._get_sock(),
                         'set_remote_view_settings()', settings=[settings])
@@ -279,35 +288,13 @@ class NamespaceBrowser(QWidget):
     def toggle_auto_refresh(self, state):
         """Toggle auto refresh state"""
         self.autorefresh = state
-        if not self.setup_in_progress and not self.is_internal_shell:
+        if not self.setup_in_progress and not self.is_ipyclient:
             communicate(self._get_sock(),
                         "set_monitor_auto_refresh(%r)" % state)
-            
+
     def _get_sock(self):
         """Return socket connection"""
         return self.shellwidget.introspection_socket
-    
-    def get_internal_shell_filter(self, mode, check_all=None):
-        """
-        Return internal shell data types filter:
-            * check_all: check all elements data types for sequences
-              (dict, list, tuple)
-            * mode (string): 'editable' or 'picklable'
-        """
-        assert mode in list(SUPPORTED_TYPES.keys())
-        if check_all is None:
-            check_all = self.check_all
-        def wsfilter(input_dict, check_all=check_all,
-                     filters=tuple(SUPPORTED_TYPES[mode])):
-            """Keep only objects that can be pickled"""
-            return globalsfilter(
-                         input_dict, check_all=check_all, filters=filters,
-                         exclude_private=self.exclude_private,
-                         exclude_uppercase=self.exclude_uppercase,
-                         exclude_capitalized=self.exclude_capitalized,
-                         exclude_unsupported=self.exclude_unsupported,
-                         excluded_names=self.excluded_names)
-        return wsfilter
 
     def get_view_settings(self):
         """Return dict editor view settings"""
@@ -320,119 +307,160 @@ class NamespaceBrowser(QWidget):
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            if self.is_internal_shell:
-                # Internal shell
-                wsfilter = self.get_internal_shell_filter('editable')
-                self.editor.set_filter(wsfilter)
-                interpreter = self.shellwidget.interpreter
-                if interpreter is not None:
-                    self.editor.set_data(interpreter.namespace)
-                    self.editor.adjust_columns()
-            elif self.shellwidget.is_running():
-    #            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
-                sock = self._get_sock()
-                if sock is None:
-                    return
-                try:
-                    communicate(sock, "refresh()")
-                except socket.error:
-                    # Process was terminated before calling this method
-                    pass                
-                
+            if self.is_ipyclient:
+                self.shellwidget.refresh_namespacebrowser()
+            else:
+                if self.shellwidget.is_running():
+                    sock = self._get_sock()
+                    if sock is None:
+                        return
+                    try:
+                        communicate(sock, "refresh()")
+                    except socket.error:
+                        # Process was terminated before calling this method
+                        pass
+
     def process_remote_view(self, remote_view):
         """Process remote view"""
         if remote_view is not None:
             self.set_data(remote_view)
-        
-    #------ Remote Python process commands ------------------------------------
+
+    def set_var_properties(self, properties):
+        """Set properties of variables"""
+        self.var_properties = properties
+
+    #------ Remote commands ------------------------------------
     def get_value(self, name):
-        value = monitor_get_global(self._get_sock(), name)
-        if value is None:
-            if communicate(self._get_sock(), '%s is not None' % name):
-                import pickle
-                msg = to_text_string(_("Object <b>%s</b> is not picklable")
-                                     % name)
-                raise pickle.PicklingError(msg)
+        if self.is_ipyclient:
+            value = self.shellwidget.get_value(name)
+
+            # Reset temporal variable where value is saved to
+            # save memory
+            self.shellwidget._kernel_value = None
+        else:
+            value = monitor_get_global(self._get_sock(), name)
+            if value is None:
+                if communicate(self._get_sock(), '%s is not None' % name):
+                    import pickle
+                    msg = to_text_string(_("Object <b>%s</b> is not picklable")
+                                         % name)
+                    raise pickle.PicklingError(msg)
         return value
         
     def set_value(self, name, value):
-        monitor_set_global(self._get_sock(), name, value)
+        if self.is_ipyclient:
+            value = serialize_object(value)
+            self.shellwidget.set_value(name, value)
+        else:
+            monitor_set_global(self._get_sock(), name, value)
         self.refresh_table()
         
     def remove_values(self, names):
         for name in names:
-            monitor_del_global(self._get_sock(), name)
+            if self.is_ipyclient:
+                self.shellwidget.remove_value(name)
+            else:
+                monitor_del_global(self._get_sock(), name)
         self.refresh_table()
         
     def copy_value(self, orig_name, new_name):
-        monitor_copy_global(self._get_sock(), orig_name, new_name)
+        if self.is_ipyclient:
+            self.shellwidget.copy_value(orig_name, new_name)
+        else:
+            monitor_copy_global(self._get_sock(), orig_name, new_name)
         self.refresh_table()
         
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
-        return communicate(self._get_sock(),
-                           'isinstance(%s, (tuple, list))' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_list']
+        else:
+            return communicate(self._get_sock(),
+                               'isinstance(%s, (tuple, list))' % name)
         
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
-        return communicate(self._get_sock(), 'isinstance(%s, dict)' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_dict']
+        else:
+            return communicate(self._get_sock(), 'isinstance(%s, dict)' % name)
         
     def get_len(self, name):
         """Return sequence length"""
-        return communicate(self._get_sock(), "len(%s)" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['len']
+        else:
+            return communicate(self._get_sock(), "len(%s)" % name)
         
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
-        return communicate(self._get_sock(), 'is_array("%s")' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_array']
+        else:
+            return communicate(self._get_sock(), 'is_array("%s")' % name)
         
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
-        return communicate(self._get_sock(), 'is_image("%s")' % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_image']
+        else:
+            return communicate(self._get_sock(), 'is_image("%s")' % name)
 
     def is_data_frame(self, name):
         """Return True if variable is a DataFrame"""
-        return communicate(self._get_sock(),
-             "isinstance(globals()['%s'], DataFrame)" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_data_frame']
+        else:
+            return communicate(self._get_sock(),
+                               "isinstance(globals()['%s'], DataFrame)" % name)
 
     def is_series(self, name):
         """Return True if variable is a Series"""
-        return communicate(self._get_sock(),
-             "isinstance(globals()['%s'], Series)" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['is_series']
+        else:
+            return communicate(self._get_sock(),
+                               "isinstance(globals()['%s'], Series)" % name)
 
     def get_array_shape(self, name):
         """Return array's shape"""
-        return communicate(self._get_sock(), "%s.shape" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['array_shape']
+        else:
+            return communicate(self._get_sock(), "%s.shape" % name)
         
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        return communicate(self._get_sock(), "%s.ndim" % name)
+        if self.is_ipyclient:
+            return self.var_properties[name]['array_ndim']
+        else:
+            return communicate(self._get_sock(), "%s.ndim" % name)
         
     def plot(self, name, funcname):
-        command = "import spyder.pyplot; "\
+        if self.is_ipyclient:
+            self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
+        else:
+            command = "import spyder.pyplot; "\
                   "__fig__ = spyder.pyplot.figure(); "\
                   "__items__ = getattr(spyder.pyplot, '%s')(%s); "\
                   "spyder.pyplot.show(); "\
                   "del __fig__, __items__;" % (funcname, name)
-        if self.is_ipykernel:
-            self.ipyclient.shellwidget.execute("%%varexp --%s %s" % (funcname,
-                                                                   name))
-        else:
             self.shellwidget.send_to_process(command)
         
     def imshow(self, name):
-        command = "import spyder.pyplot; " \
+        if self.is_ipyclient:
+            self.shellwidget.execute("%%varexp --imshow %s" % name)
+        else:
+            command = "import spyder.pyplot; " \
                   "__fig__ = spyder.pyplot.figure(); " \
                   "__items__ = spyder.pyplot.imshow(%s); " \
                   "spyder.pyplot.show(); del __fig__, __items__;" % name
-        if self.is_ipykernel:
-            self.ipyclient.shellwidget.execute("%%varexp --imshow %s" % name)
-        else:
             self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
         command = "%s.show()" % name
-        if self.is_ipykernel:
-            self.ipyclient.shellwidget.execute(command)
+        if self.is_ipyclient:
+            self.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
 
@@ -499,31 +527,21 @@ class NamespaceBrowser(QWidget):
                 error_message = None
                 try:
                     text, _encoding = encoding.read(self.filename)
-                    if self.is_internal_shell:
-                        self.editor.import_from_string(text)
-                    else:
-                        base_name = osp.basename(self.filename)
-                        editor = ImportWizard(self, text, title=base_name,
-                                      varname=fix_reference_name(base_name))
-                        if editor.exec_():
-                            var_name, clip_data = editor.get_data()
-                            monitor_set_global(self._get_sock(),
-                                               var_name, clip_data)
+                    base_name = osp.basename(self.filename)
+                    editor = ImportWizard(self, text, title=base_name,
+                                  varname=fix_reference_name(base_name))
+                    if editor.exec_():
+                        var_name, clip_data = editor.get_data()
+                        self.set_value(var_name, clip_data)
                 except Exception as error:
                     error_message = str(error)
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                if self.is_internal_shell:
-                    namespace, error_message = load_func(self.filename)
-                    interpreter = self.shellwidget.interpreter
-                    for key in list(namespace.keys()):
-                        new_key = fix_reference_name(key,
-                                     blacklist=list(interpreter.namespace.keys()))
-                        if new_key != key:
-                            namespace[new_key] = namespace.pop(key)
-                    if error_message is None:
-                        interpreter.namespace.update(namespace)
+                if self.is_ipyclient:
+                    error_message = self.shellwidget.load_data(self.filename,
+                                                               ext)
+                    self.shellwidget._kernel_reply = None
                 else:
                     error_message = monitor_load_globals(self._get_sock(),
                                                          self.filename, ext)
@@ -553,15 +571,13 @@ class NamespaceBrowser(QWidget):
                 return False
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
-        if self.is_internal_shell:
-            wsfilter = self.get_internal_shell_filter('picklable',
-                                                      check_all=True)
-            namespace = wsfilter(self.shellwidget.interpreter.namespace).copy()
-            error_message = iofunctions.save(namespace, filename)
+        if self.is_ipyclient:
+            error_message = self.shellwidget.save_namespace(self.filename)
+            self.shellwidget._kernel_reply = None
         else:
             settings = self.get_view_settings()
-            error_message = monitor_save_globals(self._get_sock(),
-                                                 settings, filename)
+            error_message = monitor_save_globals(self._get_sock(), settings,
+                                             filename)
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:

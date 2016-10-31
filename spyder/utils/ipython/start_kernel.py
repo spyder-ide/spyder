@@ -4,11 +4,18 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Startup file used by ExternalPythonShell exclusively for IPython kernels
-(see spyder/widgets/externalshell/pythonshell.py)"""
+"""
+File used to start kernels for the IPython Console
+"""
 
-import sys
+# Standard library imports
+import os
 import os.path as osp
+import sys
+
+
+# Check if we are running under an external interpreter
+IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
 
 def sympy_config(mpl_backend):
@@ -30,56 +37,62 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options"""
-    import os
-
     from IPython.core.application import get_ipython_dir
-    from spyder.config.main import CONF
-    from spyder.utils.programs import is_module_installed
     from traitlets.config.loader import Config, load_pyconfig_files
+    if not IS_EXT_INTERPRETER:
+        from spyder.config.main import CONF
+        from spyder.utils.programs import is_module_installed
+    else:
+        # We add "spyder" to sys.path for external interpreters,
+        # so this works!
+        # See create_kernel_spec of plugins/ipythonconsole
+        from config.main import CONF
+        from utils.programs import is_module_installed
 
     # ---- IPython config ----
     try:
         profile_path = osp.join(get_ipython_dir(), 'profile_default')
-        ip_cfg = load_pyconfig_files(['ipython_config.py',
-                                      'ipython_qtconsole_config.py'],
-                                      profile_path)
+        cfg = load_pyconfig_files(['ipython_config.py',
+                                   'ipython_kernel_config.py'],
+                                  profile_path)
     except:
-        ip_cfg = Config()
-    
+        cfg = Config()
+
     # ---- Spyder config ----
     spy_cfg = Config()
-    
+
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
-    
+
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
     if run_lines_o:
         spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
     else:
         spy_cfg.IPKernelApp.exec_lines = []
-    
+
     # Pylab configuration
     mpl_backend = None
     mpl_installed = is_module_installed('matplotlib')
     pylab_o = CONF.get('ipython_console', 'pylab')
-    external_interpreter = \
-                   os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
     if mpl_installed and pylab_o:
         # Get matplotlib backend
-        if not external_interpreter:
-            if os.environ["QT_API"] == 'pyqt5':
-                qt_backend = 'qt5'
+        backend_o = CONF.get('ipython_console', 'pylab/backend')
+        if backend_o == 1:
+            if is_module_installed('PyQt5'):
+                auto_backend = 'qt5'
+            elif is_module_installed('PyQt4'):
+                auto_backend = 'qt4'
+            elif is_module_installed('_tkinter'):
+                auto_backend = 'tk'
             else:
-                qt_backend = 'qt'
-
-            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
-            backends = {0: 'inline', 1: qt_backend, 2: qt_backend, 3: 'osx',
-                        4: 'gtk', 5: 'wx', 6: 'tk'}
-            mpl_backend = backends[backend_o]
+                auto_backend = 'inline'
         else:
-            mpl_backend = 'inline'
+            auto_backend = ''
+        backends = {0: 'inline', 1: auto_backend, 2: 'qt5', 3: 'qt4',
+                    4: 'osx', 5: 'gtk3', 6: 'gtk', 7: 'wx', 8: 'tk'}
+        mpl_backend = backends[backend_o]
 
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
@@ -98,7 +111,7 @@ def kernel_config():
                                'pylab/inline/figure_format', 0)
            formats = {0: 'png', 1: 'svg'}
            spy_cfg.InlineBackend.figure_format = formats[format_o]
-           
+
            # Resolution
            spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
                                    'savefig.dpi': 72,
@@ -107,57 +120,48 @@ def kernel_config():
                                    'figure.facecolor': 'white',
                                    'figure.edgecolor': 'white'
                                    }
-           resolution_o = CONF.get('ipython_console', 
+           resolution_o = CONF.get('ipython_console',
                                    'pylab/inline/resolution')
            spy_cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
-           
+
            # Figure size
            width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
            spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
-    
+
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
     if use_file_o and run_file_o:
         spy_cfg.IPKernelApp.file_to_run = run_file_o
-    
+
     # Autocall
     autocall_o = CONF.get('ipython_console', 'autocall')
     spy_cfg.ZMQInteractiveShell.autocall = autocall_o
-    
+
     # To handle the banner by ourselves in IPython 3+
     spy_cfg.ZMQInteractiveShell.banner1 = ''
-    
+
     # Greedy completer
     greedy_o = CONF.get('ipython_console', 'greedy_completer')
     spy_cfg.IPCompleter.greedy = greedy_o
-    
+
     # Sympy loading
     sympy_o = CONF.get('ipython_console', 'symbolic_math')
-    if sympy_o:
+    if sympy_o and is_module_installed('sympy'):
         lines = sympy_config(mpl_backend)
         spy_cfg.IPKernelApp.exec_lines.append(lines)
 
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
-    ip_cfg._merge(spy_cfg)
-    return ip_cfg
+    cfg._merge(spy_cfg)
+    return cfg
 
-
-def change_edit_magic(shell):
-    """Use %edit to open files in Spyder"""
-    try:
-        shell.magics_manager.magics['line']['ed'] = \
-          shell.magics_manager.magics['line']['edit']
-        shell.magics_manager.magics['line']['edit'] = open_in_spyder  #analysis:ignore
-    except:
-        pass
 
 def varexp(line):
     """
     Spyder's variable explorer magic
-    
+
     Used to generate plots, histograms and images of the variables displayed
     on it.
     """
@@ -169,41 +173,51 @@ def varexp(line):
     spyder.pyplot.show()
     del __fig__, __items__
 
-# Remove this module's path from sys.path:
-try:
-    sys.path.remove(osp.dirname(__file__))
-except ValueError:
-    pass
 
-locals().pop('__file__')
-__doc__ = ''
-__name__ = '__main__'
+def main():
+    # Remove this module's path from sys.path:
+    try:
+        sys.path.remove(osp.dirname(__file__))
+    except ValueError:
+        pass
 
-# Add current directory to sys.path (like for any standard Python interpreter
-# executed in interactive mode):
-sys.path.insert(0, '')
+    try:
+        locals().pop('__file__')
+    except KeyError:
+        pass
+    __doc__ = ''
+    __name__ = '__main__'
 
-# Fire up the kernel instance.
-from ipykernel.kernelapp import IPKernelApp
-ipk_temp = IPKernelApp.instance()
-ipk_temp.config = kernel_config()
-ipk_temp.initialize()
+    # Add current directory to sys.path (like for any standard Python interpreter
+    # executed in interactive mode):
+    sys.path.insert(0, '')
 
-# Grabbing the kernel's shell to share its namespace with our
-# Variable Explorer
-__ipythonshell__ = ipk_temp.shell
+    # Fire up the kernel instance.
+    from ipykernel.kernelapp import IPKernelApp
 
-# Issue 977 : Since kernel.initialize() has completed execution, 
-# we can now allow the monitor to communicate the availablility of 
-# the kernel to accept front end connections.
-__ipythonkernel__ = ipk_temp
-del ipk_temp
+    if not IS_EXT_INTERPRETER:
+        from spyder.utils.ipython.spyder_kernel import SpyderKernel
+    else:
+        # We add "spyder" to sys.path for external interpreters,
+        # so this works!
+        # See create_kernel_spec of plugins/ipythonconsole
+        from utils.ipython.spyder_kernel import SpyderKernel
 
-# Change %edit to open files inside Spyder
-# NOTE: Leave this and other magic modifications *after* setting
-# __ipythonkernel__ to not have problems while starting kernels
-change_edit_magic(__ipythonshell__)
-__ipythonshell__.register_magic_function(varexp)
+    kernel = IPKernelApp.instance()
+    kernel.kernel_class = SpyderKernel
+    try:
+        kernel.config = kernel_config()
+    except:
+        pass
+    kernel.initialize()
 
-# Start the (infinite) kernel event loop.
-__ipythonkernel__.start()
+    # NOTE: Leave this and other magic modifications *after* setting
+    # __ipythonkernel__ to not have problems while starting kernels
+    kernel.shell.register_magic_function(varexp)
+
+    # Start the (infinite) kernel event loop.
+    kernel.start()
+
+
+if __name__ == '__main__':
+    main()

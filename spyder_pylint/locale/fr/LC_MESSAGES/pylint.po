@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2016-08-22 18:17+COT\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -15,55 +15,55 @@ msgstr ""
 "Content-Transfer-Encoding: utf-8\n"
 "Generated-By: pygettext.py 1.5\n"
 
-#: spyder_pylint/pylint.py:34
+#: spyder_pylint/pylint.py:35
 msgid "Settings"
 msgstr "Options"
 
-#: spyder_pylint/pylint.py:35
+#: spyder_pylint/pylint.py:36
 msgid "Save file before analyzing it"
 msgstr "Enregistrer le fichier avant de l'analyser"
 
-#: spyder_pylint/pylint.py:38 spyder_pylint/pylint.py:159
+#: spyder_pylint/pylint.py:39 spyder_pylint/pylint.py:160
 msgid "History"
 msgstr "Historique"
 
-#: spyder_pylint/pylint.py:39
+#: spyder_pylint/pylint.py:40
 msgid "The following option will be applied at next startup."
 msgstr "L'option suivante ne sera appliquée qu'au prochain démarrage."
 
-#: spyder_pylint/pylint.py:42
+#: spyder_pylint/pylint.py:43
 msgid "History: "
 msgstr "Historique : "
 
-#: spyder_pylint/pylint.py:43
+#: spyder_pylint/pylint.py:44
 msgid " results"
 msgstr " résultats"
 
-#: spyder_pylint/pylint.py:46
+#: spyder_pylint/pylint.py:47
 msgid "Results"
 msgstr "Résultats"
 
-#: spyder_pylint/pylint.py:47
+#: spyder_pylint/pylint.py:48
 msgid "Results are stored here:"
 msgstr "Les résultats sont stockés ici :"
 
-#: spyder_pylint/pylint.py:97 spyder_pylint/widgets/pylintgui.py:83
+#: spyder_pylint/pylint.py:98 spyder_pylint/widgets/pylintgui.py:83
 msgid "Static code analysis"
 msgstr "Analyse de code statique"
 
-#: spyder_pylint/pylint.py:114
+#: spyder_pylint/pylint.py:115
 msgid "History..."
 msgstr "Historique..."
 
-#: spyder_pylint/pylint.py:116
+#: spyder_pylint/pylint.py:117
 msgid "Set history maximum entries"
 msgstr "Modifier le nombre d'entrées maximum de l'historique"
 
-#: spyder_pylint/pylint.py:132
+#: spyder_pylint/pylint.py:133
 msgid "Run static code analysis"
 msgstr "Démarrer l'analyse de code statique"
 
-#: spyder_pylint/pylint.py:160
+#: spyder_pylint/pylint.py:161
 msgid "Maximum entries"
 msgstr "Nombre maximum d'entrées"
 

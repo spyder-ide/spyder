@@ -1,5 +1,282 @@
 # History of changes
 
+## Version 3.0.1 (2016-10-19)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3528](https://github.com/spyder-ide/spyder/issues/3528) - Cannot see numpy datatypes in variable explorer
+* [Issue 3518](https://github.com/spyder-ide/spyder/issues/3518) - Spyder hangs with big numpy structured arrays
+* [Issue 3484](https://github.com/spyder-ide/spyder/issues/3484) - Fix menus in macOS
+* [Issue 3475](https://github.com/spyder-ide/spyder/issues/3475) - Cannot type left parenthesis in ipdb when automatic Help is turned on
+* [Issue 3472](https://github.com/spyder-ide/spyder/issues/3472) - Cannot connect to existing ipython kernel after upgrading to 3.0
+* [Issue 3471](https://github.com/spyder-ide/spyder/issues/3471) - "Local variable 'reply' referenced before assignment" on debugger exit
+* [Issue 3454](https://github.com/spyder-ide/spyder/issues/3454) - ImportError with create_app.py
+* [Issue 3453](https://github.com/spyder-ide/spyder/issues/3453) - Update docs for Projects
+* [Issue 3317](https://github.com/spyder-ide/spyder/issues/3317) - Console/Editor lose focus when auto-connected to help
+* [Issue 2284](https://github.com/spyder-ide/spyder/issues/2284) - Very slow boot time on Mac app
+
+In this release 10 issues were closed
+
+**Pull requests**
+
+* [PR 3560](https://github.com/spyder-ide/spyder/pull/3560) - Update documentation
+* [PR 3550](https://github.com/spyder-ide/spyder/pull/3550) - Prevent WebEngine to steal focus when setting html on the page
+* [PR 3548](https://github.com/spyder-ide/spyder/pull/3548) - Fix some ipdb issues
+* [PR 3546](https://github.com/spyder-ide/spyder/pull/3546) - Truncate all values shown in the Variable Explorer
+* [PR 3544](https://github.com/spyder-ide/spyder/pull/3544) - Don't try to get shape and ndim for objects that are not ndarrays
+* [PR 3541](https://github.com/spyder-ide/spyder/pull/3541) - Update create_app.py for Spyder 3.0
+* [PR 3540](https://github.com/spyder-ide/spyder/pull/3540) - Fix problems when connecting to external kernels
+* [PR 3501](https://github.com/spyder-ide/spyder/pull/3501) - PR: Handle Mac menubar icon bug
+* [PR 3499](https://github.com/spyder-ide/spyder/pull/3499) - Testing: Pin conda-build to 2.0.0
+
+
+----
+
+
+## Version 3.0 (2016-09-24)
+
+### New features
+
+#### Main Window
+
+* The *Object Inspector* pane was renamed to *Help*.
+* Add a new icon theme based on FontAwesome.
+* Add an *Introduction* interactive tutorial (under the `Help` menu).
+* Add new default layouts (Horizontal, Vertical, Matlab and Rstudio), and also the
+  possibility to name custom layouts.
+* Panes that are tabbed next to each other can now be rearranged by dragging and
+  dropping their tabs.
+* Check for Spyder updates at startup, and also if you go to the menu entry
+  `Help > Check for updates`.
+* Add the shortcut `Shift+Alt+R` to restart the application.
+* Add an option to warn when exiting the application, under
+  `Preferences > General > Interface > Prompt when exiting`.
+* Add Portuguese, Russian and Japanese translations.
+* Remove light mode
+
+#### Editor
+
+* Add highlighting and code completion to all file types supported by Pygments
+  (a syntax highlighting library)
+* Use `Ctrl+M` and `Ctrl+Alt+M` to visually create matrices and vectors. It also
+  works on the Python and IPython consoles.
+* Add a new file switcher inspired by the Sublime Text one, which can be called
+  with the `Ctrl+P` shortcut. It can also be used to look for classes, functions
+  and methods inside a file, using the `@my_function` syntax.
+
+#### Projects
+
+* A new menu entry called *Projects* was added to the main window with all
+  actions related to projects.
+* A project now saves the state of open files in the Editor, so that people can
+  easily work on different coding efforts at the same time.
+* The project's path is added to `PYTHONPATH`, so that Python packages
+  developed as part of a project can be easily imported in Spyder consoles.
+* The project explorer now shows a file tree view of the current project, as
+  other editors and IDEs do (e.g. Sublime Text and VSCode).
+* Projects are completely optional and not imposed on users, i.e. users can work
+  without creating any project.
+
+#### Settings
+
+* Keyboard shortcuts can now be entered in an easier and more intuitive way.
+* Add a menu entry to reset to default settings, under
+  `Tools > Reset Spyder to factory defaults`.
+* The language used in the main interface can now be changed. The option to
+  do it is present in `General > Advanced Settings`.
+* `Syntax coloring` now has a preview of the selected theme and it's able to
+  change the current theme for all plugins.
+* Plain and Rich text fonts for all plugins are now changed in
+  `General > Appearance`.
+* Add a new entry called `Python interpreter` to allow people to select the
+  interpreter used for all Python and IPython consoles (this was before in
+  `Console > Advanced settings`).
+* Rename the `Console` entry to `Python console`.
+
+#### IPython console
+
+* Drop support for IPython 3.0 and older versions.
+* Support the new `qtconsole` package instead.
+* Communicate directly with IPython kernels instead of doing it through the
+  Python  console.
+
+#### Debugging
+
+* Enter debugging mode if running a file generates errors. This is not activated
+  by default but you can do it by going to `Run > Configure > General settings`.
+
+#### Profiler
+
+* Add the ability to save and restore profiler data to compare speed improvements.
+
+#### Working directory toolbar
+
+* Get directory completions by pressing the `Tab` key twice on it.
+
+#### API Changes
+
+##### Major changes
+
+* The `spyderlib` module was renamed to `spyder`
+* `spyderplugins` has been removed and its plugins have been assigned to different
+  different modules (`spyder_profiler`, `spyder_breakpoints`, etc) still
+  distributed with the Spyder package.
+
+##### Minor changes
+
+* `spyderlib.widgets.dicteditor.DictEditor` has been renamed to
+  `spyder.widgets.variableexplorer.collectionseditor.CollectionsEditor`.
+* `spyderlib/widgets/dicteditorutils.py` has been renamed to
+  `spyder/widgets/variableexplorer/utils.py`.
+* `spyderlib/widgets/externalshell/namespacebrowser.py` has been moved to
+  `spyder/widgets/variableexplorer`.
+* `spyderlib/widgets/externalshell/syntaxhighlighters.py` has been moved to
+  `spyder/utils/`.
+* Variable Explorer editor widgets were moved from `spyderlib.widgets`
+  to `spyder.widgets.variableexplorer`:
+    * `spyder.widgets.variableexplorer.arrayeditor`
+    * `spyder.widgets.variableexplorer.collectionseditor`
+    * `spyder.widgets.variableexplorer.objecteditor`
+    * `spyder.widgets.variableexplorer.texteditor`
+    * `spyder.widgets.variableexplorer.dataframeeditor`
+* Modules used for configuration options (e.g. `spyderlib.config`,
+  `spyderlib.baseconfig`, etc) were moved to a new namespace called
+  `spyder.config`.
+* Modules and files related to the application have been moved to
+  `spyder.app`.
+* `spyderlib/plugins/projectexplorer.py` has been renamed to
+  `spyder/plugins/projects.py`
+* `spyderlib/widgets/projectexplorer.py` has been renamed to
+  `spyder/widgets/projects/explorer.py`
+* `spyderlib/plugins/inspector.py` was renamed to
+  `spyder/plugins/help.py`.
+* `spyderlib/utils/inspector` was renamed to `spyder/utils/help`.
+* `spyderlib.qt` was removed.
+* `spyderlib/widgets/ipython.py` was broken in several files inside
+   `spyder/widgets/ipythonconsole`.
+* `spyder/widgets/externalshell/{sitecustomize.py, osx_app_site.py}` were
+  moved to `spyder/utils/site`
+* `spyder/widgets/externalshell/start_ipython_kernel.py` was moved to
+  `spyder/utils/ipython`
+
+#### Under the hood
+
+* Drop support for Python 2.6 and 3.2.
+* Support PyQt5.
+* Drop official support for PySide. Support for it will have to come from the community.
+* Move our settings directory to `HOME/.spyder{-py3}`. Previous location was `HOME/.spyder2{-py3}`
+* On Linux we now follow the XDG specification to save our settings, i.e. they are saved in
+  `~/.config/spyder{-py3}` or `$XDG_CONFIG_HOME/spyder{-py3}` if `$XDG_CONFIG_HOME` is
+  defined.
+* Use the new (pythonic) style for signals and slots.
+* Test Spyder with the help of Travis and AppVeyor.
+* Code completions and help retrieval on the Editor are done asynchronously using a
+  client/server architecture based on PyZMQ.
+* Spyder now uses the `qtpy` package to be able to work with PyQt4 and PyQt5 seamlessly.
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3428](https://github.com/spyder-ide/spyder/issues/3428) - runfile is not defined ?
+* [Issue 3427](https://github.com/spyder-ide/spyder/issues/3427) - Spyder is opening black DOS windows now
+
+In this release 2 issues were closed
+
+**Pull requests**
+
+* [PR 3451](https://github.com/spyder-ide/spyder/pull/3451) - Update Brazilian Portuguese translation
+* [PR 3450](https://github.com/spyder-ide/spyder/pull/3450) - Update Spanish translation
+* [PR 3446](https://github.com/spyder-ide/spyder/pull/3446) - Some fixes for Appveyor and Travis
+* [PR 3442](https://github.com/spyder-ide/spyder/pull/3442) - Avoid showing cmd consoles when starting IPython kernels on Windows
+* [PR 3441](https://github.com/spyder-ide/spyder/pull/3441) - Update Russian translation
+* [PR 3439](https://github.com/spyder-ide/spyder/pull/3439) - Fix profiler
+* [PR 3438](https://github.com/spyder-ide/spyder/pull/3438) - Add an init file to utils/site so it can be added to our tarballs
+
+In this release 7 pull requests were merged
+
+
+----
+
+
+## Version 3.0beta7 (2016-09-16)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3419](https://github.com/spyder-ide/spyder/issues/3419) - IPython console: help window hijacks `?` keypress
+* [Issue 3403](https://github.com/spyder-ide/spyder/issues/3403) - Error when opening project and cancelling
+* [Issue 3354](https://github.com/spyder-ide/spyder/issues/3354) - IPython console run code lines not being saved in preferences
+* [Issue 3109](https://github.com/spyder-ide/spyder/issues/3109) - Auto select the only IPython or Python console after startup
+* [Issue 3011](https://github.com/spyder-ide/spyder/issues/3011) - Cannot connect to existing kernel with full path specified
+* [Issue 2945](https://github.com/spyder-ide/spyder/issues/2945) - Cannot locate kernel json file when connecting to remote ipython kernel
+* [Issue 2918](https://github.com/spyder-ide/spyder/issues/2918) - Spyder always switches back to IPython kernel from IPyhton console
+* [Issue 2846](https://github.com/spyder-ide/spyder/issues/2846) - Import runfile() produces errors when using a virtualenv
+* [Issue 2844](https://github.com/spyder-ide/spyder/issues/2844) - Spyder won't connect to kernel / IPython console after switching to an external interpreter
+* [Issue 2790](https://github.com/spyder-ide/spyder/issues/2790) - Make "Ask for confirmation before closing tabs" in IPython console work for all consoles
+* [Issue 2696](https://github.com/spyder-ide/spyder/issues/2696) - Enter in the IPython console inserts new line instead of executing current line after kernel restart
+* [Issue 1860](https://github.com/spyder-ide/spyder/issues/1860) - Don't show IPython kernels in the Python console by default
+
+In this release 12 issues were closed
+
+**Pull requests**
+
+* [PR 3423](https://github.com/spyder-ide/spyder/pull/3423) - Try to fix plotting on Windows for the Python Console
+* [PR 3422](https://github.com/spyder-ide/spyder/pull/3422) - Don't try to use "?" to automatically get help in the IPython console
+* [PR 3421](https://github.com/spyder-ide/spyder/pull/3421) - Don't show a message when users press cancel in the "Open project" dialog
+* [PR 3420](https://github.com/spyder-ide/spyder/pull/3420) - Skip testing the Spyder kernel for IPython consoles
+* [PR 3386](https://github.com/spyder-ide/spyder/pull/3386) - Allow plugins with no dockwidgets
+* [PR 3368](https://github.com/spyder-ide/spyder/pull/3368) - Avoid eval() when reading config file
+* [PR 2878](https://github.com/spyder-ide/spyder/pull/2878) - PR: Remove IPython kernels from the Python console and connect directly to them
+
+In this release 7 pull requests were merged
+
+
+----
+
+
+## Version 3.0beta6 (2016-08-30)
+
+### Bugfixes
+
+**Issues**
+
+* [Issue 3363](https://github.com/spyder-ide/spyder/issues/3363) - Spyder wont start unless file ".spyderproject" is deleted. UnpicklingError
+* [Issue 3274](https://github.com/spyder-ide/spyder/issues/3274) - Text not visible in new file switcher in KDE
+* [Issue 3211](https://github.com/spyder-ide/spyder/issues/3211) - Edited syntax coloring preferences are not applied or saved
+* [Issue 3128](https://github.com/spyder-ide/spyder/issues/3128) - Project Explorer filename filter (minor)
+* [Issue 3099](https://github.com/spyder-ide/spyder/issues/3099) - Can existing files be added to a Spyder project?
+* [Issue 2887](https://github.com/spyder-ide/spyder/issues/2887) - Make .spyderproject a textfile
+* [Issue 2636](https://github.com/spyder-ide/spyder/issues/2636) - Problems with filename extension for saved sessions 
+* [Issue 2595](https://github.com/spyder-ide/spyder/issues/2595) - Spyder project renames/creates folders by removing first letter of imported directories
+* [Issue 2460](https://github.com/spyder-ide/spyder/issues/2460) - Design for Projects in 3.0
+* [Issue 1964](https://github.com/spyder-ide/spyder/issues/1964) - Project explorer doesn't refresh its contents
+* [Issue 1947](https://github.com/spyder-ide/spyder/issues/1947) - New Project not getting created
+* [Issue 1642](https://github.com/spyder-ide/spyder/issues/1642) - Files excluded by the filter list are displayed in the project explorer after start of spyder
+* [Issue 1554](https://github.com/spyder-ide/spyder/issues/1554) - Add project's path to our PYTHONPATH so that it can be imported in the console
+* [Issue 1320](https://github.com/spyder-ide/spyder/issues/1320) - Reorganize Spyder repository
+* [Issue 1317](https://github.com/spyder-ide/spyder/issues/1317) - Make Project Explorer remember state of open files when reopening
+
+In this release 15 issues were closed
+
+**Pull requests**
+
+* [PR 3377](https://github.com/spyder-ide/spyder/pull/3377) - Completely rewrite our support for Projects
+* [PR 3370](https://github.com/spyder-ide/spyder/pull/3370) - Some improvements to our CI services
+* [PR 3369](https://github.com/spyder-ide/spyder/pull/3369) - Remove some old files and directories
+* [PR 3356](https://github.com/spyder-ide/spyder/pull/3356) - Remove icons from tabs for the Editor and IPython Console
+* [PR 3355](https://github.com/spyder-ide/spyder/pull/3355) - Some improvements to our file switcher
+* [PR 3277](https://github.com/spyder-ide/spyder/pull/3277) - Finish reorganization of the Spyder repo
+
+In this release 6 pull requests were merged
+
+
+----
+
+
 ## Version 3.0beta5 (2016-08-22)
 
 ### Bugfixes

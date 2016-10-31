@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2016-08-22 18:17+COT\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,21 +15,21 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: spyder_profiler/profiler.py:31
+#: spyder_profiler/profiler.py:33
 msgid "Results"
 msgstr ""
 
-#: spyder_profiler/profiler.py:32
+#: spyder_profiler/profiler.py:34
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr ""
 
-#: spyder_profiler/profiler.py:73
+#: spyder_profiler/profiler.py:75
 msgid "Profiler"
 msgstr ""
 
-#: spyder_profiler/profiler.py:102 spyder_profiler/widgets/profilergui.py:81
+#: spyder_profiler/profiler.py:104 spyder_profiler/widgets/profilergui.py:81
 msgid "Profile"
 msgstr ""
 
@@ -155,6 +155,10 @@ msgstr ""
 
 #: spyder_profiler/widgets/profilergui.py:391
 msgid "File:line"
+msgstr ""
+
+#: spyder_profiler/widgets/profilergui.py:537
+msgid "Function or module name"
 msgstr ""
 
 #: spyder_profiler/widgets/profilergui.py:541

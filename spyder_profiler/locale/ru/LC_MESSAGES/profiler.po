@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-08-22 18:17+COT\n"
-"PO-Revision-Date: 2016-04-18 20:14+0300\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
+"PO-Revision-Date: 2016-09-21 14:46+0300\n"
 "Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: spyder_profiler/profiler.py:31
+#: spyder_profiler/profiler.py:33
 msgid "Results"
 msgstr "Результаты"
 
-#: spyder_profiler/profiler.py:32
+#: spyder_profiler/profiler.py:34
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
@@ -30,11 +30,11 @@ msgstr ""
 "Результаты Профайлера (вывод profile/cProfile python'а)\n"
 "хранятся здесь:"
 
-#: spyder_profiler/profiler.py:73
+#: spyder_profiler/profiler.py:75
 msgid "Profiler"
 msgstr "Профайлер"
 
-#: spyder_profiler/profiler.py:102 spyder_profiler/widgets/profilergui.py:81
+#: spyder_profiler/profiler.py:104 spyder_profiler/widgets/profilergui.py:81
 msgid "Profile"
 msgstr "Профилировать"
 
@@ -161,6 +161,10 @@ msgstr "Локальное время"
 #: spyder_profiler/widgets/profilergui.py:391
 msgid "File:line"
 msgstr "Файл:строка"
+
+#: spyder_profiler/widgets/profilergui.py:537
+msgid "Function or module name"
+msgstr "Функция/Модуль"
 
 #: spyder_profiler/widgets/profilergui.py:541
 msgid "Time in function (including sub-functions)"

@@ -79,13 +79,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
     ROWS_TO_LOAD = 50
 
-    def __init__(self, parent, data, title="", names=False, truncate=True,
+    def __init__(self, parent, data, title="", names=False,
                  minmax=False, remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
-        self.truncate = truncate
         self.minmax = minmax
         self.remote = remote
         self.header0 = None
@@ -281,9 +280,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if index.column() == 3 and self.remote:
             value = value['view']
         if index.column() == 3:
-            display = value_to_display(value,
-                               truncate=index.column() == 3 and self.truncate,
-                               minmax=self.minmax)
+            display = value_to_display(value, minmax=self.minmax)
         else:
              display = to_text_string(value)
         if role == Qt.DisplayRole:
@@ -416,9 +413,11 @@ class CollectionsDelegate(QItemDelegate):
         try:
             value = self.get_value(index)
         except Exception as msg:
-            QMessageBox.critical(self.parent(), _("Edit item"),
-                                 _("<b>Unable to retrieve data.</b>"
-                                   "<br><br>Error message:<br>%s"
+            QMessageBox.critical(self.parent(), _("Error"),
+                                 _("Spyder was unable to retrieve the value of "
+                                   "this variable from the console.<br><br>"
+                                   "The error mesage was:<br>"
+                                   "<i>%s</i>"
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
@@ -489,7 +488,11 @@ class CollectionsDelegate(QItemDelegate):
             editor = QLineEdit(parent)
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignLeft)
-            editor.returnPressed.connect(self.commitAndCloseEditor)
+            # This is making Spyder crash because the QLineEdit that it's
+            # been modified is removed and a new one is created after
+            # evaluation. So the object on which this method is trying to
+            # act doesn't exist anymore.
+            # editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
         #---editor = CollectionsEditor for an arbitrary object
         else:
@@ -611,7 +614,6 @@ class BaseTableView(QTableView):
         self.save_array_action = None
         self.insert_action = None
         self.remove_action = None
-        self.truncate_action = None
         self.minmax_action = None
         self.rename_action = None
         self.duplicate_action = None
@@ -626,10 +628,9 @@ class BaseTableView(QTableView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax):
+    def setup_menu(self, minmax):
         """Setup context menu"""
-        if self.truncate_action is not None:
-            self.truncate_action.setChecked(truncate)
+        if self.minmax_action is not None:
             self.minmax_action.setChecked(minmax)
             return
         
@@ -666,10 +667,6 @@ class BaseTableView(QTableView):
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
-        self.truncate_action = create_action(self, _("Truncate values"),
-                                             toggled=self.toggle_truncate)
-        self.truncate_action.setChecked(truncate)
-        self.toggle_truncate(truncate)
         self.minmax_action = create_action(self, _("Show arrays min/max"),
                                            toggled=self.toggle_minmax)
         self.minmax_action.setChecked(minmax)
@@ -686,7 +683,7 @@ class BaseTableView(QTableView):
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
                         None, self.rename_action, self.duplicate_action,
-                        None, resize_action, None, self.truncate_action]
+                        None, resize_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
@@ -866,12 +863,6 @@ class BaseTableView(QTableView):
             event.ignore()
 
     @Slot(bool)
-    def toggle_truncate(self, state):
-        """Toggle display truncating option"""
-        self.sig_option_changed.emit('truncate', state)
-        self.model.truncate = state
-
-    @Slot(bool)
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
@@ -895,7 +886,7 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove selected item?")
+        one = _("Do you want to remove the selected item?")
         more = _("Do you want to remove all selected items?")
         answer = QMessageBox.question(self, _( "Remove"),
                                       one if len(indexes) == 1 else more,
@@ -914,7 +905,13 @@ class BaseTableView(QTableView):
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.model.keys[idx_rows[0]]
-        new_key, valid = QInputDialog.getText(self, _( 'Rename'), _( 'Key:'),
+        if erase_original:
+            title = _('Rename')
+            field_text = _('New variable name:')
+        else:
+            title = _('Duplicate')
+            field_text = _('Variable name:')
+        new_key, valid = QInputDialog.getText(self, title, field_text,
                                               QLineEdit.Normal, orig_key)
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
@@ -1098,20 +1095,20 @@ class BaseTableView(QTableView):
 class CollectionsEditorTableView(BaseTableView):
     """CollectionsEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False):
+                 names=False, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
                                 else CollectionsModel
         self.model = CollectionsModelClass(self, data, title, names=names,
-                                           truncate=truncate, minmax=minmax)
+                                           minmax=minmax)
         self.setModel(self.model)
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax)
+        self.menu = self.setup_menu(minmax)
     
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
@@ -1328,7 +1325,7 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, truncate=True, minmax=False,
+    def __init__(self, parent, data, minmax=False,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1364,7 +1361,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.delegate = None
         self.readonly = False
         self.model = CollectionsModel(self, data, names=True,
-                                      truncate=truncate, minmax=minmax,
+                                      minmax=minmax,
                                       remote=True)
         self.setModel(self.model)
         self.delegate = RemoteCollectionsDelegate(self, get_value_func,
@@ -1372,11 +1369,11 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax)
+        self.menu = self.setup_menu(minmax)
 
-    def setup_menu(self, truncate, minmax):
+    def setup_menu(self, minmax):
         """Setup context menu"""
-        menu = BaseTableView.setup_menu(self, truncate, minmax)
+        menu = BaseTableView.setup_menu(self, minmax)
         return menu
 
     def oedit_possible(self, key):
@@ -1452,7 +1449,9 @@ def get_test_data():
             'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
-            #1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),
+            # Test for Issue #3518
+            'big_struct_array': np.zeros(1000, dtype=[('ID', 'f8'),
+                                                      ('param1', 'f8', 5000)]),
             }
 
 
@@ -1465,28 +1464,20 @@ def editor_test():
     dialog.setup(get_test_data())
     dialog.show()
     app.exec_()
-    print("out:", dialog.get_value())
 
 
 def remote_editor_test():
     """Remote collections editor test"""
-    from pprint import pprint
-
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer
-    from spyder.widgets.externalshell.monitor import make_remote_view
+    from spyder.widgets.variableexplorer.utils import make_remote_view
 
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
-    pprint(remote)
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
-
-    if dialog.result():
-        print(dialog.get_value())
-
     app.exec_()
 
 

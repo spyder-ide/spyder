@@ -2,14 +2,14 @@
 set TEST_CI_APP=True
 
 :: Set extra packages
-set EXTRA_PACKAGES=pandas sympy pillow matplotlib
+set EXTRA_PACKAGES=pandas sympy pillow
 
 :: Move to a tmp dir before doing the installation
 mkdir C:\projects\tmp
 cd C:\projects\tmp
 
 :: Install the package we created
-conda install -q -y --use-local spyder
+conda install -q -y --use-local spyder-dev
 
 :: Install extra packages
 conda install -q -y %EXTRA_PACKAGES%

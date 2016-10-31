@@ -602,6 +602,7 @@ class ArrayEditor(QDialog):
         return False if data is not supported, True otherwise
         """
         self.data = data
+        self.data.flags.writeable = True
         is_record_array = data.dtype.names is not None
         is_masked_array = isinstance(data, np.ma.MaskedArray)
         if data.size == 0:

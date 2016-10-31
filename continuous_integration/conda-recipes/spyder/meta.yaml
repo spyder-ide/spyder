@@ -1,5 +1,5 @@
 package:
-  name: spyder
+  name: spyder-dev
   version: {{ GIT_DESCRIBE_TAG|replace('v', '') }}  # [unix]
   version: 99.99.0  # [win]
 
@@ -8,7 +8,7 @@ build:
   number: 0  # [win]
 
 source:
-  git_url: {{ APPVEYOR_BUILD_FOLDER }}  # [win]
+  path: {{ APPVEYOR_BUILD_FOLDER }}  # [win]
   git_url: {{ FULL_SPYDER_CLONE }}  # [unix]
 
 requirements:

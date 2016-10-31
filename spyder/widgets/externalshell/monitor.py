@@ -17,6 +17,8 @@ import struct
 import threading
 
 # Local imports
+from spyder.config.base import get_conf_path, DEBUG
+from spyder.py3compat import getcwd, is_text_string, pickle, _thread
 from spyder.utils.misc import fix_reference_name
 from spyder.utils.debug import log_last_error
 from spyder.utils.dochelpers import (getargtxt, getdoc, getsource,
@@ -24,70 +26,17 @@ from spyder.utils.dochelpers import (getargtxt, getdoc, getsource,
 from spyder.utils.bsdsocket import (communicate, read_packet, write_packet,
                                     PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
 from spyder.utils.introspection.module_completion import module_completion
-from spyder.config.base import get_conf_path, get_supported_types, DEBUG
-from spyder.py3compat import getcwd, is_text_string, pickle, _thread
+from spyder.widgets.variableexplorer.utils import (get_remote_data,
+                                                   make_remote_view)
 
-
-SUPPORTED_TYPES = {}
 
 LOG_FILENAME = get_conf_path('monitor.log')
-
 DEBUG_MONITOR = DEBUG >= 2
-
 if DEBUG_MONITOR:
     import logging
     logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
                         level=logging.DEBUG)
 
-REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
-                   'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'truncate', 'minmax',
-                   'remote_editing', 'autorefresh')
-
-def get_remote_data(data, settings, mode, more_excluded_names=None):
-    """
-    Return globals according to filter described in *settings*:
-        * data: data to be filtered (dictionary)
-        * settings: variable explorer settings (dictionary)
-        * mode (string): 'editable' or 'picklable'
-        * more_excluded_names: additional excluded names (list)
-    """
-    from spyder.widgets.variableexplorer.utils import globalsfilter
-    global SUPPORTED_TYPES
-    if not SUPPORTED_TYPES:
-        SUPPORTED_TYPES = get_supported_types()
-    assert mode in list(SUPPORTED_TYPES.keys())
-    excluded_names = settings['excluded_names']
-    if more_excluded_names is not None:
-        excluded_names += more_excluded_names
-    return globalsfilter(data, check_all=settings['check_all'],
-                         filters=tuple(SUPPORTED_TYPES[mode]),
-                         exclude_private=settings['exclude_private'],
-                         exclude_uppercase=settings['exclude_uppercase'],
-                         exclude_capitalized=settings['exclude_capitalized'],
-                         exclude_unsupported=settings['exclude_unsupported'],
-                         excluded_names=excluded_names)
-
-def make_remote_view(data, settings, more_excluded_names=None):
-    """
-    Make a remote view of dictionary *data*
-    -> globals explorer
-    """
-    from spyder.widgets.variableexplorer.utils import (get_human_readable_type,
-                                    get_size, get_color_name, value_to_display)
-    assert all([name in REMOTE_SETTINGS for name in settings])
-    data = get_remote_data(data, settings, mode='editable',
-                           more_excluded_names=more_excluded_names)
-    remote = {}
-    for key, value in list(data.items()):
-        view = value_to_display(value, truncate=settings['truncate'],
-                                minmax=settings['minmax'])
-        remote[key] = {'type':  get_human_readable_type(value),
-                       'size':  get_size(value),
-                       'color': get_color_name(value),
-                       'view':  view}
-    return remote
-    
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
@@ -116,10 +65,10 @@ def monitor_copy_global(sock, orig_name, new_name):
     return communicate(sock, '__copy_global__("%s", "%s")' \
                        % (orig_name, new_name))
 
-
 def _getcdlistdir():
     """Return current directory list dir"""
     return os.listdir(getcwd())
+
 
 class Monitor(threading.Thread):
     """Monitor server"""
@@ -127,9 +76,6 @@ class Monitor(threading.Thread):
                  shell_id, timeout, auto_refresh):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-
-        self.ipykernel = None
-        self.ipython_shell = None
         
         self.pdb_obj = None
         
@@ -141,9 +87,6 @@ class Monitor(threading.Thread):
         
         self.inputhook_flag = False
         self.first_inputhook_call = True
-        
-        # To grab the IPython internal namespace
-        self.ip = None
         
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
@@ -223,20 +166,10 @@ class Monitor(threading.Thread):
                 self._mglobals = glbs
             else:
                 glbs = self._mglobals
-            if self.ipykernel is None and '__ipythonkernel__' in glbs:
-                self.ipykernel = glbs['__ipythonkernel__']
-                communicate(self.n_request,
-                            dict(command="ipykernel",
-                                 data=self.ipykernel.connection_file))
-            if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                # IPython kernel
-                self.ipython_shell = glbs['__ipythonshell__']
-                glbs = self.ipython_shell.user_ns
-                self.ip = self.ipython_shell.get_ipython()
             self._mglobals = glbs
             return glbs
     
-    def get_current_namespace(self, with_magics=False):
+    def get_current_namespace(self):
         """Return current namespace, i.e. globals() if not debugging,
         or a dictionary containing both locals() and globals() 
         for current frame when debugging"""
@@ -249,14 +182,6 @@ class Monitor(threading.Thread):
             ns.update(glbs)
             ns.update(self.pdb_locals)
 
-        # Add magics to ns so we can show help about them on the Help
-        # plugin
-        if self.ip and with_magics:
-            line_magics = self.ip.magics_manager.magics['line']
-            cell_magics = self.ip.magics_manager.magics['cell']
-            ns.update(line_magics)
-            ns.update(cell_magics)
-        
         return ns
     
     def get_reference_namespace(self, name):
@@ -279,7 +204,7 @@ class Monitor(threading.Thread):
     
     def isdefined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
-        ns = self.get_current_namespace(with_magics=True)
+        ns = self.get_current_namespace()
         return isdefined(obj, force_import=force_import, namespace=ns)
 
     def toggle_inputhook_flag(self, state):
@@ -342,7 +267,7 @@ class Monitor(threading.Thread):
         and *valid* is True if object evaluation did not raise any exception
         """
         assert is_text_string(text)
-        ns = self.get_current_namespace(with_magics=True)
+        ns = self.get_current_namespace()
         try:
             return eval(text, ns), True
         except:
@@ -451,8 +376,7 @@ class Monitor(threading.Thread):
         settings = self.remote_view_settings
         if settings:
             ns = self.get_current_namespace()
-            more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
-            remote_view = make_remote_view(ns, settings, more_excluded_names)
+            remote_view = make_remote_view(ns, settings)
             communicate(self.n_request,
                         dict(command="remote_view", data=remote_view))
         
@@ -462,9 +386,7 @@ class Monitor(threading.Thread):
         from spyder.utils.iofuncs import iofunctions
         settings = read_packet(self.i_request)
         filename = read_packet(self.i_request)
-        more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
-        data = get_remote_data(ns, settings, mode='picklable',
-                               more_excluded_names=more_excluded_names).copy()
+        data = get_remote_data(ns, settings, mode='picklable').copy()
         return iofunctions.save(data, filename)
         
     def loadglobals(self):
@@ -519,7 +441,6 @@ class Monitor(threading.Thread):
         self.refresh_after_eval = True
         
     def run(self):
-        self.ipython_shell = None
         while True:
             output = pickle.dumps(None, PICKLE_HIGHEST_PROTOCOL)
             glbs = self.mglobals()

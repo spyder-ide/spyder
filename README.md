@@ -11,7 +11,6 @@ Copyright © Spyder Project Contributors.
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/awb92if4tl555fuy/branch/master?svg=true)](https://ci.appveyor.com/project/ccordoba12/spyder/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
-[![Code Issues](https://www.quantifiedcode.com/api/v1/project/bc88bbc67a4a4c34b58d65070be4fa9e/badge.svg)](https://www.quantifiedcode.com/app/project/bc88bbc67a4a4c34b58d65070be4fa9e)
 
 ## Overview
 
@@ -72,12 +71,11 @@ The easiest way to install Spyder is:
 
 ### On Windows:
 
-- Or using one of these scientific Python distributions:
-  1. [Anaconda](http://continuum.io/downloads)
-  2. [WinPython](https://winpython.github.io/)
-  3. [Python(x,y)](http://pythonxy.googlecode.com)
-- Using one of our executable installers, which can be found
-  [here](https://github.com/spyder-ide/spyder/releases).
+Using one (and only one) of these scientific Python distributions:
+
+1. [Anaconda](http://continuum.io/downloads)
+2. [WinPython](https://winpython.github.io/)
+3. [Python(x,y)](http://python-xy.github.io)
 
 ### On Mac OSX:
 
@@ -110,7 +108,7 @@ For more details on supported platforms, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
 
 **Important note**: This does not install the graphical Python libraries (i.e.
-PyQt5 or PyQt4) that Spyder depend on. Those have to be installed separately
+PyQt5 or PyQt4) that Spyder depends on. Those have to be installed separately
 after installing Python.
 
 

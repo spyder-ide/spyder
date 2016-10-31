@@ -32,6 +32,8 @@ from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_SHORTCUT,
                                RUN_CELL_AND_ADVANCE_SHORTCUT)
+from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
+                                 get_filter)
 from spyder.py3compat import qbytearray_to_str, to_text_string, u
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
@@ -401,6 +403,7 @@ class EditorStack(QWidget):
         self.fullpath_sorting_enabled = None
         self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
+        self.create_new_file_if_empty = True
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
@@ -666,7 +669,7 @@ class EditorStack(QWidget):
         self.title = text
 
     def __update_editor_margins(self, editor):
-        editor.setup_margins(linenumbers=self.linenumbers_enabled,
+        editor.linenumberarea.setup_margins(linenumbers=self.linenumbers_enabled,
                              markers=self.has_markers())
 
     def __codeanalysis_settings_changed(self, current_finfo):
@@ -730,14 +733,14 @@ class EditorStack(QWidget):
         self.edgeline_enabled = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_enabled(state)
+                finfo.editor.edge_line.set_enabled(state)
 
     def set_edgeline_column(self, column):
         # CONF.get(self.CONF_SECTION, 'edge_line_column')
         self.edgeline_column = column
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_column(column)
+                finfo.editor.edge_line.set_column(column)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
@@ -1165,7 +1168,7 @@ class EditorStack(QWidget):
                     new_index -= 1
                 self.set_stack_index(new_index)
 
-        if self.get_stack_count() == 0:
+        if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
 
@@ -1301,7 +1304,10 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                               original_filename)
+                                       original_filename,
+                                       get_edit_filters(),
+                                       get_filter(get_edit_filetypes(),
+                                           osp.splitext(original_filename)[1]))
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -2053,7 +2059,11 @@ class EditorSplitter(QSplitter):
             editorstack = splitter.widget(0)
             for index, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
-                editor.go_to_line(clines[index])
+                # FIXME: Temporal fix
+                try:
+                    editor.go_to_line(clines[index])
+                except IndexError:
+                    pass
             editorstack.set_current_filename(cfname)
         hexstate = settings.get('hexstate')
         if hexstate is not None:

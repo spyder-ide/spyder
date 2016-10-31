@@ -11,7 +11,6 @@
 
 # Standard library imports
 from time import time, strftime, gmtime
-import os
 import os.path as osp
 
 # Third party imports
@@ -22,7 +21,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QLabel, QLineEdit,
 
 # Local imports
 from spyder.config.base import _, get_conf_path
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
@@ -30,23 +29,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 
 LOCALE_CODEC = QTextCodec.codecForLocale()
 
-
-def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
-    # PyQt API 1/2 compatibility-related tests:
-    assert isinstance(env, list)
-    assert all([is_text_string(path) for path in env])
-    
-    pypath = "PYTHONPATH"
-    pathstr = os.pathsep.join(pathlist)
-    if os.environ.get(pypath) is not None and not drop_env:
-        for index, var in enumerate(env[:]):
-            if var.startswith(pypath+'='):
-                env[index] = var.replace(pypath+'=',
-                                         pypath+'='+pathstr+os.pathsep)
-        env.append('OLD_PYTHONPATH='+os.environ[pypath])
-    else:
-        env.append(pypath+'='+pathstr)
-    
 
 #TODO: code refactoring/cleaning (together with systemshell.py and pythonshell.py)
 class ExternalShellBase(QWidget):
@@ -235,7 +217,7 @@ class ExternalShellBase(QWidget):
                 pass
 
     def set_buttons_runnning_state(self, state):
-        self.run_button.setVisible(not state and not self.is_ipykernel)
+        self.run_button.setVisible(not state)
         self.kill_button.setVisible(state)
 
     @Slot(bool)

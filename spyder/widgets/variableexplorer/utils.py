@@ -13,6 +13,7 @@ from __future__ import print_function
 import re
 
 # Local imports
+from spyder.config.base import get_supported_types
 from spyder.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
                               is_text_string, is_binary_string, reprlib,
                               PY2, to_binary_string)
@@ -49,9 +50,10 @@ try:
     from numpy import ndarray, array, matrix, recarray
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
+    from numpy import set_printoptions as np_set_printoptions
 except ImportError:
-    ndarray = array = matrix = recarray = MaskedArray = np_savetxt = FakeObject  # analysis:ignore
-
+    ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
+    np_set_printoptions = FakeObject
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -135,13 +137,16 @@ def get_size(item):
 
 #==============================================================================
 # Set limits for the amount of elements in the repr of collections (lists,
-# dicts, tuples and sets)
+# dicts, tuples and sets) and Numpy arrays
 #==============================================================================
 CollectionsRepr = reprlib.Repr()
 CollectionsRepr.maxlist = 10
 CollectionsRepr.maxdict = 10
 CollectionsRepr.maxtuple = 10
 CollectionsRepr.maxset = 10
+
+if np_set_printoptions is not FakeObject:
+    np_set_printoptions(threshold=10)
 
 
 #==============================================================================
@@ -236,7 +241,7 @@ def unsorted_unique(lista):
 #==============================================================================
 # Display <--> Value
 #==============================================================================
-def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
+def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
     try:
         if isinstance(value, recarray):
@@ -252,8 +257,6 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
                     display = repr(value)
             else:
                 display = repr(value)
-        elif isinstance(value, ndarray):
-            display = repr(value)
         elif isinstance(value, (list, tuple, dict, set)):
             display = CollectionsRepr.repr(value)
         elif isinstance(value, Image):
@@ -293,11 +296,14 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             # display = repr(value)
             type_str = to_text_string(type(value))
             display = type_str[1:-1]
-            if truncate and len(display) > trunc_len:
-                display = display[:trunc_len].rstrip() + ' ...'
     except:
         type_str = to_text_string(type(value))
         display = type_str[1:-1]
+
+    # Truncate display at 80 chars to avoid freezing Spyder
+    # because of large displays
+    if len(display) > 80:
+        display = display[:80].rstrip() + ' ...'
 
     return display
 
@@ -431,3 +437,52 @@ def globalsfilter(input_dict, check_all=False, filters=None,
         if not excluded:
             output_dict[key] = value
     return output_dict
+
+
+#==============================================================================
+# Create view to be displayed by NamespaceBrowser
+#==============================================================================
+REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
+                   'exclude_capitalized', 'exclude_unsupported',
+                   'excluded_names', 'minmax', 'remote_editing',
+                   'autorefresh')
+
+
+def get_remote_data(data, settings, mode, more_excluded_names=None):
+    """
+    Return globals according to filter described in *settings*:
+        * data: data to be filtered (dictionary)
+        * settings: variable explorer settings (dictionary)
+        * mode (string): 'editable' or 'picklable'
+        * more_excluded_names: additional excluded names (list)
+    """
+    supported_types = get_supported_types()
+    assert mode in list(supported_types.keys())
+    excluded_names = settings['excluded_names']
+    if more_excluded_names is not None:
+        excluded_names += more_excluded_names
+    return globalsfilter(data, check_all=settings['check_all'],
+                         filters=tuple(supported_types[mode]),
+                         exclude_private=settings['exclude_private'],
+                         exclude_uppercase=settings['exclude_uppercase'],
+                         exclude_capitalized=settings['exclude_capitalized'],
+                         exclude_unsupported=settings['exclude_unsupported'],
+                         excluded_names=excluded_names)
+
+
+def make_remote_view(data, settings, more_excluded_names=None):
+    """
+    Make a remote view of dictionary *data*
+    -> globals explorer
+    """
+    assert all([name in REMOTE_SETTINGS for name in settings])
+    data = get_remote_data(data, settings, mode='editable',
+                           more_excluded_names=more_excluded_names)
+    remote = {}
+    for key, value in list(data.items()):
+        view = value_to_display(value, minmax=settings['minmax'])
+        remote[key] = {'type':  get_human_readable_type(value),
+                       'size':  get_size(value),
+                       'color': get_color_name(value),
+                       'view':  view}
+    return remote

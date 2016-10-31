@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-08-22 18:17+COT\n"
+"POT-Creation-Date: 2016-09-24 04:45+COT\n"
 "PO-Revision-Date: 2015-02-25 22:08-0400\n"
 "Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
 "Language-Team: \n"
@@ -16,21 +16,21 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 1.7.4\n"
 
-#: spyder_profiler/profiler.py:31
+#: spyder_profiler/profiler.py:33
 msgid "Results"
 msgstr "Resultados"
 
-#: spyder_profiler/profiler.py:32
+#: spyder_profiler/profiler.py:34
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr "Os resultados do plugin Profiler são armazenados aqui: "
 
-#: spyder_profiler/profiler.py:73
+#: spyder_profiler/profiler.py:75
 msgid "Profiler"
 msgstr "Profiler"
 
-#: spyder_profiler/profiler.py:102 spyder_profiler/widgets/profilergui.py:81
+#: spyder_profiler/profiler.py:104 spyder_profiler/widgets/profilergui.py:81
 msgid "Profile"
 msgstr "Profiler"
 
@@ -158,6 +158,11 @@ msgstr "Hora Local"
 #: spyder_profiler/widgets/profilergui.py:391
 msgid "File:line"
 msgstr "Arquivo/Linha"
+
+#: spyder_profiler/widgets/profilergui.py:537
+#, fuzzy
+msgid "Function or module name"
+msgstr "Função/Módulo"
 
 #: spyder_profiler/widgets/profilergui.py:541
 msgid "Time in function (including sub-functions)"
