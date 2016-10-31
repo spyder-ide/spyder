@@ -206,6 +206,10 @@ class SpyderKernel(IPythonKernel):
         if valid:
             return getsource(obj)
 
+    def set_cwd(self, dirname):
+        """Set current working directory"""
+        return os.chdir(dirname)
+
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
     def _get_current_namespace(self, with_magics=False):

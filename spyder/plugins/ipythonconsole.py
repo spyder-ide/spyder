@@ -52,7 +52,7 @@ from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
 from spyder.utils.qthelpers import create_action
 from spyder.utils import icon_manager as ima
-from spyder.utils import programs
+from spyder.utils import encoding, programs
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
                                get_python_executable, remove_backslashes)
 from spyder.widgets.findreplace import FindReplace
@@ -779,6 +779,9 @@ class IPythonConsole(SpyderPluginWidget):
             self.editor.run_in_current_ipyclient.connect(
                                              self.run_script_in_current_client)
 
+        self.main.workingdirectory.set_current_console_wd.connect(
+                                     self.set_current_client_working_directory)
+
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
@@ -836,6 +839,13 @@ class IPythonConsole(SpyderPluginWidget):
                 _("No IPython console is currently available to run <b>%s</b>."
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
+
+    def set_current_client_working_directory(self, directory):
+        """Set current client working directory"""
+        shellwidget = self.get_current_shellwidget()
+        if shellwidget is not None:
+            directory = encoding.to_unicode_from_fs(directory)
+            shellwidget.set_cwd(directory)
 
     def execute_code(self, lines):
         sw = self.get_current_shellwidget()
