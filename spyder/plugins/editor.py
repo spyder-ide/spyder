@@ -923,7 +923,6 @@ class Editor(SpyderPluginWidget):
                 _("Toggle Lowercase"), "Ctrl+U",
                 tip=_("Change to lowercase current line or selection"),
                 triggered=self.text_lowercase, context=Qt.WidgetShortcut)
-
         # ----------------------------------------------------------------------
         
         self.win_eol_action = create_action(self,
@@ -1991,14 +1990,14 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def text_uppercase (self):
-        """Change current line or selection to uppercase"""
+        """Change current line or selection to uppercase."""
         editor = self.get_current_editor()
         if editor is not None:
             editor.text_uppercase()
 
     @Slot()
     def text_lowercase(self):
-        """Change current line or selection to lowercase"""
+        """Change current line or selection to lowercase."""
         editor = self.get_current_editor()
         if editor is not None:
             editor.text_lowercase()
@@ -2023,7 +2022,6 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
-
     @Slot()
     def go_to_next_todo(self):
         editor = self.get_current_editor()
