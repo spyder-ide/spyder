@@ -1304,11 +1304,10 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                               original_filename,
-                                               get_edit_filters(),
-                                               get_filter(get_edit_filetypes(),
-                                                          osp.splitext(original_filename)[1])
-                                               )
+                                       original_filename,
+                                       get_edit_filters(),
+                                       get_filter(get_edit_filetypes(),
+                                           osp.splitext(original_filename)[1]))
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
