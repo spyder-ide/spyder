@@ -14,6 +14,7 @@ updating the file tree explorer associated with a project
 # Standard library imports
 import os.path as osp
 import shutil
+
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
@@ -283,19 +284,18 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.restart_consoles()
 
     def delete_project(self):
-        """
-        Delete current project without deleting the files in the directory
-        """
+        """Delete current project without deleting the files in the directory."""
         if self.current_active_project:
             path = self.current_active_project.root_path
             buttons = QMessageBox.Yes|QMessageBox.No
             answer = QMessageBox.warning(self, _("Delete"),
                                  _("Do you really want "
-                                   "to delete <b>%s</b>?<br><br>"
+                                   "to delete <b>{filename}</b>?<br><br>"
                                    "<b>Note:</b> This action will only delete "
                                    "the project. The files are going to be "
                                    "preserved on disk."
-                                   ) % osp.basename(path), buttons)
+                                   ).format(filename=osp.basename(path)),
+                                   buttons)
             if answer == QMessageBox.Yes:
                 try:
                     self.close_project()
@@ -303,9 +303,10 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                 except EnvironmentError as error:
                     action_str = _('delete_project')
                     QMessageBox.critical(self, _("Project Explorer"),
-                                    _("<b>Unable to %s <i>%s</i></b>"
-                                      "<br><br>Error message:<br>%s" )
-                                    % (action_str, path, to_text_string(error)))
+                                    _("<b>Unable to {action} <i>{varpath}</i></b>"
+                                      "<br><br>Error message:<br>{text}" )
+                                    .format(action = action_str, varpath=path, 
+                                    text=to_text_string(error)))
             
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
