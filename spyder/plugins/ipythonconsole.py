@@ -769,16 +769,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.editor = self.main.editor
         
         self.focus_changed.connect(self.main.plugin_focus_changed)
-
-        if self.editor is not None:
-            self.edit_goto.connect(self.editor.load)
-            self.edit_goto[str, int, str, bool].connect(
-                             lambda fname, lineno, word, processevents:
-                                 self.editor.load(fname, lineno, word,
-                                                  processevents=processevents))
-            self.editor.run_in_current_ipyclient.connect(
-                                             self.run_script_in_current_client)
-
+        self.edit_goto.connect(self.editor.load)
+        self.edit_goto[str, int, str, bool].connect(
+                         lambda fname, lineno, word, processevents:
+                             self.editor.load(fname, lineno, word,
+                                              processevents=processevents))
+        self.editor.run_in_current_ipyclient.connect(
+                                         self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
 
