@@ -532,7 +532,22 @@ class DirView(QTreeView):
                               "<br><br>Error message:<br>%s"
                               ) % (action_str, fname, to_text_string(error)))
         return False
-
+    
+    def delete_project(self, pname):
+        """Deletes the .spyproject diretory"""
+        buttons = QMessageBox.Yes|QMessageBox.No
+        answer = QMessageBox.warning(self, _("Delete"),
+                                 _("Do you really want "
+                                   "to delete <b>%s</b>?<br><br>"
+                                   "<b>Note:</b> This action will only delete "
+                                   "the project. The files are going to be "
+                                   "preserved on disk."
+                                   ) % osp.basename(pname), buttons)
+        if answer == QMessageBox.Yes:
+            self.parent_widget.delete_project()
+            return True
+        return False
+        
     @Slot()
     def delete(self, fnames=None):
         """Delete files"""
@@ -541,11 +556,14 @@ class DirView(QTreeView):
         multiple = len(fnames) > 1
         yes_to_all = None
         for fname in fnames:
-            yes_to_all = self.delete_file(fname, multiple, yes_to_all)
-            if yes_to_all is not None and not yes_to_all:
-                # Canceled
-                return
-
+            if osp.isdir(fname) and osp.exists(osp.join(fname,'.spyproject')):
+                self.delete_project(fname)
+            else:    
+                yes_to_all = self.delete_file(fname, multiple, yes_to_all)
+                if yes_to_all is not None and not yes_to_all:
+                    # Canceled
+                    return
+                
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
         try: 

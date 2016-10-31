@@ -13,7 +13,7 @@ updating the file tree explorer associated with a project
 
 # Standard library imports
 import os.path as osp
-
+import shutil
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
@@ -22,7 +22,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox
 # Local imports
 from spyder.config.base import _, get_home_dir
 from spyder.plugins import SpyderPluginMixin
-from spyder.py3compat import is_text_string, getcwd
+from spyder.py3compat import is_text_string, getcwd, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
@@ -93,6 +93,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.close_project_action = create_action(self,
                                     _("Close Project"),
                                     triggered=self.close_project)
+        self.delete_project_action = create_action(self,
+                                    _("Delete Project"),
+                                    triggered=self.delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -106,6 +109,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                             None,
                                             self.open_project_action,
                                             self.close_project_action,
+                                            self.delete_project_action,
                                             None,
                                             self.recent_project_menu,
                                             explorer_action]
@@ -190,6 +194,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         active = bool(self.get_active_project_path())
         self.close_project_action.setEnabled(active)
+        self.delete_project_action.setEnabled(active)
         self.edit_project_preferences_action.setEnabled(active)
 
     def edit_project_preferences(self):
@@ -277,6 +282,31 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.clear()
             self.restart_consoles()
 
+    def delete_project(self):
+        """
+        Delete current project without deleting the files in the directory
+        """
+        if self.current_active_project:
+            path = self.current_active_project.root_path
+            buttons = QMessageBox.Yes|QMessageBox.No
+            answer = QMessageBox.warning(self, _("Delete"),
+                                 _("Do you really want "
+                                   "to delete <b>%s</b>?<br><br>"
+                                   "<b>Note:</b> This action will only delete "
+                                   "the project. The files are going to be "
+                                   "preserved on disk."
+                                   ) % osp.basename(path), buttons)
+            if answer == QMessageBox.Yes:
+                try:
+                    self.close_project()
+                    shutil.rmtree(osp.join(path,'.spyproject'))
+                except EnvironmentError as error:
+                    action_str = _('delete_project')
+                    QMessageBox.critical(self, _("Project Explorer"),
+                                    _("<b>Unable to %s <i>%s</i></b>"
+                                      "<br><br>Error message:<br>%s" )
+                                    % (action_str, path, to_text_string(error)))
+            
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
         self.recent_projects = []
