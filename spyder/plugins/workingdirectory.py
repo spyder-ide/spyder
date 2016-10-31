@@ -298,13 +298,13 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     def previous_directory(self):
         """Back to previous directory"""
         self.histindex -= 1
-        self.chdir(browsing_history=True)
+        self.chdir(directory='', browsing_history=True)
     
     @Slot()
     def next_directory(self):
         """Return to next directory"""
         self.histindex += 1
-        self.chdir(browsing_history=True)
+        self.chdir(directory='', browsing_history=True)
     
     @Slot()
     def parent_directory(self):
@@ -317,8 +317,10 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     def chdir(self, directory, browsing_history=False,
               refresh_explorer=True):
         """Set directory as working directory"""
+        if directory:
+            directory = osp.abspath(to_text_string(directory))
+
         # Working directory history management
-        directory = osp.abspath(to_text_string(directory))
         if browsing_history:
             directory = self.history[self.histindex]
         elif directory in self.history:
@@ -338,8 +340,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             self.set_explorer_cwd.emit(directory)
             self.set_as_current_console_wd()
         self.refresh_findinfiles.emit()
-    
-    @Slot()
+
     def set_as_current_console_wd(self):
         """Set as current console working directory"""
         self.set_current_console_wd.emit(getcwd())
