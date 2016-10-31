@@ -975,7 +975,7 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
         file_menu_actions = [self.new_action,
-			     self.open_last_closed,
+                             self.open_last_closed,
                              self.open_action,
                              self.recent_file_menu,
                              None,
