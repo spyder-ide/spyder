@@ -1993,14 +1993,14 @@ class Editor(SpyderPluginWidget):
         """Change current line or selection to uppercase."""
         editor = self.get_current_editor()
         if editor is not None:
-            editor.text_uppercase()
+            editor.transform_to_uppercase()
 
     @Slot()
     def text_lowercase(self):
         """Change current line or selection to lowercase."""
         editor = self.get_current_editor()
         if editor is not None:
-            editor.text_lowercase()
+            editor.transform_to_lowercase()
 
     @Slot()
     def toggle_comment(self):

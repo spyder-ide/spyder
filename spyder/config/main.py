@@ -357,8 +357,8 @@ DEFAULTS = [
               'editor/copy line': "Ctrl+Alt+Down" if WIN else \
                                   "Shift+Alt+Down",
               'editor/delete line': 'Ctrl+D',
-              'editor/upper selected text': 'Ctrl+Shift+U',
-              'editor/lower selected text': 'Ctrl+U',
+              'editor/transform to uppercase': 'Ctrl+Shift+U',
+              'editor/transform to lowercase': 'Ctrl+U',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to definition': "Ctrl+G",
