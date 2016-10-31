@@ -39,7 +39,8 @@ from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
-from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import (create_action, add_actions, 
+                                    add_shortcut_to_tooltip)
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -1943,9 +1944,9 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def open_last_closed(self):
-	""" Reopens the last closed tab """
-	file_to_open = self.recent_files[-1]
-	self.load(file_to_open)
+        """ Reopens the last closed tab """
+        file_to_open = self.recent_files[-1]
+        self.load(file_to_open)
     
     #------ Explorer widget
     def close_file_from_name(self, filename):
