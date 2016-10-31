@@ -841,7 +841,7 @@ class IPythonConsole(SpyderPluginWidget):
                   ) % osp.basename(filename), QMessageBox.Ok)
 
     def set_current_client_working_directory(self, directory):
-        """Set current client working directory"""
+        """Set current client working directory."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
             directory = encoding.to_unicode_from_fs(directory)

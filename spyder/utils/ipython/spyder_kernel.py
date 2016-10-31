@@ -207,7 +207,7 @@ class SpyderKernel(IPythonKernel):
             return getsource(obj)
 
     def set_cwd(self, dirname):
-        """Set current working directory"""
+        """Set current working directory."""
         return os.chdir(dirname)
 
     # -- Private API ---------------------------------------------------
