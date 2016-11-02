@@ -1338,8 +1338,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, minmax=False,
                  shellwidget=None,
-                 remove_values_func=None,
-                 copy_value_func=None, is_list_func=None, get_len_func=None,
+                 is_list_func=None, get_len_func=None,
                  is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
@@ -1349,9 +1348,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.remote_editing_enabled = None
         self.shellwidget = shellwidget
-
-        self.remove_values = remove_values_func
-        self.copy_value = copy_value_func
 
         self.is_data_frame = is_data_frame_func
         self.is_series = is_series_func
@@ -1392,6 +1388,15 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         value = serialize_object(value)
         self.shellwidget.set_value(name, value)
+        self.shellwidget.refresh_namespacebrowser()
+
+    def remove_values(self, names):
+        for name in names:
+            self.shellwidget.remove_value(name)
+        self.shellwidget.refresh_namespacebrowser()
+
+    def copy_value(self, orig_name, new_name):
+        self.shellwidget.copy_value(orig_name, new_name)
         self.shellwidget.refresh_namespacebrowser()
 
     def setup_menu(self, minmax):

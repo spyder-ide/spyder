@@ -104,8 +104,6 @@ class NamespaceBrowser(QWidget):
                         minmax=minmax,
                         remote_editing=remote_editing,
                         shellwidget=self.shellwidget,
-                        remove_values_func=self.remove_values,
-                        copy_value_func=self.copy_value,
                         is_list_func=self.is_list,
                         get_len_func=self.get_len,
                         is_array_func=self.is_array,
@@ -258,15 +256,6 @@ class NamespaceBrowser(QWidget):
         self.var_properties = properties
 
     #------ Remote commands ------------------------------------
-    def remove_values(self, names):
-        for name in names:
-            self.shellwidget.remove_value(name)
-        self.refresh_table()
-
-    def copy_value(self, orig_name, new_name):
-        self.shellwidget.copy_value(orig_name, new_name)
-        self.refresh_table()
-
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
         return self.var_properties[name]['is_list']
