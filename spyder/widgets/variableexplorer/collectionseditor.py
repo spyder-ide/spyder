@@ -1309,14 +1309,6 @@ class CollectionsEditor(QDialog):
         return self.data_copy
 
 
-class DictEditor(CollectionsEditor):
-    def __init__(self, parent=None):
-        warnings.warn("`DictEditor` has been renamed to `CollectionsEditor` in "
-                      "Spyder 3. Please use `CollectionsEditor` instead",
-                      RuntimeWarning)
-        CollectionsEditor.__init__(self, parent)
-
-
 #----Remote versions of CollectionsDelegate and CollectionsEditorTableView
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
