@@ -132,11 +132,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     # ----- Public API --------------------------------------------------------
     def add_shellwidget(self, shellwidget):
         shellwidget_id = id(shellwidget)
-        # Add shell only once: this method may be called two times in a row
-        # by the External console plugin (dev. convenience)
-        from spyder.widgets.externalshell import systemshell
-        if isinstance(shellwidget, systemshell.ExternalSystemShell):
-            return
         if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)

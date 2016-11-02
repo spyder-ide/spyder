@@ -12,7 +12,6 @@ This is the main widget used in the Variable Explorer plugin
 
 # Standard library imports
 import os.path as osp
-import socket
 
 # Third library imports (qtpy)
 from qtpy.compat import getsavefilename, getopenfilenames
@@ -38,9 +37,6 @@ from spyder.utils.misc import fix_reference_name
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
-from spyder.widgets.externalshell.monitor import (
-    communicate, monitor_copy_global, monitor_del_global, monitor_get_global,
-    monitor_load_globals, monitor_save_globals, monitor_set_global)
 from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
@@ -90,9 +86,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action = None
 
         self.filename = None
-
-        # For IPython clients
-        self.is_ipyclient = False
         self.var_properties = {}
 
     def setup(self, check_all=None, exclude_private=None,
@@ -187,22 +180,8 @@ class NamespaceBrowser(QWidget):
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported, autorefresh):
         """Setup toolbar"""
-        self.setup_in_progress = True                          
-                          
+        self.setup_in_progress = True
         toolbar = []
-
-        # There is no need of refreshes for ipyclients
-        if not self.is_ipyclient:
-            refresh_button = create_toolbutton(self, text=_('Refresh'),
-                                               icon=ima.icon('reload'),
-                                               triggered=self.refresh_table)
-            self.auto_refresh_button = create_toolbutton(self,
-                                              text=_('Refresh periodically'),
-                                              icon=ima.icon('auto_reload'),
-                                              toggled=self.toggle_auto_refresh)
-            self.auto_refresh_button.setChecked(autorefresh)
-        else:
-            refresh_button = self.auto_refresh_button = None
 
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
@@ -216,12 +195,8 @@ class NamespaceBrowser(QWidget):
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
 
-        if self.is_ipyclient:
-            toolbar += [load_button, self.save_button, save_as_button]
-        else:
-            toolbar += [refresh_button, self.auto_refresh_button, load_button,
-                        self.save_button, save_as_button]
-        
+        toolbar += [load_button, self.save_button, save_as_button]
+
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
                 tip=_("Exclude references which name starts"
@@ -260,13 +235,8 @@ class NamespaceBrowser(QWidget):
     def option_changed(self, option, value):
         """Option has changed"""
         setattr(self, to_text_string(option), value)
-        if self.is_ipyclient:
-            self.shellwidget.set_namespace_view_settings()
-            self.refresh_table()
-        else:
-            settings = self.get_view_settings()
-            communicate(self._get_sock(),
-                        'set_remote_view_settings()', settings=[settings])
+        self.shellwidget.set_namespace_view_settings()
+        self.refresh_table()
 
     def visibility_changed(self, enable):
         """Notify the widget whether its container (the namespace browser
@@ -284,18 +254,6 @@ class NamespaceBrowser(QWidget):
         #     self.refresh_table()
         pass
 
-    @Slot(bool)
-    def toggle_auto_refresh(self, state):
-        """Toggle auto refresh state"""
-        self.autorefresh = state
-        if not self.setup_in_progress and not self.is_ipyclient:
-            communicate(self._get_sock(),
-                        "set_monitor_auto_refresh(%r)" % state)
-
-    def _get_sock(self):
-        """Return socket connection"""
-        return self.shellwidget.introspection_socket
-
     def get_view_settings(self):
         """Return dict editor view settings"""
         settings = {}
@@ -307,18 +265,7 @@ class NamespaceBrowser(QWidget):
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            if self.is_ipyclient:
-                self.shellwidget.refresh_namespacebrowser()
-            else:
-                if self.shellwidget.is_running():
-                    sock = self._get_sock()
-                    if sock is None:
-                        return
-                    try:
-                        communicate(sock, "refresh()")
-                    except socket.error:
-                        # Process was terminated before calling this method
-                        pass
+            self.shellwidget.refresh_namespacebrowser()
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
@@ -331,138 +278,71 @@ class NamespaceBrowser(QWidget):
 
     #------ Remote commands ------------------------------------
     def get_value(self, name):
-        if self.is_ipyclient:
-            value = self.shellwidget.get_value(name)
-
-            # Reset temporal variable where value is saved to
-            # save memory
-            self.shellwidget._kernel_value = None
-        else:
-            value = monitor_get_global(self._get_sock(), name)
-            if value is None:
-                if communicate(self._get_sock(), '%s is not None' % name):
-                    import pickle
-                    msg = to_text_string(_("Object <b>%s</b> is not picklable")
-                                         % name)
-                    raise pickle.PicklingError(msg)
+        value = self.shellwidget.get_value(name)
+        # Reset temporal variable where value is saved to
+        # save memory
+        self.shellwidget._kernel_value = None
         return value
-        
+
     def set_value(self, name, value):
-        if self.is_ipyclient:
-            value = serialize_object(value)
-            self.shellwidget.set_value(name, value)
-        else:
-            monitor_set_global(self._get_sock(), name, value)
+        value = serialize_object(value)
+        self.shellwidget.set_value(name, value)
         self.refresh_table()
-        
+
     def remove_values(self, names):
         for name in names:
-            if self.is_ipyclient:
-                self.shellwidget.remove_value(name)
-            else:
-                monitor_del_global(self._get_sock(), name)
+            self.shellwidget.remove_value(name)
         self.refresh_table()
-        
+
     def copy_value(self, orig_name, new_name):
-        if self.is_ipyclient:
-            self.shellwidget.copy_value(orig_name, new_name)
-        else:
-            monitor_copy_global(self._get_sock(), orig_name, new_name)
+        self.shellwidget.copy_value(orig_name, new_name)
         self.refresh_table()
-        
+
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['is_list']
-        else:
-            return communicate(self._get_sock(),
-                               'isinstance(%s, (tuple, list))' % name)
-        
+        return self.var_properties[name]['is_list']
+
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['is_dict']
-        else:
-            return communicate(self._get_sock(), 'isinstance(%s, dict)' % name)
-        
+        return self.var_properties[name]['is_dict']
+
     def get_len(self, name):
         """Return sequence length"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['len']
-        else:
-            return communicate(self._get_sock(), "len(%s)" % name)
-        
+        return self.var_properties[name]['len']
+
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['is_array']
-        else:
-            return communicate(self._get_sock(), 'is_array("%s")' % name)
-        
+        return self.var_properties[name]['is_array']
+
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['is_image']
-        else:
-            return communicate(self._get_sock(), 'is_image("%s")' % name)
+        return self.var_properties[name]['is_image']
 
     def is_data_frame(self, name):
         """Return True if variable is a DataFrame"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['is_data_frame']
-        else:
-            return communicate(self._get_sock(),
-                               "isinstance(globals()['%s'], DataFrame)" % name)
+        return self.var_properties[name]['is_data_frame']
 
     def is_series(self, name):
         """Return True if variable is a Series"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['is_series']
-        else:
-            return communicate(self._get_sock(),
-                               "isinstance(globals()['%s'], Series)" % name)
+        return self.var_properties[name]['is_series']
 
     def get_array_shape(self, name):
         """Return array's shape"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['array_shape']
-        else:
-            return communicate(self._get_sock(), "%s.shape" % name)
-        
+        return self.var_properties[name]['array_shape']
+
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        if self.is_ipyclient:
-            return self.var_properties[name]['array_ndim']
-        else:
-            return communicate(self._get_sock(), "%s.ndim" % name)
-        
+        return self.var_properties[name]['array_ndim']
+
     def plot(self, name, funcname):
-        if self.is_ipyclient:
-            self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
-        else:
-            command = "import spyder.pyplot; "\
-                  "__fig__ = spyder.pyplot.figure(); "\
-                  "__items__ = getattr(spyder.pyplot, '%s')(%s); "\
-                  "spyder.pyplot.show(); "\
-                  "del __fig__, __items__;" % (funcname, name)
-            self.shellwidget.send_to_process(command)
-        
+        self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
+
     def imshow(self, name):
-        if self.is_ipyclient:
-            self.shellwidget.execute("%%varexp --imshow %s" % name)
-        else:
-            command = "import spyder.pyplot; " \
-                  "__fig__ = spyder.pyplot.figure(); " \
-                  "__items__ = spyder.pyplot.imshow(%s); " \
-                  "spyder.pyplot.show(); del __fig__, __items__;" % name
-            self.shellwidget.send_to_process(command)
-        
+        self.shellwidget.execute("%%varexp --imshow %s" % name)
+
     def show_image(self, name):
         command = "%s.show()" % name
-        if self.is_ipyclient:
-            self.shellwidget.execute(command)
-        else:
-            self.shellwidget.send_to_process(command)
+        self.shellwidget.execute(command)
 
     def oedit(self, name):
         command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
@@ -538,13 +418,8 @@ class NamespaceBrowser(QWidget):
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                if self.is_ipyclient:
-                    error_message = self.shellwidget.load_data(self.filename,
-                                                               ext)
-                    self.shellwidget._kernel_reply = None
-                else:
-                    error_message = monitor_load_globals(self._get_sock(),
-                                                         self.filename, ext)
+                error_message = self.shellwidget.load_data(self.filename, ext)
+                self.shellwidget._kernel_reply = None
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
@@ -571,13 +446,10 @@ class NamespaceBrowser(QWidget):
                 return False
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
-        if self.is_ipyclient:
-            error_message = self.shellwidget.save_namespace(self.filename)
-            self.shellwidget._kernel_reply = None
-        else:
-            settings = self.get_view_settings()
-            error_message = monitor_save_globals(self._get_sock(), settings,
-                                             filename)
+
+        error_message = self.shellwidget.save_namespace(self.filename)
+        self.shellwidget._kernel_reply = None
+
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
