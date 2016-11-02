@@ -23,6 +23,9 @@ import sys
 import warnings
 
 # Third party imports
+import ipykernel.pickleutil
+from ipykernel.serialize import serialize_object
+
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
@@ -55,6 +58,16 @@ if ndarray is not FakeObject:
 
 if DataFrame is not FakeObject:
     from spyder.widgets.variableexplorer.dataframeeditor import DataFrameEditor
+
+
+# XXX --- Disable canning for Numpy arrays for now ---
+# This allows getting values between a Python 3 frontend
+# and a Python 2 kernel, and viceversa, for several types of
+# arrays.
+# See this link for interesting ideas on how to solve this
+# in the future:
+# http://stackoverflow.com/q/30698004/438386
+ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 LARGE_NROWS = 100
@@ -1307,27 +1320,25 @@ class DictEditor(CollectionsEditor):
 #----Remote versions of CollectionsDelegate and CollectionsEditorTableView
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
-    def __init__(self, parent=None, get_value_func=None, set_value_func=None):
+    def __init__(self, parent=None):
         CollectionsDelegate.__init__(self, parent)
-        self.get_value_func = get_value_func
-        self.set_value_func = set_value_func
 
     def get_value(self, index):
         if index.isValid():
             name = index.model().keys[index.row()]
-            return self.get_value_func(name)
+            return self.parent().get_value(name)
     
     def set_value(self, index, value):
         if index.isValid():
             name = index.model().keys[index.row()]
-            self.set_value_func(name, value)
+            self.parent().new_value(name, value)
 
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, minmax=False,
-                 get_value_func=None, set_value_func=None,
-                 new_value_func=None, remove_values_func=None,
+                 shellwidget=None,
+                 remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
                  is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
@@ -1337,10 +1348,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         BaseTableView.__init__(self, parent)
 
         self.remote_editing_enabled = None
+        self.shellwidget = shellwidget
 
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
-        self.new_value = new_value_func
 
         self.is_data_frame = is_data_frame_func
         self.is_series = is_series_func
@@ -1364,12 +1375,24 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                                       minmax=minmax,
                                       remote=True)
         self.setModel(self.model)
-        self.delegate = RemoteCollectionsDelegate(self, get_value_func,
-                                                  set_value_func)
+
+        self.delegate = RemoteCollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
+
+    def get_value(self, name):
+        value = self.shellwidget.get_value(name)
+        # Reset temporal variable where value is saved to
+        # save memory
+        self.shellwidget._kernel_value = None
+        return value
+
+    def new_value(self, name, value):
+        value = serialize_object(value)
+        self.shellwidget.set_value(name, value)
+        self.shellwidget.refresh_namespacebrowser()
 
     def setup_menu(self, minmax):
         """Setup context menu"""

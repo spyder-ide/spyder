@@ -20,13 +20,6 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
-# Third party imports (others)
-try:
-    import ipykernel.pickleutil
-    from ipykernel.serialize import serialize_object
-except ImportError:
-    serialize_object = None
-
 # Local imports
 from spyder.config.base import _, get_supported_types
 from spyder.py3compat import is_text_string, getcwd, to_text_string
@@ -44,16 +37,6 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
-
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-if serialize_object is not None:
-    ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 class NamespaceBrowser(QWidget):
@@ -120,9 +103,7 @@ class NamespaceBrowser(QWidget):
         self.editor = RemoteCollectionsEditorTableView(self, None,
                         minmax=minmax,
                         remote_editing=remote_editing,
-                        get_value_func=self.get_value,
-                        set_value_func=self.set_value,
-                        new_value_func=self.set_value,
+                        shellwidget=self.shellwidget,
                         remove_values_func=self.remove_values,
                         copy_value_func=self.copy_value,
                         is_list_func=self.is_list,
@@ -277,18 +258,6 @@ class NamespaceBrowser(QWidget):
         self.var_properties = properties
 
     #------ Remote commands ------------------------------------
-    def get_value(self, name):
-        value = self.shellwidget.get_value(name)
-        # Reset temporal variable where value is saved to
-        # save memory
-        self.shellwidget._kernel_value = None
-        return value
-
-    def set_value(self, name, value):
-        value = serialize_object(value)
-        self.shellwidget.set_value(name, value)
-        self.refresh_table()
-
     def remove_values(self, names):
         for name in names:
             self.shellwidget.remove_value(name)
@@ -412,7 +381,7 @@ class NamespaceBrowser(QWidget):
                                   varname=fix_reference_name(base_name))
                     if editor.exec_():
                         var_name, clip_data = editor.get_data()
-                        self.set_value(var_name, clip_data)
+                        self.editor.new_value(var_name, clip_data)
                 except Exception as error:
                     error_message = str(error)
             else:
