@@ -205,22 +205,6 @@ class NamespaceBrowser(QWidget):
         self.shellwidget.set_namespace_view_settings()
         self.refresh_table()
 
-    def visibility_changed(self, enable):
-        """Notify the widget whether its container (the namespace browser
-        plugin is visible or not"""
-        # This is slowing down Spyder a lot if too much data is present in
-        # the Variable Explorer, and users give focus to it after being hidden.
-        # This also happens when the Variable Explorer is visible and users
-        # give focus to Spyder after using another application (like Chrome
-        # or Firefox).
-        # That's why we've decided to remove this feature
-        # Fixes Issue 2593
-        #
-        # self.is_visible = enable
-        # if enable:
-        #     self.refresh_table()
-        pass
-
     def get_view_settings(self):
         """Return dict editor view settings"""
         settings = {}
@@ -228,7 +212,6 @@ class NamespaceBrowser(QWidget):
             settings[name] = getattr(self, name)
         return settings
 
-    @Slot()
     def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
