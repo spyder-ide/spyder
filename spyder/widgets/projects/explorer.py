@@ -236,6 +236,9 @@ class ProjectExplorerWidget(QWidget):
      
         # Signal to delete the project
         self.treewidget.delete_project.connect(self.delete_project)
+    
+    def delete_project(self):
+        self.sig_delete_project.emit()
         
 #==============================================================================
 # Tests
