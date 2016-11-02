@@ -70,6 +70,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         self.setup_project(self.get_active_project_path())
+        
+        self.treewidget.delete_project.connect(self.delete_project)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -292,7 +294,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                  _("Do you really want "
                                    "to delete <b>{filename}</b>?<br><br>"
                                    "<b>Note:</b> This action will only delete "
-                                   "the project. The files are going to be "
+                                   "the project. Its files are going to be "
                                    "preserved on disk."
                                    ).format(filename=osp.basename(path)),
                                    buttons)
@@ -301,12 +303,10 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                     self.close_project()
                     shutil.rmtree(osp.join(path,'.spyproject'))
                 except EnvironmentError as error:
-                    action_str = _('delete_project')
                     QMessageBox.critical(self, _("Project Explorer"),
-                                    _("<b>Unable to {action} <i>{varpath}</i></b>"
-                                      "<br><br>Error message:<br>{text}" )
-                                    .format(action = action_str, varpath=path, 
-                                    text=to_text_string(error)))
+                                    _("<b>Unable to delete <i>{varpath}</i></b>"
+                                      "<br><br>Error message:<br>{error}" )
+                                    .format(varpath=path,error=to_text_string(error)))
             
     def clear_recent_projects(self):
         """Clear the list of recent projects"""

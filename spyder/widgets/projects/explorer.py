@@ -30,6 +30,8 @@ from spyder.widgets.explorer import FilteredDirView
 
 class ExplorerTreeWidget(FilteredDirView):
     """Explorer tree widget"""
+    
+    delete_project = Signal()
 
     def __init__(self, parent, show_hscrollbar=True):
         FilteredDirView.__init__(self, parent)
@@ -149,12 +151,29 @@ class ExplorerTreeWidget(FilteredDirView):
                                        "<br><br>Error message:<br>%s"
                                        ) % (action_str, src,
                                             to_text_string(error)))
+   
+    @Slot()
+    def delete(self, fnames=None):
+        """Delete files"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        multiple = len(fnames) > 1
+        yes_to_all = None
+        for fname in fnames:
+            if fname == self.proxymodel.path_list[0]:
+                self.delete_project.emit()
+            else:
+                yes_to_all = self.delete_file(fname, multiple, yes_to_all)
+                if yes_to_all is not None and not yes_to_all:
+                    # Canceled
+                    break
 
 
 class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
+    sig_delete_project = Signal()
 
     def __init__(self, parent, name_filters=[],
                  show_all=True, show_hscrollbar=True):
@@ -211,11 +230,13 @@ class ProjectExplorerWidget(QWidget):
         self.emptywidget.hide()
         self.treewidget.show()
         self.layout().addWidget(self.treewidget)
-
+        
         # Setup the directory shown by the tree
         self.set_project_dir(directory)
-
-
+     
+        # Signal to delete the project
+        self.treewidget.delete_project.connect(self.delete_project)
+        
 #==============================================================================
 # Tests
 #==============================================================================

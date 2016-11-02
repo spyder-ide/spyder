@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import print_function
 from __future__ import with_statement
 import os
 import os.path as osp
@@ -142,6 +143,8 @@ class DirView(QTreeView):
         self.sortByColumn(0, Qt.AscendingOrder)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
+        # Disable the view of .spyproject. 
+        self.filter_directories()
         
     def set_name_filters(self, name_filters):
         """Set name filters"""
@@ -191,7 +194,7 @@ class DirView(QTreeView):
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
-
+    
     def reset_icon_provider(self):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
@@ -533,10 +536,6 @@ class DirView(QTreeView):
                               ) % (action_str, fname, to_text_string(error)))
         return False
     
-    def delete_project(self, pname):
-        """Delete the .spyproject directory."""
-        self.parent_widget.delete_project()
-                
     @Slot()
     def delete(self, fnames=None):
         """Delete files"""
@@ -545,8 +544,14 @@ class DirView(QTreeView):
         multiple = len(fnames) > 1
         yes_to_all = None
         for fname in fnames:
-            if osp.isdir(fname) and osp.exists(osp.join(fname,'.spyproject')):
-                self.delete_project(fname)
+            spyproject_path = osp.join(fname,'.spyproject')
+            if osp.isdir(fname) and osp.exists(spyproject_path):
+                QMessageBox.information(self, _('Archive Explorer'),
+                                        _("The current directory contains a "
+                                        "project.<br><br>If you want to delete"
+                                        " the project, please go to "
+                                        "<b>Projects</b> &raquo; <b>Delete "
+                                        "Project</b>"))
             else:    
                 yes_to_all = self.delete_file(fname, multiple, yes_to_all)
                 if yes_to_all is not None and not yes_to_all:
@@ -821,7 +826,12 @@ class DirView(QTreeView):
                                                   self.restore_directory_state)
                 self.fsmodel.directoryLoaded.connect(
                                                 self.follow_directories_loaded)
-
+                
+    def filter_directories(self):
+        """Filter the directories to show"""
+        index = self.get_index('.spyproject')
+        if index is not None:
+            self.setRowHidden(index.row(), index.parent(), True)
 
 class ProxyModel(QSortFilterProxyModel):
     """Proxy model: filters tree view"""
@@ -915,8 +925,9 @@ class FilteredDirView(DirView):
         for i in [1, 2, 3]:
             self.hideColumn(i)
         self.setHeaderHidden(True)
-
-
+        # Disable the view of .spyproject. 
+        self.filter_directories()
+      
 class ExplorerTreeWidget(DirView):
     """File/directory explorer tree widget
     show_cd_only: Show current directory only
@@ -994,6 +1005,8 @@ class ExplorerTreeWidget(DirView):
                              self.histindex is not None and self.histindex > 0)
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
+        # Disable the view of .spyproject. 
+        self.filter_directories()
             
     #---- Events
     def directory_clicked(self, dirname):
@@ -1052,7 +1065,6 @@ class ExplorerTreeWidget(DirView):
             QMessageBox.critical(self.parent_widget, "Error",
                                  _("You don't have the right permissions to "
                                    "open this directory"))
-
 
 class ExplorerWidget(QWidget):
     """Explorer widget"""
