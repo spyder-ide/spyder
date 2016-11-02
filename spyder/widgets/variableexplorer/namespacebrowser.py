@@ -69,7 +69,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action = None
 
         self.filename = None
-        self.var_properties = {}
 
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
@@ -104,15 +103,6 @@ class NamespaceBrowser(QWidget):
                         minmax=minmax,
                         remote_editing=remote_editing,
                         shellwidget=self.shellwidget,
-                        is_list_func=self.is_list,
-                        get_len_func=self.get_len,
-                        is_array_func=self.is_array,
-                        is_image_func=self.is_image,
-                        is_dict_func=self.is_dict,
-                        is_data_frame_func=self.is_data_frame,
-                        is_series_func=self.is_series,
-                        get_array_shape_func=self.get_array_shape,
-                        get_array_ndim_func=self.get_array_ndim,
                         oedit_func=self.oedit,
                         plot_func=self.plot, imshow_func=self.imshow,
                         show_image_func=self.show_image)
@@ -253,45 +243,9 @@ class NamespaceBrowser(QWidget):
 
     def set_var_properties(self, properties):
         """Set properties of variables"""
-        self.var_properties = properties
+        self.editor.var_properties = properties
 
     #------ Remote commands ------------------------------------
-    def is_list(self, name):
-        """Return True if variable is a list or a tuple"""
-        return self.var_properties[name]['is_list']
-
-    def is_dict(self, name):
-        """Return True if variable is a dictionary"""
-        return self.var_properties[name]['is_dict']
-
-    def get_len(self, name):
-        """Return sequence length"""
-        return self.var_properties[name]['len']
-
-    def is_array(self, name):
-        """Return True if variable is a NumPy array"""
-        return self.var_properties[name]['is_array']
-
-    def is_image(self, name):
-        """Return True if variable is a PIL.Image image"""
-        return self.var_properties[name]['is_image']
-
-    def is_data_frame(self, name):
-        """Return True if variable is a DataFrame"""
-        return self.var_properties[name]['is_data_frame']
-
-    def is_series(self, name):
-        """Return True if variable is a Series"""
-        return self.var_properties[name]['is_series']
-
-    def get_array_shape(self, name):
-        """Return array's shape"""
-        return self.var_properties[name]['array_shape']
-
-    def get_array_ndim(self, name):
-        """Return array's ndim"""
-        return self.var_properties[name]['array_ndim']
-
     def plot(self, name, funcname):
         self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
 

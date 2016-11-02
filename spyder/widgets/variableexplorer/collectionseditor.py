@@ -1338,26 +1338,14 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, minmax=False,
                  shellwidget=None,
-                 is_list_func=None, get_len_func=None,
-                 is_array_func=None, is_image_func=None, is_dict_func=None,
-                 get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
-                 is_data_frame_func=None, is_series_func=None,
                  show_image_func=None, remote_editing=False):
         BaseTableView.__init__(self, parent)
 
         self.remote_editing_enabled = None
         self.shellwidget = shellwidget
+        self.var_properties = {}
 
-        self.is_data_frame = is_data_frame_func
-        self.is_series = is_series_func
-        self.is_list = is_list_func
-        self.get_len = get_len_func
-        self.is_array = is_array_func
-        self.is_image = is_image_func
-        self.is_dict = is_dict_func
-        self.get_array_shape = get_array_shape_func
-        self.get_array_ndim = get_array_ndim_func
         self.oedit = oedit_func
         self.plot = plot_func
         self.imshow = imshow_func
@@ -1398,6 +1386,42 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def copy_value(self, orig_name, new_name):
         self.shellwidget.copy_value(orig_name, new_name)
         self.shellwidget.refresh_namespacebrowser()
+
+    def is_list(self, name):
+        """Return True if variable is a list or a tuple"""
+        return self.var_properties[name]['is_list']
+
+    def is_dict(self, name):
+        """Return True if variable is a dictionary"""
+        return self.var_properties[name]['is_dict']
+
+    def get_len(self, name):
+        """Return sequence length"""
+        return self.var_properties[name]['len']
+
+    def is_array(self, name):
+        """Return True if variable is a NumPy array"""
+        return self.var_properties[name]['is_array']
+
+    def is_image(self, name):
+        """Return True if variable is a PIL.Image image"""
+        return self.var_properties[name]['is_image']
+
+    def is_data_frame(self, name):
+        """Return True if variable is a DataFrame"""
+        return self.var_properties[name]['is_data_frame']
+
+    def is_series(self, name):
+        """Return True if variable is a Series"""
+        return self.var_properties[name]['is_series']
+
+    def get_array_shape(self, name):
+        """Return array's shape"""
+        return self.var_properties[name]['array_shape']
+
+    def get_array_ndim(self, name):
+        """Return array's ndim"""
+        return self.var_properties[name]['array_ndim']
 
     def setup_menu(self, minmax):
         """Setup context menu"""
