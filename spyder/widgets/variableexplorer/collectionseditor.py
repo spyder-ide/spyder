@@ -1336,17 +1336,14 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, minmax=False,
-                 shellwidget=None,
-                 oedit_func=None, remote_editing=False):
+    def __init__(self, parent, data, minmax=False, shellwidget=None,
+                 remote_editing=False):
         BaseTableView.__init__(self, parent)
 
         self.remote_editing_enabled = None
         self.shellwidget = shellwidget
         self.var_properties = {}
 
-        self.oedit = oedit_func
-        
         self.dictfilter = None
         self.model = None
         self.delegate = None
@@ -1428,6 +1425,11 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def show_image(self, name):
         command = "%s.show()" % name
         self.shellwidget.execute(command)
+
+    def oedit(self, name):
+        command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
+                  "oedit('%s', modal=False, namespace=locals());" % name
+        self.shellwidget.send_to_process(command)
 
     def setup_menu(self, minmax):
         """Setup context menu"""

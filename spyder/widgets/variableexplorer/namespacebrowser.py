@@ -99,11 +99,11 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
             return
 
-        self.editor = RemoteCollectionsEditorTableView(self, None,
+        self.editor = RemoteCollectionsEditorTableView(self,
+                        data=None,
                         minmax=minmax,
-                        remote_editing=remote_editing,
                         shellwidget=self.shellwidget,
-                        oedit_func=self.oedit)
+                        remote_editing=remote_editing)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
 
@@ -242,12 +242,6 @@ class NamespaceBrowser(QWidget):
     def set_var_properties(self, properties):
         """Set properties of variables"""
         self.editor.var_properties = properties
-
-    #------ Remote commands ------------------------------------
-    def oedit(self, name):
-        command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
-                  "oedit('%s', modal=False, namespace=locals());" % name
-        self.shellwidget.send_to_process(command)
 
     #------ Set, load and save data -------------------------------------------
     def set_data(self, data):
