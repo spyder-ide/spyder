@@ -1338,8 +1338,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, minmax=False,
                  shellwidget=None,
-                 oedit_func=None, plot_func=None, imshow_func=None,
-                 show_image_func=None, remote_editing=False):
+                 oedit_func=None, remote_editing=False):
         BaseTableView.__init__(self, parent)
 
         self.remote_editing_enabled = None
@@ -1347,9 +1346,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.var_properties = {}
 
         self.oedit = oedit_func
-        self.plot = plot_func
-        self.imshow = imshow_func
-        self.show_image = show_image_func
         
         self.dictfilter = None
         self.model = None
@@ -1422,6 +1418,16 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def get_array_ndim(self, name):
         """Return array's ndim"""
         return self.var_properties[name]['array_ndim']
+
+    def plot(self, name, funcname):
+        self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
+
+    def imshow(self, name):
+        self.shellwidget.execute("%%varexp --imshow %s" % name)
+
+    def show_image(self, name):
+        command = "%s.show()" % name
+        self.shellwidget.execute(command)
 
     def setup_menu(self, minmax):
         """Setup context menu"""

@@ -103,9 +103,7 @@ class NamespaceBrowser(QWidget):
                         minmax=minmax,
                         remote_editing=remote_editing,
                         shellwidget=self.shellwidget,
-                        oedit_func=self.oedit,
-                        plot_func=self.plot, imshow_func=self.imshow,
-                        show_image_func=self.show_image)
+                        oedit_func=self.oedit)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
 
@@ -246,16 +244,6 @@ class NamespaceBrowser(QWidget):
         self.editor.var_properties = properties
 
     #------ Remote commands ------------------------------------
-    def plot(self, name, funcname):
-        self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
-
-    def imshow(self, name):
-        self.shellwidget.execute("%%varexp --imshow %s" % name)
-
-    def show_image(self, name):
-        command = "%s.show()" % name
-        self.shellwidget.execute(command)
-
     def oedit(self, name):
         command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
