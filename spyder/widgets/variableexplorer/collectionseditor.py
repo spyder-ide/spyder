@@ -20,12 +20,10 @@ Collections (i.e. dictionary, list and tuple) editor widget and dialog
 from __future__ import print_function
 import datetime
 import sys
-import warnings
 
 # Third party imports
 import ipykernel.pickleutil
 from ipykernel.serialize import serialize_object
-
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
@@ -1355,6 +1353,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     #------ Remote/local API --------------------------------------------------
     def get_value(self, name):
+        """Get the value of a variable"""
         value = self.shellwidget.get_value(name)
         # Reset temporal variable where value is saved to
         # save memory
@@ -1362,16 +1361,19 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         return value
 
     def new_value(self, name, value):
+        """Create new value in data"""
         value = serialize_object(value)
         self.shellwidget.set_value(name, value)
         self.shellwidget.refresh_namespacebrowser()
 
     def remove_values(self, names):
+        """Remove values from data"""
         for name in names:
             self.shellwidget.remove_value(name)
         self.shellwidget.refresh_namespacebrowser()
 
     def copy_value(self, orig_name, new_name):
+        """Copy value"""
         self.shellwidget.copy_value(orig_name, new_name)
         self.shellwidget.refresh_namespacebrowser()
 
@@ -1412,16 +1414,20 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         return self.var_properties[name]['array_ndim']
 
     def plot(self, name, funcname):
+        """Plot item"""
         self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
 
     def imshow(self, name):
+        """Show item's image"""
         self.shellwidget.execute("%%varexp --imshow %s" % name)
 
     def show_image(self, name):
+        """Show image (item is a PIL image)"""
         command = "%s.show()" % name
         self.shellwidget.execute(command)
 
     def oedit(self, name):
+        """Edit item"""
         command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
