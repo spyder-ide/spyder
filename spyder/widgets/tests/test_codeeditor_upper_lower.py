@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 31 17:39:37 2016
-
-@author: wallas
-"""
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+#
 
 # Third party imports
 from qtpy.QtCore import Qt

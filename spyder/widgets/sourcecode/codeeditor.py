@@ -539,10 +539,14 @@ class CodeEditor(TextEditBaseWidget):
                                        name='Blockcomment', parent=self)
         unblockcomment = config_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
-        transform_uppercase = config_shortcut(self.transform_to_uppercase, context='Editor',
-                                 name='Transform to uppercase', parent=self)
-        transform_lowercase = config_shortcut(self.transform_to_lowercase, context='Editor',
-                                 name='Transform to lowercase', parent=self)
+        transform_uppercase = config_shortcut(self.transform_to_uppercase,
+                                              context='Editor',
+                                              name='Transform to uppercase',
+                                              parent=self)
+        transform_lowercase = config_shortcut(self.transform_to_lowercase,
+                                              context='Editor',
+                                              name='Transform to lowercase',
+                                              parent=self)
 
         def cb_maker(attr):
             """Make a callback for cursor move event type, (e.g. "Start")
