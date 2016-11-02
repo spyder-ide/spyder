@@ -706,7 +706,7 @@ class BaseTableView(QTableView):
                      None, resize_action])
         return menu
     
-    #------ Remote/local API ---------------------------------------------------
+    #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
         raise NotImplementedError
@@ -762,7 +762,7 @@ class BaseTableView(QTableView):
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         raise NotImplementedError
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
             
     def refresh_menu(self):
         """Refresh context menu"""
@@ -1123,7 +1123,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.setup_table()
         self.menu = self.setup_menu(minmax)
     
-    #------ Remote/local API ---------------------------------------------------
+    #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
         data = self.model.get_data()
@@ -1204,8 +1204,8 @@ class CollectionsEditorTableView(BaseTableView):
         """Show image (item is a PIL image)"""
         data = self.model.get_data()
         data[key].show()
-    #---------------------------------------------------------------------------
-        
+    #--------------------------------------------------------------------------
+
     def refresh_menu(self):
         """Refresh context menu"""
         data = self.model.get_data()
@@ -1309,7 +1309,9 @@ class CollectionsEditor(QDialog):
         return self.data_copy
 
 
-#----Remote versions of CollectionsDelegate and CollectionsEditorTableView
+#==============================================================================
+# Remote versions of CollectionsDelegate and CollectionsEditorTableView
+#==============================================================================
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
     def __init__(self, parent=None):
@@ -1351,6 +1353,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setup_table()
         self.menu = self.setup_menu(minmax)
 
+    #------ Remote/local API --------------------------------------------------
     def get_value(self, name):
         value = self.shellwidget.get_value(name)
         # Reset temporal variable where value is saved to
@@ -1422,6 +1425,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
+    #--------------------------------------------------------------------------
 
     def setup_menu(self, minmax):
         """Setup context menu"""
