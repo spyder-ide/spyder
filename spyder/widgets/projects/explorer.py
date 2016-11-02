@@ -31,7 +31,7 @@ from spyder.widgets.explorer import FilteredDirView
 class ExplorerTreeWidget(FilteredDirView):
     """Explorer tree widget"""
     
-    delete_project = Signal()
+    sig_delete_project = Signal()
 
     def __init__(self, parent, show_hscrollbar=True):
         FilteredDirView.__init__(self, parent)
@@ -151,7 +151,6 @@ class ExplorerTreeWidget(FilteredDirView):
                                        "<br><br>Error message:<br>%s"
                                        ) % (action_str, src,
                                             to_text_string(error)))
-   
     @Slot()
     def delete(self, fnames=None):
         """Delete files"""
@@ -161,7 +160,7 @@ class ExplorerTreeWidget(FilteredDirView):
         yes_to_all = None
         for fname in fnames:
             if fname == self.proxymodel.path_list[0]:
-                self.delete_project.emit()
+                self.sig_delete_project.emit()
             else:
                 yes_to_all = self.delete_file(fname, multiple, yes_to_all)
                 if yes_to_all is not None and not yes_to_all:
@@ -235,10 +234,30 @@ class ProjectExplorerWidget(QWidget):
         self.set_project_dir(directory)
      
         # Signal to delete the project
-        self.treewidget.delete_project.connect(self.delete_project)
+        self.treewidget.sig_delete_project.connect(self.delete_project)
     
     def delete_project(self):
-        self.sig_delete_project.emit()
+        """Delete current project without deleting the files in the directory."""
+        if self.current_active_project:
+            path = self.current_active_project.root_path
+            buttons = QMessageBox.Yes|QMessageBox.No
+            answer = QMessageBox.warning(self, _("Delete"),
+                                 _("Do you really want "
+                                   "to delete <b>{filename}</b>?<br><br>"
+                                   "<b>Note:</b> This action will only delete "
+                                   "the project. Its files are going to be "
+                                   "preserved on disk."
+                                   ).format(filename=osp.basename(path)),
+                                   buttons)
+            if answer == QMessageBox.Yes:
+                try:
+                    self.close_project()
+                    shutil.rmtree(osp.join(path,'.spyproject'))
+                except EnvironmentError as error:
+                    QMessageBox.critical(self, _("Project Explorer"),
+                                    _("<b>Unable to delete <i>{varpath}</i></b>"
+                                      "<br><br>The error message was:<br>{error}" )
+                                    .format(varpath=path,error=to_text_string(error)))
         
 #==============================================================================
 # Tests

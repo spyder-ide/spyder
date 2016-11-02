@@ -12,7 +12,6 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function
 from __future__ import with_statement
 import os
 import os.path as osp
@@ -546,9 +545,10 @@ class DirView(QTreeView):
         for fname in fnames:
             spyproject_path = osp.join(fname,'.spyproject')
             if osp.isdir(fname) and osp.exists(spyproject_path):
-                QMessageBox.information(self, _('Archive Explorer'),
+                QMessageBox.information(self, _('File Explorer'),
                                         _("The current directory contains a "
-                                        "project.<br><br>If you want to delete"
+                                        "project.<br><br>"
+                                        "If you want to delete"
                                         " the project, please go to "
                                         "<b>Projects</b> &raquo; <b>Delete "
                                         "Project</b>"))
@@ -1066,6 +1066,7 @@ class ExplorerTreeWidget(DirView):
                                  _("You don't have the right permissions to "
                                    "open this directory"))
 
+            
 class ExplorerWidget(QWidget):
     """Explorer widget"""
     sig_option_changed = Signal(str, object)
