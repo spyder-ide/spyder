@@ -1012,11 +1012,11 @@ class Editor(SpyderPluginWidget):
         # ---- Edit menu/toolbar construction ----
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
-                                  self.indent_action, self.unindent_action]
+                                  self.indent_action, self.unindent_action,
+                                  self.text_uppercase_action, self.text_lowercase_action]
         self.main.edit_menu_actions += [None]+self.edit_menu_actions
         edit_toolbar_actions = [self.toggle_comment_action,
-                                self.unindent_action, self.indent_action,
-                                self.text_uppercase_action, self.text_lowercase_action]
+                                self.unindent_action, self.indent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
 
         # ---- Search menu/toolbar construction ----
