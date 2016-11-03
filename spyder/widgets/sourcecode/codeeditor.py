@@ -2127,6 +2127,7 @@ class CodeEditor(TextEditBaseWidget):
     def transform_to_uppercase(self):
         """Change to uppercase current line or selection."""
         cursor = self.textCursor()
+        prev_pos = cursor.position()
         selected_text = to_text_string(cursor.selectedText())
 
         if len(selected_text) == 0:
@@ -2138,10 +2139,10 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(s)
         self.set_cursor_position(prev_pos)
 
-
     def transform_to_lowercase(self):
         """Change to lowercase current line or selection."""
         cursor = self.textCursor()
+        prev_pos = cursor.position()
         selected_text = to_text_string(cursor.selectedText())
 
         if len(selected_text) == 0:
