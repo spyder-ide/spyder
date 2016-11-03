@@ -1238,13 +1238,22 @@ class IPythonConsole(SpyderPluginWidget):
         ]
 
         # Environment variables that we need to pass to our sitecustomize
+        umr_namelist_processed = CONF.get('main_interpreter', 'umr/namelist')
+
+        if PY2:
+            for umr_n_p in umr_namelist_processed:
+                try:
+                    umr_n_p.encode('utf-8')
+                except UnicodeDecodeError:
+                    umr_namelist_processed.remove(umr_n_p)
+            CONF.set('main_interpreter', 'umr/namelist', umr_namelist_processed)
+    
         env_vars = {
             'IPYTHON_KERNEL': 'True',
             'EXTERNAL_INTERPRETER': not default_interpreter,
             'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
             'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(CONF.get('main_interpreter',
-                                              'umr/namelist'))
+            'UMR_NAMELIST': ','.join(umr_namelist_processed)
         }
 
         # Add our PYTHONPATH to env_vars
