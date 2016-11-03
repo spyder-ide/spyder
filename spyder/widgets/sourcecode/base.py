@@ -30,6 +30,9 @@ from spyder.config.gui import get_font
 from spyder.config.main import CONF
 from spyder.py3compat import PY3, str_lower, to_text_string
 from spyder.utils import icon_manager as ima
+
+from spyder.utils.syntaxhighlighters import make_gettext_patterns
+
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
@@ -85,7 +88,8 @@ class CompletionWidget(QListWidget):
         if any(types):
             for (c, t) in zip(completion_list, types):
                 icon = icons_map.get(t, 'no_match')
-                self.addItem(QListWidgetItem(ima.icon(icon), c))
+                #self.addItem(QListWidgetItem(ima.icon(icon), c))
+                self.addItem(QListWidgetItem(c))
         else:
             self.addItems(completion_list)
 
@@ -174,12 +178,42 @@ class CompletionWidget(QListWidget):
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
-            
+
+    def update_current(self):
+
+        #user_input = to_text_string(self.textedit.completion_text)
+        user_input = self.textedit.completion_text
+        collection = self.completion_list
+        #print(user_input, collection, type(collection))
+
+        suggestions = []
+        pattern = '.*?'.join(user_input)  # Converts 'djm' to 'd.*?j.*?m'
+        #regex = re.compile(pattern)  # Compiles a regex. without casesensitivity
+        regex = re.compile(r'%s[a-zA-Z]+'% (user_input), re.IGNORECASE)
+
+        print(regex, type(collection[0]))
+
+        #for item in collection:
+        for row, item in enumerate(self.completion_list):
+            # # Checks if the current item matches the regex without casesensitivity
+            match = regex.search(item, flags=re.I)
+            print(match.group())
+
+            if match:
+                suggestions.append((len(match.group()), match.start(), item))
+
+        completion_text = [x for _, _, x in sorted(suggestions)]
+
+        print(completion_text)
+    """
     def update_current(self):
         completion_text = to_text_string(self.textedit.completion_text)
+
         if completion_text:
             for row, completion in enumerate(self.completion_list):
+                #print(completion_text)
                 if not self.case_sensitive:
+                    print(completion_text)
                     completion = completion.lower()
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
@@ -191,7 +225,7 @@ class CompletionWidget(QListWidget):
                 self.hide()
         else:
             self.hide()
-    
+    """
     def focusOutEvent(self, event):
         event.ignore()
         # Don't hide it on Mac when main window loses focus because

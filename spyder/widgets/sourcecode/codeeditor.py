@@ -2127,14 +2127,24 @@ class CodeEditor(TextEditBaseWidget):
     def transform_to_uppercase(self):
         """Change to uppercase current line or selection."""
         cursor = self.textCursor()
-        selected_text = cursor.selectedText()
+        selected_text = to_text_string(cursor.selectedText())
+
+        if len(selected_text) == 0:
+            cursor.select(QTextCursor.WordUnderCursor)
+            selected_text = to_text_string(cursor.selectedText())
+
         s = selected_text.upper()
         cursor.insertText(s)
 
     def transform_to_lowercase(self):
         """Change to lowercase current line or selection."""
         cursor = self.textCursor()
-        selected_text = cursor.selectedText()
+        selected_text = to_text_string(cursor.selectedText())
+
+        if len(selected_text) == 0:
+            cursor.select(QTextCursor.WordUnderCursor)
+            selected_text = to_text_string(cursor.selectedText())
+
         s = selected_text.lower()
         cursor.insertText(s)
 
