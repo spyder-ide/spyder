@@ -229,13 +229,13 @@ class ProjectExplorerWidget(QWidget):
         self.emptywidget.hide()
         self.treewidget.show()
         self.layout().addWidget(self.treewidget)
-        
+
         # Setup the directory shown by the tree
         self.set_project_dir(directory)
      
         # Signal to delete the project
         self.treewidget.sig_delete_project.connect(self.delete_project)
-    
+
     def delete_project(self):
         """Delete current project without deleting the files in the directory."""
         if self.current_active_project:
@@ -258,7 +258,7 @@ class ProjectExplorerWidget(QWidget):
                                     _("<b>Unable to delete <i>{varpath}</i></b>"
                                       "<br><br>The error message was:<br>{error}" )
                                     .format(varpath=path,error=to_text_string(error)))
-        
+
 #==============================================================================
 # Tests
 #==============================================================================

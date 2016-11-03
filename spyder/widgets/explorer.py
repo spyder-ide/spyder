@@ -193,7 +193,7 @@ class DirView(QTreeView):
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
-    
+
     def reset_icon_provider(self):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
@@ -534,7 +534,7 @@ class DirView(QTreeView):
                               "<br><br>Error message:<br>%s"
                               ) % (action_str, fname, to_text_string(error)))
         return False
-    
+
     @Slot()
     def delete(self, fnames=None):
         """Delete files"""
@@ -1066,7 +1066,7 @@ class ExplorerTreeWidget(DirView):
                                  _("You don't have the right permissions to "
                                    "open this directory"))
 
-            
+
 class ExplorerWidget(QWidget):
     """Explorer widget"""
     sig_option_changed = Signal(str, object)

@@ -98,7 +98,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-   
+
     #------ Public API ---------------------------------------------------------
     def chdir(self, directory):
         """Set working directory"""
