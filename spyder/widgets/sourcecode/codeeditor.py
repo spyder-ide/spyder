@@ -2130,11 +2130,14 @@ class CodeEditor(TextEditBaseWidget):
         selected_text = to_text_string(cursor.selectedText())
 
         if len(selected_text) == 0:
+            prev_pos = cursor.position()
             cursor.select(QTextCursor.WordUnderCursor)
             selected_text = to_text_string(cursor.selectedText())
 
         s = selected_text.upper()
         cursor.insertText(s)
+        self.set_cursor_position(prev_pos)
+
 
     def transform_to_lowercase(self):
         """Change to lowercase current line or selection."""
@@ -2142,11 +2145,13 @@ class CodeEditor(TextEditBaseWidget):
         selected_text = to_text_string(cursor.selectedText())
 
         if len(selected_text) == 0:
+            prev_pos = cursor.position()
             cursor.select(QTextCursor.WordUnderCursor)
             selected_text = to_text_string(cursor.selectedText())
 
         s = selected_text.lower()
         cursor.insertText(s)
+        self.set_cursor_position(prev_pos)
 
     def blockcomment(self):
         """Block comment current line or selection."""
