@@ -30,9 +30,6 @@ from spyder.config.gui import get_font
 from spyder.config.main import CONF
 from spyder.py3compat import PY3, str_lower, to_text_string
 from spyder.utils import icon_manager as ima
-
-from spyder.utils.syntaxhighlighters import make_gettext_patterns
-
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
