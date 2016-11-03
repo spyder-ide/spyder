@@ -172,7 +172,6 @@ class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    sig_delete_project = Signal()
 
     def __init__(self, parent, name_filters=[],
                  show_all=True, show_hscrollbar=True):

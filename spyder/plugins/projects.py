@@ -70,7 +70,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         self.setup_project(self.get_active_project_path())
-        
+
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -282,7 +282,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.dockwidget.close()
             self.clear()
             self.restart_consoles()
-    
+
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
         self.recent_projects = []
