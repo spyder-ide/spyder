@@ -2755,6 +2755,8 @@ class MainWindow(QMainWindow):
         box.set_checkbox_text(_("Check for updates on startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
+        #The next line is commented because it freezes the dialog.
+        #For now there is then no info icon. This solves issue #3609.
         #box.setIcon(QMessageBox.Information)
 
         # Adjust the checkbox depending on the stored configuration
