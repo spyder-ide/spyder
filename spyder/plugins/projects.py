@@ -13,7 +13,6 @@ updating the file tree explorer associated with a project
 
 # Standard library imports
 import os.path as osp
-import shutil
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
@@ -23,7 +22,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox
 # Local imports
 from spyder.config.base import _, get_home_dir
 from spyder.plugins import SpyderPluginMixin
-from spyder.py3compat import is_text_string, getcwd, to_text_string
+from spyder.py3compat import is_text_string, getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
