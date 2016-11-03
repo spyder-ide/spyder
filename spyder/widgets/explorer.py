@@ -142,6 +142,8 @@ class DirView(QTreeView):
         self.sortByColumn(0, Qt.AscendingOrder)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
+        # Disable the view of .spyproject. 
+        self.filter_directories()
         
     def set_name_filters(self, name_filters):
         """Set name filters"""
@@ -541,11 +543,21 @@ class DirView(QTreeView):
         multiple = len(fnames) > 1
         yes_to_all = None
         for fname in fnames:
-            yes_to_all = self.delete_file(fname, multiple, yes_to_all)
-            if yes_to_all is not None and not yes_to_all:
-                # Canceled
-                return
-
+            spyproject_path = osp.join(fname,'.spyproject')
+            if osp.isdir(fname) and osp.exists(spyproject_path):
+                QMessageBox.information(self, _('File Explorer'),
+                                        _("The current directory contains a "
+                                        "project.<br><br>"
+                                        "If you want to delete"
+                                        " the project, please go to "
+                                        "<b>Projects</b> &raquo; <b>Delete "
+                                        "Project</b>"))
+            else:    
+                yes_to_all = self.delete_file(fname, multiple, yes_to_all)
+                if yes_to_all is not None and not yes_to_all:
+                    # Canceled
+                    break
+                
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
         try: 
@@ -814,7 +826,12 @@ class DirView(QTreeView):
                                                   self.restore_directory_state)
                 self.fsmodel.directoryLoaded.connect(
                                                 self.follow_directories_loaded)
-
+                
+    def filter_directories(self):
+        """Filter the directories to show"""
+        index = self.get_index('.spyproject')
+        if index is not None:
+            self.setRowHidden(index.row(), index.parent(), True)
 
 class ProxyModel(QSortFilterProxyModel):
     """Proxy model: filters tree view"""
@@ -908,8 +925,9 @@ class FilteredDirView(DirView):
         for i in [1, 2, 3]:
             self.hideColumn(i)
         self.setHeaderHidden(True)
-
-
+        # Disable the view of .spyproject. 
+        self.filter_directories()
+      
 class ExplorerTreeWidget(DirView):
     """File/directory explorer tree widget
     show_cd_only: Show current directory only
@@ -987,6 +1005,8 @@ class ExplorerTreeWidget(DirView):
                              self.histindex is not None and self.histindex > 0)
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
+        # Disable the view of .spyproject. 
+        self.filter_directories()
             
     #---- Events
     def directory_clicked(self, dirname):

@@ -93,6 +93,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.close_project_action = create_action(self,
                                     _("Close Project"),
                                     triggered=self.close_project)
+        self.delete_project_action = create_action(self,
+                                    _("Delete Project"),
+                                    triggered=self.delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -106,6 +109,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                             None,
                                             self.open_project_action,
                                             self.close_project_action,
+                                            self.delete_project_action,
                                             None,
                                             self.recent_project_menu,
                                             explorer_action]
@@ -190,6 +194,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         active = bool(self.get_active_project_path())
         self.close_project_action.setEnabled(active)
+        self.delete_project_action.setEnabled(active)
         self.edit_project_preferences_action.setEnabled(active)
 
     def edit_project_preferences(self):
