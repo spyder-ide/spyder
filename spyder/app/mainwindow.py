@@ -94,7 +94,7 @@ from qtpy import QtWebEngineWidgets  # analysis:ignore
 
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
-# be set before creating the application.
+# be set before creating the application. 
 #==============================================================================
 from spyder.config.main import CONF
 if CONF.get('main', 'high_dpi_scaling'):
@@ -114,7 +114,7 @@ MAIN_APP = qapplication()
 
 
 #==============================================================================
-# Create splash screen out of MainWindow to reduce perceived startup time.
+# Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyder.config.base import _, get_image_path, DEV
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg'), 'svg'))
@@ -342,7 +342,7 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.plugins.configdialog import (MainConfigPage,
+        from spyder.plugins.configdialog import (MainConfigPage, 
                                                  ColorSchemeConfigPage)
         from spyder.plugins.shortcuts import ShortcutsConfigPage
         from spyder.plugins.runconfig import RunConfigPage
@@ -926,7 +926,7 @@ class MainWindow(QMainWindow):
             spyder_doc = 'http://pythonhosted.org/spyder'
         else:
             spyder_doc = file_uri(spyder_doc)
-        doc_action = create_action( self, _("Spyder documentation"), shortcut="F1",
+        doc_action = create_action( self, _("Spyder documentation"), shortcut="F1", 
                                     icon=ima.icon('DialogHelpButton'),
                                     triggered=lambda : programs.start_file(spyder_doc))
 
@@ -1417,12 +1417,12 @@ class MainWindow(QMainWindow):
 
             # Now that the initial setup is done, copy the window settings,
             # except for the hexstate in the quick layouts sections for the
-            # default layouts.
+            # default layouts. 
             # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
             get_func = CONF.get_default if default else CONF.get
             order = get_func(section, 'order')
-
+            
             # restore the original defaults if reset layouts is called
             if default:
                 CONF.set(section, 'active', order)
@@ -1432,7 +1432,7 @@ class MainWindow(QMainWindow):
             for index, name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
                 self.save_current_window_settings(prefix, section)
-                CONF.set(section, prefix+'state', None)
+                CONF.set(section, prefix+'state', None)        
 
             # store the initial layout as the default in spyder
             prefix = 'layout_default/'
@@ -1440,7 +1440,7 @@ class MainWindow(QMainWindow):
             self.save_current_window_settings(prefix, section)
             self.current_quick_layout = 'default'
             CONF.set(section, prefix+'state', None)
-
+            
             # Regenerate menu
             self.quick_layout_set_menu()
         self.set_window_settings(*settings)
@@ -1451,7 +1451,7 @@ class MainWindow(QMainWindow):
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
-
+       
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
         self.set_window_settings(*settings)
@@ -1504,7 +1504,7 @@ class MainWindow(QMainWindow):
                                         [1.0],          # column 2, row heights
                                         [0.46, 0.54]],  # column 3, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],
+                    'hidden toolbars': [],                               
                     }
         r_layout = {'widgets': [
                     # column 0
@@ -1519,7 +1519,7 @@ class MainWindow(QMainWindow):
                     'height fraction': [[0.55, 0.45],   # column 0, row heights
                                         [0.55, 0.45]],  # column 1, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],
+                    'hidden toolbars': [],                               
                     }
         # Matlab
         m_layout = {'widgets': [
@@ -1581,7 +1581,7 @@ class MainWindow(QMainWindow):
 
         layout = layouts[index]
 
-        widgets_layout = layout['widgets']
+        widgets_layout = layout['widgets']         
         widgets = []
         for column in widgets_layout :
             for row in column:
@@ -1602,7 +1602,7 @@ class MainWindow(QMainWindow):
                 self.splitDockWidget(first.dockwidget, second.dockwidget,
                                      Qt.Horizontal)
 
-        # Arrange rows vertically
+        # Arrange rows vertically 
         for column in widgets_layout :
             for i in range(len(column) - 1):
                 first_row, second_row = column[i], column[i+1]
@@ -1651,7 +1651,7 @@ class MainWindow(QMainWindow):
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
 #            print(c, widgets_layout[c][0][0], new_width)
-
+        
         # fix column height
         for c, column in enumerate(widgets_layout):
             for r in range(len(column) - 1):
@@ -2106,7 +2106,7 @@ class MainWindow(QMainWindow):
 
         # To be used by the tour to be able to resize
         self.sig_resized.emit(event)
-
+        
     def moveEvent(self, event):
         """Reimplement Qt method"""
         if not self.isMaximized() and not self.fullscreen_flag:
@@ -2328,9 +2328,9 @@ class MainWindow(QMainWindow):
 
 **What steps will reproduce the problem?**
 
-1.
-2.
-3.
+1. 
+2. 
+3. 
 
 **What is the expected output? What do you see instead?**
 
@@ -2365,7 +2365,7 @@ class MainWindow(QMainWindow):
             url.setQuery(query)
         else:
             url.addEncodedQueryItem("body", quote(issue_template))
-
+            
         QDesktopServices.openUrl(url)
 
     @Slot()
@@ -2509,7 +2509,7 @@ class MainWindow(QMainWindow):
         else:
             qapp.setStyle(CONF.get('main', 'windows_style',
                                    self.default_style))
-
+        
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
             default = default|QMainWindow.VerticalTabs
@@ -2793,7 +2793,7 @@ class MainWindow(QMainWindow):
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)
-
+        
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
 
@@ -2857,7 +2857,7 @@ def initialize():
     #----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
     if PYQT5:
         def spy_excepthook(type_, value, tback):
-            sys.__excepthook__(type_, value, tback)
+            sys.__excepthook__(type_, value, tback) 
         sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter
