@@ -1241,11 +1241,11 @@ class IPythonConsole(SpyderPluginWidget):
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
 
         if PY2:
-            for umr_n_p in umr_namelist:
+            for umr_n in umr_namelist:
                 try:
-                    umr_n_p.encode('utf-8')
+                    umr_n.encode('utf-8')
                 except UnicodeDecodeError:
-                    umr_namelist.remove(umr_n_p)
+                    umr_namelist.remove(umr_n)
             CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
     
         env_vars = {
