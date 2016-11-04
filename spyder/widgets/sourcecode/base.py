@@ -55,7 +55,7 @@ class CompletionWidget(QListWidget):
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
-        self.case_sensitive = False
+        self.case_sensitive = True
         self.enter_select = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
@@ -177,33 +177,6 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
 
     def update_current(self):
-
-        #user_input = to_text_string(self.textedit.completion_text)
-        user_input = self.textedit.completion_text
-        collection = self.completion_list
-        #print(user_input, collection, type(collection))
-
-        suggestions = []
-        pattern = '.*?'.join(user_input)  # Converts 'djm' to 'd.*?j.*?m'
-        #regex = re.compile(pattern)  # Compiles a regex. without casesensitivity
-        regex = re.compile(r'%s[a-zA-Z]+'% (user_input), re.IGNORECASE)
-
-        print(regex, type(collection[0]))
-
-        #for item in collection:
-        for row, item in enumerate(self.completion_list):
-            # # Checks if the current item matches the regex without casesensitivity
-            match = regex.search(item, flags=re.I)
-            print(match.group())
-
-            if match:
-                suggestions.append((len(match.group()), match.start(), item))
-
-        completion_text = [x for _, _, x in sorted(suggestions)]
-
-        print(completion_text)
-    """
-    def update_current(self):
         completion_text = to_text_string(self.textedit.completion_text)
 
         if completion_text:
@@ -222,7 +195,8 @@ class CompletionWidget(QListWidget):
                 self.hide()
         else:
             self.hide()
-    """
+
+
     def focusOutEvent(self, event):
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
