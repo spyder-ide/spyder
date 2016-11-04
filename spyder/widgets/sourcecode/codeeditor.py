@@ -539,6 +539,14 @@ class CodeEditor(TextEditBaseWidget):
                                        name='Blockcomment', parent=self)
         unblockcomment = config_shortcut(self.unblockcomment, context='Editor',
                                          name='Unblockcomment', parent=self)
+        transform_uppercase = config_shortcut(self.transform_to_uppercase,
+                                              context='Editor',
+                                              name='Transform to uppercase',
+                                              parent=self)
+        transform_lowercase = config_shortcut(self.transform_to_lowercase,
+                                              context='Editor',
+                                              name='Transform to lowercase',
+                                              parent=self)
 
         def cb_maker(attr):
             """Make a callback for cursor move event type, (e.g. "Start")
@@ -616,7 +624,8 @@ class CodeEditor(TextEditBaseWidget):
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
-                unblockcomment, line_start, line_end, prev_line, next_line,
+                unblockcomment, transform_uppercase, transform_lowercase, 
+                line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
                 kill_next_word, start_doc, end_doc, undo, redo, cut, copy,
@@ -2105,18 +2114,32 @@ class CodeEditor(TextEditBaseWidget):
             self.comment()
 
     def comment(self):
-        """Comment current line or selection"""
+        """Comment current line or selection."""
         self.add_prefix(self.comment_string)
 
     def uncomment(self):
-        """Uncomment current line or selection"""
+        """Uncomment current line or selection."""
         self.remove_prefix(self.comment_string)
 
     def __blockcomment_bar(self):
         return self.comment_string + '='*(79-len(self.comment_string))
 
+    def transform_to_uppercase(self):
+        """Change to uppercase current line or selection."""
+        cursor = self.textCursor()
+        selected_text = cursor.selectedText()
+        s = selected_text.upper()
+        cursor.insertText(s)
+
+    def transform_to_lowercase(self):
+        """Change to lowercase current line or selection."""
+        cursor = self.textCursor()
+        selected_text = cursor.selectedText()
+        s = selected_text.lower()
+        cursor.insertText(s)
+
     def blockcomment(self):
-        """Block comment current line or selection"""
+        """Block comment current line or selection."""
         comline = self.__blockcomment_bar() + self.get_line_separator()
         cursor = self.textCursor()
         if self.has_selected_text():
