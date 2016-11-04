@@ -1249,7 +1249,7 @@ class IPythonConsole(SpyderPluginWidget):
                     umr_namelist.remove(umr_n)
             if original_list != umr_namelist:
                 CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
-    
+
         env_vars = {
             'IPYTHON_KERNEL': 'True',
             'EXTERNAL_INTERPRETER': not default_interpreter,
