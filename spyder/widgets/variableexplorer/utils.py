@@ -44,10 +44,12 @@ class FakeObject(object):
 
 
 #==============================================================================
-# Numpy arrays support
+# Numpy arrays and numeric support
 #==============================================================================
 try:
-    from numpy import ndarray, array, matrix, recarray
+    from numpy import ndarray, array, matrix, recarray, \
+                      int64, int32, float64, float32, complex_, \
+                      complex64, complex128
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
     from numpy import set_printoptions as np_set_printoptions
@@ -289,6 +291,18 @@ def value_to_display(value, minmax=False):
             display = value
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
           isinstance(value, datetime.date):
+            display = repr(value)
+        elif isinstance(value, int64):
+            display = repr(value)
+        elif isinstance(value, int32):
+            display = repr(value)
+        elif isinstance(value, float64):
+            display = repr(value)
+        elif isinstance(value, float32):
+            display = repr(value)
+        elif isinstance(value, complex_) or isinstance(value, complex128) :
+            display = repr(value)
+        elif isinstance(value, complex64):
             display = repr(value)
         else:
             # Note: Don't trust on repr's. They can be inefficient and
