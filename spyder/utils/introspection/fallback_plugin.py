@@ -52,22 +52,33 @@ class FallbackPlugin(IntrospectionPlugin):
                     items.append(token)
             # add in keywords if not in a string
             #if context not in Token.Literal.String:
-        try:
-            keywords = get_keywords(lexer)
-            items.extend(k for k in keywords if k.startswith(obj))
-        except Exception:
-            pass
-        else:
+            try:
+                keywords = get_keywords(lexer)
+                items.extend(k for k in keywords if k.startswith(obj))
+            except Exception as e:
+                pass
+            
             tokens = set(re.findall(info['id_regex'], info['source_code']))
-            items = [item for item in tokens if
-                 item.startswith(obj) and len(item) > len(obj)]
+            items += [item for item in tokens if
+                     item.startswith(obj) and len(item) > len(obj)]
             if '.' in obj:
                 start = obj.rfind('.') + 1
             else:
                 start = 0
-
-            items = [i[start:len(obj)] + i[len(obj):].split('.')[0]
-                 for i in items]
+    
+            items += [i[start:len(obj)] + i[len(obj):].split('.')[0]
+                     for i in items]
+        else:
+            tokens = set(re.findall(info['id_regex'], info['source_code']))
+            items = [item for item in tokens if
+                     item.startswith(obj) and len(item) > len(obj)]
+            if '.' in obj:
+                start = obj.rfind('.') + 1
+            else:
+                start = 0
+    
+            items += [i[start:len(obj)] + i[len(obj):].split('.')[0]
+                     for i in items]
         # get path completions
         # get last word back to a space or a quote character
         match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
@@ -375,19 +386,19 @@ if __name__ == '__main__':
     assert path == 'dummy.py' and line == 1
 
     code = 'self.proxy.widget; self.p'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
+    comp = p.get_completions(CodeInfo('fallback', code, len(code), 'dummy.py'))
     assert ('proxy', '') in comp, comp
 
     code = 'self.sigMessageReady.emit; self.s'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
+    comp = p.get_completions(CodeInfo('fallback', code, len(code), 'dummy.py'))
     assert ('sigMessageReady', '') in comp
 
     code = 'bob = 1; bo'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.m'))
+    comp = p.get_completions(CodeInfo('fallback', code, len(code), 'dummy.m'))
     assert ('bob', '') in comp
 
     code = 'functi'    
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.sh'))
+    comp = p.get_completions(CodeInfo('fallback', code, len(code), 'dummy.sh'))
     assert ('function', '') in comp, comp
 
     code = '''
