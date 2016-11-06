@@ -1652,6 +1652,7 @@ class EditorStack(QWidget):
         """
         editor = codeeditor.CodeEditor(self)
         introspector = self.introspector
+        editor.get_fallback.connect(introspector.get_fallback)
         editor.get_completions.connect(introspector.get_completions)
         editor.sig_show_object_info.connect(introspector.show_object_info)
         editor.go_to_definition.connect(introspector.go_to_definition)

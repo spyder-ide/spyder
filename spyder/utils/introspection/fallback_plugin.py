@@ -51,12 +51,12 @@ class FallbackPlugin(IntrospectionPlugin):
                         obj != token):
                     items.append(token)
             # add in keywords if not in a string
-            if context not in Token.Literal.String:
-                try:
-                    keywords = get_keywords(lexer)
-                    items.extend(k for k in keywords if k.startswith(obj))
-                except Exception:
-                    pass
+            #if context not in Token.Literal.String:
+        try:
+            keywords = get_keywords(lexer)
+            items.extend(k for k in keywords if k.startswith(obj))
+        except Exception:
+            pass
         else:
             tokens = set(re.findall(info['id_regex'], info['source_code']))
             items = [item for item in tokens if

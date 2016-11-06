@@ -347,6 +347,7 @@ class CodeEditor(TextEditBaseWidget):
     linenumberarea = None
 
     breakpoints_changed = Signal()
+    get_fallback = Signal(bool)
     get_completions = Signal(bool)
     go_to_definition = Signal(int)
     sig_show_object_info = Signal(int)
@@ -519,6 +520,8 @@ class CodeEditor(TextEditBaseWidget):
                                        lambda value: self.rehighlight_cells())
 
     def create_shortcuts(self):
+        codefall = config_shortcut(self.do_fallback, context='Editor', 
+                                    name='Code Fallback', parent=self)
         codecomp = config_shortcut(self.do_completion, context='Editor',
                                    name='Code Completion', parent=self)
         duplicate_line = config_shortcut(self.duplicate_line, context='Editor',
@@ -614,8 +617,8 @@ class CodeEditor(TextEditBaseWidget):
         fixed_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
         fixed_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
 
-        return [codecomp, duplicate_line, copyline, deleteline, movelineup,
-                movelinedown, gotodef, toggle_comment, blockcomment,
+        return [codefall, codecomp, duplicate_line, copyline, deleteline,
+                movelineup, movelinedown, gotodef, toggle_comment, blockcomment,
                 unblockcomment, line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
@@ -1345,6 +1348,11 @@ class CodeEditor(TextEditBaseWidget):
         self.breakpoints_changed.emit()
 
     #-----Code introspection
+    def do_fallback(self, automatic=False):
+        """Trigger fallback"""
+        if not self.is_completion_widget_visible():
+            self.get_fallback.emit(automatic)
+
     def do_completion(self, automatic=False):
         """Trigger completion"""
         if not self.is_completion_widget_visible():

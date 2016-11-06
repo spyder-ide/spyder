@@ -79,6 +79,9 @@ class PluginManager(QObject):
         desired = None
         self.info = info
         editor = info.editor
+        method = 'get_%s' % info.name
+        value = info.serialize()
+        
         if (info.name == 'completion' and 'jedi' not in self.plugins and
                 info.line.lstrip().startswith(('import ', 'from '))):
             desired = 'fallback'
@@ -87,8 +90,12 @@ class PluginManager(QObject):
                 sourcecode.is_keyword(info.obj) or
                 (editor.in_comment_or_string() and info.name != 'info')):
             desired = 'fallback'
-
+        
+        if info.name == 'fallback':
+            desired = 'fallback'
+            method = 'get_completions'
         plugins = self.plugins.values()
+        
         if desired:
             plugins = [self.plugins[desired]]
             self.desired = [desired]
@@ -102,8 +109,7 @@ class PluginManager(QObject):
 
         self._start_time = time.time()
         self.waiting = True
-        method = 'get_%s' % info.name
-        value = info.serialize()
+        
         self.ids = dict()
         for plugin in plugins:
             request_id = plugin.request(method, value)
@@ -199,6 +205,11 @@ class IntrospectionManager(QObject):
         info = self._get_code_info('completions', automatic=automatic)
         self.plugin_manager.send_request(info)
 
+    def get_fallback(self, automatic):
+        """Get fallback completion"""
+        info = self._get_code_info('fallback', automatic=automatic)
+        self.plugin_manager.send_request(info)
+
     def go_to_definition(self, position):
         """Go to definition"""
         info = self._get_code_info('definition', position)
@@ -237,7 +248,10 @@ class IntrospectionManager(QObject):
         current = self._get_code_info(response['info']['name'])
 
         if result and current.filename == info.filename:
-            func = getattr(self, '_handle_%s_result' % info.name)
+            if info.name == 'fallback':
+                func = getattr(self, '_handle_completions_result')
+            else:
+                func = getattr(self, '_handle_%s_result' % info.name)
             try:
                 func(result, current, info)
             except Exception as e:

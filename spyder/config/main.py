@@ -352,6 +352,7 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
+              'editor/code fallback': 'Alt+/',
               'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
                                        "Shift+Alt+Up",
               'editor/copy line': "Ctrl+Alt+Down" if WIN else \
