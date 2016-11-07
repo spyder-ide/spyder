@@ -233,7 +233,7 @@ the sympy module (e.g. plot)
                 reply = user_exp[expression]
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
-                    if 'text/plain' in data:
+                    if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
                         self.sig_namespace_view.emit(view)
                     else:
