@@ -13,9 +13,9 @@ Changes by the Spyder Team to the original Twisted file:
 __metaclass__ = type
 
 import errno, os
-
 from time import time as _uniquefloat
 
+import psutil
 from spyder.py3compat import PY2, to_binary_string
 
 def unique():
@@ -171,10 +171,18 @@ class FilesystemLock:
                     try:
                         if kill is not None:
                             kill(int(pid), 0)
+                        # Verify that the running process corresponds to
+                        # a Spyder one
+                        p = psutil.Process(int(pid))
+                        conditions = [p.name() == 'spyder',
+                                      p.name() == 'spyder3',
+                                      'bootstrap.py' in p.cmdline()]
+                        if not any(conditions):
+                            raise(OSError(3, 'No such process'))
                     except OSError as e:
                         if e.errno == errno.ESRCH:
-                            # The owner has vanished, try to claim it in the next
-                            # iteration through the loop.
+                            # The owner has vanished, try to claim it in the
+                            # next iteration through the loop.
                             try:
                                 rmlink(self.name)
                             except OSError as e:
