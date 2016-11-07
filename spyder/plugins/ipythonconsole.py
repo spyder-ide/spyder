@@ -1248,7 +1248,7 @@ class IPythonConsole(SpyderPluginWidget):
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
 
         if PY2:
-            original_list = umr_namelist.copy()
+            original_list = umr_namelist[:]
             for umr_n in umr_namelist:
                 try:
                     umr_n.encode('utf-8')
