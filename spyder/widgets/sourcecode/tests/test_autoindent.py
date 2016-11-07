@@ -93,6 +93,8 @@ def test_open_parenthesis():
              "test_def_with_unindented_comment")),
         pytest.mark.xfail(("open_parenthesis(\n", "open_parenthesis(\n\t\t\t\ŧ ",
                            "open parenthesis")),
+        pytest.mark.xfail(("\na = {\n", "\na = {\n\t ",
+                           "indentation after opening bracket")),
     ])
 def test_indentation_with_tabs(text_input, expected, test_text):
     text = get_indent_fix(text_input, indent_chars="\t")
