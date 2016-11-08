@@ -84,6 +84,7 @@ def test_open_parenthesis():
          "test with indented comment"),
         ("def function():\n\tprint []\n", "def function():\n\tprint []\n\t",
          "test brackets alone"),
+        ("\na = {\n", "\na = {\n\t ", "indentation after opening bracket"),
 
         # Failing test
         pytest.mark.xfail(("def function():\n", "def function():\n\t",
@@ -93,8 +94,6 @@ def test_open_parenthesis():
              "test_def_with_unindented_comment")),
         pytest.mark.xfail(("open_parenthesis(\n", "open_parenthesis(\n\t\t\t\ŧ ",
                            "open parenthesis")),
-        pytest.mark.xfail(("\na = {\n", "\na = {\n\t ",
-                           "indentation after opening bracket")),
     ])
 def test_indentation_with_tabs(text_input, expected, test_text):
     text = get_indent_fix(text_input, indent_chars="\t")
