@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
                             QWidget)
 
 # Local imports
+from spyder.config.main import CONF
 from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import (config_shortcut, fixed_shortcut,
                                RUN_CELL_SHORTCUT,
@@ -422,6 +423,9 @@ class EditorStack(QWidget):
 
         # Local shortcuts
         self.shortcuts = self.create_shortcuts()
+
+        #For opening last closed tabs
+        self.last_closed_files = CONF.get('editor', 'last_closed_files')
 
     def create_shortcuts(self):
         """Create local shortcuts"""
@@ -1168,6 +1172,9 @@ class EditorStack(QWidget):
                     new_index -= 1
                 self.set_stack_index(new_index)
 
+            self.add_last_closed_file(finfo.filename)
+            print("ultimosss:", self.last_closed_files)
+
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
@@ -1191,6 +1198,18 @@ class EditorStack(QWidget):
         self.close_all_right()
         for i in range(0, self.get_stack_count()-1  ):
             self.close_file(0)
+            
+    def add_last_closed_file(self, fname):
+        """Add to last closed file list"""
+        if fname is None:
+            return
+        if fname in self.last_closed_files:
+            self.last_closed_files.remove(fname)
+        self.last_closed_files.insert(0, fname)
+        if len(self.last_closed_files) > CONF.get('editor','max_recent_files'): 
+            self.last_closed_files.pop(-1)
+        CONF.set('editor', 'last_closed_files', self.last_closed_files)
+        print("last closed files:", [rf.split("/")[-1] for rf in self.last_closed_files])    
 
     #------ Save
     def save_if_changed(self, cancelable=False, index=None):

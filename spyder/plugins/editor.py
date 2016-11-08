@@ -1607,7 +1607,7 @@ class Editor(SpyderPluginWidget):
         self.recent_files.insert(0, fname)
         if len(self.recent_files) > self.get_option('max_recent_files'):
             self.recent_files.pop(-1)
-    
+
     def _clone_file_everywhere(self, finfo):
         """Clone file (*src_editor* widget) in all editorstacks
         Cloning from the first editorstack in which every single new editor
@@ -1945,8 +1945,12 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def open_last_closed(self):
         """ Reopens the last closed tab """
-        file_to_open = self.recent_files[-1]
-        self.load(file_to_open)
+        last_closed_files = CONF.get('editor','last_closed_files')
+        if (len(last_closed_files) > 0):
+            file_to_open = last_closed_files[0]
+            last_closed_files.remove(file_to_open)
+            CONF.set('editor','last_closed_files',last_closed_files)
+            self.load(file_to_open)
     
     #------ Explorer widget
     def close_file_from_name(self, filename):

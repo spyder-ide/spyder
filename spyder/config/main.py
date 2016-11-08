@@ -231,7 +231,8 @@ DEFAULTS = [
               'max_recent_files': 20,
               'save_all_before_run': True,
               'focus_to_editor': True,
-              'onsave_analysis': False
+              'onsave_analysis': False,
+              'last_closed_files': []
               }),
             ('historylog',
              {
