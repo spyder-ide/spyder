@@ -19,6 +19,7 @@ Collections (i.e. dictionary, list and tuple) editor widget and dialog
 # Standard library imports
 from __future__ import print_function
 import datetime
+import gc
 import sys
 import warnings
 
@@ -519,9 +520,15 @@ class CollectionsDelegate(QItemDelegate):
             conv_func = data.get('conv', lambda v: v)
             self.set_value(index, conv_func(value))
         self._editors.pop(editor_id)
+        self.free_memory()
         
     def editor_rejected(self, editor_id):
         self._editors.pop(editor_id)
+        self.free_memory()
+
+    def free_memory(self):
+        """Free memory after closing an editor."""
+        gc.collect()
 
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
