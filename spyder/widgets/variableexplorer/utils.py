@@ -47,15 +47,16 @@ class FakeObject(object):
 # Numpy arrays and numeric support
 #==============================================================================
 try:
-    from numpy import ndarray, array, matrix, recarray, \
-                      int64, int32, float64, float32, complex_, \
-                      complex64, complex128
+    from numpy import (ndarray, array, matrix, recarray,
+                      int64, int32, float64, float32,
+                      complex64, complex128)
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
     from numpy import set_printoptions as np_set_printoptions
 except ImportError:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
-    np_set_printoptions = FakeObject
+    np_set_printoptions = int64 = int32 = float64 = float32 = \
+    complex64 = complex128 = FakeObject
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -246,6 +247,8 @@ def unsorted_unique(lista):
 def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
     try:
+        numeric_type_list = [ int64, int32, float64, float32, \
+                             complex128, complex64]
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
@@ -292,17 +295,7 @@ def value_to_display(value, minmax=False):
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
           isinstance(value, datetime.date):
             display = repr(value)
-        elif isinstance(value, int64):
-            display = repr(value)
-        elif isinstance(value, int32):
-            display = repr(value)
-        elif isinstance(value, float64):
-            display = repr(value)
-        elif isinstance(value, float32):
-            display = repr(value)
-        elif isinstance(value, complex_) or isinstance(value, complex128) :
-            display = repr(value)
-        elif isinstance(value, complex64):
+        elif True in [isinstance(value, x) for x in numeric_type_list]:
             display = repr(value)
         else:
             # Note: Don't trust on repr's. They can be inefficient and
