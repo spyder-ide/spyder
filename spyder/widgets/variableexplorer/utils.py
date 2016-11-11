@@ -247,8 +247,8 @@ def unsorted_unique(lista):
 def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
     try:
-        numeric_type_list = [ int64, int32, float64, float32, \
-                             complex128, complex64]
+        numeric_type_tuple = (int64, int32, float64, float32, \
+                             complex128, complex64)
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
@@ -295,7 +295,7 @@ def value_to_display(value, minmax=False):
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
           isinstance(value, datetime.date):
             display = repr(value)
-        elif True in [isinstance(value, x) for x in numeric_type_list]:
+        elif isinstance(value, numeric_type_tuple):
             display = repr(value)
         else:
             # Note: Don't trust on repr's. They can be inefficient and
