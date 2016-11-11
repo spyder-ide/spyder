@@ -15,8 +15,8 @@ import os.path as osp
 from qtpy import API
 from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
-from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtGui import QColor
+from qtpy.QtCore import QSize, Qt, Signal, Slot, QRegExp
+from qtpy.QtGui import QColor, QRegExpValidator
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QDialogButtonBox, QDoubleSpinBox, QFontComboBox,
                             QGridLayout, QGroupBox, QHBoxLayout, QLabel,
@@ -465,7 +465,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return radiobutton
     
     def create_lineedit(self, text, option, default=NoDefault,
-                        tip=None, alignment=Qt.Vertical):
+                        tip=None, alignment=Qt.Vertical, regex=None):
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QLineEdit()
@@ -475,6 +475,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         layout.setContentsMargins(0, 0, 0, 0)
         if tip:
             edit.setToolTip(tip)
+        if regex:
+            edit.setValidator(QRegExpValidator(QRegExp(regex)))
         self.lineedits[edit] = (option, default)
         widget = QWidget(self)
         widget.label = label
