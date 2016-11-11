@@ -319,6 +319,10 @@ class NamespaceBrowser(QWidget):
                     except socket.error:
                         # Process was terminated before calling this method
                         pass
+            try:
+                self.editor.resizeRowToContents()
+            except TypeError:
+                pass
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
