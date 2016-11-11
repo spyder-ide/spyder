@@ -1926,11 +1926,12 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     break
 
-        if not prevline:
-            return False
+        if prevline:
+            correct_indent = self.get_block_indentation(prevline)
+        else:
+            correct_indent = 0
 
         indent = self.get_block_indentation(block_nb)
-        correct_indent = self.get_block_indentation(prevline)
 
         if add_indent:
             if self.indent_chars == '\t':

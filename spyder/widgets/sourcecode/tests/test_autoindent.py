@@ -60,14 +60,13 @@ def test_open_parenthesis():
     assert text == "open_parenthesis(\n                 ", repr(text)
 
 
-# --- Failing tests
-# -----------------------------------------------------------------------------
-@pytest.mark.xfail
 def test_simple_def():
     text = get_indent_fix("def function():\n")
     assert text == "def function():\n    ", repr(text)
 
 
+# --- Failing tests
+# -----------------------------------------------------------------------------
 @pytest.mark.xfail
 def test_def_with_unindented_comment():
     text = get_indent_fix("def function():\n# Comment\n")
@@ -86,10 +85,9 @@ def test_def_with_unindented_comment():
         ("def function():\n\tprint []\n", "def function():\n\tprint []\n\t",
          "test brackets alone"),
         ("\na = {\n", "\na = {\n\t ", "indentation after opening bracket"),
+        ("def function():\n", "def function():\n\t", "test simple def"),
 
         # Failing test
-        pytest.mark.xfail(("def function():\n", "def function():\n\t",
-                           "test simple def")),
         pytest.mark.xfail(
             ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
              "test_def_with_unindented_comment")),
