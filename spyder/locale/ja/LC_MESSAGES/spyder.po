@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-11-08 16:26+COT\n"
+"POT-Creation-Date: 2016-11-11 10:24+COT\n"
 "PO-Revision-Date: 2016-07-12 09:04+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
@@ -64,16 +64,16 @@ msgstr "次のレイアウトを使用"
 msgid "Use previous layout"
 msgstr "前のレイアウトを使用"
 
-#: spyder/app/mainwindow.py:560 spyder/widgets/sourcecode/codeeditor.py:2466
+#: spyder/app/mainwindow.py:560 spyder/widgets/sourcecode/codeeditor.py:2505
 msgid "Undo"
 msgstr "元に戻す"
 
-#: spyder/app/mainwindow.py:562 spyder/widgets/sourcecode/codeeditor.py:2469
+#: spyder/app/mainwindow.py:562 spyder/widgets/sourcecode/codeeditor.py:2508
 msgid "Redo"
 msgstr "やり直す"
 
 #: spyder/app/mainwindow.py:564 spyder/widgets/shell.py:121
-#: spyder/widgets/sourcecode/codeeditor.py:2475
+#: spyder/widgets/sourcecode/codeeditor.py:2514
 #: spyder/widgets/variableexplorer/arrayeditor.py:453
 #: spyder/widgets/variableexplorer/collectionseditor.py:649
 #: spyder/widgets/variableexplorer/dataframeeditor.py:445
@@ -81,59 +81,59 @@ msgid "Copy"
 msgstr "コピー"
 
 #: spyder/app/mainwindow.py:566 spyder/widgets/shell.py:117
-#: spyder/widgets/sourcecode/codeeditor.py:2472
+#: spyder/widgets/sourcecode/codeeditor.py:2511
 msgid "Cut"
 msgstr "切り取り"
 
 #: spyder/app/mainwindow.py:568 spyder/widgets/shell.py:125
-#: spyder/widgets/sourcecode/codeeditor.py:2478
+#: spyder/widgets/sourcecode/codeeditor.py:2517
 #: spyder/widgets/variableexplorer/collectionseditor.py:646
 msgid "Paste"
 msgstr "貼り付け"
 
 #: spyder/app/mainwindow.py:571 spyder/widgets/shell.py:138
-#: spyder/widgets/sourcecode/codeeditor.py:2481
+#: spyder/widgets/sourcecode/codeeditor.py:2520
 msgid "Select All"
 msgstr "全て選択"
 
-#: spyder/app/mainwindow.py:581 spyder/plugins/editor.py:1342
+#: spyder/app/mainwindow.py:581 spyder/plugins/editor.py:1353
 msgid "&File"
 msgstr "ファイル(&A)"
 
-#: spyder/app/mainwindow.py:582 spyder/plugins/editor.py:1334
+#: spyder/app/mainwindow.py:582 spyder/plugins/editor.py:1345
 msgid "File toolbar"
 msgstr "ファイルツールバー"
 
-#: spyder/app/mainwindow.py:586 spyder/plugins/editor.py:1343
+#: spyder/app/mainwindow.py:586 spyder/plugins/editor.py:1354
 msgid "&Edit"
 msgstr "編集(&E)"
 
-#: spyder/app/mainwindow.py:587 spyder/plugins/editor.py:1339
+#: spyder/app/mainwindow.py:587 spyder/plugins/editor.py:1350
 msgid "Edit toolbar"
 msgstr "編集ツールバー"
 
-#: spyder/app/mainwindow.py:591 spyder/plugins/editor.py:1344
+#: spyder/app/mainwindow.py:591 spyder/plugins/editor.py:1355
 msgid "&Search"
 msgstr "検索(&S)"
 
-#: spyder/app/mainwindow.py:592 spyder/plugins/editor.py:1335
+#: spyder/app/mainwindow.py:592 spyder/plugins/editor.py:1346
 msgid "Search toolbar"
 msgstr "検索ツールバー"
 
-#: spyder/app/mainwindow.py:596 spyder/plugins/editor.py:1345
+#: spyder/app/mainwindow.py:596 spyder/plugins/editor.py:1356
 msgid "Sour&ce"
 msgstr "ソース(&C)"
 
-#: spyder/app/mainwindow.py:597 spyder/plugins/editor.py:1336
+#: spyder/app/mainwindow.py:597 spyder/plugins/editor.py:1347
 msgid "Source toolbar"
 msgstr "ソースツールバー"
 
 #: spyder/app/mainwindow.py:601 spyder/plugins/editor.py:780
-#: spyder/plugins/editor.py:1346
+#: spyder/plugins/editor.py:1357
 msgid "&Run"
 msgstr "実行(&R)"
 
-#: spyder/app/mainwindow.py:602 spyder/plugins/editor.py:1337
+#: spyder/app/mainwindow.py:602 spyder/plugins/editor.py:1348
 msgid "Run toolbar"
 msgstr "実行ツールバー"
 
@@ -141,7 +141,7 @@ msgstr "実行ツールバー"
 msgid "&Debug"
 msgstr "デバッグ(&D)"
 
-#: spyder/app/mainwindow.py:607 spyder/plugins/editor.py:1338
+#: spyder/app/mainwindow.py:607 spyder/plugins/editor.py:1349
 msgid "Debug toolbar"
 msgstr "デバッグツールバー"
 
@@ -154,7 +154,7 @@ msgstr "コンソール(&O)"
 msgid "&Projects"
 msgstr "プロジェクト..."
 
-#: spyder/app/mainwindow.py:617 spyder/plugins/editor.py:1347
+#: spyder/app/mainwindow.py:617 spyder/plugins/editor.py:1358
 msgid "&Tools"
 msgstr "ツール(&T)"
 
@@ -929,10 +929,10 @@ msgid "Supported text files"
 msgstr "サポートされたテキストファイル"
 
 #: spyder/plugins/__init__.py:508 spyder/plugins/editor.py:98
-#: spyder/plugins/editor.py:545 spyder/plugins/editor.py:1718
+#: spyder/plugins/editor.py:545 spyder/plugins/editor.py:1729
 #: spyder/plugins/help.py:118 spyder/plugins/help.py:385
 #: spyder/widgets/editor.py:371 spyder/widgets/sourcecode/codeeditor.py:97
-#: spyder/widgets/sourcecode/codeeditor.py:2962
+#: spyder/widgets/sourcecode/codeeditor.py:3001
 msgid "Editor"
 msgstr "エディタ"
 
@@ -1308,7 +1308,7 @@ msgstr "ソースコード"
 msgid "Show line numbers"
 msgstr "行番号を表示"
 
-#: spyder/plugins/editor.py:120 spyder/plugins/editor.py:937
+#: spyder/plugins/editor.py:120 spyder/plugins/editor.py:947
 msgid "Show blank spaces"
 msgstr "空白スペースを表示"
 
@@ -1561,7 +1561,7 @@ msgstr "新規ファイル"
 msgid "&Open..."
 msgstr "開く(&O)..."
 
-#: spyder/plugins/editor.py:635 spyder/plugins/editor.py:1767
+#: spyder/plugins/editor.py:635 spyder/plugins/editor.py:1778
 #: spyder/plugins/workingdirectory.py:70
 msgid "Open file"
 msgstr "ファイルを開く"
@@ -1731,7 +1731,7 @@ msgstr "最後のスクリプトを再度実行する(&L)"
 msgid "Run again last file"
 msgstr "最後のファイルを再度実行する"
 
-#: spyder/plugins/editor.py:802 spyder/widgets/sourcecode/codeeditor.py:2509
+#: spyder/plugins/editor.py:802 spyder/widgets/sourcecode/codeeditor.py:2548
 msgid "Run &selection or current line"
 msgstr "選択範囲あるいは現在のカーソル行を実行(&S)"
 
@@ -1739,7 +1739,7 @@ msgstr "選択範囲あるいは現在のカーソル行を実行(&S)"
 msgid "Run selection or current line"
 msgstr "選択範囲あるいは現在行を実行"
 
-#: spyder/plugins/editor.py:813 spyder/widgets/sourcecode/codeeditor.py:2501
+#: spyder/plugins/editor.py:813 spyder/widgets/sourcecode/codeeditor.py:2540
 msgid "Run cell"
 msgstr "cellを実行"
 
@@ -1751,7 +1751,7 @@ msgstr ""
 "現在のセルを実行する (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
 
-#: spyder/plugins/editor.py:822 spyder/widgets/sourcecode/codeeditor.py:2505
+#: spyder/plugins/editor.py:822 spyder/widgets/sourcecode/codeeditor.py:2544
 msgid "Run cell and advance"
 msgstr "cellを実行し進む"
 
@@ -1815,11 +1815,11 @@ msgstr "次のカーソル位置"
 msgid "Go to next cursor position"
 msgstr "次のカーソル位置へ移動"
 
-#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2485
+#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2524
 msgid "Comment"
 msgstr "コメント"
 
-#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2485
+#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2524
 msgid "Uncomment"
 msgstr "コメント解除"
 
@@ -1859,43 +1859,61 @@ msgstr "インデント解除"
 msgid "Unindent current line or selection"
 msgstr "現在行あるいは選択範囲をインデント解除"
 
+#: spyder/plugins/editor.py:918
+msgid "Toggle Uppercase"
+msgstr ""
+
 #: spyder/plugins/editor.py:919
+#, fuzzy
+msgid "Change to uppercase current line or selection"
+msgstr "現在行あるいは選択範囲をインデント"
+
+#: spyder/plugins/editor.py:923
+msgid "Toggle Lowercase"
+msgstr ""
+
+#: spyder/plugins/editor.py:924
+#, fuzzy
+msgid "Change to lowercase current line or selection"
+msgstr "現在行あるいは選択範囲をインデント"
+
+#: spyder/plugins/editor.py:929
 msgid "Carriage return and line feed (Windows)"
 msgstr "CR+LF (Windows)"
 
-#: spyder/plugins/editor.py:922
+#: spyder/plugins/editor.py:932
 msgid "Line feed (UNIX)"
 msgstr "LF (UNIX)"
 
-#: spyder/plugins/editor.py:925
+#: spyder/plugins/editor.py:935
 msgid "Carriage return (Mac)"
 msgstr "CR (Mac)"
 
-#: spyder/plugins/editor.py:931
+#: spyder/plugins/editor.py:941
 msgid "Convert end-of-line characters"
 msgstr "改行コードを変換する"
 
-#: spyder/plugins/editor.py:935
+#: spyder/plugins/editor.py:945
 msgid "Remove trailing spaces"
 msgstr "無駄な後続スペースを削除"
 
-#: spyder/plugins/editor.py:939
+#: spyder/plugins/editor.py:949
 msgid "Fix indentation"
 msgstr "インデントを修正"
 
-#: spyder/plugins/editor.py:940
+#: spyder/plugins/editor.py:950
 msgid "Replace tab characters by space characters"
 msgstr "タブ文字を空白に置換"
 
-#: spyder/plugins/editor.py:943
+#: spyder/plugins/editor.py:953
 msgid "Go to line..."
 msgstr "行へ移動..."
 
-#: spyder/plugins/editor.py:951
+#: spyder/plugins/editor.py:961
 msgid "Set console working directory"
 msgstr "コンソールの作業ディレクトリをセット"
 
-#: spyder/plugins/editor.py:953
+#: spyder/plugins/editor.py:963
 msgid ""
 "Set current console (and file explorer) working directory to current script "
 "directory"
@@ -1903,43 +1921,43 @@ msgstr ""
 "コンソール(とファイルエクスプローラー)の作業ディレクトリを現在のスクリプトの"
 "ディレクトリにセット"
 
-#: spyder/plugins/editor.py:958
+#: spyder/plugins/editor.py:968
 msgid "Maximum number of recent files..."
 msgstr "「最近使用したファイル」の最大履歴数..."
 
-#: spyder/plugins/editor.py:961
+#: spyder/plugins/editor.py:971
 msgid "Clear recent files list"
 msgstr "最近使用したファイルのリストをクリア"
 
-#: spyder/plugins/editor.py:961 spyder/plugins/projects.py:100
+#: spyder/plugins/editor.py:971 spyder/plugins/projects.py:100
 msgid "Clear this list"
 msgstr "このリストをクリア"
 
-#: spyder/plugins/editor.py:965
+#: spyder/plugins/editor.py:975
 msgid "Open &recent"
 msgstr "最近使用したファイル(&R)"
 
-#: spyder/plugins/editor.py:1348
+#: spyder/plugins/editor.py:1359
 msgid "?"
 msgstr "?"
 
-#: spyder/plugins/editor.py:1575
+#: spyder/plugins/editor.py:1586
 msgid "Spyder Editor"
 msgstr "Spyderエディタ"
 
-#: spyder/plugins/editor.py:1576
+#: spyder/plugins/editor.py:1587
 msgid "This is a temporary script file."
 msgstr "これは一時的なスクリプトファイルです"
 
-#: spyder/plugins/editor.py:1645
+#: spyder/plugins/editor.py:1656
 msgid "untitled"
 msgstr "タイトル無し"
 
-#: spyder/plugins/editor.py:1719
+#: spyder/plugins/editor.py:1730
 msgid "Maximum number of recent files"
 msgstr "「最近使用したファイル」の最大履歴数"
 
-#: spyder/plugins/editor.py:1852
+#: spyder/plugins/editor.py:1863
 msgid "Printing..."
 msgstr "印刷中..."
 
@@ -3575,11 +3593,11 @@ msgstr ""
 msgid "Array dimensions not valid"
 msgstr "配列の次元が不正"
 
-#: spyder/widgets/browser.py:54 spyder/widgets/sourcecode/codeeditor.py:2520
+#: spyder/widgets/browser.py:54 spyder/widgets/sourcecode/codeeditor.py:2559
 msgid "Zoom out"
 msgstr "ズームアウト"
 
-#: spyder/widgets/browser.py:57 spyder/widgets/sourcecode/codeeditor.py:2516
+#: spyder/widgets/browser.py:57 spyder/widgets/sourcecode/codeeditor.py:2555
 msgid "Zoom in"
 msgstr "ズームイン"
 
@@ -3834,7 +3852,7 @@ msgstr "リネーム..."
 msgid "Open"
 msgstr "開く"
 
-#: spyder/widgets/explorer.py:285 spyder/widgets/sourcecode/codeeditor.py:2492
+#: spyder/widgets/explorer.py:285 spyder/widgets/sourcecode/codeeditor.py:2531
 msgid "Convert to Python script"
 msgstr "Pythonスクリプトへ変換"
 
@@ -3896,11 +3914,11 @@ msgid ""
 "project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
 msgstr ""
 
-#: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2009
+#: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2018
 msgid "Conversion error"
 msgstr "変換エラー"
 
-#: spyder/widgets/explorer.py:567 spyder/widgets/sourcecode/codeeditor.py:2010
+#: spyder/widgets/explorer.py:567 spyder/widgets/sourcecode/codeeditor.py:2019
 msgid ""
 "It was not possible to convert this notebook. The error is:\n"
 "\n"
@@ -4648,27 +4666,27 @@ msgstr "行へ移動:"
 msgid "Line count:"
 msgstr "行数:"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1296
+#: spyder/widgets/sourcecode/codeeditor.py:1305
 msgid "Breakpoint"
 msgstr "ブレークポイント"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1297
+#: spyder/widgets/sourcecode/codeeditor.py:1306
 msgid "Condition:"
 msgstr "条件:"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1703
+#: spyder/widgets/sourcecode/codeeditor.py:1712
 msgid "Code analysis"
 msgstr "コード分析"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1757
+#: spyder/widgets/sourcecode/codeeditor.py:1766
 msgid "To do"
 msgstr "To do"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1996
+#: spyder/widgets/sourcecode/codeeditor.py:2005
 msgid "Removal error"
 msgstr "削除エラー"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1997
+#: spyder/widgets/sourcecode/codeeditor.py:2006
 msgid ""
 "It was not possible to remove outputs from this notebook. The error is:\n"
 "\n"
@@ -4676,15 +4694,15 @@ msgstr ""
 "notebookからoutputを削除できませんでした。エラー:\n"
 "\n"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2489
+#: spyder/widgets/sourcecode/codeeditor.py:2528
 msgid "Clear all ouput"
 msgstr "全ての出力をクリア"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2495
+#: spyder/widgets/sourcecode/codeeditor.py:2534
 msgid "Go to definition"
 msgstr "定義へ移動"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2524
+#: spyder/widgets/sourcecode/codeeditor.py:2563
 msgid "Zoom reset"
 msgstr "ズームリセット"
 
