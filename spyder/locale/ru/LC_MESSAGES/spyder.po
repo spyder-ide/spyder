@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: 3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-11-11 10:24+COT\n"
-"PO-Revision-Date: 2016-09-21 14:48+0300\n"
+"PO-Revision-Date: 2016-11-11 18:43+0300\n"
 "Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
 "Language-Team: русский <LL@li.org>\n"
 "Language: ru_RU\n"
@@ -552,7 +552,8 @@ msgstr "О %s"
 #: spyder/app/mainwindow.py:2401 spyder/plugins/editor.py:158
 #: spyder/plugins/runconfig.py:322 spyder/plugins/runconfig.py:444
 #: spyder/plugins/runconfig.py:449 spyder/utils/programs.py:285
-#: spyder/widgets/explorer.py:271 spyder/widgets/externalshell/baseshell.py:127
+#: spyder/widgets/explorer.py:271
+#: spyder/widgets/externalshell/baseshell.py:127
 msgid "Run"
 msgstr "Запуск"
 
@@ -741,8 +742,8 @@ msgstr ""
 "Python также подключены к этой панели, и что Менеджер Переменных отображает "
 "только переменные текущей выбранной консоли."
 
-#: spyder/app/tour.py:195 spyder/plugins/help.py:485 spyder/plugins/help.py:929
-#: spyder/widgets/internalshell.py:270
+#: spyder/app/tour.py:195 spyder/plugins/help.py:485
+#: spyder/plugins/help.py:929 spyder/widgets/internalshell.py:270
 msgid "Help"
 msgstr "Справка"
 
@@ -1074,11 +1075,11 @@ msgstr "Отметьте для возможности отделить<br> лю
 
 #: spyder/plugins/configdialog.py:863
 msgid "Enable high DPI scaling"
-msgstr ""
+msgstr "Включить масштабирование"
 
 #: spyder/plugins/configdialog.py:865
 msgid "Set this for high DPI displays"
-msgstr ""
+msgstr "Используется для мониторов с высоким разрешением"
 
 #: spyder/plugins/configdialog.py:866
 msgid "Custom margin for panes:"
@@ -1727,7 +1728,8 @@ msgstr "Выполнить файл"
 msgid "&Configure..."
 msgstr "&Настроить"
 
-#: spyder/plugins/editor.py:788 spyder/widgets/externalshell/pythonshell.py:304
+#: spyder/plugins/editor.py:788
+#: spyder/widgets/externalshell/pythonshell.py:304
 msgid "Run settings"
 msgstr "Настройки Запуска"
 
@@ -1869,21 +1871,19 @@ msgstr "Убрать отступ у текущей строки/выделен�
 
 #: spyder/plugins/editor.py:918
 msgid "Toggle Uppercase"
-msgstr ""
+msgstr "Сделать Прописными"
 
 #: spyder/plugins/editor.py:919
-#, fuzzy
 msgid "Change to uppercase current line or selection"
-msgstr "Добавить отступ к текущей строке или выделению"
+msgstr "Перевести текущую строчку или выделение в верхний регистр"
 
 #: spyder/plugins/editor.py:923
 msgid "Toggle Lowercase"
-msgstr ""
+msgstr "Сделать строчными"
 
 #: spyder/plugins/editor.py:924
-#, fuzzy
 msgid "Change to lowercase current line or selection"
-msgstr "Добавить отступ к текущей строке или выделению"
+msgstr "Перевести текущую строчку или выделение в нижний регистр"
 
 #: spyder/plugins/editor.py:929
 msgid "Carriage return and line feed (Windows)"
@@ -2276,7 +2276,8 @@ msgid "Source"
 msgstr "Исходник"
 
 #: spyder/plugins/help.py:385 spyder/plugins/runconfig.py:186
-#: spyder/plugins/runconfig.py:456 spyder/widgets/externalshell/baseshell.py:94
+#: spyder/plugins/runconfig.py:456
+#: spyder/widgets/externalshell/baseshell.py:94
 #: spyder/widgets/ipythonconsole/client.py:202
 msgid "Console"
 msgstr "Консоль"
@@ -2691,8 +2692,8 @@ msgstr "Скупое автодополнение"
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable.<br>For example, you "
-"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins."
-"meth().&lt;Tab&gt;</tt>"
+"can get completions on things like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth"
+"().&lt;Tab&gt;</tt>"
 msgstr ""
 "Включает автодополнение по <tt>Tab</tt> для элементов списков, результатов "
 "вызова функций, и т.п. <i>без</i> присвоения их переменной.<br>Например, Вы "
@@ -2714,8 +2715,8 @@ msgid ""
 "it becomes <i>str(43)</i> automatically."
 msgstr ""
 "Автовызов позволяет IPython автоматически вызывать объекты без явного ввода "
-"скобок.<br>Например, если Вы введете <i>str 43</i>, будет выполнено "
-"<i>str(43)</i> автоматически."
+"скобок.<br>Например, если Вы введете <i>str 43</i>, будет выполнено <i>str"
+"(43)</i> автоматически."
 
 #: spyder/plugins/ipythonconsole.py:494
 msgid "Smart"
@@ -2989,6 +2990,8 @@ msgid ""
 "You are working with Python 2, this means that you can not import a module "
 "that contains non-ascii characters."
 msgstr ""
+"Вы работаете с Python 2, поэтому вы не можете ипортировать модули, "
+"содержащие не-ascii символы."
 
 #: spyder/plugins/maininterpreter.py:206
 msgid ""
@@ -3032,9 +3035,8 @@ msgid "Close Project"
 msgstr "Закрыть проект"
 
 #: spyder/plugins/projects.py:97
-#, fuzzy
 msgid "Delete Project"
-msgstr "Недавние проекты"
+msgstr "Удалить проект"
 
 #: spyder/plugins/projects.py:103
 msgid "Project Preferences"
@@ -3198,7 +3200,7 @@ msgstr "Контекст"
 #: spyder/plugins/shortcuts.py:533
 #: spyder/widgets/variableexplorer/collectionseditor.py:118
 msgid "Name"
-msgstr "Действие"
+msgstr "Имя"
 
 #: spyder/plugins/shortcuts.py:535
 msgid "Shortcut"
@@ -3666,7 +3668,6 @@ msgid "Dependencies"
 msgstr "Зависимости"
 
 #: spyder/widgets/dependencies.py:141
-#, fuzzy
 msgid ""
 "Spyder depends on several Python modules to provide the right functionality "
 "for all its panes. The table below shows the required and installed versions "
@@ -3675,11 +3676,13 @@ msgid ""
 "<br><br>Please also note that new dependencies or changed ones will be "
 "correctly detected only after Spyder is restarted."
 msgstr ""
-"Spyder зависит от нескольких модулей Python для обеспечения верной "
-"функциональности всех панелей. В таблице ниже показаны требуемые и "
-"установленные версии (если таковые имеются) каждого из них."
+"Spyder зависит от нескольких модулей Python, обеспечивающих правильное "
+"функционирование всех панелей. В таблице ниже показаны требуемые и "
+"установленные версии (если таковые имеются) каждого из пакетов."
 "<br><br><b>Примечание</b>: Вы можете безопасно работать  в Spyder без "
-"следующих модулей: <b>%s</b> и <b>%s</b>."
+"следующих модулей: <b>%s</b> и <b>%s</b>. Также, пожалуйста, учтите, что "
+"новые пакеты или изменения в них будут корректно учтены только после "
+"перезапуска Spyder."
 
 #: spyder/widgets/dependencies.py:157
 msgid "Copy to clipboard"
@@ -3857,15 +3860,15 @@ msgstr "Редактировать"
 
 #: spyder/widgets/explorer.py:275
 msgid "Move..."
-msgstr "Перемещение..."
+msgstr "Переместить..."
 
 #: spyder/widgets/explorer.py:278
 msgid "Delete..."
-msgstr "Удаление..."
+msgstr "Удалить..."
 
 #: spyder/widgets/explorer.py:281
 msgid "Rename..."
-msgstr "Переименование..."
+msgstr "Переименовать..."
 
 #: spyder/widgets/explorer.py:284
 msgid "Open"
@@ -3925,7 +3928,6 @@ msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>Невозможно %s <i>%s</i></b><br><br>Сообщение об ошибке:<br>%s"
 
 #: spyder/widgets/explorer.py:548
-#, fuzzy
 msgid "File Explorer"
 msgstr "Файловый менеджер"
 
@@ -3934,6 +3936,8 @@ msgid ""
 "The current directory contains a project.<br><br>If you want to delete the "
 "project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
 msgstr ""
+"В текущий каталоге находится проект.<br><br>Если вы хотите удалить проект, "
+"пожалуйста, воспользуйтесь меню <b>Проекты</b> &raquo; <b>Удалить проект</b>"
 
 #: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2018
 msgid "Conversion error"
@@ -4569,23 +4573,22 @@ msgid "move"
 msgstr "переместить"
 
 #: spyder/widgets/projects/explorer.py:244
-#, fuzzy
 msgid ""
 "Do you really want to delete <b>{filename}</b>?<br><br><b>Note:</b> This "
 "action will only delete the project. Its files are going to be preserved on "
 "disk."
 msgstr ""
-"Вы действительно хотите удалить проект <b>%s</b>?<br><br>Примечание: файлы "
-"проекта не будут удалены с диска."
+"Вы действительно хотите удалить проект <b>{filename}</b>?"
+"<br><br><b>Примечание:</b>Файлы, входящие в проект, при этом останутся на "
+"диске."
 
 #: spyder/widgets/projects/explorer.py:257
-#, fuzzy
 msgid ""
-"<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:"
-"<br>{error}"
+"<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>"
+"{error}"
 msgstr ""
-"<b>Невозможно переместить файл <i>%s</i></b><br><br>Сообщение об ошибке:<br>"
-"%s"
+"<b>Невозможно удалить <i>{varpath}</i></b><br><br>Сообщение об ошибке:<br>"
+"{error}"
 
 #: spyder/widgets/projects/projectdialog.py:69
 msgid "New directory"
