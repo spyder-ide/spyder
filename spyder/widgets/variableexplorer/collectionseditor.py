@@ -1271,7 +1271,7 @@ class CollectionsEditor(QDialog):
         self.data_copy = None
         self.widget = None
 
-    def setup(self, data, title='', readonly=False, width=500, remote=False,
+    def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
         if isinstance(data, dict):
             # dictionnary
@@ -1306,7 +1306,7 @@ class CollectionsEditor(QDialog):
         constant = 121
         row_height = 30
         error_margin = 20
-        height = constant + row_height*min([15, datalen]) + error_margin
+        height = constant + row_height*min([10, datalen]) + error_margin
         self.resize(width, height)
 
         self.setWindowTitle(self.widget.get_title())
