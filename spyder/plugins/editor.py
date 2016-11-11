@@ -913,6 +913,16 @@ class Editor(SpyderPluginWidget):
                 _("Unindent"), "Shift+Tab", icon=ima.icon('unindent'),
                 tip=_("Unindent current line or selection"),
                 triggered=self.unindent, context=Qt.WidgetShortcut)
+
+        self.text_uppercase_action = create_action(self,
+                _("Toggle Uppercase"), "Ctrl+Shift+U",
+                tip=_("Change to uppercase current line or selection"),
+                triggered=self.text_uppercase, context=Qt.WidgetShortcut)
+
+        self.text_lowercase_action = create_action(self,
+                _("Toggle Lowercase"), "Ctrl+U",
+                tip=_("Change to lowercase current line or selection"),
+                triggered=self.text_lowercase, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------
         
         self.win_eol_action = create_action(self,
@@ -1002,7 +1012,8 @@ class Editor(SpyderPluginWidget):
         # ---- Edit menu/toolbar construction ----
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
-                                  self.indent_action, self.unindent_action]
+                                  self.indent_action, self.unindent_action,
+                                  self.text_uppercase_action, self.text_lowercase_action]
         self.main.edit_menu_actions += [None]+self.edit_menu_actions
         edit_toolbar_actions = [self.toggle_comment_action,
                                 self.unindent_action, self.indent_action]
@@ -1977,6 +1988,20 @@ class Editor(SpyderPluginWidget):
             editor.unindent()
 
     @Slot()
+    def text_uppercase (self):
+        """Change current line or selection to uppercase."""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.transform_to_uppercase()
+
+    @Slot()
+    def text_lowercase(self):
+        """Change current line or selection to lowercase."""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.transform_to_lowercase()
+
+    @Slot()
     def toggle_comment(self):
         """Comment current line or selection"""
         editor = self.get_current_editor()
@@ -1996,7 +2021,6 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
-
     @Slot()
     def go_to_next_todo(self):
         editor = self.get_current_editor()

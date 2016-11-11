@@ -55,7 +55,7 @@ class CompletionWidget(QListWidget):
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
-        self.case_sensitive = False
+        self.case_sensitive = True
         self.enter_select = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
@@ -85,7 +85,8 @@ class CompletionWidget(QListWidget):
         if any(types):
             for (c, t) in zip(completion_list, types):
                 icon = icons_map.get(t, 'no_match')
-                self.addItem(QListWidgetItem(ima.icon(icon), c))
+                #self.addItem(QListWidgetItem(ima.icon(icon), c))
+                self.addItem(QListWidgetItem(c))
         else:
             self.addItems(completion_list)
 
@@ -174,12 +175,15 @@ class CompletionWidget(QListWidget):
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
-            
+
     def update_current(self):
         completion_text = to_text_string(self.textedit.completion_text)
+
         if completion_text:
             for row, completion in enumerate(self.completion_list):
+                #print(completion_text)
                 if not self.case_sensitive:
+                    print(completion_text)
                     completion = completion.lower()
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
@@ -191,7 +195,8 @@ class CompletionWidget(QListWidget):
                 self.hide()
         else:
             self.hide()
-    
+
+
     def focusOutEvent(self, event):
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
