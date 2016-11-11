@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2016-11-11 10:24+COT\n"
-"PO-Revision-Date: 2016-09-24 04:41-0500\n"
+"PO-Revision-Date: 2016-11-11 18:52-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: ../../../..\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 1.8.9\n"
 
 #: spyder/app/mainwindow.py:125
 msgid "Initializing..."
@@ -1080,11 +1080,13 @@ msgstr ""
 
 #: spyder/plugins/configdialog.py:863
 msgid "Enable high DPI scaling"
-msgstr ""
+msgstr "Activar el escalado para pantallas de alta resolución"
 
 #: spyder/plugins/configdialog.py:865
 msgid "Set this for high DPI displays"
 msgstr ""
+"Activar esta opción para escalar la interfaz \n"
+"a pantallas de alta resolución"
 
 #: spyder/plugins/configdialog.py:866
 msgid "Custom margin for panes:"
@@ -1892,21 +1894,19 @@ msgstr "Quitar indentación de la línea o selección actual"
 
 #: spyder/plugins/editor.py:918
 msgid "Toggle Uppercase"
-msgstr ""
+msgstr "Cambiar a mayúsculas"
 
 #: spyder/plugins/editor.py:919
-#, fuzzy
 msgid "Change to uppercase current line or selection"
-msgstr "Indentar la línea o selección actual"
+msgstr "Cambiar a mayúsculas la línea o selección actual"
 
 #: spyder/plugins/editor.py:923
 msgid "Toggle Lowercase"
-msgstr ""
+msgstr "Cambiar a minúsculas"
 
 #: spyder/plugins/editor.py:924
-#, fuzzy
 msgid "Change to lowercase current line or selection"
-msgstr "Indentar la línea o selección actual"
+msgstr "Cambiar a minúsculas la línea o selección actual"
 
 #: spyder/plugins/editor.py:929
 msgid "Carriage return and line feed (Windows)"
@@ -3019,6 +3019,8 @@ msgid ""
 "You are working with Python 2, this means that you can not import a module "
 "that contains non-ascii characters."
 msgstr ""
+"No es posible importar un módulo con caracteres que no son ascii en Python "
+"2. Por favor introduzca un módulo diferente."
 
 #: spyder/plugins/maininterpreter.py:206
 msgid ""
@@ -3062,9 +3064,8 @@ msgid "Close Project"
 msgstr "Cerrar proyecto"
 
 #: spyder/plugins/projects.py:97
-#, fuzzy
 msgid "Delete Project"
-msgstr "Proyectos recientes"
+msgstr "Eliminar proyecto"
 
 #: spyder/plugins/projects.py:103
 msgid "Project Preferences"
@@ -3701,7 +3702,6 @@ msgid "Dependencies"
 msgstr "Dependencias"
 
 #: spyder/widgets/dependencies.py:141
-#, fuzzy
 msgid ""
 "Spyder depends on several Python modules to provide the right functionality "
 "for all its panes. The table below shows the required and installed versions "
@@ -3714,7 +3714,10 @@ msgstr ""
 "correcta para todos sus paneles. La tabla que aparece a continuación muestra "
 "las versiones requeridas e instaladas (de existir) de todos ellos."
 "<br><br><b>Nota</b>: Usted puede utilizar Spyder sin problemas si no cuenta "
-"con los siguientes módulos instalados: <b>%s</b> y <b>%s</b>."
+"con los siguientes módulos instalados: <b>%s</b> y <b>%s</b>.<br><br>Por "
+"favor también tenga en cuenta que dependencias nuevas o que hayan sido "
+"cambiadas en esta lista, sólo serán detectadas correctamente después de que "
+"Spyder sea reiniciado."
 
 #: spyder/widgets/dependencies.py:157
 msgid "Copy to clipboard"
@@ -3956,7 +3959,6 @@ msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>No fue posible %s <i>%s</i></b><br><br>Mensaje de error:<br>%s"
 
 #: spyder/widgets/explorer.py:548
-#, fuzzy
 msgid "File Explorer"
 msgstr "Explorador de archivos"
 
@@ -3965,6 +3967,9 @@ msgid ""
 "The current directory contains a project.<br><br>If you want to delete the "
 "project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
 msgstr ""
+"El directorio actual contiene un proyecto.<br><br>Si desea eliminar este "
+"proyecto, por favor diríjase a <b>Proyectos</b> &raquo; <b>Eliminar "
+"proyecto</b>"
 
 #: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2018
 msgid "Conversion error"
@@ -4621,21 +4626,22 @@ msgid "move"
 msgstr "mover"
 
 #: spyder/widgets/projects/explorer.py:244
-#, fuzzy
 msgid ""
 "Do you really want to delete <b>{filename}</b>?<br><br><b>Note:</b> This "
 "action will only delete the project. Its files are going to be preserved on "
 "disk."
 msgstr ""
-"¿Realmente desea eliminar el proyecto <b>%s</b>?<br><br>Nota: Los archivos "
-"del proyecto no serán eliminados del disco."
+"¿Realmente desea eliminar el proyecto <b>{filename}</b>?<br><br><b>Nota</b>: "
+"Esta acción sólo eliminará el proyecto. Los archivos del mismo no serán "
+"eliminados del disco."
 
 #: spyder/widgets/projects/explorer.py:257
-#, fuzzy
 msgid ""
 "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:"
 "<br>{error}"
-msgstr "<b>No fue posible mover <i>%s</i></b><br><br>Mensaje de error:<br>%s"
+msgstr ""
+"<b>No fue posible eliminar <i>{varpath}</i></b><br><br>El mensaje de error "
+"fue:<br>{error}"
 
 #: spyder/widgets/projects/projectdialog.py:69
 msgid "New directory"
