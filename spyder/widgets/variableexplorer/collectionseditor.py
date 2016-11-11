@@ -73,7 +73,10 @@ class ProxyObject(object):
         return getattr(self.__obj__, key)
 
     def __setitem__(self, key, value):
-        setattr(self.__obj__, key, value)
+        try:
+            setattr(self.__obj__, key, value)
+        except TypeError:
+            pass
 
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
