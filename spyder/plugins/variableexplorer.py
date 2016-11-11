@@ -154,8 +154,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets[shellwidget_id]
             self.set_current_widget(nsb)
-            if self.isvisible:
-                nsb.visibility_changed(True)
 
     def import_data(self, fname):
         """Import data in current namespace"""
@@ -167,13 +165,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
 
-    #------ SpyderPluginMixin API ---------------------------------------------
-    def visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
-        SpyderPluginMixin.visibility_changed(self, enable)
-        for nsb in list(self.shellwidgets.values()):
-            nsb.visibility_changed(enable and nsb is self.current_widget())
-    
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
