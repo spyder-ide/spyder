@@ -466,8 +466,6 @@ class CollectionsDelegate(QItemDelegate):
         #---editor = ArrayEditor
         elif isinstance(value, (ndarray, MaskedArray)) \
           and ndarray is not FakeObject:
-            if value.size == 0:
-                return None
             editor = ArrayEditor(parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -478,8 +476,6 @@ class CollectionsDelegate(QItemDelegate):
         elif isinstance(value, Image) and ndarray is not FakeObject \
           and Image is not FakeObject:
             arr = array(value)
-            if arr.size == 0:
-                return None
             editor = ArrayEditor(parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
@@ -510,7 +506,7 @@ class CollectionsDelegate(QItemDelegate):
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             return editor
         #---editor = TextEditor
-        elif is_text_string(value) and len(value)>40:
+        elif is_text_string(value) and len(value) > 40:
             editor = TextEditor(value, key)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
