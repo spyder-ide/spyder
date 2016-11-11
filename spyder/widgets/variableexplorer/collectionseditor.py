@@ -1533,10 +1533,15 @@ def remote_editor_test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyder.plugins.variableexplorer import VariableExplorer
-    from spyder.widgets.variableexplorer.utils import make_remote_view
+    from spyder.config.main import CONF
+    from spyder.widgets.variableexplorer.utils import (make_remote_view,
+                                                       REMOTE_SETTINGS)
 
-    remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
+    settings = {}
+    for name in REMOTE_SETTINGS:
+        settings[name] = CONF.get('variable_explorer', name)
+
+    remote = make_remote_view(get_test_data(), settings)
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
