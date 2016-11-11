@@ -104,9 +104,21 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         """Return model data"""
         return self._data
 
+    def get_data_type(self, data):
+        """Return data type"""
+        data_type = to_text_string(type(data))
+        # String representations of type(foo) are of the form
+        #     "<class 'datetime.timedelta'>"
+        # so the code below gives us
+        #     "datetime.timedelta"
+        # which is exactly what we want
+        data_type = data_type.split()[-1][1:-2]
+        return data_type
+
     def set_data(self, data, coll_filter=None):
         """Set model data"""
         self._data = data
+        data_type = self.get_data_type(data)
 
         if coll_filter is not None and not self.remote and \
           isinstance(data, (tuple, list, dict)):
@@ -128,13 +140,15 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = _("Key")
         else:
-            self.keys = dir(data)
+            self.keys = [k for k in dir(data) if not k.startswith('__')]
             self._data = data = self.showndata = ProxyObject(data)
-            self.title += _("Object")
             if not self.names:
                 self.header0 = _("Attribute")
 
-        self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
+        if not isinstance(self._data, ProxyObject):
+            self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
+        else:
+            self.title += data_type
 
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
