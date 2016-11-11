@@ -339,12 +339,6 @@ class NamespaceBrowser(QWidget):
             self.shellwidget._kernel_value = None
         else:
             value = monitor_get_global(self._get_sock(), name)
-            if value is None:
-                if communicate(self._get_sock(), '%s is not None' % name):
-                    import pickle
-                    msg = to_text_string(_("Object <b>%s</b> is not picklable")
-                                         % name)
-                    raise pickle.PicklingError(msg)
         return value
         
     def set_value(self, name, value):
