@@ -44,7 +44,7 @@ class FakeObject(object):
 
 
 #==============================================================================
-# Numpy arrays and numeric support
+# Numpy arrays and numeric types support
 #==============================================================================
 try:
     from numpy import (ndarray, array, matrix, recarray,
@@ -247,8 +247,8 @@ def unsorted_unique(lista):
 def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
     try:
-        numeric_type_tuple = (int64, int32, float64, float32, \
-                             complex128, complex64)
+        numeric_numpy_types = (int64, int32, float64, float32,
+                               complex128, complex64)
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
@@ -293,9 +293,8 @@ def value_to_display(value, minmax=False):
         elif is_text_string(value):
             display = value
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
-          isinstance(value, datetime.date):
-            display = repr(value)
-        elif isinstance(value, numeric_type_tuple):
+          isinstance(value, datetime.date) or \
+          isinstance(value, numeric_numpy_types):
             display = repr(value)
         else:
             # Note: Don't trust on repr's. They can be inefficient and
