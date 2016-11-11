@@ -143,7 +143,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = _("Key")
         else:
-            self.keys = [k for k in dir(data) if not k.startswith('__')]
+            keys = [k for k in dir(data) if not k.startswith('__')]
+            if not keys:
+                keys = dir(data)
+            self.keys = keys
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
