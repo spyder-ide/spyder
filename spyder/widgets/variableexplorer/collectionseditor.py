@@ -61,13 +61,25 @@ if DataFrame is not FakeObject:
 LARGE_NROWS = 100
 
 
+def get_object_attrs(obj):
+    """
+    Get the attributes of an object using dir.
+
+    This filters protected attributes
+    """
+    attrs = [k for k in dir(obj) if not k.startswith('__')]
+    if not attrs:
+        attrs = dir(obj)
+    return attrs
+
+
 class ProxyObject(object):
     """Dictionary proxy to an unknown object"""
     def __init__(self, obj):
         self.__obj__ = obj
 
     def __len__(self):
-        return len(dir(self.__obj__))
+        return len(get_object_attrs(self.__obj__))
 
     def __getitem__(self, key):
         return getattr(self.__obj__, key)
@@ -143,10 +155,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = _("Key")
         else:
-            keys = [k for k in dir(data) if not k.startswith('__')]
-            if not keys:
-                keys = dir(data)
-            self.keys = keys
+            self.keys = get_object_attrs(data)
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
@@ -1288,7 +1297,7 @@ class CollectionsEditor(QDialog):
             # unknown object
             import copy
             self.data_copy = copy.deepcopy(data)
-            datalen = len(dir(data))
+            datalen = len(get_object_attrs(data))
         self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
                                               readonly=readonly, remote=remote)
 
