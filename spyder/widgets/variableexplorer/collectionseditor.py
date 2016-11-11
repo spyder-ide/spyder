@@ -1317,7 +1317,7 @@ class CollectionsEditor(QDialog):
 
         constant = 121
         row_height = 30
-        error_margin = 20
+        error_margin = 10
         height = constant + row_height*min([10, datalen]) + error_margin
         self.resize(width, height)
 
