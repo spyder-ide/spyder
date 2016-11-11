@@ -120,7 +120,8 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_box = newcb(_("Show vertical lines after"), 'edge_line')
         edgeline_edit = self.create_lineedit("", 'edge_line_columns',
                                              tip="Enter values separated by commas ','",
-                                             alignment=Qt.Horizontal)
+                                             alignment=Qt.Horizontal,
+                                             regex="[0-9]+(,[0-9]+)*")
         edgeline_edit_label = QLabel(_("characters"))
         edgeline_box.toggled.connect(edgeline_edit.setEnabled)
         edgeline_edit.setEnabled(self.get_option('edge_line'))
