@@ -18,7 +18,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
+from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import (QClipboard, QColor, QFont, QMouseEvent, QPalette,
                         QTextCharFormat, QTextFormat, QTextOption, QTextCursor)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
@@ -33,6 +33,11 @@ from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
+
+from spyder.utils.introspection.module_completion import *
+from spyder.utils.stringmatching import get_search_scores
+from spyder.widgets.helperwidgets import HTMLDelegate
+from spyder.utils.icon_manager import get_icon, get_std_icon
 
 
 def insert_text_to(cursor, text, fmt):
@@ -59,12 +64,36 @@ class CompletionWidget(QListWidget):
         self.enter_select = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
+        self.icons_map = {'instance': 'attribute',
+                     'statement': 'attribute',
+                     'method': 'method',
+                     'function': 'function',
+                     'class': 'class',
+                     'module': 'module'}
         
     def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
-        
+
+    def fuzzy_codecompletion_search(self, query_text):
+        """ Search words for codecompletion widget"""
+        results = []
+        # Get all available matches and get the scores for "fuzzy" matching
+        scores = get_search_scores(query_text, self.completion_list,
+                                   template="<b>{0}</b>")
+
+        # Build the text that will appear on the list widget
+        for index, score in enumerate(scores):
+            text, rich_text, score_value = score
+            if score_value != -1:
+                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
+                results.append((score_value, index, text_item))  #, icons[index]
+        return results
+
     def show_list(self, completion_list, automatic=True):
+
+        print(completion_list)
+
         types = [c[1] for c in completion_list]
         completion_list = [c[0] for c in completion_list]
         if len(completion_list) == 1 and not automatic:
@@ -74,22 +103,35 @@ class CompletionWidget(QListWidget):
         self.completion_list = completion_list
         self.clear()
 
-        icons_map = {'instance': 'attribute',
-                     'statement': 'attribute',
-                     'method': 'method',
-                     'function': 'function',
-                     'class': 'class',
-                     'module': 'module'}
 
+        ### Reading the user input
+        query_text = to_text_string(self.textedit.completion_text)
+        print(get_submodules(query_text))
+
+        results = self.fuzzy_codecompletion_search(query_text)
+
+        # Sort the obtained scores and populate the list widget
+        if any(types):
+            for result in sorted(results):
+                index = result[1]
+                text = result[-1]
+                print(index)
+                self.setItemDelegate(HTMLDelegate(self))
+                item = self.addItem(QListWidgetItem(ima.icon('function'), text))
+                #item.setSizeHint(QSize(0, 25))
+                #self.list.addItem(item)
+        else:
+            self.addItems(completion_list)
+        """
         self.type_list = types
+
         if any(types):
             for (c, t) in zip(completion_list, types):
                 icon = icons_map.get(t, 'no_match')
-                #self.addItem(QListWidgetItem(ima.icon(icon), c))
-                self.addItem(QListWidgetItem(c))
+                self.addItem(QListWidgetItem(ima.icon(icon), c))
         else:
             self.addItems(completion_list)
-
+        """
         self.setCurrentRow(0)
 
         QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
@@ -177,22 +219,25 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
 
     def update_current(self):
-        completion_text = to_text_string(self.textedit.completion_text)
+        user_input = to_text_string(self.textedit.completion_text)
 
-        if completion_text:
-            for row, completion in enumerate(self.completion_list):
-                #print(completion_text)
-                if not self.case_sensitive:
-                    print(completion_text)
-                    completion = completion.lower()
-                    completion_text = completion_text.lower()
-                if completion.startswith(completion_text):
-                    self.setCurrentRow(row)
+        results = self.fuzzy_codecompletion_search(user_input)
+
+        if user_input:
+            #if any(self.types):
+                for result in sorted(results):
+                    index = result[1]
+                    text = result[-1]
+                    print(index)
+                    self.setItemDelegate(HTMLDelegate(self))
+                    #item = self.addItem(QListWidgetItem(ima.icon('function'), text))
+                    #if completion.startswith(user_input):
+                    self.setCurrentRow(index)
                     self.scrollTo(self.currentIndex(),
                                   QAbstractItemView.PositionAtTop)
                     break
-            else:
-                self.hide()
+            #else:
+            #   self.hide()
         else:
             self.hide()
 
