@@ -10,7 +10,6 @@
 import os.path as osp
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -28,10 +27,7 @@ class OnlineHelp(SpyderPluginWidget):
     LOG_PATH = get_conf_path(CONF_SECTION)
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.pydocbrowser = PydocBrowser(self)
 

@@ -15,7 +15,6 @@
 import os.path as osp
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -30,10 +29,7 @@ class Explorer(SpyderPluginWidget):
     CONF_SECTION = 'explorer'
 
     def __init__(self, parent=None):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.fileexplorer = ExplorerWidget(self,
                                 name_filters=self.get_option('name_filters'),

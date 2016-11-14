@@ -15,7 +15,6 @@
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QApplication, QVBoxLayout
 
@@ -36,10 +35,7 @@ class FindInFiles(SpyderPluginWidget):
     toggle_visibility = Signal(bool)
     
     def __init__(self, parent=None):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         supported_encodings = self.get_option('supported_encodings')
         search_path = self.get_option('search_path', None)        

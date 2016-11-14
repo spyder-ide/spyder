@@ -7,7 +7,6 @@
 """Variable Explorer Plugin"""
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout
 
@@ -87,10 +86,7 @@ class VariableExplorer(SpyderPluginWidget):
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         # Widgets
         self.stack = QStackedWidget(self)

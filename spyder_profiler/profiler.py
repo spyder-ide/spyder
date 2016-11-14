@@ -12,8 +12,7 @@
 import os.path as osp
 
 # Third party imports
-from qtpy import PYQT5
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
@@ -62,10 +61,7 @@ class Profiler(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = ProfilerConfigPage
     
     def __init__(self, parent=None):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         max_entries=self.get_option('max_entries', 50)
         self.profiler = ProfilerWidget(self, max_entries)

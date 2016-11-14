@@ -40,7 +40,7 @@ from spyder.utils.qthelpers import create_action, toggle_actions
 from spyder.widgets.dock import SpyderDockWidget
 
 
-class SpyderPluginMixin(object):
+class BasePluginWidget(QWidget):
     """
     Useful methods to bind widgets to the main window
     See SpyderPluginWidget class for required widget interface
@@ -63,14 +63,15 @@ class SpyderPluginMixin(object):
     DISABLE_ACTIONS_WHEN_HIDDEN = True
 
     # Signals
-    sig_option_changed = None
-    show_message = None
-    update_plugin_title = None
+    sig_option_changed = Signal(str, object)
+    show_message = Signal(str, int)
+    update_plugin_title = Signal()
 
-    def __init__(self, main=None, **kwds):
+    def __init__(self, main=None):
         """Bind widget to a QMainWindow instance"""
-        super(SpyderPluginMixin, self).__init__(**kwds)
+        QWidget.__init__(self, main)
         assert self.CONF_SECTION is not None
+
         self.PLUGIN_PATH = os.path.dirname(inspect.getfile(self.__class__))
         self.main = main
         self.default_margins = None
@@ -98,12 +99,9 @@ class SpyderPluginMixin(object):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.create_toggle_view_action()
         self.plugin_actions = self.get_plugin_actions()
-        if self.show_message is not None:
-            self.show_message.connect(self.__show_message)
-        if self.update_plugin_title is not None:
-            self.update_plugin_title.connect(self.__update_plugin_title)
-        if self.sig_option_changed is not None:
-            self.sig_option_changed.connect(self.set_option)
+        self.show_message.connect(self.__show_message)
+        self.update_plugin_title.connect(self.__update_plugin_title)
+        self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
 
     def on_first_registration(self):
@@ -344,22 +342,11 @@ class SpyderPluginMixin(object):
             self.dockwidget.hide()
 
 
-class SpyderPluginWidget(QWidget, SpyderPluginMixin):
+class SpyderPluginWidget(BasePluginWidget):
     """
     Spyder base widget class
     Spyder's widgets either inherit this class or reimplement its interface
     """
-    sig_option_changed = Signal(str, object)
-    show_message = Signal(str, int)
-    update_plugin_title = Signal()
-
-    if PYQT5:
-        def __init__(self, parent, **kwds):
-            super(SpyderPluginWidget, self).__init__(parent, **kwds)
-    else:
-        def __init__(self, parent):
-            QWidget.__init__(self, parent)
-            SpyderPluginMixin.__init__(self, parent)
 
     def get_plugin_title(self):
         """

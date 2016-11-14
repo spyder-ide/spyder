@@ -16,7 +16,6 @@ import os
 import os.path as osp
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Signal, Slot
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
@@ -153,10 +152,7 @@ class WorkingDirectory(SpyderPluginWidget):
     set_current_console_wd = Signal(str)
     
     def __init__(self, parent, workdir=None, **kwds):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.toolbar = QToolBar(self)
 

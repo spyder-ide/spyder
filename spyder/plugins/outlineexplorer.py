@@ -12,7 +12,6 @@ highlighter spyder.utils.syntaxhighlighters.PythonSH
 """
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -27,10 +26,7 @@ class OutlineExplorer(SpyderPluginWidget):
     CONF_SECTION = 'outline_explorer'
     
     def __init__(self, parent=None, fullpath_sorting=True):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')

@@ -18,7 +18,7 @@ import re
 import time
 
 # Third party imports
-from qtpy import API, PYQT5
+from qtpy import API
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
@@ -363,10 +363,7 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     
     def __init__(self, parent, ignore_last_opened_files=False):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main=parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.__set_eol_chars = True
 

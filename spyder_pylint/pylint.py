@@ -15,7 +15,6 @@
 import os.path as osp
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
@@ -85,10 +84,7 @@ class Pylint(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = PylintConfigPage
 
     def __init__(self, parent=None):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         max_entries = self.get_option('max_entries', 50)
         self.pylint = PylintWidget(self, max_entries=max_entries)

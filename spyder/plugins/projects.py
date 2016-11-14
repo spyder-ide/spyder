@@ -15,7 +15,6 @@ updating the file tree explorer associated with a project
 import os.path as osp
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
@@ -41,10 +40,7 @@ class Projects(SpyderPluginWidget):
     sig_project_closed = Signal(object)
 
     def __init__(self, parent=None):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.explorer = ProjectExplorerWidget(self,
                             name_filters=self.get_option('name_filters'),

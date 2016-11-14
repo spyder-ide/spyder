@@ -15,7 +15,6 @@
 import os.path as osp
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -34,10 +33,7 @@ class Breakpoints(SpyderPluginWidget):
     CONF_SECTION = 'breakpoints'
 
     def __init__(self, parent=None):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.breakpoints = BreakpointWidget(self)
 
