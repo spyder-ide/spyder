@@ -7,13 +7,14 @@
 """Variable Explorer Plugin"""
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.api.plugins import SpyderPluginMixin
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
@@ -77,7 +78,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class VariableExplorer(QWidget, SpyderPluginMixin):
+class VariableExplorer(SpyderPluginWidget):
     """
     Variable Explorer Plugin
     """
@@ -86,8 +87,10 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        SpyderPluginMixin.__init__(self, parent)
+        if PYQT5:
+            SpyderPluginWidget.__init__(self, parent, main = parent)
+        else:
+            SpyderPluginWidget.__init__(self, parent)
 
         # Widgets
         self.stack = QStackedWidget(self)
@@ -175,7 +178,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     #------ SpyderPluginMixin API ---------------------------------------------
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        SpyderPluginMixin.visibility_changed(self, enable)
+        SpyderPluginWidget.visibility_changed(self, enable)
         for nsb in list(self.shellwidgets.values()):
             nsb.visibility_changed(enable and nsb is self.current_widget())
     
