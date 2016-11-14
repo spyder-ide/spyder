@@ -791,7 +791,7 @@ class MainWindow(QMainWindow):
         from spyder.plugins.workingdirectory import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
-        self.toolbarslist.append(self.workingdirectory)
+        self.toolbarslist.append(self.workingdirectory.toolbar)
 
         # Help plugin
         if CONF.get('help', 'enable'):

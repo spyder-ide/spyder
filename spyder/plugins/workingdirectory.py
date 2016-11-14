@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _, get_conf_path, get_home_dir
-from spyder.api.plugins import SpyderPluginMixin
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string, getcwd
 from spyder.utils import encoding
@@ -136,7 +136,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class WorkingDirectory(QToolBar, SpyderPluginMixin):
+class WorkingDirectory(SpyderPluginWidget):
     """
     Working directory changer widget
     """
@@ -154,16 +154,17 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     
     def __init__(self, parent, workdir=None, **kwds):
         if PYQT5:
-            super(WorkingDirectory, self).__init__(parent, **kwds)
+            SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
-            QToolBar.__init__(self, parent)
-            SpyderPluginMixin.__init__(self, parent)
+            SpyderPluginWidget.__init__(self, parent)
+
+        self.toolbar = QToolBar(self)
 
         # Initialize plugin
         self.initialize_plugin()
         
-        self.setWindowTitle(self.get_plugin_title()) # Toolbar title
-        self.setObjectName(self.get_plugin_title()) # Used to save Window state
+        self.toolbar.setWindowTitle(self.get_plugin_title()) # Toolbar title
+        self.toolbar.setObjectName(self.get_plugin_title()) # Used to save Window state
         
         # Previous dir action
         self.history = []
@@ -171,7 +172,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.previous_action = create_action(self, "previous", None,
                                      ima.icon('previous'), _('Back'),
                                      triggered=self.previous_directory)
-        self.addAction(self.previous_action)
+        self.toolbar.addAction(self.previous_action)
         
         # Next dir action
         self.history = []
@@ -179,7 +180,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.next_action = create_action(self, "next", None,
                                      ima.icon('next'), _('Next'),
                                      triggered=self.next_directory)
-        self.addAction(self.next_action)
+        self.toolbar.addAction(self.next_action)
         
         # Enable/disable previous/next actions
         self.set_previous_enabled.connect(self.previous_action.setEnabled)
@@ -211,21 +212,21 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.pathedit.addItems(wdhistory)
         self.pathedit.selected_text = self.pathedit.currentText()
         self.refresh_plugin()
-        self.addWidget(self.pathedit)
+        self.toolbar.addWidget(self.pathedit)
         
         # Browse action
         browse_action = create_action(self, "browse", None,
                                       ima.icon('DirOpenIcon'),
                                       _('Browse a working directory'),
                                       triggered=self.select_directory)
-        self.addAction(browse_action)
+        self.toolbar.addAction(browse_action)
 
         # Parent dir action
         parent_action = create_action(self, "parent", None,
                                       ima.icon('up'),
                                       _('Change to parent directory'),
                                       triggered=self.parent_directory)
-        self.addAction(parent_action)
+        self.toolbar.addAction(parent_action)
                 
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -245,8 +246,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.console.shell.refresh.connect(self.refresh_plugin)
         iconsize = 24 
-        self.setIconSize(QSize(iconsize, iconsize))
-        self.main.addToolBar(self)
+        self.toolbar.setIconSize(QSize(iconsize, iconsize))
+        self.main.addToolBar(self.toolbar)
         
     def refresh_plugin(self):
         """Refresh widget"""
