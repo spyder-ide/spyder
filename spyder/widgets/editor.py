@@ -644,7 +644,7 @@ class EditorStack(QWidget):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer.outlineexplorer_is_visible.connect(
+        self.outlineexplorer.explorer.is_visible.connect(
                                                  self._refresh_outlineexplorer)
 
     def initialize_outlineexplorer(self):
@@ -656,7 +656,7 @@ class EditorStack(QWidget):
 
     def add_outlineexplorer_button(self, editor_plugin):
         oe_btn = create_toolbutton(editor_plugin)
-        oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
+        oe_btn.setDefaultAction(self.outlineexplorer.explorer.visibility_action)
         self.add_corner_widgets_to_tabbar([5, oe_btn])
 
     def set_help(self, help_plugin):
@@ -1021,7 +1021,7 @@ class EditorStack(QWidget):
             # Fixes Issue 1287
             self.set_current_filename(current_fname)
         if self.outlineexplorer is not None:
-            self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
+            self.outlineexplorer.explorer.file_renamed(finfo.editor, finfo.filename)
         return new_index
 
     def set_stack_title(self, index, is_modified):
@@ -1138,7 +1138,7 @@ class EditorStack(QWidget):
             self.threadmanager.close_threads(finfo)
             # Removing editor reference from outline explorer settings:
             if self.outlineexplorer is not None:
-                self.outlineexplorer.remove_editor(finfo.editor)
+                self.outlineexplorer.explorer.remove_editor(finfo.editor)
 
             self.remove_from_data(index)
 
@@ -1476,7 +1476,7 @@ class EditorStack(QWidget):
             if finfo.editor.is_python():
                 enable = True
                 oe.setEnabled(True)
-                oe.set_current_editor(finfo.editor, finfo.filename,
+                oe.explorer.set_current_editor(finfo.editor, finfo.filename,
                                       update=update, clear=clear)
         if not enable:
             oe.setEnabled(False)
@@ -1719,7 +1719,7 @@ class EditorStack(QWidget):
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             editor.destroyed.connect(lambda obj=editor:
-                                     self.outlineexplorer.remove_editor(obj))
+                              self.outlineexplorer.explorer.remove_editor(obj))
 
         self.find_widget.set_editor(editor)
 
