@@ -23,7 +23,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 # Local imports
 from spyder.config.base import _, get_home_dir
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import is_text_string, getcwd
+from spyder.py3compat import is_text_string, to_text_string, getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
@@ -35,20 +35,7 @@ class Projects(SpyderPluginWidget):
     """Projects plugin"""
 
     CONF_SECTION = 'project_explorer'
-
-    open_terminal = Signal(str)
-    open_interpreter = Signal(str)
     pythonpath_changed = Signal()
-
-    # File operations
-    create_module = Signal(str)
-    edit = Signal(str)
-    removed = Signal(str)
-    removed_tree = Signal(str)
-    renamed = Signal(str, str)
-    redirect_stdio = Signal(bool)
-
-    # Project handling
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
@@ -129,20 +116,26 @@ class Projects(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.editor = self.main.editor
         self.workingdirectory = self.main.workingdirectory
+        extconsole = self.main.extconsole
+        treewidget = self.explorer.treewidget
 
-        self.main.pythonpath_changed()
-        self.main.restore_scrollbar_position.connect(
-                                               self.restore_scrollbar_position)
-        self.pythonpath_changed.connect(self.main.pythonpath_changed)
-        self.create_module.connect(self.editor.new)
-        self.edit.connect(self.editor.load)
-        self.removed.connect(self.editor.removed)
-        self.removed_tree.connect(self.editor.removed_tree)
-        self.renamed.connect(self.editor.renamed)
-        self.editor.set_projects(self)
         self.main.add_dockwidget(self)
-
         self.explorer.sig_open_file.connect(self.main.open_file)
+
+        treewidget.sig_edit.connect(self.editor.load)
+        treewidget.sig_removed.connect(self.editor.removed)
+        treewidget.sig_removed_tree.connect(self.editor.removed_tree)
+        treewidget.sig_renamed.connect(self.editor.renamed)
+        treewidget.sig_create_module.connect(self.editor.new)
+        treewidget.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
+        treewidget.sig_open_terminal.connect(extconsole.open_terminal)
+        treewidget.sig_open_interpreter.connect(extconsole.open_interpreter)
+        treewidget.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        treewidget.sig_run.connect(
+                     lambda fname:
+                     self.main.open_external_console(to_text_string(fname),
+                                         osp.dirname(to_text_string(fname)),
+                                         '', False, False, True, '', False))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
@@ -159,6 +152,12 @@ class Projects(SpyderPluginWidget):
         self.sig_project_closed.connect(
             lambda v: self.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
+
+        self.main.pythonpath_changed()
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
+        self.pythonpath_changed.connect(self.main.pythonpath_changed)
+        self.editor.set_projects(self)
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""

@@ -839,6 +839,12 @@ class MainWindow(QMainWindow):
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
 
+        # External console
+        self.set_splash(_("Loading external console..."))
+        from spyder.plugins.externalconsole import ExternalConsole
+        self.extconsole = ExternalConsole(self)
+        self.extconsole.register_plugin()
+
         # Explorer
         if CONF.get('explorer', 'enable'):
             self.set_splash(_("Loading file explorer..."))
@@ -869,12 +875,6 @@ class MainWindow(QMainWindow):
         self.projects = Projects(self)
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
-
-        # External console
-        self.set_splash(_("Loading external console..."))
-        from spyder.plugins.externalconsole import ExternalConsole
-        self.extconsole = ExternalConsole(self)
-        self.extconsole.register_plugin()
 
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))

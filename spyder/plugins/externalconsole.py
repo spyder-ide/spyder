@@ -775,14 +775,6 @@ class ExternalConsole(SpyderPluginWidget):
                         self.main.plugin_focus_changed)
         self.redirect_stdio.connect(
                         self.main.redirect_internalshell_stdio)
-        expl = self.main.explorer
-        if expl is not None:
-            expl.open_terminal.connect(self.open_terminal)
-            expl.open_interpreter.connect(self.open_interpreter)
-        pexpl = self.main.projects
-        if pexpl is not None:
-            pexpl.open_terminal.connect(self.open_terminal)
-            pexpl.open_interpreter.connect(self.open_interpreter)
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
