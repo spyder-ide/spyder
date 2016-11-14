@@ -23,7 +23,6 @@ import inspect
 import os
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor, QKeySequence
 from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QShortcut,
@@ -52,15 +51,9 @@ class BasePluginWidget(QWidget):
         * show_message
         * update_plugin_title
     """
-    CONF_SECTION = None
-    CONFIGWIDGET_CLASS = None
-    FONT_SIZE_DELTA = 0
-    RICH_FONT_SIZE_DELTA = 0
-    IMG_PATH = 'images'
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
-    DISABLE_ACTIONS_WHEN_HIDDEN = True
 
     # Signals
     sig_option_changed = Signal(str, object)
@@ -88,7 +81,7 @@ class BasePluginWidget(QWidget):
             self.shortcut = CONF.get('shortcuts', '_/switch to %s' % \
                                      self.CONF_SECTION)
         except configparser.NoOptionError:
-            self.shortcut = None
+            pass
 
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
@@ -96,7 +89,11 @@ class BasePluginWidget(QWidget):
         self.toggle_view_action = None
 
     def initialize_plugin(self):
-        """Initialize plugin: connect signals, setup actions, ..."""
+        """
+        Initialize plugin: connect signals, setup actions, etc.
+
+        It must be run at the end of __init__
+        """
         self.create_toggle_view_action()
         self.plugin_actions = self.get_plugin_actions()
         self.show_message.connect(self.__show_message)
@@ -104,18 +101,14 @@ class BasePluginWidget(QWidget):
         self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
 
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        # Was written to handle the very first plugin position in Spyder's
-        # main window layout, but this could also be used for other things
-        # (see for example the IPython console plugin for which this method
-        #  had to be written to handle the fact that this plugin was
-        #  introduced between v2.1 and v2.2)
-        raise NotImplementedError
-
     def initialize_plugin_in_mainwindow_layout(self):
-        """If this is the first time the plugin is shown, perform actions to
-        initialize plugin position in Spyder's window layout"""
+        """
+        If this is the first time the plugin is shown, perform actions to
+        initialize plugin position in Spyder's window layout.
+
+        Use on_first_registration to define the actions to be run
+        by your plugin
+        """
         if self.get_option('first_time', True):
             try:
                 self.on_first_registration()
@@ -124,6 +117,7 @@ class BasePluginWidget(QWidget):
             self.set_option('first_time', False)
 
     def update_margins(self):
+        """Update plugin margins"""
         layout = self.layout()
         if self.default_margins is None:
             self.default_margins = layout.getContentsMargins()
@@ -173,7 +167,7 @@ class BasePluginWidget(QWidget):
     def create_mainwindow(self):
         """
         Create a QMainWindow instance containing this plugin
-        Note: this method is currently not used
+        Note: this method is currently not used in Spyder core plugins
         """
         self.mainwindow = mainwindow = QMainWindow()
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
@@ -192,10 +186,6 @@ class BasePluginWidget(QWidget):
             configwidget = self.CONFIGWIDGET_CLASS(self, parent)
             configwidget.initialize()
             return configwidget
-
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        raise NotImplementedError
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_sc_to_tip=False):
@@ -283,13 +273,6 @@ class BasePluginWidget(QWidget):
                         "and cannot be set directly on the plugin."
                         "This method is deprecated.")
 
-    def update_font(self):
-        """
-        This has to be reimplemented by plugins that need to adjust
-        their fonts
-        """
-        pass
-
     def __show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
@@ -344,9 +327,44 @@ class BasePluginWidget(QWidget):
 
 class SpyderPluginWidget(BasePluginWidget):
     """
-    Spyder base widget class
-    Spyder's widgets either inherit this class or reimplement its interface
+    Spyder plugin widget class
+    Plugin widgets must inherit this class and reimplement its interface
     """
+    # ---------------------------- ATTRIBUTES ---------------------------------
+
+    # Name of the configuration section that's going to be
+    # used to record the plugin's permanent data in Spyder
+    # config system (i.e. in spyder.ini)
+    # Status: Required
+    CONF_SECTION = None
+
+    # Widget to be used as entry in Spyder Preferences
+    # dialog
+    # Status: Optional
+    CONFIGWIDGET_CLASS = None
+
+    # Path for images relative to the plugin path
+    # Status: Optional
+    IMG_PATH = 'images'
+
+    # Control the size of the fonts used in the plugin
+    # relative to the fonts defined in Spyder
+    # Status: Optional
+    FONT_SIZE_DELTA = 0
+    RICH_FONT_SIZE_DELTA = 0
+
+    # Disable actions in Spyder main menus when the plugin
+    # is not visible
+    # Status: Optional
+    DISABLE_ACTIONS_WHEN_HIDDEN = True
+
+    # Shortcut to give focus to the plugin. In Spyder we try
+    # to reserve shortcuts that start with Ctrl+Shift+... for
+    # these actions
+    # Status: Optional
+    shortcut = None
+
+    # ------------------------------ METHODS ----------------------------------
 
     def get_plugin_title(self):
         """
@@ -395,3 +413,18 @@ class SpyderPluginWidget(BasePluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         raise NotImplementedError
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        raise NotImplementedError
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings"""
+        raise NotImplementedError
+
+    def update_font(self):
+        """
+        This has to be reimplemented by plugins that need to adjust
+        their fonts
+        """
+        pass
