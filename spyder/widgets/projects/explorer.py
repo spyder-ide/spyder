@@ -176,21 +176,22 @@ class ProjectExplorerWidget(QWidget):
     def __init__(self, parent, name_filters=[],
                  show_all=True, show_hscrollbar=True):
         QWidget.__init__(self, parent)
-        self.treewidget = None
-        self.emptywidget = None
+
         self.name_filters = name_filters
         self.show_all = show_all
         self.show_hscrollbar = show_hscrollbar
-        self.setup_layout()
 
-    def setup_layout(self):
-        """Setup project explorer widget layout"""
+        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
+        self.treewidget.setup(name_filters=self.name_filters,
+                              show_all=self.show_all)
+        self.treewidget.setup_view()
+        self.treewidget.hide()
 
         self.emptywidget = ExplorerTreeWidget(self)
-
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.emptywidget)
+        layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
     def closing_widget(self):
@@ -217,17 +218,8 @@ class ProjectExplorerWidget(QWidget):
 
     def setup_project(self, directory):
         """Setup project"""
-        if self.treewidget is not None:
-            self.treewidget.hide()
-
-        # Setup a new tree widget
-        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup(name_filters=self.name_filters,
-                              show_all=self.show_all)
-        self.treewidget.setup_view()
         self.emptywidget.hide()
         self.treewidget.show()
-        self.layout().addWidget(self.treewidget)
 
         # Setup the directory shown by the tree
         self.set_project_dir(directory)
