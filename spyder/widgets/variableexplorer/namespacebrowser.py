@@ -60,7 +60,6 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = None
         self.minmax = None
         self.remote_editing = None
-        self.autorefresh = None
         
         self.editor = None
         self.exclude_private_action = None
@@ -73,8 +72,7 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, remote_editing=None,
-              autorefresh=None):
+              minmax=None, remote_editing=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
         
@@ -86,7 +84,6 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = excluded_names
         self.minmax = minmax
         self.remote_editing = remote_editing
-        self.autorefresh = autorefresh
         
         if self.editor is not None:
             self.editor.setup_menu(minmax)
@@ -94,8 +91,6 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
-            if self.auto_refresh_button is not None:
-                self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
 
@@ -111,8 +106,7 @@ class NamespaceBrowser(QWidget):
         layout = QVBoxLayout()
         blayout = QHBoxLayout()
         toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
-                                     exclude_capitalized, exclude_unsupported,
-                                     autorefresh)
+                                     exclude_capitalized, exclude_unsupported)
         for widget in toolbar:
             blayout.addWidget(widget)
 
@@ -145,7 +139,7 @@ class NamespaceBrowser(QWidget):
         shellwidget.set_namespacebrowser(self)
 
     def setup_toolbar(self, exclude_private, exclude_uppercase,
-                      exclude_capitalized, exclude_unsupported, autorefresh):
+                      exclude_capitalized, exclude_unsupported):
         """Setup toolbar"""
         self.setup_in_progress = True
         toolbar = []

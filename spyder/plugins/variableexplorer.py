@@ -23,13 +23,6 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 class VariableExplorerConfigPage(PluginConfigPage):
     def setup_page(self):
-        ar_group = QGroupBox(_("Autorefresh"))
-        ar_box = self.create_checkbox(_("Enable autorefresh"),
-                                      'autorefresh')
-        ar_spin = self.create_spinbox(_("Refresh interval: "),
-                                      _(" ms"), 'autorefresh/timeout',
-                                      min_=100, max_=1000000, step=100)
-        
         filter_group = QGroupBox(_("Filter"))
         filter_data = [
             ('exclude_private', _("Exclude private references")),
@@ -53,12 +46,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
                             )
         display_boxes = [self.create_checkbox(text, option, tip=tip)
                          for option, text, tip in display_data]
-        
-        ar_layout = QVBoxLayout()
-        ar_layout.addWidget(ar_box)
-        ar_layout.addWidget(ar_spin)
-        ar_group.setLayout(ar_layout)
-        
+
         filter_layout = QVBoxLayout()
         for box in filter_boxes:
             filter_layout.addWidget(box)
@@ -70,7 +58,6 @@ class VariableExplorerConfigPage(PluginConfigPage):
         display_group.setLayout(display_layout)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(ar_group)
         vlayout.addWidget(filter_group)
         vlayout.addWidget(display_group)
         vlayout.addStretch(1)
@@ -202,6 +189,3 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):
             nsb.setup(**VariableExplorer.get_settings())
-        ar_timeout = self.get_option('autorefresh/timeout')
-        for shellwidget in self.main.extconsole.shellwidgets:
-            shellwidget.set_autorefresh_timeout(ar_timeout)
