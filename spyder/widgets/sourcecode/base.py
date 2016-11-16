@@ -55,7 +55,7 @@ class CompletionWidget(QListWidget):
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
-        self.case_sensitive = True
+        self.case_sensitive = False
         self.enter_select = None
         self.hide()
         self.itemActivated.connect(self.item_selected)
@@ -85,8 +85,7 @@ class CompletionWidget(QListWidget):
         if any(types):
             for (c, t) in zip(completion_list, types):
                 icon = icons_map.get(t, 'no_match')
-                #self.addItem(QListWidgetItem(ima.icon(icon), c))
-                self.addItem(QListWidgetItem(c))
+                self.addItem(QListWidgetItem(ima.icon(icon), c))
         else:
             self.addItems(completion_list)
 
@@ -181,7 +180,6 @@ class CompletionWidget(QListWidget):
 
         if completion_text:
             for row, completion in enumerate(self.completion_list):
-                #print(completion_text)
                 if not self.case_sensitive:
                     print(completion_text)
                     completion = completion.lower()
