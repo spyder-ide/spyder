@@ -889,6 +889,17 @@ class MainWindow(QMainWindow):
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
 
+        # Third-party plugins
+        self.set_splash(_("Loading third-Party plugins..."))
+        for mod in get_spyderplugins_mods():
+            try:
+                plugin = mod.PLUGIN_CLASS(self)
+                self.thirdparty_plugins.append(plugin)
+                plugin.register_plugin()
+            except Exception as error:
+                print("%s: %s" % (mod, str(error)), file=STDERR)
+                traceback.print_exc(file=STDERR)
+
         self.set_splash(_("Setting up main window..."))
 
         # Help menu
@@ -1072,17 +1083,6 @@ class MainWindow(QMainWindow):
         self.mem_status = MemoryStatus(self, status)
         self.cpu_status = CPUStatus(self, status)
         self.apply_statusbar_settings()
-
-        # Third-party plugins
-        for mod in get_spyderplugins_mods():
-            try:
-                plugin = mod.PLUGIN_CLASS(self)
-                self.thirdparty_plugins.append(plugin)
-                plugin.register_plugin()
-            except Exception as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
-                traceback.print_exc(file=STDERR)
-
 
         #----- View
         # View menu
