@@ -22,11 +22,11 @@ import textwrap
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
-from qtpy import PYQT5, PYQT4
+from qtpy import PYQT5
 
 if PYQT5:
     from qtpy.QtCore import QRegularExpression
-elif PYQT4:
+else:
     from qtpy.QtCore import QRegExp
 
 # Local imports
@@ -492,7 +492,7 @@ class BaseEditMixin(object):
             if case:
                 pattern.setPatternOptions(
                     QRegularExpression.CaseInsensitiveOption)
-        elif PYQT4:
+        else:
             pattern = QRegExp(r"\b{}\b".format(text)
                               if words else text, Qt.CaseSensitive if case else
                               Qt.CaseInsensitive, QRegExp.RegExp2)
