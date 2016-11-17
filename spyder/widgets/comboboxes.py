@@ -114,9 +114,6 @@ class BaseComboBox(QComboBox):
     def add_current_text(self):
         """Add current text to combo box history (convenient method)"""
         text = self.currentText()
-        if osp.isdir(text):
-            if text[-1] == os.sep:
-                text = text[:-1]
         self.add_text(text)
 
     def add_current_text_if_valid(self):
