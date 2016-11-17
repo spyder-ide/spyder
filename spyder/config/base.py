@@ -265,23 +265,26 @@ def get_interface_language():
     2.) Spyder provides ('en',  'fr', 'es' and 'pt_BR'), if the locale is
     either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
-    locale_language = locale.getdefaultlocale()[0]
 
     # Solves issue #3627
     try:
-        if locale_language is not None:
-            spyder_languages = get_available_translations()
-            for lang in spyder_languages:
-                if locale_language == lang:
-                    language = locale_language
-                    break
-                elif locale_language.startswith(lang) or \
-                  lang.startswith(locale_language):
-                    language = lang
-                    break
+        locale_language = locale.getdefaultlocale()[0]
 
-    except:
-        language = DEFAULT_LANGUAGE
+    except ValueError:
+        locale_language = DEFAULT_LANGUAGE
+
+    if locale_language is not None:
+        spyder_languages = get_available_translations()
+        for lang in spyder_languages:
+            if locale_language == lang:
+                language = locale_language
+                break
+            elif locale_language.startswith(lang) or \
+              lang.startswith(locale_language):
+                language = lang
+                break
+
+    language = DEFAULT_LANGUAGE
 
     return language
 
