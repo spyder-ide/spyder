@@ -19,9 +19,15 @@ import sre_constants
 import textwrap
 
 # Third party imports
-from qtpy.QtCore import QPoint, QRegExp, Qt
+from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
+from qtpy import PYQT5, PYQT4
+
+if PYQT5:
+    from qtpy.QtCore import QRegularExpression
+elif PYQT4:
+    from qtpy.QtCore import QRegExp
 
 # Local imports
 from spyder.config.base import _
@@ -480,9 +486,17 @@ class BaseEditMixin(object):
             moves += [QTextCursor.End]
         if not regexp:
             text = re.escape(to_text_string(text))
-        pattern = QRegExp(r"\b%s\b" % text if words else text,
-                          Qt.CaseSensitive if case else Qt.CaseInsensitive,
-                          QRegExp.RegExp2)
+        if PYQT5:
+            pattern = QRegularExpression(r"\b{}\b".format(text) if words else
+                                         text)
+            if case:
+                pattern.setPatternOptions(
+                    QRegularExpression.CaseInsensitiveOption)
+        elif PYQT4:
+            pattern = QRegExp(r"\b{}\b".format(text)
+                              if words else text, Qt.CaseSensitive if case else
+                              Qt.CaseInsensitive, QRegExp.RegExp2)
+
         for move in moves:
             cursor.movePosition(move)
             if regexp and '\\n' in text:
