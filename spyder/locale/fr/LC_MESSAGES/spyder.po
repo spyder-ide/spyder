@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2016-11-11 10:24+COT\n"
-"PO-Revision-Date: 2016-11-17 17:02-0500\n"
+"PO-Revision-Date: 2016-11-17 19:16-0500\n"
 "Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -50,7 +50,7 @@ msgstr "Fermer le volet courant"
 
 #: spyder/app/mainwindow.py:530
 msgid "Lock panes"
-msgstr "Bloques"
+msgstr "Verrouiller les onglets"
 
 #: spyder/app/mainwindow.py:537
 msgid "Use next layout"
@@ -585,7 +585,7 @@ msgid ""
 "new version. <br><br>If you are not sure how to proceed to update Spyder "
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 msgstr ""
-"<b>Spyder %s est disponible!</b> <br><br>Utilizer le gestionnaire de paquets "
+"<b>Spyder %s est disponible!</b> <br><br>Utiliser le gestionnaire de paquets "
 "pour mettre Spyder à ou consultez le <a href=\"%s\">site</a> pour "
 "télécharger le programme directement. <br><br>Si vous ne savez pas comment "
 "procéder pour mettre Spyder à jour, veuillez consulter notre  <a href=\"%s"
@@ -701,7 +701,7 @@ msgstr ""
 "sur l'éditeur. Pour ce faire, vous devez appuyer sur la touche <b>F5</b>. "
 "<br><br>Cette console est livrée avec plusieurs fonctionnalités utiles qui "
 "améliorent considérablement votre flux de travail de programmation (comme la "
-"coloration de syntaxe et les graphiques en ligne). Si vous voulez en savoir "
+"coloration syntaxique et les graphiques en ligne). Si vous voulez en savoir "
 "plus à ce sujet, s'il vous plaît suivez ce <a href=\"{0}\">lien</a>, S'il "
 "vous plaît cliquer sur le bouton ci-dessous pour exécuter un code simple "
 "dans cette console. Ce sera utile pour vous montrer d'autres fonctionnalités "
@@ -723,7 +723,7 @@ msgstr ""
 "Dans ce volet, vous pouvez visualiser et éditer les variables générées lors "
 "de l'exécution d'un programme, ou celles entrées directement dans une des "
 "consoles Spyder. Comme vous pouvez le voir, l'Explorateur de variables "
-"affiche les variables générées au cours de la dernière etape de cette visite "
+"affiche les variables générées au cours de la dernière étape de la visite "
 "interactive. En faisant un double-clic sur l'une d'elles, une nouvelle "
 "fenêtre s'ouvre, où vous pouvez inspecter et modifier leur contenu."
 
@@ -1003,11 +1003,11 @@ msgstr "Police d'écriture"
 
 #: spyder/plugins/configdialog.py:772
 msgid "Spyder needs to restart to change the following setting:"
-msgstr "Il faut redémarrer Spyder pour change l'option suivante"
+msgstr "Il faut redémarrer Spyder pour changer l'option suivante"
 
 #: spyder/plugins/configdialog.py:775
 msgid "Spyder needs to restart to change the following settings:"
-msgstr "Il faut redémarrer Spyder pour change les options suivantes"
+msgstr "Il faut redémarrer Spyder pour changer les options suivantes"
 
 #: spyder/plugins/configdialog.py:777
 msgid "Do you wish to restart now?"
@@ -1083,7 +1083,7 @@ msgstr ""
 
 #: spyder/plugins/configdialog.py:863
 msgid "Enable high DPI scaling"
-msgstr "Activer haute PPP mise à l'échelle"
+msgstr "Activer la mise à l'échèle pour les écrans à haute résolution"
 
 #: spyder/plugins/configdialog.py:865
 msgid "Set this for high DPI displays"
@@ -3210,7 +3210,7 @@ msgstr "Raccourci clavier: {0}"
 
 #: spyder/plugins/shortcuts.py:276
 msgid "Please introduce a different shortcut"
-msgstr "Merci de utilizer un raccourci clavier différent"
+msgstr "Merci de utiliser un raccourci clavier différent"
 
 #: spyder/plugins/shortcuts.py:313
 msgid "The new shorcut conflicts with:"
@@ -3738,7 +3738,7 @@ msgstr "Copier le chemin d'accès dans le presse-papier"
 
 #: spyder/widgets/editor.py:354
 msgid "Close all to the right"
-msgstr "Fermez tous les onglets vers la droite"
+msgstr "Fermer tous les onglets vers la droite"
 
 #: spyder/widgets/editor.py:356
 msgid "Close all but this"
@@ -4428,7 +4428,7 @@ msgstr "Redémarrer le noyau"
 
 #: spyder/widgets/ipythonconsole/client.py:327
 msgid "Error restarting kernel: %s\n"
-msgstr "Une erreur est survenue lors du démarrage du noyaul: %s\n"
+msgstr "Une erreur est survenue lors du démarrage du noyau: %s\n"
 
 #: spyder/widgets/ipythonconsole/client.py:331
 msgid ""
@@ -4596,7 +4596,7 @@ msgstr "Gestion de versions"
 
 #: spyder/widgets/projects/configdialog.py:156
 msgid "Use version control"
-msgstr "Utilizer gestion de versions"
+msgstr "Utiliser la gestion de version"
 
 #: spyder/widgets/projects/configdialog.py:161
 msgid "Version control system"
@@ -4990,7 +4990,7 @@ msgid ""
 "Spyder was unable to retrieve the value of this variable from the console."
 "<br><br>The error mesage was:<br><i>%s</i>"
 msgstr ""
-"Impossible defrécupérer la valeur de cette variable depuis la console. "
+"Impossible de récupérer la valeur de cette variable depuis la console. "
 "<br><br>Message d'erreur:<br><i>%s</i>"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:583
