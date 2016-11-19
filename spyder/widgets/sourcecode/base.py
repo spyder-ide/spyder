@@ -49,7 +49,7 @@ def insert_text_to(cursor, text, fmt):
 
 
 class CompletionWidget(QListWidget):
-    """Completion list widget"""
+    """ Completion list widget. """
     def __init__(self, parent, ancestor):
         QListWidget.__init__(self, ancestor)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
@@ -67,6 +67,7 @@ class CompletionWidget(QListWidget):
     def show_list(self, completion_list, automatic=True):
         types = [c[1] for c in completion_list]
         completion_list = [c[0] for c in completion_list]
+
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
             return
@@ -151,6 +152,7 @@ class CompletionWidget(QListWidget):
         
     def keyPressEvent(self, event):
         text, key = event.text(), event.key()
+
         alt = event.modifiers() & Qt.AltModifier
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -211,7 +213,6 @@ class CompletionWidget(QListWidget):
             item = self.currentItem()
         self.textedit.insert_completion( to_text_string(item.text()) )
         self.hide()
-
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""

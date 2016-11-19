@@ -2758,6 +2758,10 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+            else:
+                # launch inline completion
+                self.completion_text += text
+                self.do_completion(automatic=True)
 
     def handle_close_parentheses(self, text):
         if not self.close_parentheses_enabled:
