@@ -269,7 +269,6 @@ def get_interface_language():
     # Solves issue #3627
     try:
         locale_language = locale.getdefaultlocale()[0]
-
     except ValueError:
         locale_language = DEFAULT_LANGUAGE
 
