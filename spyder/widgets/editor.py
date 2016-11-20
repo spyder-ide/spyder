@@ -16,6 +16,12 @@ from __future__ import print_function
 import os
 import os.path as osp
 import sys
+try:
+   # Python 2
+   from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 
 # Third party imports
 from qtpy import is_pyqt46
@@ -941,10 +947,63 @@ class EditorStack(QWidget):
             title = "(%s)" % title
         return title
 
-    def get_tab_text(self, filename, is_modified=None, is_readonly=None):
+    def get_tab_text(self, index, filename, is_modified=None, is_readonly=None):
         """Return tab title"""
-        return self.__modified_readonly_title(osp.basename(filename),
+        fname = self.get_file_title(index)
+        return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
+
+    def get_file_title(self, index):
+        """Get tab title without ambiguation."""
+        finfo = self.data[index]
+        fname = osp.basename(finfo.filename)
+        for findex, file in enumerate(self.data):
+            fname_to_compare = osp.basename(file.filename)
+            if findex is not index and fname == fname_to_compare:
+                differ_path = os.path.join(*self.differ_prefix(
+                                            self.path_components(finfo.filename), 
+                                            self.path_components(file.filename)))
+                fname = fname + " - " + differ_path
+                break
+        return fname
+
+    def path_components(self, path):
+        """Return the individual components of the given file path
+        string (for the local operating system). Taked from 
+        http://stackoverflow.com/questions/21498939/how-to-circumvent
+        -the-fallacy-of-pythons-os-path-commonprefix."""
+        components = []
+        # The loop guarantees that the returned components can be
+        # os.path.joined with the path separator and point to the same
+        # location:    
+        while True:
+            (new_path, tail) = os.path.split(path)  # Works on any platform
+            components.append(tail)        
+            if new_path == path:  # Root (including drive, on Windows) reached
+                break
+            path = new_path
+        components.append(new_path)    
+        components.reverse()  # First component first 
+        
+        return components
+
+    def differ_prefix(self, path_components1, path_components2):
+        """Return the differ prefix of the given two iterables. Based
+        on longest_prefix in http://stackoverflow.com/questions/21498939/how-to-
+        circumvent-the-fallacy-of-pythons-os-path-commonprefix."""
+        differ_prefix = []
+        append_common_prefix = False
+        common_prefix = None
+        for (elmt1, elmt2) in izip(path_components1, path_components2):
+            if elmt1 == elmt2 and elmt1 != '':
+                common_prefix = elmt1
+            if elmt1 != elmt2:
+                if not append_common_prefix and common_prefix is not None:
+                    differ_prefix.append(common_prefix)
+                    append_common_prefix = True
+                if path_components1.index(elmt1) != len(path_components1)-1:
+                    differ_prefix.append(elmt1)       
+        return differ_prefix
 
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
         """Return tab menu title"""
@@ -979,7 +1038,7 @@ class EditorStack(QWidget):
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
-        self.tabs.insertTab(index, editor, self.get_tab_text(fname))
+        self.tabs.insertTab(index, editor, self.get_tab_text(index, fname))
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
@@ -995,7 +1054,8 @@ class EditorStack(QWidget):
                 is_modified = True
             else:
                 is_modified = None
-            tab_text = self.get_tab_text(finfo.filename, is_modified)
+            index = self.data.index(finfo)
+            tab_text = self.get_tab_text(index, finfo.filename, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
             index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
@@ -1029,7 +1089,7 @@ class EditorStack(QWidget):
         fname = finfo.filename
         is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
-        tab_text = self.get_tab_text(fname, is_modified, is_readonly)
+        tab_text = self.get_tab_text(index, fname, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
         self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
@@ -1171,7 +1231,9 @@ class EditorStack(QWidget):
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
-
+        
+        self.__modify_stack_title()
+        
         return is_ok
 
     def close_all_files(self):
@@ -1554,6 +1616,11 @@ class EditorStack(QWidget):
         # Finally, resetting temporary flag:
         self.__file_status_flag = False
 
+    def __modify_stack_title(self):
+        for index, finfo in enumerate(self.data):
+            state = finfo.editor.document().isModified()
+            self.set_stack_title(index, state)
+
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -1569,6 +1636,7 @@ class EditorStack(QWidget):
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
+            self.__modify_stack_title()
             self.update_plugin_title.emit()
         else:
             editor = None
