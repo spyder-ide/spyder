@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2016-11-08 16:26+COT\n"
-"PO-Revision-Date: 2016-09-24 04:41-0500\n"
+"POT-Creation-Date: 2016-11-11 10:24+COT\n"
+"PO-Revision-Date: 2016-11-11 18:52-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: ../../../..\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 1.8.9\n"
 
 #: spyder/app/mainwindow.py:125
 msgid "Initializing..."
@@ -62,16 +62,16 @@ msgstr "Utilizar la siguiente disposición"
 msgid "Use previous layout"
 msgstr "Utilizar la disposición anterior"
 
-#: spyder/app/mainwindow.py:560 spyder/widgets/sourcecode/codeeditor.py:2466
+#: spyder/app/mainwindow.py:560 spyder/widgets/sourcecode/codeeditor.py:2505
 msgid "Undo"
 msgstr "Deshacer"
 
-#: spyder/app/mainwindow.py:562 spyder/widgets/sourcecode/codeeditor.py:2469
+#: spyder/app/mainwindow.py:562 spyder/widgets/sourcecode/codeeditor.py:2508
 msgid "Redo"
 msgstr "Rehacer"
 
 #: spyder/app/mainwindow.py:564 spyder/widgets/shell.py:121
-#: spyder/widgets/sourcecode/codeeditor.py:2475
+#: spyder/widgets/sourcecode/codeeditor.py:2514
 #: spyder/widgets/variableexplorer/arrayeditor.py:453
 #: spyder/widgets/variableexplorer/collectionseditor.py:649
 #: spyder/widgets/variableexplorer/dataframeeditor.py:445
@@ -79,59 +79,59 @@ msgid "Copy"
 msgstr "Copiar"
 
 #: spyder/app/mainwindow.py:566 spyder/widgets/shell.py:117
-#: spyder/widgets/sourcecode/codeeditor.py:2472
+#: spyder/widgets/sourcecode/codeeditor.py:2511
 msgid "Cut"
 msgstr "Cortar"
 
 #: spyder/app/mainwindow.py:568 spyder/widgets/shell.py:125
-#: spyder/widgets/sourcecode/codeeditor.py:2478
+#: spyder/widgets/sourcecode/codeeditor.py:2517
 #: spyder/widgets/variableexplorer/collectionseditor.py:646
 msgid "Paste"
 msgstr "Pegar"
 
 #: spyder/app/mainwindow.py:571 spyder/widgets/shell.py:138
-#: spyder/widgets/sourcecode/codeeditor.py:2481
+#: spyder/widgets/sourcecode/codeeditor.py:2520
 msgid "Select All"
 msgstr "Seleccionar todo"
 
-#: spyder/app/mainwindow.py:581 spyder/plugins/editor.py:1342
+#: spyder/app/mainwindow.py:581 spyder/plugins/editor.py:1353
 msgid "&File"
 msgstr "&Archivo"
 
-#: spyder/app/mainwindow.py:582 spyder/plugins/editor.py:1334
+#: spyder/app/mainwindow.py:582 spyder/plugins/editor.py:1345
 msgid "File toolbar"
 msgstr "Barra de archivo"
 
-#: spyder/app/mainwindow.py:586 spyder/plugins/editor.py:1343
+#: spyder/app/mainwindow.py:586 spyder/plugins/editor.py:1354
 msgid "&Edit"
 msgstr "&Editar"
 
-#: spyder/app/mainwindow.py:587 spyder/plugins/editor.py:1339
+#: spyder/app/mainwindow.py:587 spyder/plugins/editor.py:1350
 msgid "Edit toolbar"
 msgstr "Barra de edición"
 
-#: spyder/app/mainwindow.py:591 spyder/plugins/editor.py:1344
+#: spyder/app/mainwindow.py:591 spyder/plugins/editor.py:1355
 msgid "&Search"
 msgstr "&Buscar"
 
-#: spyder/app/mainwindow.py:592 spyder/plugins/editor.py:1335
+#: spyder/app/mainwindow.py:592 spyder/plugins/editor.py:1346
 msgid "Search toolbar"
 msgstr "Barra de búsqueda"
 
-#: spyder/app/mainwindow.py:596 spyder/plugins/editor.py:1345
+#: spyder/app/mainwindow.py:596 spyder/plugins/editor.py:1356
 msgid "Sour&ce"
 msgstr "&Código fuente"
 
-#: spyder/app/mainwindow.py:597 spyder/plugins/editor.py:1336
+#: spyder/app/mainwindow.py:597 spyder/plugins/editor.py:1347
 msgid "Source toolbar"
 msgstr "Barra de código fuente"
 
 #: spyder/app/mainwindow.py:601 spyder/plugins/editor.py:780
-#: spyder/plugins/editor.py:1346
+#: spyder/plugins/editor.py:1357
 msgid "&Run"
 msgstr "E&jecutar"
 
-#: spyder/app/mainwindow.py:602 spyder/plugins/editor.py:1337
+#: spyder/app/mainwindow.py:602 spyder/plugins/editor.py:1348
 msgid "Run toolbar"
 msgstr "Barra de ejecución"
 
@@ -139,7 +139,7 @@ msgstr "Barra de ejecución"
 msgid "&Debug"
 msgstr "&Depurar"
 
-#: spyder/app/mainwindow.py:607 spyder/plugins/editor.py:1338
+#: spyder/app/mainwindow.py:607 spyder/plugins/editor.py:1349
 msgid "Debug toolbar"
 msgstr "Barra de depuración"
 
@@ -151,7 +151,7 @@ msgstr "&Terminales"
 msgid "&Projects"
 msgstr "&Proyectos"
 
-#: spyder/app/mainwindow.py:617 spyder/plugins/editor.py:1347
+#: spyder/app/mainwindow.py:617 spyder/plugins/editor.py:1358
 msgid "&Tools"
 msgstr "&Herramientas"
 
@@ -938,10 +938,10 @@ msgid "Supported text files"
 msgstr "Archivos de texto soportados"
 
 #: spyder/plugins/__init__.py:508 spyder/plugins/editor.py:98
-#: spyder/plugins/editor.py:545 spyder/plugins/editor.py:1718
+#: spyder/plugins/editor.py:545 spyder/plugins/editor.py:1729
 #: spyder/plugins/help.py:118 spyder/plugins/help.py:385
 #: spyder/widgets/editor.py:371 spyder/widgets/sourcecode/codeeditor.py:97
-#: spyder/widgets/sourcecode/codeeditor.py:2962
+#: spyder/widgets/sourcecode/codeeditor.py:3001
 msgid "Editor"
 msgstr "Editor"
 
@@ -1080,11 +1080,13 @@ msgstr ""
 
 #: spyder/plugins/configdialog.py:863
 msgid "Enable high DPI scaling"
-msgstr ""
+msgstr "Activar el escalado para pantallas de alta resolución"
 
 #: spyder/plugins/configdialog.py:865
 msgid "Set this for high DPI displays"
 msgstr ""
+"Activar esta opción para escalar la interfaz \n"
+"a pantallas de alta resolución"
 
 #: spyder/plugins/configdialog.py:866
 msgid "Custom margin for panes:"
@@ -1319,7 +1321,7 @@ msgstr "Código fuente"
 msgid "Show line numbers"
 msgstr "Mostrar números de líneas"
 
-#: spyder/plugins/editor.py:120 spyder/plugins/editor.py:937
+#: spyder/plugins/editor.py:120 spyder/plugins/editor.py:947
 msgid "Show blank spaces"
 msgstr "Mostrar espacios en blanco"
 
@@ -1579,7 +1581,7 @@ msgstr "Nuevo archivo"
 msgid "&Open..."
 msgstr "&Abrir"
 
-#: spyder/plugins/editor.py:635 spyder/plugins/editor.py:1767
+#: spyder/plugins/editor.py:635 spyder/plugins/editor.py:1778
 #: spyder/plugins/workingdirectory.py:70
 msgid "Open file"
 msgstr "Abrir archivo"
@@ -1749,7 +1751,7 @@ msgstr "Ejecutar de &nuevo el último archivo"
 msgid "Run again last file"
 msgstr "Ejecutar de nuevo el mismo archivo"
 
-#: spyder/plugins/editor.py:802 spyder/widgets/sourcecode/codeeditor.py:2509
+#: spyder/plugins/editor.py:802 spyder/widgets/sourcecode/codeeditor.py:2548
 msgid "Run &selection or current line"
 msgstr "Ejecutar la &selección o la línea actual"
 
@@ -1757,7 +1759,7 @@ msgstr "Ejecutar la &selección o la línea actual"
 msgid "Run selection or current line"
 msgstr "Ejecutar la &selección o línea actual"
 
-#: spyder/plugins/editor.py:813 spyder/widgets/sourcecode/codeeditor.py:2501
+#: spyder/plugins/editor.py:813 spyder/widgets/sourcecode/codeeditor.py:2540
 msgid "Run cell"
 msgstr "Ejecutar la celda"
 
@@ -1769,7 +1771,7 @@ msgstr ""
 "Ejecutar la celda actual (Ctrl+Enter)\n"
 "[Usar #%% para crear celdas]"
 
-#: spyder/plugins/editor.py:822 spyder/widgets/sourcecode/codeeditor.py:2505
+#: spyder/plugins/editor.py:822 spyder/widgets/sourcecode/codeeditor.py:2544
 msgid "Run cell and advance"
 msgstr "Ejecutar la celda y avanzar"
 
@@ -1845,11 +1847,11 @@ msgstr "Siguiente posición del cursor"
 msgid "Go to next cursor position"
 msgstr "Ir a la siguiente posición del cursor"
 
-#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2485
+#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2524
 msgid "Comment"
 msgstr "Comentar"
 
-#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2485
+#: spyder/plugins/editor.py:885 spyder/widgets/sourcecode/codeeditor.py:2524
 msgid "Uncomment"
 msgstr "Descomentar"
 
@@ -1890,43 +1892,59 @@ msgstr "Quitar indentación"
 msgid "Unindent current line or selection"
 msgstr "Quitar indentación de la línea o selección actual"
 
+#: spyder/plugins/editor.py:918
+msgid "Toggle Uppercase"
+msgstr "Cambiar a mayúsculas"
+
 #: spyder/plugins/editor.py:919
+msgid "Change to uppercase current line or selection"
+msgstr "Cambiar a mayúsculas la línea o selección actual"
+
+#: spyder/plugins/editor.py:923
+msgid "Toggle Lowercase"
+msgstr "Cambiar a minúsculas"
+
+#: spyder/plugins/editor.py:924
+msgid "Change to lowercase current line or selection"
+msgstr "Cambiar a minúsculas la línea o selección actual"
+
+#: spyder/plugins/editor.py:929
 msgid "Carriage return and line feed (Windows)"
 msgstr "Retorno de carro y salto de línea (Windows)"
 
-#: spyder/plugins/editor.py:922
+#: spyder/plugins/editor.py:932
 msgid "Line feed (UNIX)"
 msgstr "Salto de línea (UNIX)"
 
-#: spyder/plugins/editor.py:925
+#: spyder/plugins/editor.py:935
 msgid "Carriage return (Mac)"
 msgstr "Retorno de carro (Mac)"
 
-#: spyder/plugins/editor.py:931
+#: spyder/plugins/editor.py:941
 msgid "Convert end-of-line characters"
 msgstr "Convertir caracteres de fin de línea"
 
-#: spyder/plugins/editor.py:935
+#: spyder/plugins/editor.py:945
 msgid "Remove trailing spaces"
 msgstr "Eliminar espacios en blanco"
 
-#: spyder/plugins/editor.py:939
+#: spyder/plugins/editor.py:949
 msgid "Fix indentation"
 msgstr "Corregir la indentación"
 
-#: spyder/plugins/editor.py:940
+#: spyder/plugins/editor.py:950
 msgid "Replace tab characters by space characters"
 msgstr "Reemplazar caracteres de tabulación por espacios"
 
-#: spyder/plugins/editor.py:943
+#: spyder/plugins/editor.py:953
 msgid "Go to line..."
 msgstr "Ir a la línea..."
 
-#: spyder/plugins/editor.py:951
+#: spyder/plugins/editor.py:961
 msgid "Set console working directory"
 msgstr "Establecer directorio de trabajo"
 
-#: spyder/plugins/editor.py:953
+#: spyder/plugins/editor.py:963
 msgid ""
 "Set current console (and file explorer) working directory to current script "
 "directory"
@@ -1934,43 +1952,43 @@ msgstr ""
 "Fija el directorio de trabajo para la terminal actual como el directorio del "
 "archivo actual"
 
-#: spyder/plugins/editor.py:958
+#: spyder/plugins/editor.py:968
 msgid "Maximum number of recent files..."
 msgstr "Máximo número de archivos recientes..."
 
-#: spyder/plugins/editor.py:961
+#: spyder/plugins/editor.py:971
 msgid "Clear recent files list"
 msgstr "Limpiar la lista de archivos recientes"
 
-#: spyder/plugins/editor.py:961 spyder/plugins/projects.py:100
+#: spyder/plugins/editor.py:971 spyder/plugins/projects.py:100
 msgid "Clear this list"
 msgstr "Limpiar esta lista"
 
-#: spyder/plugins/editor.py:965
+#: spyder/plugins/editor.py:975
 msgid "Open &recent"
 msgstr "Abrir &reciente"
 
-#: spyder/plugins/editor.py:1348
+#: spyder/plugins/editor.py:1359
 msgid "?"
 msgstr "?"
 
-#: spyder/plugins/editor.py:1575
+#: spyder/plugins/editor.py:1586
 msgid "Spyder Editor"
 msgstr "Editor de Spyder"
 
-#: spyder/plugins/editor.py:1576
+#: spyder/plugins/editor.py:1587
 msgid "This is a temporary script file."
 msgstr "Este es un archivo temporal"
 
-#: spyder/plugins/editor.py:1645
+#: spyder/plugins/editor.py:1656
 msgid "untitled"
 msgstr "Sin título "
 
-#: spyder/plugins/editor.py:1719
+#: spyder/plugins/editor.py:1730
 msgid "Maximum number of recent files"
 msgstr "Máximo número de archivos recientes"
 
-#: spyder/plugins/editor.py:1852
+#: spyder/plugins/editor.py:1863
 msgid "Printing..."
 msgstr "Imprimir..."
 
@@ -3001,6 +3019,8 @@ msgid ""
 "You are working with Python 2, this means that you can not import a module "
 "that contains non-ascii characters."
 msgstr ""
+"No es posible importar un módulo con caracteres que no son ascii en Python "
+"2. Por favor introduzca un módulo diferente."
 
 #: spyder/plugins/maininterpreter.py:206
 msgid ""
@@ -3044,9 +3064,8 @@ msgid "Close Project"
 msgstr "Cerrar proyecto"
 
 #: spyder/plugins/projects.py:97
-#, fuzzy
 msgid "Delete Project"
-msgstr "Proyectos recientes"
+msgstr "Eliminar proyecto"
 
 #: spyder/plugins/projects.py:103
 msgid "Project Preferences"
@@ -3626,11 +3645,11 @@ msgstr ""
 msgid "Array dimensions not valid"
 msgstr "Las dimensiones del arreglo no son válidas"
 
-#: spyder/widgets/browser.py:54 spyder/widgets/sourcecode/codeeditor.py:2520
+#: spyder/widgets/browser.py:54 spyder/widgets/sourcecode/codeeditor.py:2559
 msgid "Zoom out"
 msgstr "Alejar"
 
-#: spyder/widgets/browser.py:57 spyder/widgets/sourcecode/codeeditor.py:2516
+#: spyder/widgets/browser.py:57 spyder/widgets/sourcecode/codeeditor.py:2555
 msgid "Zoom in"
 msgstr "Acercar"
 
@@ -3683,7 +3702,6 @@ msgid "Dependencies"
 msgstr "Dependencias"
 
 #: spyder/widgets/dependencies.py:141
-#, fuzzy
 msgid ""
 "Spyder depends on several Python modules to provide the right functionality "
 "for all its panes. The table below shows the required and installed versions "
@@ -3696,7 +3714,10 @@ msgstr ""
 "correcta para todos sus paneles. La tabla que aparece a continuación muestra "
 "las versiones requeridas e instaladas (de existir) de todos ellos."
 "<br><br><b>Nota</b>: Usted puede utilizar Spyder sin problemas si no cuenta "
-"con los siguientes módulos instalados: <b>%s</b> y <b>%s</b>."
+"con los siguientes módulos instalados: <b>%s</b> y <b>%s</b>.<br><br>Por "
+"favor también tenga en cuenta que dependencias nuevas o que hayan sido "
+"cambiadas en esta lista, sólo serán detectadas correctamente después de que "
+"Spyder sea reiniciado."
 
 #: spyder/widgets/dependencies.py:157
 msgid "Copy to clipboard"
@@ -3888,7 +3909,7 @@ msgstr "Renombrar..."
 msgid "Open"
 msgstr "Abrir"
 
-#: spyder/widgets/explorer.py:285 spyder/widgets/sourcecode/codeeditor.py:2492
+#: spyder/widgets/explorer.py:285 spyder/widgets/sourcecode/codeeditor.py:2531
 msgid "Convert to Python script"
 msgstr "Convertir a un archivo de Python"
 
@@ -3938,7 +3959,6 @@ msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>No fue posible %s <i>%s</i></b><br><br>Mensaje de error:<br>%s"
 
 #: spyder/widgets/explorer.py:548
-#, fuzzy
 msgid "File Explorer"
 msgstr "Explorador de archivos"
 
@@ -3947,12 +3967,15 @@ msgid ""
 "The current directory contains a project.<br><br>If you want to delete the "
 "project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
 msgstr ""
+"El directorio actual contiene un proyecto.<br><br>Si desea eliminar este "
+"proyecto, por favor diríjase a <b>Proyectos</b> &raquo; <b>Eliminar "
+"proyecto</b>"
 
-#: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2009
+#: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2018
 msgid "Conversion error"
 msgstr "Error de conversión"
 
-#: spyder/widgets/explorer.py:567 spyder/widgets/sourcecode/codeeditor.py:2010
+#: spyder/widgets/explorer.py:567 spyder/widgets/sourcecode/codeeditor.py:2019
 msgid ""
 "It was not possible to convert this notebook. The error is:\n"
 "\n"
@@ -4603,21 +4626,22 @@ msgid "move"
 msgstr "mover"
 
 #: spyder/widgets/projects/explorer.py:244
-#, fuzzy
 msgid ""
 "Do you really want to delete <b>{filename}</b>?<br><br><b>Note:</b> This "
 "action will only delete the project. Its files are going to be preserved on "
 "disk."
 msgstr ""
-"¿Realmente desea eliminar el proyecto <b>%s</b>?<br><br>Nota: Los archivos "
-"del proyecto no serán eliminados del disco."
+"¿Realmente desea eliminar el proyecto <b>{filename}</b>?<br><br><b>Nota</b>: "
+"Esta acción sólo eliminará el proyecto. Los archivos del mismo no serán "
+"eliminados del disco."
 
 #: spyder/widgets/projects/explorer.py:257
-#, fuzzy
 msgid ""
 "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:"
 "<br>{error}"
-msgstr "<b>No fue posible mover <i>%s</i></b><br><br>Mensaje de error:<br>%s"
+msgstr ""
+"<b>No fue posible eliminar <i>{varpath}</i></b><br><br>El mensaje de error "
+"fue:<br>{error}"
 
 #: spyder/widgets/projects/projectdialog.py:69
 msgid "New directory"
@@ -4720,27 +4744,27 @@ msgstr "Ir a la línea"
 msgid "Line count:"
 msgstr "Número total de líneas:"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1296
+#: spyder/widgets/sourcecode/codeeditor.py:1305
 msgid "Breakpoint"
 msgstr "Punto de interrupción"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1297
+#: spyder/widgets/sourcecode/codeeditor.py:1306
 msgid "Condition:"
 msgstr "Condición:"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1703
+#: spyder/widgets/sourcecode/codeeditor.py:1712
 msgid "Code analysis"
 msgstr "Análisis del código"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1757
+#: spyder/widgets/sourcecode/codeeditor.py:1766
 msgid "To do"
 msgstr "To do"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1996
+#: spyder/widgets/sourcecode/codeeditor.py:2005
 msgid "Removal error"
 msgstr "Error de remoción"
 
-#: spyder/widgets/sourcecode/codeeditor.py:1997
+#: spyder/widgets/sourcecode/codeeditor.py:2006
 msgid ""
 "It was not possible to remove outputs from this notebook. The error is:\n"
 "\n"
@@ -4748,15 +4772,15 @@ msgstr ""
 "No fue posible remover las outputs de este notebook. El error es:\n"
 "\n"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2489
+#: spyder/widgets/sourcecode/codeeditor.py:2528
 msgid "Clear all ouput"
 msgstr "Eliminar todas las salidas"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2495
+#: spyder/widgets/sourcecode/codeeditor.py:2534
 msgid "Go to definition"
 msgstr "Ir a la definición"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2524
+#: spyder/widgets/sourcecode/codeeditor.py:2563
 msgid "Zoom reset"
 msgstr "Restaurar"
 

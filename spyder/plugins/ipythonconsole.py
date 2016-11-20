@@ -1297,6 +1297,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Kernel client
         kernel_client = kernel_manager.client()
 
+        # Increase time to detect if a kernel is alive
+        # See Issue 3444
+        kernel_client.hb_channel.time_to_dead = 6.0
+
         return kernel_manager, kernel_client
 
     #------ Public API (for tabs) ---------------------------------------------
