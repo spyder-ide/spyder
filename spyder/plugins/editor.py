@@ -1725,7 +1725,7 @@ class Editor(SpyderPluginWidget):
     @Slot(str)
     @Slot(str, int, str)
     @Slot(str, int, str, object)
-    def load(self, filenames=None, goto=None, word='', editorwindow=None, 
+    def load(self, filenames=None, goto=None, word='', editorwindow=None,
              processevents=True):
         """
         Load a text file
@@ -1803,11 +1803,9 @@ class Editor(SpyderPluginWidget):
         elif goto is not None and len(goto) != len(filenames):
             goto = None
             
-        print("blaaaa")
-        
-        for index, filename in reversed(list(enumerate(filenames))):
-            print("Hola:",index,filename)
+        for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
+            print('filename:',filename)
             current_editor = self.set_current_filename(filename, editorwindow)
             if current_editor is None:
                 # -- Not a valid filename:
@@ -1828,15 +1826,13 @@ class Editor(SpyderPluginWidget):
 
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
-            #if index == len(filenames)-1:    
-                #Only set focus in last used file
             if goto is not None: # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word)
                 position = current_editor.get_position('cursor')
                 self.cursor_moved(filename0, position0, filename, position)
-            current_editor.clearFocus()
-            current_editor.setFocus()
-            current_editor.window().raise_()
+#            current_editor.clearFocus()
+#            current_editor.setFocus()
+#            current_editor.window().raise_()
             if processevents:
                 QApplication.processEvents()
 

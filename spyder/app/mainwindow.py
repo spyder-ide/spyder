@@ -775,7 +775,6 @@ class MainWindow(QMainWindow):
         # Internal console plugin
         self.debug_print("  ..plugin: internal console")
         from spyder.plugins.console import Console
-        print("Este lo imprime")
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
@@ -785,7 +784,6 @@ class MainWindow(QMainWindow):
                                     "internals with the following commands:\n"
                                     "  spy.app, spy.window, dir(spy)\n\n"
                                     "Please don't use it to run your code\n\n"))
-        print("Este no lo imprime")
         self.console.register_plugin()
 
         # Working directory plugin
@@ -815,9 +813,7 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading editor..."))
         from spyder.plugins.editor import Editor
         self.editor = Editor(self)
-        print("heeyyy")
         self.editor.register_plugin()
-        print("heeyyy2")
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -2759,7 +2755,9 @@ class MainWindow(QMainWindow):
         box.set_checkbox_text(_("Check for updates on startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
-        box.setIcon(QMessageBox.Information)
+        #The next line is commented because it freezes the dialog.
+        #For now there is then no info icon. This solves issue #3609.
+        #box.setIcon(QMessageBox.Information)
 
         # Adjust the checkbox depending on the stored configuration
         section, option = 'main', 'check_updates_on_startup'
