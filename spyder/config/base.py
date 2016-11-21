@@ -272,6 +272,8 @@ def get_interface_language():
     except ValueError:
         locale_language = DEFAULT_LANGUAGE
 
+    language = DEFAULT_LANGUAGE
+
     if locale_language is not None:
         spyder_languages = get_available_translations()
         for lang in spyder_languages:
@@ -282,8 +284,6 @@ def get_interface_language():
               lang.startswith(locale_language):
                 language = lang
                 break
-
-    language = DEFAULT_LANGUAGE
 
     return language
 
