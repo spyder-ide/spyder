@@ -1275,6 +1275,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
+        editorstack.reopen_last_closed.connect(self.open_last_closed)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1944,7 +1945,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot()
     def open_last_closed(self):
-        """ Reopens the last closed tab """
+        """ Reopens the last closed tab."""
         last_closed_files = CONF.get('editor','last_closed_files')
         if (len(last_closed_files) > 0):
             file_to_open = last_closed_files[0]
