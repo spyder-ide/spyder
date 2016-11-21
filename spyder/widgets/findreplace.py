@@ -215,7 +215,7 @@ class FindReplace(QWidget):
                     pass
 
             # Now that text value is sorted out, use it for the search
-            if text:
+            if text and not self.search_text.currentText():
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
                 self.refresh()
