@@ -1318,6 +1318,10 @@ class EditorStack(QWidget):
             # Save the currently edited file
             index = self.get_stack_index()
         finfo = self.data[index]
+        # The next line is necessary to avoid checking if the file exists
+        # While running __check_file_status
+        # See issues 3678 and 3026
+        finfo.newly_created = True
         filename = self.select_savename(finfo.filename)
         if filename:
             ao_index = self.has_filename(filename)
