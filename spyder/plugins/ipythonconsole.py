@@ -861,12 +861,21 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
+        try:
+            cf = self._new_connection_file()
+        except PermissionError:
+            QMessageBox.warning(self, _('Warning'),
+                _("The jupyter_runtime_dir directory is not writable and it <br>"
+                "is required to create IPython consoles. Please create the <br>"
+                "directory: %s or make it writable.") % jupyter_runtime_dir(), 
+                  QMessageBox.Ok)
+            return
         client = ClientWidget(self, name=name,
                               history_filename='history.py',
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
-                              connection_file=self._new_connection_file(),
+                              connection_file=cf,
                               menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
 
@@ -1355,7 +1364,10 @@ class IPythonConsole(SpyderPluginWidget):
         """
         # Check if jupyter_runtime_dir exists (Spyder addition)
         if not osp.isdir(jupyter_runtime_dir()):
-            os.makedirs(jupyter_runtime_dir())
+            try:
+                os.makedirs(jupyter_runtime_dir())
+            except PermissionError as pe:
+                raise pe
         cf = ''
         while not cf:
             ident = str(uuid.uuid4()).split('-')[-1]
