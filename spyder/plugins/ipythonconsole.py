@@ -1377,9 +1377,8 @@ class IPythonConsole(SpyderPluginWidget):
                                   password):
         # Verifying if the connection file exists
         try:
-            cf = osp.split(connection_file)
-            cf_path = cf[0]
-            cf_filename = cf[1]
+            cf_path = osp.dirname(connection_file)
+            cf_filename = osp.basename(connection_file)
             connection_file = find_connection_file(filename=cf_filename, 
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
