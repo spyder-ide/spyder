@@ -290,7 +290,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     kw = r"\b" + any("keyword", kwlist) + r"\b"
     builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
-    instance = any("instance", [r"\bself\b"])
+    instance = any("instance", [r"\bself\b",r"^\s*@[a-zA-Z.]*"])
     number = any("number",
                  [r"\b[+-]?[0-9]+[lLjJ]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",

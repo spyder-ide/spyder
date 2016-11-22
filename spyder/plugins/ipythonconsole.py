@@ -1245,13 +1245,24 @@ class IPythonConsole(SpyderPluginWidget):
         ]
 
         # Environment variables that we need to pass to our sitecustomize
+        umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
+
+        if PY2:
+            original_list = umr_namelist[:]
+            for umr_n in umr_namelist:
+                try:
+                    umr_n.encode('utf-8')
+                except UnicodeDecodeError:
+                    umr_namelist.remove(umr_n)
+            if original_list != umr_namelist:
+                CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
+
         env_vars = {
             'IPYTHON_KERNEL': 'True',
             'EXTERNAL_INTERPRETER': not default_interpreter,
             'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
             'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(CONF.get('main_interpreter',
-                                              'umr/namelist'))
+            'UMR_NAMELIST': ','.join(umr_namelist)
         }
 
         # Add our PYTHONPATH to env_vars
@@ -1285,6 +1296,10 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Kernel client
         kernel_client = kernel_manager.client()
+
+        # Increase time to detect if a kernel is alive
+        # See Issue 3444
+        kernel_client.hb_channel.time_to_dead = 6.0
 
         return kernel_manager, kernel_client
 
@@ -1366,7 +1381,10 @@ class IPythonConsole(SpyderPluginWidget):
                                   password):
         # Verifying if the connection file exists
         try:
-            connection_file = find_connection_file(osp.basename(connection_file))
+            cf_path = osp.dirname(connection_file)
+            cf_filename = osp.basename(connection_file)
+            connection_file = find_connection_file(filename=cf_filename, 
+                                                   path=cf_path)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to "
