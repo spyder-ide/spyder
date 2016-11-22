@@ -210,6 +210,19 @@ def get_keywords(lexer):
                 continue
     return keywords
 
+def get_words(text_from_file):
+    """ Completion inline
+
+    Extract the list of words that contains in text_from_file,
+    to carry out the inline completion similar to VSCode.
+    """
+
+    lines = [re.sub(r'([^a-zA-Z-_])', ' ', line, flags=re.UNICODE).split() \
+             for line in text_from_file.split("\n")]
+
+    words = list(set([x for words in lines for x in words if x != []]))
+
+    return words
 
 @memoize
 def get_parent_until(path):
