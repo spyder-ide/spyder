@@ -7,5 +7,3 @@
 """
 import spyder.api.plugins for backward compatibility
 """
-
-from spyder.api.plugins import *
