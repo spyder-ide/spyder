@@ -8,13 +8,54 @@
     *******************************************************************
 """
 
-def quicksort(arr):
-    if len(arr) <= 1:
-        return arr
-    pivot = arr[len(arr) / 2]
-    left = [x for x in arr if x < pivot]
-    middle = [x for x in arr if x == pivot]
-    right = [x for x in arr if x > pivot]
-    return quicksort(left) + middle + quicksort(right)
+import numpy as np
 
-quicksort([3, 6, 8, 10, 1, 2, 1])
+def iterate_1(Z):
+    # Count neighbours
+    N = np.zeros(Z.shape, int)
+    N[1:-1,1:-1] += (Z[0:-2,0:-2] + Z[0:-2,1:-1] + Z[0:-2,2:] +
+                     Z[1:-1,0:-2]                + Z[1:-1,2:] +
+                     Z[2:  ,0:-2] + Z[2:  ,1:-1] + Z[2:  ,2:])
+    N_ = N.ravel()
+    Z_ = Z.ravel()
+
+    # Apply rules
+    R1 = np.argwhere( (Z_==1) & (N_ < 2) )
+    R2 = np.argwhere( (Z_==1) & (N_ > 3) )
+    R3 = np.argwhere( (Z_==1) & ((N_==2) | (N_==3)) )
+    R4 = np.argwhere( (Z_==0) & (N_==3) )
+
+    # Set new values
+    Z_[R1] = 0
+    Z_[R2] = 0
+    Z_[R3] = Z_[R3]
+    Z_[R4] = 1
+
+    # Make sure borders stay null
+    Z[0,:] = Z[-1,:] = Z[:,0] = Z[:,-1] = 0
+
+
+def iterate_2(Z):
+    # Count neighbours
+    N = (Z[0:-2,0:-2] + Z[0:-2,1:-1] + Z[0:-2,2:] +
+         Z[1:-1,0:-2]                + Z[1:-1,2:] +
+         Z[2:  ,0:-2] + Z[2:  ,1:-1] + Z[2:  ,2:])
+
+    # Apply rules
+    birth = (N==3) & (Z[1:-1,1:-1]==0)
+    survive = ((N==2) | (N==3)) & (Z[1:-1,1:-1]==1)
+    Z[...] = 0
+    Z[1:-1,1:-1][birth | survive] = 1
+    return Z
+
+Z = np.array([[0,0,0,0,0,0],
+              [0,0,0,1,0,0],
+              [0,1,0,1,0,0],
+              [0,0,1,1,0,0],
+              [0,0,0,0,0,0],
+              [0,0,0,0,0,0]])
+
+#print(Z)
+for i in range(4):
+    iterate_2(Z)
+    #print (Z)
