@@ -210,14 +210,29 @@ def get_keywords(lexer):
                 continue
     return keywords
 
-def get_words(text_from_file):
-    """ Completion inline
-    Extract the list of words that contains in text_from_file,
+
+def get_words_file(file_in):
+    """
+    Completion inline
+
+    Extract the list of words that contains the file in the editor,
     to carry out the inline completion similar to VSCode.
     """
-    lines = [re.sub(r'([^a-zA-Z-_])', ' ', line, flags=re.UNICODE).split() \
-             for line in text_from_file.split("\n")]
-    words = list(set([x for words in lines for x in words if x != []]))
+
+    ext = os.path.splitext(file_in)[1]
+    if ext in ['.py', '.css', 'md']:
+        print("ext", ext[1])
+        regex = re.compile(r'([^a-zA-Z-_])')
+    elif ext in ['.R', '.c', '.cpp, java']:
+        print("ext", ext[1])
+        regex = re.compile(r'([^a-zA-Z_])')
+    else:
+        regex = re.compile(r'([^a-zA-Z])')
+        print("ext", ext[1])
+
+    with open(file_in, 'r') as infile:
+        lines = [regex.sub(r' ', line).split() for line in infile]
+        words = list(set([x for words in lines for x in words if x != []]))
     return words
 
 @memoize
