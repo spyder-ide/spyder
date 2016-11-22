@@ -44,9 +44,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def configure_namespacebrowser(self):
         """Configure associated namespace browser widget"""
-        # Tell it that we are connected to client
-        self.namespacebrowser.is_ipyclient = True
-
         # Update namespace view
         self.sig_namespace_view.connect(lambda data:
             self.namespacebrowser.process_remote_view(data))

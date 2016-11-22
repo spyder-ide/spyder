@@ -1712,23 +1712,33 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     break
 
-        if not prevline:
-            return False
+        if prevline:
+            correct_indent = self.get_block_indentation(prevline)
+        else:
+            correct_indent = 0
 
         indent = self.get_block_indentation(block_nb)
-        correct_indent = self.get_block_indentation(prevline)
 
         if add_indent:
-            correct_indent += len(self.indent_chars)
+            if self.indent_chars == '\t':
+                correct_indent += 4
+            else:
+                correct_indent += len(self.indent_chars)
 
         if not comment_or_string:
             if prevtext.endswith(':') and self.is_python_like():
                 # Indent
-                correct_indent += len(self.indent_chars)
+                if self.indent_chars == '\t':
+                    correct_indent += 4
+                else:
+                    correct_indent += len(self.indent_chars)
             elif (prevtext.endswith('continue') or prevtext.endswith('break') \
               or prevtext.endswith('pass')) and self.is_python_like():
                 # Unindent
-                correct_indent -= len(self.indent_chars)
+                if self.indent_chars == '\t':
+                    correct_indent -= 4
+                else:
+                    correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
                 rlmap = {")":"(", "]":"[", "}":"{"}
                 for par in rlmap:
@@ -1760,7 +1770,12 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
-            cursor.insertText(self.indent_chars[0]*correct_indent)
+            if self.indent_chars == '\t':
+                indent_text = '\t' * (correct_indent // 4) \
+                            + ' ' * (correct_indent % 4)
+            else:
+                indent_text = ' '*correct_indent
+            cursor.insertText(indent_text)
             return True
 
     @Slot()

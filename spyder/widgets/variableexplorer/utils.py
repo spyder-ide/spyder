@@ -44,16 +44,19 @@ class FakeObject(object):
 
 
 #==============================================================================
-# Numpy arrays support
+# Numpy arrays and numeric types support
 #==============================================================================
 try:
-    from numpy import ndarray, array, matrix, recarray
+    from numpy import (ndarray, array, matrix, recarray,
+                      int64, int32, float64, float32,
+                      complex64, complex128)
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
     from numpy import set_printoptions as np_set_printoptions
 except ImportError:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
-    np_set_printoptions = FakeObject
+    np_set_printoptions = int64 = int32 = float64 = float32 = \
+    complex64 = complex128 = FakeObject
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -244,6 +247,8 @@ def unsorted_unique(lista):
 def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
     try:
+        numeric_numpy_types = (int64, int32, float64, float32,
+                               complex128, complex64)
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
@@ -288,7 +293,8 @@ def value_to_display(value, minmax=False):
         elif is_text_string(value):
             display = value
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
-          isinstance(value, datetime.date):
+          isinstance(value, datetime.date) or \
+          isinstance(value, numeric_numpy_types):
             display = repr(value)
         else:
             # Note: Don't trust on repr's. They can be inefficient and
@@ -444,8 +450,7 @@ def globalsfilter(input_dict, check_all=False, filters=None,
 #==============================================================================
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'minmax', 'remote_editing',
-                   'autorefresh')
+                   'excluded_names', 'minmax', 'remote_editing')
 
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
