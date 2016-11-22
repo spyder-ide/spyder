@@ -37,3 +37,28 @@ def test_get_words_python():
             'print', 'This', 'argwhere', 'for', 'Very', 'Web', 'Garcia',
             'Apply', 'QtWebKit', 'Count']
     assert sorted(words) == sorted(real)
+
+
+def test_get_words_css():
+    """Test for get word from css file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.css"
+    words = get_words_file(f_in)
+    print(words)
+    real = ['DeepSkyBlue', 'nombre-valido', 'text', 'css',
+    		'h', 'color', 'Hello', 'world', 'type', 'style']
+    assert sorted(words) == sorted(real)
+
+
+def test_get_words_c():
+    """Test for get word from C file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.c"
+    words = get_words_file(f_in)
+    print(words)
+    real = ['struct', 'float', 'return', 'foo', 'x', 'pvar',
+    		'include', 'stdio', 'h', 'int', 'f', 'var',
+    		'main', 'n', 'i', 'printf', 'y']
+    assert sorted(words) == sorted(real)
