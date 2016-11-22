@@ -388,6 +388,7 @@ class BaseEditMixin(object):
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
+        text = text.replace("\t", " "*4)
         return len(text)-len(text.lstrip())
     
     def get_selection_bounds(self):
