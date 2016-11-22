@@ -1236,7 +1236,7 @@ class Editor(SpyderPluginWidget):
                                     lambda text, option:
                                     self.exec_in_extconsole.emit(text, option))
         editorstack.update_plugin_title.connect(
-                                       lambda: self.update_plugin_title.emit())
+                                   lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.set_editorstack_for_introspection)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)

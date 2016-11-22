@@ -345,7 +345,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.shellwidgets.insert(index_to, shell)
         self.icons.insert(index_to, icons)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_shell_index_from_id(self, shell_id):
         """Return shellwidget index from id"""
@@ -367,7 +367,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.pop(index)
         self.shellwidgets.pop(index)
         self.icons.pop(index)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
@@ -804,7 +804,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
             self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def update_font(self):
         """Update font from Preferences"""
