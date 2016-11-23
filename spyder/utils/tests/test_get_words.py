@@ -97,17 +97,17 @@ def test_get_words_java():
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.java"
     words = get_words_file(f_in)
-    real = ['class', 'public', 'String', 'println', 'window',
-    		'main', 'Execution', 'HelloWorld', 'terminal',
-    		'System', 'out', 'java', 'World', 'Prints', 'the',
-    		'static', 'to', 'Compilation', 'javac', 'void',
-    		'Hello', 'args']
+    real = ['the', 'static', 'to', 'println', 'String',
+            'terminal', 'Hello', 'args', 'World', 'class',
+            'HelloWorld', 'void', 'main', 'Prints', 'Execution',
+            'window', 'javac', 'java', 'System', 'Compilation',
+            'out', 'public']
     assert sorted(words) == sorted(real)
 
 def test_get_words_markdown():
     """Test for get word from markdown file syntax """
     path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.java"
+    f_in = path+"/tests/data/example.md"
     words = get_words_file(f_in)
     real = ['a', 'b', 'Italic', 'blank', 'Rule', 'Image',
     		'Blockquote', 'or', 'Horizontal', 'List', 'after',
