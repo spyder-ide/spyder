@@ -59,3 +59,60 @@ def test_get_words_c():
     		'include', 'stdio', 'h', 'int', 'f', 'var',
     		'main', 'n', 'i', 'printf', 'y']
     assert sorted(words) == sorted(real)
+
+def test_get_words_cplusplus():
+    """Test for get word from C++ file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.cpp"
+    words = get_words_file(f_in)
+    real = ['class', 'a', 'friend', 'public', 'include', 'end',
+    		'implement', 'while', 'Obj', 'pointer', 'endl',
+    		'Implement', 'oc', 'main', 'i', 'of', 'indicates',
+    		'overload', 'std', 'do', 'container', 'cout', 'Return',
+    		'int', 'value', 'push', 'above', 'g', 'bool', 'iterator',
+    		'obj', 'operator', 'SmartPointer', 'false', 'iostream',
+    		'Consider', 'vector', 'an', 'the', 'back', 'access', 'return',
+    		'Postfix', 'sp', 'add', 'Create', 'sz', 'static', 'to', 'f',
+    		'namespace', 'method', 'size', 'j', 'o', 'Static', 'const',
+    		'call', 'void', 'ObjContainer', 'definitions', 'using', 'for',
+    		'standard', 'actual', 'smart', 'index', 'list', 'member',
+    		'Prefix', 'version', 'objc', 'if', 'Zero', 's', 'true']
+    assert sorted(words) == sorted(real)
+
+
+def test_get_words_R():
+    """Test for get word from R file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.R"
+    words = get_words_file(f_in)
+    real = ['function', 'Hello', 'name', 'hello', 's', 'sprintf']
+    assert sorted(words) == sorted(real)
+
+
+def test_get_words_java():
+    """Test for get word from java file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.java"
+    words = get_words_file(f_in)
+    real = ['class', 'public', 'String', 'println', 'window',
+    		'main', 'Execution', 'HelloWorld', 'terminal',
+    		'System', 'out', 'java', 'World', 'Prints', 'the',
+    		'static', 'to', 'Compilation', 'javac', 'void',
+    		'Hello', 'args']
+    assert sorted(words) == sorted(real)
+
+def test_get_words_markdown():
+    """Test for get word from markdown file syntax """
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.java"
+    words = get_words_file(f_in)
+    real = ['a', 'b', 'Italic', 'blank', 'Rule', 'Image',
+    		'Blockquote', 'or', 'Horizontal', 'List', 'after',
+    		'Bold', 'Inline', 'Heading', 'http', 'with', 'org',
+    		'png', 'Link', 'A', 'url', 'block', 'com', 'backticks',
+    		'code', 'paragraph', 'print', 'jpg', 'indent', 'One',
+    		'Two', 'line', 'spaces', 'Three']
+    assert sorted(words) == sorted(real)
