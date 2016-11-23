@@ -866,7 +866,7 @@ class IPythonConsole(SpyderPluginWidget):
             QMessageBox.warning(self, _('Warning'),
                 _("The jupyter_runtime_dir directory is not writable and it <br>"
                 "is required to create IPython consoles. Please create the <br>"
-                "directory: %s or make it writable.") % jupyter_runtime_dir(), 
+                "directory: {} or make it writable.").format(jupyter_runtime_dir()), 
                   QMessageBox.Ok)
             return
         client = ClientWidget(self, name=name,
