@@ -26,7 +26,6 @@ def test_get_words_python():
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.py"
     words = get_words_file(f_in)
-    print(words)
     real = ['a', 'sure', 'np', 'Z_', 'Simple', 'R', 'utn', 'values',
             'is', 'N_', 'zeros', 'i', 'rules', 'jmg', 'Manuel', 'new',
             'numpy', 'neighbours', 'shape', 'survive', 'int', 'gmail',
@@ -45,7 +44,6 @@ def test_get_words_css():
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.css"
     words = get_words_file(f_in)
-    print(words)
     real = ['DeepSkyBlue', 'nombre-valido', 'text', 'css',
     		'h', 'color', 'Hello', 'world', 'type', 'style']
     assert sorted(words) == sorted(real)
@@ -57,7 +55,6 @@ def test_get_words_c():
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.c"
     words = get_words_file(f_in)
-    print(words)
     real = ['struct', 'float', 'return', 'foo', 'x', 'pvar',
     		'include', 'stdio', 'h', 'int', 'f', 'var',
     		'main', 'n', 'i', 'printf', 'y']
