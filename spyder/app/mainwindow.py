@@ -890,7 +890,7 @@ class MainWindow(QMainWindow):
             self.ipyconsole.register_plugin()
 
         # Third-party plugins
-        self.set_splash(_("Loading third-Party plugins..."))
+        self.set_splash(_("Loading third-party plugins..."))
         for mod in get_spyderplugins_mods():
             try:
                 plugin = mod.PLUGIN_CLASS(self)
