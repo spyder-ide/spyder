@@ -861,9 +861,8 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
-        try:
-            cf = self._new_connection_file()
-        except PermissionError:
+        cf = self._new_connection_file()
+        if cf is None:
             QMessageBox.warning(self, _('Warning'),
                 _("The jupyter_runtime_dir directory is not writable and it <br>"
                 "is required to create IPython consoles. Please create the <br>"
@@ -1367,7 +1366,7 @@ class IPythonConsole(SpyderPluginWidget):
             try:
                 os.makedirs(jupyter_runtime_dir())
             except PermissionError as pe:
-                raise pe
+                return None
         cf = ''
         while not cf:
             ident = str(uuid.uuid4()).split('-')[-1]
