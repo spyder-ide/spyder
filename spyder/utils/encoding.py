@@ -20,6 +20,7 @@ from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32, getincrementaldecoder
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
                               is_unicode)
+from spyder.utils.external.binaryornot.check import is_binary
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -228,36 +229,5 @@ def readlines(filename, encoding='utf-8'):
 def is_text_file(filename):
     """
     Test if the given path is a text-like file.
-    
-    Adapted from: http://stackoverflow.com/a/3002505
-    
-    Original Authors: Trent Mick <TrentM@ActiveState.com>
-                      Jorge Orpinel <jorge@orpinel.com>
     """
-    try:
-        open(filename)
-    except Exception:
-        return False
-    with open(filename, 'rb') as fid:
-        try:
-            CHUNKSIZE = 1024
-            chunk = fid.read(CHUNKSIZE)
-            # check for a UTF BOM
-            for bom in [BOM_UTF8, BOM_UTF16, BOM_UTF32]:
-                if chunk.startswith(bom):
-                    return True
-
-            decoder = getincrementaldecoder('utf-8')()
-            while 1:
-                is_final = len(chunk) < CHUNKSIZE
-                chunk = decoder.decode(chunk, final=is_final)
-                if '\0' in chunk: # found null byte
-                    return False
-                if is_final:
-                    break # done
-                chunk = fid.read(CHUNKSIZE)
-        except UnicodeDecodeError:
-            return False
-        except Exception:
-            pass
-    return True
+    return not is_binary(filename)
