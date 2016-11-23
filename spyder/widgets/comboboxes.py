@@ -269,6 +269,17 @@ class PathComboBox(EditableComboBox):
         self.valid.emit(True, True)
         self.open_dir.emit(self.selected_text)
 
+    def add_current_text(self):
+        """
+        Add current text to combo box history (convenient method).
+        If path ends in os separator ("\" windows, "/" unix) remove it.
+        """
+        text = self.currentText()
+        if osp.isdir(text) and text:
+            if text[-1] == os.sep:
+                text = text[:-1]
+        self.add_text(text)
+
 
 class UrlComboBox(PathComboBox):
     """
