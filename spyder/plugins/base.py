@@ -23,9 +23,9 @@ from spyder.widgets.dock import SpyderDockWidget
 
 class BasePluginWidget(QWidget):
     """
-    Useful methods to bind plugins to the main window
-    See SpyderPluginWidget class for required widget interface
+    Basic functionality for Spyder plugin widgets
     """
+
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable

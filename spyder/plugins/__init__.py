@@ -5,5 +5,5 @@
 # (see spyder/__init__.py for details)
 
 """
-import spyder.api.plugins for backward compatibility
+Spyder core plugins
 """

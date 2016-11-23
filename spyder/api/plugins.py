@@ -8,15 +8,8 @@
 spyder.api.plugins
 ==================
 
-Here, 'plugins' are dock widgets designed specifically for Spyder
-These plugins inherit the following classes
-(SpyderPluginMixin & SpyderPluginWidget)
+Here, 'plugins' are Qt widgets designed specifically for Spyder
 """
-
-# pylint: disable=C0103
-# pylint: disable=R0903
-# pylint: disable=R0911
-# pylint: disable=R0201
 
 # Standard library imports
 import inspect
@@ -39,8 +32,9 @@ from spyder.utils.qthelpers import toggle_actions
 
 class PluginWidget(BasePluginWidget):
     """
-    Useful methods to bind widgets to the main window
-    See SpyderPluginWidget class for required widget interface
+    Public interface for Spyder plugins.
+
+    Warning: Don't override any methods present here!
 
     Signals:
       * sig_option_changed
@@ -181,8 +175,9 @@ class PluginWidget(BasePluginWidget):
 
 class SpyderPluginWidget(PluginWidget):
     """
-    Spyder plugin widget class
-    Plugin widgets must inherit this class and reimplement its interface
+    Spyder plugin widget class.
+
+    All plugin widgets must inherit this class and reimplement its interface.
     """
     # ---------------------------- ATTRIBUTES ---------------------------------
 
