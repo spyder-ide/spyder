@@ -283,7 +283,8 @@ install_requires = [
     'qtawesome',
     'qtpy>=1.1.0',
     'pickleshare',
-    'pyzmq'
+    'pyzmq',
+    'chardet>=2.0.0',
 ]
 
 if 'setuptools' in sys.modules:
