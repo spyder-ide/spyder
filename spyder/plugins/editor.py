@@ -501,7 +501,9 @@ class Editor(SpyderPluginWidget):
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
         for editorstack in self.editorstacks:
-            editorstack.set_outlineexplorer(self.outlineexplorer)
+            # Pass the OutlineExplorer widget to the stacks because they
+            # don't need the plugin
+            editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
         self.editorstacks[0].initialize_outlineexplorer()
         self.outlineexplorer.explorer.edit_goto.connect(
                            lambda filenames, goto, word:
@@ -2460,7 +2462,7 @@ class Editor(SpyderPluginWidget):
                 if self.outlineexplorer is not None:
                     self.outlineexplorer.explorer.set_fullpath_sorting(fpsorting_o)
                 for window in self.editorwindows:
-                    window.editorwidget.outlineexplorer.explorer.set_fullpath_sorting(
+                    window.editorwidget.outlineexplorer.set_fullpath_sorting(
                                                                     fpsorting_o)
             for editorstack in self.editorstacks:
                 if fpsorting_n in options:
