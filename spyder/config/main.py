@@ -420,7 +420,7 @@ DEFAULTS = [
             ('color_schemes',
              {
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
-                        'spyder', 'spyder/dark', 'zenburn', 'solarized', 'solarized/dark'],
+                        'spyder', 'spyder/dark', 'zenburn', 'solarized/light', 'solarized/dark'],
               'selected': 'spyder',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
