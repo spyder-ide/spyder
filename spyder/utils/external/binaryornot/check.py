@@ -9,7 +9,7 @@ Main code for checking if a file is binary or text.
 
 import logging
 
-from .helpers import get_starting_chunk, is_binary_string
+from spyder.utils.external.binaryornot.helpers import get_starting_chunk, is_binary_string
 
 
 logger = logging.getLogger(__name__)
