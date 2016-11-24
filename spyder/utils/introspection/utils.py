@@ -211,26 +211,25 @@ def get_keywords(lexer):
     return keywords
 
 
-def get_words_file(file_in):
+def get_words_file(file_path=None, content=None):
     """
-    Completion inline
+    Extract all words from a source code file to be used in code completion.
 
     Extract the list of words that contains the file in the editor,
     to carry out the inline completion similar to VSCode.
     """
+    if file_path is None and content is None or file_path and content:
+        error_msg = ('Must provide one of `file_path` or `content`')
 
-    ext = os.path.splitext(file_in)[1]
+    ext = os.path.splitext(file_path)[1]
     if ext in ['.py', '.css', 'md']:
-        print("ext", ext[1])
         regex = re.compile(r'([^a-zA-Z-_])')
     elif ext in ['.R', '.c', '.cpp, java']:
-        print("ext", ext[1])
         regex = re.compile(r'([^a-zA-Z_])')
     else:
         regex = re.compile(r'([^a-zA-Z])')
-        print("ext", ext[1])
 
-    with open(file_in, 'r') as infile:
+    with open(file_path, 'r') as infile:
         lines = [regex.sub(r' ', line).split() for line in infile]
         words = list(set([x for words in lines for x in words if x != []]))
     return words

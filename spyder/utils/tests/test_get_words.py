@@ -14,7 +14,6 @@ def test_get_words_html():
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.html"
     words = get_words_file(f_in)
-    print(words)
     real = ['meta', 'p', 'body', 'en', 'was', 'h', 'Hello',
             'here', 'title', 'head', 'charset', 'Jamie',
             'World', 'lang', 'html', 'DOCTYPE', 'utf']
