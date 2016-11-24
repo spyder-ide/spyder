@@ -436,7 +436,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
         if installed_version is None:
             try:
                 actver = get_module_version(module_name)
-            except ImportError:
+            except:
                 # Module is not installed
                 return False
         else:
