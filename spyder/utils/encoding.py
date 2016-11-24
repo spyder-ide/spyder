@@ -17,6 +17,8 @@ import locale
 import sys
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32, getincrementaldecoder
 
+from chardet.universaldetector import UniversalDetector
+
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
                               is_unicode)
@@ -111,6 +113,17 @@ def get_coding(text):
             # sometimes we find a false encoding that can result in errors
             if codec in CODECS:
                 return codec
+
+    # Falback using chardet
+    if is_binary_string(text):
+        detector = UniversalDetector()
+        for line in text.splitlines()[:2]:
+            detector.feed(line)
+            if detector.done: break
+
+        detector.close()
+        return detector.result['encoding']
+
     return None
 
 def decode(text):
