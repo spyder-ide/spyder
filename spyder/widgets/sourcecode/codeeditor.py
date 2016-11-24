@@ -684,8 +684,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
-        self.setTabStopWidth(tab_stop_width_spaces
-                             * self.fontMetrics().width('9'))
+        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -1960,7 +1959,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if add_indent:
             if self.indent_chars == '\t':
-                correct_indent += 4
+                correct_indent += self.tab_stop_width_spaces
             else:
                 correct_indent += len(self.indent_chars)
 
@@ -1968,14 +1967,14 @@ class CodeEditor(TextEditBaseWidget):
             if prevtext.endswith(':') and self.is_python_like():
                 # Indent
                 if self.indent_chars == '\t':
-                    correct_indent += 4
+                    correct_indent += self.tab_stop_width_spaces
                 else:
                     correct_indent += len(self.indent_chars)
             elif (prevtext.endswith('continue') or prevtext.endswith('break') \
               or prevtext.endswith('pass')) and self.is_python_like():
                 # Unindent
                 if self.indent_chars == '\t':
-                    correct_indent -= 4
+                    correct_indent -= self.tab_stop_width_spaces
                 else:
                     correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
@@ -1983,7 +1982,7 @@ class CodeEditor(TextEditBaseWidget):
                 # find out if the last one is (, {, or []})
                 if re.search(r'[\(|\{|\[]\s*$', prevtext) is not None:
                     if self.indent_chars == '\t':
-                        correct_indent += 8
+                        correct_indent += self.tab_stop_width_spaces * 2
                     else:
                         correct_indent += len(self.indent_chars) * 2
                 else:
@@ -2018,8 +2017,8 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
-                indent_text = '\t' * (correct_indent // 4) \
-                            + ' ' * (correct_indent % 4)
+                indent_text = '\t' * (correct_indent // self.tab_stop_width_spaces) \
+                            + ' ' * (correct_indent % self.tab_stop_width_spaces)
             else:
                 indent_text = ' '*correct_indent
             cursor.insertText(indent_text)
