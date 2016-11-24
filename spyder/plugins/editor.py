@@ -206,8 +206,8 @@ class EditorConfigPage(PluginConfigPage):
                                          (_("7 spaces"), '*       *'),
                                          (_("8 spaces"), '*        *'),
                                          (_("Tabulations"), '*\t*')), 'indent_chars')
-        tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
-                                            'tab_stop_width', 40, 10, 1000, 10)
+        tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("spaces"),
+                                            'tab_stop_width_spaces', 4, 1, 8, 1)
         tab_mode_box = newcb(_("Tab always indent"),
                       'tab_always_indent', default=False,
                       tip=_("If enabled, pressing Tab will always indent,\n"
@@ -1210,7 +1210,7 @@ class Editor(SpyderPluginWidget):
             ('set_add_colons_enabled',              'add_colons'),
             ('set_auto_unindent_enabled',           'auto_unindent'),
             ('set_indent_chars',                    'indent_chars'),
-            ('set_tab_stop_width',                  'tab_stop_width'),
+            ('set_tab_stop_width_spaces',           'tab_stop_width_spaces'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
@@ -2444,8 +2444,8 @@ class Editor(SpyderPluginWidget):
             autounindent_o = self.get_option(autounindent_n)
             indent_chars_n = 'indent_chars'
             indent_chars_o = self.get_option(indent_chars_n)
-            tab_stop_width_n = 'tab_stop_width'
-            tab_stop_width_o = self.get_option(tab_stop_width_n)
+            tab_stop_width_spaces_n = 'tab_stop_width_spaces'
+            tab_stop_width_spaces_o = self.get_option(tab_stop_width_spaces_n)
             help_n = 'connect_to_oi'
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
@@ -2508,8 +2508,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_auto_unindent_enabled(autounindent_o)
                 if indent_chars_n in options:
                     editorstack.set_indent_chars(indent_chars_o)
-                if tab_stop_width_n in options:
-                    editorstack.set_tab_stop_width(tab_stop_width_o)
+                if tab_stop_width_spaces_n in options:
+                    editorstack.set_tab_stop_width_spaces(tab_stop_width_spaces_o)
                 if help_n in options:
                     editorstack.set_help_enabled(help_o)
                 if todo_n in options:

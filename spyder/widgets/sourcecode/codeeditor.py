@@ -670,7 +670,7 @@ class CodeEditor(TextEditBaseWidget):
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
-                     tab_stop_width=40, cloned_from=None, filename=None,
+                     tab_stop_width_spaces=4, cloned_from=None, filename=None,
                      occurrence_timeout=1500):
         
         # Code completion and calltips
@@ -684,7 +684,8 @@ class CodeEditor(TextEditBaseWidget):
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
-        self.setTabStopWidth(tab_stop_width)
+        self.setTabStopWidth(tab_stop_width_spaces
+                             * self.fontMetrics().width('9'))
 
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
