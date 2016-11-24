@@ -960,9 +960,16 @@ class EditorStack(QWidget):
         for findex, file in enumerate(self.data):
             fname_to_compare = osp.basename(file.filename)
             if findex is not index and fname == fname_to_compare:
-                differ_path = os.path.join(*self.differ_prefix(
-                                            self.path_components(finfo.filename), 
-                                            self.path_components(file.filename)))
+                differ_path = self.differ_prefix(
+                                   self.path_components(finfo.filename), 
+                                   self.path_components(file.filename))
+                differ_path_length = len(differ_path)
+                if (differ_path_length > 20):
+                    path_components = self.path_components(differ_path)
+                    last_component_index = len(path_components) -1
+                    path_components = [path_components[0], '...', 
+                                       path_components[last_component_index]]
+                    differ_path = os.path.join(*path_components)
                 fname = fname + " - " + differ_path
                 break
         return fname
@@ -984,26 +991,28 @@ class EditorStack(QWidget):
             path = new_path
         components.append(new_path)    
         components.reverse()  # First component first 
-        
         return components
 
-    def differ_prefix(self, path_components1, path_components2):
+    def differ_prefix(self, path_components0, path_components1):
         """Return the differ prefix of the given two iterables. Based
         on longest_prefix in http://stackoverflow.com/questions/21498939/how-to-
         circumvent-the-fallacy-of-pythons-os-path-commonprefix."""
-        differ_prefix = []
-        append_common_prefix = False
-        common_prefix = None
-        for (elmt1, elmt2) in izip(path_components1, path_components2):
-            if elmt1 == elmt2 and elmt1 != '':
-                common_prefix = elmt1
-            if elmt1 != elmt2:
-                if not append_common_prefix and common_prefix is not None:
-                    differ_prefix.append(common_prefix)
-                    append_common_prefix = True
-                if path_components1.index(elmt1) != len(path_components1)-1:
-                    differ_prefix.append(elmt1)       
-        return differ_prefix
+        longest_prefix = []
+        common_elmt = None
+        for (elmt0, elmt1) in izip(path_components0, path_components1):
+            if elmt0 != elmt1:
+                break
+            else:
+                common_elmt = elmt0
+            longest_prefix.append(elmt0)
+        file_name_length = len(path_components0[len(path_components0)-1])
+        path_0 = os.path.join(*path_components0)[:-file_name_length-1]
+        if(len(longest_prefix)>3):
+            longest_path_prefix = os.path.join(*longest_prefix)
+            length_to_delete = len(longest_path_prefix)-len(common_elmt) 
+            return path_0[length_to_delete:]
+        else:
+            return path_0
 
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
         """Return tab menu title"""
