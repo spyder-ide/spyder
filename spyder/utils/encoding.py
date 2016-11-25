@@ -107,12 +107,18 @@ def get_coding(text):
     @return coding string
     """
     for line in text.splitlines()[:2]:
-        result = CODING_RE.search(to_text_string(line))
-        if result:
-            codec = result.group(1)
-            # sometimes we find a false encoding that can result in errors
-            if codec in CODECS:
-                return codec
+        try:
+            result = CODING_RE.search(to_text_string(line))
+        except UnicodeDecodeError:
+            # This could fail because to_text_string assume the text is utf8-like
+            # and we don't know the encoding to give it to to_text_string
+            pass
+        else:
+            if result:
+                codec = result.group(1)
+                # sometimes we find a false encoding that can result in errors
+                if codec in CODECS:
+                    return codec
 
     # Fallback using chardet
     if is_binary_string(text):
