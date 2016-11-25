@@ -114,7 +114,7 @@ def get_coding(text):
             if codec in CODECS:
                 return codec
 
-    # Falback using chardet
+    # Fallback using chardet
     if is_binary_string(text):
         detector = UniversalDetector()
         for line in text.splitlines()[:2]:
