@@ -303,6 +303,11 @@ def add_actions(target, actions, insert_before=None):
                 target.addMenu(action)
             else:
                 target.insertMenu(insert_before, action)
+        elif isinstance(action, QAction):
+            if insert_before is None:
+                target.addAction(action)
+            else:
+                target.insertAction(insert_before, action)
         elif isinstance(action, SpyderAction):
             if isinstance(target, QMenu) or not isinstance(target, QToolBar):
                 action = action.no_icon_action
