@@ -24,26 +24,12 @@ def get_indent_fix(text, indent_chars=" " * 4):
     app = qapplication()
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python', indent_chars=indent_chars)
-    cursor = editor.textCursor()
 
-    if len(text) == 0:
-        editor.set_text(text)
-        return editor.toPlainText()
-    
-    texts = text.split('\n')
-    n = len(texts)
-    
-    # fix_indent needs to be done after every line
-    for ii in range(n):
-        text1 = texts[ii]
-        if ii < n-1:
-            text1 = text1 + '\n'
-        
-        editor.set_text(editor.toPlainText() + text1)
-        cursor.movePosition(QTextCursor.End)
-        editor.setTextCursor(cursor)
-        editor.fix_indent()
-        
+    editor.set_text(text)
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    editor.setTextCursor(cursor)
+    editor.fix_indent()
     return to_text_string(editor.toPlainText())
 
 
@@ -60,12 +46,12 @@ def test_def_with_newline():
 
 
 def test_def_with_indented_comment():
-    text = get_indent_fix("def function():\n# Comment\n")
+    text = get_indent_fix("def function():\n    # Comment\n")
     assert text == "def function():\n    # Comment\n    ", repr(text)
 
 
 def test_brackets_alone():
-    text = get_indent_fix("def function():\nprint []\n")
+    text = get_indent_fix("def function():\n    print []\n")
     assert text == "def function():\n    print []\n    ", repr(text)
 
 
@@ -111,9 +97,8 @@ def test_align_on_curly():
 # -----------------------------------------------------------------------------
 @pytest.mark.xfail
 def test_def_with_unindented_comment():
-    # No difference with test_def_with_indented_comment
     text = get_indent_fix("def function():\n# Comment\n")
-    assert text == "def function():\n    # Comment\n    ", repr(text)
+    assert text == "def function():\n# Comment\n    ", repr(text)
 
 
 # --- Tabs tests
@@ -127,15 +112,15 @@ def test_def_with_unindented_comment():
          "test with indented comment"),
         ("def function():\n\tprint []\n", "def function():\n\tprint []\n\t",
          "test brackets alone"),
-        ("\na = {\n", "\na = {\n\t ", "indentation after opening bracket"),
+        ("\na = {\n", "\na = {\n\t\t", "indentation after opening bracket"),
         ("def function():\n", "def function():\n\t", "test simple def"),
+        ("open_parenthesis(\n", "open_parenthesis(\n\t\t",
+         "open parenthesis"),
 
         # Failing test
         pytest.mark.xfail(
             ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
              "test_def_with_unindented_comment")),
-        pytest.mark.xfail(("open_parenthesis(\n", "open_parenthesis(\n\t\t\t\ŧ ",
-                           "open parenthesis")),
     ])
 def test_indentation_with_tabs(text_input, expected, test_text):
     text = get_indent_fix(text_input, indent_chars="\t")
