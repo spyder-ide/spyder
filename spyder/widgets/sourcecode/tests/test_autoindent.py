@@ -24,12 +24,26 @@ def get_indent_fix(text, indent_chars=" " * 4):
     app = qapplication()
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python', indent_chars=indent_chars)
-
-    editor.set_text(text)
     cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.End)
-    editor.setTextCursor(cursor)
-    editor.fix_indent()
+
+    if len(text) == 0:
+        editor.set_text(text)
+        return editor.toPlainText()
+    
+    texts = text.split('\n')
+    n = len(texts)
+    
+    # fix_indent needs to be done after every line
+    for ii in range(n):
+        text1 = texts[ii]
+        if ii < n-1:
+            text1 = text1 + '\n'
+        
+        editor.set_text(editor.toPlainText() + text1)
+        cursor.movePosition(QTextCursor.End)
+        editor.setTextCursor(cursor)
+        editor.fix_indent()
+        
     return to_text_string(editor.toPlainText())
 
 
@@ -46,18 +60,13 @@ def test_def_with_newline():
 
 
 def test_def_with_indented_comment():
-    text = get_indent_fix("def function():\n    # Comment\n")
+    text = get_indent_fix("def function():\n# Comment\n")
     assert text == "def function():\n    # Comment\n    ", repr(text)
 
 
 def test_brackets_alone():
-    text = get_indent_fix("def function():\n    print []\n")
+    text = get_indent_fix("def function():\nprint []\n")
     assert text == "def function():\n    print []\n    ", repr(text)
-
-
-def test_open_parenthesis():
-    text = get_indent_fix("open_parenthesis(\n")
-    assert text == "open_parenthesis(\n                 ", repr(text)
 
 
 def test_simple_def():
@@ -65,12 +74,46 @@ def test_simple_def():
     assert text == "def function():\n    ", repr(text)
 
 
+def test_open_parenthesis():
+    # An open parenthesis with no item is followed by a hanging indent
+    text = get_indent_fix("open_parenthesis(\n")
+    assert text == "open_parenthesis(\n        ", repr(text)
+
+def test_open_bracket():
+    # An open bracket with no item is followed by a hanging indent
+    text = get_indent_fix("open_bracket[\n")
+    assert text == "open_bracket[\n        ", repr(text)
+    
+def test_open_curly():
+    # An open curly bracket with no item is followed by a hanging indent
+    text = get_indent_fix("open_curly{\n")
+    assert text == "open_curly{\n        ", repr(text)
+    
+def test_align_on_parenthesis():
+    # An open parenthesis with one or more item is followed by an indent
+    # up to the parenthesis.
+    text = get_indent_fix("parenthesis_w_item = (1,\n")
+    assert text == "parenthesis_w_item = (1,\n                      ", repr(text)    
+
+def test_align_on_bracket():
+    # An open bracket with one or more item is followed by an indent
+    # up to the parenthesis.
+    text = get_indent_fix("bracket_w_item = (1,\n")
+    assert text == "bracket_w_item = (1,\n                  ", repr(text)    
+    
+def test_align_on_curly():
+    # An open curly bracket with one or more item is followed by an indent
+    # up to the parenthesis.
+    text = get_indent_fix("curly_w_item = (1,\n")
+    assert text == "curly_w_item = (1,\n                ", repr(text)    
+
 # --- Failing tests
 # -----------------------------------------------------------------------------
 @pytest.mark.xfail
 def test_def_with_unindented_comment():
+    # No difference with test_def_with_indented_comment
     text = get_indent_fix("def function():\n# Comment\n")
-    assert text == "def function():\n# Comment\n    ", repr(text)
+    assert text == "def function():\n    # Comment\n    ", repr(text)
 
 
 # --- Tabs tests
