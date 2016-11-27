@@ -420,7 +420,7 @@ DEFAULTS = [
             ('color_schemes',
              {
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
-                        'spyder', 'spyder/dark', 'zenburn'],
+                        'spyder', 'spyder/dark', 'zenburn', 'solarized/light', 'solarized/dark'],
               'selected': 'spyder',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
@@ -503,7 +503,7 @@ DEFAULTS = [
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
-              'scintilla/currentcell': "#edfcdc",  
+              'scintilla/currentcell': "#edfcdc",
               'scintilla/occurrence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
@@ -522,7 +522,7 @@ DEFAULTS = [
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
-              'spyder/currentcell': "#fdfdde",              
+              'spyder/currentcell': "#fdfdde",
               'spyder/occurrence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
               'spyder/sideareas':   "#efefef",
@@ -573,7 +573,45 @@ DEFAULTS = [
               'zenburn/comment':    ('#7f9f7f', False, True),
               'zenburn/string':     ('#cc9393', False, False),
               'zenburn/number':     ('#8cd0d3', False, False),
-              'zenburn/instance':   ('#dcdccc', False, True)
+              'zenburn/instance':   ('#dcdccc', False, True),
+              # ---- Solarized Light ----
+              'solarized/light/name':        "Solarized Light",
+              #        Name            Color     Bold  Italic
+              'solarized/light/background':  '#fdf6e3',
+              'solarized/light/currentline': '#eee8d5',
+              'solarized/light/currentcell': '#eee8d5',
+              'solarized/light/occurence':   '#839496',
+              'solarized/light/ctrlclick':   '#d33682',
+              'solarized/light/sideareas':   '#eee8d5',
+              'solarized/light/matched_p':   '#586e75',
+              'solarized/light/unmatched_p': '#dc322f',
+              'solarized/light/normal':     ('#657b83', False, False),
+              'solarized/light/keyword':    ('#859900', False, False),
+              'solarized/light/builtin':    ('#6c71c4', False, False),
+              'solarized/light/definition': ('#268bd2', True, False),
+              'solarized/light/comment':    ('#93a1a1', False, True),
+              'solarized/light/string':     ('#2aa198', False, False),
+              'solarized/light/number':     ('#cb4b16', False, False),
+              'solarized/light/instance':   ('#b58900', False, True),
+              # ---- Solarized Dark ----
+              'solarized/dark/name':        "Solarized Dark",
+              #        Name            Color     Bold  Italic
+              'solarized/dark/background':  '#002b36',
+              'solarized/dark/currentline': '#073642',
+              'solarized/dark/currentcell': '#073642',
+              'solarized/dark/occurence':   '#657b83',
+              'solarized/dark/ctrlclick':   '#d33682',
+              'solarized/dark/sideareas':   '#073642',
+              'solarized/dark/matched_p':   '#93a1a1',
+              'solarized/dark/unmatched_p': '#dc322f',
+              'solarized/dark/normal':     ('#839496', False, False),
+              'solarized/dark/keyword':    ('#859900', False, False),
+              'solarized/dark/builtin':    ('#6c71c4', False, False),
+              'solarized/dark/definition': ('#268bd2', True, False),
+              'solarized/dark/comment':    ('#586e75', False, True),
+              'solarized/dark/string':     ('#2aa198', False, False),
+              'solarized/dark/number':     ('#cb4b16', False, False),
+              'solarized/dark/instance':   ('#b58900', False, True)
              })
             ]
 
