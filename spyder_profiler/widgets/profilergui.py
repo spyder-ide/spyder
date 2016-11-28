@@ -511,7 +511,7 @@ class ProfilerDataTree(QTreeWidget):
         return [format[0] % x[0], [diff_str, color]]
 
     def format_measure(self, data):
-
+        """getting format and units for data coming from profiler task."""
         formated_data = [0] * len(data)
 
         for (i, measure) in enumerate(data):
@@ -543,9 +543,6 @@ class ProfilerDataTree(QTreeWidget):
 
         if True:
             data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-            # print(self.stats[child_key], list(zip(*data))[1:4])
-            #return map(self.color_string,
-            #           zip(list(zip(*data))[1:4], [["%i n"] * 2, ["%.3f ms", "%.3f ms"], ["%.3f", "%.3f"]]))
 
             # Trying to unpack crazy info
             for k in data[0][4]:
@@ -564,13 +561,6 @@ class ProfilerDataTree(QTreeWidget):
             self.item_depth += 1
             (filename, line_number, function_name, file_and_line, node_type
              ) = self.function_info(child_key)
-            """
-             ((total_calls, total_calls_dif), (loc_time, loc_time_dif), (cum_time,
-              cum_time_dif)) = self.format_output(child_key)
-
-             (primcalls, total_calls, loc_time, cum_time, callers
-              ) = self.stats[child_key]
-             """
 
             (total_calls, loc_time, cum_time) = self.format_output(child_key)
 
