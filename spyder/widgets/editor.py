@@ -1205,11 +1205,9 @@ class EditorStack(QWidget):
         if len(self.last_closed_files) > 10: 
             self.last_closed_files.pop(-1)
 
-    @Slot()
     def get_last_closed_files(self):
         return self.last_closed_files
 
-    @Slot()
     def set_last_closed_files(self, fnames):
         self.last_closed_files = fnames
 
