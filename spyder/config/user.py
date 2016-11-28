@@ -19,6 +19,7 @@ import re
 import os.path as osp
 import shutil
 import time
+import sys
 
 # Local imports
 from spyder.config.base import (get_conf_path, get_home_dir,
@@ -26,6 +27,7 @@ from spyder.config.base import (get_conf_path, get_home_dir,
 from spyder.utils.programs import check_version
 from spyder.py3compat import configparser as cp
 from spyder.py3compat import PY2, is_text_string, to_text_string
+from qtpy.QtWidgets import QApplication
 
 # Std imports for Python 2
 if PY2:
@@ -397,6 +399,17 @@ class UserConfig(DefaultsConfig):
                 value = ast.literal_eval(value)
             except (SyntaxError, ValueError):
                 pass
+        
+        # It's necessary to verify if the window/position value is valid 
+        # with the current screen. See issue 3748
+        if option == 'window/position':
+            width = value[0]
+            height = value[1]
+            screenShape = QApplication.desktop().geometry()
+            current_width = screenShape.width()
+            current_height = screenShape.height()
+            if current_width < width or current_height < height:
+                value = self.get_default(section, option)
         return value
 
     def set_default(self, section, option, default_value):
