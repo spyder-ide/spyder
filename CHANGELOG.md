@@ -1,5 +1,78 @@
 # History of changes
 
+## Version 3.0.2 (2016/11/20)
+
+### New features
+
+* Add an option under *Preferences > General* to enable/disable high DPI scaling (disabled by default).
+* Add a menu entry in the Projects menu to cleanly delete projects.
+* Add the shortcuts Ctrl+U and Ctrl+Shift+U to turn text into lower/uppercase respectively.
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 3647](https://github.com/spyder-ide/spyder/issues/3647) - "%reset -s" is giving an error in the IPython console
+* [Issue 3618](https://github.com/spyder-ide/spyder/issues/3618) - Removing a project deletes also the files on the disk
+* [Issue 3609](https://github.com/spyder-ide/spyder/issues/3609) - New release dialog is un-clickable
+* [Issue 3588](https://github.com/spyder-ide/spyder/issues/3588) - Files are opened twice at startup if a project is active
+* [Issue 3583](https://github.com/spyder-ide/spyder/issues/3583) - Error when connecting to external kernels
+* [Issue 3575](https://github.com/spyder-ide/spyder/issues/3575) - Cannot press Enter after underscore in File Switcher
+* [Issue 3564](https://github.com/spyder-ide/spyder/issues/3564) - Error when reloading modules in the IPython Console in Python 2
+* [Issue 3561](https://github.com/spyder-ide/spyder/issues/3561) - Working Directory toolbar is not working for IPython Consoles
+* [Issue 3553](https://github.com/spyder-ide/spyder/issues/3553) - Spyder fails to launch because of Unicode errors in create_kernel_spec
+* [Issue 3522](https://github.com/spyder-ide/spyder/issues/3522) - Dependencies diaog not updating correctly when installing dependencies while spyder is running
+* [Issue 3519](https://github.com/spyder-ide/spyder/issues/3519) - Cannot set Maximum Number of Recent Files
+* [Issue 3513](https://github.com/spyder-ide/spyder/issues/3513) - Spyder does not free up memory after closing windows with datasets in the Variable explorer
+* [Issue 3489](https://github.com/spyder-ide/spyder/issues/3489) - Display problems on systems that use 'display scaling'
+* [Issue 3444](https://github.com/spyder-ide/spyder/issues/3444) - Reports of Kernel Death are greatly exagerated
+* [Issue 3436](https://github.com/spyder-ide/spyder/issues/3436) - Default file extension should be .py instead of empty
+* [Issue 3430](https://github.com/spyder-ide/spyder/issues/3430) - Update translations
+* [Issue 3214](https://github.com/spyder-ide/spyder/issues/3214) - Indentation after a line with [] and {} is reset
+* [Issue 3127](https://github.com/spyder-ide/spyder/issues/3127) - Spyder fails to launch because of errors in spyder.ini
+* [Issue 2159](https://github.com/spyder-ide/spyder/issues/2159) - Built-in 'print' statement is displayed as two different colors depending on indentation
+* [Issue 1669](https://github.com/spyder-ide/spyder/issues/1669) - Menu item and shortcut to toggle UPPER and lower case of selected text
+* [Issue 1665](https://github.com/spyder-ide/spyder/issues/1665) - sympy shadows matplotlib in ipython console
+* [Issue 1373](https://github.com/spyder-ide/spyder/issues/1373) - Editor autoindentation fails after list, dict
+
+In this release 22 issues were closed
+
+**Pull requests**
+
+* [PR 3702](https://github.com/spyder-ide/spyder/pull/3702) - PR: Update French translation
+* [PR 3694](https://github.com/spyder-ide/spyder/pull/3694) - Restore icons in the code completion widget
+* [PR 3687](https://github.com/spyder-ide/spyder/pull/3687) - Increase time to detect if an IPython kernel is alive
+* [PR 3681](https://github.com/spyder-ide/spyder/pull/3681) - Update Spanish translation
+* [PR 3679](https://github.com/spyder-ide/spyder/pull/3679) - Update Russian translations
+* [PR 3664](https://github.com/spyder-ide/spyder/pull/3664) - Free memory when closing a Variable Explorer editor
+* [PR 3661](https://github.com/spyder-ide/spyder/pull/3661) - IPython Console: Fix error when running "%reset -s"
+* [PR 3660](https://github.com/spyder-ide/spyder/pull/3660) - IPython Console: Simple fix after PR #3641
+* [PR 3642](https://github.com/spyder-ide/spyder/pull/3642) - PR: Fix unclickable update message box
+* [PR 3641](https://github.com/spyder-ide/spyder/pull/3641) - PR: Fix error when trying to add a non-ascii module in Python 2 to the UMR blacklist
+* [PR 3629](https://github.com/spyder-ide/spyder/pull/3629) - PR: Add shortcut for Upper/Lower functionality
+* [PR 3626](https://github.com/spyder-ide/spyder/pull/3626) - PR: Added management for delete operation of a project
+* [PR 3622](https://github.com/spyder-ide/spyder/pull/3622) - Fix connection between the IPython Console and the Working Directory toolbar
+* [PR 3621](https://github.com/spyder-ide/spyder/pull/3621) - Some corrections after pull request #3580
+* [PR 3619](https://github.com/spyder-ide/spyder/pull/3619) - Fix another error when connecting to external kernels
+* [PR 3615](https://github.com/spyder-ide/spyder/pull/3615) - PR: Allow underscore to be valid for Enter in File Switcher
+* [PR 3599](https://github.com/spyder-ide/spyder/pull/3599) - Load default settings if there is any error in spyder.ini
+* [PR 3596](https://github.com/spyder-ide/spyder/pull/3596) - PR: New warning message in IPython console when both pylab and sympy are enabled
+* [PR 3590](https://github.com/spyder-ide/spyder/pull/3590) - Fix builtin and keywords highlighting depending on indentation
+* [PR 3589](https://github.com/spyder-ide/spyder/pull/3589) - Don't open files saved as part of a project twice at startup
+* [PR 3582](https://github.com/spyder-ide/spyder/pull/3582) - PR: Added a verification for the existence of the 'text/plain' key
+* [PR 3581](https://github.com/spyder-ide/spyder/pull/3581) - PR: remove spyder/widgets/tests/__init__.py because of error in execution of pytest -rxs
+* [PR 3580](https://github.com/spyder-ide/spyder/pull/3580) - PR: Set default file extension in save dialog
+* [PR 3576](https://github.com/spyder-ide/spyder/pull/3576) - Fix autoindentation after data structures.
+* [PR 3572](https://github.com/spyder-ide/spyder/pull/3572) - PR: Change deprecated funtion QInputDialog.getInteger for QInputDialog.getInt
+* [PR 3551](https://github.com/spyder-ide/spyder/pull/3551) - Add option to set/unset dpi scaling for screens that are not high resolution
+* [PR 3543](https://github.com/spyder-ide/spyder/pull/3543) - PR: Change of the label in the dependencies dialog
+
+In this release 27 pull requests were merged
+
+
+----
+
+
 ## Version 3.0.1 (2016-10-19)
 
 ### Bugfixes
@@ -30,6 +103,8 @@ In this release 10 issues were closed
 * [PR 3540](https://github.com/spyder-ide/spyder/pull/3540) - Fix problems when connecting to external kernels
 * [PR 3501](https://github.com/spyder-ide/spyder/pull/3501) - PR: Handle Mac menubar icon bug
 * [PR 3499](https://github.com/spyder-ide/spyder/pull/3499) - Testing: Pin conda-build to 2.0.0
+
+In this release 9 pull requests were merged
 
 
 ----

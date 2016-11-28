@@ -1,21 +1,27 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 3.0.1 is released!
+Subject: [ANN] Spyder 3.0.2 is released!
 
 
 Hi all,
 
 On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder 3.0.1 has been released and is available for
+I'm pleased to announce that Spyder 3.0.2 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 3 weeks after version 3.0.0 and fixes important errors when
-connecting to external IPython kernels, and other minor issues related to
-the IPython Console.
+This release comes one month after version 3.0.1 and introduces several new features:
 
-We also fixed 10 bugs and merged 9 pull requests. For a full list of fixes, please
-see our changelog: https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md
+* An option under *Preferences > General* to enable/disable high DPI scaling
+  (disabled by default).
+* A menu entry in the Projects menu to cleanly delete projects.
+* Shortcuts Ctrl+U and Ctrl+Shift+U to turn text into lower/uppercase respectively.
+
+It also fixes several errors when running code in our IPython consoles and frees
+memory of variables loaded in the Variable Explorer.
+
+In this release we fixed 22 bugs and merged 27 pull requests. For a full list of fixes,
+please see our changelog: https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md
 
 Don't forget to follow Spyder updates/news on the project Github website:
 https://github.com/spyder-ide/spyder
