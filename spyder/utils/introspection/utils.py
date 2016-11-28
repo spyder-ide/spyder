@@ -217,21 +217,12 @@ def get_words_file(file_path=None, content=None, extension=None):
     Extract the list of words that contains the file in the editor,
     to carry out the inline completion similar to VSCode.
     """
-    if file_path == None and content != None and extension != None:
+    if (file_path is None and (content is None or extension is None) or
+                    file_path and content and extension):
+        error_msg = ('Must provide `file_path` or `content` and `extension`')
+        raise Exception(error_msg)
 
-            if extension in ['.css']:
-                regex = re.compile(r'([^a-zA-Z-])')
-            elif extension in ['.R', '.c', 'md', '.cpp, java','.py']:
-                regex = re.compile(r'([^a-zA-Z_])')
-            else:
-                regex = re.compile(r'([^a-zA-Z])')
-
-            #lines = [regex.sub(r' ', content).split()]
-            #words = list(set([x for words in lines for x in words if x != []]))
-            words = sorted(set(regex.sub(r' ', content).split()))
-            return words
-
-    elif file_path != None or content != None or extension != None:
+    if file_path and content is None and extension is None:
 
         ext = os.path.splitext(file_path)[1]
         if ext in ['.css']:
@@ -246,9 +237,18 @@ def get_words_file(file_path=None, content=None, extension=None):
         words = list(set([x for words in lines for x in words if x != []]))
         return words
 
+    if extension in ['.css']:
+        regex = re.compile(r'([^a-zA-Z-])')
+    elif extension in ['.R', '.c', 'md', '.cpp, java', '.py']:
+        regex = re.compile(r'([^a-zA-Z_])')
     else:
-        error_msg = ('Must provide one of `file_path` or `content`')
-        return []
+        regex = re.compile(r'([^a-zA-Z])')
+
+    # lines = [regex.sub(r' ', content).split()]
+    # words = list(set([x for words in lines for x in words if x != []]))
+    words = sorted(set(regex.sub(r' ', content).split()))
+
+    return words
 
 @memoize
 def get_parent_until(path):
