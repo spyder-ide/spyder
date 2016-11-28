@@ -362,8 +362,6 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
-    reopen_last_closed = Signal()
-    refresh_last_closed_files = Signal(list)
     
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:
@@ -1946,11 +1944,12 @@ class Editor(SpyderPluginWidget):
     
     def open_last_closed(self):
         """ Reopens the last closed tab."""
-        last_closed_files = self.reopen_last_closed.emit()
+        editorstack = self.get_current_editorstack()
+        last_closed_files = editorstack.get_last_closed_files()
         if (len(last_closed_files) > 0):
             file_to_open = last_closed_files[0]
             last_closed_files.remove(file_to_open)
-            self.refresh_last_closed_files.emit(last_closed_files)
+            editorstack.set_last_closed_files(last_closed_files)
             self.load(file_to_open)
     
     #------ Explorer widget

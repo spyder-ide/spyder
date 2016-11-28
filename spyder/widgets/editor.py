@@ -425,14 +425,12 @@ class EditorStack(QWidget):
 
         #For opening last closed tabs
         self.last_closed_files = []
-        #self.main.editor.reopen_last_closed.connect(self.get_last_closed_files)
-        #self.main.editor.refresh_last_closed_files.connect(self.set_last_closed_files)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
         # --- Configurable shortcuts
         inspect = config_shortcut(self.inspect_current_object, context='Editor',
-           ed                       name='Inspect current object', parent=self)
+                                  name='Inspect current object', parent=self)
         set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
                                          context='Editor', name='Breakpoint',
                                          parent=self)
@@ -1174,7 +1172,6 @@ class EditorStack(QWidget):
                 self.set_stack_index(new_index)
 
             self.add_last_closed_file(finfo.filename)
-            print("ultimosss:", self.last_closed_files)
 
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
@@ -1207,7 +1204,6 @@ class EditorStack(QWidget):
         self.last_closed_files.insert(0, fname)
         if len(self.last_closed_files) > 10: 
             self.last_closed_files.pop(-1)
-        print("last closed files:", [rf.split("/")[-1] for rf in self.last_closed_files])
 
     @Slot()
     def get_last_closed_files(self):
