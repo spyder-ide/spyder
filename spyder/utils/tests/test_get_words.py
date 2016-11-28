@@ -48,6 +48,7 @@ def test_get_words_css():
     assert sorted(words) == sorted(expected_words)
 
 
+
 def test_get_words_c():
     """Test for get word from C file syntax"""
 
@@ -58,6 +59,7 @@ def test_get_words_c():
     		'include', 'stdio', 'h', 'int', 'f', 'var',
     		'main', 'n', 'i', 'printf', 'y']
     assert sorted(words) == sorted(expected_words)
+
 
 def test_get_words_cplusplus():
     """Test for get word from C++ file syntax"""
@@ -79,7 +81,6 @@ def test_get_words_cplusplus():
     		'Prefix', 'version', 'objc', 'if', 'Zero', 's', 'true']
     assert sorted(words) == sorted(expected_words)
 
-
 def test_get_words_R():
     """Test for get word from R file syntax"""
 
@@ -88,7 +89,6 @@ def test_get_words_R():
     words = get_words_file(f_in)
     expected_words = ['function', 'Hello', 'name', 'hello', 's', 'sprintf']
     assert sorted(words) == sorted(expected_words)
-
 
 def test_get_words_java():
     """Test for get word from java file syntax"""
