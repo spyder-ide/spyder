@@ -19,7 +19,6 @@ import re
 import os.path as osp
 import shutil
 import time
-import sys
 
 # Local imports
 from spyder.config.base import (get_conf_path, get_home_dir,
