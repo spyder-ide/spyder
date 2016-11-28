@@ -10,6 +10,8 @@
 
 import numpy as np
 
+print (__file__)
+
 def iterate_1(Z):
     # Count neighbours
     N = np.zeros(Z.shape, int)

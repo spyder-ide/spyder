@@ -210,39 +210,40 @@ def get_keywords(lexer):
                 continue
     return keywords
 
-def get_words_file(source_file=None, content=None, extension=None):
+def get_words_file(file_path=None, content=None, extension=None):
     """
     Extract all words from a source code file to be used in code completion.
 
     Extract the list of words that contains the file in the editor,
     to carry out the inline completion similar to VSCode.
     """
-    if source_file == None and content != None and extension != None:
+    if file_path == None and content != None and extension != None:
 
-            if extension in ['.py', '.css', 'md']:
-                regex = re.compile(r'([^a-zA-Z-_])')
-            elif extension in ['.R', '.c', '.cpp, java']:
+            if extension in ['.css']:
+                regex = re.compile(r'([^a-zA-Z-])')
+            elif extension in ['.R', '.c', 'md', '.cpp, java','.py']:
                 regex = re.compile(r'([^a-zA-Z_])')
             else:
                 regex = re.compile(r'([^a-zA-Z])')
 
-            lines = [regex.sub(r' ', content).split()]
-            words = list(set([x for words in lines for x in words if x != []]))
+            #lines = [regex.sub(r' ', content).split()]
+            #words = list(set([x for words in lines for x in words if x != []]))
+            words = sorted(set(regex.sub(r' ', content).split()))
             return words
 
-    elif source_file != None or content != None or extension != None:
+    elif file_path != None or content != None or extension != None:
 
-        ext = os.path.splitext(source_file)[1]
-        if ext in ['.py', '.css', 'md']:
-            regex = re.compile(r'([^a-zA-Z-_])')
-        elif ext in ['.R', '.c', '.cpp, java']:
+        ext = os.path.splitext(file_path)[1]
+        if ext in ['.css']:
+            regex = re.compile(r'([^a-zA-Z-])')
+        elif ext in ['.R', '.c', 'md', '.cpp, java','.py']:
             regex = re.compile(r'([^a-zA-Z_])')
         else:
             regex = re.compile(r'([^a-zA-Z])')
 
-        with open(source_file, 'r') as infile:
+        with open(file_path, 'r') as infile:
             lines = [regex.sub(r' ', line).split() for line in infile]
-            words = list(set([x for words in lines for x in words if x != []]))
+        words = list(set([x for words in lines for x in words if x != []]))
         return words
 
     else:

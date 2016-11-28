@@ -14,71 +14,8 @@ def test_get_words_html():
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.html"
     words = get_words_file(f_in)
-    expected_words = ['meta', 'p', 'body', 'en', 'was', 'h', 'Hello',
-            'here', 'title', 'head', 'charset', 'Jamie',
-            'World', 'lang', 'html', 'DOCTYPE', 'utf']
-    assert sorted(words) == sorted(expected_words)
-
-def test_get_words_python():
-    """Test for get word from html file syntax"""
-
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.py"
-    words = get_words_file(f_in)
-    expected_words = ['a', 'sure', 'np', 'Z_', 'Simple', 'R', 'utn', 'values',
-            'is', 'N_', 'zeros', 'i', 'rules', 'jmg', 'Manuel', 'new',
-            'numpy', 'neighbours', 'shape', 'survive', 'int', 'gmail',
-            'home', 'birth', 'range', 'Z', '-', 'author', 'implemented',
-            'array', 'null', 'return', 'Qt', 'import', 'and', 'stay',
-            'VerySimpleWebBrowser', 'N', 'com', 'Juan', 'borders', 'Make',
-            'iterate_', 'as', 'ravel', 'in', 'Browser', 'def', 'over', 'Set',
-            'print', 'This', 'argwhere', 'for', 'Very', 'Web', 'Garcia',
-            'Apply', 'QtWebKit', 'Count']
-    assert sorted(words) == sorted(expected_words)
-
-
-def test_get_words_css():
-    """Test for get word from css file syntax"""
-
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.css"
-    words = get_words_file(f_in)
-    expected_words = ['DeepSkyBlue', 'nombre-valido', 'text', 'css',
-    		'h', 'color', 'Hello', 'world', 'type', 'style']
-    assert sorted(words) == sorted(expected_words)
-
-
-
-def test_get_words_c():
-    """Test for get word from C file syntax"""
-
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.c"
-    words = get_words_file(f_in)
-    expected_words = ['struct', 'float', 'return', 'foo', 'x', 'pvar',
-    		'include', 'stdio', 'h', 'int', 'f', 'var',
-    		'main', 'n', 'i', 'printf', 'y']
-    assert sorted(words) == sorted(expected_words)
-
-
-def test_get_words_cplusplus():
-    """Test for get word from C++ file syntax"""
-
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.cpp"
-    words = get_words_file(f_in)
-    expected_words = ['class', 'a', 'friend', 'public', 'include', 'end',
-    		'implement', 'while', 'Obj', 'pointer', 'endl',
-    		'Implement', 'oc', 'main', 'i', 'of', 'indicates',
-    		'overload', 'std', 'do', 'container', 'cout', 'Return',
-    		'int', 'value', 'push', 'above', 'g', 'bool', 'iterator',
-    		'obj', 'operator', 'SmartPointer', 'false', 'iostream',
-    		'Consider', 'vector', 'an', 'the', 'back', 'access', 'return',
-    		'Postfix', 'sp', 'add', 'Create', 'sz', 'static', 'to', 'f',
-    		'namespace', 'method', 'size', 'j', 'o', 'Static', 'const',
-    		'call', 'void', 'ObjContainer', 'definitions', 'using', 'for',
-    		'standard', 'actual', 'smart', 'index', 'list', 'member',
-    		'Prefix', 'version', 'objc', 'if', 'Zero', 's', 'true']
+    expected_words = ['DOCTYPE', 'Hello', 'Jamie', 'World', 'body', 'charset', 'en', 'h',
+                      'head', 'here', 'html', 'lang', 'meta', 'p', 'title', 'utf', 'was']
     assert sorted(words) == sorted(expected_words)
 
 def test_get_words_R():
@@ -87,63 +24,7 @@ def test_get_words_R():
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.R"
     words = get_words_file(f_in)
-    expected_words = ['function', 'Hello', 'name', 'hello', 's', 'sprintf']
-    assert sorted(words) == sorted(expected_words)
-
-def test_get_words_java():
-    """Test for get word from java file syntax"""
-
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.java"
-    words = get_words_file(f_in)
-    expected_words = ['the', 'static', 'to', 'println', 'String',
-            'terminal', 'Hello', 'args', 'World', 'class',
-            'HelloWorld', 'void', 'main', 'Prints', 'Execution',
-            'window', 'javac', 'java', 'System', 'Compilation',
-            'out', 'public']
-    assert sorted(words) == sorted(expected_words)
-
-def test_get_words_markdown():
-    """Test for get word from markdown file syntax """
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.md"
-    words = get_words_file(f_in)
-    expected_words = ['a', 'b', 'Italic', 'blank', 'Rule', 'Image',
-    		'Blockquote', 'or', 'Horizontal', 'List', 'after',
-    		'Bold', 'Inline', 'Heading', 'http', 'with', 'org',
-    		'png', 'Link', 'A', 'url', 'block', 'com', 'backticks',
-    		'code', 'paragraph', 'print', 'jpg', 'indent', 'One',
-    		'Two', 'line', 'spaces', 'Three']
-    assert sorted(words) == sorted(expected_words)
-
-def test_get_words_cplusplus():
-    """Test for get word from C++ file syntax"""
-
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.cpp"
-    words = get_words_file(f_in)
-    expected_words = ['class', 'a', 'friend', 'public', 'include', 'end',
-    		'implement', 'while', 'Obj', 'pointer', 'endl',
-    		'Implement', 'oc', 'main', 'i', 'of', 'indicates',
-    		'overload', 'std', 'do', 'container', 'cout', 'Return',
-    		'int', 'value', 'push', 'above', 'g', 'bool', 'iterator',
-    		'obj', 'operator', 'SmartPointer', 'false', 'iostream',
-    		'Consider', 'vector', 'an', 'the', 'back', 'access', 'return',
-    		'Postfix', 'sp', 'add', 'Create', 'sz', 'static', 'to', 'f',
-    		'namespace', 'method', 'size', 'j', 'o', 'Static', 'const',
-    		'call', 'void', 'ObjContainer', 'definitions', 'using', 'for',
-    		'standard', 'actual', 'smart', 'index', 'list', 'member',
-    		'Prefix', 'version', 'objc', 'if', 'Zero', 's', 'true']
-    assert sorted(words) == sorted(expected_words)
-
-
-def test_get_words_R():
-    """Test for get word from R file syntax"""
-
-    path = dirname(dirname(abspath(__file__)))
-    f_in = path+"/tests/data/example.R"
-    words = get_words_file(f_in)
-    expected_words = ['function', 'Hello', 'name', 'hello', 's', 'sprintf']
+    expected_words = ['Hello', 'function', 'hello', 'name', 's', 'sprintf']
     assert sorted(words) == sorted(expected_words)
 
 def test_get_words_content_R():
@@ -161,30 +42,86 @@ def test_get_words_content_R():
     expected_words = ['function', 'Hello', 'name', 'hello', 's', 'sprintf']
     assert sorted(words) == sorted(expected_words)
 
+
+def test_get_words_css():
+    """Test for get word from css file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.css"
+    words = get_words_file(f_in)
+    expected_words = ['DeepSkyBlue', 'nombre-valido', 'text', 'css',
+    		'h', 'color', 'Hello', 'world', 'type', 'style']
+    assert sorted(words) == sorted(expected_words)
+
+
+def test_get_words_python():
+    """Test for get word from html file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path + "/tests/data/example.py"
+    words = get_words_file(f_in)
+    expected_words = ['Apply', 'Browser', 'Count', 'Garcia', 'Juan', 'Make',
+                      'Manuel', 'N', 'N_', 'Qt', 'QtWebKit', 'R', 'Set', 'Simple',
+                      'This', 'Very', 'VerySimpleWebBrowser', 'Web', 'Z', 'Z_', '__file__',
+                      'a', 'and', 'argwhere', 'array', 'as', 'author', 'birth', 'borders',
+                      'com', 'def', 'for', 'gmail', 'home', 'i', 'implemented', 'import',
+                      'in', 'int', 'is', 'iterate_', 'jmg', 'neighbours', 'new', 'np', 'null',
+                      'numpy', 'over', 'print', 'range', 'ravel', 'return', 'rules', 'shape',
+                      'stay', 'sure', 'survive', 'utn', 'values', 'zeros']
+    assert sorted(words) == sorted(expected_words)
+
+
 def test_get_words_java():
     """Test for get word from java file syntax"""
 
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.java"
     words = get_words_file(f_in)
-    expected_words = ['class', 'public', 'String', 'println', 'window',
-    		'main', 'Execution', 'HelloWorld', 'terminal',
-    		'System', 'out', 'java', 'World', 'Prints', 'the',
-    		'static', 'to', 'Compilation', 'javac', 'void',
-    		'Hello', 'args']
+    expected_words = ['Compilation', 'Execution', 'Hello', 'HelloWorld', 'Prints', 'String',
+                      'System', 'World', 'args', 'class', 'java', 'javac', 'main', 'out',
+                      'println', 'public', 'static', 'terminal', 'the', 'to', 'void', 'window']
     assert sorted(words) == sorted(expected_words)
 
-def test_get_words_markdown():
-    """Test for get word from markdown file syntax"""
 
+def test_get_words_cplusplus():
+    """Test for get word from C++ file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.cpp"
+    words = get_words_file(f_in)
+    expected_words = ['Consider', 'Create', 'Implement', 'Obj', 'ObjContainer',
+                      'Postfix', 'Prefix', 'Return', 'SmartPointer', 'Static',
+                      'Zero', 'a', 'above', 'access', 'actual', 'add', 'an', 'back',
+                      'bool', 'call', 'class', 'const', 'container', 'cout', 'definitions',
+                      'do', 'end', 'endl', 'f', 'false', 'for', 'friend', 'g', 'i', 'if',
+                      'implement', 'include', 'index', 'indicates', 'int', 'iostream', 'iterator',
+                      'j', 'list', 'main', 'member', 'method', 'namespace', 'o', 'obj', 'objc',
+                      'oc', 'of', 'operator', 'overload', 'pointer', 'public', 'push', 'return',
+                      's', 'size', 'smart', 'sp', 'standard', 'static', 'std', 'sz', 'the',
+                      'to', 'true', 'using', 'value', 'vector', 'version', 'void', 'while']
+    assert sorted(words) == sorted(expected_words)
+
+
+def test_get_words_markdown():
+    """Test for get word from markdown file syntax """
     path = dirname(dirname(abspath(__file__)))
     f_in = path+"/tests/data/example.md"
     words = get_words_file(f_in)
-    expected_words = ['a', 'b', 'Italic', 'blank', 'Rule', 'Image',
-    		'Blockquote', 'or', 'Horizontal', 'List', 'after',
-    		'Bold', 'Inline', 'Heading', 'http', 'with', 'org',
-    		'png', 'Link', 'A', 'url', 'block', 'com', 'backticks',
-    		'code', 'paragraph', 'print', 'jpg', 'indent', 'One',
-    		'Two', 'line', 'spaces', 'Three']
+    expected_words = ['A', 'Blockquote', 'Bold', 'Heading', 'Horizontal', 'Image', 'Inline',
+                      'Italic', 'Link', 'List', 'One', 'Rule', 'Three', 'Two', 'a', 'after',
+                      'b', 'backticks', 'blank', 'block', 'code', 'com', 'http', 'indent',
+                      'jpg', 'line', 'or', 'org', 'paragraph', 'png', 'print', 'spaces',
+                      'url', 'with']
     assert sorted(words) == sorted(expected_words)
 
+
+def test_get_words_c():
+    """Test for get word from C file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.c"
+    words = get_words_file(f_in)
+    expected_words = ['f', 'float', 'foo', 'h', 'i', 'include', 'int', 'main',
+                      'n', 'printf', 'pvar', 'return', 'stdio', 'struct',
+                      'var', 'x', 'y']
+    assert sorted(words) == sorted(expected_words)
