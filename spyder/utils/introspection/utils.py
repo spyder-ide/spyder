@@ -210,28 +210,44 @@ def get_keywords(lexer):
                 continue
     return keywords
 
-def get_words_file(file_path=None, content=None):
+def get_words_file(source_file=None, content=None, extension=None):
     """
     Extract all words from a source code file to be used in code completion.
 
     Extract the list of words that contains the file in the editor,
     to carry out the inline completion similar to VSCode.
     """
-    if file_path is None and content is None or file_path and content:
-        error_msg = ('Must provide one of `file_path` or `content`')
+    if source_file == None and content != None and extension != None:
 
-    ext = os.path.splitext(file_path)[1]
-    if ext in ['.py', '.css', 'md']:
-        regex = re.compile(r'([^a-zA-Z-_])')
-    elif ext in ['.R', '.c', '.cpp, java']:
-        regex = re.compile(r'([^a-zA-Z_])')
+            if extension in ['.py', '.css', 'md']:
+                regex = re.compile(r'([^a-zA-Z-_])')
+            elif extension in ['.R', '.c', '.cpp, java']:
+                regex = re.compile(r'([^a-zA-Z_])')
+            else:
+                regex = re.compile(r'([^a-zA-Z])')
+
+            lines = [regex.sub(r' ', content).split()]
+            words = list(set([x for words in lines for x in words if x != []]))
+            return words
+
+    elif source_file != None or content != None or extension != None:
+
+        ext = os.path.splitext(source_file)[1]
+        if ext in ['.py', '.css', 'md']:
+            regex = re.compile(r'([^a-zA-Z-_])')
+        elif ext in ['.R', '.c', '.cpp, java']:
+            regex = re.compile(r'([^a-zA-Z_])')
+        else:
+            regex = re.compile(r'([^a-zA-Z])')
+
+        with open(source_file, 'r') as infile:
+            lines = [regex.sub(r' ', line).split() for line in infile]
+            words = list(set([x for words in lines for x in words if x != []]))
+        return words
+
     else:
-        regex = re.compile(r'([^a-zA-Z])')
-
-    with open(file_path, 'r') as infile:
-        lines = [regex.sub(r' ', line).split() for line in infile]
-        words = list(set([x for words in lines for x in words if x != []]))
-    return words
+        error_msg = ('Must provide one of `file_path` or `content`')
+        return []
 
 @memoize
 def get_parent_until(path):

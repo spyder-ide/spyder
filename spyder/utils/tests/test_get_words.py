@@ -5,7 +5,7 @@
 
 """Tests for programs.py"""
 
-from os.path import dirname, abspath, basename
+from os.path import dirname, abspath, splitext
 from spyder.utils.introspection.utils import get_words_file
 
 def test_get_words_html():
@@ -146,6 +146,20 @@ def test_get_words_R():
     expected_words = ['function', 'Hello', 'name', 'hello', 's', 'sprintf']
     assert sorted(words) == sorted(expected_words)
 
+def test_get_words_content_R():
+    """Test for get word from R file syntax"""
+
+    path = dirname(dirname(abspath(__file__)))
+    f_in = path+"/tests/data/example.R"
+
+    print(f_in)
+    ext = splitext(f_in)[1]
+    with open(f_in, 'r') as infile:
+        content = infile.read()
+    print(content)
+    words = get_words_file(content=content, extension=ext)
+    expected_words = ['function', 'Hello', 'name', 'hello', 's', 'sprintf']
+    assert sorted(words) == sorted(expected_words)
 
 def test_get_words_java():
     """Test for get word from java file syntax"""
