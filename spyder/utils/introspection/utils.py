@@ -210,7 +210,7 @@ def get_keywords(lexer):
                 continue
     return keywords
 
-def get_words_file(file_path=None, content=None, extension=None):
+def get_words(file_path=None, content=None, extension=None):
     """
     Extract all words from a source code file to be used in code completion.
 
