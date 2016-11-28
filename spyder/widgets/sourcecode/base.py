@@ -174,12 +174,14 @@ class CompletionWidget(QListWidget):
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
-            
+
     def update_current(self):
         completion_text = to_text_string(self.textedit.completion_text)
+
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.case_sensitive:
+                    print(completion_text)
                     completion = completion.lower()
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
@@ -191,7 +193,8 @@ class CompletionWidget(QListWidget):
                 self.hide()
         else:
             self.hide()
-    
+
+
     def focusOutEvent(self, event):
         event.ignore()
         # Don't hide it on Mac when main window loses focus because

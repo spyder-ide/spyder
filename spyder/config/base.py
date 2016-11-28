@@ -228,6 +228,8 @@ LANGUAGE_CODES = {'en': u'English',
                   'ja': u'日本語'
                   }
 
+# Disabled languages (because their translations are outdated)
+DISABLED_LANGUAGES = []
 
 def get_available_translations():
     """
@@ -241,6 +243,9 @@ def get_available_translations():
     listdir = os.listdir(locale_path)
     langs = [d for d in listdir if osp.isdir(osp.join(locale_path, d))]
     langs = [DEFAULT_LANGUAGE] + langs
+
+    # Remove disabled languages
+    langs = list( set(langs) - set(DISABLED_LANGUAGES) )
 
     # Check that there is a language code available in case a new translation
     # is added, to ensure LANGUAGE_CODES is updated.
@@ -265,7 +270,12 @@ def get_interface_language():
     2.) Spyder provides ('en',  'fr', 'es' and 'pt_BR'), if the locale is
     either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
-    locale_language = locale.getdefaultlocale()[0]
+
+    # Solves issue #3627
+    try:
+        locale_language = locale.getdefaultlocale()[0]
+    except ValueError:
+        locale_language = DEFAULT_LANGUAGE
 
     language = DEFAULT_LANGUAGE
 
@@ -301,6 +311,12 @@ def load_lang_conf():
     else:
         lang = get_interface_language()
         save_lang_conf(lang)
+
+    # Save language again if it's been disabled
+    if lang.strip('\n') in DISABLED_LANGUAGES:
+        lang = DEFAULT_LANGUAGE
+        save_lang_conf(lang)
+
     return lang
 
 
