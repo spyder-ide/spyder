@@ -8,10 +8,11 @@
 from os.path import dirname, abspath, splitext, join
 from spyder.utils.introspection.utils import get_words_file
 
+HERE = dirname(abspath(__file__))
+TEST_DATA_PATH = join(HERE, 'data')
+
 def test_get_words_html():
     """Test for get word from html file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.html")
     words = get_words_file(f_in)
     expected_words = ['DOCTYPE', 'Hello', 'Jamie', 'World', 'body', 'charset', 'en', 'h',
@@ -20,8 +21,6 @@ def test_get_words_html():
 
 def test_get_words_R():
     """Test for get word from R file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.R")
     words = get_words_file(f_in)
     expected_words = ['Hello', 'function', 'hello', 'name', 's', 'sprintf']
@@ -29,8 +28,6 @@ def test_get_words_R():
 
 def test_get_words_content_R():
     """Test for get word from R file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.R")
     ext = splitext(f_in)[1]
     with open(f_in, 'r') as infile:
@@ -42,8 +39,6 @@ def test_get_words_content_R():
 
 def test_get_words_css():
     """Test for get word from css file syntax"""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.css")
     words = get_words_file(f_in)
     expected_words = ['DeepSkyBlue', 'nombre-valido', 'text', 'css',
@@ -53,8 +48,6 @@ def test_get_words_css():
 
 def test_get_words_python():
     """Test for get word from html file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.py")
     words = get_words_file(f_in)
     expected_words = ['Apply', 'Browser', 'Count', 'Garcia', 'Juan', 'Make',
@@ -70,8 +63,6 @@ def test_get_words_python():
 
 def test_get_words_java():
     """Test for get word from java file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.java")
     words = get_words_file(f_in)
     expected_words = ['Compilation', 'Execution', 'Hello', 'HelloWorld', 'Prints', 'String',
@@ -82,8 +73,6 @@ def test_get_words_java():
 
 def test_get_words_cplusplus():
     """Test for get word from C++ file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.cpp")
     words = get_words_file(f_in)
     expected_words = ['Consider', 'Create', 'Implement', 'Obj', 'ObjContainer',
@@ -101,8 +90,6 @@ def test_get_words_cplusplus():
 
 def test_get_words_markdown():
     """Test for get word from markdown file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.md")
     words = get_words_file(f_in)
     expected_words = ['A', 'Blockquote', 'Bold', 'Heading', 'Horizontal', 'Image', 'Inline',
@@ -115,8 +102,6 @@ def test_get_words_markdown():
 
 def test_get_words_c():
     """Test for get word from C file syntax."""
-    HERE = dirname(abspath(__file__))
-    TEST_DATA_PATH = join(HERE, 'data')
     f_in = join(TEST_DATA_PATH, "example.c")
     words = get_words_file(f_in)
     expected_words = ['f', 'float', 'foo', 'h', 'i', 'include', 'int', 'main',
