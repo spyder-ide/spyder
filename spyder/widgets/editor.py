@@ -280,7 +280,7 @@ class EditorStack(QWidget):
     readonly_changed = Signal(bool)
     encoding_changed = Signal(str)
     sig_editor_cursor_position_changed = Signal(int, int)
-    refresh_eol_chars = Signal(str)
+    signal_refresh_eol_chars = Signal(str)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -1608,11 +1608,11 @@ class EditorStack(QWidget):
         self.refresh_save_all_action.emit()
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
-        self.refresh_eol(eol_chars)
+        self.refresh_eol_chars(eol_chars)
 
-    def refresh_eol(self, eol_chars):
+    def refresh_eol_chars(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
-        self.refresh_eol_chars.emit(os_name)
+        self.signal_refresh_eol_chars.emit(os_name)
 
 
     #------ Load, reload
