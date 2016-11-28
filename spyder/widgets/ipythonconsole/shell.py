@@ -81,6 +81,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         else:
             return False
 
+    def set_cwd(self, dirname):
+        """Set shell current working directory."""
+        return self.silent_execute(
+                         "get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+
     # --- To handle the banner
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
@@ -228,7 +233,7 @@ the sympy module (e.g. plot)
                 reply = user_exp[expression]
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
-                    if 'text/plain' in data:
+                    if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
                         self.sig_namespace_view.emit(view)
                     else:
