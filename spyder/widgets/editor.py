@@ -16,12 +16,6 @@ from __future__ import print_function
 import os
 import os.path as osp
 import sys
-try:
-   # Python 2
-   from itertools import izip
-except ImportError:
-    # Python 3
-    izip = zip
 
 # Third party imports
 from qtpy import is_pyqt46
@@ -957,63 +951,23 @@ class EditorStack(QWidget):
         """Get tab title without ambiguation."""
         finfo = self.data[index]
         fname = osp.basename(finfo.filename)
-        for findex, file in enumerate(self.data):
-            fname_to_compare = osp.basename(file.filename)
+        for findex, source in enumerate(self.data):
+            fname_to_compare = osp.basename(source.filename)
             if findex is not index and fname == fname_to_compare:
-                differ_path = self.differ_prefix(
-                                   self.path_components(finfo.filename), 
-                                   self.path_components(file.filename))
+                differ_path = sourcecode.differentiate_prefix(
+                                   sourcecode.path_components(finfo.filename), 
+                                   sourcecode.path_components(source.filename))
                 differ_path_length = len(differ_path)
                 if (differ_path_length > 20):
-                    path_components = self.path_components(differ_path)
-                    last_component_index = len(path_components) -1
-                    path_components = [path_components[0], '...', 
-                                       path_components[last_component_index]]
-                    differ_path = os.path.join(*path_components)
+                    path_component = sourcecode.path_components(differ_path)
+                    last_component_index = len(path_component) - 1
+                    path_component = [path_component[0], '...', 
+                                       path_component[last_component_index]]
+                    differ_path = os.path.join(*path_component)
                 fname = fname + " - " + differ_path
                 break
         return fname
-
-    def path_components(self, path):
-        """Return the individual components of the given file path
-        string (for the local operating system). Taked from 
-        http://stackoverflow.com/questions/21498939/how-to-circumvent
-        -the-fallacy-of-pythons-os-path-commonprefix."""
-        components = []
-        # The loop guarantees that the returned components can be
-        # os.path.joined with the path separator and point to the same
-        # location:    
-        while True:
-            (new_path, tail) = os.path.split(path)  # Works on any platform
-            components.append(tail)        
-            if new_path == path:  # Root (including drive, on Windows) reached
-                break
-            path = new_path
-        components.append(new_path)    
-        components.reverse()  # First component first 
-        return components
-
-    def differ_prefix(self, path_components0, path_components1):
-        """Return the differ prefix of the given two iterables. Based
-        on longest_prefix in http://stackoverflow.com/questions/21498939/how-to-
-        circumvent-the-fallacy-of-pythons-os-path-commonprefix."""
-        longest_prefix = []
-        common_elmt = None
-        for (elmt0, elmt1) in izip(path_components0, path_components1):
-            if elmt0 != elmt1:
-                break
-            else:
-                common_elmt = elmt0
-            longest_prefix.append(elmt0)
-        file_name_length = len(path_components0[len(path_components0)-1])
-        path_0 = os.path.join(*path_components0)[:-file_name_length-1]
-        if(len(longest_prefix)>3):
-            longest_path_prefix = os.path.join(*longest_prefix)
-            length_to_delete = len(longest_path_prefix)-len(common_elmt) 
-            return path_0[length_to_delete:]
-        else:
-            return path_0
-
+    
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
         """Return tab menu title"""
         if self.fullpath_sorting_enabled:

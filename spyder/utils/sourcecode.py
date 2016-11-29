@@ -9,7 +9,8 @@ Source code text utilities
 """
 
 import re
-
+import os
+from spyder.py3compat import izip
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
@@ -120,12 +121,46 @@ def get_identifiers(source_code):
     valid = re.compile(r'[a-zA-Z_]')
     return [token for token in tokens if re.match(valid, token)]
 
+def path_components(path):
+    """
+    Return the individual components of a given file path
+    string (for the local operating system).
+        
+    Taken from http://stackoverflow.com/q/21498939/438386
+    """
+    components = []
+    # The loop guarantees that the returned components can be
+    # os.path.joined with the path separator and point to the same
+    # location:    
+    while True:
+        (new_path, tail) = os.path.split(path)  # Works on any platform
+        components.append(tail)        
+        if new_path == path:  # Root (including drive, on Windows) reached
+            break
+        path = new_path
+    components.append(new_path)    
+    components.reverse()  # First component first 
+    return components
 
-if __name__ == '__main__':
-    code = 'import functools\nfunctools.partial'
-    assert get_primary_at(code, len(code)) == 'functools.partial'
-    assert set(get_identifiers(code)) == set(['import', 'functools',
-                                              'functools.partial'])
-    assert split_source(code) == ['import functools', 'functools.partial']
-    code = code.replace('\n', '\r\n')
-    assert split_source(code) == ['import functools', 'functools.partial']
+def differentiate_prefix(path_components0, path_components1):
+    """
+    Return the differ prefix of the given two iterables. 
+     
+    Taken from http://stackoverflow.com/q/21498939/438386
+    """
+    longest_prefix = []
+    common_elmt = None
+    for (elmt0, elmt1) in izip(path_components0, path_components1):
+        if elmt0 != elmt1:
+            break
+        else:
+            common_elmt = elmt0
+        longest_prefix.append(elmt0)
+    file_name_length = len(path_components0[len(path_components0)-1])
+    path_0 = os.path.join(*path_components0)[:-file_name_length-1]
+    if(len(longest_prefix)>3):
+        longest_path_prefix = os.path.join(*longest_prefix)
+        length_to_delete = len(longest_path_prefix)-len(common_elmt) 
+        return path_0[length_to_delete:]
+    else:
+        return path_0
