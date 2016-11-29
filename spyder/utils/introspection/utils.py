@@ -223,7 +223,6 @@ def get_words(file_path=None, content=None, extension=None):
         raise Exception(error_msg)
 
     if file_path and content is None and extension is None:
-
         extension = os.path.splitext(file_path)[1]
         with open(file_path) as infile:
             content = infile.read()
@@ -236,7 +235,6 @@ def get_words(file_path=None, content=None, extension=None):
         regex = re.compile(r'([^a-zA-Z])')
 
     words = sorted(set(regex.sub(r' ', content).split()))
-
     return words
 
 @memoize
