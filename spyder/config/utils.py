@@ -116,10 +116,12 @@ def get_filter(filetypes, ext):
 def get_edit_filetypes():
     """Get all file types supported by the Editor"""
     pygments_exts = _get_pygments_extensions()
-    other_exts = ['.ipynb', '.md']
-    all_exts = tuple(pygments_exts + other_exts)
+    favorite_exts = ['.py', '.R', '.jl', '.pyw', '.pyx', '.C', '.CPP']
+    other_exts = ['.ipynb', '.md'] + [ext for ext in pygments_exts if ext not in favorite_exts]
+    all_exts = tuple(favorite_exts + other_exts)
+    print(all_exts)
     text_filetypes = (_("Supported text files"), all_exts)
-    return EDIT_FILETYPES + [text_filetypes]
+    return [text_filetypes] + EDIT_FILETYPES
 
 
 def get_edit_filters():
