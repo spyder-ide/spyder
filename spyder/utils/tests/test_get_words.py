@@ -3,7 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 
-"""Tests for programs.py"""
+"""Tests for programs.py."""
 
 from os.path import dirname, abspath, splitext, join
 from spyder.utils.introspection.utils import get_words
@@ -38,7 +38,7 @@ def test_get_words_content_R():
 
 
 def test_get_words_css():
-    """Test for get word from css file syntax"""
+    """Test for get word from css file syntax."""
     f_in = join(TEST_DATA_PATH, "example.css")
     words = get_words(f_in)
     expected_words = ['DeepSkyBlue', 'nombre-valido', 'text', 'css',

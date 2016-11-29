@@ -126,7 +126,7 @@ class CodeInfo(object):
                 self.position = self.position - len(self.line) + self.column
 
     def _get_docstring(self):
-        """Find the docstring we are currently in"""
+        """Find the docstring we are currently in."""
         left = self.position
         while left:
             if self.source_code[left: left + 3] in ['"""', "'''"]:
@@ -150,7 +150,7 @@ class CodeInfo(object):
             return False
 
     def __getitem__(self, item):
-        """Allow dictionary-like access"""
+        """Allow dictionary-like access."""
         return getattr(self, item)
 
     def serialize(self):
@@ -240,7 +240,7 @@ def get_words(file_path=None, content=None, extension=None):
 @memoize
 def get_parent_until(path):
     """
-    Given a file path, determine the full module path
+    Given a file path, determine the full module path.
 
     e.g. '/usr/lib/python2.7/dist-packages/numpy/core/__init__.pyc' yields
     'numpy.core'
