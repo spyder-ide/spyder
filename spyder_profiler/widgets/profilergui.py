@@ -513,9 +513,7 @@ class ProfilerDataTree(QTreeWidget):
     def format_measure(self, data):
         """getting format and units for data coming from profiler task."""
         formated_data = [0] * len(data)
-
         for (i, measure) in enumerate(data):
-
             if (1.e-9 < float(measure) <= 1.e-6):
                 formated_data[i] = str("{0:.2f} ns".format(measure / 1.e-9))
             elif (1.e-6 < float(measure) <= 1.e-3):
@@ -535,24 +533,18 @@ class ProfilerDataTree(QTreeWidget):
                 if m > 60:
                     m /= 60
                 formated_data[i] = str("{0:.0f}h:{1:.0f}min".format(h, m))
-
         return formated_data
 
     def format_output(self, child_key):
         """ Formats the data"""
-
         if True:
             data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-
             # Trying to unpack crazy info
             for k in data[0][4]:
                 info = k
                 measures = data[0][4][k]
-
             calls = list(measures[:1]) # measures[:2]
-
             result = calls + self.format_measure(measures[2:])
-
             return result
             
     def populate_tree(self, parentItem, children_list):
