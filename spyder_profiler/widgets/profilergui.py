@@ -552,6 +552,8 @@ class ProfilerDataTree(QTreeWidget):
             ((total_calls, total_calls_dif), (loc_time, loc_time_dif), (cum_time,
              cum_time_dif)) = self.format_output(child_key)
 
+            (primcalls, total_calls, loc_time, cum_time, callers) = self.stats[child_key]
+
             child_item = TreeWidgetItem(parentItem)
             self.item_list.append(child_item)
             self.set_item_data(child_item, filename, line_number)
