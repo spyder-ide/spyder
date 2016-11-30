@@ -235,6 +235,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.cursorPositionChanged.connect(self.cursor_position_changed)
         
         self.indent_chars = " "*4
+        self.tab_stop_width_spaces = 4
         
         # Code completion / calltips
         if parent is not None:
@@ -277,6 +278,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def set_indent_chars(self, indent_chars):
         self.indent_chars = indent_chars
+
+    def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
+        self.tab_stop_width_spaces = tab_stop_width_spaces
+        self.setTabStopWidth(tab_stop_width_spaces
+                             * self.fontMetrics().width('9'))
 
     def set_palette(self, background, foreground):
         """
