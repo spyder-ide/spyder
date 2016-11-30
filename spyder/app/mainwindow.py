@@ -2628,8 +2628,8 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def show_shortcuts_dialog(self):
-        from spyder.widgets.shortcutssummary import ShortCutsSummaryDialog
-        dlg = ShortCutsSummaryDialog(None)
+        from spyder.widgets.shortcutssummary import ShortcutsSummaryDialog
+        dlg = ShortcutsSummaryDialog(None)
         dlg.exec_()
 
     # -- Open files server

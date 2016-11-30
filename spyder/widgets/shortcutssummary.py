@@ -25,7 +25,7 @@ from spyder.config.gui import iter_shortcuts
 MAX_FONT_SIZE = 16
 MIN_FONT_SIZE = 8
 
-class ShortCutsSummaryDialog(QDialog):
+class ShortcutsSummaryDialog(QDialog):
     """
     Dialog window listing the spyder and plugins shortcuts.
 
@@ -138,7 +138,7 @@ class ShortCutsSummaryDialog(QDialog):
 def test():  # pragma: no cover
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    dlg_shortcuts = ShortCutsSummaryDialog(None)
+    dlg_shortcuts = ShortcutsSummaryDialog(None)
     dlg_shortcuts.show()
     app.exec_()
 
