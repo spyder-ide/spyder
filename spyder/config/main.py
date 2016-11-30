@@ -54,6 +54,12 @@ WIN = os.name == 'nt'
 MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
+# Run cell shortcuts
+if sys.platform == 'darwin':
+    RUN_CELL_SHORTCUT = 'Meta+Return'
+else:
+    RUN_CELL_SHORTCUT = 'Ctrl+Return'
+RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 
 # =============================================================================
 #  Defaults
@@ -349,6 +355,7 @@ DEFAULTS = [
               '_/find next': "F3",
               '_/find previous': "Shift+F3",
               '_/replace text': "Ctrl+R",
+              '_/hide find and replace': "Escape",
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
@@ -405,6 +412,14 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/zoom in 1': "Ctrl++",
+              'editor/zoom in 2': "Ctrl+=",
+              'editor/zoom out': "Ctrl+-",
+              'editor/zoom reset': "Ctrl+0",
+              'editor/close file 1': "Ctrl+W",
+              'editor/close file 2': "Ctrl+F4",
+              'editor/run cell': RUN_CELL_SHORTCUT,
+              'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
@@ -417,7 +432,15 @@ DEFAULTS = [
               # ---- In Pylint ----
               'pylint/run analysis': "F8",
               # ---- In Profiler ----
-              'profiler/run profiler': "F10"
+              'profiler/run profiler': "F10",
+              # ---- In widgets/ipythonconsole/shell.py ----
+              'ipython_console/new tab': "Ctrl+T",
+              'ipython_console/reset namespace': "Ctrl+Alt+R",
+              # ---- In widgets/arraybuider.py ----
+              'array_builder/enter array inline': "Ctrl+Alt+M",
+              'array_builder/enter array table': "Ctrl+M",
+              # ---- In widgets/variableexplorer/aarayeditor.py ----
+              'variable_explorer/copy': 'Ctrl+C',
               }),
             ('color_schemes',
              {
