@@ -386,7 +386,7 @@ class EditorStack(QWidget):
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
-        self.tab_stop_width = 40
+        self.tab_stop_width_spaces = 4
         self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -831,12 +831,13 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_indent_chars(indent_chars)
 
-    def set_tab_stop_width(self, tab_stop_width):
+    def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
         # CONF.get(self.CONF_SECTION, 'tab_stop_width')
-        self.tab_stop_width = tab_stop_width
+        self.tab_stop_width_spaces = tab_stop_width_spaces
         if self.data:
             for finfo in self.data:
-                finfo.editor.setTabStopWidth(tab_stop_width)
+                finfo.editor.setTabStopWidth(tab_stop_width_spaces
+                                             * self.fontMetrics().width('9'))
 
     def set_help_enabled(self, state):
         self.help_enabled = state
@@ -1724,7 +1725,7 @@ class EditorStack(QWidget):
                 add_colons=self.add_colons_enabled,
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
-                tab_stop_width=self.tab_stop_width,
+                tab_stop_width_spaces=self.tab_stop_width_spaces,
                 cloned_from=cloned_from,
                 filename=fname)
         if cloned_from is None:
