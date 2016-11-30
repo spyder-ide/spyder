@@ -1181,7 +1181,7 @@ class Editor(SpyderPluginWidget):
                                          self.encoding_status.encoding_changed)
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.cursor_position_changed)
-            editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
+            editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
 
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
@@ -1265,7 +1265,7 @@ class Editor(SpyderPluginWidget):
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
-        editorstack.refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.save_breakpoints.connect(self.save_breakpoints)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)

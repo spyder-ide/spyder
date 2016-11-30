@@ -280,7 +280,7 @@ class EditorStack(QWidget):
     readonly_changed = Signal(bool)
     encoding_changed = Signal(str)
     sig_editor_cursor_position_changed = Signal(int, int)
-    signal_refresh_eol_chars = Signal(str)
+    sig_refresh_eol_chars = Signal(str)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -1612,7 +1612,7 @@ class EditorStack(QWidget):
 
     def refresh_eol_chars(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
-        self.signal_refresh_eol_chars.emit(os_name)
+        self.sig_refresh_eol_chars.emit(os_name)
 
 
     #------ Load, reload
@@ -1723,7 +1723,7 @@ class EditorStack(QWidget):
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
-        editor.eol_chars_changed.connect(lambda eol_chars: self.refresh_eol(eol_chars))
+        editor.eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             editor.destroyed.connect(lambda obj=editor:
@@ -2124,7 +2124,7 @@ class EditorWidget(QSplitter):
                                          self.encoding_status.encoding_changed)
         editorstack.sig_editor_cursor_position_changed.connect(
                      self.cursorpos_status.cursor_position_changed)
-        editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
+        editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
         oe_btn = create_toolbutton(self)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
