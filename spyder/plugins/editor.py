@@ -926,13 +926,13 @@ class Editor(SpyderPluginWidget):
         
         self.win_eol_action = create_action(self,
                            _("Carriage return and line feed (Windows)"),
-                           toggled=lambda: self.toggle_eol_chars('nt'))
+                           toggled=lambda checked: self.toggle_eol_chars('nt', checked))
         self.linux_eol_action = create_action(self,
                            _("Line feed (UNIX)"),
-                           toggled=lambda: self.toggle_eol_chars('posix'))
+                           toggled=lambda checked: self.toggle_eol_chars('posix', checked))
         self.mac_eol_action = create_action(self,
                            _("Carriage return (Mac)"),
-                           toggled=lambda: self.toggle_eol_chars('mac'))
+                           toggled=lambda checked: self.toggle_eol_chars('mac', checked))
         eol_action_group = QActionGroup(self)
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
@@ -1180,7 +1180,7 @@ class Editor(SpyderPluginWidget):
                                          self.encoding_status.encoding_changed)
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.cursor_position_changed)
-            editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
+            editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
 
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
@@ -1264,7 +1264,7 @@ class Editor(SpyderPluginWidget):
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
-        editorstack.refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.save_breakpoints.connect(self.save_breakpoints)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
@@ -2059,10 +2059,11 @@ class Editor(SpyderPluginWidget):
             # must be changed to None in this case.)
             programs.run_program(WINPDB_PATH, [fname] + args, cwd=wdir or None)
         
-    def toggle_eol_chars(self, os_name):
-        editor = self.get_current_editor()
-        if self.__set_eol_chars:
-            editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
+    def toggle_eol_chars(self, os_name, checked):
+        if checked:
+            editor = self.get_current_editor()
+            if self.__set_eol_chars:
+                editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
 
     @Slot(bool)
     def toggle_show_blanks(self, checked):
