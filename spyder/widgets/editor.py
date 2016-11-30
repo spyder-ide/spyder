@@ -1723,7 +1723,7 @@ class EditorStack(QWidget):
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
-        editor.eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
+        editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             editor.destroyed.connect(lambda obj=editor:
