@@ -20,6 +20,9 @@ from spyder.utils import sourcecode
 from spyder.utils.introspection.plugin_client import PluginClient
 from spyder.utils.introspection.utils import CodeInfo
 
+from spyder.utils.introspection.module_completion import module_completion, get_submodules
+from spyder.utils.stringmatching import get_search_scores
+from spyder.utils.programs import is_module_installed
 
 PLUGINS = ['rope', 'jedi', 'fallback']
 
@@ -39,6 +42,94 @@ dependencies.add('jedi',
                  required_version=JEDI_REQVER)
 
 
+
+class CompletionPlugin(QObject):
+
+    def __init__(self, executable):
+        super(CompletionPlugin, self).__init__()
+        plugins = OrderedDict()
+        for name in PLUGINS:
+            try:
+                is_module_installed(name)
+            except Exception as e:
+                debug_print('Completion Plugin: %s Failed' % name)
+                debug_print(str(e))
+                continue
+            debug_print('Completion Plugin: %s Loaded' % name)
+            plugins[name] = name
+        self.plugins = plugins
+        self.desired = []
+        self.info = None
+        self.completion_list = []
+
+    def fuzzy_codecompletion_search(self, query_text):
+        """ Search words for codecompletion widget"""
+        results = []
+        # Get all available matches and get the scores for "fuzzy" matching
+        scores = get_search_scores(query_text, self.completion_list,
+                                   template="<b>{0}</b>")
+
+        # Build the text that will appear on the list widget
+        for index, score in enumerate(scores):
+            text, rich_text, score_value = score
+            if score_value != -1:
+                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
+                results.append((score_value, index, text_item, text))  #, icons[index]
+        return results
+
+    def go_to_definition(self, position):
+        """Go to definition"""
+        info = self._get_code_info('definition', position)
+        pass
+
+    def get_completions(self, info):
+        """Handle an incoming request from the user."""
+        debug_print('%s request' % info.name)
+        desired = None
+        self.info = info
+        editor = info.editor
+
+        method = 'get_%s' % info.name
+        query = info.obj
+
+        # user input
+        if not query:
+            return
+
+        if method == 'get_completions':
+            info.serialize()
+            # print("q", query, type(query), [(x, type(x)) for x in self.plugins])
+
+            # For search and completion modules and submodules
+            if info.line.lstrip().startswith(('import ', 'from ')):
+                desired = 'fallback'
+                # print("module",  query, info.line)
+
+                # Get avaliable modules
+                self.completion_list = module_completion(info.line)
+
+                if 'jedi' in self.plugins and self.completion_list == []:
+                    alternative = 'jedi'
+
+                module = self.fuzzy_codecompletion_search(query)
+
+                self.completion_list = module
+
+                # Get submodules for module
+                if info.line.endswith('.'):
+                    submods = get_submodules(module)
+                    self.completion_list = submods
+
+                print(self.completion_list)
+
+            else:
+                print(info.full_obj, info.line)
+                # For search and suggest words in actual file
+
+                # query in language word
+
+        #info.editor.show_completion_list(self.completion_list, query)
+
 class PluginManager(QObject):
 
     introspection_complete = Signal(object)
@@ -48,27 +139,118 @@ class PluginManager(QObject):
         plugins = OrderedDict()
         for name in PLUGINS:
             try:
-                plugin = PluginClient(name, executable)
-                plugin.run()
+                if is_module_installed(name):
+                    debug_print('Completion Plugin: %s Loaded' % name)
+                    plugins[name] = name
             except Exception as e:
-                debug_print('Introspection Plugin Failed: %s' % name)
+                debug_print('Completion Plugin: %s Failed' % name)
                 debug_print(str(e))
                 continue
-            debug_print('Introspection Plugin Loaded: %s' % name)
-            plugins[name] = plugin
-            plugin.received.connect(self.handle_response)
+
         self.plugins = plugins
-        self.timer = QTimer()
         self.desired = []
-        self.ids = dict()
         self.info = None
         self.request = None
         self.pending = None
         self.pending_request = None
         self.waiting = False
+        self.completion_list = []
+
+    def fuzzy_codecompletion_search(self, query_text):
+        """ Search words for codecompletion widget"""
+        results = []
+        # Get all available matches and get the scores for "fuzzy" matching
+        scores = get_search_scores(query_text, self.completion_list,
+                                   template="<b>{0}</b>")
+
+        # Build the text that will appear on the list widget
+        for index, score in enumerate(scores):
+            text, rich_text, score_value = score
+            if score_value != -1:
+                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
+                results.append((score_value, index, text_item, text))  #, icons[index]
+        return results
 
     def send_request(self, info):
         """Handle an incoming request from the user."""
+        if self.waiting:
+            if info.serialize() != self.info.serialize():
+                self.pending_request = info
+            else:
+                debug_print('skipping duplicate request')
+            return
+        debug_print('%s request' % info.name)
+        desired = None
+        self.info = info
+        editor = info.editor
+
+        method = 'get_%s' % info.name
+        query  = info.obj
+
+        # user input
+        if not query:
+            return
+
+        if method == 'get_completions':
+            info.serialize()
+            #print("q", query, type(query), [(x, type(x)) for x in self.plugins])
+
+            # For search and completion modules and submodules
+            if info.line.lstrip().startswith(('import ', 'from ')):
+                desired = 'fallback'
+                #print("module",  query, info.line)
+
+                # Get avaliable modules
+                self.completion_list = module_completion(info.line)
+
+                if 'jedi' in self.plugins and self.completion_list == []:
+                    alternative = 'jedi'
+
+                module = self.fuzzy_codecompletion_search(query)
+
+                self.completion_list = module
+
+                # Get submodules for module
+                if info.line.endswith('.'):
+                    submods = get_submodules(module)
+                    self.completion_list = submods
+
+                print(self.completion_list)
+
+            else:
+                print(info.full_obj, info.line)
+            # For search and suggest words in actual file
+
+                #query in language word
+
+        info.editor.show_completion_list()
+    """
+        if query.startswith('import '):
+            obj_list = self.get_module_completion(text)
+            words = text.split(' ')
+            if ',' in words[-1]:
+                words = words[-1].split(',')
+            self.show_completion_list(obj_list, completion_text=words[-1],
+                                      automatic=automatic)
+            return
+
+        elif text.startswith('from '):
+            obj_list = self.get_module_completion(text)
+            if obj_list is None:
+                return
+            words = text.split(' ')
+            if '(' in words[-1]:
+                words = words[:-2] + words[-1].split('(')
+            if ',' in words[-1]:
+                words = words[:-2] + words[-1].split(',')
+            self.show_completion_list(obj_list, completion_text=words[-1],
+                                      automatic=automatic)
+            return
+    """
+
+    """
+    def send_request(self, info):
+        ""Handle an incoming request from the user.""
         if self.waiting:
             if info.serialize() != self.info.serialize():
                 self.pending_request = info
@@ -110,6 +292,7 @@ class PluginManager(QObject):
             self.ids[request_id] = plugin.name
         self.timer.stop()
         self.timer.singleShot(LEAD_TIME_SEC * 1000, self._handle_timeout)
+    """
 
     def validate(self):
         for plugin in self.plugins.values():
@@ -164,9 +347,9 @@ class IntrospectionManager(QObject):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = None
         self.pending = None
-        self.plugin_manager = PluginManager(executable)
-        self.plugin_manager.introspection_complete.connect(
-            self._introspection_complete)
+        self.plugin_manager = CompletionPlugin(executable) #PluginManager(executable)
+        #self.plugin_manager.introspection_complete.connect(
+        #    self._introspection_complete)
 
     def change_executable(self, executable):
         self.plugin_manager.close()
@@ -197,12 +380,14 @@ class IntrospectionManager(QObject):
     def get_completions(self, automatic):
         """Get code completion"""
         info = self._get_code_info('completions', automatic=automatic)
-        self.plugin_manager.send_request(info)
+        #self.plugin_manager.send_request(info)
+        self.plugin_manager.get_completions(info)
 
     def go_to_definition(self, position):
         """Go to definition"""
         info = self._get_code_info('definition', position)
-        self.plugin_manager.send_request(info)
+        #self.plugin_manager.send_request(info)
+        self.plugin_manager.go_to_definition(info)
 
     def show_object_info(self, position, auto=True):
         """Show signature calltip and/or docstring in the Help plugin"""
@@ -322,7 +507,6 @@ class IntrospectionManager(QObject):
 
 
 class IntrospectionPlugin(object):
-
     def load_plugin(self):
         """Initialize the plugin"""
         pass
