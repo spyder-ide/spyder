@@ -33,8 +33,8 @@ def test_split_source(tmpdir, qtbot):
 
 def test_path_components(tmpdir, qtbot):
     if sys.platform.startswith('linux'):
-        path_components0 = ['documents','test','test.py']
-        path_components1 = ['documents','projects','test','test.py']
+        path_components0 = ['','','documents','test','test.py']
+        path_components1 = ['','','documents','projects','test','test.py']
     else:
         path_components0 = ['c:','','documents','test','test.py']
         path_components1 = ['c:','','documents','projects','test','test.py']
