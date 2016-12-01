@@ -10,6 +10,7 @@ Source code text utilities
 
 import re
 import os
+
 from spyder.py3compat import PY2
 if PY2:
     from itertools import izip as zip
