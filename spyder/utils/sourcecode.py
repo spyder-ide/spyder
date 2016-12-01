@@ -10,7 +10,9 @@ Source code text utilities
 
 import re
 import os
-from spyder.py3compat import izip
+from spyder.py3compat import PY2
+if PY2:
+    from itertools import izip as zip
 
 # Order is important:
 EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
@@ -150,7 +152,7 @@ def differentiate_prefix(path_components0, path_components1):
     """
     longest_prefix = []
     common_elmt = None
-    for (elmt0, elmt1) in izip(path_components0, path_components1):
+    for (elmt0, elmt1) in zip(path_components0, path_components1):
         if elmt0 != elmt1:
             break
         else:

@@ -63,7 +63,6 @@ if PY2:
     import thread as _thread
     import repr as reprlib
     import Queue
-    from itertools import izip
 else:
     # Python 3
     import builtins
@@ -79,7 +78,6 @@ else:
     import _thread
     import reprlib
     import queue as Queue
-    izip = zip
 
 #==============================================================================
 # Strings
