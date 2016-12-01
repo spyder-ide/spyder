@@ -1319,6 +1319,17 @@ class MainWindow(QMainWindow):
         else:
             hexstate = get_func(section, prefix+'state', None)
         pos = get_func(section, prefix+'position')
+        
+        # It's necessary to verify if the window/position value is valid 
+        # with the current screen. See issue 3748
+        width = pos[0]
+        height = pos[1]
+        screenShape = QApplication.desktop().geometry()
+        current_width = screenShape.width()
+        current_height = screenShape.height()
+        if current_width < width or current_height < height:
+            pos = CONF.get_default(section, prefix+'position')
+        
         is_maximized =  get_func(section, prefix+'is_maximized')
         is_fullscreen = get_func(section, prefix+'is_fullscreen')
         return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
