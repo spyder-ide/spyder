@@ -278,7 +278,7 @@ class EditorStack(QWidget):
     readonly_changed = Signal(bool)
     encoding_changed = Signal(str)
     sig_editor_cursor_position_changed = Signal(int, int)
-    refresh_eol_chars = Signal(str)
+    sig_refresh_eol_chars = Signal(str)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -386,7 +386,7 @@ class EditorStack(QWidget):
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
-        self.tab_stop_width = 40
+        self.tab_stop_width_spaces = 4
         self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -831,12 +831,13 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_indent_chars(indent_chars)
 
-    def set_tab_stop_width(self, tab_stop_width):
+    def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
         # CONF.get(self.CONF_SECTION, 'tab_stop_width')
-        self.tab_stop_width = tab_stop_width
+        self.tab_stop_width_spaces = tab_stop_width_spaces
         if self.data:
             for finfo in self.data:
-                finfo.editor.setTabStopWidth(tab_stop_width)
+                finfo.editor.setTabStopWidth(tab_stop_width_spaces
+                                             * self.fontMetrics().width('9'))
 
     def set_help_enabled(self, state):
         self.help_enabled = state
@@ -1628,8 +1629,11 @@ class EditorStack(QWidget):
         self.refresh_save_all_action.emit()
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
+        self.refresh_eol_chars(eol_chars)
+
+    def refresh_eol_chars(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
-        self.refresh_eol_chars.emit(os_name)
+        self.sig_refresh_eol_chars.emit(os_name)
 
 
     #------ Load, reload
@@ -1721,7 +1725,7 @@ class EditorStack(QWidget):
                 add_colons=self.add_colons_enabled,
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
-                tab_stop_width=self.tab_stop_width,
+                tab_stop_width_spaces=self.tab_stop_width_spaces,
                 cloned_from=cloned_from,
                 filename=fname)
         if cloned_from is None:
@@ -1740,6 +1744,7 @@ class EditorStack(QWidget):
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
+        editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             editor.destroyed.connect(lambda obj=editor:
@@ -2140,7 +2145,7 @@ class EditorWidget(QSplitter):
                                          self.encoding_status.encoding_changed)
         editorstack.sig_editor_cursor_position_changed.connect(
                      self.cursorpos_status.cursor_position_changed)
-        editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
+        editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
         oe_btn = create_toolbutton(self)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
