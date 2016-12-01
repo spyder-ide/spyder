@@ -12,7 +12,6 @@ from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.utils import programs
@@ -101,8 +100,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
 
-    @staticmethod
-    def get_settings():
+    def get_settings(self):
         """
         Retrieve all Variable Explorer configuration settings.
         
@@ -115,12 +113,12 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         section = VariableExplorer.CONF_SECTION
         settings = {}
         for name in REMOTE_SETTINGS:
-            settings[name] = CONF.get(section, name)
+            settings[name] = self.get_option(name)
 
         # dataframe_format is stored without percent sign in config
         # to avoid interference with ConfigParser's interpolation
         name = 'dataframe_format'
-        settings[name] = '%{0}'.format(CONF.get(section, name))
+        settings[name] = '%{0}'.format(self.get_option(name))
         return settings
 
     @Slot(str, object)
@@ -172,7 +170,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)
-            nsb.setup(**VariableExplorer.get_settings())
+            nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
@@ -247,7 +245,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):
-            nsb.setup(**VariableExplorer.get_settings())
+            nsb.setup(**self.get_settings())
         ar_timeout = self.get_option('autorefresh/timeout')
         for shellwidget in self.main.extconsole.shellwidgets:
             shellwidget.set_autorefresh_timeout(ar_timeout)

@@ -1508,7 +1508,8 @@ def remote_editor_test():
     from spyder.plugins.variableexplorer import VariableExplorer
     from spyder.widgets.variableexplorer.utils import make_remote_view
 
-    remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
+    remote = make_remote_view(get_test_data(), 
+                              VariableExplorer(None).get_settings())
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
