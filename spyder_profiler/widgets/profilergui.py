@@ -525,7 +525,7 @@ class ProfilerDataTree(QTreeWidget):
         diff_str = ""
         color = "black"
 
-        if len(x) == 2 and "bla" is not None:
+        if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
             print(x, difference)
             if difference < 0:
@@ -540,7 +540,7 @@ class ProfilerDataTree(QTreeWidget):
         """ Formats the data"""
         if True:
             data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-            return (map(self.color_string, zip(list(zip(*data))[1:4], [["%s"] * 2, ["%s", "%s"], ["%s", "%s"]])))
+            return (map(self.color_string, zip(list(zip(*data))[1:4], [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])))
             
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
@@ -551,8 +551,6 @@ class ProfilerDataTree(QTreeWidget):
 
             ((total_calls, total_calls_dif), (loc_time, loc_time_dif), (cum_time,
              cum_time_dif)) = self.format_output(child_key)
-
-            (primcalls, total_calls, loc_time, cum_time, callers) = self.stats[child_key]
 
             child_item = TreeWidgetItem(parentItem)
             self.item_list.append(child_item)
