@@ -6,6 +6,7 @@
 """Tests for sourcecode.py"""
 
 import os
+import sys
 
 import pytest
 
@@ -31,8 +32,12 @@ def test_split_source(tmpdir, qtbot):
 
 
 def test_path_components(tmpdir, qtbot):
-    path_components0 = ['c:','','documents','test','test.py']
-    path_components1 = ['c:','','documents','projects','test','test.py']
+    if sys.platform.startswith('linux'):
+        path_components0 = ['documents','test','test.py']
+        path_components1 = ['documents','projects','test','test.py']
+    else:
+        path_components0 = ['c:','','documents','test','test.py']
+        path_components1 = ['c:','','documents','projects','test','test.py']
     path0 = os.path.join(*path_components0)
     path1 = os.path.join(*path_components1)
     assert sourcecode.path_components(path0) == path_components0
