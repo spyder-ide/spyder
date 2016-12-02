@@ -247,8 +247,6 @@ class MainWindow(QMainWindow):
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
           _("PyQt4 API Reference")),
-         ('xy', "http://code.google.com/p/pythonxy/",
-          _("Python(x,y)")),
          ('winpython', "https://winpython.github.io/",
           _("WinPython"))
                 )
@@ -667,14 +665,6 @@ class MainWindow(QMainWindow):
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
-        # Python(x,y) launcher
-        self.xy_action = create_action(self,
-                                _("Python(x,y) launcher"),
-                                icon=get_icon('pythonxy.png'),
-                                triggered=lambda:
-                                programs.run_python_script('xy', 'xyhome'))
-        if os.name == 'nt' and is_module_installed('xy'):
-            self.external_tools_menu_actions.append(self.xy_action)
         # WinPython control panel
         self.wp_action = create_action(self, _("WinPython control panel"),
                     icon=get_icon('winpython.svg'),
@@ -702,8 +692,7 @@ class MainWindow(QMainWindow):
         for act in (qtdact, qtlact, qteact):
             if act:
                 additact.append(act)
-        if additact and (is_module_installed('winpython') or \
-            is_module_installed('xy')):
+        if additact and (is_module_installed('winpython'):
             self.external_tools_menu_actions += [None] + additact
 
         # Guidata and Sift
@@ -1005,39 +994,6 @@ class MainWindow(QMainWindow):
                     pname = match.groups()[0]
                     if pname not in ('Python', ):
                         add_ipm_action(pname, osp.join(sysdocpth, docfn))
-        # Documentation provided by Python(x,y), if available
-        try:
-            from xy.config import DOC_PATH as xy_doc_path
-            xydoc = osp.join(xy_doc_path, "Libraries")
-            def add_xydoc(text, pathlist):
-                for path in pathlist:
-                    if osp.exists(path):
-                        add_ipm_action(text, path)
-                        break
-            add_xydoc(_("Python(x,y) documentation folder"),
-                        [xy_doc_path])
-            add_xydoc(_("IPython documentation"),
-                        [osp.join(xydoc, "IPython", "ipythondoc.chm")])
-            add_xydoc(_("guidata documentation"),
-                        [osp.join(xydoc, "guidata", "guidatadoc.chm"),
-                        r"D:\Python\guidata\build\doc_chm\guidatadoc.chm"])
-            add_xydoc(_("guiqwt documentation"),
-                        [osp.join(xydoc, "guiqwt", "guiqwtdoc.chm"),
-                        r"D:\Python\guiqwt\build\doc_chm\guiqwtdoc.chm"])
-            add_xydoc(_("Matplotlib documentation"),
-                        [osp.join(xydoc, "matplotlib", "Matplotlibdoc.chm"),
-                        osp.join(xydoc, "matplotlib", "Matplotlib.pdf")])
-            add_xydoc(_("NumPy documentation"),
-                        [osp.join(xydoc, "NumPy", "numpy.chm")])
-            add_xydoc(_("NumPy reference guide"),
-                        [osp.join(xydoc, "NumPy", "numpy-ref.pdf")])
-            add_xydoc(_("NumPy user guide"),
-                        [osp.join(xydoc, "NumPy", "numpy-user.pdf")])
-            add_xydoc(_("SciPy documentation"),
-                        [osp.join(xydoc, "SciPy", "scipy.chm"),
-                        osp.join(xydoc, "SciPy", "scipy-ref.pdf")])
-        except (ImportError, KeyError, RuntimeError):
-            pass
         # Installed Python modules submenu (Windows only)
         if ipm_actions:
             pymods_menu = QMenu(_("Installed Python modules"), self)
