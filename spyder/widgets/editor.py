@@ -954,17 +954,16 @@ class EditorStack(QWidget):
         for findex, source in enumerate(self.data):
             fname_to_compare = osp.basename(source.filename)
             if findex is not index and fname == fname_to_compare:
-                differ_path = sourcecode.differentiate_prefix(
+                diff_path = sourcecode.differentiate_prefix(
                                    sourcecode.path_components(finfo.filename), 
                                    sourcecode.path_components(source.filename))
-                differ_path_length = len(differ_path)
-                if (differ_path_length > 20):
-                    path_component = sourcecode.path_components(differ_path)
-                    last_component_index = len(path_component) - 1
+                diff_path_length = len(diff_path)
+                if (diff_path_length > 20):
+                    path_component = sourcecode.path_components(diff_path)
                     path_component = [path_component[0], '...', 
-                                       path_component[last_component_index]]
-                    differ_path = os.path.join(*path_component)
-                fname = fname + " - " + differ_path
+                                       path_component[-1]]
+                    diff_path = os.path.join(*path_component)
+                fname = fname + " - " + diff_path
                 break
         return fname
     
