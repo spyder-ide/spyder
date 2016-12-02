@@ -1324,9 +1324,9 @@ class MainWindow(QMainWindow):
         # with the current screen. See issue 3748
         width = pos[0]
         height = pos[1]
-        screenShape = QApplication.desktop().geometry()
-        current_width = screenShape.width()
-        current_height = screenShape.height()
+        screen_shape = QApplication.desktop().geometry()
+        current_width = screen_shape.width()
+        current_height = screen_shape.height()
         if current_width < width or current_height < height:
             pos = CONF.get_default(section, prefix+'position')
         
