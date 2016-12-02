@@ -692,7 +692,7 @@ class MainWindow(QMainWindow):
         for act in (qtdact, qtlact, qteact):
             if act:
                 additact.append(act)
-        if additact and (is_module_installed('winpython'):
+        if additact and is_module_installed('winpython'):
             self.external_tools_menu_actions += [None] + additact
 
         # Guidata and Sift
