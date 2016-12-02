@@ -2,16 +2,18 @@
 This module contains the panel API.
 """
 import logging
-from pyqode.core.api.mode import Mode
-from pyqode.qt import QtWidgets, QtGui
 
+from qtpy.QtWidgets import QWidget, QApplication
+from qtpy.QtGui import QBrush, QColor, QPen, QPainter
+
+from spyder.api.mode import Mode
 
 def _logger():
     """ Returns module's logger """
     return logging.getLogger(__name__)
 
 
-class Panel(QtWidgets.QWidget, Mode):
+class Panel(QWidget, Mode):
     """
     Base class for editor panels.
 
@@ -55,7 +57,7 @@ class Panel(QtWidgets.QWidget, Mode):
 
     def __init__(self, dynamic=False):
         Mode.__init__(self)
-        QtWidgets.QWidget.__init__(self)
+        QWidget.__init__(self)
         #: Specifies whether the panel is dynamic. A dynamic panel is a panel
         #: that will be shown/hidden depending on the context.
         #: Dynamic panel should not appear in any GUI menu (e.g. no display
@@ -84,23 +86,23 @@ class Panel(QtWidgets.QWidget, Mode):
         """
         Mode.on_install(self, editor)
         self.setParent(editor)
-        self.setPalette(QtWidgets.QApplication.instance().palette())
-        self.setFont(QtWidgets.QApplication.instance().font())
+        self.setPalette(QApplication.instance().palette())
+        self.setFont(QApplication.instance().font())
         self.editor.panels.refresh()
-        self._background_brush = QtGui.QBrush(QtGui.QColor(
+        self._background_brush = QBrush(QColor(
             self.palette().window().color()))
-        self._foreground_pen = QtGui.QPen(QtGui.QColor(
+        self._foreground_pen = QPen(QColor(
             self.palette().windowText().color()))
 
     def paintEvent(self, event):
         # Fills the panel background using QPalette
         if self.isVisible():
             # fill background
-            self._background_brush = QtGui.QBrush(QtGui.QColor(
+            self._background_brush = QBrush(QColor(
                 self.palette().window().color()))
-            self._foreground_pen = QtGui.QPen(QtGui.QColor(
+            self._foreground_pen = QPen(QColor(
                 self.palette().windowText().color()))
-            painter = QtGui.QPainter(self)
+            painter = QPainter(self)
             painter.fillRect(event.rect(), self._background_brush)
 
     def setVisible(self, visible):

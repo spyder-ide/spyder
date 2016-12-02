@@ -3,9 +3,9 @@ This module contains the panels controller, responsible of drawing panel
 inside CodeEdit's margins
 """
 import logging
-from pyqode.core.api.utils import TextHelper
-from pyqode.core.api.manager import Manager
-from pyqode.core.api.panel import Panel
+
+from spyder.api.manager import Manager
+from spyder.api.panel import Panel
 
 
 def _logger():
@@ -211,25 +211,24 @@ class PanelsManager(Manager):
 
     def _update(self, rect, delta_y, force_update_margins=False):
         """ Updates panels """
-       helper = TextHelper(self.editor)
-       if not self:
-           return
-       for zones_id, zone in self._panels.items():
-           if zones_id == Panel.Position.TOP or \
-              zones_id == Panel.Position.BOTTOM:
-               continue
-           panels = list(zone.values())
-           for panel in panels:
-               if panel.scrollable and delta_y:
-                   panel.scroll(0, delta_y)
-               line, col = helper.cursor_position()
-               oline, ocol = self._cached_cursor_pos
-               if line != oline or col != ocol or panel.scrollable:
-                   panel.update(0, rect.y(), panel.width(), rect.height())
-               self._cached_cursor_pos = helper.cursor_position()
-       if (rect.contains(self.editor.viewport().rect()) or
-               force_update_margins):
-           self._update_viewport_margins()
+        if not self:
+            return
+        for zones_id, zone in self._panels.items():
+            if zones_id == Panel.Position.TOP or \
+               zones_id == Panel.Position.BOTTOM:
+                continue
+            panels = list(zone.values())
+            for panel in panels:
+                if panel.scrollable and delta_y:
+                    panel.scroll(0, delta_y)
+                line, col = self.editor.get_cursor_line_column()
+                oline, ocol = self._cached_cursor_pos
+                if line != oline or col != ocol or panel.scrollable:
+                    panel.update(0, rect.y(), panel.width(), rect.height())
+                self._cached_cursor_pos = self.editor.get_cursor_line_column()
+        if (rect.contains(self.editor.viewport().rect()) or
+                force_update_margins):
+            self._update_viewport_margins()
 
     def _update_viewport_margins(self):
         """ Update viewport margins """
