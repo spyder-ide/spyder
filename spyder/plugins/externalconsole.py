@@ -711,7 +711,9 @@ class ExternalConsole(SpyderPluginWidget):
             index = self.tabwidget.currentIndex()
             fname = self.filenames[index]
             if fname:
-                title += ' - ' + to_text_string(fname)
+                # solve issue 1165
+                filename = osp.basename(fname)
+                title += ' - ' + to_text_string(filename)
         return title
     
     def get_plugin_icon(self):
