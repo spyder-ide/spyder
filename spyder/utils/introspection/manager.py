@@ -223,7 +223,7 @@ class PluginManager(QObject):
 
                 #query in language word
 
-        info.editor.show_completion_list()
+        #info.editor.show_completion_list()
     """
         if query.startswith('import '):
             obj_list = self.get_module_completion(text)
@@ -347,9 +347,10 @@ class IntrospectionManager(QObject):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = None
         self.pending = None
-        self.plugin_manager = CompletionPlugin(executable) #PluginManager(executable)
-        #self.plugin_manager.introspection_complete.connect(
-        #    self._introspection_complete)
+        #self.plugin_manager = CompletionPlugin(executable)
+        self.plugin_manager = PluginManager(executable)
+        self.plugin_manager.introspection_complete.connect(
+            self._introspection_complete)
 
     def change_executable(self, executable):
         self.plugin_manager.close()
@@ -380,14 +381,14 @@ class IntrospectionManager(QObject):
     def get_completions(self, automatic):
         """Get code completion"""
         info = self._get_code_info('completions', automatic=automatic)
-        #self.plugin_manager.send_request(info)
-        self.plugin_manager.get_completions(info)
+        self.plugin_manager.send_request(info)
+        #self.plugin_manager.get_completions(info)
 
     def go_to_definition(self, position):
         """Go to definition"""
         info = self._get_code_info('definition', position)
-        #self.plugin_manager.send_request(info)
-        self.plugin_manager.go_to_definition(info)
+        self.plugin_manager.send_request(info)
+        #self.plugin_manager.go_to_definition(info)
 
     def show_object_info(self, position, auto=True):
         """Show signature calltip and/or docstring in the Help plugin"""
