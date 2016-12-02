@@ -35,6 +35,9 @@ from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 
 
+from spyder.widgets.helperwidgets import HTMLDelegate
+from spyder.utils.stringmatching import get_search_scores
+
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
     while True:
@@ -50,6 +53,7 @@ def insert_text_to(cursor, text, fmt):
 
 class CompletionWidget(QListWidget):
     """ Completion list widget. """
+
     def __init__(self, parent, ancestor):
         QListWidget.__init__(self, ancestor)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
@@ -63,10 +67,25 @@ class CompletionWidget(QListWidget):
     def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
-        
+
+    def fuzzy_codecompletion_search(self, query_text):
+        """ Search words for codecompletion widget"""
+        results = []
+        # Get all available matches and get the scores for "fuzzy" matching
+        scores = get_search_scores(str(query_text).lower(), self.completion_list,
+                                   template="<b>{0}</b>")
+
+        # Build the text that will appear on the list widget
+        for index, score in enumerate(scores):
+            elem, rich_text, score_value = score
+            if score_value != -1:
+                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
+                results.append((score_value, index, text_item, elem))  #, icons[index]
+        return results
+
     def show_list(self, completion_list, automatic=True):
-        types = [c[1] for c in completion_list]
-        completion_list = [c[0] for c in completion_list]
+        types = [c[-1] for c in completion_list]
+        completion_list = [c[-2] for c in completion_list]
 
         if len(completion_list) == 1 and not automatic:
             self.textedit.insert_completion(completion_list[0])
@@ -74,6 +93,7 @@ class CompletionWidget(QListWidget):
 
         self.completion_list = completion_list
         self.clear()
+        #print("line 77", self.completion_list)
 
         icons_map = {'instance': 'attribute',
                      'statement': 'attribute',
@@ -83,7 +103,7 @@ class CompletionWidget(QListWidget):
                      'module': 'module'}
 
         self.type_list = types
-        if any(types):
+        if any(self.type_list):
             for (c, t) in zip(completion_list, types):
                 icon = icons_map.get(t, 'no_match')
                 self.addItem(QListWidgetItem(ima.icon(icon), c))
@@ -178,6 +198,30 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
 
     def update_current(self):
+        user_input = to_text_string(self.textedit.completion_text)
+
+        results = self.fuzzy_codecompletion_search(user_input)
+        print(results)
+
+        if user_input:
+            #if any(self.types):
+                for result in sorted(results):
+                    index = result[1]
+                    text = result[-1]
+                    self.setItemDelegate(HTMLDelegate(self))
+                    #item = self.addItem(QListWidgetItem(ima.icon('function'), text))
+                    #if completion.startswith(user_input):
+                    self.setCurrentRow(index)
+                    self.scrollTo(self.currentIndex(),
+                                  QAbstractItemView.PositionAtTop)
+                    break
+            #else:
+            #   self.hide()
+        else:
+            self.hide()
+    """
+    def update_current(self):
+
         completion_text = to_text_string(self.textedit.completion_text)
 
         if completion_text:
@@ -195,7 +239,7 @@ class CompletionWidget(QListWidget):
                 self.hide()
         else:
             self.hide()
-
+    """
 
     def focusOutEvent(self, event):
         event.ignore()
@@ -950,6 +994,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def show_completion_list(self, completions, completion_text="",
                              automatic=True):
+
+        #print("line 955", type(completions), completions)
+
         """Display the possible completions"""
         if not completions:
             return
@@ -960,12 +1007,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_text = completion_text
         # Sorting completion list (entries starting with underscore are
         # put at the end of the list):
-        underscore = set([(comp, t) for (comp, t) in completions
-                          if comp.startswith('_')])
+        underscore = set([comp for comp in completions
+                          if comp[-2].startswith('_')])
 
         completions = sorted(set(completions) - underscore,
-                             key=lambda x: str_lower(x[0]))
-        completions += sorted(underscore, key=lambda x: str_lower(x[0]))
+                             key=lambda x: x[0])
+        completions += sorted(underscore, key=lambda x: x[0])
+        #print("line 973", completions)
         self.show_completion_widget(completions, automatic=automatic)
         
     def select_completion_list(self):
