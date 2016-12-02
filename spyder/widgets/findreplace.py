@@ -202,10 +202,11 @@ class FindReplace(QWidget):
         self.visibility_changed.emit(True)
         if self.editor is not None:
             text = self.editor.get_selected_text()
-
+            highlighted = True
             # If no text is highlighted for search, use whatever word is under
             # the cursor
             if not text:
+                highlighted = False
                 try:
                     cursor = self.editor.textCursor()
                     cursor.select(QTextCursor.WordUnderCursor)
@@ -215,7 +216,7 @@ class FindReplace(QWidget):
                     pass
 
             # Now that text value is sorted out, use it for the search
-            if text and not self.search_text.currentText():
+            if text and not self.search_text.currentText() or highlighted:
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
                 self.refresh()
