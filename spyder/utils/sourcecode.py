@@ -147,7 +147,7 @@ def path_components(path):
 
 def differentiate_prefix(path_components0, path_components1):
     """
-    Return the differ prefix of the given two iterables. 
+    Return the differentiated prefix of the given two iterables. 
      
     Taken from http://stackoverflow.com/q/21498939/438386
     """
@@ -159,11 +159,11 @@ def differentiate_prefix(path_components0, path_components1):
         else:
             common_elmt = elmt0
         longest_prefix.append(elmt0)
-    file_name_length = len(path_components0[len(path_components0)-1])
-    path_0 = os.path.join(*path_components0)[:-file_name_length-1]
-    if(len(longest_prefix)>3):
+    file_name_length = len(path_components0[len(path_components0) - 1])
+    path_0 = os.path.join(*path_components0)[:-file_name_length - 1]
+    if(len(longest_prefix) > 3):
         longest_path_prefix = os.path.join(*longest_prefix)
-        length_to_delete = len(longest_path_prefix)-len(common_elmt) 
+        length_to_delete = len(longest_path_prefix) - len(common_elmt) 
         return path_0[length_to_delete:]
     else:
         return path_0
