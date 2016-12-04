@@ -67,7 +67,7 @@ if os.environ.get('QT_API') != 'pyside':
         __has_guiqwt = True
     except (ImportError, AssertionError):
         pass
-    
+
 #==============================================================================
 # Print what modules have been imported
 #==============================================================================
