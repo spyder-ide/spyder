@@ -61,6 +61,9 @@ class NamespaceBrowser(QWidget):
         self.minmax = None
         self.remote_editing = None
         
+        # Other setting
+        self.dataframe_format = None
+
         self.editor = None
         self.exclude_private_action = None
         self.exclude_uppercase_action = None
@@ -72,8 +75,15 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, remote_editing=None):
-        """Setup the namespace browser"""
+              minmax=None, dataframe_format=None,
+              remote_editing=None):
+        """
+        Setup the namespace browser with provided settings.
+
+        Args:
+            dataframe_format (string): default floating-point format for 
+                DataFrame editor
+        """
         assert self.shellwidget is not None
         
         self.check_all = check_all
@@ -84,9 +94,11 @@ class NamespaceBrowser(QWidget):
         self.excluded_names = excluded_names
         self.minmax = minmax
         self.remote_editing = remote_editing
+        self.dataframe_format = dataframe_format
         
         if self.editor is not None:
             self.editor.setup_menu(minmax)
+            self.editor.set_dataframe_format(dataframe_format)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -98,6 +110,7 @@ class NamespaceBrowser(QWidget):
                         data=None,
                         minmax=minmax,
                         shellwidget=self.shellwidget,
+                        dataframe_format=dataframe_format,
                         remote_editing=remote_editing)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
