@@ -17,7 +17,7 @@ Pandas DataFrame Editor Dialog
 from pandas import DataFrame, Series
 from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
@@ -502,7 +502,16 @@ class DataFrameView(QTableView):
 
 
 class DataFrameEditor(QDialog):
-    """ Data Frame Editor Dialog """
+    """
+    Dialog for displaying and editing DataFrame and related objects.
+
+    Signals
+    -------
+    sig_option_changed(str, object): Raised if an option is changed.
+       Arguments are name of option and its new value.
+    """
+    sig_option_changed = Signal(str, object)
+
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         # Destroying the C++ object right after closing the dialog box,
@@ -581,7 +590,12 @@ class DataFrameEditor(QDialog):
         self.bgcolor_global.setEnabled(not self.is_series and state > 0)
 
     def change_format(self):
-        """Change display format"""
+        """
+        Ask user for display format for floats and use it.
+
+        This function also checks whether the format is valid and emits
+        `sig_option_changed`.
+        """
         format, valid = QInputDialog.getText(self, _('Format'),
                                              _("Float formatting"),
                                              QLineEdit.Normal,
@@ -591,10 +605,15 @@ class DataFrameEditor(QDialog):
             try:
                 format % 1.1
             except:
-                QMessageBox.critical(self, _("Error"),
-                                     _("Format (%s) is incorrect") % format)
+                msg = _("Format ({}) is incorrect").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
+                return
+            if not format.startswith('%'):
+                msg = _("Format ({}) should start with '%'").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
                 return
             self.dataModel.set_format(format)
+            self.sig_option_changed.emit('dataframe_format', format)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
