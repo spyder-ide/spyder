@@ -523,8 +523,8 @@ class CollectionsDelegate(QItemDelegate):
         This function is called when a `sig_option_changed` signal is received.
         At the moment, this signal can only come from a DataFrameEditor.
         """
-        assert option_name == 'dataframe_format'
-        self.parent().set_dataframe_format(new_value)
+        if option_name == 'dataframe_format':
+            self.parent().set_dataframe_format(new_value)
 
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]

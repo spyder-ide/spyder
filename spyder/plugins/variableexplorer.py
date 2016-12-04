@@ -110,7 +110,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         Returns:
             dict: settings
         """
-        section = VariableExplorer.CONF_SECTION
         settings = {}
         for name in REMOTE_SETTINGS:
             settings[name] = self.get_option(name)
