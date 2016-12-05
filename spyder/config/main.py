@@ -54,6 +54,12 @@ WIN = os.name == 'nt'
 MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
+# Run cell shortcuts
+if sys.platform == 'darwin':
+    RUN_CELL_SHORTCUT = 'Meta+Return'
+else:
+    RUN_CELL_SHORTCUT = 'Ctrl+Return'
+RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 
 # =============================================================================
 #  Defaults
@@ -179,6 +185,8 @@ DEFAULTS = [
               'autorefresh': False,
               'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
+              'dataframe_format': '.3g', # no percent sign to avoid problems
+                                         # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
@@ -214,7 +222,7 @@ DEFAULTS = [
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
-              'tab_stop_width': 40,
+              'tab_stop_width_spaces': 4,
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
@@ -349,6 +357,7 @@ DEFAULTS = [
               '_/find next': "F3",
               '_/find previous': "Shift+F3",
               '_/replace text': "Ctrl+R",
+              '_/hide find and replace': "Escape",
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
@@ -405,6 +414,14 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/zoom in 1': "Ctrl++",
+              'editor/zoom in 2': "Ctrl+=",
+              'editor/zoom out': "Ctrl+-",
+              'editor/zoom reset': "Ctrl+0",
+              'editor/close file 1': "Ctrl+W",
+              'editor/close file 2': "Ctrl+F4",
+              'editor/run cell': RUN_CELL_SHORTCUT,
+              'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
@@ -417,7 +434,15 @@ DEFAULTS = [
               # ---- In Pylint ----
               'pylint/run analysis': "F8",
               # ---- In Profiler ----
-              'profiler/run profiler': "F10"
+              'profiler/run profiler': "F10",
+              # ---- In widgets/ipythonconsole/shell.py ----
+              'ipython_console/new tab': "Ctrl+T",
+              'ipython_console/reset namespace': "Ctrl+Alt+R",
+              # ---- In widgets/arraybuider.py ----
+              'array_builder/enter array inline': "Ctrl+Alt+M",
+              'array_builder/enter array table': "Ctrl+M",
+              # ---- In widgets/variableexplorer/aarayeditor.py ----
+              'variable_explorer/copy': 'Ctrl+C',
               }),
             ('color_schemes',
              {
@@ -629,7 +654,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '29.2.0'
+CONF_VERSION = '30.0.0'
 
 # Main configuration instance
 try:

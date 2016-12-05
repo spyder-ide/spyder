@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut, fixed_shortcut
+from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton, get_icon
@@ -157,10 +157,10 @@ class FindReplace(QWidget):
         togglereplace = config_shortcut(self.toggle_replace_widgets,
                                         context='_', name='Replace text',
                                         parent=parent)
-        # Fixed
-        fixed_shortcut("Escape", self, self.hide)
+        hide = config_shortcut(self.hide, context='_', name='hide find and replace',
+                               parent=self)
 
-        return [findnext, findprev, togglefind, togglereplace]
+        return [findnext, findprev, togglefind, togglereplace, hide]
 
     def get_shortcut_data(self):
         """
@@ -202,10 +202,11 @@ class FindReplace(QWidget):
         self.visibility_changed.emit(True)
         if self.editor is not None:
             text = self.editor.get_selected_text()
-
+            highlighted = True
             # If no text is highlighted for search, use whatever word is under
             # the cursor
             if not text:
+                highlighted = False
                 try:
                     cursor = self.editor.textCursor()
                     cursor.select(QTextCursor.WordUnderCursor)
@@ -215,7 +216,7 @@ class FindReplace(QWidget):
                     pass
 
             # Now that text value is sorted out, use it for the search
-            if text and not self.search_text.currentText():
+            if text and not self.search_text.currentText() or highlighted:
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
                 self.refresh()

@@ -639,7 +639,8 @@ def test():
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer
-    settings = VariableExplorer.get_settings()
+    
+    settings = VariableExplorer(None).get_settings()
 
     shell = ExternalPythonShell(pythonexecutable=sys.executable,
                                 interact=True,

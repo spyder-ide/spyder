@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import fixed_shortcut
+from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
@@ -293,12 +293,14 @@ class Tabs(BaseTabs):
                                           self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
-        fixed_shortcut("Ctrl+Tab", parent, lambda: self.tab_navigate(1))
-        fixed_shortcut("Shift+Ctrl+Tab", parent, lambda: self.tab_navigate(-1))
-        fixed_shortcut("Ctrl+W", parent,
-                       lambda: self.sig_close_tab.emit(self.currentIndex()))
-        fixed_shortcut("Ctrl+F4", parent,
-                       lambda: self.sig_close_tab.emit(self.currentIndex()))
+        config_shortcut(lambda: self.tab_navigate(1), context='editor',
+                        name='go to next file', parent=parent)
+        config_shortcut(lambda: self.tab_navigate(-1), context='editor',
+                        name='go to previous file', parent=parent)
+        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
+                        context='editor', name='close file 1', parent=parent)
+        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
+                        context='editor', name='close file 2', parent=parent)
 
     def tab_navigate(self, delta=1):
         """Ctrl+Tab"""

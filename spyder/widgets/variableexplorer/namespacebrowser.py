@@ -83,6 +83,9 @@ class NamespaceBrowser(QWidget):
         self.remote_editing = None
         self.autorefresh = None
         
+        # Other setting
+        self.dataframe_format = None
+
         self.editor = None
         self.exclude_private_action = None
         self.exclude_uppercase_action = None
@@ -98,9 +101,15 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, remote_editing=None,
-              autorefresh=None):
-        """Setup the namespace browser"""
+              minmax=None, dataframe_format=None,
+              remote_editing=None, autorefresh=None):
+        """
+        Setup the namespace browser with provided settings.
+
+        Args:
+            dataframe_format (string): default floating-point format for 
+                DataFrame editor
+        """
         assert self.shellwidget is not None
         
         self.check_all = check_all
@@ -112,9 +121,11 @@ class NamespaceBrowser(QWidget):
         self.minmax = minmax
         self.remote_editing = remote_editing
         self.autorefresh = autorefresh
+        self.dataframe_format = dataframe_format
         
         if self.editor is not None:
             self.editor.setup_menu(minmax)
+            self.editor.set_dataframe_format(dataframe_format)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
@@ -126,6 +137,7 @@ class NamespaceBrowser(QWidget):
 
         self.editor = RemoteCollectionsEditorTableView(self, None,
                         minmax=minmax,
+                        dataframe_format=dataframe_format,
                         remote_editing=remote_editing,
                         get_value_func=self.get_value,
                         set_value_func=self.set_value,

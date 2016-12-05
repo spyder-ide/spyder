@@ -20,10 +20,11 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
-def get_indent_fix(text, indent_chars=" " * 4):
+def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4):
     app = qapplication()
     editor = CodeEditor(parent=None)
-    editor.setup_editor(language='Python', indent_chars=indent_chars)
+    editor.setup_editor(language='Python', indent_chars=indent_chars,
+                        tab_stop_width_spaces=tab_stop_width_spaces)
 
     editor.set_text(text)
     cursor = editor.textCursor()
@@ -103,6 +104,7 @@ def test_def_with_unindented_comment():
 
 # --- Tabs tests
 # -----------------------------------------------------------------------------
+@pytest.mark.parametrize("tab_stop_width_spaces", [1,2,3,4,5,6,7,8])
 @pytest.mark.parametrize(
     "text_input, expected, test_text",
     [
@@ -122,8 +124,10 @@ def test_def_with_unindented_comment():
             ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
              "test_def_with_unindented_comment")),
     ])
-def test_indentation_with_tabs(text_input, expected, test_text):
-    text = get_indent_fix(text_input, indent_chars="\t")
+def test_indentation_with_tabs(text_input, expected, test_text,
+                               tab_stop_width_spaces):
+    text = get_indent_fix(text_input, indent_chars="\t",
+                          tab_stop_width_spaces=tab_stop_width_spaces)
     assert text == expected, test_text
 
 

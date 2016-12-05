@@ -30,9 +30,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_conf_path
-from spyder.config.gui import (RUN_CELL_SHORTCUT,
-                               RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyder.config.main import CONF
+from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
+                                RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
@@ -206,8 +205,8 @@ class EditorConfigPage(PluginConfigPage):
                                          (_("7 spaces"), '*       *'),
                                          (_("8 spaces"), '*        *'),
                                          (_("Tabulations"), '*\t*')), 'indent_chars')
-        tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
-                                            'tab_stop_width', 40, 10, 1000, 10)
+        tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("spaces"),
+                                            'tab_stop_width_spaces', 4, 1, 8, 1)
         tab_mode_box = newcb(_("Tab always indent"),
                       'tab_always_indent', default=False,
                       tip=_("If enabled, pressing Tab will always indent,\n"
@@ -927,13 +926,13 @@ class Editor(SpyderPluginWidget):
         
         self.win_eol_action = create_action(self,
                            _("Carriage return and line feed (Windows)"),
-                           toggled=lambda: self.toggle_eol_chars('nt'))
+                           toggled=lambda checked: self.toggle_eol_chars('nt', checked))
         self.linux_eol_action = create_action(self,
                            _("Line feed (UNIX)"),
-                           toggled=lambda: self.toggle_eol_chars('posix'))
+                           toggled=lambda checked: self.toggle_eol_chars('posix', checked))
         self.mac_eol_action = create_action(self,
                            _("Carriage return (Mac)"),
-                           toggled=lambda: self.toggle_eol_chars('mac'))
+                           toggled=lambda checked: self.toggle_eol_chars('mac', checked))
         eol_action_group = QActionGroup(self)
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
@@ -1181,7 +1180,7 @@ class Editor(SpyderPluginWidget):
                                          self.encoding_status.encoding_changed)
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.cursor_position_changed)
-            editorstack.refresh_eol_chars.connect(self.eol_status.eol_changed)
+            editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
 
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
@@ -1210,7 +1209,7 @@ class Editor(SpyderPluginWidget):
             ('set_add_colons_enabled',              'add_colons'),
             ('set_auto_unindent_enabled',           'auto_unindent'),
             ('set_indent_chars',                    'indent_chars'),
-            ('set_tab_stop_width',                  'tab_stop_width'),
+            ('set_tab_stop_width_spaces',           'tab_stop_width_spaces'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
@@ -1265,7 +1264,7 @@ class Editor(SpyderPluginWidget):
         editorstack.refresh_file_dependent_actions.connect(
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
-        editorstack.refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.save_breakpoints.connect(self.save_breakpoints)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
@@ -2060,10 +2059,11 @@ class Editor(SpyderPluginWidget):
             # must be changed to None in this case.)
             programs.run_program(WINPDB_PATH, [fname] + args, cwd=wdir or None)
         
-    def toggle_eol_chars(self, os_name):
-        editor = self.get_current_editor()
-        if self.__set_eol_chars:
-            editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
+    def toggle_eol_chars(self, os_name, checked):
+        if checked:
+            editor = self.get_current_editor()
+            if self.__set_eol_chars:
+                editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
 
     @Slot(bool)
     def toggle_show_blanks(self, checked):
@@ -2444,8 +2444,8 @@ class Editor(SpyderPluginWidget):
             autounindent_o = self.get_option(autounindent_n)
             indent_chars_n = 'indent_chars'
             indent_chars_o = self.get_option(indent_chars_n)
-            tab_stop_width_n = 'tab_stop_width'
-            tab_stop_width_o = self.get_option(tab_stop_width_n)
+            tab_stop_width_spaces_n = 'tab_stop_width_spaces'
+            tab_stop_width_spaces_o = self.get_option(tab_stop_width_spaces_n)
             help_n = 'connect_to_oi'
             help_o = CONF.get('help', 'connect/editor')
             todo_n = 'todo_list'
@@ -2508,8 +2508,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_auto_unindent_enabled(autounindent_o)
                 if indent_chars_n in options:
                     editorstack.set_indent_chars(indent_chars_o)
-                if tab_stop_width_n in options:
-                    editorstack.set_tab_stop_width(tab_stop_width_o)
+                if tab_stop_width_spaces_n in options:
+                    editorstack.set_tab_stop_width_spaces(tab_stop_width_spaces_o)
                 if help_n in options:
                     editorstack.set_help_enabled(help_o)
                 if todo_n in options:
