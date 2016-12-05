@@ -1,6 +1,14 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 """
 This module contains the panels controller, responsible of drawing panel
 inside CodeEdit's margins
+Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/panels.py
 """
 import logging
 
