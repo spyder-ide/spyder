@@ -45,7 +45,7 @@ class PanelsManager(Manager):
             editor.document().blockCountChanged.connect(
                 self._update_viewport_margins)
 
-    def append(self, panel, position=Panel.Position.LEFT):
+    def register(self, panel, position=Panel.Position.LEFT):
         """
         Installs a panel on the editor.
 

@@ -340,7 +340,7 @@ class CodeEditor(TextEditBaseWidget):
         self.blanks_enabled = False
 
         # Line number area management
-        self.linenumberarea = self.panels.append(LineNumberArea(self))
+        self.linenumberarea = self.panels.register(LineNumberArea(self))
         self.updateRequest.connect(self.linenumberarea.update_)
 
         # Colors to be defined in _apply_highlighter_color_scheme()
