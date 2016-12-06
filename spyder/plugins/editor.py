@@ -914,14 +914,18 @@ class Editor(SpyderPluginWidget):
                 triggered=self.unindent, context=Qt.WidgetShortcut)
 
         self.text_uppercase_action = create_action(self,
-                _("Toggle Uppercase"), "Ctrl+Shift+U",
+                _("Toggle Uppercase"),
                 tip=_("Change to uppercase current line or selection"),
                 triggered=self.text_uppercase, context=Qt.WidgetShortcut)
+        self.register_shortcut(self.text_uppercase_action, context="Editor",
+                               name="transform to uppercase")
 
         self.text_lowercase_action = create_action(self,
-                _("Toggle Lowercase"), "Ctrl+U",
+                _("Toggle Lowercase"),
                 tip=_("Change to lowercase current line or selection"),
                 triggered=self.text_lowercase, context=Qt.WidgetShortcut)
+        self.register_shortcut(self.text_lowercase_action, context="Editor",
+                               name="transform to lowercase")
         # ----------------------------------------------------------------------
         
         self.win_eol_action = create_action(self,
