@@ -386,12 +386,13 @@ class UserConfig(DefaultsConfig):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        else:
-            if PY2 and is_text_string(default_value):
+        elif is_text_string(default_value):
+            if PY2:
                 try:
                     value = value.decode('utf-8')
                 except (UnicodeEncodeError, UnicodeDecodeError):
                     pass
+        else:
             try:
                 # lists, tuples, ...
                 value = ast.literal_eval(value)
