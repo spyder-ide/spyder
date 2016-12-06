@@ -33,7 +33,7 @@ class EdgeLine(QWidget):
         size = self.size()
 
         offsets = [col - min(self.columns) for col in self.columns]
-        for offset, qcolor in zip(offsets, self.colors):
+        for offset, qcolor in zip(offsets, cycle(self.colors)):
             color = QColor(qcolor)
             color.setAlphaF(.5)
             painter.setPen(color)
@@ -49,9 +49,13 @@ class EdgeLine(QWidget):
         self._enabled = state
         self.setVisible(state)
 
-    def set_column(self, column, index=0):
-        """Set edge line column value"""
-        self.columns[index] = column
+    def set_columns(self, columns):
+        """Set edge line columns values."""
+        if isinstance(columns, list):
+            self.columns = columns
+        elif isinstance(columns, str):
+            self.columns = [int(e) for e in columns.split(',')]
+
         self.update()
 
     def set_geometry(self, cr):
