@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-This module contains the edge line numebr panel
+This module contains the edge line panel
 """
 
 from qtpy.QtWidgets import QWidget
