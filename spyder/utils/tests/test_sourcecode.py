@@ -41,10 +41,14 @@ def test_path_components():
 
 
 def test_differentiate_prefix():
-    path_components0 = ['documents','test','test.py']
-    path_components1 = ['documents','projects','test','test.py']
-    diff_path0 = os.path.join(*['documents','test'])
-    diff_path1 = os.path.join(*['documents', 'projects', 'test'])
+    if sys.platform.startswith('linux'):
+        path_components0 = ['','','documents','test','test.py']
+        path_components1 = ['','','documents','projects','test','test.py']
+    else:
+        path_components0 = ['c:','','documents','test','test.py']
+        path_components1 = ['c:','','documents','projects','test','test.py']
+    diff_path0 = os.path.join(*['test'])
+    diff_path1 = os.path.join(*['projects','test'])
     assert sourcecode.differentiate_prefix(
                         path_components0, path_components1) ==  diff_path0
     assert sourcecode.differentiate_prefix(
