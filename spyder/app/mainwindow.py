@@ -946,9 +946,6 @@ class MainWindow(QMainWindow):
 
         self.tours_menu.addActions(self.tour_menu_actions)
 
-        if not DEV:
-            self.tours_menu = None
-
         self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
                                   None, report_action, dep_action,
                                   self.check_updates_action, support_action,
