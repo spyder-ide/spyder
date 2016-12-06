@@ -1299,6 +1299,8 @@ class CodeEditor(TextEditBaseWidget):
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
+            self.edge_line.update_color()
+
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
         if self.highlighter is not None:
