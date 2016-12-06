@@ -249,4 +249,7 @@ def is_text_file(filename):
     """
     Test if the given path is a text-like file.
     """
-    return not is_binary(filename)
+    try:
+        return not is_binary(filename)
+    except IsADirectoryError:
+        return False
