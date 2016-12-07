@@ -39,8 +39,7 @@ from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
-from spyder.utils.qthelpers import (create_action, add_actions, 
-                                    add_shortcut_to_tooltip)
+from spyder.utils.qthelpers import create_action, add_actions
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -632,13 +631,10 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_sc_to_tip=True)
 
-        add_shortcut_to_tooltip(self.new_action, context="Editor",
-                                name="New file")
-        
-        self.open_last_closed = create_action(self, _("O&pen last closed"),
+        self.open_last_closed_action = create_action(self, _("O&pen last closed"),
                 tip=_("Open last closed"),
                 triggered=self.open_last_closed)
-        self.register_shortcut(self.open_last_closed, context="Editor",
+        self.register_shortcut(self.open_last_closed_action, context="Editor",
                                name="Open last closed")
         
         self.open_action = create_action(self, _("&Open..."),
@@ -986,8 +982,9 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
         file_menu_actions = [self.new_action,
-                             self.open_last_closed,
+                             None,
                              self.open_action,
+                             self.open_last_closed_action,
                              self.recent_file_menu,
                              None,
                              None,
