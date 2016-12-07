@@ -375,7 +375,7 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.blanks_enabled = False
         self.edgeline_enabled = True
-        self.edgeline_columns = [79]
+        self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False

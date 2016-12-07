@@ -18,7 +18,7 @@ class EdgeLine(QWidget):
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor, color=Qt.darkGray, columns=[79]):
+    def __init__(self, editor, color=Qt.darkGray, columns=(79,)):
         QWidget.__init__(self, editor)
         self.editor = editor
         self.columns = columns
@@ -51,10 +51,10 @@ class EdgeLine(QWidget):
 
     def set_columns(self, columns):
         """Set edge line columns values."""
-        if isinstance(columns, list):
+        if isinstance(columns, tuple):
             self.columns = columns
         elif isinstance(columns, str):
-            self.columns = [int(e) for e in columns.split(',')]
+            self.columns = tuple(int(e) for e in columns.split(','))
 
         self.update()
 
