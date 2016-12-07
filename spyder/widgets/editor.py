@@ -375,7 +375,7 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.blanks_enabled = False
         self.edgeline_enabled = True
-        self.edgeline_column = 79
+        self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
@@ -755,12 +755,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.edge_line.set_enabled(state)
 
-    def set_edgeline_column(self, column):
+    def set_edgeline_columns(self, columns):
         # CONF.get(self.CONF_SECTION, 'edge_line_column')
-        self.edgeline_column = column
+        self.edgeline_columns = columns
         if self.data:
             for finfo in self.data:
-                finfo.editor.edge_line.set_column(column)
+                finfo.editor.edge_line.set_columns(columns)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
@@ -1706,7 +1706,7 @@ class EditorStack(QWidget):
                 linenumbers=self.linenumbers_enabled,
                 show_blanks=self.blanks_enabled,
                 edge_line=self.edgeline_enabled,
-                edge_line_column=self.edgeline_column, language=language,
+                edge_line_columns=self.edgeline_columns, language=language,
                 markers=self.has_markers(), font=self.default_font,
                 color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-This module contains the edge line numebr panel
+This module contains the edge line panel
 """
 
 from qtpy.QtWidgets import QWidget
@@ -18,11 +18,11 @@ class EdgeLine(QWidget):
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor, colors=[Qt.darkGray], columns=[79]):
+    def __init__(self, editor, color=Qt.darkGray, columns=(79,)):
         QWidget.__init__(self, editor)
         self.editor = editor
         self.columns = columns
-        self.colors = colors
+        self.color = color
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
         self._enabled = True
@@ -33,8 +33,8 @@ class EdgeLine(QWidget):
         size = self.size()
 
         offsets = [col - min(self.columns) for col in self.columns]
-        for offset, qcolor in zip(offsets, self.colors):
-            color = QColor(qcolor)
+        for offset in offsets:
+            color = QColor(self.color)
             color.setAlphaF(.5)
             painter.setPen(color)
 
@@ -49,10 +49,20 @@ class EdgeLine(QWidget):
         self._enabled = state
         self.setVisible(state)
 
-    def set_column(self, column, index=0):
-        """Set edge line column value"""
-        self.columns[index] = column
+    def set_columns(self, columns):
+        """Set edge line columns values."""
+        if isinstance(columns, tuple):
+            self.columns = columns
+        elif isinstance(columns, str):
+            self.columns = tuple(int(e) for e in columns.split(','))
+
         self.update()
+
+    def update_color(self):
+        """
+        Set edgeline color using syntax highlighter color for comments
+        """
+        self.color = self.editor.highlighter.get_color_name('comment')
 
     def set_geometry(self, cr):
         """Calculate and set geometry of edge line panel.

@@ -600,7 +600,7 @@ class CodeEditor(TextEditBaseWidget):
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      intelligent_backspace=True, highlight_current_line=True,
                      highlight_current_cell=True, occurrence_highlighting=True,
-                     scrollflagarea=True, edge_line=True, edge_line_column=79,
+                     scrollflagarea=True, edge_line=True, edge_line_columns=(79,),
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_enter=False, show_blanks=False,
                      calltips=None, go_to_definition=False,
@@ -627,7 +627,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Edge line
         self.edge_line.set_enabled(edge_line)
-        self.edge_line.set_column(edge_line_column)
+        self.edge_line.set_columns(edge_line_columns)
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
@@ -1298,6 +1298,8 @@ class CodeEditor(TextEditBaseWidget):
             self.normal_color = hl.get_foreground_color()
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
+
+            self.edge_line.update_color()
 
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
