@@ -499,6 +499,10 @@ def show_std_icons():
     dialog.show()
     sys.exit(app.exec_())
 
+    
+def get_menu_separator():
+    return None
+
 
 if __name__ == "__main__":
     show_std_icons()
