@@ -332,6 +332,8 @@ class CodeEditor(TextEditBaseWidget):
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
 
+        self._panels = PanelsManager(self)
+
         # 79-col edge line
         self.edge_line = EdgeLine(self)
 
@@ -596,6 +598,14 @@ class CodeEditor(TextEditBaseWidget):
     def toggle_wrap_mode(self, enable):
         """Enable/disable wrap mode"""
         self.set_wrap_mode('word' if enable else None)
+
+    @property
+    def panels(self):
+        """
+        Returns a reference to the :class:`pyqode.core.managers.PanelsManager`
+        used to manage the collection of installed panels
+        """
+        return self._panels
 
     def setup_editor(self, linenumbers=True, language=None, markers=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
