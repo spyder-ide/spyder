@@ -295,7 +295,6 @@ class CodeEditor(TextEditBaseWidget):
 
     # To have these attrs when early viewportEvent's are triggered
     edge_line = None
-    linenumberarea = None
 
     breakpoints_changed = Signal()
     get_completions = Signal(bool)
@@ -341,8 +340,7 @@ class CodeEditor(TextEditBaseWidget):
         self.blanks_enabled = False
 
         # Line number area management
-        self.linenumberarea = LineNumberArea(self)
-        self.blockCountChanged.connect(self.linenumberarea.update_width)
+        self.linenumberarea = self.panels.append(LineNumberArea(self))
         self.updateRequest.connect(self.linenumberarea.update_)
 
         # Colors to be defined in _apply_highlighter_color_scheme()
@@ -385,7 +383,7 @@ class CodeEditor(TextEditBaseWidget):
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
 
-        self.linenumberarea.update_width()
+        self.panels._update(self.contentsRect(),0)
 
         self.document_id = id(self)
 
@@ -669,7 +667,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
-            self.linenumberarea.update_width()
+            self.panels._update(self.contentsRect(),0)
         elif font is not None:
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
@@ -1193,7 +1191,7 @@ class CodeEditor(TextEditBaseWidget):
         """Toggle scroll flag area visibility"""
         self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
-        self.linenumberarea.update_width()
+        self.panels._update(self.contentsRect(),0)
 
     def get_scrollflagarea_width(self):
         """Return scroll flag area width"""
@@ -1332,7 +1330,7 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
-        self.linenumberarea.update_width()
+        self.panels._update(self.contentsRect(),0)
         self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):

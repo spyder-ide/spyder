@@ -14,17 +14,17 @@ from qtpy.QtGui import QPainter, QColor
 
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
+from spyder.api.panel import Panel
 
-
-class LineNumberArea(QWidget):
+class LineNumberArea(Panel):
     """Line number area (on the left side of the text editor widget)"""
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
 
     def __init__(self, editor):
-        QWidget.__init__(self, editor)
-        self.editor = editor
+        Panel.__init__(self, editor)
+
         self.setMouseTracking(True)
 
         self.linenumbers_color = QColor(Qt.darkGray)
@@ -179,16 +179,6 @@ class LineNumberArea(QWidget):
         else:
             return 0
 
-    def update_width(self, new_block_count=None):
-        """
-        Update line number area width.
-
-        new_block_count is needed to handle blockCountChanged(int) signal
-        """
-        self.editor.setViewportMargins(self.compute_width(), 0,
-                                       self.editor.get_scrollflagarea_width(),
-                                       0)
-
     def update_(self, qrect, dy):
         """Update line number area"""
         if dy:
@@ -197,8 +187,6 @@ class LineNumberArea(QWidget):
             self.update(0, qrect.y(),
                         self.width(),
                         qrect.height())
-        if qrect.contains(self.editor.viewport().rect()):
-            self.update_width()
 
     def setup_margins(self, linenumbers=True, markers=True):
         """
@@ -212,7 +200,6 @@ class LineNumberArea(QWidget):
     def set_enabled(self, state):
         self._enabled = state
         self.setVisible(state)
-        self.update_width()
 
     def get_width(self):
         """Return current line number area width"""
