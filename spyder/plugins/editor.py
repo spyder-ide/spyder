@@ -38,7 +38,7 @@ from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
-from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import create_action, add_actions
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -633,6 +633,12 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_sc_to_tip=True)
 
+        self.open_last_closed_action = create_action(self, _("O&pen last closed"),
+                tip=_("Open last closed"),
+                triggered=self.open_last_closed)
+        self.register_shortcut(self.open_last_closed_action, context="Editor",
+                               name="Open last closed")
+        
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
                 triggered=self.load,
@@ -984,6 +990,7 @@ class Editor(SpyderPluginWidget):
         file_menu_actions = [self.new_action,
                              None,
                              self.open_action,
+                             self.open_last_closed_action,
                              self.recent_file_menu,
                              None,
                              None,
@@ -1614,7 +1621,7 @@ class Editor(SpyderPluginWidget):
         self.recent_files.insert(0, fname)
         if len(self.recent_files) > self.get_option('max_recent_files'):
             self.recent_files.pop(-1)
-    
+
     def _clone_file_everywhere(self, finfo):
         """Clone file (*src_editor* widget) in all editorstacks
         Cloning from the first editorstack in which every single new editor
@@ -1948,7 +1955,17 @@ class Editor(SpyderPluginWidget):
         """Replace slot"""
         editorstack = self.get_current_editorstack()
         editorstack.find_widget.show_replace()
-
+    
+    def open_last_closed(self):
+        """ Reopens the last closed tab."""
+        editorstack = self.get_current_editorstack()
+        last_closed_files = editorstack.get_last_closed_files()
+        if (len(last_closed_files) > 0):
+            file_to_open = last_closed_files[0]
+            last_closed_files.remove(file_to_open)
+            editorstack.set_last_closed_files(last_closed_files)
+            self.load(file_to_open)
+    
     #------ Explorer widget
     def close_file_from_name(self, filename):
         """Close file from its name"""
