@@ -864,9 +864,9 @@ class IPythonConsole(SpyderPluginWidget):
         cf = self._new_connection_file()
         if cf is None:
             QMessageBox.warning(self, _('Warning'),
-                _("The directory {} is not writable and it <br>"
-                "is required to create IPython consoles. Please make it <br>"
-                "writable.").format(jupyter_runtime_dir()), QMessageBox.Ok)
+                _("The directory {} is not writable and it is required to "
+                "create IPython consoles. Please make it writable.").format(
+                jupyter_runtime_dir()), QMessageBox.Ok)
             return
         client = ClientWidget(self, name=name,
                               history_filename='history.py',
