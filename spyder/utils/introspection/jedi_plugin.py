@@ -22,7 +22,9 @@ from spyder.utils.introspection.utils import get_parent_until
 from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
+    import spyder.docstrings
     import jedi
+    jedi.evaluate.representation.docstrings = spyder.docstrings
 except ImportError:
     jedi = None
 
