@@ -829,10 +829,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cursor.beginEditBlock()
         start_pos, end_pos = self.__save_selection()
-        # print((start_pos, end_pos))
         add_linesep = False
         flag = to_text_string(cursor.selectedText())
-        # print(flag)
         if flag:
             # Check if start_pos is at the start of a block
             cursor.setPosition(start_pos)
@@ -871,6 +869,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if after_current_line:
             text = to_text_string(cursor.block().text())
             if len(text) == 0:
+                #If the next line is blank
                 sel_text = sel_text[0:-1]
                 sel_text = os.linesep + sel_text
             if not text:
