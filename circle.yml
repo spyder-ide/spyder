@@ -10,9 +10,9 @@ machine:
     TRAVIS_OS_NAME: "linux"
     CONDA_CHANNELS: "spyder-ide"
     CONDA_DEPENDENCIES: >
-      rope jedi pyflakes sphinx pygments pylint pep8 psutil nbconvert qtawesome picklesahre
-      qtpy pyzmq chardet mock nomkl numpy pandas pytest pytest-cov pytest-qt
-    PIP_DEPENDENCIES: "coveralls"
+      rope jedi pyflakes sphinx pygments pylint pep8 psutil nbconvert qtawesome pickleshare
+      qtpy pyzmq chardet mock nomkl numpy pandas pytest pytest-cov
+    PIP_DEPENDENCIES: "coveralls pytest-qt"
 
 dependencies:
   override:
