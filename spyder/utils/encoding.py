@@ -251,5 +251,5 @@ def is_text_file(filename):
     """
     try:
         return not is_binary(filename)
-    except IsADirectoryError:
+    except (OSError, IOError):
         return False
