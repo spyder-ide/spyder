@@ -48,6 +48,7 @@ from spyder.widgets.sourcecode.codeeditor import get_file_language
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
+from spyder.config.main import CONF
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -2209,18 +2210,18 @@ class EditorMainWindow(QMainWindow):
         self.setWindowIcon(plugin.windowIcon())
 
         if toolbar_list:
-            toolbars = []
-            for title, actions in toolbar_list:
+            self.toolbars = []
+            for title, object_name, actions in toolbar_list:
                 toolbar = self.addToolBar(title)
-                toolbar.setObjectName(str(id(toolbar)))
+                toolbar.setObjectName(object_name)
                 add_actions(toolbar, actions)
-                toolbars.append(toolbar)
+                self.toolbars.append(toolbar)
         if menu_list:
             quit_action = create_action(self, _("Close window"),
                                         icon="close_panel.png",
                                         tip=_("Close this window"),
                                         triggered=self.close)
-            menus = []
+            self.menus = []
             for index, (title, actions) in enumerate(menu_list):
                 menu = self.menuBar().addMenu(title)
                 if index == 0:
@@ -2228,7 +2229,45 @@ class EditorMainWindow(QMainWindow):
                     add_actions(menu, actions+[None, quit_action])
                 else:
                     add_actions(menu, actions)
-                menus.append(menu)
+                self.menus.append(menu)
+ 
+    def get_menu(self, menu_title):
+        """Get a menu."""
+        return [menu for menu in self.menus if menu.title() == menu_title]
+
+    def get_toolbars(self):
+        """Get the toolbars."""
+        return self.toolbars
+
+    def add_actions_to_menu(self, menu_title, actions):
+        """Add actions to a menu."""
+        menu = self.get_menu(menu_title)[0]
+        if actions == self.toolbars and self.get_menu(menu_title):
+            toolbars = []
+            for toolbar in self.toolbars:
+                action = toolbar.toggleViewAction()
+                toolbars.append(action)
+            add_actions(menu, toolbars)
+        else:
+            add_actions(menu, actions)
+    
+    def load_toolbars(self):
+        """Loads the last visible toolbars from the .ini file."""
+        
+        toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
+        print(toolbars_names)
+        if toolbars_names:
+            
+            dic = {}
+            for toolbar in self.toolbars:
+                dic[toolbar.objectName()] = toolbar
+                toolbar.toggleViewAction().setChecked(False)
+                toolbar.setVisible(False)
+            print(dic)
+            for name in toolbars_names:
+                if name in dic:
+                    dic[name].toggleViewAction().setChecked(True)
+                    dic[name].setVisible(True)
 
     def resizeEvent(self, event):
         """Reimplement Qt method"""
