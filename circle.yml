@@ -9,7 +9,7 @@ machine:
     CONDA_DEPENDENCIES_FLAGS: "--quiet"
     CONDA_DEPENDENCIES: >
       rope jedi pyflakes sphinx pygments pylint pep8 psutil nbconvert qtawesome pickleshare
-      qtpy pyzmq chardet mock nomkl numpy pandas pytest pytest-cov
+      qtpy pyzmq chardet mock nomkl pandas pytest pytest-cov
     PIP_DEPENDENCIES: "coveralls pytest-qt"
 
 dependencies:
