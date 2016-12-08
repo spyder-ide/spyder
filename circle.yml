@@ -18,11 +18,11 @@ dependencies:
     - export PY_VERSIONS=($PY_VERSIONS) &&
       export TRAVIS_PYTHON_VERSION=${PY_VERSIONS[$CIRCLE_NODE_INDEX]} && 
       echo -e "PYTHON = $TRAVIS_PYTHON_VERSION \n============" &&
-      git clone git://github.com/astropy/ci-helpers.git &&
+      git clone git://github.com/astropy/ci-helpers.git > /dev/null &&
       source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh &&
       export PATH="$HOME/miniconda/bin:$PATH" &&
       source activate test &&
-      conda install ciocheck -c conda-forge -c continuumcrew &&
+      conda install --quiet ciocheck -c conda-forge &&
       python setup.py install > /dev/null;
 
 test:
