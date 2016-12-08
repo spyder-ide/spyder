@@ -21,7 +21,6 @@ dependencies:
       git clone git://github.com/astropy/ci-helpers.git > /dev/null &&
       source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh &&
       export PATH="$HOME/miniconda/bin:$PATH" &&
-      conda update -q conda &&
       source activate test &&
       conda install -q ciocheck -c conda-forge &&
       python setup.py install > /dev/null;
