@@ -6,6 +6,7 @@ machine:
     PY_VERSIONS: "2.7 3.4 3.5"
     # Environment variables used by astropy helpers
     TRAVIS_OS_NAME: "linux"
+    CONDA_DEPENDENCIES_FLAGS: "--quiet"
     CONDA_DEPENDENCIES: >
       rope jedi pyflakes sphinx pygments pylint pep8 psutil nbconvert qtawesome pickleshare
       qtpy pyzmq chardet mock nomkl numpy pandas pytest pytest-cov
