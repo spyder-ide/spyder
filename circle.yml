@@ -10,8 +10,8 @@ machine:
     TRAVIS_OS_NAME: "linux"
     CONDA_CHANNELS: "spyder-ide"
     CONDA_DEPENDENCIES: >
-      jedi mock nbconvert numpy pandas pep8 psutil pyflakes pygments pylint
-      pytest pytest-cov pytest-qt pyyaml qtawesome qtpy requests sphinx
+      rope jedi pyflakes sphinx pygments pylint pep8 psutil nbconvert qtawesome picklesahre
+      qtpy pyzmq chardet mock nomkl numpy pandas pytest pytest-cov pytest-qt
     PIP_DEPENDENCIES: "coveralls"
 
 dependencies:
