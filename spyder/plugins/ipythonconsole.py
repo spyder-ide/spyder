@@ -52,7 +52,7 @@ from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
 from spyder.utils.qthelpers import create_action
 from spyder.utils import icon_manager as ima
-from spyder.utils import programs
+from spyder.utils import encoding, programs
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
                                get_python_executable, remove_backslashes)
 from spyder.widgets.findreplace import FindReplace
@@ -769,15 +769,15 @@ class IPythonConsole(SpyderPluginWidget):
         self.editor = self.main.editor
         
         self.focus_changed.connect(self.main.plugin_focus_changed)
-
-        if self.editor is not None:
-            self.edit_goto.connect(self.editor.load)
-            self.edit_goto[str, int, str, bool].connect(
-                             lambda fname, lineno, word, processevents:
-                                 self.editor.load(fname, lineno, word,
-                                                  processevents=processevents))
-            self.editor.run_in_current_ipyclient.connect(
-                                             self.run_script_in_current_client)
+        self.edit_goto.connect(self.editor.load)
+        self.edit_goto[str, int, str, bool].connect(
+                         lambda fname, lineno, word, processevents:
+                             self.editor.load(fname, lineno, word,
+                                              processevents=processevents))
+        self.editor.run_in_current_ipyclient.connect(
+                                         self.run_script_in_current_client)
+        self.main.workingdirectory.set_current_console_wd.connect(
+                                     self.set_current_client_working_directory)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -836,6 +836,13 @@ class IPythonConsole(SpyderPluginWidget):
                 _("No IPython console is currently available to run <b>%s</b>."
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
+
+    def set_current_client_working_directory(self, directory):
+        """Set current client working directory."""
+        shellwidget = self.get_current_shellwidget()
+        if shellwidget is not None:
+            directory = encoding.to_unicode_from_fs(directory)
+            shellwidget.set_cwd(directory)
 
     def execute_code(self, lines):
         sw = self.get_current_shellwidget()
@@ -1238,13 +1245,24 @@ class IPythonConsole(SpyderPluginWidget):
         ]
 
         # Environment variables that we need to pass to our sitecustomize
+        umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
+
+        if PY2:
+            original_list = umr_namelist[:]
+            for umr_n in umr_namelist:
+                try:
+                    umr_n.encode('utf-8')
+                except UnicodeDecodeError:
+                    umr_namelist.remove(umr_n)
+            if original_list != umr_namelist:
+                CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
+
         env_vars = {
             'IPYTHON_KERNEL': 'True',
             'EXTERNAL_INTERPRETER': not default_interpreter,
             'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
             'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(CONF.get('main_interpreter',
-                                              'umr/namelist'))
+            'UMR_NAMELIST': ','.join(umr_namelist)
         }
 
         # Add our PYTHONPATH to env_vars
@@ -1278,6 +1296,10 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Kernel client
         kernel_client = kernel_manager.client()
+
+        # Increase time to detect if a kernel is alive
+        # See Issue 3444
+        kernel_client.hb_channel.time_to_dead = 6.0
 
         return kernel_manager, kernel_client
 
@@ -1359,7 +1381,10 @@ class IPythonConsole(SpyderPluginWidget):
                                   password):
         # Verifying if the connection file exists
         try:
-            connection_file = find_connection_file(osp.basename(connection_file))
+            cf_path = osp.dirname(connection_file)
+            cf_filename = osp.basename(connection_file)
+            connection_file = find_connection_file(filename=cf_filename, 
+                                                   path=cf_path)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to "

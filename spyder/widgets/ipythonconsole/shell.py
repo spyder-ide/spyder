@@ -15,10 +15,9 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut, fixed_shortcut
+from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
-from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -81,6 +80,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         else:
             return False
 
+    def set_cwd(self, dirname):
+        """Set shell current working directory."""
+        return self.silent_execute(
+                         "get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+
     # --- To handle the banner
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
@@ -101,7 +105,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         mpl_installed = programs.is_module_installed('matplotlib')
         if mpl_installed and (pylab_o and autoload_pylab_o):
             pylab_message = ("\nPopulating the interactive namespace from "
-                             "numpy and matplotlib")
+                             "numpy and matplotlib\n")
             banner = banner + pylab_message
 
         # Sympy additions
@@ -114,6 +118,13 @@ These commands were executed:
 >>> x, y, z, t = symbols('x y z t')
 >>> k, m, n = symbols('k m n', integer=True)
 >>> f, g, h = symbols('f g h', cls=Function)
+"""
+            banner = banner + lines
+        if (pylab_o and sympy_o):
+            lines = """
+Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both 
+enabled at the same time. Some pylab functions are going to be overrided by 
+the sympy module (e.g. plot)
 """
             banner = banner + lines
         return banner
@@ -154,16 +165,20 @@ These commands were executed:
                                   parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+        new_tab = config_shortcut(lambda: self.new_client.emit(),
+                                  context='ipython_console', name='new tab', parent=self)
+        reset_namespace = config_shortcut(lambda: self.reset_namespace(),
+                                          context='ipython_console',
+                                          name='reset namespace', parent=self)
+        array_inline = config_shortcut(lambda: self.enter_array_inline(),
+                                       context='array_builder',
+                                       name='enter array inline', parent=self)
+        array_table = config_shortcut(lambda: self.enter_array_table(),
+                                      context='array_builder',
+                                      name='enter array table', parent=self)
 
-        # Fixed shortcuts
-        fixed_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
-        fixed_shortcut("Ctrl+Alt+R", self, lambda: self.reset_namespace())
-        fixed_shortcut(SHORTCUT_INLINE, self,
-                       lambda: self._control.enter_array_inline())
-        fixed_shortcut(SHORTCUT_TABLE, self,
-                       lambda: self._control.enter_array_table())
-
-        return [inspect, clear_console]
+        return [inspect, clear_console, new_tab, reset_namespace,
+                array_inline, array_table]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
@@ -221,7 +236,7 @@ These commands were executed:
                 reply = user_exp[expression]
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
-                    if 'text/plain' in data:
+                    if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
                         self.sig_namespace_view.emit(view)
                     else:

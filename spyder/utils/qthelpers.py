@@ -303,9 +303,10 @@ def add_actions(target, actions, insert_before=None):
                 target.addMenu(action)
             else:
                 target.insertMenu(insert_before, action)
-        elif isinstance(action, SpyderAction):
-            if isinstance(target, QMenu) or not isinstance(target, QToolBar):
-                action = action.no_icon_action
+        elif isinstance(action, QAction):
+            if isinstance(action, SpyderAction):
+                if isinstance(target, QMenu) or not isinstance(target, QToolBar):
+                    action = action.no_icon_action
             if insert_before is None:
                 target.addAction(action)
             else:
@@ -344,7 +345,7 @@ def create_module_bookmark_actions(parent, bookmarks):
         # Create actions for scientific distros only if Spyder is installed
         # under them
         create_act = True
-        if key == 'xy' or key == 'winpython':
+        if key == 'winpython':
             if not programs.is_module_installed(key):
                 create_act = False
         if create_act:

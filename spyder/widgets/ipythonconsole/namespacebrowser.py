@@ -179,8 +179,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         # Refresh namespacebrowser after the kernel starts running
         exec_count = msg['content']['execution_count']
         if exec_count == 0 and self._kernel_is_starting:
-            self.set_namespace_view_settings()
-            self.refresh_namespacebrowser()
+            if self.namespacebrowser is not None:
+                self.set_namespace_view_settings()
+                self.refresh_namespacebrowser()
             self._kernel_is_starting = False
 
         # Handle silent execution of kernel methods

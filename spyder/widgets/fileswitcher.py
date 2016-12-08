@@ -237,7 +237,7 @@ class FileSwitcher(QDialog):
 
         # Either allow searching for a line number or a symbol but not both
         regex = QRegExp("([A-Za-z0-9_]{0,100}@[A-Za-z0-9_]{0,100})|" +
-                        "([A-Za-z]{0,100}:{0,1}[0-9]{0,100})")
+                        "([A-Za-z0-9_]{0,100}:{0,1}[0-9]{0,100})")
 
         # Widgets
         self.edit = QLineEdit(self)
@@ -506,7 +506,7 @@ class FileSwitcher(QDialog):
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
-                text_item += "<br><i>{0:}</i>".format(short_paths[index])
+                text_item += u"<br><i>{0:}</i>".format(short_paths[index])
                 results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
