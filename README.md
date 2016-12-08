@@ -10,6 +10,7 @@ Copyright © Spyder Project Contributors.
 ## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/awb92if4tl555fuy/branch/master?svg=true)](https://ci.appveyor.com/project/ccordoba12/spyder/branch/master)
+[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=svg)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 
 ## Overview
