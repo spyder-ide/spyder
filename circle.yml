@@ -4,6 +4,8 @@ machine:
   environment:
     # Python versions to tests (Maximum of 4 different versions)
     PY_VERSIONS: "2.7 3.4 3.5"
+    # For Coveralls
+    COVERALLS_REPO_TOKEN: yt7YToGxRtnAcM6kSULoiCmOPetq10TaU
     # Environment variables used by astropy helpers
     TRAVIS_OS_NAME: "linux"
     CONDA_DEPENDENCIES_FLAGS: "--quiet"
