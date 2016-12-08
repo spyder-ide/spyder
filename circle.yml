@@ -33,6 +33,9 @@ test:
     # PyQt5
     - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=5.* pyqt=5.* qtconsole && python runtests.py: # note the colon
         parallel: true
+    # Coveralls
+    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls
+        parallel: true
     # PyQt4
 #    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=4.* pyqt=4.* qtconsole && python runtests.py: # note the colon
 #        parallel: true

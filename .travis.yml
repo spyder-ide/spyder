@@ -40,10 +40,8 @@ install:
   - if [ "${USE_CONDA}" = "true" ]; then
         source activate test-environment;
     fi
-  - pip install coveralls
 
 script:
   - ./continuous_integration/travis/build_test.sh
   - ./continuous_integration/travis/run_test.sh
   - ./continuous_integration/travis/modules_test.sh
-  - coveralls
