@@ -23,7 +23,7 @@ dependencies:
       export PATH="$HOME/miniconda/bin:$PATH" &&
       source activate test &&
       conda install ciocheck -c conda-forge -c continuumcrew &&
-      python setup.py install;
+      python setup.py install > /dev/null;
 
 test:
   override:
