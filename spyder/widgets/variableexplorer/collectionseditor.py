@@ -81,12 +81,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False,
-                 minmax=False, remote=False):
+                 minmax=False, dataframe_format=None, remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
         self.minmax = minmax
+        self.dataframe_format = dataframe_format
         self.remote = remote
         self.header0 = None
         self._data = None
@@ -463,6 +464,8 @@ class CollectionsDelegate(QItemDelegate):
             editor = DataFrameEditor()
             if not editor.setup_and_check(value, title=key):
                 return
+            editor.dataModel.set_format(index.model().dataframe_format)
+            editor.sig_option_changed.connect(self.change_option)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -512,6 +515,17 @@ class CollectionsDelegate(QItemDelegate):
                      lambda eid=id(editor): self.editor_rejected(eid))
         editor.show()
         
+    @Slot(str, object)
+    def change_option(self, option_name, new_value):
+        """
+        Change configuration option.
+
+        This function is called when a `sig_option_changed` signal is received.
+        At the moment, this signal can only come from a DataFrameEditor.
+        """
+        if option_name == 'dataframe_format':
+            self.parent().set_dataframe_format(new_value)
+
     def editor_accepted(self, editor_id):
         data = self._editors[editor_id]
         if not data['readonly']:
@@ -874,6 +888,17 @@ class BaseTableView(QTableView):
         """Toggle min/max display for numpy arrays"""
         self.sig_option_changed.emit('minmax', state)
         self.model.minmax = state
+
+    @Slot(str)
+    def set_dataframe_format(self, new_format):
+        """
+        Set format to use in DataframeEditor.
+
+        Args:
+            new_format (string): e.g. "%.3f"
+        """
+        self.sig_option_changed.emit('dataframe_format', new_format)
+        self.model.dataframe_format = new_format
 
     @Slot()
     def edit_item(self):
@@ -1333,6 +1358,7 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, minmax=False,
+                 dataframe_format=None,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1369,6 +1395,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.readonly = False
         self.model = CollectionsModel(self, data, names=True,
                                       minmax=minmax,
+                                      dataframe_format=dataframe_format,
                                       remote=True)
         self.setModel(self.model)
         self.delegate = RemoteCollectionsDelegate(self, get_value_func,
@@ -1481,7 +1508,8 @@ def remote_editor_test():
     from spyder.plugins.variableexplorer import VariableExplorer
     from spyder.widgets.variableexplorer.utils import make_remote_view
 
-    remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
+    remote = make_remote_view(get_test_data(), 
+                              VariableExplorer(None).get_settings())
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
