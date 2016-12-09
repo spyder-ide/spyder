@@ -1369,7 +1369,7 @@ class IPythonConsole(SpyderPluginWidget):
         if not osp.isdir(jupyter_runtime_dir()):
             try:
                 os.makedirs(jupyter_runtime_dir())
-            except PermissionError as pe:
+            except PermissionError:
                 return None
         cf = ''
         while not cf:
