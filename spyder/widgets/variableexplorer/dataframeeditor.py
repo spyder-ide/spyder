@@ -15,6 +15,7 @@ Pandas DataFrame Editor Dialog
 
 # Third party imports
 from pandas import DataFrame, Series
+from qtpy import PYQT5
 from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
@@ -430,7 +431,10 @@ class DataFrameView(QTableView):
         self.frozenTableView.setModel(self.model())
         self.frozenTableView.setFocusPolicy(Qt.NoFocus)
         self.frozenTableView.verticalHeader().hide()
-        self.frozenTableView.horizontalHeader().setResizeMode(QHeaderView.Fixed)
+        if PYQT5:
+            self.frozenTableView.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        else:
+            self.frozenTableView.horizontalHeader().setResizeMode(QHeaderView.Fixed)
 
         self.viewport().stackUnder(self.frozenTableView)
 
