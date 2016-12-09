@@ -1050,9 +1050,9 @@ class MainWindow(QMainWindow):
 
         self.view_menu.addMenu(self.plugins_menu)  # Panes
         add_actions(self.view_menu, (self.lock_dockwidgets_action,
-                                        self.close_dockwidget_action,
-                                        self.maximize_action,
-                                        menu_separator()))
+                                     self.close_dockwidget_action,
+                                     self.maximize_action,
+                                     menu_separator()))
         self.show_toolbars_action = create_action(self,
                                 _("Show toolbars"),
                                 triggered=self.show_toolbars,

@@ -983,7 +983,7 @@ class Editor(SpyderPluginWidget):
         # ---- File menu/toolbar construction ----
         self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
-        
+
         file_menu_actions = [self.new_action,
                              menu_separator(),
                              self.open_action,
@@ -1002,7 +1002,7 @@ class Editor(SpyderPluginWidget):
                              menu_separator(),
                              self.close_action,
                              self.close_all_action,
-                             menu_separator()]                     
+                             menu_separator()]
 
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
@@ -1023,8 +1023,9 @@ class Editor(SpyderPluginWidget):
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action,
-                                  self.text_uppercase_action, self.text_lowercase_action]
-        self.main.edit_menu_actions += [menu_separator()]+self.edit_menu_actions
+                                  self.text_uppercase_action,
+                                  self.text_lowercase_action]
+        self.main.edit_menu_actions += [menu_separator()] + self.edit_menu_actions
         edit_toolbar_actions = [self.toggle_comment_action,
                                 self.unindent_action, self.indent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
@@ -1036,9 +1037,9 @@ class Editor(SpyderPluginWidget):
           
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
-                            run_cell_advance_action, menu_separator(), 
-                            run_selected_action, re_run_action, configure_action, 
-                            menu_separator()]
+                            run_cell_advance_action, menu_separator(),
+                            run_selected_action, re_run_action,
+                            configure_action, menu_separator()]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, re_run_action,
@@ -1095,16 +1096,24 @@ class Editor(SpyderPluginWidget):
         self.main.source_toolbar_actions += source_toolbar_actions
 
         # ---- Dock widget and file dependent actions ----
-        self.dock_toolbar_actions = file_toolbar_actions + [menu_separator()] + \
-                                    source_toolbar_actions + [menu_separator()] + \
-                                    run_toolbar_actions + [menu_separator()] + \
-                                    debug_toolbar_actions +  [menu_separator()] + \
-                                    edit_toolbar_actions
+        self.dock_toolbar_actions = (file_toolbar_actions +
+                                     [menu_separator()] +
+                                     source_toolbar_actions +
+                                     [menu_separator()] +
+                                     run_toolbar_actions +
+                                     [menu_separator()] +
+                                     debug_toolbar_actions +
+                                     [menu_separator()] +
+                                     edit_toolbar_actions)
         self.pythonfile_dependent_actions = [run_action, configure_action,
-                     set_clear_breakpoint_action, set_cond_breakpoint_action,
-                     debug_action, run_selected_action, run_cell_action,
-                     run_cell_advance_action, blockcomment_action,
-                     unblockcomment_action, self.winpdb_action]
+                                             set_clear_breakpoint_action,
+                                             set_cond_breakpoint_action,
+                                             debug_action, run_selected_action,
+                                             run_cell_action,
+                                             run_cell_advance_action,
+                                             blockcomment_action,
+                                             unblockcomment_action,
+                                             self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
                  self.print_action, self.save_all_action, gotoline_action,
