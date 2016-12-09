@@ -195,7 +195,8 @@ class DataFrameModel(QAbstractTableModel):
                         header = to_text_string(self.df_header[0])
                     return to_qvariant(header)
                 else:
-                    return to_qvariant(to_text_string(self.df_header[section-1]))
+                    header = to_text_string(self.df_header[section - 1])
+                    return to_qvariant(header)
             else:
                 return to_qvariant()
 
