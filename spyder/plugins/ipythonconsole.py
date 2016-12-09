@@ -50,7 +50,7 @@ from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, menu_separator
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
@@ -751,7 +751,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, main_create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action]
+        main_consoles_menu += [menu_separator(), connect_to_kernel_action]
         
         # Plugin actions
         self.menu_actions = [create_client_action, connect_to_kernel_action]

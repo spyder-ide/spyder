@@ -109,7 +109,7 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 # Create our QApplication instance here because it's needed to render the
 # splash screen created below
 #==============================================================================
-from spyder.utils.qthelpers import qapplication
+from spyder.utils.qthelpers import qapplication, menu_separator
 MAIN_APP = qapplication()
 
 
@@ -659,7 +659,7 @@ class MainWindow(QMainWindow):
                             "(i.e. for all sessions)"),
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
-        self.tools_menu_actions += [reset_spyder_action, None,
+        self.tools_menu_actions += [reset_spyder_action, menu_separator(),
                                     update_modules_action]
 
         # External Tools submenu
@@ -950,9 +950,9 @@ class MainWindow(QMainWindow):
             self.tours_menu = None
 
         self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
-                                  None, report_action, dep_action,
+                                  menu_separator(), report_action, dep_action,
                                   self.check_updates_action, support_action,
-                                  None]
+                                  menu_separator()]
         # Python documentation
         if get_python_doc_path() is not None:
             pydoc_act = create_action(self, _("Python documentation"),
@@ -1021,7 +1021,7 @@ class MainWindow(QMainWindow):
                                 _("About %s...") % "Spyder",
                                 icon=ima.icon('MessageBoxInformation'),
                                 triggered=self.about)
-        self.help_menu_actions += [None, about_action]
+        self.help_menu_actions += [menu_separator(), about_action]
 
         # Status bar widgets
         from spyder.widgets.status import MemoryStatus, CPUStatus
@@ -1052,7 +1052,7 @@ class MainWindow(QMainWindow):
         add_actions(self.view_menu, (self.lock_dockwidgets_action,
                                         self.close_dockwidget_action,
                                         self.maximize_action,
-                                        None))
+                                        menu_separator()))
         self.show_toolbars_action = create_action(self,
                                 _("Show toolbars"),
                                 triggered=self.show_toolbars,
@@ -1061,18 +1061,18 @@ class MainWindow(QMainWindow):
                                "Show toolbars")
         self.view_menu.addMenu(self.toolbars_menu)
         self.view_menu.addAction(self.show_toolbars_action)
-        add_actions(self.view_menu, (None,
+        add_actions(self.view_menu, (menu_separator(),
                                      self.quick_layout_menu,
                                      self.toggle_previous_layout_action,
                                      self.toggle_next_layout_action,
-                                     None,
+                                     menu_separator(),
                                      self.fullscreen_action))
         if set_attached_console_visible is not None:
             cmd_act = create_action(self,
                                 _("Attached console window (debugging)"),
                                 toggled=set_attached_console_visible)
             cmd_act.setChecked(is_attached_console_visible())
-            add_actions(self.view_menu, (None, cmd_act))
+            add_actions(self.view_menu, (menu_separator(), cmd_act))
 
         # Adding external tools action to "Tools" menu
         if self.external_tools_menu_actions:

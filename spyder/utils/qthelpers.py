@@ -500,7 +500,7 @@ def show_std_icons():
     sys.exit(app.exec_())
 
     
-def get_menu_separator():
+def menu_separator():
     return None
 
 
