@@ -867,10 +867,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         if after_current_line:
             text = to_text_string(cursor.block().text())
-            if len(text) == 0:
-                #If the next line is blank
-                sel_text = sel_text[0:-1]
-                sel_text = os.linesep + sel_text
             if not text:
                 cursor.insertText(sel_text)
                 cursor.endEditBlock()
