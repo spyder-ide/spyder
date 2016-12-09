@@ -872,10 +872,10 @@ class IPythonConsole(SpyderPluginWidget):
         self.add_tab(client, name=client.get_name())
 
         if cf is None:
-            error_msg = ("The directory {} is not writable and it is "
-                         "required to create IPython consoles. Please make "
-                         "it writable.").format(jupyter_runtime_dir())
-            client.show_kernel_error(_(error_msg))
+            error_msg = _("The directory {} is not writable and it is "
+                          "required to create IPython consoles. Please make "
+                          "it writable.").format(jupyter_runtime_dir())
+            client.show_kernel_error(error_msg)
             return
 
         # Check if ipykernel is present in the external interpreter.
