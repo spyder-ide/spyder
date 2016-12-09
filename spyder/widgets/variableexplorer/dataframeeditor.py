@@ -435,7 +435,7 @@ class DataFrameView(QTableView):
         self.viewport().stackUnder(self.frozenTableView)
 
         self.frozenTableView.setSelectionModel(self.selectionModel())
-        for col in xrange(1, self.model().columnCount()):
+        for col in range(1, self.model().columnCount()):
             self.frozenTableView.setColumnHidden(col, True)
 
         self.frozenTableView.setColumnWidth(0, self.columnWidth(0))
