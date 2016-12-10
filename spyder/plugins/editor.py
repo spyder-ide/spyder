@@ -1023,7 +1023,7 @@ class Editor(SpyderPluginWidget):
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action,
-                                  self.text_uppercase_action, 
+                                  self.text_uppercase_action,
                                   self.text_lowercase_action]
         self.main.edit_menu_actions += [menu_separator()] + self.edit_menu_actions
         edit_toolbar_actions = [self.toggle_comment_action,
@@ -1038,8 +1038,8 @@ class Editor(SpyderPluginWidget):
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
                             run_cell_advance_action, menu_separator(),
-                            run_selected_action, re_run_action, configure_action,
-                            menu_separator()]
+                            run_selected_action, re_run_action, 
+                            configure_action, menu_separator()]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, re_run_action,
@@ -1096,10 +1096,14 @@ class Editor(SpyderPluginWidget):
         self.main.source_toolbar_actions += source_toolbar_actions
 
         # ---- Dock widget and file dependent actions ----
-        self.dock_toolbar_actions = file_toolbar_actions + [menu_separator()] + \
-                                    source_toolbar_actions + [menu_separator()] + \
-                                    run_toolbar_actions + [menu_separator()] + \
-                                    debug_toolbar_actions +  [menu_separator()] + \
+        self.dock_toolbar_actions = file_toolbar_actions + \
+                                    [menu_separator()] + \
+                                    source_toolbar_actions + \
+                                    [menu_separator()] + \
+                                    run_toolbar_actions + \
+                                    [menu_separator()] + \
+                                    debug_toolbar_actions + \
+                                    [menu_separator()] + \
                                     edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
                                              set_clear_breakpoint_action,
