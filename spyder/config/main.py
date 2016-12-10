@@ -182,8 +182,6 @@ DEFAULTS = [
               }),
             ('variable_explorer',
              {
-              'autorefresh': False,
-              'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
               'dataframe_format': '.3g', # no percent sign to avoid problems
                                          # with ConfigParser's interpolation
@@ -213,7 +211,7 @@ DEFAULTS = [
               'line_numbers': True,
               'blank_spaces': False,
               'edge_line': True,
-              'edge_line_column': 79,
+              'edge_line_columns': '79',
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
@@ -327,6 +325,7 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/layout preferences': "Shift+Alt+P",
               '_/show toolbars': "Alt+Shift+T",
+              '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
@@ -655,7 +654,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '30.0.0'
+CONF_VERSION = '32.0.0'
 
 # Main configuration instance
 try:

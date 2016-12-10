@@ -32,8 +32,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (get_error_match, get_python_executable,
                                is_python_script, remove_backslashes)
 from spyder.utils.qthelpers import create_action, mimedata2url
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.plugins.runconfig import get_run_configuration
 from spyder.py3compat import to_text_string, is_text_string, getcwd
 from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
@@ -557,8 +557,6 @@ class ExternalConsole(SpyderPluginWidget):
             umr_enabled = CONF.get('main_interpreter', 'umr/enabled')
             umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
             umr_verbose = CONF.get('main_interpreter', 'umr/verbose')
-            ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
-            ar_state = CONF.get('variable_explorer', 'autorefresh')
 
             sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
@@ -575,8 +573,6 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
-                           autorefresh_timeout=ar_timeout,
-                           autorefresh_state=ar_state,
                            light_background=light_background,
                            menu_actions=self.menu_actions,
                            show_buttons_inside=False,
@@ -689,8 +685,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.setTabIcon(index, icon)
         if self.help is not None:
             self.help.set_shell(shell.shell)
-        if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(shell)
 
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
