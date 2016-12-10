@@ -401,14 +401,44 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
+class FrozenTableView(QTableView):
+    def __init__(self, parent):
+        QTableView.__init__(self, parent)
+        self.setModel(parent.model())
+        self.setFocusPolicy(Qt.NoFocus)
+        self.verticalHeader().hide()
+        if PYQT5:
+            self.horizontalHeader(). \
+            setSectionResizeMode(QHeaderView.Fixed)
+        else:
+            self.horizontalHeader(). \
+            setResizeMode(QHeaderView.Fixed)
+
+        parent.viewport().stackUnder(self)
+
+        self.setSelectionModel(parent.selectionModel())
+        for col in range(1, parent.model().columnCount()):
+            self.setColumnHidden(col, True)
+
+        self.setColumnWidth(0, parent.columnWidth(0))
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.show()
+
+        self.setVerticalScrollMode(1)
+
+
 class DataFrameView(QTableView):
     """Data Frame view class"""
     def __init__(self, parent, model):
         QTableView.__init__(self, parent)
         self.setModel(model)
 
-        self.frozenTableView = QTableView(self)
-        self.init_frozen()
+        self.frozenTableView = FrozenTableView(self)
+        self.updateFrozenTableGeometry()
+
+        self.setHorizontalScrollMode(1)
+        self.setVerticalScrollMode(1)
 
         self.horizontalHeader().sectionResized.connect(self.updateSectionWidth)
         self.verticalHeader().sectionResized.connect(self.updateSectionHeight)
@@ -429,35 +459,6 @@ class DataFrameView(QTableView):
         self.verticalScrollBar().valueChanged.connect(
             self.frozenTableView.verticalScrollBar().setValue)
     
-    def init_frozen(self):
-        self.frozenTableView.setModel(self.model())
-        self.frozenTableView.setFocusPolicy(Qt.NoFocus)
-        self.frozenTableView.verticalHeader().hide()
-        if PYQT5:
-            self.frozenTableView.horizontalHeader(). \
-            setSectionResizeMode(QHeaderView.Fixed)
-        else:
-            self.frozenTableView.horizontalHeader(). \
-            setResizeMode(QHeaderView.Fixed)
-
-        self.viewport().stackUnder(self.frozenTableView)
-
-        self.frozenTableView.setSelectionModel(self.selectionModel())
-        for col in range(1, self.model().columnCount()):
-            self.frozenTableView.setColumnHidden(col, True)
-
-        self.frozenTableView.setColumnWidth(0, self.columnWidth(0))
-        self.frozenTableView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.frozenTableView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.frozenTableView.show()
-
-        self.updateFrozenTableGeometry()
-
-        self.setHorizontalScrollMode(1)
-        self.setVerticalScrollMode(1)
-
-        self.frozenTableView.setVerticalScrollMode(1)
-
     def updateSectionWidth(self, logicalIndex, oldSize, newSize):
         if logicalIndex == 0:
             self.frozenTableView.setColumnWidth(0, newSize)
