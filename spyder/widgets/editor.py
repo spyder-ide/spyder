@@ -2239,8 +2239,8 @@ class EditorMainWindow(QMainWindow):
         """Get the toolbars."""
         return self.toolbars
 
-    def add_actions_to_menu(self, menu_title, actions):
-        """Add actions to a menu."""
+    def add_toolbars_to_menu(self, menu_title, actions):
+        """Add toolbars to a menu."""
         menu = self.get_menu(menu_title)[0]
         if actions == self.toolbars and self.get_menu(menu_title):
             toolbars = []
@@ -2253,17 +2253,13 @@ class EditorMainWindow(QMainWindow):
     
     def load_toolbars(self):
         """Loads the last visible toolbars from the .ini file."""
-        
         toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
-        print(toolbars_names)
-        if toolbars_names:
-            
+        if toolbars_names:            
             dic = {}
             for toolbar in self.toolbars:
                 dic[toolbar.objectName()] = toolbar
                 toolbar.toggleViewAction().setChecked(False)
                 toolbar.setVisible(False)
-            print(dic)
             for name in toolbars_names:
                 if name in dic:
                     dic[name].toggleViewAction().setChecked(True)
