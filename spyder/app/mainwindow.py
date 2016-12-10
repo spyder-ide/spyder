@@ -915,9 +915,11 @@ class MainWindow(QMainWindow):
             spyder_doc = 'http://pythonhosted.org/spyder'
         else:
             spyder_doc = file_uri(spyder_doc)
-        doc_action = create_action( self, _("Spyder documentation"), shortcut="F1", 
+        doc_action = create_action( self, _("Spyder documentation"),
                                     icon=ima.icon('DialogHelpButton'),
                                     triggered=lambda : programs.start_file(spyder_doc))
+        self.register_shortcut(doc_action, "_",
+                               "spyder documentation")
 
         if self.help is not None:
             tut_action = create_action(self, _("Spyder tutorial"),
