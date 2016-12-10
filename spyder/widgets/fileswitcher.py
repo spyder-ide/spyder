@@ -506,7 +506,7 @@ class FileSwitcher(QDialog):
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
-                text_item += "<br><i>{0:}</i>".format(short_paths[index])
+                text_item += u"<br><i>{0:}</i>".format(short_paths[index])
                 results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget

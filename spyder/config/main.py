@@ -54,6 +54,12 @@ WIN = os.name == 'nt'
 MAC = sys.platform == 'darwin'
 CTRL = "Meta" if MAC else "Ctrl"
 
+# Run cell shortcuts
+if sys.platform == 'darwin':
+    RUN_CELL_SHORTCUT = 'Meta+Return'
+else:
+    RUN_CELL_SHORTCUT = 'Ctrl+Return'
+RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 
 # =============================================================================
 #  Defaults
@@ -179,6 +185,8 @@ DEFAULTS = [
               'autorefresh': False,
               'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
+              'dataframe_format': '.3g', # no percent sign to avoid problems
+                                         # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
@@ -214,7 +222,7 @@ DEFAULTS = [
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
-              'tab_stop_width': 40,
+              'tab_stop_width_spaces': 4,
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
@@ -349,6 +357,7 @@ DEFAULTS = [
               '_/find next': "F3",
               '_/find previous': "Shift+F3",
               '_/replace text': "Ctrl+R",
+              '_/hide find and replace': "Escape",
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
@@ -397,6 +406,7 @@ DEFAULTS = [
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
               'editor/new file': "Ctrl+N",
+              'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",
@@ -405,6 +415,14 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/zoom in 1': "Ctrl++",
+              'editor/zoom in 2': "Ctrl+=",
+              'editor/zoom out': "Ctrl+-",
+              'editor/zoom reset': "Ctrl+0",
+              'editor/close file 1': "Ctrl+W",
+              'editor/close file 2': "Ctrl+F4",
+              'editor/run cell': RUN_CELL_SHORTCUT,
+              'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               'editor/show/hide project explorer': "Ctrl+Alt+P",
@@ -417,12 +435,21 @@ DEFAULTS = [
               # ---- In Pylint ----
               'pylint/run analysis': "F8",
               # ---- In Profiler ----
-              'profiler/run profiler': "F10"
+              'profiler/run profiler': "F10",
+              # ---- In widgets/ipythonconsole/shell.py ----
+              'ipython_console/new tab': "Ctrl+T",
+              'ipython_console/reset namespace': "Ctrl+Alt+R",
+              # ---- In widgets/arraybuider.py ----
+              'array_builder/enter array inline': "Ctrl+Alt+M",
+              'array_builder/enter array table': "Ctrl+M",
+              # ---- In widgets/variableexplorer/aarayeditor.py ----
+              'variable_explorer/copy': 'Ctrl+C',
               }),
             ('color_schemes',
              {
               'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
-                        'spyder', 'spyder/dark', 'zenburn'],
+                        'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
+                        'solarized/dark'],
               'selected': 'spyder',
               # ---- Emacs ----
               'emacs/name':        "Emacs",
@@ -505,7 +532,7 @@ DEFAULTS = [
               #         Name             Color     Bold  Italic
               'scintilla/background':  "#ffffff",
               'scintilla/currentline': "#e1f0d1",
-              'scintilla/currentcell': "#edfcdc",  
+              'scintilla/currentcell': "#edfcdc",
               'scintilla/occurrence':   "#ffff99",
               'scintilla/ctrlclick':   "#0000ff",
               'scintilla/sideareas':   "#efefef",
@@ -524,7 +551,7 @@ DEFAULTS = [
               #       Name            Color     Bold  Italic
               'spyder/background':  "#ffffff",
               'spyder/currentline': "#f7ecf8",
-              'spyder/currentcell': "#fdfdde",              
+              'spyder/currentcell': "#fdfdde",
               'spyder/occurrence':   "#ffff99",
               'spyder/ctrlclick':   "#0000ff",
               'spyder/sideareas':   "#efefef",
@@ -575,7 +602,45 @@ DEFAULTS = [
               'zenburn/comment':    ('#7f9f7f', False, True),
               'zenburn/string':     ('#cc9393', False, False),
               'zenburn/number':     ('#8cd0d3', False, False),
-              'zenburn/instance':   ('#dcdccc', False, True)
+              'zenburn/instance':   ('#dcdccc', False, True),
+              # ---- Solarized Light ----
+              'solarized/light/name':        "Solarized Light",
+              #        Name            Color     Bold  Italic
+              'solarized/light/background':  '#fdf6e3',
+              'solarized/light/currentline': '#f5efdB',
+              'solarized/light/currentcell': '#eee8d5',
+              'solarized/light/occurence':   '#839496',
+              'solarized/light/ctrlclick':   '#d33682',
+              'solarized/light/sideareas':   '#eee8d5',
+              'solarized/light/matched_p':   '#586e75',
+              'solarized/light/unmatched_p': '#dc322f',
+              'solarized/light/normal':     ('#657b83', False, False),
+              'solarized/light/keyword':    ('#859900', False, False),
+              'solarized/light/builtin':    ('#6c71c4', False, False),
+              'solarized/light/definition': ('#268bd2', True, False),
+              'solarized/light/comment':    ('#93a1a1', False, True),
+              'solarized/light/string':     ('#2aa198', False, False),
+              'solarized/light/number':     ('#cb4b16', False, False),
+              'solarized/light/instance':   ('#b58900', False, True),
+              # ---- Solarized Dark ----
+              'solarized/dark/name':        "Solarized Dark",
+              #        Name            Color     Bold  Italic
+              'solarized/dark/background':  '#002b36',
+              'solarized/dark/currentline': '#083f4d',
+              'solarized/dark/currentcell': '#073642',
+              'solarized/dark/occurence':   '#657b83',
+              'solarized/dark/ctrlclick':   '#d33682',
+              'solarized/dark/sideareas':   '#073642',
+              'solarized/dark/matched_p':   '#93a1a1',
+              'solarized/dark/unmatched_p': '#dc322f',
+              'solarized/dark/normal':     ('#839496', False, False),
+              'solarized/dark/keyword':    ('#859900', False, False),
+              'solarized/dark/builtin':    ('#6c71c4', False, False),
+              'solarized/dark/definition': ('#268bd2', True, False),
+              'solarized/dark/comment':    ('#586e75', False, True),
+              'solarized/dark/string':     ('#2aa198', False, False),
+              'solarized/dark/number':     ('#cb4b16', False, False),
+              'solarized/dark/instance':   ('#b58900', False, True)
              })
             ]
 
@@ -590,7 +655,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '29.0.0'
+CONF_VERSION = '30.0.0'
 
 # Main configuration instance
 try:

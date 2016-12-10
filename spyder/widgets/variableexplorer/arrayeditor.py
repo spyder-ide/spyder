@@ -20,7 +20,7 @@ from __future__ import print_function
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
-from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
+from qtpy.QtGui import QColor, QCursor, QDoubleValidator
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGridLayout,
                             QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
@@ -32,7 +32,7 @@ import numpy as np
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, fixed_shortcut
+from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import (io, is_binary_string, is_string,
                               is_text_string, PY3, to_binary_string,
                               to_text_string)
@@ -399,7 +399,8 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        fixed_shortcut(QKeySequence.Copy, self, self.copy)
+        config_shortcut(self.copy, context='variable_explorer', name='copy',
+                        parent=self)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(

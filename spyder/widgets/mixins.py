@@ -125,9 +125,12 @@ class BaseEditMixin(object):
         if not is_text_string(text): # testing for QString (PyQt API#1)
             text = to_text_string(text)
         eol_chars = sourcecode.get_eol_chars(text)
-        if eol_chars is not None and self.eol_chars is not None:
-            self.document().setModified(True)
+        is_document_modified = eol_chars is not None and self.eol_chars is not None
         self.eol_chars = eol_chars
+        if is_document_modified:
+            self.document().setModified(True)
+            if self.sig_eol_chars_changed is not None:
+                self.sig_eol_chars_changed.emit(eol_chars)
         
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
@@ -388,7 +391,7 @@ class BaseEditMixin(object):
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
-        text = text.replace("\t", " "*4)
+        text = text.replace("\t", " "*self.tab_stop_width_spaces)
         return len(text)-len(text.lstrip())
     
     def get_selection_bounds(self):

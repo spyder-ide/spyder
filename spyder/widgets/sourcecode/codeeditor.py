@@ -44,10 +44,9 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyder.config.base import get_conf_path, _, DEBUG
-from spyder.config.gui import (config_shortcut, fixed_shortcut, get_shortcut,
-                               RUN_CELL_SHORTCUT,
-                               RUN_CELL_AND_ADVANCE_SHORTCUT)
-from spyder.config.main import CONF
+from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
+                                RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
@@ -55,7 +54,6 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.editortools import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
@@ -617,10 +615,12 @@ class CodeEditor(TextEditBaseWidget):
                                  name='delete', parent=self)
         select_all = config_shortcut(self.selectAll, context='Editor',
                                      name='Select All', parent=self)
-
-        # Fixed shortcuts
-        fixed_shortcut(SHORTCUT_INLINE, self, lambda: self.enter_array_inline())
-        fixed_shortcut(SHORTCUT_TABLE, self, lambda: self.enter_array_table())
+        array_inline = config_shortcut(lambda: self.enter_array_inline(),
+                                       context='array_builder',
+                                       name='enter array inline', parent=self)
+        array_table = config_shortcut(lambda: self.enter_array_table(),
+                                      context='array_builder',
+                                      name='enter array table', parent=self)
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
@@ -629,7 +629,7 @@ class CodeEditor(TextEditBaseWidget):
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
                 kill_next_word, start_doc, end_doc, undo, redo, cut, copy,
-                paste, delete, select_all]
+                paste, delete, select_all, array_inline, array_table]
 
     def get_shortcut_data(self):
         """
@@ -670,7 +670,7 @@ class CodeEditor(TextEditBaseWidget):
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
-                     tab_stop_width=40, cloned_from=None, filename=None,
+                     tab_stop_width_spaces=4, cloned_from=None, filename=None,
                      occurrence_timeout=1500):
         
         # Code completion and calltips
@@ -684,7 +684,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
-        self.setTabStopWidth(tab_stop_width)
+        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -1912,25 +1912,40 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         # find the line that contains our scope
-        diff = 0
+        diff_paren = 0
+        diff_brack = 0
+        diff_curly = 0
         add_indent = False
         prevline = None
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            if (self.is_python_like() and not prevtext.strip().startswith('#') \
-              and prevtext) or prevtext:
-                if prevtext.strip().endswith(')'):
+            
+            if ((self.is_python_like() 
+                 and not prevtext.strip().startswith('#')
+                 and prevtext) 
+                or prevtext):
+                    
+                if (prevtext.strip().endswith(')')
+                    or prevtext.strip().endswith(']')
+                    or prevtext.strip().endswith('}')):
+                
                     comment_or_string = True  # prevent further parsing
+                    
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
-                if prevtext.count(')') > prevtext.count('('):
-                    diff = prevtext.count(')') - prevtext.count('(')
-                    continue
-                elif diff:
-                    diff += prevtext.count(')') - prevtext.count('(')
-                    if not diff:
+                if (prevtext.count(')') > prevtext.count('(')):
+                    diff_paren = prevtext.count(')') - prevtext.count('(')
+                elif (prevtext.count(']') > prevtext.count('[')):
+                    diff_brack = prevtext.count(']') - prevtext.count('[')
+                elif (prevtext.count('}') > prevtext.count('{')):
+                    diff_curly = prevtext.count('}') - prevtext.count('{')
+                elif diff_paren or diff_brack or diff_curly:
+                    diff_paren += prevtext.count(')') - prevtext.count('(')
+                    diff_brack += prevtext.count(']') - prevtext.count('[')
+                    diff_curly += prevtext.count('}') - prevtext.count('{')
+                    if not (diff_paren or diff_brack or diff_curly):
                         break
                 else:
                     break
@@ -1944,7 +1959,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if add_indent:
             if self.indent_chars == '\t':
-                correct_indent += 4
+                correct_indent += self.tab_stop_width_spaces
             else:
                 correct_indent += len(self.indent_chars)
 
@@ -1952,36 +1967,44 @@ class CodeEditor(TextEditBaseWidget):
             if prevtext.endswith(':') and self.is_python_like():
                 # Indent
                 if self.indent_chars == '\t':
-                    correct_indent += 4
+                    correct_indent += self.tab_stop_width_spaces
                 else:
                     correct_indent += len(self.indent_chars)
             elif (prevtext.endswith('continue') or prevtext.endswith('break') \
               or prevtext.endswith('pass')) and self.is_python_like():
                 # Unindent
                 if self.indent_chars == '\t':
-                    correct_indent -= 4
+                    correct_indent -= self.tab_stop_width_spaces
                 else:
                     correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
-                rlmap = {")":"(", "]":"[", "}":"{"}
-                for par in rlmap:
-                    i_right = prevtext.rfind(par)
-                    if i_right != -1:
-                        prevtext = prevtext[:i_right]
-                        for _i in range(len(prevtext.split(par))):
-                            i_left = prevtext.rfind(rlmap[par])
-                            if i_left != -1:
-                                prevtext = prevtext[:i_left]
-                            else:
-                                break
-                else:
-                    if prevtext.strip():
-                        if len(re.split(r'\(|\{|\[', prevtext)) > 1:
-                            #correct indent only if there are still opening brackets
-                            prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                            correct_indent = len(prevtext)-len(prevexpr)
+                # Hanging indent
+                # find out if the last one is (, {, or []})
+                if re.search(r'[\(|\{|\[]\s*$', prevtext) is not None:
+                    if self.indent_chars == '\t':
+                        correct_indent += self.tab_stop_width_spaces * 2
                     else:
-                        correct_indent = len(prevtext)
+                        correct_indent += len(self.indent_chars) * 2
+                else:
+                    rlmap = {")":"(", "]":"[", "}":"{"}
+                    for par in rlmap:
+                        i_right = prevtext.rfind(par)
+                        if i_right != -1:
+                            prevtext = prevtext[:i_right]
+                            for _i in range(len(prevtext.split(par))):
+                                i_left = prevtext.rfind(rlmap[par])
+                                if i_left != -1:
+                                    prevtext = prevtext[:i_left]
+                                else:
+                                    break
+                    else:
+                        if prevtext.strip():
+                            if len(re.split(r'\(|\{|\[', prevtext)) > 1:
+                                #correct indent only if there are still opening brackets
+                                prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                                correct_indent = len(prevtext)-len(prevexpr)
+                            else:
+                                correct_indent = len(prevtext)
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
@@ -1994,8 +2017,8 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
-                indent_text = '\t' * (correct_indent // 4) \
-                            + ' ' * (correct_indent % 4)
+                indent_text = '\t' * (correct_indent // self.tab_stop_width_spaces) \
+                            + ' ' * (correct_indent % self.tab_stop_width_spaces)
             else:
                 indent_text = ' '*correct_indent
             cursor.insertText(indent_text)
