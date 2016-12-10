@@ -152,15 +152,18 @@ def differentiate_prefix(path_components0, path_components1):
     Taken from http://stackoverflow.com/q/21498939/438386
     """
     longest_prefix = []
-    for (elmt0, elmt1) in zip(path_components0, path_components1):
+    root_comparison = False
+    for index, (elmt0, elmt1) in enumerate(zip(path_components0, path_components1)):
         if elmt0 != elmt1:
+            if index == 2:
+                root_comparison = True
             break
         longest_prefix.append(elmt0)
     file_name_length = len(path_components0[len(path_components0) - 1])
-    longest_path_prefix = os.path.join(*longest_prefix)
-    longest_prefix_length = len(longest_path_prefix) + 1
     path_0 = os.path.join(*path_components0)[:-file_name_length - 1]
-    if(path_0[longest_prefix_length:] != ""):
-        return path_0[longest_prefix_length:]
-    else:
-        return path_0
+    if len(longest_prefix) > 0:
+        longest_path_prefix = os.path.join(*longest_prefix)
+        longest_prefix_length = len(longest_path_prefix) + 1
+        if(path_0[longest_prefix_length:] != "" and not root_comparison):
+            path_0 = path_0[longest_prefix_length:]
+    return path_0
