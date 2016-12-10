@@ -151,7 +151,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
                                    tip=_("Search text in multiple files"))        
         
         self.main.search_menu_actions += [menu_separator(), findinfiles_action]
-        self.main.search_toolbar_actions += [menu_separator(), 
+        self.main.search_toolbar_actions += [menu_separator(),
                                              findinfiles_action]
     
     def refresh_plugin(self):

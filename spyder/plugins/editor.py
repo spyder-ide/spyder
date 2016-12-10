@@ -1038,7 +1038,7 @@ class Editor(SpyderPluginWidget):
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
                             run_cell_advance_action, menu_separator(),
-                            run_selected_action, re_run_action, 
+                            run_selected_action, re_run_action,
                             configure_action, menu_separator()]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
@@ -1096,15 +1096,15 @@ class Editor(SpyderPluginWidget):
         self.main.source_toolbar_actions += source_toolbar_actions
 
         # ---- Dock widget and file dependent actions ----
-        self.dock_toolbar_actions = file_toolbar_actions + \
-                                    [menu_separator()] + \
-                                    source_toolbar_actions + \
-                                    [menu_separator()] + \
-                                    run_toolbar_actions + \
-                                    [menu_separator()] + \
-                                    debug_toolbar_actions + \
-                                    [menu_separator()] + \
-                                    edit_toolbar_actions
+        self.dock_toolbar_actions = file_toolbar_actions \
+                                    + [menu_separator()] \
+                                    + source_toolbar_actions \
+                                    + [menu_separator()] \
+                                    + run_toolbar_actions \
+                                    + [menu_separator()] \
+                                    + debug_toolbar_actions \
+                                    + [menu_separator()] \
+                                    + edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
                                              set_clear_breakpoint_action,
                                              set_cond_breakpoint_action,
