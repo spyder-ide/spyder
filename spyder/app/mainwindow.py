@@ -834,6 +834,7 @@ class MainWindow(QMainWindow):
         from spyder.plugins.editor import Editor
         self.editor = Editor(self)
         self.editor.register_plugin()
+        self.editor.dockwidget.topLevelChanged.connect(self.undock_editor)
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -2261,6 +2262,15 @@ class MainWindow(QMainWindow):
         if is_text_string(icon):
             icon = get_icon(icon)
         self.fullscreen_action.setIcon(icon)
+
+    @Slot()
+    def undock_editor(self):
+        """Open a new window instance of the Editor instead of undoking it."""
+        if(self.editor.dockwidget.isFloating()):
+            self.editor.dockwidget.setVisible(False)
+            self.editor.create_new_window()
+            self.editor.toggle_view_action.setChecked(False)
+            self.editor.dockwidget.setFloating(False)
 
     @Slot()
     def toggle_fullscreen(self):
