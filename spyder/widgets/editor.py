@@ -984,8 +984,12 @@ class EditorStack(QWidget):
                 diff_path_length = len(diff_path)
                 if (diff_path_length > 20):
                     path_component = sourcecode.path_components(diff_path)
-                    path_component = [path_component[0], '...', 
-                                       path_component[-1]]
+                    if path_component[0] != '/':
+                        path_component = [path_component[0], '...', 
+                                           path_component[-1]]
+                    else:
+                        path_component = [path_component[2], '...', 
+                                           path_component[-1]]
                     diff_path = os.path.join(*path_component)
                 fname = fname + " - " + diff_path
                 break

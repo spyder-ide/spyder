@@ -10,6 +10,7 @@ Source code text utilities
 
 import re
 import os
+import sys
 
 from spyder.py3compat import PY2
 if PY2:
@@ -167,8 +168,10 @@ def differentiate_prefix(path_components0, path_components1):
     if len(longest_prefix) > 0:
         longest_path_prefix = os.path.join(*longest_prefix)
         longest_prefix_length = len(longest_path_prefix) + 1
-        if path_0[longest_prefix_length:] != "" and not root_comparison:
+        if path_0[longest_prefix_length:] != '' and not root_comparison:
             path_0 = path_0[longest_prefix_length:]
         elif not root_comparison:
             path_0 = common_elmt
+        elif sys.platform.startswith('linux') and path_0 == '':
+            path_0 = '/'
     return path_0
