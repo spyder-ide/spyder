@@ -15,10 +15,9 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut, fixed_shortcut
+from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
-from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -84,7 +83,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     def set_cwd(self, dirname):
         """Set shell current working directory."""
         return self.silent_execute(
-                         "get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+            u"get_ipython().kernel.set_cwd(r'{}')".format(dirname))
 
     # --- To handle the banner
     def long_banner(self):
@@ -166,16 +165,20 @@ the sympy module (e.g. plot)
                                   parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+        new_tab = config_shortcut(lambda: self.new_client.emit(),
+                                  context='ipython_console', name='new tab', parent=self)
+        reset_namespace = config_shortcut(lambda: self.reset_namespace(),
+                                          context='ipython_console',
+                                          name='reset namespace', parent=self)
+        array_inline = config_shortcut(lambda: self.enter_array_inline(),
+                                       context='array_builder',
+                                       name='enter array inline', parent=self)
+        array_table = config_shortcut(lambda: self.enter_array_table(),
+                                      context='array_builder',
+                                      name='enter array table', parent=self)
 
-        # Fixed shortcuts
-        fixed_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
-        fixed_shortcut("Ctrl+Alt+R", self, lambda: self.reset_namespace())
-        fixed_shortcut(SHORTCUT_INLINE, self,
-                       lambda: self._control.enter_array_inline())
-        fixed_shortcut(SHORTCUT_TABLE, self,
-                       lambda: self._control.enter_array_table())
-
-        return [inspect, clear_console]
+        return [inspect, clear_console, new_tab, reset_namespace,
+                array_inline, array_table]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
