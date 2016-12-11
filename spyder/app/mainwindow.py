@@ -2265,7 +2265,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def undock_editor(self):
-        """Open a new window instance of the Editor instead of undoking it."""
+        """Open a new window instance of the Editor instead of undocking it."""
         if(self.editor.dockwidget.isFloating()):
             self.editor.dockwidget.setVisible(False)
             self.editor.create_new_window()
