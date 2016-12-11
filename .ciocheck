@@ -6,7 +6,7 @@
 branch = origin/master
 diff_mode = commited
 file_mode = lines
-check = pep8,pydocstyle,flake8,pylint
+check = pep8,pydocstyle,flake8
 enforce = pep8,pydocstyle,flake8
 
 # Python (pyformat)
@@ -79,29 +79,3 @@ spaces_before_comment = 2
 exclude = */tests/*
 ignore = E126,
 max-line-length = 79
-
-# -----------------------------------------------------------------------------
-# Coverage
-# http://coverage.readthedocs.io/en/latest/config.html
-# -----------------------------------------------------------------------------
-[coverage:run]
-omit =
-    */tests/*
-    */build/*
-
-[coverage:report]
-fail_under = 0
-show_missing = true
-skip_covered = true
-exclude_lines =
-    pragma: no cover
-    def test():
-    if __name__ == .__main__.:
-
-# -----------------------------------------------------------------------------
-# pytest
-# http://doc.pytest.org/en/latest/usage.html
-# -----------------------------------------------------------------------------
-[pytest]
-addopts = -rfew --durations=10
-python_functions = test_*
