@@ -128,7 +128,7 @@ def path_components(path):
     """
     Return the individual components of a given file path
     string (for the local operating system).
-        
+
     Taken from http://stackoverflow.com/q/21498939/438386
     """
     components = []

@@ -965,7 +965,7 @@ class EditorStack(QWidget):
             title = "(%s)" % title
         return title
 
-    def get_tab_text(self, index, filename, is_modified=None, is_readonly=None):
+    def get_tab_text(self, index, is_modified=None, is_readonly=None):
         """Return tab title"""
         fname = self.get_file_title(index)
         return self.__modified_readonly_title(fname,
@@ -1023,8 +1023,8 @@ class EditorStack(QWidget):
         self.data.append(finfo)
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
-        fname, editor = finfo.filename, finfo.editor
-        self.tabs.insertTab(index, editor, self.get_tab_text(index, fname))
+        editor = finfo.editor
+        self.tabs.insertTab(index, editor, self.get_tab_text(index))
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
@@ -1041,7 +1041,7 @@ class EditorStack(QWidget):
             else:
                 is_modified = None
             index = self.data.index(finfo)
-            tab_text = self.get_tab_text(index, finfo.filename, is_modified)
+            tab_text = self.get_tab_text(index, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
             index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
@@ -1075,7 +1075,7 @@ class EditorStack(QWidget):
         fname = finfo.filename
         is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
-        tab_text = self.get_tab_text(index, fname, is_modified, is_readonly)
+        tab_text = self.get_tab_text(index, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
         self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
@@ -1219,9 +1219,7 @@ class EditorStack(QWidget):
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
-        
         self.__modify_stack_title()
-        
         return is_ok
 
     def close_all_files(self):

@@ -296,7 +296,8 @@ class FileSwitcher(QDialog):
 
     @property
     def filenames(self):
-        return [os.path.basename(getattr(td, 'filename', None)) for td in self.data]
+        return [os.path.basename(getattr(td, 'filename',
+                                         None)) for td in self.data]
 
     @property
     def current_path(self):
