@@ -1917,20 +1917,18 @@ class CodeEditor(TextEditBaseWidget):
         diff_curly = 0
         add_indent = False
         prevline = None
-        if not self.get_block_indentation(block_nb - 1):
-            return False
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
             if prevtext:
 
-                if (prevtext.strip().endswith(')')
-                    or prevtext.strip().endswith(']')
-                    or prevtext.strip().endswith('}')):
-                
+                if (prevtext.strip().endswith(')') or
+                   prevtext.strip().endswith(']') or
+                   prevtext.strip().endswith('}')):
+
                     comment_or_string = True  # prevent further parsing
-                    
+    
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
@@ -2008,6 +2006,10 @@ class CodeEditor(TextEditBaseWidget):
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
             # No indentation fix is necessary
+            return False
+
+        if not self.get_block_indentation(block_nb - 1) and \
+           not comment_or_string:
             return False
 
         if correct_indent >= 0:
