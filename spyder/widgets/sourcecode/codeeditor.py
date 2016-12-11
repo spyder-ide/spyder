@@ -1917,15 +1917,14 @@ class CodeEditor(TextEditBaseWidget):
         diff_curly = 0
         add_indent = False
         prevline = None
+        if not self.get_block_indentation(block_nb - 1):
+            return False
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            
-            if ((self.is_python_like() 
-                 and not prevtext.strip().startswith('#')
-                 and prevtext) 
-                or prevtext):
-                    
+
+            if prevtext:
+
                 if (prevtext.strip().endswith(')')
                     or prevtext.strip().endswith(']')
                     or prevtext.strip().endswith('}')):
