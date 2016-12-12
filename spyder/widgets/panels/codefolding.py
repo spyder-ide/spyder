@@ -9,9 +9,8 @@ from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
 from qtpy.QtWidgets import (QMenu, QAction, QApplication, QStyleOptionViewItem,
                             QStyle)
 from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
-                        QLinearGradient, QPen, QStyleOptionViewItemV2,
+                        QLinearGradient, QPen,
                         QPalette, QResizeEvent, QIcon, QCursor)
-from qtpy import PYQT5
 
 from spyder.config.base import _
 from spyder.api.decoration import TextDecoration
@@ -365,10 +364,8 @@ class FoldingPanel(Panel):
         rect = QRect(0, top, self.sizeHint().width(),
                             self.sizeHint().height())
         if self._native:
-            if os.environ['QT_API'].lower() not in PYQT5:
-                opt = QStyleOptionViewItemV2()
-            else:
-                opt = QStyleOptionViewItem()
+            opt = QStyleOptionViewItem()
+
             opt.rect = rect
             opt.state = (QStyle.State_Active |
                          QStyle.State_Item |
