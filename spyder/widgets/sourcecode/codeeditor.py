@@ -61,6 +61,7 @@ from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
+from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.api.panel import Panel
 
 try:
@@ -265,6 +266,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Blanks enabled
         self.blanks_enabled = False
+
+        # Folding
+        self.panels.register(FoldingPanel())
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
