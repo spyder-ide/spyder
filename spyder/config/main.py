@@ -327,6 +327,7 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/layout preferences': "Shift+Alt+P",
               '_/show toolbars': "Alt+Shift+T",
+              '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
@@ -406,6 +407,7 @@ DEFAULTS = [
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
               'editor/new file': "Ctrl+N",
+              'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",

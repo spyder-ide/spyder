@@ -915,9 +915,12 @@ class MainWindow(QMainWindow):
             spyder_doc = 'http://pythonhosted.org/spyder'
         else:
             spyder_doc = file_uri(spyder_doc)
-        doc_action = create_action( self, _("Spyder documentation"), shortcut="F1", 
-                                    icon=ima.icon('DialogHelpButton'),
-                                    triggered=lambda : programs.start_file(spyder_doc))
+        doc_action = create_action(self, _("Spyder documentation"),
+                                   icon=ima.icon('DialogHelpButton'),
+                                   triggered=lambda:
+                                   programs.start_file(spyder_doc))
+        self.register_shortcut(doc_action, "_",
+                               "spyder documentation")
 
         if self.help is not None:
             tut_action = create_action(self, _("Spyder tutorial"),
@@ -1117,8 +1120,8 @@ class MainWindow(QMainWindow):
         # This is a workaround because we can't disable shortcuts
         # by setting context=Qt.WidgetShortcut there
         if sys.platform == 'darwin':
-            for name in ['file', 'search', 'source', 'run', 'debug',
-                         'plugins']:
+            for name in ['file', 'edit', 'search', 'source', 'run', 'debug',
+                         'projects', 'tools', 'plugins']:
                 menu_object = getattr(self, name + '_menu')
                 menu_object.aboutToShow.connect(
                     lambda name=name: self.show_shortcuts(name))
