@@ -2230,10 +2230,6 @@ class EditorMainWindow(QMainWindow):
                 else:
                     add_actions(menu, actions)
                 self.menus.append(menu)
- 
-    def get_menu(self, menu_title):
-        """Get a menu."""
-        return [menu for menu in self.menus if menu.title() == menu_title]
 
     def get_toolbars(self):
         """Get the toolbars."""
@@ -2241,16 +2237,16 @@ class EditorMainWindow(QMainWindow):
 
     def add_toolbars_to_menu(self, menu_title, actions):
         """Add toolbars to a menu."""
-        menu = self.get_menu(menu_title)[0]
-        if actions == self.toolbars and self.get_menu(menu_title):
+        # Six is the position of the view menu in menus list
+        # that you can find in plugins/editor.py setup_other_windows. 
+        view_menu = self.menus[6]
+        if actions == self.toolbars and view_menu:
             toolbars = []
             for toolbar in self.toolbars:
                 action = toolbar.toggleViewAction()
                 toolbars.append(action)
-            add_actions(menu, toolbars)
-        else:
-            add_actions(menu, actions)
-    
+            add_actions(view_menu, toolbars)
+
     def load_toolbars(self):
         """Loads the last visible toolbars from the .ini file."""
         toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
