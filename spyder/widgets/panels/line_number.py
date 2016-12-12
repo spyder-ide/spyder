@@ -8,7 +8,6 @@ This module contains the Line Number panel
 """
 import sys
 
-from qtpy.QtWidgets import QWidget
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QPainter, QColor
 
