@@ -62,7 +62,6 @@ else:
     def _search_return_in_numpydocstr(docstr):
         r"""
         Search `docstr` (in numpydoc format) for type(-s) of `param_str`.
-
         """
         doc = NumpyDocString(docstr)
         returns = doc._parsed_data['Returns']
@@ -115,7 +114,6 @@ def _search_param_in_docstr(docstr, param_str):
     False
     >>> _search_param_in_docstr(':param int param: some description', 'param')
     ['int']
-
     """
     # look at #40 to see definitions of those params
 
@@ -153,7 +151,6 @@ def _strip_rst_role(type_str):
 
     See also:
     http://sphinx-doc.org/domains.html#cross-referencing-python-objects
-
     """
     match = REST_ROLE_PATTERN.match(type_str)
     if match:
