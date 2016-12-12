@@ -6,7 +6,10 @@ import functools
 import logging
 import weakref
 
-from pyqode.qt import QtCore, QtGui, QtWidgets
+from qtpy.QtCore import QTimer, Qt
+from qtpy.QtGui import QColor, QTextCursor, QTextBlock, QTextDocument, QCursor
+
+from qtpy.QtWidgets import QApplication
 
 
 def _logger():
@@ -55,12 +58,12 @@ def drift_color(base_color, factor=110):
     ;:param factor: drift factor (%)
     :return A lighter or darker color.
     """
-    base_color = QtGui.QColor(base_color)
+    base_color = QColor(base_color)
     if base_color.lightness() > 128:
         return base_color.darker(factor)
     else:
-        if base_color == QtGui.QColor('#000000'):
-            return drift_color(QtGui.QColor('#101010'), factor + 20)
+        if base_color == QColor('#000000'):
+            return drift_color(QColor('#101010'), factor + 20)
         else:
             return base_color.lighter(factor + 10)
 
@@ -81,7 +84,7 @@ class DelayJobRunner(object):
         :param delay: Delay to wait before running the job. This delay applies
         to all requests and cannot be changed afterwards.
         """
-        self._timer = QtCore.QTimer()
+        self._timer = QTimer()
         self.delay = delay
         self._timer.timeout.connect(self._exec_requested_job)
         self._args = []
@@ -382,7 +385,7 @@ class TextHelper(object):
         # restore cursor and scrollbars
         text_cursor = editor.textCursor()
         doc = editor.document()
-        assert isinstance(doc, QtGui.QTextDocument)
+        assert isinstance(doc, QTextDocument)
         text_cursor = self._move_cursor_to(pos[0])
         text_cursor.movePosition(text_cursor.StartOfLine,
                                  text_cursor.MoveAnchor)
@@ -476,7 +479,7 @@ class TextHelper(object):
             editor.textCursor().selectionStart()).blockNumber()
         end = doc.findBlock(
             editor.textCursor().selectionEnd()).blockNumber()
-        text_cursor = QtGui.QTextCursor(editor.textCursor())
+        text_cursor = QTextCursor(editor.textCursor())
         text_cursor.setPosition(editor.textCursor().selectionEnd())
         if text_cursor.columnNumber() == 0 and start != end:
             end -= 1
@@ -537,7 +540,7 @@ class TextHelper(object):
         """
         if line_nbr is None:
             line_nbr = self.current_line_nbr()
-        elif isinstance(line_nbr, QtGui.QTextBlock):
+        elif isinstance(line_nbr, QTextBlock):
             line_nbr = line_nbr.blockNumber()
         line = self.line_text(line_nbr)
         indentation = len(line) - len(line.lstrip())
@@ -553,8 +556,8 @@ class TextHelper(object):
         """
         if cursor is None:
             cursor = self._editor.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.WordRight,
-                            QtGui.QTextCursor.KeepAnchor)
+        cursor.movePosition(QTextCursor.WordRight,
+                            QTextCursor.KeepAnchor)
         return cursor.selectedText().strip()
 
     def get_right_character(self, cursor=None):
@@ -676,10 +679,10 @@ class TextHelper(object):
             formats = ["comment", "string", "docstring"]
         layout = None
         pos = 0
-        if isinstance(cursor_or_block, QtGui.QTextBlock):
+        if isinstance(cursor_or_block, QTextBlock):
             pos = len(cursor_or_block.text()) - 1
             layout = cursor_or_block.layout()
-        elif isinstance(cursor_or_block, QtGui.QTextCursor):
+        elif isinstance(cursor_or_block, QTextCursor):
             b = cursor_or_block.block()
             pos = cursor_or_block.position() - b.position()
             layout = b.layout()
@@ -1030,7 +1033,7 @@ def get_block_symbol_data(editor, block):
         """
         text = block.text()
         symbols = []
-        cursor = QtGui.QTextCursor(block)
+        cursor = QTextCursor(block)
         cursor.movePosition(cursor.StartOfBlock)
         pos = text.find(character, 0)
         cursor.movePosition(cursor.Right, cursor.MoveAnchor, pos)
@@ -1090,11 +1093,11 @@ def with_wait_cursor(func):
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        QtWidgets.QApplication.setOverrideCursor(
-            QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QApplication.setOverrideCursor(
+            QCursor(Qt.WaitCursor))
         try:
             ret_val = func(*args, **kwargs)
         finally:
-            QtWidgets.QApplication.restoreOverrideCursor()
+            QApplication.restoreOverrideCursor()
         return ret_val
     return wrapper

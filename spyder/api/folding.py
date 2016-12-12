@@ -5,7 +5,7 @@ This module contains the code folding API.
 from __future__ import print_function
 import logging
 import sys
-from pyqode.core.api.utils import TextBlockHelper
+from spyder.api.utils import TextBlockHelper
 
 
 def print_tree(editor, file=sys.stdout, print_blocks=False):
