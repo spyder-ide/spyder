@@ -28,7 +28,8 @@ def apply():
     
     #[2] Adding type returns for compiled objects in jedi
     # Patching jedi.evaluate.compiled.CompiledObject...
-    class PatchedCompiledObject(jedi.evaluate.compiled.CompiledObject):
+    from jedi.evaluate.compiled import CompiledObject, builtin, _create_from_name
+    class PatchedCompiledObject(CompiledObject):
         # ...adding docstrings int _execute_function...
         def _execute_function(self, evaluator, params):
             if self.type != 'funcdef':
