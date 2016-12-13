@@ -404,6 +404,7 @@ class DataFrameModel(QAbstractTableModel):
 class FrozenTableView(QTableView):
     def __init__(self, parent):
         QTableView.__init__(self, parent)
+        self.parent = parent
         self.setModel(parent.model())
         self.setFocusPolicy(Qt.NoFocus)
         self.verticalHeader().hide()
@@ -426,12 +427,12 @@ class FrozenTableView(QTableView):
         self.setVerticalScrollMode(1)
 
     def update_frozen_table_geometry(self):
-        self.setGeometry(parent.verticalHeader().width() 
-                         + parent.frameWidth(),
-                         parent.frameWidth(), 
-                         parent.columnWidth(0),
-                         parent.viewport().height() + 
-                         parent.horizontalHeader().height())
+        self.setGeometry(self.parent.verticalHeader().width() 
+                         + self.parent.frameWidth(),
+                         self.parent.frameWidth(), 
+                         self.parent.columnWidth(0),
+                         self.parent.viewport().height() + 
+                         self.parent.horizontalHeader().height())
 
 
 class DataFrameView(QTableView):
