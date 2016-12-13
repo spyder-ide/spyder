@@ -194,6 +194,8 @@ The requirements to run Spyder are:
 * `QtPy <https://github.com/spyder-ide/qtpy>`_ >=1.1.0 -- To run Spyder with PyQt4 or
   PyQt5 seamlessly.
 
+* `Chardet <https://github.com/chardet/chardet>`_ >=2.0.0-- Character encoding auto-detection
+  in Python.
 
 Optional modules
 ~~~~~~~~~~~~~~~~
