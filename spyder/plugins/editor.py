@@ -1354,23 +1354,27 @@ class Editor(SpyderPluginWidget):
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
-        self.toolbar_list = (
-            (_("File toolbar"), self.main.file_toolbar_actions),
-            (_("Search toolbar"), self.main.search_menu_actions),
-            (_("Source toolbar"), self.main.source_toolbar_actions),
-            (_("Run toolbar"), self.main.run_toolbar_actions),
-            (_("Debug toolbar"), self.main.debug_toolbar_actions),
-            (_("Edit toolbar"), self.main.edit_toolbar_actions),
-                             )
-        self.menu_list = (
-                          (_("&File"), self.main.file_menu_actions),
+
+        self.toolbar_list = ((_("File toolbar"), "file_toolbar",
+                              self.main.file_toolbar_actions),
+                             (_("Search toolbar"), "search_toolbar",
+                              self.main.search_menu_actions),
+                             (_("Source toolbar"), "source_toolbar",
+                              self.main.source_toolbar_actions),
+                             (_("Run toolbar"), "run_toolbar",
+                              self.main.run_toolbar_actions),
+                             (_("Debug toolbar"), "debug_toolbar",
+                              self.main.debug_toolbar_actions),
+                             (_("Edit toolbar"), "edit_toolbar",
+                              self.main.edit_toolbar_actions))
+        self.menu_list = ((_("&File"), self.main.file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
                           (_("Sour&ce"), self.main.source_menu_actions),
                           (_("&Run"), self.main.run_menu_actions),
                           (_("&Tools"), self.main.tools_menu_actions),
-                          (_("?"), self.main.help_menu_actions),
-                          )
+                          (_("&View"), []),
+                          (_("&Help"), self.main.help_menu_actions))
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
@@ -1385,6 +1389,8 @@ class Editor(SpyderPluginWidget):
                                   fullpath_sorting=fullpath_sorting,
                                   show_all_files=oe_options['show_all_files'],
                                   show_comments=oe_options['show_comments'])
+        window.add_toolbars_to_menu("&View", window.get_toolbars())
+        window.load_toolbars()
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
