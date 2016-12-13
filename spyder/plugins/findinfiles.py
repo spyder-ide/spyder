@@ -23,7 +23,7 @@ from spyder.config.base import _
 from spyder.config.utils import get_edit_extensions
 from spyder.py3compat import getcwd
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.widgets.findinfiles import FindInFilesWidget
 from spyder.api.plugins import SpyderPluginMixin
 
@@ -150,8 +150,9 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
                                    triggered=self.findinfiles_callback,
                                    tip=_("Search text in multiple files"))        
         
-        self.main.search_menu_actions += [None, findinfiles_action]
-        self.main.search_toolbar_actions += [None, findinfiles_action]
+        self.main.search_menu_actions += [MENU_SEPARATOR, findinfiles_action]
+        self.main.search_toolbar_actions += [MENU_SEPARATOR,
+                                             findinfiles_action]
     
     def refresh_plugin(self):
         """Refresh widget"""
