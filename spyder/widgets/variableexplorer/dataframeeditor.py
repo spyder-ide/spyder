@@ -408,11 +408,9 @@ class FrozenTableView(QTableView):
         self.setFocusPolicy(Qt.NoFocus)
         self.verticalHeader().hide()
         if PYQT5:
-            self.horizontalHeader(). \
-            setSectionResizeMode(QHeaderView.Fixed)
+            self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         else:
-            self.horizontalHeader(). \
-            setResizeMode(QHeaderView.Fixed)
+            self.horizontalHeader().setResizeMode(QHeaderView.Fixed)
 
         parent.viewport().stackUnder(self)
 
@@ -427,6 +425,14 @@ class FrozenTableView(QTableView):
 
         self.setVerticalScrollMode(1)
 
+    def update_frozen_table_geometry(self):
+        self.setGeometry(parent.verticalHeader().width() 
+                         + parent.frameWidth(),
+                         parent.frameWidth(), 
+                         parent.columnWidth(0),
+                         parent.viewport().height() + 
+                         parent.horizontalHeader().height())
+
 
 class DataFrameView(QTableView):
     """Data Frame view class"""
@@ -434,16 +440,16 @@ class DataFrameView(QTableView):
         QTableView.__init__(self, parent)
         self.setModel(model)
 
-        self.frozenTableView = FrozenTableView(self)
-        self.updateFrozenTableGeometry()
+        self.frozen_table_view = FrozenTableView(self)
+        self.frozen_table_view.update_frozen_table_geometry()
 
         self.setHorizontalScrollMode(1)
         self.setVerticalScrollMode(1)
 
-        self.horizontalHeader().sectionResized.connect(self.updateSectionWidth)
-        self.verticalHeader().sectionResized.connect(self.updateSectionHeight)
+        self.horizontalHeader().sectionResized.connect(self.update_section_width)
+        self.verticalHeader().sectionResized.connect(self.update_section_height)
 
-        self.frozenTableView.verticalScrollBar().valueChanged.connect(
+        self.frozen_table_view.verticalScrollBar().valueChanged.connect(
             self.verticalScrollBar().setValue)
 
         self.sort_old = [None]
@@ -457,45 +463,39 @@ class DataFrameView(QTableView):
         self.verticalScrollBar().valueChanged.connect(
                         lambda val: self.load_more_data(val, rows=True))
         self.verticalScrollBar().valueChanged.connect(
-            self.frozenTableView.verticalScrollBar().setValue)
+            self.frozen_table_view.verticalScrollBar().setValue)
     
-    def updateSectionWidth(self, logicalIndex, oldSize, newSize):
-        if logicalIndex == 0:
-            self.frozenTableView.setColumnWidth(0, newSize)
-            self.updateFrozenTableGeometry()
+    def update_section_width(self, logical_index, old_size, new_size):
+        if logical_index == 0:
+            self.frozen_table_view.setColumnWidth(0, new_size)
+            self.frozen_table_view.update_frozen_table_geometry()
 
-    def updateSectionHeight(logicalIndex, oldSize, newSize):
-        self.frozenTableView.setRowHeight(logicalIndex, newSize)
+    def update_section_height(logical_index, old_size, new_size):
+        self.frozen_table_view.setRowHeight(logical_index, new_size)
 
     def resizeEvent(self, event):
         QTableView.resizeEvent(self, event)
-        self.updateFrozenTableGeometry()
+        self.frozen_table_view.update_frozen_table_geometry()
 
-    def moveCursor(self, cursorAction, modifiers):
-        current = QTableView.moveCursor(self, cursorAction, modifiers)
-        if cursorAction == self.MoveLeft and \
-                           current.column() > 1 and \
-                           self.visualRect(current).topLeft().x() < \
-                           (self.frozenTableView.columnWidth(0) + 
-                            self.frozenTableView.columnWidth(1)):
-            newValue = self.horizontalScrollBar().value() + \
-                       self.visualRect(current).topLeft().x() - \
-                       (self.frozenTableView.columnWidth(0) + 
-                        self.frozenTableView.columnWidth(1))
-            self.horizontalScrollBar().setValue(newValue)
+    def moveCursor(self, cursor_action, modifiers):
+        current = QTableView.moveCursor(self, cursor_action, modifiers)
+        
+        col_width = (self.frozen_table_view.columnWidth(0) + 
+                     self.frozen_table_view.columnWidth(1))
+        x_top_l = self.visualRect(current).topLeft().x()
+
+        overflow = self.MoveLeft and current.column() > 1
+        overflow = overflow and x_top_l < col_width
+
+        if cursor_action == overflow:
+            new_value = (self.horizontalScrollBar().value() + 
+                         x_top_l - col_width)
+            self.horizontalScrollBar().setValue(new_value)
         return current
 
     def scrollTo(self, index, hint):
         if index.column() > 1:
             QTableView.scrollTo(self, index, hint)
-
-    def updateFrozenTableGeometry(self):
-        self.frozenTableView.setGeometry(self.verticalHeader().width() 
-                                         + self.frameWidth(),
-                                         self.frameWidth(), 
-                                         self.columnWidth(0),
-                                         self.viewport().height() + 
-                                         self.horizontalHeader().height())
 
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
