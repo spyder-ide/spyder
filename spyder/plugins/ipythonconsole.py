@@ -861,14 +861,22 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
+        cf = self._new_connection_file()
         client = ClientWidget(self, name=name,
                               history_filename='history.py',
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
-                              connection_file=self._new_connection_file(),
+                              connection_file=cf,
                               menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
+
+        if cf is None:
+            error_msg = _("The directory {} is not writable and it is "
+                          "required to create IPython consoles. Please make "
+                          "it writable.").format(jupyter_runtime_dir())
+            client.show_kernel_error(error_msg)
+            return
 
         # Check if ipykernel is present in the external interpreter.
         # Else we won't be able to create a client
@@ -1359,7 +1367,10 @@ class IPythonConsole(SpyderPluginWidget):
         """
         # Check if jupyter_runtime_dir exists (Spyder addition)
         if not osp.isdir(jupyter_runtime_dir()):
-            os.makedirs(jupyter_runtime_dir())
+            try:
+                os.makedirs(jupyter_runtime_dir())
+            except PermissionError:
+                return None
         cf = ''
         while not cf:
             ident = str(uuid.uuid4()).split('-')[-1]
