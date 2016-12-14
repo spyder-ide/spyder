@@ -32,9 +32,9 @@ p.load_plugin()
 
 
 def test_get_info():
-    source_code = "import os; os.fwalk("
+    source_code = "import os; os.walk("
     docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
-    assert docs['calltip'].startswith('fwalk(') and docs['name'] == 'fwalk'
+    assert docs['calltip'].startswith('walk(') and docs['name'] == 'walk'
 
 
 def test_get_completions():
@@ -45,7 +45,7 @@ def test_get_completions():
 
 
 def test_get_definition():
-    source_code = "import os; os.fwalk"
+    source_code = "import os; os.walk"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
                                               len(source_code)))
     assert 'os.py' in path
