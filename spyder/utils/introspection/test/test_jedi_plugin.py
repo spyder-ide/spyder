@@ -12,29 +12,43 @@ import pytest
 from spyder.utils.introspection.manager import CodeInfo
 from spyder.utils.introspection import jedi_plugin
 
+try:
+    import numpydoc
+except ImportError:
+    numpydoc = None
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
+
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 p = jedi_plugin.JediPlugin()
 p.load_plugin()
-jedi_plugin.jedi.set_debug_function()
 
 
 def test_get_info():
-    source_code = "import numpy; numpy.ones("
+    source_code = "import os; os.fwalk("
     docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
-    assert docs['calltip'].startswith('ones(') and docs['name'] == 'ones'
+    assert docs['calltip'].startswith('fwalk(') and docs['name'] == 'fwalk'
 
 
 def test_get_completions():
-    source_code = "import n"
+    source_code = "import o"
     completions = p.get_completions(CodeInfo('completions', source_code,
                                              len(source_code)))
-    assert ('numpy', 'module') in completions
+    assert ('os', 'module') in completions
 
 
 def test_get_definition():
-    source_code = "import pandas as pd; pd.DataFrame"
+    source_code = "import os; os.fwalk"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
                                               len(source_code)))
-    assert 'frame.py' in path
+    assert 'os.py' in path
 
 
 def test_get_path():
@@ -60,6 +74,8 @@ def test_get_docstring():
     assert 'Test docstring' in docs['docstring']
 
 
+@pytest.mark.skipif(not(numpy and numpydoc),
+                    reason="numpy and numpydoc required")
 def test_numpy_returns():
     source_code = dedent('''
     import numpy as np
@@ -70,7 +86,9 @@ def test_numpy_returns():
     assert ('argmax', 'function') in completions
 
 
-def test_matplotlib_returns():
+@pytest.mark.skipif(not(matplotlib and numpydoc),
+                    reason="matplotlib required")
+def test_matplotlib_fig_returns():
     source_code = dedent('''
     import matplotlib.pyplot as plt
     fig = plt.figure()
@@ -79,6 +97,17 @@ def test_matplotlib_returns():
                                              len(source_code)))
     assert ('add_axes', 'function') in completions
 
+
+@pytest.mark.skipif(not(matplotlib and numpydoc),
+                    reason="matplotlib required")
+def test_matplotlib_ax_returns():
+    source_code = dedent('''
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    fig.''')
+    completions = p.get_completions(CodeInfo('completions', source_code,
+                                             len(source_code)))
+    assert ('add_axes', 'function') in completions
 
 if __name__ == '__main__':
     pytest.main()
