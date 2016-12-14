@@ -2662,7 +2662,6 @@ class EditorPluginExample(QSplitter):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.create_new_window.connect(self.create_new_window)
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
