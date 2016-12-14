@@ -1921,14 +1921,16 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
-            if prevtext:
+            if ((self.is_python_like() and
+               not prevtext.strip().startswith('#') and prevtext) or
+               prevtext):
 
                 if (prevtext.strip().endswith(')') or
                    prevtext.strip().endswith(']') or
                    prevtext.strip().endswith('}')):
 
                     comment_or_string = True  # prevent further parsing
-    
+
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
