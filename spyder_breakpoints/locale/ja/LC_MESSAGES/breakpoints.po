@@ -1,13 +1,14 @@
-# Japanese translations for PACKAGE package
-# PACKAGE パッケージに対する英訳.
-# Copyright (C) 2016 ORGANIZATION
+# Japanese translations for Spyder package
+# Spyder-ide パッケージに対する英訳.
+# Copyright (C) 2016 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Spyder package.
 # Ohnishi Seiki <s.ohnishi77+github@gmail.com>, 2016.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: Spyder\n"
 "POT-Creation-Date: 2016-11-11 10:24+COT\n"
-"PO-Revision-Date: 2016-12-13 22:46+0900\n"
+"PO-Revision-Date: 2016-12-11 13:29+0900\n"
 "Last-Translator: sohnishi <s.ohnishi77+github@gmail.com>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +17,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 1.5.7\n"
+"X-Generator: Poedit 1.6.10\n"
 
 #: spyder_breakpoints/breakpoints.py:45
 msgid "Breakpoints"
