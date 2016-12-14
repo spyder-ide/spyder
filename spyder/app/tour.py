@@ -917,7 +917,6 @@ class AnimatedTour(QWidget):
 
     def _close_canvas(self):
         """ """
-        self._set_modal(False, [self.tips])
         self.tips.hide()
         self.canvas.fade_out(self.canvas.hide)
 
