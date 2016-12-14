@@ -10,6 +10,10 @@ Patching jedi:
 [1] Adding numpydoc type returns to docstrings
 
 [2] Adding type returns for compiled objects in jedi
+
+[3] Fixing introspection for matplotlib Axes objects
+
+[4] Fixing None for parents in matplotlib Figure objects
 """
 
 
@@ -64,7 +68,9 @@ def apply():
             return self.doc
 
     jedi.evaluate.compiled.CompiledObject = CompiledObject
-
+    
+    # [3] Fixing introspection for matplotlib Axes objects
+    # Patching jedi.evaluate.precedence...
     from jedi.evaluate.precedence import tree, calculate
 
     def calculate_children(evaluator, children):
@@ -74,7 +80,7 @@ def apply():
         iterator = iter(children)
         types = evaluator.eval_element(next(iterator))
         for operator in iterator:
-            try:
+            try:# PATCH: Catches StopIteration error
                 right = next(iterator)
                 if tree.is_node(operator, 'comp_op'):  # not in / is not
                     operator = ' '.join(str(c.value) for c in operator.children)
@@ -99,6 +105,8 @@ def apply():
 
     jedi.evaluate.precedence.calculate_children = calculate_children
 
+    # [4] Fixing introspection for matplotlib Axes objects
+    # Patching jedi.evaluate.precedence...
     from jedi.evaluate.representation import \
         tree, InstanceName, Instance, compiled, FunctionExecution, InstanceElement
 
