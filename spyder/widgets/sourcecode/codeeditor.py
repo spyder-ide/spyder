@@ -2014,12 +2014,15 @@ class CodeEditor(TextEditBaseWidget):
            not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
             prevline_indent = self.get_block_indentation(prevline)
+            trailing_text = self.get_text_line(block_nb).strip()
 
-            if cur_indent < prevline_indent:
-                if cur_indent % 4 == 0:
+            if cur_indent < prevline_indent and trailing_text:
+                if cur_indent % len(self.indent_chars) == 0:
                     correct_indent = cur_indent
                 else:
-                    correct_indent = cur_indent + (4 - cur_indent % 4)          
+                    correct_indent = cur_indent \
+                                   + (len(self.indent_chars) -
+                                      cur_indent % len(self.indent_chars))
 
         if correct_indent >= 0:
             cursor = self.textCursor()

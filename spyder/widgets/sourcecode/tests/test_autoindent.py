@@ -20,7 +20,8 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
-def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4):
+def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
+                   sol = False):
     app = qapplication()
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python', indent_chars=indent_chars,
@@ -29,6 +30,10 @@ def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4):
     editor.set_text(text)
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.End)
+    if sol:
+        lines = text.splitlines(True)
+        repeat = len(lines[-1].lstrip())
+        cursor.movePosition(QTextCursor.Left, n=repeat)
     editor.setTextCursor(cursor)
     editor.fix_indent()
     return to_text_string(editor.toPlainText())
@@ -92,7 +97,36 @@ def test_align_on_curly():
     # An open curly bracket with one or more item is followed by an indent
     # up to the parenthesis.
     text = get_indent_fix("curly_w_item = (1,\n")
-    assert text == "curly_w_item = (1,\n                ", repr(text)    
+    assert text == "curly_w_item = (1,\n                ", repr(text)
+
+
+def test_keep_unindent():
+    # Keep line unindented if there is more than one line under the statement
+    text = ("    def foo(bar):\n"
+            "        generic = bar\n"
+            "    \n"
+            "    keep_unindent\n")
+    correct_text = ("    def foo(bar):\n"
+                    "        generic = bar\n"
+                    "    \n"
+                    "    keep_unindent\n")
+    text = get_indent_fix(text, sol=True)
+    assert text == correct_text, repr(text)
+
+
+def test_keep_unindent_fix_indent():
+    # Keep line unindented but fix indent if not multiple of len(indent_chars)
+    text = ("    for x in range(n):\n"
+            "        increment += 1\n"
+            "  \n"
+            "  keep_unindent\n")
+    correct_text = ("    for x in range(n):\n"
+                    "        increment += 1\n"
+                    "  \n"
+                    "    keep_unindent\n")
+    text = get_indent_fix(text, sol=True)
+    assert text == correct_text, repr(text)
+
 
 # --- Failing tests
 # -----------------------------------------------------------------------------
