@@ -1260,7 +1260,7 @@ class EditorStack(QWidget):
     #------ Hor/Ver splitting
     def __get_split_actions(self):
         # Undock Editor window
-        self.undock_action = create_action(self,_("Undock Editor window"),
+        self.undock_action = create_action(self, _("Undock Editor window"),
                                            icon=ima.icon('newwindow'),
                                            tip=_("Undock the editor window"),
                                            triggered=lambda:
