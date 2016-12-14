@@ -169,7 +169,13 @@ def differentiate_prefix(path_components0, path_components1):
         longest_path_prefix = os.path.join(*longest_prefix)
         longest_prefix_length = len(longest_path_prefix) + 1
         if path_0[longest_prefix_length:] != '' and not root_comparison:
-            path_0 = path_0[longest_prefix_length:]
+            path_0_components = path_components(path_0[longest_prefix_length:])
+            if path_0_components[0] == ''and path_0_components[1] == ''and len(
+                                        path_0[longest_prefix_length:]) > 20:
+                path_0_components.insert(2, common_elmt)
+                path_0 = os.path.join(*path_0_components)
+            else:
+                path_0 = path_0[longest_prefix_length:]
         elif not root_comparison:
             path_0 = common_elmt
         elif sys.platform.startswith('linux') and path_0 == '':
@@ -190,7 +196,7 @@ def get_file_title(files_path_list, filename):
         diff_path_length = len(diff_path)
         path_component = path_components(diff_path)
         if (diff_path_length > 20 and len(path_component) > 2):
-            if path_component[0] != '/':
+            if path_component[0] != '/' and path_component[0] != '':
                 path_component = [path_component[0], '...', 
                                           path_component[-1]]
             else:
