@@ -14,6 +14,7 @@ from spyder.utils.introspection import jedi_plugin
 
 p = jedi_plugin.JediPlugin()
 p.load_plugin()
+jedi_plugin.jedi.set_debug_function()
 
 
 def test_get_info():
@@ -36,8 +37,8 @@ def test_get_definition():
     assert 'frame.py' in path
 
 
-def test_get_definition_filename():
-    source_code = 'from .utils import CodeInfo'
+def test_get_path():
+    source_code = 'from spyder.utils.introspection.manager import CodeInfo'
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
                                               len(source_code), __file__))
     assert 'utils.py' in path and 'introspection' in path
