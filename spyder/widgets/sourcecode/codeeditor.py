@@ -2008,9 +2008,16 @@ class CodeEditor(TextEditBaseWidget):
             # No indentation fix is necessary
             return False
 
-        if not self.get_block_indentation(block_nb - 1) and \
-           not comment_or_string:
-            return False
+        if not (diff_paren or diff_brack or diff_curly) and \
+           not prevtext.endswith(':'):
+            cur_indent = self.get_block_indentation(block_nb - 1)
+            prevline_indent = self.get_block_indentation(prevline)
+
+            if cur_indent < prevline_indent:
+                if cur_indent % 4 == 0:
+                    correct_indent = cur_indent
+                else:
+                    correct_indent = cur_indent + (4 - cur_indent % 4)          
 
         if correct_indent >= 0:
             cursor = self.textCursor()
