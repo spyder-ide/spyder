@@ -21,7 +21,8 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 # --- Fixtures
 # -----------------------------------------------------------------------------
 def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
-                   sol = False):
+                   sol=False):
+    """Return text with last line's indentation fixed."""
     app = qapplication()
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python', indent_chars=indent_chars,
