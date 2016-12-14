@@ -403,6 +403,8 @@ class Editor(SpyderPluginWidget):
                 '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
+        self.undocked = False
+        
         self.projects = None
         self.outlineexplorer = None
         self.help = None
@@ -1316,7 +1318,7 @@ class Editor(SpyderPluginWidget):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.create_new_window.connect(self.create_new_window)
+        editorstack.undock_window.connect(self.undock_window)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
         editorstack.analysis_results_changed.connect(
@@ -1431,7 +1433,21 @@ class Editor(SpyderPluginWidget):
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
             win.set_layout_settings(layout_settings)
-        
+
+    def undock_window(self):
+        """Undocks the Editor window."""
+        self.undocked = True
+        self.dockwidget.setFloating(True)
+        self.get_current_editorstack().new_window = True
+
+    def switch_to_plugin(self):
+        """
+        Reimplemented method to desactivate shortcut when 
+        opening a new window.
+        """
+        if len(self.editorwindows) == 0 or self.dockwidget.isVisible():
+            super(Editor, self).switch_to_plugin()
+
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
         fullpath_sorting=self.get_option('fullpath_sorting', True),
@@ -1445,6 +1461,7 @@ class Editor(SpyderPluginWidget):
         window.load_toolbars()
         window.resize(self.size())
         window.show()
+        window.editorwidget.editorsplitter.editorstack.new_window = True
         self.register_editorwindow(window)
         window.destroyed.connect(lambda: self.unregister_editorwindow(window))
         return window

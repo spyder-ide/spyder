@@ -2266,11 +2266,13 @@ class MainWindow(QMainWindow):
     @Slot()
     def undock_editor(self):
         """Open a new window instance of the Editor instead of undocking it."""
-        if(self.editor.dockwidget.isFloating()):
+        if self.editor.dockwidget.isFloating() and not self.editor.undocked:
             self.editor.dockwidget.setVisible(False)
             self.editor.create_new_window()
             self.editor.toggle_view_action.setChecked(False)
             self.editor.dockwidget.setFloating(False)
+        self.editor.undocked = False
+        self.editor.get_current_editorstack().new_window = False
 
     @Slot()
     def toggle_fullscreen(self):
