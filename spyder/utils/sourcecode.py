@@ -175,3 +175,49 @@ def differentiate_prefix(path_components0, path_components1):
         elif sys.platform.startswith('linux') and path_0 == '':
             path_0 = '/'
     return path_0
+
+def get_file_title(data, index):
+    """Get tab title without ambiguation."""
+    finfo = data[index]
+    fname = os.path.basename(finfo.filename)
+    same_name_files = get_same_name_files(data, fname)
+    if len(same_name_files) > 1:
+        compare_path = shortest_path(same_name_files)
+        if compare_path == finfo.filename:
+            same_name_files.pop(index)
+            compare_path = shortest_path(same_name_files)    
+        diff_path = differentiate_prefix(path_components(finfo.filename),
+                                             path_components(compare_path))
+        diff_path_length = len(diff_path)
+        path_component = path_components(diff_path)
+        if (diff_path_length > 20 and len(path_component) > 2):
+            if path_component[0] != '/':
+                path_component = [path_component[0], '...', 
+                                          path_component[-1]]
+            else:
+                path_component = [path_component[2], '...', 
+                                          path_component[-1]]
+            diff_path = os.path.join(*path_component)
+        fname = fname + " - " + diff_path    
+    return fname
+
+def get_same_name_files(data, fname):
+    """Get a list of the path components of the files with the same name."""
+    same_name_files = []
+    for finfo in data:
+        if fname == os.path.basename(finfo.filename):
+            same_name_files.append(path_components(finfo.filename))
+    return same_name_files
+    
+def shortest_path(files_path_list):
+    """Shortest path between files in the list."""
+    if len(files_path_list) > 0:
+        shortest_path = files_path_list[0]
+        shortest_path_length = len(files_path_list[0])
+        for path_elmts in files_path_list:
+            if len(path_elmts) < shortest_path_length:
+                shortest_path_length = len(path_elmts)
+                shortest_path = path_elmts
+        return os.path.join(*shortest_path)
+
+            

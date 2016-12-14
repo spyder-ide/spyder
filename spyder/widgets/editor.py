@@ -967,34 +967,11 @@ class EditorStack(QWidget):
 
     def get_tab_text(self, index, is_modified=None, is_readonly=None):
         """Return tab title"""
-        fname = self.get_file_title(index)
+        data = self.data
+        fname = sourcecode.get_file_title(data, index)
         return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 
-    def get_file_title(self, index):
-        """Get tab title without ambiguation."""
-        finfo = self.data[index]
-        fname = osp.basename(finfo.filename)
-        for findex, source in enumerate(self.data):
-            fname_to_compare = osp.basename(source.filename)
-            if findex is not index and fname == fname_to_compare:
-                diff_path = sourcecode.differentiate_prefix(
-                                   sourcecode.path_components(finfo.filename), 
-                                   sourcecode.path_components(source.filename))
-                diff_path_length = len(diff_path)
-                if (diff_path_length > 20):
-                    path_component = sourcecode.path_components(diff_path)
-                    if path_component[0] != '/':
-                        path_component = [path_component[0], '...', 
-                                           path_component[-1]]
-                    else:
-                        path_component = [path_component[2], '...', 
-                                           path_component[-1]]
-                    diff_path = os.path.join(*path_component)
-                fname = fname + " - " + diff_path
-                break
-        return fname
-    
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
         """Return tab menu title"""
         if self.fullpath_sorting_enabled:
