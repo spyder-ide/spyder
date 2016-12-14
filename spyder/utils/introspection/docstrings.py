@@ -18,6 +18,7 @@ from ast import literal_eval
 import re
 from itertools import chain
 from textwrap import dedent
+from jedi import debug
 from jedi.evaluate.cache import memoize_default
 from jedi.parser import Parser, load_grammar
 from jedi.parser.tree import Class
@@ -279,5 +280,6 @@ def find_return_types(evaluator, func):
     for type_str in search_return_in_docstr(docstr):
         type_ = _evaluate_for_statement_string(evaluator, type_str, module)
         types.extend(type_)
+    debug.dbg('DOC!!!!!!!!!!!!!! wow types?: %s in %s',types, func)
     return types
 

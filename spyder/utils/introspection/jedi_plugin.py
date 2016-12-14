@@ -22,14 +22,14 @@ from spyder.utils.introspection.utils import get_parent_until
 from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
-    import jedi
-    try: #patching jedi
+    try:
         from spyder.utils.introspection import jedi_patch
         jedi = jedi_patch.apply()
-    except ImportError: #patch failed
-        pass
+    except ImportError:
+        import jedi
 except ImportError:
     jedi = None
+
 
 class JediPlugin(IntrospectionPlugin):
     """
@@ -53,8 +53,8 @@ class JediPlugin(IntrospectionPlugin):
         """Return a list of (completion, type) tuples"""
         completions = self.get_jedi_object('completions', info)
         if DEBUG_EDITOR:
-            log_last_error(LOG_FILENAME, str("!!!!!!!!!!!!1yo" + str(completions)[:100]))
-        debug_print("!!!!!!!!!!!!1yo" + str(completions)[:100])
+            log_last_error(LOG_FILENAME, str("comp: " + str(completions)[:100]))
+        debug_print("comp: " + str(completions)[:100])
         completions = [(c.name, c.type) for c in completions]
         debug_print(str(completions)[:100])
         return completions
