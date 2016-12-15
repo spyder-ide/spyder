@@ -562,7 +562,6 @@ class DirView(QTreeView):
         """Convert an IPython notebook to a Python script in editor"""
         try: 
             script = nbexporter().from_filename(fname)[0]
-            # print(script)
         except Exception as e:
             QMessageBox.critical(self, _('Conversion error'), 
                                  _("It was not possible to convert this "
