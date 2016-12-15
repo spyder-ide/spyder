@@ -2005,11 +2005,6 @@ class CodeEditor(TextEditBaseWidget):
                             else:
                                 correct_indent = len(prevtext)
 
-        if (forward and indent >= correct_indent) or \
-           (not forward and indent <= correct_indent):
-            # No indentation fix is necessary
-            return False
-
         if not (diff_paren or diff_brack or diff_curly) and \
            not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
@@ -2023,6 +2018,11 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent = cur_indent \
                                    + (len(self.indent_chars) -
                                       cur_indent % len(self.indent_chars))
+
+        if (forward and indent >= correct_indent) or \
+           (not forward and indent <= correct_indent):
+            # No indentation fix is necessary
+            return False
 
         if correct_indent >= 0:
             cursor = self.textCursor()
