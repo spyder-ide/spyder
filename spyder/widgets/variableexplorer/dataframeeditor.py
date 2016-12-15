@@ -21,7 +21,8 @@ from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
-                            QMenu, QMessageBox, QPushButton, QTableView)
+                            QMenu, QMessageBox, QPushButton, QTableView,
+                            QHeaderView)
 import numpy as np
 
 # Local imports
@@ -405,6 +406,14 @@ class DataFrameView(QTableView):
         QTableView.__init__(self, parent)
         self.setModel(model)
 
+        self.frozenTableView = QTableView(self)
+        self.init_frozen()
+
+        self.horizontalHeader().sectionResized.connect(self.updateSectionWidth)
+        self.verticalHeader().sectionResized.connect(self.updateSectionHeight)
+
+        self.frozenTableView.verticalScrollBar().valueChanged.connect(self.verticalScrollBar().setValue)
+
         self.sort_old = [None]
         self.header_class = self.horizontalHeader()
         self.header_class.sectionClicked.connect(self.sortByColumn)
@@ -415,7 +424,60 @@ class DataFrameView(QTableView):
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
                                lambda val: self.load_more_data(val, rows=True))
+        self.verticalScrollBar().valueChanged.connect(self.frozenTableView.verticalScrollBar().setValue)
     
+    def init_frozen(self):
+        self.frozenTableView.setModel(self.model())
+        self.frozenTableView.setFocusPolicy(Qt.NoFocus)
+        self.frozenTableView.verticalHeader().hide()
+        self.frozenTableView.horizontalHeader().setResizeMode(QHeaderView.Fixed)
+
+        self.viewport().stackUnder(self.frozenTableView)
+
+        self.frozenTableView.setSelectionModel(self.selectionModel())
+        for col in xrange(1, self.model().columnCount()):
+            self.frozenTableView.setColumnHidden(col, True)
+
+        self.frozenTableView.setColumnWidth(0, self.columnWidth(0))
+        self.frozenTableView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.frozenTableView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.frozenTableView.show()
+
+        self.updateFrozenTableGeometry()
+
+        self.setHorizontalScrollMode(1)
+        self.setVerticalScrollMode(1)
+
+        self.frozenTableView.setVerticalScrollMode(1)
+
+    def updateSectionWidth(self, logicalIndex, oldSize, newSize):
+        if logicalIndex == 0:
+            self.frozenTableView.setColumnWidth(0, newSize)
+            self.updateFrozenTableGeometry()
+
+    def updateSectionHeight(logicalIndex, oldSize, newSize):
+        self.frozenTableView.setRowHeight(logicalIndex, newSize)
+
+    def resizeEvent(self, event):
+        QTableView.resizeEvent(self, event)
+        self.updateFrozenTableGeometry()
+
+    def moveCursor(self, cursorAction, modifiers):
+        current = QTableView.moveCursor(self, cursorAction, modifiers)
+        if cursorAction == self.MoveLeft and current.column() > 1 and self.visualRect(current).topLeft().x() < (self.frozenTableView.columnWidth(0) + self.frozenTableView.columnWidth(1)):
+            newValue = self.horizontalScrollBar().value() + self.visualRect(current).topLeft().x() - (self.frozenTableView.columnWidth(0) + self.frozenTableView.columnWidth(1))
+            self.horizontalScrollBar().setValue(newValue)
+        return current
+
+    def scrollTo(self, index, hint):
+        if index.column() > 1:
+            QTableView.scrollTo(self, index, hint)
+
+    def updateFrozenTableGeometry(self):
+        self.frozenTableView.setGeometry(self.verticalHeader().width() + self.frameWidth(),
+                                         self.frameWidth(), self.columnWidth(0),
+                                         self.viewport().height() + self.horizontalHeader().height())
+
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
             self.model().fetch_more(rows=rows)
@@ -501,6 +563,9 @@ class DataFrameView(QTableView):
         clipboard.setText(contents)
 
 
+
+
+
 class DataFrameEditor(QDialog):
     """
     Dialog for displaying and editing DataFrame and related objects.
@@ -542,6 +607,7 @@ class DataFrameEditor(QDialog):
         self.resize(600, 500)
 
         self.dataModel = DataFrameModel(data, parent=self)
+        # self.dataTable = DataFrameFreezeView(self, self.dataModel)
         self.dataTable = DataFrameView(self, self.dataModel)
 
         self.layout.addWidget(self.dataTable)
