@@ -507,14 +507,14 @@ class DataFrameView(QTableView):
         
         col_width = (self.frozen_table_view.columnWidth(0) + 
                      self.frozen_table_view.columnWidth(1))
-        x_top_l = self.visualRect(current).topLeft().x()
+        topleft_x = self.visualRect(current).topLeft().x()
 
         overflow = self.MoveLeft and current.column() > 1
-        overflow = overflow and x_top_l < col_width
+        overflow = overflow and topleft_x < col_width
 
         if cursor_action == overflow:
             new_value = (self.horizontalScrollBar().value() + 
-                         x_top_l - col_width)
+                         topleft_x - col_width)
             self.horizontalScrollBar().setValue(new_value)
         return current
 
