@@ -98,16 +98,5 @@ def test_matplotlib_fig_returns():
     assert ('add_axes', 'function') in completions
 
 
-@pytest.mark.skipif(not(matplotlib and numpydoc),
-                    reason="matplotlib required")
-def test_matplotlib_ax_returns():
-    source_code = dedent('''
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    fig.''')
-    completions = p.get_completions(CodeInfo('completions', source_code,
-                                             len(source_code)))
-    assert ('add_axes', 'function') in completions
-
 if __name__ == '__main__':
     pytest.main()

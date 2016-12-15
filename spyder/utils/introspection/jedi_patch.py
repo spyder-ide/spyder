@@ -65,7 +65,11 @@ def apply():
         # ...docstrings needs a raw_doc property
         @property
         def raw_doc(self):
-            return self.doc
+            try:
+                doc = unicode(self.doc)
+            except NameError: # python 3
+                doc = self.doc
+            return doc
 
     jedi.evaluate.compiled.CompiledObject = CompiledObject
     
