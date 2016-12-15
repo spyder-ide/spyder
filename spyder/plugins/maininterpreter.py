@@ -141,7 +141,12 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             return
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        self.warn_python_compatibility(pyexec)
+        valid = self.is_python_interpreter(pyexec)
+        if valid:
+            self.warn_python_compatibility(pyexec)
+        else:
+            self.pyexec_edit.setText(get_python_executable())
+            return
 
     def python_executable_switched(self, custom):
         """Python executable default/custom radio button has been toggled"""
@@ -152,6 +157,28 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         if def_pyexec != cust_pyexec:
             if custom:
                 self.warn_python_compatibility(cust_pyexec)
+
+    def is_python_interpreter(self, pyexec):
+        if not osp.isfile(pyexec):
+            return False
+        args = ["-c", "print('valid_python_interpreter')"]
+        try:
+            proc = programs.run_program(pyexec, args)
+            valid = str(proc.communicate()[0])
+            if not valid.startswith("b'valid_python_interpreter"):
+                QMessageBox.warning(self, _('Warning'),
+                    _("You selected an invalid Python interpreter for the "
+                      "console so the previous interpreter will stay. Please "
+                      "make sure to select a valid one."), QMessageBox.Ok)
+                return False
+            else:
+                return True
+        except:
+            QMessageBox.warning(self, _('Warning'),
+                _("You selected an invalid Python interpreter for the console "
+                  "so the previous interpreter will stay. Please make sure to "
+                  "select a valid one."), QMessageBox.Ok)
+            return False
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
