@@ -9,9 +9,10 @@ machine:
     # Environment variables used by astropy helpers
     TRAVIS_OS_NAME: "linux"
     CONDA_DEPENDENCIES_FLAGS: "--quiet"
+    CONDA_CHANNEL_PRIORITY: "True"
     CONDA_DEPENDENCIES: >
       rope jedi pyflakes sphinx pygments pylint pep8 psutil nbconvert qtawesome pickleshare
-      qtpy pyzmq chardet mock nomkl pandas pytest pytest-cov
+      qtpy pyzmq chardet mock nomkl pandas pytest pytest-cov numpydoc matplotlib
     PIP_DEPENDENCIES: "coveralls pytest-qt"
 
 dependencies:
