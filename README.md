@@ -158,6 +158,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **QtPy** 1.1.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
   and PyQt5.
 * **Chardet**: Character encoding auto-detection in Python.
+* **Numpydoc**: Used by Jedi to get return types for functions with Numpydoc docstrings.
 
 ### Optional dependencies
 
