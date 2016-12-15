@@ -830,7 +830,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.beginEditBlock()
         start_pos, end_pos = self.__save_selection()
         add_linesep = False
-        if to_text_string(cursor.selectedText()):
+        flag = to_text_string(cursor.selectedText())
+        if flag:
             # Check if start_pos is at the start of a block
             cursor.setPosition(start_pos)
             cursor.movePosition(QTextCursor.StartOfBlock)
