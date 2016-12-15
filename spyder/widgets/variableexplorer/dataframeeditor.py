@@ -430,9 +430,9 @@ class FrozenTableView(QTableView):
 
         self.setVerticalScrollMode(1)
 
-    def update_frozen_table_geometry(self):
+    def update_geometry(self):
         """
-        Updates the frozen column size when an update occurs 
+        Update the frozen column size when an update occurs 
         in its parent table 
         """
         self.setGeometry(self.parent.verticalHeader().width() 
@@ -450,7 +450,7 @@ class DataFrameView(QTableView):
         self.setModel(model)
 
         self.frozen_table_view = FrozenTableView(self)
-        self.frozen_table_view.update_frozen_table_geometry()
+        self.frozen_table_view.update_geometry()
 
         self.setHorizontalScrollMode(1)
         self.setVerticalScrollMode(1)
@@ -476,32 +476,32 @@ class DataFrameView(QTableView):
     
     def update_section_width(self, logical_index, old_size, new_size):
         """
-        Updates the horizontal width of the frozen column when a
+        Update the horizontal width of the frozen column when a
         change takes place in the first column of the table 
         """
         if logical_index == 0:
             self.frozen_table_view.setColumnWidth(0, new_size)
-            self.frozen_table_view.update_frozen_table_geometry()
+            self.frozen_table_view.update_geometry()
 
     def update_section_height(logical_index, old_size, new_size):
         """
-        Updates the vertical width of the frozen column when a
+        Update the vertical width of the frozen column when a
         change takes place on any of the rows 
         """
         self.frozen_table_view.setRowHeight(logical_index, new_size)
 
     def resizeEvent(self, event):
         """
-        Updates the frozen column dimensions when the enclosing 
+        Update the frozen column dimensions when the enclosing 
         window of this table reports a dimension change 
         """
         QTableView.resizeEvent(self, event)
-        self.frozen_table_view.update_frozen_table_geometry()
+        self.frozen_table_view.update_geometry()
 
     def moveCursor(self, cursor_action, modifiers):
         """
-        Updates the table position, along with the frozen column
-        when the cursor (selector) inside, changes its position  
+        Update the table position, along with the frozen column
+        when the cursor (selector) changes its position  
         """
         current = QTableView.moveCursor(self, cursor_action, modifiers)
         
@@ -520,7 +520,7 @@ class DataFrameView(QTableView):
 
     def scrollTo(self, index, hint):
         """
-        Scrolls the table if necessary to ensure that the item at 
+        Scroll the table if necessary to ensure that the item at 
         index is visible. The view will try to position the item 
         according to the given hint. This method does not takes 
         effect only if the frozen column is scrolled.
