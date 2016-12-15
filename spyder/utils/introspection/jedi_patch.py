@@ -33,8 +33,8 @@ def apply():
 
     # [2] Adding type returns for compiled objects in jedi
     # Patching jedi.evaluate.compiled.CompiledObject...
-    from jedi.evaluate.compiled import \
-        CompiledObject, builtin, _create_from_name, debug
+    from jedi.evaluate.compiled import (
+        CompiledObject, builtin, _create_from_name, debug)
 
     class CompiledObject(CompiledObject):
         # ...adding docstrings int _execute_function...
@@ -46,11 +46,10 @@ def apply():
             types = docstrings.find_return_types(evaluator, self)
             if types:
                 for result in types:
-                    debug.dbg('BC!!!!!!!!!!!!!! wow types?: %s in %s', result, self)
+                    debug.dbg('docstrings type return: %s in %s', result, self)
                     yield result
             # end patch
             for name in self._parse_function_doc()[1].split():
-                debug.dbg('BC!!!!!!!!!!!!!! wow parse?: %s in %s', name, self)
                 try:
                     bltn_obj = _create_from_name(builtin, builtin, name)
                 except AttributeError:
@@ -111,8 +110,8 @@ def apply():
 
     # [4] Fixing introspection for matplotlib Axes objects
     # Patching jedi.evaluate.precedence...
-    from jedi.evaluate.representation import \
-        tree, InstanceName, Instance, compiled, FunctionExecution, InstanceElement
+    from jedi.evaluate.representation import (
+        tree, InstanceName, Instance, compiled, FunctionExecution, InstanceElement)
 
     def get_instance_el(evaluator, instance, var, is_class_var=False):
         """
