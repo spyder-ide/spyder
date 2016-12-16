@@ -360,7 +360,8 @@ class FindReplace(QWidget):
                     cmptxt1 = search_text if case else search_text.lower()
                     cmptxt2 = seltxt if case else seltxt.lower()
                     if not pattern:
-                        if self.editor.has_selected_text() and cmptxt1 == cmptxt2:
+                        has_selected = self.editor.has_selected_text()
+                        if has_selected and cmptxt1 == cmptxt2:
                             # Text was already found, do nothing
                             pass
                         else:
