@@ -510,12 +510,53 @@ class ProfilerDataTree(QTreeWidget):
                 color = "red"
         return [format[0] % x[0], [diff_str, color]]
 
+    def format_measure(self, data):
 
-    def format_output(self,child_key):
+        formated_data = [0] * len(data)
+
+        for (i, measure) in enumerate(data):
+
+            if (1.e-9 < float(measure) <= 1.e-6):
+                formated_data[i] = str("{0:.2f} ns".format(measure / 1.e-9))
+            elif (1.e-6 < float(measure) <= 1.e-3):
+                formated_data[i] = str("{0:.2f} us".format(measure / 1.e-6))
+            elif (1.e-3 < float(measure) <= 1):
+                formated_data[i] = str("{0:.2f} ms".format(measure / 1.e-3))
+            elif (1. < float(measure) <= 60.):
+                formated_data[i] = str("{0:.2f} sec".format(measure))
+            elif (60. < float(measure) <= 3600.):
+                m, s = divmod(measure, 3600.)
+                if s > 60:
+                    m, s = divmod(measure, 60.)
+                    s = str(s).split(".")[-1]
+                formated_data[i] = str("{0:.0f}.{1:.2s} min".format(m, s))
+            else:
+                h, m = divmod(measure, 3600)
+                if m > 60:
+                    m /= 60
+                formated_data[i] = str("{0:.0f}h:{1:.0f}min".format(h, m))
+
+        return formated_data
+
+    def format_output(self, child_key):
         """ Formats the data"""
+
         if True:
-            data = [x.stats.get(child_key,[0,0,0,0,0]) for x in self.stats1]
-            return map(self.color_string,zip(list(zip(*data))[1:4], [["%i"]*2, ["%.3f","%.3f"], ["%.3f","%.3f"]]))
+            data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
+            # print(self.stats[child_key], list(zip(*data))[1:4])
+            #return map(self.color_string,
+            #           zip(list(zip(*data))[1:4], [["%i n"] * 2, ["%.3f ms", "%.3f ms"], ["%.3f", "%.3f"]]))
+
+            # Trying to unpack crazy info
+            for k in data[0][4]:
+                info = k
+                measures = data[0][4][k]
+
+            calls = list(measures[:1]) # measures[:2]
+
+            result = calls + self.format_measure(measures[2:])
+
+            return result
             
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
@@ -524,11 +565,17 @@ class ProfilerDataTree(QTreeWidget):
             (filename, line_number, function_name, file_and_line, node_type
              ) = self.function_info(child_key)
 
+            """
             ((total_calls, total_calls_dif), (loc_time, loc_time_dif), (cum_time,
              cum_time_dif)) = self.format_output(child_key)
 
             (primcalls, total_calls, loc_time, cum_time, callers
              ) = self.stats[child_key]
+            """
+
+            (total_calls, loc_time, cum_time) = self.format_output(child_key)
+
+
             child_item = TreeWidgetItem(parentItem)
             self.item_list.append(child_item)
             self.set_item_data(child_item, filename, line_number)
@@ -542,30 +589,32 @@ class ProfilerDataTree(QTreeWidget):
                                        '(including sub-functions)'))
             child_item.setData(1, Qt.DisplayRole, cum_time)
             child_item.setTextAlignment(1, Qt.AlignRight)
-            
-            child_item.setData(2, Qt.DisplayRole, cum_time_dif[0])
-            child_item.setForeground(2, QColor(cum_time_dif[1]))
-            child_item.setTextAlignment(2, Qt.AlignLeft)
 
             child_item.setToolTip(3, _('Local time in function '\
                                       '(not in sub-functions)'))
 
             child_item.setData(3, Qt.DisplayRole, loc_time)
             child_item.setTextAlignment(3, Qt.AlignRight)
-            
-            child_item.setData(4, Qt.DisplayRole, loc_time_dif[0])
-            child_item.setForeground(4, QColor(loc_time_dif[1]))
-            child_item.setTextAlignment(4, Qt.AlignLeft)
 
             child_item.setToolTip(5, _('Total number of calls '\
                                        '(including recursion)'))
 
             child_item.setData(5, Qt.DisplayRole, total_calls)
             child_item.setTextAlignment(5, Qt.AlignRight)
-            
+
+            """
+            child_item.setData(2, Qt.DisplayRole, cum_time_dif[0])
+            child_item.setForeground(2, QColor(cum_time_dif[1]))
+            child_item.setTextAlignment(2, Qt.AlignLeft)
+
+            child_item.setData(4, Qt.DisplayRole, loc_time_dif[0])
+            child_item.setForeground(4, QColor(loc_time_dif[1]))
+            child_item.setTextAlignment(4, Qt.AlignLeft)
+
             child_item.setData(6, Qt.DisplayRole, total_calls_dif[0])
             child_item.setForeground(6, QColor(total_calls_dif[1]))
             child_item.setTextAlignment(6, Qt.AlignLeft)
+            """
 
             child_item.setToolTip(7, _('File:line '\
                                        'where function is defined'))
