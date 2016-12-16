@@ -2009,9 +2009,11 @@ class CodeEditor(TextEditBaseWidget):
            not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
             prevline_indent = self.get_block_indentation(prevline)
+            prevline_text = self.get_text_line(prevline).strip()
             trailing_text = self.get_text_line(block_nb).strip()
 
-            if cur_indent < prevline_indent and trailing_text:
+            if cur_indent < prevline_indent and \
+               trailing_text or prevline_text.startswith("return"):
                 if cur_indent % len(self.indent_chars) == 0:
                     correct_indent = cur_indent
                 else:
