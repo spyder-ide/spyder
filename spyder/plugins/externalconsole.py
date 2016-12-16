@@ -711,6 +711,8 @@ class ExternalConsole(SpyderPluginWidget):
             index = self.tabwidget.currentIndex()
             fname = self.filenames[index]
             if fname:
+                # solve issue 1165
+                fname = osp.basename(fname)
                 title += ' - ' + to_text_string(fname)
         return title
     
