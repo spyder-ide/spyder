@@ -16,17 +16,25 @@ p = rope_plugin.RopePlugin()
 p.load_plugin()
 
 
+try:
+    import numpy
+except ImportError:
+    numpy = None
+
+
+@pytest.mark.skipif(not numpy, reason="Numpy required")
 def test_get_info():
-    source_code = "import os; os.walk("
+    source_code = "import numpy; numpy.ones"
     docs = p.get_info(CodeInfo('info', source_code, len(source_code), __file__))
-    assert docs['calltip'].startswith('walk(') and docs['name'] == 'walk'
+    assert docs['calltip'].startswith('ones(') and docs['name'] == 'ones'
 
 
+@pytest.mark.skipif(not numpy, reason="Numpy required")
 def test_get_completions_1():
-    source_code = "import o"
+    source_code = "import numpy; n"
     completions = p.get_completions(CodeInfo('completions', source_code,
                                              len(source_code), __file__))
-    assert ('os', 'module') in completions
+    assert ('numpy', 'module') in completions
 
 
 def test_get_completions_2():
@@ -43,13 +51,6 @@ def test_get_definition():
     assert 'os.py' in path
 
 
-def test_get_path():
-    source_code = 'from spyder.utils.introspection.manager import CodeInfo'
-    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
-                                              len(source_code), __file__))
-    assert 'utils.py' in path and 'introspection' in path
-
-
 def test_get_docstring():
     source_code = dedent('''
     def test(a, b):
@@ -59,8 +60,8 @@ def test_get_docstring():
     path, line = p.get_definition(CodeInfo('definition', source_code,
                                            len(source_code), 'dummy.txt',
                                            is_python_like=True))
-    assert line == 2
+    assert 'dummy' in path and line == 2
 
     docs = p.get_info(CodeInfo('info', source_code, len(source_code),
-                               __file__))
+                               __file__, is_python_like=True))
     assert 'Test docstring' in docs['docstring']
