@@ -401,12 +401,11 @@ class DataFrameModel(QAbstractTableModel):
 
 
 class FrozenTableView(QTableView):
-    """
-    This class implements a table with its first column frozen
+    """This class implements a table with its first column frozen
     For more information please see:
-    http://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html
-    """
+    http://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html"""
     def __init__(self, parent):
+        """Constructor."""
         QTableView.__init__(self, parent)
         self.parent = parent
         self.setModel(parent.model())
@@ -431,15 +430,13 @@ class FrozenTableView(QTableView):
         self.setVerticalScrollMode(1)
 
     def update_geometry(self):
-        """
-        Update the frozen column size when an update occurs 
-        in its parent table 
-        """
-        self.setGeometry(self.parent.verticalHeader().width() 
-                         + self.parent.frameWidth(),
-                         self.parent.frameWidth(), 
+        """Update the frozen column size when an update occurs
+        in its parent table"""
+        self.setGeometry(self.parent.verticalHeader().width() +
+                         self.parent.frameWidth(),
+                         self.parent.frameWidth(),
                          self.parent.columnWidth(0),
-                         self.parent.viewport().height() + 
+                         self.parent.viewport().height() +
                          self.parent.horizontalHeader().height())
 
 
@@ -475,33 +472,31 @@ class DataFrameView(QTableView):
             self.frozen_table_view.verticalScrollBar().setValue)
     
     def update_section_width(self, logical_index, old_size, new_size):
-        """
-        Update the horizontal width of the frozen column when a
-        change takes place in the first column of the table 
-        """
+        """Update the horizontal width of the frozen column when a
+        change takes place in the first column of the table"""
         if logical_index == 0:
             self.frozen_table_view.setColumnWidth(0, new_size)
             self.frozen_table_view.update_geometry()
 
     def update_section_height(self, logical_index, old_size, new_size):
-        """
-        Update the vertical width of the frozen column when a
-        change takes place on any of the rows 
-        """
+        """Update the vertical width of the frozen column when a
+        change takes place on any of the rows"""
         self.frozen_table_view.setRowHeight(logical_index, new_size)
 
     def resizeEvent(self, event):
-        """
-        Update the frozen column dimensions when the enclosing 
-        window of this table reports a dimension change 
+        """Update the frozen column dimensions.
+
+        Updates takes place when the enclosing window of this 
+        table reports a dimension change
         """
         QTableView.resizeEvent(self, event)
         self.frozen_table_view.update_geometry()
 
     def moveCursor(self, cursor_action, modifiers):
-        """
-        Update the table position, along with the frozen column
-        when the cursor (selector) changes its position  
+        """Update the table position.
+
+        Updates the position along with the frozen column
+        when the cursor (selector) changes its position
         """
         current = QTableView.moveCursor(self, cursor_action, modifiers)
         
@@ -519,11 +514,12 @@ class DataFrameView(QTableView):
         return current
 
     def scrollTo(self, index, hint):
-        """
-        Scroll the table if necessary to ensure that the item at 
-        index is visible. The view will try to position the item 
-        according to the given hint. This method does not takes 
-        effect only if the frozen column is scrolled.
+        """Scroll the table.
+
+        It is necessary to ensure that the item at index is visible.
+        The view will try to position the item according to the
+        given hint. This method does not takes effect only if
+        the frozen column is scrolled.
         """
         if index.column() > 1:
             QTableView.scrollTo(self, index, hint)
