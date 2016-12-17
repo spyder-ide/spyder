@@ -2814,12 +2814,12 @@ def initialize():
     from qtpy import QtWidgets
     QtWidgets.QApplication = FakeQApplication
 
-    #----Monkey patching sys.exit
+    # ----Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass
     sys.exit = fake_sys_exit
 
-    #----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
+    # ----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
     if PYQT5:
         def spy_excepthook(type_, value, tback):
             sys.__excepthook__(type_, value, tback) 
