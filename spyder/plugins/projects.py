@@ -24,7 +24,7 @@ from spyder.config.base import _, get_home_dir
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string, getcwd
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
 from spyder.widgets.projects.projectdialog import ProjectDialog
 from spyder.widgets.projects import EmptyProject
@@ -97,11 +97,11 @@ class Projects(SpyderPluginWidget):
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
 
         self.main.projects_menu_actions += [self.new_project_action,
-                                            None,
+                                            MENU_SEPARATOR,
                                             self.open_project_action,
                                             self.close_project_action,
                                             self.delete_project_action,
-                                            None,
+                                            MENU_SEPARATOR,
                                             self.recent_project_menu,
                                             self.toggle_view_action]
 

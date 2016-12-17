@@ -34,6 +34,8 @@ CODESTYLE = 'codestyle'
 CODESTYLE_DEFAULTS = [
     (CODESTYLE,
      {'indentation': True,
+      'edge_line': True,
+      'edge_line_columns': '79',
       }
      )]
 CODESTYLE_VERSION = '0.1.0'

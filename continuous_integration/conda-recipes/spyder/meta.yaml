@@ -33,6 +33,8 @@ requirements:
     - pylint
     - qtawesome
     - qtpy
+    - chardet >=2.0.0
+    - numpydoc
 
 about:
   home: https://github.com/spyder-ide/spyder
