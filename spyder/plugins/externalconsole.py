@@ -17,7 +17,6 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
@@ -272,10 +271,8 @@ class ExternalConsole(SpyderPluginWidget):
     redirect_stdio = Signal(bool)
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
+
         self.tabwidget = None
         self.menu_actions = None
 
@@ -348,7 +345,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.shellwidgets.insert(index_to, shell)
         self.icons.insert(index_to, icons)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_shell_index_from_id(self, shell_id):
         """Return shellwidget index from id"""
@@ -370,7 +367,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.pop(index)
         self.shellwidgets.pop(index)
         self.icons.pop(index)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
@@ -769,24 +766,16 @@ class ExternalConsole(SpyderPluginWidget):
                         self.main.plugin_focus_changed)
         self.redirect_stdio.connect(
                         self.main.redirect_internalshell_stdio)
-        expl = self.main.explorer
-        if expl is not None:
-            expl.open_terminal.connect(self.open_terminal)
-            expl.open_interpreter.connect(self.open_interpreter)
-        pexpl = self.main.projects
-        if pexpl is not None:
-            pexpl.open_terminal.connect(self.open_terminal)
-            pexpl.open_interpreter.connect(self.open_interpreter)
 
     def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
+        """Perform actions before parent main window is closed."""
         for shellwidget in self.shellwidgets:
             shellwidget.close()
         return True
 
     def restart(self):
         """
-        Restart the console
+        Restart the console.
 
         This is needed when we switch project to update PYTHONPATH
         and the selected interpreter
@@ -815,7 +804,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
             self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def update_font(self):
         """Update font from Preferences"""

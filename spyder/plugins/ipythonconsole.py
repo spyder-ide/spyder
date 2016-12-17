@@ -26,7 +26,6 @@ from jupyter_client.kernelspec import KernelSpec
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
@@ -586,10 +585,7 @@ class IPythonConsole(SpyderPluginWidget):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
         self.menu_actions = None
@@ -725,7 +721,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
         self.main.last_console_plugin_focus_was_python = False
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -1129,7 +1125,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.remove(client)
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1329,7 +1325,7 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):

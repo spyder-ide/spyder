@@ -8,11 +8,11 @@
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.api.plugins import SpyderPluginMixin
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
@@ -63,17 +63,15 @@ class VariableExplorerConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class VariableExplorer(QWidget, SpyderPluginMixin):
-    """
-    Variable Explorer Plugin
-    """
+class VariableExplorer(SpyderPluginWidget):
+    """Variable Explorer plugin."""
+
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        SpyderPluginMixin.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         # Widgets
         self.stack = QStackedWidget(self)

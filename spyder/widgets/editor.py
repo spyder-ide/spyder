@@ -668,8 +668,7 @@ class EditorStack(QWidget):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer.outlineexplorer_is_visible.connect(
-                                                 self._refresh_outlineexplorer)
+        self.outlineexplorer.is_visible.connect(self._refresh_outlineexplorer)
 
     def initialize_outlineexplorer(self):
         """This method is called separately from 'set_oulineexplorer' to avoid

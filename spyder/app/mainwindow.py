@@ -781,7 +781,7 @@ class MainWindow(QMainWindow):
         from spyder.plugins.workingdirectory import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
-        self.toolbarslist.append(self.workingdirectory)
+        self.toolbarslist.append(self.workingdirectory.toolbar)
 
         # Help plugin
         if CONF.get('help', 'enable'):
@@ -829,6 +829,12 @@ class MainWindow(QMainWindow):
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
 
+        # External console
+        self.set_splash(_("Loading external console..."))
+        from spyder.plugins.externalconsole import ExternalConsole
+        self.extconsole = ExternalConsole(self)
+        self.extconsole.register_plugin()
+
         # Explorer
         if CONF.get('explorer', 'enable'):
             self.set_splash(_("Loading file explorer..."))
@@ -860,12 +866,6 @@ class MainWindow(QMainWindow):
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
 
-        # External console
-        self.set_splash(_("Loading external console..."))
-        from spyder.plugins.externalconsole import ExternalConsole
-        self.extconsole = ExternalConsole(self)
-        self.extconsole.register_plugin()
-
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
         from spyder.plugins.variableexplorer import VariableExplorer
@@ -878,6 +878,17 @@ class MainWindow(QMainWindow):
             from spyder.plugins.ipythonconsole import IPythonConsole
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
+
+        # Third-party plugins
+        self.set_splash(_("Loading third-party plugins..."))
+        for mod in get_spyderplugins_mods():
+            try:
+                plugin = mod.PLUGIN_CLASS(self)
+                self.thirdparty_plugins.append(plugin)
+                plugin.register_plugin()
+            except Exception as error:
+                print("%s: %s" % (mod, str(error)), file=STDERR)
+                traceback.print_exc(file=STDERR)
 
         self.set_splash(_("Setting up main window..."))
 
@@ -1030,18 +1041,7 @@ class MainWindow(QMainWindow):
         self.cpu_status = CPUStatus(self, status)
         self.apply_statusbar_settings()
 
-        # Third-party plugins
-        for mod in get_spyderplugins_mods():
-            try:
-                plugin = mod.PLUGIN_CLASS(self)
-                self.thirdparty_plugins.append(plugin)
-                plugin.register_plugin()
-            except Exception as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
-                traceback.print_exc(file=STDERR)
-
-
-        #----- View
+        # ----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
 

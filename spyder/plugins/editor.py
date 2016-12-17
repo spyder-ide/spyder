@@ -18,7 +18,7 @@ import re
 import time
 
 # Third party imports
-from qtpy import API, PYQT5
+from qtpy import API
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
@@ -365,10 +365,7 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     
     def __init__(self, parent, ignore_last_opened_files=False):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main=parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.__set_eol_chars = True
 
@@ -506,13 +503,15 @@ class Editor(SpyderPluginWidget):
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
         for editorstack in self.editorstacks:
-            editorstack.set_outlineexplorer(self.outlineexplorer)
+            # Pass the OutlineExplorer widget to the stacks because they
+            # don't need the plugin
+            editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
         self.editorstacks[0].initialize_outlineexplorer()
-        self.outlineexplorer.edit_goto.connect(
+        self.outlineexplorer.explorer.edit_goto.connect(
                            lambda filenames, goto, word:
                            self.load(filenames=filenames, goto=goto, word=word,
                                      editorwindow=self))
-        self.outlineexplorer.edit.connect(
+        self.outlineexplorer.explorer.edit.connect(
                              lambda filenames:
                              self.load(filenames=filenames, editorwindow=self))
 
@@ -1262,7 +1261,7 @@ class Editor(SpyderPluginWidget):
                                     lambda text, option:
                                     self.exec_in_extconsole.emit(text, option))
         editorstack.update_plugin_title.connect(
-                                       lambda: self.update_plugin_title.emit())
+                                   lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.set_editorstack_for_introspection)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
@@ -1391,7 +1390,7 @@ class Editor(SpyderPluginWidget):
             win.set_layout_settings(layout_settings)
         
     def create_new_window(self):
-        oe_options = self.outlineexplorer.get_options()
+        oe_options = self.outlineexplorer.explorer.get_options()
         fullpath_sorting=self.get_option('fullpath_sorting', True),
         window = EditorMainWindow(self, self.stack_menu_actions,
                                   self.toolbar_list, self.menu_list,
@@ -2501,10 +2500,11 @@ class Editor(SpyderPluginWidget):
             finfo = self.get_current_finfo()
             if fpsorting_n in options:
                 if self.outlineexplorer is not None:
-                    self.outlineexplorer.set_fullpath_sorting(fpsorting_o)
+                    self.outlineexplorer.explorer.set_fullpath_sorting(
+                        fpsorting_o)
                 for window in self.editorwindows:
                     window.editorwidget.outlineexplorer.set_fullpath_sorting(
-                                                                    fpsorting_o)
+                        fpsorting_o)
             for editorstack in self.editorstacks:
                 if fpsorting_n in options:
                     editorstack.set_fullpath_sorting_enabled(fpsorting_o)

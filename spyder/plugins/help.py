@@ -13,7 +13,6 @@ import socket
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import QThread, QUrl, Signal, Slot
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QMessageBox, QSizePolicy,
@@ -334,10 +333,7 @@ class Help(SpyderPluginWidget):
     focus_changed = Signal()
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.internal_shell = None
 
