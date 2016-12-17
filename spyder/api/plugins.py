@@ -49,7 +49,7 @@ class PluginWidget(BasePluginWidget):
     sig_update_plugin_title = Signal()
 
     def __init__(self, main=None):
-        """Bind widget to a QMainWindow instance"""
+        """Bind widget to a QMainWindow instance."""
         BasePluginWidget.__init__(self, main)
         assert self.CONF_SECTION is not None
 
@@ -66,7 +66,7 @@ class PluginWidget(BasePluginWidget):
         # None shortcut to plugins that don't have one. That will mess
         # the creation of our Keyboard Shortcuts prefs page
         try:
-            self.shortcut = CONF.get('shortcuts', '_/switch to %s' % \
+            self.shortcut = CONF.get('shortcuts', '_/switch to %s' %
                                      self.CONF_SECTION)
         except configparser.NoOptionError:
             pass
@@ -91,7 +91,8 @@ class PluginWidget(BasePluginWidget):
 
     def create_mainwindow(self):
         """
-        Create a QMainWindow instance containing this plugin
+        Create a QMainWindow instance containing this plugin.
+
         Note: this method is currently not used in Spyder core plugins
         """
         self.mainwindow = mainwindow = QMainWindow()
@@ -108,7 +109,7 @@ class PluginWidget(BasePluginWidget):
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_sc_to_tip=False):
         """
-        Register QAction or QShortcut to Spyder main application
+        Register QAction or QShortcut to Spyder main application.
 
         if add_sc_to_tip is True, the shortcut is added to the
         action's tooltip
@@ -118,14 +119,15 @@ class PluginWidget(BasePluginWidget):
 
     def register_widget_shortcuts(self, widget):
         """
-        Register widget shortcuts
-        widget interface must have a method called 'get_shortcut_data'
+        Register widget shortcuts.
+
+        Widget interface must have a method called 'get_shortcut_data'
         """
         for qshortcut, context, name in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name)
 
     def visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
+        """Dock widget visibility has changed."""
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
@@ -140,36 +142,35 @@ class PluginWidget(BasePluginWidget):
 
     def set_option(self, option, value):
         """
-        Set a plugin option in configuration file
+        Set a plugin option in configuration file.
+
         Use a SIGNAL to call it, e.g.:
         plugin.sig_option_changed.emit('show_all', checked)
         """
         CONF.set(self.CONF_SECTION, str(option), value)
 
     def get_option(self, option, default=NoDefault):
-        """Get a plugin option from configuration file"""
+        """Get a plugin option from configuration file."""
         return CONF.get(self.CONF_SECTION, option, default)
 
     def starting_long_process(self, message):
         """
-        Showing message in main window's status bar
-        and changing mouse cursor to Qt.WaitCursor
+        Showing message in main window's status bar.
+
+        This also changes mouse cursor to Qt.WaitCursor
         """
         self.show_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
 
     def ending_long_process(self, message=""):
-        """
-        Clearing main window's status bar
-        and restoring mouse cursor
-        """
+        """Clear main window's status bar and restore mouse cursor."""
         QApplication.restoreOverrideCursor()
         self.show_message(message, timeout=2000)
         QApplication.processEvents()
 
     def get_color_scheme(self):
-        """Get current color scheme"""
+        """Get current color scheme."""
         return get_color_scheme(CONF.get('color_schemes', 'selected'))
 
 
@@ -217,7 +218,8 @@ class SpyderPluginWidget(PluginWidget):
 
     def get_plugin_title(self):
         """
-        Return plugin title
+        Return plugin title.
+
         Note: after some thinking, it appears that using a method
         is more flexible here than using a class attribute
         """
@@ -225,7 +227,8 @@ class SpyderPluginWidget(PluginWidget):
 
     def get_plugin_icon(self):
         """
-        Return plugin icon (QIcon instance)
+        Return plugin icon (QIcon instance).
+
         Note: this is required for plugins creating a main window
               (see SpyderPluginMixin.create_mainwindow)
               and for configuration dialog widgets creation
@@ -234,46 +237,49 @@ class SpyderPluginWidget(PluginWidget):
 
     def get_focus_widget(self):
         """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        Return the widget to give focus to.
+
+        This is applied when plugin's dockwidget is raised on top-level.
         """
         pass
 
     def closing_plugin(self, cancelable=False):
         """
-        Perform actions before parent main window is closed
-        Return True or False whether the plugin may be closed immediately or not
+        Perform actions before parent main window is closed.
+
+        Return True or False whether the plugin may be closed immediately or
+        not
         Note: returned value is ignored if *cancelable* is False
         """
         return True
 
     def refresh_plugin(self):
-        """Refresh widget"""
+        """Refresh widget."""
         raise NotImplementedError
 
     def get_plugin_actions(self):
         """
-        Return a list of actions related to plugin
+        Return a list of actions related to plugin.
+
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
         raise NotImplementedError
 
     def register_plugin(self):
-        """Register plugin in Spyder's main window"""
+        """Register plugin in Spyder's main window."""
         raise NotImplementedError
 
     def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
+        """Action to be performed on first plugin registration."""
         raise NotImplementedError
 
     def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
+        """Apply configuration file's plugin settings."""
         raise NotImplementedError
 
     def update_font(self):
         """
-        This has to be reimplemented by plugins that need to adjust
-        their fonts
+        This must be reimplemented by plugins that need to adjust their fonts.
         """
         pass

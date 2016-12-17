@@ -56,14 +56,15 @@ class ProfilerConfigPage(PluginConfigPage):
 
 
 class Profiler(SpyderPluginWidget):
-    """Profiler (after python's profile and pstats)"""
+    """Profiler (after python's profile and pstats)."""
+
     CONF_SECTION = 'profiler'
     CONFIGWIDGET_CLASS = ProfilerConfigPage
-    
+
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
-        max_entries=self.get_option('max_entries', 50)
+        max_entries = self.get_option('max_entries', 50)
         self.profiler = ProfilerWidget(self, max_entries)
 
         layout = QVBoxLayout()

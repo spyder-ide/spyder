@@ -2500,10 +2500,11 @@ class Editor(SpyderPluginWidget):
             finfo = self.get_current_finfo()
             if fpsorting_n in options:
                 if self.outlineexplorer is not None:
-                    self.outlineexplorer.explorer.set_fullpath_sorting(fpsorting_o)
+                    self.outlineexplorer.explorer.set_fullpath_sorting(
+                        fpsorting_o)
                 for window in self.editorwindows:
                     window.editorwidget.outlineexplorer.set_fullpath_sorting(
-                                                                    fpsorting_o)
+                        fpsorting_o)
             for editorstack in self.editorstacks:
                 if fpsorting_n in options:
                     editorstack.set_fullpath_sorting_enabled(fpsorting_o)

@@ -23,15 +23,18 @@ from spyder.widgets.editortools import OutlineExplorerWidget
 
 
 class OutlineExplorer(SpyderPluginWidget):
+    """Outline Explorer plugin."""
+
     CONF_SECTION = 'outline_explorer'
-    
+
     def __init__(self, parent=None, fullpath_sorting=True):
         SpyderPluginWidget.__init__(self, parent)
 
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
         show_comments = self.get_option('show_comments')
-        self.explorer = OutlineExplorerWidget(self,
+        self.explorer = OutlineExplorerWidget(
+                                       self,
                                        show_fullpath=show_fullpath,
                                        fullpath_sorting=fullpath_sorting,
                                        show_all_files=show_all_files,

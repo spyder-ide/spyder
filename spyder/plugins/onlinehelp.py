@@ -20,9 +20,8 @@ from spyder.widgets.pydocgui import PydocBrowser
 
 
 class OnlineHelp(SpyderPluginWidget):
-    """
-    Online Help Plugin
-    """
+    """Online Help Plugin."""
+
     CONF_SECTION = 'onlinehelp'
     LOG_PATH = get_conf_path(CONF_SECTION)
 
@@ -59,7 +58,7 @@ class OnlineHelp(SpyderPluginWidget):
         """Save history to a text file in user home directory"""
         open(self.LOG_PATH, 'w').write("\n".join( \
                 [to_text_string(self.pydocbrowser.url_combo.itemText(index))
-                 for index in range(self.pydocbrowser.url_combo.count())] ))
+                 for index in range(self.pydocbrowser.url_combo.count())]))
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def visibility_changed(self, enable):

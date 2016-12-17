@@ -25,13 +25,15 @@ from spyder.widgets.explorer import ExplorerWidget
 
 
 class Explorer(SpyderPluginWidget):
-    """File and Directories Explorer DockWidget"""
+    """File and Directories Explorer DockWidget."""
+
     CONF_SECTION = 'explorer'
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
-        self.fileexplorer = ExplorerWidget(self,
+        self.fileexplorer = ExplorerWidget(
+                                self,
                                 name_filters=self.get_option('name_filters'),
                                 show_all=self.get_option('show_all'),
                                 show_icontext=self.get_option('show_icontext'))
@@ -78,9 +80,11 @@ class Explorer(SpyderPluginWidget):
         treewidget.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         treewidget.sig_run.connect(
                      lambda fname:
-                     self.main.open_external_console(to_text_string(fname),
-                                         osp.dirname(to_text_string(fname)),
-                                         '', False, False, True, '', False))
+                     self.main.open_external_console(
+                         to_text_string(fname),
+                         osp.dirname(to_text_string(fname)),
+                         '', False, False, True, '', False)
+                     )
         treewidget.sig_open_dir.connect(
                      lambda dirname:
                      self.main.workingdirectory.chdir(dirname,

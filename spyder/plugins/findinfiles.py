@@ -29,16 +29,18 @@ from spyder.widgets.findinfiles import FindInFilesWidget
 
 
 class FindInFiles(SpyderPluginWidget):
-    """Find in files DockWidget"""
+    """Find in files DockWidget."""
+
     CONF_SECTION = 'find_in_files'
     sig_option_changed = Signal(str, object)
     toggle_visibility = Signal(bool)
-    
+
     def __init__(self, parent=None):
+        """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
         supported_encodings = self.get_option('supported_encodings')
-        search_path = self.get_option('search_path', None)        
+        search_path = self.get_option('search_path', None)
         self.search_text_samples = self.get_option('search_text_samples')
         search_text = self.get_option('search_text')
         search_text = [txt for txt in search_text \
@@ -56,7 +58,8 @@ class FindInFiles(SpyderPluginWidget):
         in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
 
-        self.findinfiles = FindInFilesWidget(self,
+        self.findinfiles = FindInFilesWidget(
+                                   self,
                                    search_text, search_text_regexp, search_path,
                                    include, include_idx, include_regexp,
                                    exclude, exclude_idx, exclude_regexp,
@@ -141,7 +144,8 @@ class FindInFiles(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.findinfiles.get_pythonpath_callback = self.main.get_spyder_pythonpath
+        self.findinfiles.get_pythonpath_callback = \
+            self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
         self.findinfiles.result_browser.sig_edit_goto.connect(
                                                          self.main.editor.load)

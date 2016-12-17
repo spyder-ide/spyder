@@ -736,7 +736,8 @@ class DirView(QTreeView):
         """New module"""
         title = _("New module")
         filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
-        create_func = lambda fname: self.sig_create_module.emit(fname)
+        def create_func(fname):
+            self.sig_create_module.emit(fname)
         self.create_new_file(basedir, title, filters, create_func)
 
     def go_to_parent_directory(self):

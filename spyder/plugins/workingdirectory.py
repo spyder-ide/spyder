@@ -136,9 +136,8 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
 
 
 class WorkingDirectory(SpyderPluginWidget):
-    """
-    Working directory changer widget
-    """
+    """Working directory changer plugin."""
+
     CONF_SECTION = 'workingdir'
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
     LOG_PATH = get_conf_path(CONF_SECTION)
@@ -159,9 +158,10 @@ class WorkingDirectory(SpyderPluginWidget):
         # Initialize plugin
         self.initialize_plugin()
         
-        self.toolbar.setWindowTitle(self.get_plugin_title()) # Toolbar title
-        self.toolbar.setObjectName(self.get_plugin_title()) # Used to save Window state
-        
+        self.toolbar.setWindowTitle(self.get_plugin_title())
+        # Used to save Window state
+        self.toolbar.setObjectName(self.get_plugin_title())
+
         # Previous dir action
         self.history = []
         self.histindex = None

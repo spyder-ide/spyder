@@ -33,6 +33,7 @@ class Breakpoints(SpyderPluginWidget):
     CONF_SECTION = 'breakpoints'
 
     def __init__(self, parent=None):
+        """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
         self.breakpoints = BreakpointWidget(self)
@@ -76,7 +77,8 @@ class Breakpoints(SpyderPluginWidget):
         #self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.breakpoints.clear_all_breakpoints.connect(
                                         self.main.editor.clear_all_breakpoints)
-        self.breakpoints.clear_breakpoint.connect(self.main.editor.clear_breakpoint)
+        self.breakpoints.clear_breakpoint.connect(
+            self.main.editor.clear_breakpoint)
         self.main.editor.breakpoints_saved.connect(self.breakpoints.set_data)
         self.breakpoints.set_or_edit_conditional_breakpoint.connect(
                            self.main.editor.set_or_edit_conditional_breakpoint)

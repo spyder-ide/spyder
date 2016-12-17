@@ -64,9 +64,8 @@ class VariableExplorerConfigPage(PluginConfigPage):
 
 
 class VariableExplorer(SpyderPluginWidget):
-    """
-    Variable Explorer Plugin
-    """
+    """Variable Explorer plugin."""
+
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     sig_option_changed = Signal(str, object)

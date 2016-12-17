@@ -223,12 +223,13 @@ class ProjectExplorerWidget(QWidget):
 
         # Setup the directory shown by the tree
         self.set_project_dir(directory)
-     
+
         # Signal to delete the project
         self.treewidget.sig_delete_project.connect(self.delete_project)
 
     def delete_project(self):
-        """Delete current project without deleting the files in the directory."""
+        """Delete current project without deleting the files in the
+        directory."""
         if self.current_active_project:
             path = self.current_active_project.root_path
             buttons = QMessageBox.Yes|QMessageBox.No

@@ -31,7 +31,7 @@ from spyder.widgets.projects import EmptyProject
 
 
 class Projects(SpyderPluginWidget):
-    """Projects plugin"""
+    """Projects plugin."""
 
     CONF_SECTION = 'project_explorer'
     pythonpath_changed = Signal()
@@ -40,9 +40,11 @@ class Projects(SpyderPluginWidget):
     sig_project_closed = Signal(object)
 
     def __init__(self, parent=None):
+        """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
-        self.explorer = ProjectExplorerWidget(self,
+        self.explorer = ProjectExplorerWidget(
+                            self,
                             name_filters=self.get_option('name_filters'),
                             show_all=self.get_option('show_all'),
                             show_hscrollbar=self.get_option('show_hscrollbar'))

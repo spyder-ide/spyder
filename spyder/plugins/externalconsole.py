@@ -768,14 +768,14 @@ class ExternalConsole(SpyderPluginWidget):
                         self.main.redirect_internalshell_stdio)
 
     def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
+        """Perform actions before parent main window is closed."""
         for shellwidget in self.shellwidgets:
             shellwidget.close()
         return True
 
     def restart(self):
         """
-        Restart the console
+        Restart the console.
 
         This is needed when we switch project to update PYTHONPATH
         and the selected interpreter
