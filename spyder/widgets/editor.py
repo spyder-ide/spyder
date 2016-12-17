@@ -967,7 +967,7 @@ class EditorStack(QWidget):
         return title
 
     def get_tab_text(self, index, is_modified=None, is_readonly=None):
-        """Return tab title"""
+        """Return tab title."""
         files_path_list = [finfo.filename for finfo in self.data]
         fname = self.data[index].filename
         fname = sourcecode.get_file_title(files_path_list, fname)
