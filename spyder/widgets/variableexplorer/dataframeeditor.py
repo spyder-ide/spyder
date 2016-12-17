@@ -483,7 +483,7 @@ class DataFrameView(QTableView):
             self.frozen_table_view.setColumnWidth(0, new_size)
             self.frozen_table_view.update_geometry()
 
-    def update_section_height(logical_index, old_size, new_size):
+    def update_section_height(self, logical_index, old_size, new_size):
         """
         Update the vertical width of the frozen column when a
         change takes place on any of the rows 
