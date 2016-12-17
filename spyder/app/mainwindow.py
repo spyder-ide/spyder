@@ -2814,14 +2814,6 @@ def initialize():
     from qtpy import QtWidgets
     QtWidgets.QApplication = FakeQApplication
 
-    #----Monkey patching rope
-    try:
-        from spyder import rope_patch
-        rope_patch.apply()
-    except ImportError:
-        # rope is not installed
-        pass
-
     #----Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass

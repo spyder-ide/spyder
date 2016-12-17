@@ -25,7 +25,7 @@ from spyder.utils.introspection.manager import ROPE_REQVER
 
 try:
     try:
-        from spyder import rope_patch
+        from spyder.utils.introspection import rope_patch
         rope_patch.apply()
     except ImportError:
         # rope is not installed
