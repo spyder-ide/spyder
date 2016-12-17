@@ -1925,9 +1925,10 @@ class CodeEditor(TextEditBaseWidget):
                not prevtext.strip().startswith('#') and prevtext) or
                prevtext):
 
-                if (prevtext.strip().endswith(')') or
-                   prevtext.strip().endswith(']') or
-                   prevtext.strip().endswith('}')):
+                if not prevtext.strip().startswith('return') and \
+                    (prevtext.strip().endswith(')') or
+                     prevtext.strip().endswith(']') or
+                     prevtext.strip().endswith('}')):
 
                     comment_or_string = True  # prevent further parsing
 
@@ -1969,8 +1970,14 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent += self.tab_stop_width_spaces
                 else:
                     correct_indent += len(self.indent_chars)
-            elif (prevtext.endswith('continue') or prevtext.endswith('break') \
-              or prevtext.endswith('pass')) and self.is_python_like():
+            elif self.is_python_like() and \
+                (prevtext.endswith('continue') or
+                 prevtext.endswith('break') or
+                 prevtext.endswith('pass') or
+                 (prevtext.strip().startswith("return") and
+                  len(re.split(r'\(|\{|\[', prevtext)) ==
+                  len(re.split(r'\)|\}|\]', prevtext)))):
+                print(prevtext)
                 # Unindent
                 if self.indent_chars == '\t':
                     correct_indent -= self.tab_stop_width_spaces
@@ -2009,11 +2016,10 @@ class CodeEditor(TextEditBaseWidget):
            not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
             prevline_indent = self.get_block_indentation(prevline)
-            prevline_text = self.get_text_line(prevline).strip()
             trailing_text = self.get_text_line(block_nb).strip()
 
             if cur_indent < prevline_indent and \
-               trailing_text or prevline_text.startswith("return"):
+               (trailing_text or prevtext.strip().startswith("return")):
                 if cur_indent % len(self.indent_chars) == 0:
                     correct_indent = cur_indent
                 else:
