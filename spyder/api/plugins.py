@@ -180,6 +180,7 @@ class SpyderPluginWidget(PluginWidget):
 
     All plugin widgets must inherit this class and reimplement its interface.
     """
+
     # ---------------------------- ATTRIBUTES ---------------------------------
 
     # Name of the configuration section that's going to be

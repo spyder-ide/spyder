@@ -169,7 +169,7 @@ class WorkingDirectory(SpyderPluginWidget):
                                      ima.icon('previous'), _('Back'),
                                      triggered=self.previous_directory)
         self.toolbar.addAction(self.previous_action)
-        
+
         # Next dir action
         self.history = []
         self.histindex = None

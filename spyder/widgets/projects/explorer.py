@@ -232,7 +232,7 @@ class ProjectExplorerWidget(QWidget):
         directory."""
         if self.current_active_project:
             path = self.current_active_project.root_path
-            buttons = QMessageBox.Yes|QMessageBox.No
+            buttons = QMessageBox.Yes | QMessageBox.No
             answer = QMessageBox.warning(self, _("Delete"),
                                  _("Do you really want "
                                    "to delete <b>{filename}</b>?<br><br>"

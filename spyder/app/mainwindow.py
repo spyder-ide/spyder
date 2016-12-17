@@ -1041,7 +1041,7 @@ class MainWindow(QMainWindow):
         self.cpu_status = CPUStatus(self, status)
         self.apply_statusbar_settings()
 
-        #----- View
+        # ----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
 

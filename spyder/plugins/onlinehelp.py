@@ -98,4 +98,3 @@ class OnlineHelp(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        

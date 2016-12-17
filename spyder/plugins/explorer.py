@@ -30,6 +30,7 @@ class Explorer(SpyderPluginWidget):
     CONF_SECTION = 'explorer'
 
     def __init__(self, parent=None):
+        """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
         self.fileexplorer = ExplorerWidget(
