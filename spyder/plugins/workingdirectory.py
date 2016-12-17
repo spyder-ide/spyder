@@ -177,7 +177,7 @@ class WorkingDirectory(SpyderPluginWidget):
                                      ima.icon('next'), _('Next'),
                                      triggered=self.next_directory)
         self.toolbar.addAction(self.next_action)
-        
+
         # Enable/disable previous/next actions
         self.set_previous_enabled.connect(self.previous_action.setEnabled)
         self.set_next_enabled.connect(self.next_action.setEnabled)
