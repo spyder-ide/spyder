@@ -18,28 +18,28 @@ p.load_plugin()
 
 def test_get_info():
     source_code = "import os; os.walk("
-    docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code), __file__))
     assert docs['calltip'].startswith('walk(') and docs['name'] == 'walk'
 
 
 def test_get_completions_1():
     source_code = "import o"
     completions = p.get_completions(CodeInfo('completions', source_code,
-                                             len(source_code)))
+                                             len(source_code), __file__))
     assert ('os', 'module') in completions
 
 
 def test_get_completions_2():
     source_code = "import a"
     completions = p.get_completions(CodeInfo('completions', source_code,
-                                             len(source_code)))
+                                             len(source_code), __file__))
     assert not completions
 
 
 def test_get_definition():
     source_code = "import os; os.walk"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
-                                              len(source_code)))
+                                              len(source_code), __file__))
     assert 'os.py' in path
 
 
