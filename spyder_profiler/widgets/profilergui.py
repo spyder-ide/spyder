@@ -498,25 +498,30 @@ class ProfilerDataTree(QTreeWidget):
 
     def format_measure(self, measure):
         """Get format and units for data coming from profiler task."""
+        # For number of calls
+        if isinstance(measure, int):
+            return to_text_string(measure)
+
+        # For time measurements
         if 1.e-9 < measure <= 1.e-6:
-            measure = "{0:.2f} ns".format(measure / 1.e-9)
+            measure = u"{0:.2f} ns".format(measure / 1.e-9)
         elif 1.e-6 < measure <= 1.e-3:
-            measure = "{0:.2f} us".format(measure / 1.e-6)
+            measure = u"{0:.2f} us".format(measure / 1.e-6)
         elif 1.e-3 < measure <= 1:
-            measure = "{0:.2f} ms".format(measure / 1.e-3)
+            measure = u"{0:.2f} ms".format(measure / 1.e-3)
         elif 1 < measure <= 60:
-            measure = "{0:.2f} sec".format(measure)
+            measure = u"{0:.2f} sec".format(measure)
         elif 60 < measure <= 3600:
             m, s = divmod(measure, 3600)
             if s > 60:
                 m, s = divmod(measure, 60)
                 s = str(s).split(".")[-1]
-            measure = "{0:.0f}.{1:.2s} min".format(m, s)
+            measure = u"{0:.0f}.{1:.2s} min".format(m, s)
         else:
             h, m = divmod(measure, 3600)
             if m > 60:
                 m /= 60
-            measure = "{0:.0f}h:{1:.0f}min".format(h, m)
+            measure = u"{0:.0f}h:{1:.0f}min".format(h, m)
         return measure
 
     def color_string(self, args):
