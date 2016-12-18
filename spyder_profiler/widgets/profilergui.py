@@ -521,20 +521,19 @@ class ProfilerDataTree(QTreeWidget):
         return measure
 
     def color_string(self, args):
-        x, format = args
+        x, fmt = args
         diff_str = ""
         color = "black"
 
         if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
-            print(x, difference)
             if difference < 0:
-                diff_str = "".join(['', format[1] % self.format_measure(difference)])
+                diff_str = "".join(['', fmt[1] % self.format_measure(difference)])
                 color = "green"
             elif difference > 0:
-                diff_str = "".join(['+', format[1] % self.format_measure(difference)])
+                diff_str = "".join(['+', fmt[1] % self.format_measure(difference)])
                 color = "red"
-        return [format[0] % self.format_measure(x[0]), [diff_str, color]]
+        return [fmt[0] % self.format_measure(x[0]), [diff_str, color]]
 
     def format_output(self, child_key):
         """ Formats the data"""
