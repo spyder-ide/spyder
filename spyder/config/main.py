@@ -185,6 +185,8 @@ DEFAULTS = [
               'autorefresh': False,
               'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
+              'dataframe_format': '.3g', # no percent sign to avoid problems
+                                         # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
@@ -325,6 +327,7 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/layout preferences': "Shift+Alt+P",
               '_/show toolbars': "Alt+Shift+T",
+              '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
@@ -404,6 +407,7 @@ DEFAULTS = [
               'editor/go to previous file': 'Ctrl+Tab',
               'editor/go to next file': 'Ctrl+Shift+Tab',
               'editor/new file': "Ctrl+N",
+              'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
               'editor/save file': "Ctrl+S",
               'editor/save all': "Ctrl+Alt+S",

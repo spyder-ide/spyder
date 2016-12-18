@@ -15,13 +15,14 @@ Pandas DataFrame Editor Dialog
 
 # Third party imports
 from pandas import DataFrame, Series
-from qtpy import API
+from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
-                            QMenu, QMessageBox, QPushButton, QTableView)
+                            QMenu, QMessageBox, QPushButton, QTableView,
+                            QHeaderView)
 import numpy as np
 
 # Local imports
@@ -399,11 +400,63 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
+class FrozenTableView(QTableView):
+    """This class implements a table with its first column frozen
+    For more information please see:
+    http://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html"""
+    def __init__(self, parent):
+        """Constructor."""
+        QTableView.__init__(self, parent)
+        self.parent = parent
+        self.setModel(parent.model())
+        self.setFocusPolicy(Qt.NoFocus)
+        self.verticalHeader().hide()
+        if PYQT5:
+            self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        else:
+            self.horizontalHeader().setResizeMode(QHeaderView.Fixed)
+
+        parent.viewport().stackUnder(self)
+
+        self.setSelectionModel(parent.selectionModel())
+        for col in range(1, parent.model().columnCount()):
+            self.setColumnHidden(col, True)
+
+        self.setColumnWidth(0, parent.columnWidth(0))
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.show()
+
+        self.setVerticalScrollMode(1)
+
+    def update_geometry(self):
+        """Update the frozen column size when an update occurs
+        in its parent table"""
+        self.setGeometry(self.parent.verticalHeader().width() +
+                         self.parent.frameWidth(),
+                         self.parent.frameWidth(),
+                         self.parent.columnWidth(0),
+                         self.parent.viewport().height() +
+                         self.parent.horizontalHeader().height())
+
+
 class DataFrameView(QTableView):
     """Data Frame view class"""
     def __init__(self, parent, model):
         QTableView.__init__(self, parent)
         self.setModel(model)
+
+        self.frozen_table_view = FrozenTableView(self)
+        self.frozen_table_view.update_geometry()
+
+        self.setHorizontalScrollMode(1)
+        self.setVerticalScrollMode(1)
+
+        self.horizontalHeader().sectionResized.connect(self.update_section_width)
+        self.verticalHeader().sectionResized.connect(self.update_section_height)
+
+        self.frozen_table_view.verticalScrollBar().valueChanged.connect(
+            self.verticalScrollBar().setValue)
 
         self.sort_old = [None]
         self.header_class = self.horizontalHeader()
@@ -412,10 +465,65 @@ class DataFrameView(QTableView):
         config_shortcut(self.copy, context='variable_explorer', name='copy',
                         parent=self)
         self.horizontalScrollBar().valueChanged.connect(
-                            lambda val: self.load_more_data(val, columns=True))
+                        lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
-                               lambda val: self.load_more_data(val, rows=True))
+                        lambda val: self.load_more_data(val, rows=True))
+        self.verticalScrollBar().valueChanged.connect(
+            self.frozen_table_view.verticalScrollBar().setValue)
     
+    def update_section_width(self, logical_index, old_size, new_size):
+        """Update the horizontal width of the frozen column when a
+        change takes place in the first column of the table"""
+        if logical_index == 0:
+            self.frozen_table_view.setColumnWidth(0, new_size)
+            self.frozen_table_view.update_geometry()
+
+    def update_section_height(self, logical_index, old_size, new_size):
+        """Update the vertical width of the frozen column when a
+        change takes place on any of the rows"""
+        self.frozen_table_view.setRowHeight(logical_index, new_size)
+
+    def resizeEvent(self, event):
+        """Update the frozen column dimensions.
+
+        Updates takes place when the enclosing window of this 
+        table reports a dimension change
+        """
+        QTableView.resizeEvent(self, event)
+        self.frozen_table_view.update_geometry()
+
+    def moveCursor(self, cursor_action, modifiers):
+        """Update the table position.
+
+        Updates the position along with the frozen column
+        when the cursor (selector) changes its position
+        """
+        current = QTableView.moveCursor(self, cursor_action, modifiers)
+        
+        col_width = (self.frozen_table_view.columnWidth(0) + 
+                     self.frozen_table_view.columnWidth(1))
+        topleft_x = self.visualRect(current).topLeft().x()
+
+        overflow = self.MoveLeft and current.column() > 1
+        overflow = overflow and topleft_x < col_width
+
+        if cursor_action == overflow:
+            new_value = (self.horizontalScrollBar().value() + 
+                         topleft_x - col_width)
+            self.horizontalScrollBar().setValue(new_value)
+        return current
+
+    def scrollTo(self, index, hint):
+        """Scroll the table.
+
+        It is necessary to ensure that the item at index is visible.
+        The view will try to position the item according to the
+        given hint. This method does not takes effect only if
+        the frozen column is scrolled.
+        """
+        if index.column() > 1:
+            QTableView.scrollTo(self, index, hint)
+
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
             self.model().fetch_more(rows=rows)
@@ -502,7 +610,16 @@ class DataFrameView(QTableView):
 
 
 class DataFrameEditor(QDialog):
-    """ Data Frame Editor Dialog """
+    """
+    Dialog for displaying and editing DataFrame and related objects.
+
+    Signals
+    -------
+    sig_option_changed(str, object): Raised if an option is changed.
+       Arguments are name of option and its new value.
+    """
+    sig_option_changed = Signal(str, object)
+
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         # Destroying the C++ object right after closing the dialog box,
@@ -581,7 +698,12 @@ class DataFrameEditor(QDialog):
         self.bgcolor_global.setEnabled(not self.is_series and state > 0)
 
     def change_format(self):
-        """Change display format"""
+        """
+        Ask user for display format for floats and use it.
+
+        This function also checks whether the format is valid and emits
+        `sig_option_changed`.
+        """
         format, valid = QInputDialog.getText(self, _('Format'),
                                              _("Float formatting"),
                                              QLineEdit.Normal,
@@ -591,10 +713,15 @@ class DataFrameEditor(QDialog):
             try:
                 format % 1.1
             except:
-                QMessageBox.critical(self, _("Error"),
-                                     _("Format (%s) is incorrect") % format)
+                msg = _("Format ({}) is incorrect").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
+                return
+            if not format.startswith('%'):
+                msg = _("Format ({}) should start with '%'").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
                 return
             self.dataModel.set_format(format)
+            self.sig_option_changed.emit('dataframe_format', format)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""

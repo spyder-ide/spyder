@@ -345,7 +345,7 @@ def create_module_bookmark_actions(parent, bookmarks):
         # Create actions for scientific distros only if Spyder is installed
         # under them
         create_act = True
-        if key == 'xy' or key == 'winpython':
+        if key == 'winpython':
             if not programs.is_module_installed(key):
                 create_act = False
         if create_act:
@@ -498,6 +498,9 @@ def show_std_icons():
     dialog = ShowStdIcons(None)
     dialog.show()
     sys.exit(app.exec_())
+
+    
+MENU_SEPARATOR = None
 
 
 if __name__ == "__main__":

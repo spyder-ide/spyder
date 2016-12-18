@@ -481,7 +481,6 @@ def make_remote_view(data, settings, more_excluded_names=None):
     Make a remote view of dictionary *data*
     -> globals explorer
     """
-    assert all([name in REMOTE_SETTINGS for name in settings])
     data = get_remote_data(data, settings, mode='editable',
                            more_excluded_names=more_excluded_names)
     remote = {}
