@@ -515,7 +515,7 @@ class ProfilerDataTree(QTreeWidget):
             m, s = divmod(measure, 3600)
             if s > 60:
                 m, s = divmod(measure, 60)
-                s = str(s).split(".")[-1]
+                s = to_text_string(s).split(".")[-1]
             measure = u"{0:.0f}.{1:.2s} min".format(m, s)
         else:
             h, m = divmod(measure, 3600)
