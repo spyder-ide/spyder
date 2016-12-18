@@ -497,7 +497,7 @@ class ProfilerDataTree(QTreeWidget):
         return filename, line_number, function_name, file_and_line, node_type
 
     def format_measure(self, measure):
-        """getting format and units for data coming from profiler task."""
+        """Get format and units for data coming from profiler task."""
 
         if (1.e-9 < float(measure) <= 1.e-6):
             measure = str("{0:.2f} ns".format(measure / 1.e-9))
@@ -540,7 +540,9 @@ class ProfilerDataTree(QTreeWidget):
         """ Formats the data"""
         if True:
             data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-            return (map(self.color_string, zip(list(zip(*data))[1:4], [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])))
+            format_data = zip(list(zip(*data))[1:4],
+                              [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])
+            return (map(self.color_string, format_data))
             
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
