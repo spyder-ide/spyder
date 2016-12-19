@@ -1447,8 +1447,8 @@ class Editor(SpyderPluginWidget):
         return self.editorstacks[0].is_file_opened(filename)
         
     def set_current_filename(self, filename, editorwindow=None, focus=True):
-        """Set focus to *filename* if this file has been opened
-        
+        """Set focus to *filename* if this file has been opened.
+
         Return the editor instance associated to *filename*.
         """
         editorstack = self.get_current_editorstack(editorwindow)
