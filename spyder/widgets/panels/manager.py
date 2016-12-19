@@ -7,7 +7,8 @@
 
 """
 This module contains the panels controller, responsible of drawing panel
-inside CodeEdit's margins
+inside CodeEditor's margins
+Not all panels are using PanelsManager, but future panels should use it.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/panels.py
 """
 import logging
@@ -22,9 +23,8 @@ def _logger():
 
 class PanelsManager(Manager):
     """
-    Manages the list of panels and draws them inised the margin of the code
-    edit widget.
-
+    Manages the list of panels and draws them inised the margin of the
+    CodeEditor widget.
     """
     def __init__(self, editor):
         super(PanelsManager, self).__init__(editor)
@@ -85,8 +85,7 @@ class PanelsManager(Manager):
 
     def clear(self):
         """
-        Removes all panel from the editor.
-
+        Removes all panel from the CodeEditor.
         """
         for i in range(4):
             while len(self._panels[i]):
@@ -268,7 +267,7 @@ class PanelsManager(Manager):
         Gets the size of a specific margin.
 
         :param position: Margin position. See
-            :class:`pyqode.core.api.Panel.Position`
+            :class:`spyder.api.Panel.Position`
         :return: The size of the specified margin
         :rtype: float
         """

@@ -600,7 +600,7 @@ class CodeEditor(TextEditBaseWidget):
     @property
     def panels(self):
         """
-        Returns a reference to the :class:`pyqode.core.managers.PanelsManager`
+        Returns a reference to the :class:`spyder.widgets.panels.managers.PanelsManager`
         used to manage the collection of installed panels
         """
         return self._panels

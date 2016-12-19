@@ -21,16 +21,18 @@ class Mode(object):
     Base class for editor extensions. An extension is a "thing" that can be
     installed on an editor to add new behaviours or to modify its appearance.
 
-    A mode is added to an editor by using the ModesManager/PanelsManager:
+    At the current states Modes can't be added to an Editor but this class
+    is needed because Panels can be added to an editor.
 
-        - :meth:`pyqode.core.api.CodeEdit.modes.append` or
-        - :meth:`pyqode.core.api.CodeEdit.panels.append`
+    A panel (model child class) is added to an editor by using the
+    PanelsManager:
+        - :meth:`pyqode.core.api.CodeEditor.panels.append`
 
     Subclasses may/should override the following methods:
 
-        - :meth:`pyqode.core.api.Mode.on_install`
-        - :meth:`pyqode.core.api.Mode.on_uninstall`
-        - :meth:`pyqode.core.api.Mode.on_state_changed`
+        - :meth:`spyder.api.Mode.on_install`
+        - :meth:`spyder.api.Mode.on_uninstall`
+        - :meth:`spyder.api.Mode.on_state_changed`
 
     ..warning: The mode will be identified by its class name, this means that
     **there cannot be two modes of the same type on the same editor instance!**
@@ -39,11 +41,11 @@ class Mode(object):
     @property
     def editor(self):
         """
-        Returns a reference to the parent editor widget.
+        Returns a reference to the parent code editor widget.
 
         **READ ONLY**
 
-        :rtype: pyqode.core.api.code_edit.CodeEdit
+        :rtype: spyder.widgets.sourcecode.CodeEditor
         """
         if self._editor is not None:
             return self._editor
@@ -54,7 +56,7 @@ class Mode(object):
     def enabled(self):
         """
         Tells if the mode is enabled,
-        :meth:`pyqode.core.api.Mode.on_state_changed` will be called as soon
+        :meth:`spyder.api.Mode.on_state_changed` will be called as soon
         as the mode state changed.
 
         :type: bool
@@ -68,8 +70,8 @@ class Mode(object):
             self.on_state_changed(enabled)
 
     def __init__(self):
-        #: Mode name/identifier. :class:`pyqode.core.api.CodeEdit` uses
-        # that as the attribute key when you install a mode.
+        #: Mode name/identifier. :class:`spyder.widgets.sourcecode.CodeEditor`
+        # uses that as the attribute key when you install a mode.
         self.name = self.__class__.__name__
         #: Mode description
         self.description = self.__doc__
@@ -85,7 +87,7 @@ class Mode(object):
         Installs the extension on the editor.
 
         :param editor: editor widget instance
-        :type editor: pyqode.core.api.code_edit.CodeEdit
+        :type editor: spyder.widgets.sourcecode.CodeEditor
 
         .. note:: This method is called by editor when you install a Mode.
                   You should never call it yourself, even in a subclasss.

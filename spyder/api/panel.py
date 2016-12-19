@@ -83,14 +83,14 @@ class Panel(QWidget, Mode):
 
     def on_install(self, editor):
         """
-        Extends :meth:`pyqode.core.api.Mode.on_install` method to set the
+        Extends :meth:`spyder.api.Mode.on_install` method to set the
         editor instance as the parent widget.
 
         .. warning:: Don't forget to call **super** if you override this
             method!
 
         :param editor: editor instance
-        :type editor: pyqode.core.api.CodeEdit
+        :type editor: spyder.widgets.sourcecode.CodeEditor
         """
         Mode.on_install(self, editor)
         self.setParent(editor)
@@ -117,7 +117,7 @@ class Panel(QWidget, Mode):
         """
         Shows/Hides the panel
 
-        Automatically call CodeEdit.refresh_panels.
+        Automatically call PanelsManager.refresh_panels.
 
         :param visible: Visible state
         """
