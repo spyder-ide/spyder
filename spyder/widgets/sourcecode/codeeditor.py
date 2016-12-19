@@ -62,6 +62,7 @@ from spyder.widgets.panels.edgeline import EdgeLine
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
+from spyder.api.folding import IndentFoldDetector
 from spyder.api.panel import Panel
 
 try:
@@ -704,6 +705,9 @@ class CodeEditor(TextEditBaseWidget):
                                                   self.font(),
                                                   self.color_scheme)
         self._apply_highlighter_color_scheme()
+
+        self.highlighter.fold_detector = IndentFoldDetector()
+        self.highlighter.editor = self
 
     def is_json(self):
         return (isinstance(self.highlighter, sh.PygmentsSH) and
