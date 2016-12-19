@@ -1123,7 +1123,7 @@ class EditorStack(QWidget):
                 return index
 
     def set_current_filename(self, filename, focus=True):
-        """Set current filename and return the associated editor instance"""
+        """Set current filename and return the associated editor instance."""
         index = self.has_filename(filename)
         if index is not None:
             if focus:
@@ -2077,8 +2077,8 @@ class EditorSplitter(QSplitter):
         return dict(hexstate=qbytearray_to_str(self.saveState()),
                     sizes=self.sizes(), splitsettings=splitsettings)
 
-    def set_layout_settings(self, settings, dont_goto = None):
-        """Restore layout state"""
+    def set_layout_settings(self, settings, dont_goto=None):
+        """Restore layout state."""
         splitsettings = settings.get('splitsettings')
         if splitsettings is None:
             return

@@ -1448,7 +1448,9 @@ class Editor(SpyderPluginWidget):
         
     def set_current_filename(self, filename, editorwindow=None, focus=True):
         """Set focus to *filename* if this file has been opened
-        Return the editor instance associated to *filename*"""
+        
+        Return the editor instance associated to *filename*.
+        """
         editorstack = self.get_current_editorstack(editorwindow)
         return editorstack.set_current_filename(filename, focus)
 
@@ -1842,7 +1844,7 @@ class Editor(SpyderPluginWidget):
 
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            if index == 0: # this is the last file focused in previous session
+            if index == 0:  # this is the last file focused in previous session
                 current_editor = self.set_current_filename(filename,
                                                            editorwindow,
                                                            focus=True)
@@ -1852,20 +1854,20 @@ class Editor(SpyderPluginWidget):
                         continue
                     # --
                     current_es = self.get_current_editorstack(editorwindow)
-    
-                    # Creating the editor widget in the first editorstack 
-                    # (the one that can't be destroyed), then cloning this 
+
+                    # Creating the editor widget in the first editorstack
+                    # (the one that can't be destroyed), then cloning this
                     # editor widget in all other editorstacks:
-                    finfo = self.editorstacks[0].load(filename, set_current=False)
+                    finfo = self.editorstacks[0].load(filename,
+                                                      set_current=False)
                     finfo.path = self.main.get_spyder_pythonpath()
                     self._clone_file_everywhere(finfo)
                     current_editor = current_es.set_current_filename(filename)
                     current_editor.set_breakpoints(load_breakpoints(filename))
                     self.register_widget_shortcuts(current_editor)
-    
                     current_es.analyze_script()
                     self.__add_recent_file(filename)
-                if goto is not None: # 'word' is assumed to be None as well
+                if goto is not None:  # 'word' is assumed to be None as well
                     current_editor.go_to_line(goto[index], word=word)
                     position = current_editor.get_position('cursor')
                     self.cursor_moved(filename0, position0, filename, position)
