@@ -74,7 +74,7 @@ def get_object_attrs(obj):
 
 
 class ProxyObject(object):
-    """Dictionary proxy to an unknown object"""
+    """Dictionary proxy to an unknown object."""
     def __init__(self, obj):
         self.__obj__ = obj
 
@@ -162,7 +162,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 self.header0 = _("Attribute")
 
         if not isinstance(self._data, ProxyObject):
-            self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
+            self.title += (' (' + str(len(self.keys)) + ' ' +
+                          _("elements") + ')')
         else:
             self.title += data_type
 
@@ -1306,6 +1307,7 @@ class CollectionsEditor(QDialog):
 
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
+        """Setup editor."""
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()
@@ -1339,7 +1341,7 @@ class CollectionsEditor(QDialog):
         constant = 121
         row_height = 30
         error_margin = 10
-        height = constant + row_height*min([10, datalen]) + error_margin
+        height = constant + row_height * min([10, datalen]) + error_margin
         self.resize(width, height)
 
         self.setWindowTitle(self.widget.get_title())
