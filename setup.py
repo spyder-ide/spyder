@@ -285,6 +285,7 @@ install_requires = [
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
+    'numpydoc',
 ]
 
 if 'setuptools' in sys.modules:
