@@ -1772,7 +1772,7 @@ class EditorStack(QWidget):
         editor.modificationChanged.connect(
                      lambda state: self.modification_changed(state,
                                                     editor_id=id(editor)))
-        #editor.focus_in.connect(self.focus_changed)
+        editor.focus_in.connect(self.focus_changed)
         editor.zoom_in.connect(lambda: self.zoom_in.emit())
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
