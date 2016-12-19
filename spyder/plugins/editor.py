@@ -1826,7 +1826,6 @@ class Editor(SpyderPluginWidget):
 
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            print('filename:',filename)
             if index == 0: # this is the last file focused in previous session
                 current_editor = self.set_current_filename(filename,
                                                            editorwindow,
@@ -1851,7 +1850,6 @@ class Editor(SpyderPluginWidget):
                     current_es.analyze_script()
                     self.__add_recent_file(filename)
                 if goto is not None: # 'word' is assumed to be None as well
-                    print("quiero que salte a:",goto[index])
                     current_editor.go_to_line(goto[index], word=word)
                     position = current_editor.get_position('cursor')
                     self.cursor_moved(filename0, position0, filename, position)
@@ -2624,23 +2622,13 @@ class Editor(SpyderPluginWidget):
         self.close_all_files()
 
         if filenames and any([osp.isfile(f) for f in filenames]):
-            print("ANTES:")
-            print(filenames)
-            layout = self.get_option('layout_settings', None)
-            is_vertical, cfname, clines = layout.get('splitsettings')[0]
-            print(clines)
-            print("DESPUES:")
-            print(filenames)
             filenames = self.reorder_filenames(filenames)
             layout = self.get_option('layout_settings', None)
             is_vertical, cfname, clines = layout.get('splitsettings')[0]
-            print(clines)
-            print("las de el primero",clines[0])
             self.load(filenames, goto=clines)
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout,
-                                                        goto_first_file=False)
-            #acá ya saltó a la linea
+                                                        dont_goto=filenames[0])
             win_layout = self.get_option('windows_layout_settings', None)
             if win_layout:
                 for layout_settings in win_layout:
@@ -2665,8 +2653,6 @@ class Editor(SpyderPluginWidget):
             clines.pop(index_first_file)
             clines.insert(0, clines_0)
             reordered_splitsettings.append((is_vertical, cfname, clines))
-        print("layout",layout)
-        print("layout type",type(layout))
         layout['splitsettings'] = reordered_splitsettings
         self.set_option('layout_settings', layout)
         return filenames

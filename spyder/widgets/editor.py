@@ -2066,7 +2066,7 @@ class EditorSplitter(QSplitter):
         return dict(hexstate=qbytearray_to_str(self.saveState()),
                     sizes=self.sizes(), splitsettings=splitsettings)
 
-    def set_layout_settings(self, settings, goto_first_file = True):
+    def set_layout_settings(self, settings, dont_goto = None):
         """Restore layout state"""
         splitsettings = settings.get('splitsettings')
         if splitsettings is None:
@@ -2081,7 +2081,7 @@ class EditorSplitter(QSplitter):
             for index, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
                 # FIXME: Temporal fix
-                if not goto_first_file and index == 0:
+                if dont_goto is not None:
                     # skip go to line for first file because is already there
                     pass
                 else:
