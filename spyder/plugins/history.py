@@ -11,7 +11,6 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
                             QToolButton, QVBoxLayout, QWidget)
@@ -72,6 +71,8 @@ class HistoryLog(SpyderPluginWidget):
     focus_changed = Signal()
     
     def __init__(self, parent):
+        SpyderPluginWidget.__init__(self, parent)
+
         self.tabwidget = None
         self.menu_actions = None
         self.dockviewer = None
@@ -79,10 +80,6 @@ class HistoryLog(SpyderPluginWidget):
         
         self.editors = []
         self.filenames = []
-        if PYQT5:        
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()

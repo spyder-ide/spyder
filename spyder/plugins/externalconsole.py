@@ -17,7 +17,6 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
@@ -27,7 +26,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
 from spyder import dependencies
 from spyder.config.base import _, SCIENTIFIC_STARTUP
 from spyder.config.main import CONF
-from spyder.utils import encoding, programs
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (get_error_match, get_python_executable,
                                is_python_script, remove_backslashes)
@@ -272,10 +271,8 @@ class ExternalConsole(SpyderPluginWidget):
     redirect_stdio = Signal(bool)
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
+
         self.tabwidget = None
         self.menu_actions = None
 
@@ -348,7 +345,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.shellwidgets.insert(index_to, shell)
         self.icons.insert(index_to, icons)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_shell_index_from_id(self, shell_id):
         """Return shellwidget index from id"""
@@ -370,7 +367,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.pop(index)
         self.shellwidgets.pop(index)
         self.icons.pop(index)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
+        self.update_tabs_text()
 
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
@@ -633,8 +631,11 @@ class ExternalConsole(SpyderPluginWidget):
                 tab_name = "Python %d" % self.python_count
                 tab_icon1 = ima.icon('python')
                 tab_icon2 = ima.icon('python_t')
+                self.filenames.insert(index, fname)
             else:
-                tab_name = osp.basename(fname)
+                self.filenames.insert(index, fname)
+                tab_name = self.get_tab_text(fname)
+                self.update_tabs_text()
                 tab_icon1 = ima.icon('run')
                 tab_icon2 = ima.icon('terminated')
         else:
@@ -647,8 +648,8 @@ class ExternalConsole(SpyderPluginWidget):
             tab_name += (" %d" % self.terminal_count)
             tab_icon1 = ima.icon('cmdprompt')
             tab_icon2 = ima.icon('cmdprompt_t')
+            self.filenames.insert(index, fname)
         self.shellwidgets.insert(index, shellwidget)
-        self.filenames.insert(index, fname)
         self.icons.insert(index, (tab_icon1, tab_icon2))
         if index is None:
             index = self.tabwidget.addTab(shellwidget, tab_name)
@@ -676,7 +677,19 @@ class ExternalConsole(SpyderPluginWidget):
         self.main.editor.activateWindow()
         self.main.editor.raise_()
         self.main.editor.load(fname, lineno)
-        
+
+    def get_tab_text(self, fname):
+        """Get tab text without ambiguation."""
+        files_path_list = [filename for filename in self.filenames
+                           if filename is not None]
+        return sourcecode.get_file_title(files_path_list, fname)
+
+    def update_tabs_text(self):
+        """Update the text from the tabs."""
+        for index, fname in enumerate(self.filenames):
+            if fname is not None:
+                self.tabwidget.setTabText(index, self.get_tab_text(fname))
+
     #------ Private API -------------------------------------------------------
     def process_started(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
@@ -701,30 +714,22 @@ class ExternalConsole(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Python console')
-        if self.filenames:
-            index = self.tabwidget.currentIndex()
-            fname = self.filenames[index]
-            if fname:
-                title += ' - ' + to_text_string(fname)
         return title
-    
+
     def get_plugin_icon(self):
-        """Return widget icon"""
+        """Return widget icon."""
         return ima.icon('console')
     
     def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
+        """Return the widget to give focus to."""
         return self.tabwidget.currentWidget()
         
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
-                            _("Open a &Python console"), None,
-                            ima.icon('python'),
-                            triggered=self.open_interpreter)
+                                           _("Open a &Python console"), None,
+                                           ima.icon('python'),
+                                           triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
             tip = _("Open a Windows command prompt")
@@ -769,24 +774,16 @@ class ExternalConsole(SpyderPluginWidget):
                         self.main.plugin_focus_changed)
         self.redirect_stdio.connect(
                         self.main.redirect_internalshell_stdio)
-        expl = self.main.explorer
-        if expl is not None:
-            expl.open_terminal.connect(self.open_terminal)
-            expl.open_interpreter.connect(self.open_interpreter)
-        pexpl = self.main.projects
-        if pexpl is not None:
-            pexpl.open_terminal.connect(self.open_terminal)
-            pexpl.open_interpreter.connect(self.open_interpreter)
 
     def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
+        """Perform actions before parent main window is closed."""
         for shellwidget in self.shellwidgets:
             shellwidget.close()
         return True
 
     def restart(self):
         """
-        Restart the console
+        Restart the console.
 
         This is needed when we switch project to update PYTHONPATH
         and the selected interpreter
@@ -815,7 +812,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
             self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def update_font(self):
         """Update font from Preferences"""

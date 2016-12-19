@@ -196,6 +196,9 @@ The requirements to run Spyder are:
 
 * `Chardet <https://github.com/chardet/chardet>`_ >=2.0.0-- Character encoding auto-detection
   in Python.
+  
+* `Numpydoc <https://github.com/numpy/numpydoc>`_ Used by Jedi to get return types for
+  functions with Numpydoc docstrings.
 
 Optional modules
 ~~~~~~~~~~~~~~~~

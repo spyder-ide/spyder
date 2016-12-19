@@ -26,7 +26,6 @@ from jupyter_client.kernelspec import KernelSpec
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
@@ -50,7 +49,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
@@ -586,10 +585,7 @@ class IPythonConsole(SpyderPluginWidget):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
         self.menu_actions = None
@@ -725,7 +721,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
         self.main.last_console_plugin_focus_was_python = False
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -751,7 +747,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, main_create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action]
+        main_consoles_menu += [MENU_SEPARATOR, connect_to_kernel_action]
         
         # Plugin actions
         self.menu_actions = [create_client_action, connect_to_kernel_action]
@@ -861,14 +857,22 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
+        cf = self._new_connection_file()
         client = ClientWidget(self, name=name,
                               history_filename='history.py',
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
-                              connection_file=self._new_connection_file(),
+                              connection_file=cf,
                               menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
+
+        if cf is None:
+            error_msg = _("The directory {} is not writable and it is "
+                          "required to create IPython consoles. Please make "
+                          "it writable.").format(jupyter_runtime_dir())
+            client.show_kernel_error(error_msg)
+            return
 
         # Check if ipykernel is present in the external interpreter.
         # Else we won't be able to create a client
@@ -1121,7 +1125,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.remove(client)
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1321,7 +1325,7 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):
@@ -1359,7 +1363,10 @@ class IPythonConsole(SpyderPluginWidget):
         """
         # Check if jupyter_runtime_dir exists (Spyder addition)
         if not osp.isdir(jupyter_runtime_dir()):
-            os.makedirs(jupyter_runtime_dir())
+            try:
+                os.makedirs(jupyter_runtime_dir())
+            except PermissionError:
+                return None
         cf = ''
         while not cf:
             ident = str(uuid.uuid4()).split('-')[-1]

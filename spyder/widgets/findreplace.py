@@ -359,13 +359,22 @@ class FindReplace(QWidget):
                     seltxt = to_text_string(self.editor.get_selected_text())
                     cmptxt1 = search_text if case else search_text.lower()
                     cmptxt2 = seltxt if case else seltxt.lower()
-                    if self.editor.has_selected_text() and cmptxt1 == cmptxt2:
-                        # Text was already found, do nothing
-                        pass
+                    if not pattern:
+                        has_selected = self.editor.has_selected_text()
+                        if has_selected and cmptxt1 == cmptxt2:
+                            # Text was already found, do nothing
+                            pass
+                        else:
+                            if not self.find(changed=False, forward=True,
+                                             rehighlight=False):
+                                break
                     else:
-                        if not self.find(changed=False, forward=True,
-                                         rehighlight=False):
-                            break
+                        if len(re.findall(pattern, cmptxt2)) > 0:
+                            pass
+                        else:
+                            if not self.find(changed=False, forward=True,
+                                             rehighlight=False):
+                                break   
                     first = False
                     wrapped = False
                     position = self.editor.get_position('cursor')

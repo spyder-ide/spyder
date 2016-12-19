@@ -499,6 +499,9 @@ def show_std_icons():
     dialog.show()
     sys.exit(app.exec_())
 
+    
+MENU_SEPARATOR = None
+
 
 if __name__ == "__main__":
     show_std_icons()

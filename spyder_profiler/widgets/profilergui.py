@@ -382,8 +382,12 @@ class ProfilerDataTree(QTreeWidget):
     [4] = A dictionary indicating for each function name, the number of times
           it was called by us.
     """
+
+    sig_edit_goto = Signal(str, int, str)
+
     SEP = r"<[=]>"  # separator between filename and linenumber
     # (must be improbable as a filename to avoid splitting the filename itself)
+
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
@@ -495,27 +499,57 @@ class ProfilerDataTree(QTreeWidget):
                 node_type = 'constructor'                
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
-        
+
+    def format_measure(self, measure):
+        """Get format and units for data coming from profiler task."""
+        # For number of calls
+        if isinstance(measure, int):
+            return to_text_string(measure)
+
+        # For time measurements
+        if 1.e-9 < measure <= 1.e-6:
+            measure = u"{0:.2f} ns".format(measure / 1.e-9)
+        elif 1.e-6 < measure <= 1.e-3:
+            measure = u"{0:.2f} us".format(measure / 1.e-6)
+        elif 1.e-3 < measure <= 1:
+            measure = u"{0:.2f} ms".format(measure / 1.e-3)
+        elif 1 < measure <= 60:
+            measure = u"{0:.2f} sec".format(measure)
+        elif 60 < measure <= 3600:
+            m, s = divmod(measure, 3600)
+            if s > 60:
+                m, s = divmod(measure, 60)
+                s = to_text_string(s).split(".")[-1]
+            measure = u"{0:.0f}.{1:.2s} min".format(m, s)
+        else:
+            h, m = divmod(measure, 3600)
+            if m > 60:
+                m /= 60
+            measure = u"{0:.0f}h:{1:.0f}min".format(h, m)
+        return measure
+
     def color_string(self, args):
-        x, format = args
+        x, fmt = args
         diff_str = ""
         color = "black"
+
         if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
             if difference < 0:
-                diff_str = "".join(['',format[1] % difference])
+                diff_str = "".join(['', fmt[1] % self.format_measure(difference)])
                 color = "green"
             elif difference > 0:
-                diff_str = "".join(['+',format[1] % difference])
+                diff_str = "".join(['+', fmt[1] % self.format_measure(difference)])
                 color = "red"
-        return [format[0] % x[0], [diff_str, color]]
+        return [fmt[0] % self.format_measure(x[0]), [diff_str, color]]
 
-
-    def format_output(self,child_key):
+    def format_output(self, child_key):
         """ Formats the data"""
         if True:
-            data = [x.stats.get(child_key,[0,0,0,0,0]) for x in self.stats1]
-            return map(self.color_string,zip(list(zip(*data))[1:4], [["%i"]*2, ["%.3f","%.3f"], ["%.3f","%.3f"]]))
+            data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
+            format_data = zip(list(zip(*data))[1:4],
+                              [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])
+            return (map(self.color_string, format_data))
             
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
@@ -527,8 +561,6 @@ class ProfilerDataTree(QTreeWidget):
             ((total_calls, total_calls_dif), (loc_time, loc_time_dif), (cum_time,
              cum_time_dif)) = self.format_output(child_key)
 
-            (primcalls, total_calls, loc_time, cum_time, callers
-             ) = self.stats[child_key]
             child_item = TreeWidgetItem(parentItem)
             self.item_list.append(child_item)
             self.set_item_data(child_item, filename, line_number)
@@ -585,7 +617,7 @@ class ProfilerDataTree(QTreeWidget):
         
     def item_activated(self, item):
         filename, line_number = self.get_item_data(item)
-        self.parent().edit_goto.emit(filename, line_number, '')
+        self.sig_edit_goto.emit(filename, line_number, '')
             
     def item_expanded(self, item):
         if item.childCount() == 0 and id(item) in self.items_to_be_shown:

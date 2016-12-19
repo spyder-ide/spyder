@@ -18,7 +18,7 @@ import re
 import time
 
 # Third party imports
-from qtpy import API, PYQT5
+from qtpy import API
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
@@ -38,7 +38,7 @@ from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
-from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -117,11 +117,14 @@ class EditorConfigPage(PluginConfigPage):
         display_group = QGroupBox(_("Source code"))
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
-        edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
-        edgeline_spin = self.create_spinbox("", _("characters"),
-                                            'edge_line_column', 79, 1, 500)
-        edgeline_box.toggled.connect(edgeline_spin.setEnabled)
-        edgeline_spin.setEnabled(self.get_option('edge_line'))
+        edgeline_box = newcb(_("Show vertical lines after"), 'edge_line')
+        edgeline_edit = self.create_lineedit("", 'edge_line_columns',
+                                             tip="Enter values separated by commas ','",
+                                             alignment=Qt.Horizontal,
+                                             regex="[0-9]+(,[0-9]+)*")
+        edgeline_edit_label = QLabel(_("characters"))
+        edgeline_box.toggled.connect(edgeline_edit.setEnabled)
+        edgeline_edit.setEnabled(self.get_option('edge_line'))
 
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
@@ -141,8 +144,8 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(linenumbers_box, 0, 0)
         display_layout.addWidget(blanks_box, 1, 0)
         display_layout.addWidget(edgeline_box, 2, 0)
-        display_layout.addWidget(edgeline_spin.spinbox, 2, 1)
-        display_layout.addWidget(edgeline_spin.slabel, 2, 2)
+        display_layout.addWidget(edgeline_edit, 2, 1)
+        display_layout.addWidget(edgeline_edit_label, 2, 2)
         display_layout.addWidget(currentline_box, 3, 0)
         display_layout.addWidget(currentcell_box, 4, 0)
         display_layout.addWidget(occurrence_box, 5, 0)
@@ -362,10 +365,7 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     
     def __init__(self, parent, ignore_last_opened_files=False):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main=parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.__set_eol_chars = True
 
@@ -503,13 +503,15 @@ class Editor(SpyderPluginWidget):
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
         for editorstack in self.editorstacks:
-            editorstack.set_outlineexplorer(self.outlineexplorer)
+            # Pass the OutlineExplorer widget to the stacks because they
+            # don't need the plugin
+            editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
         self.editorstacks[0].initialize_outlineexplorer()
-        self.outlineexplorer.edit_goto.connect(
+        self.outlineexplorer.explorer.edit_goto.connect(
                            lambda filenames, goto, word:
                            self.load(filenames=filenames, goto=goto, word=word,
                                      editorwindow=self))
-        self.outlineexplorer.edit.connect(
+        self.outlineexplorer.explorer.edit.connect(
                              lambda filenames:
                              self.load(filenames=filenames, editorwindow=self))
 
@@ -630,6 +632,12 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_sc_to_tip=True)
 
+        self.open_last_closed_action = create_action(self, _("O&pen last closed"),
+                tip=_("Open last closed"),
+                triggered=self.open_last_closed)
+        self.register_shortcut(self.open_last_closed_action, context="Editor",
+                               name="Open last closed")
+        
         self.open_action = create_action(self, _("&Open..."),
                 icon=ima.icon('fileopen'), tip=_("Open file"),
                 triggered=self.load,
@@ -979,23 +987,24 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
         file_menu_actions = [self.new_action,
-                             None,
+                             MENU_SEPARATOR,
                              self.open_action,
+                             self.open_last_closed_action,
                              self.recent_file_menu,
-                             None,
-                             None,
+                             MENU_SEPARATOR,
+                             MENU_SEPARATOR,
                              self.save_action,
                              self.save_all_action,
                              save_as_action,
                              self.file_switcher_action,
                              self.revert_action,
-                             None,
+                             MENU_SEPARATOR,
                              print_preview_action,
                              self.print_action,
-                             None,
+                             MENU_SEPARATOR,
                              self.close_action,
                              self.close_all_action,
-                             None]                     
+                             MENU_SEPARATOR]
 
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
@@ -1016,8 +1025,9 @@ class Editor(SpyderPluginWidget):
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action,
-                                  self.text_uppercase_action, self.text_lowercase_action]
-        self.main.edit_menu_actions += [None]+self.edit_menu_actions
+                                  self.text_uppercase_action,
+                                  self.text_lowercase_action]
+        self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
         edit_toolbar_actions = [self.toggle_comment_action,
                                 self.unindent_action, self.indent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
@@ -1029,8 +1039,9 @@ class Editor(SpyderPluginWidget):
           
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
-                            run_cell_advance_action, None, run_selected_action,
-                            re_run_action, configure_action, None]
+                            run_cell_advance_action, MENU_SEPARATOR,
+                            run_selected_action, re_run_action,
+                            configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, re_run_action,
@@ -1047,12 +1058,12 @@ class Editor(SpyderPluginWidget):
                               debug_return_action,
                               debug_continue_action,
                               debug_exit_action,
-                              None,
+                              MENU_SEPARATOR,
                               set_clear_breakpoint_action,
                               set_cond_breakpoint_action,
                               clear_all_breakpoints_action,
                               'list_breakpoints',
-                              None,
+                              MENU_SEPARATOR,
                               self.winpdb_action]
         self.main.debug_menu_actions += debug_menu_actions
         debug_toolbar_actions = [debug_action, debug_next_action,
@@ -1065,12 +1076,12 @@ class Editor(SpyderPluginWidget):
                                self.showblanks_action,
                                trailingspaces_action,
                                fixindentation_action,
-                               None,
+                               MENU_SEPARATOR,
                                self.todo_list_action,
                                self.warning_list_action,
                                self.previous_warning_action,
                                self.next_warning_action,
-                               None,
+                               MENU_SEPARATOR,
                                self.previous_edit_cursor_action,
                                self.previous_cursor_action,
                                self.next_cursor_action]
@@ -1080,23 +1091,31 @@ class Editor(SpyderPluginWidget):
                                   self.warning_list_action,
                                   self.previous_warning_action,
                                   self.next_warning_action,
-                                  None,
+                                  MENU_SEPARATOR,
                                   self.previous_edit_cursor_action,
                                   self.previous_cursor_action,
                                   self.next_cursor_action]
         self.main.source_toolbar_actions += source_toolbar_actions
 
         # ---- Dock widget and file dependent actions ----
-        self.dock_toolbar_actions = file_toolbar_actions + [None] + \
-                                    source_toolbar_actions + [None] + \
-                                    run_toolbar_actions + [None] + \
-                                    debug_toolbar_actions +  [None] + \
-                                    edit_toolbar_actions
+        self.dock_toolbar_actions = (file_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     source_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     run_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     debug_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     edit_toolbar_actions)
         self.pythonfile_dependent_actions = [run_action, configure_action,
-                     set_clear_breakpoint_action, set_cond_breakpoint_action,
-                     debug_action, run_selected_action, run_cell_action,
-                     run_cell_advance_action, blockcomment_action,
-                     unblockcomment_action, self.winpdb_action]
+                                             set_clear_breakpoint_action,
+                                             set_cond_breakpoint_action,
+                                             debug_action, run_selected_action,
+                                             run_cell_action,
+                                             run_cell_advance_action,
+                                             blockcomment_action,
+                                             unblockcomment_action,
+                                             self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
                  self.print_action, self.save_all_action, gotoline_action,
@@ -1201,7 +1220,7 @@ class Editor(SpyderPluginWidget):
             ('set_blanks_enabled',                  'blank_spaces'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
-            ('set_edgeline_column',                 'edge_line_column'),
+            ('set_edgeline_columns',                'edge_line_columns'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
@@ -1242,7 +1261,7 @@ class Editor(SpyderPluginWidget):
                                     lambda text, option:
                                     self.exec_in_extconsole.emit(text, option))
         editorstack.update_plugin_title.connect(
-                                       lambda: self.update_plugin_title.emit())
+                                   lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
         editorstack.editor_focus_changed.connect(self.set_editorstack_for_introspection)
         editorstack.editor_focus_changed.connect(self.main.plugin_focus_changed)
@@ -1344,30 +1363,34 @@ class Editor(SpyderPluginWidget):
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
-        self.toolbar_list = (
-            (_("File toolbar"), self.main.file_toolbar_actions),
-            (_("Search toolbar"), self.main.search_menu_actions),
-            (_("Source toolbar"), self.main.source_toolbar_actions),
-            (_("Run toolbar"), self.main.run_toolbar_actions),
-            (_("Debug toolbar"), self.main.debug_toolbar_actions),
-            (_("Edit toolbar"), self.main.edit_toolbar_actions),
-                             )
-        self.menu_list = (
-                          (_("&File"), self.main.file_menu_actions),
+
+        self.toolbar_list = ((_("File toolbar"), "file_toolbar",
+                              self.main.file_toolbar_actions),
+                             (_("Search toolbar"), "search_toolbar",
+                              self.main.search_menu_actions),
+                             (_("Source toolbar"), "source_toolbar",
+                              self.main.source_toolbar_actions),
+                             (_("Run toolbar"), "run_toolbar",
+                              self.main.run_toolbar_actions),
+                             (_("Debug toolbar"), "debug_toolbar",
+                              self.main.debug_toolbar_actions),
+                             (_("Edit toolbar"), "edit_toolbar",
+                              self.main.edit_toolbar_actions))
+        self.menu_list = ((_("&File"), self.main.file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
                           (_("Sour&ce"), self.main.source_menu_actions),
                           (_("&Run"), self.main.run_menu_actions),
                           (_("&Tools"), self.main.tools_menu_actions),
-                          (_("?"), self.main.help_menu_actions),
-                          )
+                          (_("&View"), []),
+                          (_("&Help"), self.main.help_menu_actions))
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
             win.set_layout_settings(layout_settings)
         
     def create_new_window(self):
-        oe_options = self.outlineexplorer.get_options()
+        oe_options = self.outlineexplorer.explorer.get_options()
         fullpath_sorting=self.get_option('fullpath_sorting', True),
         window = EditorMainWindow(self, self.stack_menu_actions,
                                   self.toolbar_list, self.menu_list,
@@ -1375,6 +1398,8 @@ class Editor(SpyderPluginWidget):
                                   fullpath_sorting=fullpath_sorting,
                                   show_all_files=oe_options['show_all_files'],
                                   show_comments=oe_options['show_comments'])
+        window.add_toolbars_to_menu("&View", window.get_toolbars())
+        window.load_toolbars()
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
@@ -1611,7 +1636,7 @@ class Editor(SpyderPluginWidget):
         self.recent_files.insert(0, fname)
         if len(self.recent_files) > self.get_option('max_recent_files'):
             self.recent_files.pop(-1)
-    
+
     def _clone_file_everywhere(self, finfo):
         """Clone file (*src_editor* widget) in all editorstacks
         Cloning from the first editorstack in which every single new editor
@@ -1945,7 +1970,17 @@ class Editor(SpyderPluginWidget):
         """Replace slot"""
         editorstack = self.get_current_editorstack()
         editorstack.find_widget.show_replace()
-
+    
+    def open_last_closed(self):
+        """ Reopens the last closed tab."""
+        editorstack = self.get_current_editorstack()
+        last_closed_files = editorstack.get_last_closed_files()
+        if (len(last_closed_files) > 0):
+            file_to_open = last_closed_files[0]
+            last_closed_files.remove(file_to_open)
+            editorstack.set_last_closed_files(last_closed_files)
+            self.load(file_to_open)
+    
     #------ Explorer widget
     def close_file_from_name(self, filename):
         """Close file from its name"""
@@ -2418,8 +2453,8 @@ class Editor(SpyderPluginWidget):
             blanks_o = self.get_option(blanks_n)
             edgeline_n = 'edge_line'
             edgeline_o = self.get_option(edgeline_n)
-            edgelinecol_n = 'edge_line_column'
-            edgelinecol_o = self.get_option(edgelinecol_n)
+            edgelinecols_n = 'edge_line_columns'
+            edgelinecols_o = self.get_option(edgelinecols_n)
             wrap_n = 'wrap'
             wrap_o = self.get_option(wrap_n)
             tabindent_n = 'tab_always_indent'
@@ -2465,10 +2500,11 @@ class Editor(SpyderPluginWidget):
             finfo = self.get_current_finfo()
             if fpsorting_n in options:
                 if self.outlineexplorer is not None:
-                    self.outlineexplorer.set_fullpath_sorting(fpsorting_o)
+                    self.outlineexplorer.explorer.set_fullpath_sorting(
+                        fpsorting_o)
                 for window in self.editorwindows:
                     window.editorwidget.outlineexplorer.set_fullpath_sorting(
-                                                                    fpsorting_o)
+                        fpsorting_o)
             for editorstack in self.editorstacks:
                 if fpsorting_n in options:
                     editorstack.set_fullpath_sorting_enabled(fpsorting_o)
@@ -2482,8 +2518,8 @@ class Editor(SpyderPluginWidget):
                     self.showblanks_action.setChecked(blanks_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
-                if edgelinecol_n in options:
-                    editorstack.set_edgeline_column(edgelinecol_o)
+                if edgelinecols_n in options:
+                    editorstack.set_edgeline_columns(edgelinecols_o)
                 if wrap_n in options:
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:

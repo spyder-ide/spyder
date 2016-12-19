@@ -48,6 +48,7 @@ from spyder.widgets.sourcecode.codeeditor import get_file_language
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
+from spyder.config.main import CONF
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -375,7 +376,7 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.blanks_enabled = False
         self.edgeline_enabled = True
-        self.edgeline_column = 79
+        self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
@@ -420,6 +421,9 @@ class EditorStack(QWidget):
 
         # Local shortcuts
         self.shortcuts = self.create_shortcuts()
+
+        #For opening last closed tabs
+        self.last_closed_files = []
 
     def create_shortcuts(self):
         """Create local shortcuts"""
@@ -664,8 +668,7 @@ class EditorStack(QWidget):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer.outlineexplorer_is_visible.connect(
-                                                 self._refresh_outlineexplorer)
+        self.outlineexplorer.is_visible.connect(self._refresh_outlineexplorer)
 
     def initialize_outlineexplorer(self):
         """This method is called separately from 'set_oulineexplorer' to avoid
@@ -755,12 +758,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.edge_line.set_enabled(state)
 
-    def set_edgeline_column(self, column):
+    def set_edgeline_columns(self, columns):
         # CONF.get(self.CONF_SECTION, 'edge_line_column')
-        self.edgeline_column = column
+        self.edgeline_columns = columns
         if self.data:
             for finfo in self.data:
-                finfo.editor.edge_line.set_column(column)
+                finfo.editor.edge_line.set_columns(columns)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
@@ -962,9 +965,12 @@ class EditorStack(QWidget):
             title = "(%s)" % title
         return title
 
-    def get_tab_text(self, filename, is_modified=None, is_readonly=None):
-        """Return tab title"""
-        return self.__modified_readonly_title(osp.basename(filename),
+    def get_tab_text(self, index, is_modified=None, is_readonly=None):
+        """Return tab title."""
+        files_path_list = [finfo.filename for finfo in self.data]
+        fname = self.data[index].filename
+        fname = sourcecode.get_file_title(files_path_list, fname)
+        return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
@@ -999,8 +1005,8 @@ class EditorStack(QWidget):
         self.data.append(finfo)
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
-        fname, editor = finfo.filename, finfo.editor
-        self.tabs.insertTab(index, editor, self.get_tab_text(fname))
+        editor = finfo.editor
+        self.tabs.insertTab(index, editor, self.get_tab_text(index))
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
@@ -1016,7 +1022,8 @@ class EditorStack(QWidget):
                 is_modified = True
             else:
                 is_modified = None
-            tab_text = self.get_tab_text(finfo.filename, is_modified)
+            index = self.data.index(finfo)
+            tab_text = self.get_tab_text(index, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
             index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
@@ -1050,7 +1057,7 @@ class EditorStack(QWidget):
         fname = finfo.filename
         is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
-        tab_text = self.get_tab_text(fname, is_modified, is_readonly)
+        tab_text = self.get_tab_text(index, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
         self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
@@ -1189,10 +1196,12 @@ class EditorStack(QWidget):
                     new_index -= 1
                 self.set_stack_index(new_index)
 
+            self.add_last_closed_file(finfo.filename)
+
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
-
+        self.__modify_stack_title()
         return is_ok
 
     def close_all_files(self):
@@ -1212,6 +1221,20 @@ class EditorStack(QWidget):
         self.close_all_right()
         for i in range(0, self.get_stack_count()-1  ):
             self.close_file(0)
+            
+    def add_last_closed_file(self, fname):
+        """Add to last closed file list."""
+        if fname in self.last_closed_files:
+            self.last_closed_files.remove(fname)
+        self.last_closed_files.insert(0, fname)
+        if len(self.last_closed_files) > 10: 
+            self.last_closed_files.pop(-1)
+
+    def get_last_closed_files(self):
+        return self.last_closed_files
+
+    def set_last_closed_files(self, fnames):
+        self.last_closed_files = fnames
 
     #------ Save
     def save_if_changed(self, cancelable=False, index=None):
@@ -1579,6 +1602,11 @@ class EditorStack(QWidget):
         # Finally, resetting temporary flag:
         self.__file_status_flag = False
 
+    def __modify_stack_title(self):
+        for index, finfo in enumerate(self.data):
+            state = finfo.editor.document().isModified()
+            self.set_stack_title(index, state)
+
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -1594,6 +1622,7 @@ class EditorStack(QWidget):
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
+            self.__modify_stack_title()
             self.update_plugin_title.emit()
         else:
             editor = None
@@ -1706,7 +1735,7 @@ class EditorStack(QWidget):
                 linenumbers=self.linenumbers_enabled,
                 show_blanks=self.blanks_enabled,
                 edge_line=self.edgeline_enabled,
-                edge_line_column=self.edgeline_column, language=language,
+                edge_line_columns=self.edgeline_columns, language=language,
                 markers=self.has_markers(), font=self.default_font,
                 color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
@@ -2190,18 +2219,18 @@ class EditorMainWindow(QMainWindow):
         self.setWindowIcon(plugin.windowIcon())
 
         if toolbar_list:
-            toolbars = []
-            for title, actions in toolbar_list:
+            self.toolbars = []
+            for title, object_name, actions in toolbar_list:
                 toolbar = self.addToolBar(title)
-                toolbar.setObjectName(str(id(toolbar)))
+                toolbar.setObjectName(object_name)
                 add_actions(toolbar, actions)
-                toolbars.append(toolbar)
+                self.toolbars.append(toolbar)
         if menu_list:
             quit_action = create_action(self, _("Close window"),
                                         icon="close_panel.png",
                                         tip=_("Close this window"),
                                         triggered=self.close)
-            menus = []
+            self.menus = []
             for index, (title, actions) in enumerate(menu_list):
                 menu = self.menuBar().addMenu(title)
                 if index == 0:
@@ -2209,7 +2238,37 @@ class EditorMainWindow(QMainWindow):
                     add_actions(menu, actions+[None, quit_action])
                 else:
                     add_actions(menu, actions)
-                menus.append(menu)
+                self.menus.append(menu)
+
+    def get_toolbars(self):
+        """Get the toolbars."""
+        return self.toolbars
+
+    def add_toolbars_to_menu(self, menu_title, actions):
+        """Add toolbars to a menu."""
+        # Six is the position of the view menu in menus list
+        # that you can find in plugins/editor.py setup_other_windows. 
+        view_menu = self.menus[6]
+        if actions == self.toolbars and view_menu:
+            toolbars = []
+            for toolbar in self.toolbars:
+                action = toolbar.toggleViewAction()
+                toolbars.append(action)
+            add_actions(view_menu, toolbars)
+
+    def load_toolbars(self):
+        """Loads the last visible toolbars from the .ini file."""
+        toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
+        if toolbars_names:            
+            dic = {}
+            for toolbar in self.toolbars:
+                dic[toolbar.objectName()] = toolbar
+                toolbar.toggleViewAction().setChecked(False)
+                toolbar.setVisible(False)
+            for name in toolbars_names:
+                if name in dic:
+                    dic[name].toggleViewAction().setChecked(True)
+                    dic[name].setVisible(True)
 
     def resizeEvent(self, event):
         """Reimplement Qt method"""

@@ -5,7 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-import spyder.api.plugins for backward compatibility
+Spyder core plugins
 """
 
-from spyder.api.plugins import *
+# For backwards compatibility with Spyder 3.0
+from spyder.api.plugins import SpyderPluginWidget  # analysis:ignore
