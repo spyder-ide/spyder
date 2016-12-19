@@ -75,6 +75,7 @@ def get_object_attrs(obj):
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
+
     def __init__(self, obj):
         self.__obj__ = obj
 

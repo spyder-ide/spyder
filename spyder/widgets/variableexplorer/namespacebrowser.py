@@ -358,7 +358,7 @@ class NamespaceBrowser(QWidget):
         return value
 
     def set_value(self, name, value):
-        """Set value for a variable"""
+        """Set value for a variable."""
         if self.is_ipyclient:
             value = serialize_object(value)
             self.shellwidget.set_value(name, value)

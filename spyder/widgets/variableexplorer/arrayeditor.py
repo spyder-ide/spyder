@@ -608,7 +608,8 @@ class ArrayEditor(QDialog):
         is_masked_array = isinstance(data, np.ma.MaskedArray)
 
         if data.ndim > 3:
-            self.error(_("Arrays with more than 3 dimensions are not supported"))
+            self.error(_("Arrays with more than 3 dimensions are not "
+                         "supported"))
             return False
         if xlabels is not None and len(xlabels) != self.data.shape[1]:
             self.error(_("The 'xlabels' argument length do no match array "
