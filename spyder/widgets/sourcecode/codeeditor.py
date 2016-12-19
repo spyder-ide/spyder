@@ -383,7 +383,7 @@ class CodeEditor(TextEditBaseWidget):
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
 
-        self.panels._update(self.contentsRect(),0)
+        self.panels.refresh()
 
         self.document_id = id(self)
 
@@ -667,7 +667,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
-            self.panels._update(self.contentsRect(),0)
+            self.panels.refresh()
         elif font is not None:
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
@@ -1191,7 +1191,7 @@ class CodeEditor(TextEditBaseWidget):
         """Toggle scroll flag area visibility"""
         self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
-        self.panels._update(self.contentsRect(),0)
+        self.panels.refresh()
 
     def get_scrollflagarea_width(self):
         """Return scroll flag area width"""
@@ -1332,7 +1332,7 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
-        self.panels._update(self.contentsRect(),0)
+        self.panels.refresh()
         self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
