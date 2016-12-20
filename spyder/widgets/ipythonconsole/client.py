@@ -330,6 +330,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if result == QMessageBox.Yes:
             sw = self.shellwidget
             if sw.kernel_manager:
+                if self.infowidget.isVisible():
+                    self.infowidget.hide()
+                    sw.show()
                 try:
                     sw.kernel_manager.restart_kernel()
                 except RuntimeError as e:
