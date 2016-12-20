@@ -1386,6 +1386,7 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def process_started(self, client):
+        client.kernel_stderr = None
         if self.help is not None:
             self.help.set_shell(client.shellwidget)
         if self.variableexplorer is not None:

@@ -13,6 +13,7 @@ This is the widget used on all its tabs
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
 
+import codecs
 import os
 import os.path as osp
 from string import Template
@@ -99,6 +100,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # --- Other attrs
         self.options_button = None
         self.stop_button = None
+        self.kernel_stderr = None
         self.stop_icon = ima.icon('stop')
         self.history = []
 
@@ -171,6 +173,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # To disable the stop button after execution stopped
         self.shellwidget.executed.connect(self.disable_stop_button)
+
+        # To show kernel restarted/died messages
+        self.shellwidget.sig_kernel_restarted.connect(
+            self.kernel_restarted_message)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -345,6 +351,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     _('Cannot restart a kernel not started by Spyder\n'),
                     before_prompt=True
                 )
+
+    def kernel_restarted_message(self, msg):
+        """Show kernel restarted/died messages."""
+        stderr = codecs.open(self.stderr_file, 'r', encoding='utf-8').read()
+
+        if stderr:
+            if self.kernel_stderr is None:
+                self.kernel_stderr = stderr
+                self.show_kernel_error('<tt>%s</tt>' % stderr)
+        else:
+            self.shellwidget._append_html("<br>%s<hr><br>" % msg,
+                                          before_prompt=False)
+
 
     @Slot()
     def inspect_object(self):
