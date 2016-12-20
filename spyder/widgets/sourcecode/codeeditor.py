@@ -1264,6 +1264,11 @@ class CodeEditor(TextEditBaseWidget):
         self.__set_scrollflagarea_geometry(cr)
         self.panels.resize()
 
+    def showEvent(self, event):
+        """ Overrides showEvent to update the viewport margins """
+        super(CodeEditor, self).showEvent(event)
+        self.panels.refresh()
+
     def __set_scrollflagarea_geometry(self, contentrect):
         """Set scroll flag area geometry"""
         cr = contentrect
