@@ -12,17 +12,19 @@
 """
 Pandas DataFrame Editor Dialog
 """
-
+import time
 # Third party imports
 from pandas import DataFrame, Series
 from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
+from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
+                         QItemSelectionModel, QEvent)
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
                             QMenu, QMessageBox, QPushButton, QTableView,
-                            QHeaderView)
+                            QHeaderView, QScrollBar, QTableWidget, QFrame,
+                            QItemDelegate, QWidget)
 import numpy as np
 
 # Local imports
@@ -205,13 +207,9 @@ class DataFrameModel(QAbstractTableModel):
     def get_bgcolor(self, index):
         """Background color depending on value"""
         column = index.column()
-        if column == 0:
-            color = QColor(BACKGROUND_NONNUMBER_COLOR)
-            color.setAlphaF(BACKGROUND_INDEX_ALPHA)
-            return color
         if not self.bgcolor_enabled:
             return
-        value = self.get_value(index.row(), column-1)
+        value = self.get_value(index.row(), column)
         if self.max_min_col[column - 1] is None:
             color = QColor(BACKGROUND_NONNUMBER_COLOR)
             if is_text_string(value):
@@ -240,7 +238,10 @@ class DataFrameModel(QAbstractTableModel):
         try:
             value = self.df.iat[row, column]
         except:
-            value = self.df.iloc[row, column]
+            try:
+                value = self.df.iloc[row, column]
+            except:
+                value = None
         return value
 
     def update_df_index(self):
@@ -254,17 +255,17 @@ class DataFrameModel(QAbstractTableModel):
         if role == Qt.DisplayRole or role == Qt.EditRole:
             column = index.column()
             row = index.row()
-            if column == 0:
-                return to_qvariant(to_text_string(self.df_index[row]))
+#            if column == 0:
+#                return to_qvariant(to_text_string(self.df_index[row]))
+#            else:
+            value = self.get_value(row, column)
+            if isinstance(value, float):
+                return to_qvariant(self._format % value)
             else:
-                value = self.get_value(row, column-1)
-                if isinstance(value, float):
-                    return to_qvariant(self._format % value)
-                else:
-                    try:
-                        return to_qvariant(to_text_string(value))
-                    except UnicodeDecodeError:
-                        return to_qvariant(encoding.to_unicode(value))
+                try:
+                    return to_qvariant(to_text_string(value))
+                except UnicodeDecodeError:
+                    return to_qvariant(encoding.to_unicode(value))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
@@ -305,8 +306,8 @@ class DataFrameModel(QAbstractTableModel):
 
     def flags(self, index):
         """Set flags"""
-        if index.column() == 0:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+#        if index.column() == 0:
+#            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
                             Qt.ItemIsEditable)
 
@@ -321,19 +322,19 @@ class DataFrameModel(QAbstractTableModel):
                 val = from_qvariant(value, str)
                 if change_type is bool:
                     val = bool_false_check(val)
-                self.df.iloc[row, column - 1] = change_type(val)
+                self.df.iloc[row, column] = change_type(val)
             except ValueError:
-                self.df.iloc[row, column - 1] = change_type('0')
+                self.df.iloc[row, column] = change_type('0')
         else:
             val = from_qvariant(value, str)
-            current_value = self.get_value(row, column-1)
+            current_value = self.get_value(row, column)
             if isinstance(current_value, bool):
                 val = bool_false_check(val)
             supported_types = (bool,) + REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES
             if (isinstance(current_value, supported_types) or 
                     is_text_string(current_value)):
                 try:
-                    self.df.iloc[row, column-1] = current_value.__class__(val)
+                    self.df.iloc[row, column] = current_value.__class__(val)
                 except ValueError as e:
                     QMessageBox.critical(self.dialog, "Error",
                                          "Value error: %s" % str(e))
@@ -446,17 +447,17 @@ class DataFrameView(QTableView):
         QTableView.__init__(self, parent)
         self.setModel(model)
 
-        self.frozen_table_view = FrozenTableView(self)
-        self.frozen_table_view.update_geometry()
+        #self.frozen_table_view = FrozenTableView(self)
+        #self.frozen_table_view.update_geometry()
 
         self.setHorizontalScrollMode(1)
         self.setVerticalScrollMode(1)
 
-        self.horizontalHeader().sectionResized.connect(self.update_section_width)
-        self.verticalHeader().sectionResized.connect(self.update_section_height)
+        #self.horizontalHeader().sectionResized.connect(self.update_section_width)
+        #self.verticalHeader().sectionResized.connect(self.update_section_height)
 
-        self.frozen_table_view.verticalScrollBar().valueChanged.connect(
-            self.verticalScrollBar().setValue)
+        #self.frozen_table_view.verticalScrollBar().valueChanged.connect(
+         #   self.verticalScrollBar().setValue)
 
         self.sort_old = [None]
         self.header_class = self.horizontalHeader()
@@ -468,20 +469,20 @@ class DataFrameView(QTableView):
                         lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
                         lambda val: self.load_more_data(val, rows=True))
-        self.verticalScrollBar().valueChanged.connect(
-            self.frozen_table_view.verticalScrollBar().setValue)
+        #self.verticalScrollBar().valueChanged.connect(
+         #   self.frozen_table_view.verticalScrollBar().setValue)
     
     def update_section_width(self, logical_index, old_size, new_size):
         """Update the horizontal width of the frozen column when a
         change takes place in the first column of the table"""
-        if logical_index == 0:
-            self.frozen_table_view.setColumnWidth(0, new_size)
-            self.frozen_table_view.update_geometry()
+        #if logical_index == 0:
+        #    self.frozen_table_view.setColumnWidth(0, new_size)
+         #   self.frozen_table_view.update_geometry()
 
     def update_section_height(self, logical_index, old_size, new_size):
         """Update the vertical width of the frozen column when a
         change takes place on any of the rows"""
-        self.frozen_table_view.setRowHeight(logical_index, new_size)
+        #self.frozen_table_view.setRowHeight(logical_index, new_size)
 
     def resizeEvent(self, event):
         """Update the frozen column dimensions.
@@ -490,7 +491,7 @@ class DataFrameView(QTableView):
         table reports a dimension change
         """
         QTableView.resizeEvent(self, event)
-        self.frozen_table_view.update_geometry()
+        #self.frozen_table_view.update_geometry()
 
     def moveCursor(self, cursor_action, modifiers):
         """Update the table position.
@@ -500,17 +501,17 @@ class DataFrameView(QTableView):
         """
         current = QTableView.moveCursor(self, cursor_action, modifiers)
         
-        col_width = (self.frozen_table_view.columnWidth(0) + 
-                     self.frozen_table_view.columnWidth(1))
-        topleft_x = self.visualRect(current).topLeft().x()
+        #col_width = (self.frozen_table_view.columnWidth(0) + 
+         #            self.frozen_table_view.columnWidth(1))
+        #topleft_x = self.visualRect(current).topLeft().x()
 
-        overflow = self.MoveLeft and current.column() > 1
-        overflow = overflow and topleft_x < col_width
+        #overflow = self.MoveLeft and current.column() > 1
+        #overflow = overflow and topleft_x < col_width
 
-        if cursor_action == overflow:
-            new_value = (self.horizontalScrollBar().value() + 
-                         topleft_x - col_width)
-            self.horizontalScrollBar().setValue(new_value)
+        #if cursor_action == overflow:
+          #  new_value = (self.horizontalScrollBar().value() + 
+         #                topleft_x - col_width)
+           # self.horizontalScrollBar().setValue(new_value)
         return current
 
     def scrollTo(self, index, hint):
@@ -608,6 +609,161 @@ class DataFrameView(QTableView):
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
 
+class ExtDataModel(object):
+    @property
+    def shape(self):
+        raise Exception()
+
+    @property
+    def header_shape(self):
+        raise Exception()
+
+    def data(self, y, x):
+        raise Exception()
+
+    def header(self, axis, x, level):
+        raise Exception()
+
+    def name(self, axis, level):
+        return 'L' + str(level)
+
+    @property
+    def chunk_size(self):
+        return max(*self.shape())
+
+class ExtFrameModel(ExtDataModel):
+    def __init__(self, data):
+        super(ExtFrameModel, self).__init__()
+        self._data = data
+
+    def _axis(self, axis):
+        return self._data.columns if axis == 0 else self._data.index
+
+    def _axis_levels(self, axis):
+        ax = self._axis(axis)
+        return 1 if not hasattr(ax, 'levels') \
+            else len(ax.levels)
+
+    @property
+    def shape(self):
+        return self._data.shape
+
+    @property
+    def header_shape(self):
+        return (self._axis_levels(0), self._axis_levels(1))
+
+    def data(self, y, x):
+        return self._data.iat[y, x]
+
+    def header(self, axis, x, level=0):
+        ax = self._axis(axis)
+        return ax.values[x] if not hasattr(ax, 'levels') \
+            else ax.values[x][level]
+
+    def name(self, axis, level):
+        ax = self._axis(axis)
+        if hasattr(ax, 'levels'):
+            return ax.names[level]
+        if ax.name:
+            return ax.name
+        return super(ExtFrameModel, self).name(axis, level)
+
+class Header4ExtModel(QAbstractTableModel):
+    def __init__(self, model, axis, palette):
+        super(Header4ExtModel, self).__init__()
+        self.model = model
+        self.axis = axis
+        self._palette = palette
+        if self.axis == 0:
+            self._shape = (self.model.header_shape[0], self.model.shape[1])
+        else:
+            self._shape = (self.model.shape[0], self.model.header_shape[1])
+
+    def rowCount(self, index=None):
+        return max(1, self._shape[0])
+
+    def columnCount(self, index=None):
+        return max(1, self._shape[1])
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.TextAlignmentRole:
+            if orientation == Qt.Horizontal:
+                return Qt.AlignCenter | Qt.AlignBottom
+            else:
+                return Qt.AlignRight | Qt.AlignVCenter
+        if role != Qt.DisplayRole:
+            return None
+        orient_axis = 0 if orientation == Qt.Horizontal else 1
+        return section if self.axis == orient_axis else \
+            self.model.name(self.axis, section)
+
+    def data(self, index, role):
+        if not index.isValid() or \
+           index.row() >= self._shape[0] or \
+           index.column() >= self._shape[1]:
+            return None
+        row, col = (index.row(), index.column()) if self.axis == 0 \
+                   else (index.column(), index.row())
+        if role == Qt.BackgroundRole:
+            prev = self.model.header(self.axis, col - 1, row) if col else None
+            cur = self.model.header(self.axis, col, row)
+            return self._palette.midlight() if prev != cur else None
+        if role != Qt.DisplayRole:
+            return None
+        return to_text_string(self.model.header(self.axis, col, row))
+
+
+class Level4ExtModel(QAbstractTableModel):
+    def __init__(self, model, palette, font):
+        super(Level4ExtModel, self).__init__()
+        self.model = model
+        self._background = palette.dark().color()
+        if self._background.lightness() > 127:
+            self._foreground = palette.text()
+        else:
+            self._foreground = palette.highlightedText()
+        self._palette = palette
+        font.setBold(True)
+        self._font = font
+
+    def rowCount(self, index=None):
+        return max(1, self.model.header_shape[0])
+
+    def columnCount(self, index=None):
+        return max(1, self.model.header_shape[1])
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.TextAlignmentRole:
+            if orientation == Qt.Horizontal:
+                return Qt.AlignCenter | Qt.AlignBottom
+            else:
+                return Qt.AlignRight | Qt.AlignVCenter
+        if role != Qt.DisplayRole: return None
+        return 'L' + to_text_string(section)
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        if role == Qt.FontRole:
+            return self._font
+        if index.row() == self.model.header_shape[0] - 1:
+            if role == Qt.DisplayRole:
+                return str(self.model.name(1, index.column()))
+            elif role == Qt.ForegroundRole:
+                return self._foreground
+            elif role == Qt.BackgroundRole:
+                return self._background
+        elif index.column() == self.model.header_shape[1] - 1:
+            if role == Qt.DisplayRole:
+                return str(self.model.name(0, index.row()))
+            elif role == Qt.ForegroundRole:
+                return self._foreground
+            elif role == Qt.BackgroundRole:
+                return self._background
+        elif role == Qt.BackgroundRole:
+            return self._palette.window()
+        return None
+       
 
 class DataFrameEditor(QDialog):
     """
@@ -635,7 +791,13 @@ class DataFrameEditor(QDialog):
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise
         """
+        self._selection_rec = False
+        self._model = None
+        self.table_widget = QWidget()
+        
         self.layout = QGridLayout()
+        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
@@ -648,11 +810,76 @@ class DataFrameEditor(QDialog):
 
         self.setWindowTitle(title)
         self.resize(600, 500)
+        
+        self.hscroll = QScrollBar(Qt.Horizontal)
+        self.vscroll = QScrollBar(Qt.Vertical)
+        
+        self.table_level = QTableView()
+        self.table_level.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_level.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_level.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_level.setFrameStyle(QFrame.Plain)
+        self.table_level.horizontalHeader().sectionResized.connect(self._index_resized)
+        self.table_level.verticalHeader().sectionResized.connect(self._header_resized)
+        self.table_level.setItemDelegate(QItemDelegate())
+        self.layout.addWidget(self.table_level, 0, 0)
+        self.table_level.setContentsMargins(0, 0, 0, 0)
 
+        self.table_header = QTableView()
+        self.table_header.verticalHeader().hide()
+        self.table_header.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_header.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_header.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_header.setHorizontalScrollMode(QTableView.ScrollPerPixel)
+        self.table_header.setHorizontalScrollBar(self.hscroll)
+        self.table_header.setFrameStyle(QFrame.Plain)
+        self.table_header.horizontalHeader().sectionResized.connect(self._column_resized)
+        self.table_header.setItemDelegate(QItemDelegate())
+        self.layout.addWidget(self.table_header, 0, 1)
+
+        self.table_index = QTableView()
+        self.table_index.horizontalHeader().hide()
+        self.table_index.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_index.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_index.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_index.setVerticalScrollMode(QTableView.ScrollPerPixel)
+        self.table_index.setVerticalScrollBar(self.vscroll)
+        self.table_index.setFrameStyle(QFrame.Plain)
+        self.table_index.verticalHeader().sectionResized.connect(self._row_resized)
+        self.table_index.setItemDelegate(QItemDelegate())
+        self.layout.addWidget(self.table_index, 1, 0)
+        self.table_index.setContentsMargins(0, 0, 0, 0)
+        
         self.dataModel = DataFrameModel(data, parent=self)
         self.dataTable = DataFrameView(self, self.dataModel)
+        self.dataTable.verticalHeader().hide()
+        self.dataTable.horizontalHeader().hide()
+        self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.dataTable.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.dataTable.setHorizontalScrollMode(QTableView.ScrollPerPixel)
+        self.dataTable.setVerticalScrollMode(QTableView.ScrollPerPixel)
+        self.dataTable.setHorizontalScrollBar(self.hscroll)
+        self.dataTable.setVerticalScrollBar(self.vscroll)
+        self.dataTable.setFrameStyle(QFrame.Plain)
+        self.dataTable.setItemDelegate(QItemDelegate())
+        self.dataTable.setColumnHidden(len(data.columns), True);
+        self.layout.addWidget(self.dataTable, 1, 1)
+        self.setFocusProxy(self.dataTable)
+        
+        self.layout.addWidget(self.hscroll, 2, 0, 2, 2)
+        self.layout.addWidget(self.vscroll, 0, 2, 2, 2)
+        self.layout.setColumnMinimumWidth(0, 0)
+        
+         # autosize columns on-demand
+        self._autosized_cols = set()
+        self._max_autosize_ms = None
+        self.hscroll.sliderMoved.connect(self._resizeVisibleColumnsToContents)
+        self.dataTable.installEventFilter(self)
 
-        self.layout.addWidget(self.dataTable)
+        avg_width = self.fontMetrics().averageCharWidth()
+        self.min_trunc = avg_width * 8 # Minimum size (in characters) given to columns
+        self.max_width = avg_width * 64 # Maximum size (in characters) given to columns
+
         self.setLayout(self.layout)
         self.setMinimumSize(400, 300)
         # Make the dialog act as a window
@@ -685,10 +912,195 @@ class DataFrameEditor(QDialog):
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         btn_layout.addWidget(bbox)
-
-        self.layout.addLayout(btn_layout, 2, 0)
-
+        btn_layout.setContentsMargins(4, 4, 4, 4)
+        self.layout.addLayout(btn_layout, 4, 0, 2, 2)
+        model = ExtFrameModel(data)
+        self.setModel(model)
+        self.resizeColumnsToContents()
+        
         return True
+
+    def _select_columns(self, source, dest, deselect):
+        if self._selection_rec: return
+        self._selection_rec = True
+        dsm = dest.selectionModel()
+        ssm = source.selectionModel()
+        dsm.clear()
+        for col in (index.column() for index in ssm.selectedIndexes()):
+            dsm.select(dest.model().index(0, col),
+                       QItemSelectionModel.Select | QItemSelectionModel.Columns)
+        deselect.selectionModel().clear()
+        self._selection_rec = False
+
+
+    def _select_rows(self, source, dest, deselect):
+        if self._selection_rec: return
+        self._selection_rec = True
+        dsm = dest.selectionModel()
+        ssm = source.selectionModel()
+        dsm.clear()
+        for row in (index.row() for index in ssm.selectedIndexes()):
+            dsm.select(dest.model().index(row, 0),
+                       QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        deselect.selectionModel().clear()
+        self._selection_rec = False
+
+
+    def model(self):
+        return self._model
+
+    def _column_resized(self, col, old_width, new_width):
+        self.dataTable.setColumnWidth(col, new_width)
+        self._update_layout()
+
+    def _row_resized(self, row, old_height, new_height):
+        self.dataTable.setRowHeight(row, new_height)
+        self._update_layout()
+
+    def _index_resized(self, col, old_width, new_width):
+        self.table_index.setColumnWidth(col, new_width)
+        self._update_layout()
+
+    def _header_resized(self, row, old_height, new_height):
+        self.table_header.setRowHeight(row, new_height)
+        self._update_layout()
+
+    def _update_layout(self):
+        h_width = max(self.table_level.verticalHeader().sizeHint().width(),
+                      self.table_index.verticalHeader().sizeHint().width())
+        self.table_level.verticalHeader().setFixedWidth(h_width)
+        self.table_index.verticalHeader().setFixedWidth(h_width)
+
+        last_row = self._model.header_shape[0] - 1
+        if last_row < 0:
+            hdr_height = self.table_level.horizontalHeader().height()
+        else:
+            hdr_height = self.table_level.rowViewportPosition(last_row) + \
+                         self.table_level.rowHeight(last_row) + \
+                         self.table_level.horizontalHeader().height()
+        self.table_header.setFixedHeight(hdr_height)
+        self.table_level.setFixedHeight(hdr_height)
+
+        last_col = self._model.header_shape[1] - 1
+        if last_col < 0:
+            idx_width = self.table_level.verticalHeader().width()
+        else:
+            idx_width = self.table_level.columnViewportPosition(last_col) + \
+                        self.table_level.columnWidth(last_col) + \
+                        self.table_level.verticalHeader().width()
+        self.table_index.setFixedWidth(idx_width)
+        self.table_level.setFixedWidth(idx_width)
+        self._resizeVisibleColumnsToContents()
+
+
+    def _reset_model(self, table, model):
+        old_sel_model = table.selectionModel()
+        table.setModel(model)
+        if old_sel_model:
+            del old_sel_model
+
+
+    def setAutosizeLimit(self, limit_ms):
+        self._max_autosize_ms = limit_ms
+
+
+    def setModel(self, model, relayout=True):
+        self._model = model
+        #self._reset_model(self.dataTable, Data4ExtModel(model))
+        sel_model = self.dataTable.selectionModel()
+        sel_model.currentColumnChanged.connect(self._resizeCurrentColumnToContents)
+
+        self._reset_model(self.table_level, Level4ExtModel(model, self.palette(), self.font()))
+        
+        self._reset_model(self.table_header, Header4ExtModel(model, 0, self.palette()))
+        
+        self._reset_model(self.table_index, Header4ExtModel(model, 1, self.palette()))
+        
+        # needs to be called after setting all table models
+        if relayout: self._update_layout()
+
+    def setCurrentIndex(self, y, x):
+        self.dataTable.selectionModel().setCurrentIndex(
+            self.dataTable.model().index(y, x),
+            QItemSelectionModel.ClearAndSelect)
+
+    def _sizeHintForColumn(self, table, col, limit_ms=None):
+        # TODO: use current chunk boundaries, do not start from the beginning
+        max_row = table.model().rowCount()
+        lm_start = time.clock()
+        lm_row = 64 if limit_ms else max_row
+        max_width = 0
+        for row in range(max_row):
+            v = table.sizeHintForIndex(table.model().index(row, col))
+            max_width = max(max_width, v.width())
+            if row > lm_row:
+                lm_now = time.clock()
+                lm_elapsed = (lm_now - lm_start) * 1000
+                if lm_elapsed >= limit_ms:
+                    break
+                olm_row = lm_row
+                lm_row = int((row / lm_elapsed) * limit_ms)
+        return max_width
+
+    def _resizeColumnToContents(self, header, data, col, limit_ms):
+        hdr_width = self._sizeHintForColumn(header, col, limit_ms)
+        data_width = self._sizeHintForColumn(data, col, limit_ms)
+        if data_width > hdr_width:
+            width = min(self.max_width, data_width)
+        elif hdr_width > data_width * 2:
+            width = max(min(hdr_width, self.min_trunc), min(self.max_width, data_width))
+        else:
+            width = min(self.max_width, hdr_width)
+        header.setColumnWidth(col, width)
+
+    def _resizeColumnsToContents(self, header, data, limit_ms):
+        max_col = data.model().columnCount()
+        if limit_ms is None:
+            max_col_ms = None
+        else:
+            max_col_ms = limit_ms / max(1, max_col)
+        for col in range(max_col):
+            self._resizeColumnToContents(header, data, col, max_col_ms)
+
+    def eventFilter(self, obj, event):
+        if obj == self.dataTable and event.type() == QEvent.Resize:
+            self._resizeVisibleColumnsToContents()
+        return False
+
+    def _resizeVisibleColumnsToContents(self):
+        start = col = self.dataTable.columnAt(self.dataTable.rect().topLeft().x())
+        width = self._model.shape[1]
+        end = self.dataTable.columnAt(self.dataTable.rect().bottomRight().x())
+        end = width if end == -1 else end + 1
+        if self._max_autosize_ms is None:
+            max_col_ms = None
+        else:
+            max_col_ms = self._max_autosize_ms / max(1, end - start)
+        while col < end:
+            resized = False
+            if col not in self._autosized_cols:
+                self._autosized_cols.add(col)
+                resized = True
+                self._resizeColumnToContents(self.table_header, self.dataTable,
+                                             col, max_col_ms)
+            col += 1
+            if resized:
+                # as we resize columns, the boundary will change
+                end = self.dataTable.columnAt(self.dataTable.rect().bottomRight().x())
+                end = width if end == -1 else end + 1
+                if max_col_ms is not None:
+                    max_col_ms = self._max_autosize_ms / max(1, end - start)
+
+    def _resizeCurrentColumnToContents(self, new_index, old_index):
+        if new_index.column() not in self._autosized_cols:
+            # ensure the requested column is fully into view after resizing
+            self._resizeVisibleColumnsToContents()
+            self.dataTable.scrollTo(new_index)
+
+    def resizeColumnsToContents(self):
+        self._autosized_cols = set()
+        self._resizeColumnsToContents(self.table_level, self.table_index, self._max_autosize_ms)
+        self._update_layout()
 
     def change_bgcolor_enable(self, state):
         """
