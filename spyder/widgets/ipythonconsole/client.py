@@ -358,6 +358,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     before_prompt=True
                 )
 
+    @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
         stderr = codecs.open(self.stderr_file, 'r', encoding='utf-8').read()
