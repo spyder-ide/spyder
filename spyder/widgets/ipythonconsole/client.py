@@ -31,6 +31,7 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
                                 get_module_source_path)
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
+from spyder.utils import sourcecode
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
@@ -195,7 +196,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.shellwidget.write_to_stdin('exit')
 
     def show_kernel_error(self, error):
-        """Show kernel initialization errors in infowidget"""
+        """Show kernel initialization errors in infowidget."""
+        # Replace end of line chars with <br>
+        eol = sourcecode.get_eol_chars(error)
+        if eol:
+            error = error.replace(eol, '<br>')
+
         # Don't break lines in hyphens
         # From http://stackoverflow.com/q/7691569/438386
         error = error.replace('-', '&#8209')
