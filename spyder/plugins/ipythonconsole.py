@@ -730,18 +730,13 @@ class IPythonConsole(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin."""
-        main_create_client_action = create_action(self,
-                                _("Open an &IPython console"),
-                                None, ima.icon('ipython_console'),
-                                triggered=self.create_new_client)
-
         create_client_action = create_action(self,
-                                _("Open a new console"),
+                                _("Open an &IPython console"),
                                 icon=ima.icon('ipython_console'),
                                 triggered=self.create_new_client,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(create_client_action, context="ipython_console",
-                               name="Restart kernel")
+                               name="New tab")
 
         restart_action = create_action(self, _("Restart kernel"),
                                        icon=ima.icon('restart'),
@@ -757,7 +752,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, main_create_client_action)
+        main_consoles_menu.insert(0, create_client_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
                                connect_to_kernel_action]
         
