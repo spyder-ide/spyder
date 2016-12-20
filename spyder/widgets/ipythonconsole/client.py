@@ -112,11 +112,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                        interpreter_versions=interpreter_versions,
                                        external_kernel=external_kernel,
                                        local_kernel=True)
-        self.shellwidget.hide()
         self.infowidget = WebView(self)
         self.set_infowidget_font()
         self.loading_page = self._create_loading_page()
-        self.show_loading_page()
+        self._show_loading_page()
 
         # --- Layout
         vlayout = QVBoxLayout()
@@ -137,7 +136,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # As soon as some content is printed in the console, stop
         # our loading animation
         document = self.get_control().document()
-        document.contentsChange.connect(self._stop_loading_animation)
+        document.contentsChange.connect(self._hide_loading_page)
 
     #------ Public API --------------------------------------------------------
     @property
@@ -217,10 +216,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget.setHtml(page)
         self.shellwidget.hide()
         self.infowidget.show()
-
-    def show_loading_page(self):
-        self.infowidget.setHtml(self.loading_page,
-                                QUrl.fromLocalFile(CSS_PATH))
 
     def get_name(self):
         """Return client name"""
@@ -419,11 +414,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                            message=message)
         return page
 
-    def _stop_loading_animation(self):
-        """Stop animation shown while the kernel is starting"""
+    def _show_loading_page(self):
+        """Show animation while the kernel is loading."""
+        self.shellwidget.hide()
+        self.infowidget.show()
+        self.infowidget.setHtml(self.loading_page,
+                                QUrl.fromLocalFile(CSS_PATH))
+
+    def _hide_loading_page(self):
+        """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
         self.shellwidget.show()
         self.infowidget.setHtml(BLANK)
 
         document = self.get_control().document()
-        document.contentsChange.disconnect(self._stop_loading_animation)
+        document.contentsChange.disconnect(self._hide_loading_page)
