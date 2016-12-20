@@ -26,7 +26,7 @@ class Mode(object):
 
     A panel (model child class) is added to an editor by using the
     PanelsManager:
-        - :meth:`pyqode.core.api.CodeEditor.panels.append`
+        - :meth:`spyder.widgets.sourcecode.CodeEditor.panels.append`
 
     Subclasses may/should override the following methods:
 
