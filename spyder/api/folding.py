@@ -150,7 +150,7 @@ class IndentFoldDetector(FoldDetector):
         text = block.text()
         # round down to previous indentation guide to ensure contiguous block
         # fold level evolution.
-        return (len(text) - len(text.lstrip())) // self.editor.tab_length
+        return (len(text) - len(text.lstrip())) // len(self.editor.indent_chars)
 
 
 class CharBasedFoldDetector(FoldDetector):
