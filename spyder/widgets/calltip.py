@@ -301,6 +301,6 @@ class CallTipWidget(QLabel):
         if position <= self._start_position:
             self.hide()
         elif char == ')':
-            pos, commas = self._find_parenthesis(self._start_position + 1)
-            if pos != -1:
+            pos, _ = self._find_parenthesis(position - 1, forward=False)
+            if pos == -1:
                 self.hide()
