@@ -101,7 +101,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # --- Other attrs
         self.options_button = None
         self.stop_button = None
-        self.kernel_stderr = None
         self.stop_icon = ima.icon('stop')
         self.history = []
 
@@ -357,9 +356,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         stderr = codecs.open(self.stderr_file, 'r', encoding='utf-8').read()
 
         if stderr:
-            if self.kernel_stderr is None:
-                self.kernel_stderr = stderr
-                self.show_kernel_error('<tt>%s</tt>' % stderr)
+            self.show_kernel_error('<tt>%s</tt>' % stderr)
         else:
             self.shellwidget._append_html("<br>%s<hr><br>" % msg,
                                           before_prompt=False)
