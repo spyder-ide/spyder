@@ -116,8 +116,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget = WebView(self)
         self.set_infowidget_font()
         self.loading_page = self._create_loading_page()
-        self.infowidget.setHtml(self.loading_page,
-                                QUrl.fromLocalFile(CSS_PATH))
+        self.show_loading_page()
 
         # --- Layout
         vlayout = QVBoxLayout()
@@ -218,6 +217,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget.setHtml(page)
         self.shellwidget.hide()
         self.infowidget.show()
+
+    def show_loading_page(self):
+        self.infowidget.setHtml(self.loading_page,
+                                QUrl.fromLocalFile(CSS_PATH))
 
     def get_name(self):
         """Return client name"""
