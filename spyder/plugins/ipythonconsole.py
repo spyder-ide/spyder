@@ -15,6 +15,7 @@ IPython Console plugin based on QtConsole
 
 # Standard library imports
 import atexit
+import codecs
 import os
 import os.path as osp
 import uuid
@@ -915,7 +916,9 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        km, kc = self.create_kernel_manager_and_kernel_client(connection_file)
+        stderr_file = client.stderr_file
+        km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
+                                                              stderr_file)
 
         kc.started_channels.connect(lambda c=client: self.process_started(c))
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
@@ -1294,13 +1297,17 @@ class IPythonConsole(SpyderPluginWidget):
 
         return KernelSpec(resource_dir='', **kernel_dict)
 
-    def create_kernel_manager_and_kernel_client(self, connection_file):
+    def create_kernel_manager_and_kernel_client(self, connection_file,
+                                                stderr_file):
         """Create kernel manager and client"""
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
         kernel_manager._kernel_spec = self.create_kernel_spec()
-        kernel_manager.start_kernel()
+
+        # Save stderr in a file to read it later in case of errors
+        stderr = codecs.open(stderr_file, 'x', encoding='utf-8')
+        kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
         kernel_client = kernel_manager.client()

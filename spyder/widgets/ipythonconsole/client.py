@@ -30,6 +30,7 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
                                 get_module_source_path)
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
+from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.widgets.browser import WebView
@@ -136,6 +137,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         document.contentsChange.connect(self._stop_loading_animation)
 
     #------ Public API --------------------------------------------------------
+    @property
+    def stderr_file(self):
+        """Filename to save kernel stderr output."""
+        json_file = osp.basename(self.connection_file)
+        stderr_file = json_file.split('json')[0] + 'stderr'
+        stderr_file = osp.join(TEMPDIR, stderr_file)
+        return stderr_file
+
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
         if give_focus:
