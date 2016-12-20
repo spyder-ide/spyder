@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Bootstrapping Spyder
@@ -97,7 +97,7 @@ if sys.excepthook != sys.__excepthook__:
 
 # --- Continue
 
-from spyderlib.utils.vcs import get_git_revision
+from spyder.utils.vcs import get_git_revision
 print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
@@ -126,7 +126,7 @@ else:
 
 if options.debug:
     # safety check - Spyder config should not be imported at this point
-    if "spyderlib.config.base" in sys.modules:
+    if "spyder.config.base" in sys.modules:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
     print("0x. Switching debug mode on")
     os.environ["SPYDER_DEBUG"] = "True"
@@ -136,7 +136,7 @@ if options.debug:
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
-from spyderlib import get_versions
+from spyder import get_versions
 versions = get_versions(reporev=False)
 print("03. Imported Spyder %s" % versions['spyder'])
 print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
@@ -145,7 +145,7 @@ print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
 
 
 # Check that we have the right qtpy version
-from spyderlib.utils import programs
+from spyder.utils import programs
 if not programs.is_module_installed('qtpy', '>=1.1.0'):
     print("")
     sys.exit("ERROR: Your qtpy version is outdated. Please install qtpy "
@@ -159,7 +159,7 @@ if not options.hide_console and os.name == 'nt':
     sys.argv.append("--show-console")  # Windows only: show parent console
 
 print("04. Running Spyder")
-from spyderlib.app import start
+from spyder.app import start
 
 time_lapse = time.time()-time_start
 print("Bootstrap completed in " +

@@ -1,36 +1,34 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 2.3.9 is released!
+Subject: [ANN] Spyder 3.0.2 is released!
 
 
 Hi all,
 
-On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I’m pleased to announce that Spyder 2.3.9 has been released and is available for
+On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce that Spyder 3.0.2 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 5 months after version 2.3.8 and introduces several new features:
+This release comes one month after version 3.0.1 and introduces several new features:
 
-* Preferences
-    * Fix a crash when using certain versions of colorama (which is a Jedi dependency)
-* Python and IPython consoles
-    * Filter a RuntimeWarning generated for DataFrames with nan values
-* Variable Explorer
-    * Fix a freeze when binary strings can't be converted to unicode in Python 2
-    * Fix a freeze with Numpy arrays containing strings
+* An option under *Preferences > General* to enable/disable high DPI scaling
+  (disabled by default).
+* A menu entry in the Projects menu to cleanly delete projects.
+* Shortcuts Ctrl+U and Ctrl+Shift+U to turn text into lower/uppercase respectively.
 
-We also fixed 5 bugs. For a full list of fixes see our changelog:
-https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
+It also fixes several errors when running code in our IPython consoles and frees
+memory of variables loaded in the Variable Explorer.
 
-Don’t forget to follow Spyder updates/news:
+In this release we fixed 22 bugs and merged 27 pull requests. For a full list of fixes,
+please see our changelog: https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md
 
-* on the project website: https://github.com/spyder-ide/spyder
-* and on our official blog: http://spyder-ide.blogspot.com/
+Don't forget to follow Spyder updates/news on the project Github website:
+https://github.com/spyder-ide/spyder
 
 Last, but not least, we welcome any contribution that helps making Spyder an
-efficient scientific development/computing environment. Join us to help creating
-your favorite environment!
+efficient scientific development and computing environment. Join us to help
+creating your favorite environment!
 
 Enjoy!
 -Carlos
@@ -39,40 +37,61 @@ Enjoy!
 ----
 
 
-Minor release others
-====================
+Major release to list
+=====================
 
-Subject: [ANN] Spyder 2.3.8 is released!
+Subject: [ANN] Spyder 3.0 is released!
 
 
-On the behalf of Spyder’s development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I’m pleased to announce that Spyder 2.3.8 has been released and is available for
+Hi all,
+
+On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce that Spyder 3.0 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-Spyder is a free, open-source (MIT license) interactive development environment
-for the Python language with advanced editing, interactive testing, debugging
-and introspection features. It was designed to provide MATLAB-like features
-(integrated help, interactive console, variable explorer with GUI-based editors
-for NumPy arrays and Pandas dataframes), it is strongly oriented towards scientific
-computing and software development.
+This release represents more than two years of development since version 2.3.0 was
+released, and it introduces major enhancements and new features. The most important ones
+are:
 
-This release represents one month and a half of development since version 2.3.7
-and introduces several new features:
+* Third-party plugins: External developers can now create plugins that extend Spyder in
+  novel and interesting ways. For example, we already have plugins for the line-profiler
+  and memory-profiler projects, and also a graphical frontend for the conda package
+  manager. These plugins can be distributed as pip and/or conda packages for authors
+  convenience.
+* Improved projects support: Projects have been revamped and improved significantly in
+  Spyder 3.0. With our new projects support, people will have the possibility of easily
+  working on different coding efforts at the same time. That's because projects save the
+  state of open files in the Editor and allow Python packages created as part of the
+  project to be imported in our consoles.
+* Support for much more programming languages: Spyder relies now on the excellent Pygments
+  library to provide syntax highlight and suggest code completions in the Editor, for all
+  programming languages supported by it.
+* A new file switcher: Spyder 3.0 comes with a fancy file switcher, very similar in
+  spirit to the one present in Sublime Text. This is a dialog to select among the open
+  files in the Editor, by doing a fuzzy search through their names. It also lets users to
+  view the list of classes, methods and functions defined in the current file, and select
+  one of them. This dialog is activated with `Ctrl+P`.
+* A Numpy array graphical builder: Users who need to create NumPy arrays in Spyder for
+  matrices and vectors can do it now in a graphical way by pressing `Ctrl+M` in the Editor
+  or the Consoles. This will open an empty 2D table widget to be filled with the data
+  required by the user.
+* A new icon theme based on FontAwesome.
+* A new set of default pane layouts for those coming from Rstudio or Matlab (under
+  `View > Window layouts`).
+* A simpler and more intuitive way to introduce keyboard shortcuts.
+* Support for PyQt5, which fixes problems in MacOS X and in high definition screens.
 
-* Python and IPython consoles
-    * Fix a sitecustomize error when using Matplotlib 1.5 with Python 2 on Linux
-* Variable Explorer
-    * Add support for Pandas Series when using Pamdas 0.17+
-    * Fix freeze when creating empty DataFrames in Python 2
-    * Fix freeze when working with big Numpy recarray's
+For a complete list of changes, please see here:
 
-We also fixed 6 bugs. For a full list of fixes see our changelog:
-https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
+https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md
 
-Don’t forget to follow Spyder updates/news:
+Spyder 2.3 has been a huge success (being downloaded almost 550,000 times!) and
+we hope 3.0 will be as successful as it. For that we fixed 203 important bugs,
+merged 218 pull requests from about 40 authors and added almost 2850 commits
+between these two releases.
 
-* on the project website: https://github.com/spyder-ide/spyder
-* and on our official blog: http://spyder-ide.blogspot.com/
+Don't forget to follow Spyder updates/news on the project Github website:
+https://github.com/spyder-ide/spyder
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development/computing environment. Join us to help creating
@@ -80,6 +99,7 @@ your favorite environment!
 
 Enjoy!
 -Carlos
+
 
 ----
 
@@ -92,8 +112,8 @@ Subject: [ANN] Spyder 3.0 is released!
 
 Hi all,
 
-On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/blob/master/AUTHORS),
-I'm pleased to announce that Spyder 2.3 has been released and is available for
+On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce that Spyder 3.0 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
 Spyder is a free, open-source (MIT license) interactive development environment
@@ -103,63 +123,44 @@ and introspection features. It was designed to provide MATLAB-like features
 for NumPy arrays and Pandas dataframes), it is strongly oriented towards
 scientific computing and software development.
 
-This release represents 14 months of development since version 2.2 and introduces
-major enhancements and new features:
+<The rest is the same as for the list>
 
-   * Python 3 support (versions 3.2, 3.3 and 3.4 are supported).
-   * Various Editor improvements:
-     - Use the Tab key to do code completions
-     - Highlight cells
-     - First-class support for Enaml files
-     - Improve how calltips are shown
-   * Better looking Object Inspector
-   * Several refinements to the user interface to make it easier and more intuitive
-   * And many other changes: https://github.com/spyder-ide/spyder/blob/2.3/CHANGELOG.md
-
-Spyder 2.2 has been a huge success (being downloaded more than 400,000 times!)
-and we hope 2.3 will be as successful as it. For that we fixed 70 important bugs,
-merged 30 pull requests from 11 authors and added almost 1000 commits between
-these two releases.
-
-Don't forget to follow Spyder updates/news:
-  
-* on the project website: https://github.com/spyder-ide/spyder
-* and on our official blog: http://spyder-ide.blogspot.com/
-
-Last, but not least, we welcome any contribution that helps making Spyder an
-efficient scientific development/computing environment. Join us to help creating
-your favorite environment!
-
-Enjoy!
--Carlos
-
-
----
+----
 
 
 Beta release
 ============
 
-Subject: [ANN] Spyder 3.0 fourth public beta release
+Subject: [ANN] Spyder 3.0 seventh public beta release
 
 
 Hi all,
 
-On the behalf of Spyder's development team (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the fourth beta of our next major version: Spyder 3.0.
+On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce the seventh beta of our next major version: Spyder 3.0.
 
-We've been working on this version for almost two years now and as far as we know
+We've been working on this version for more than two years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-three weeks after our third one and it includes more than 150 commits!
+two weeks after our sixth one and it includes more than 200 commits.
 
 Spyder 3.0 comes with several interesting and exciting new features. The most
 important ones are:
 
+* Third-party plugins: External developers can now create plugins that extend Spyder in
+  novel and interesting ways. For example, we already have plugins for the line-profiler
+  and memory-profiler projects, and also a graphical frontend for the conda package
+  manager. These plugins can be distributed as pip and/or conda packages for authors
+  convenience.
+* Improved projects support: Projects have been revamped and improved significantly in
+  Spyder 3.0. With our new projects support, people will have the possibility of easily
+  working on different coding efforts at the same time. That's because projects save the
+  state of open files in the Editor and allow Python packages created as part of the
+  project to be imported in our consoles.
 * Support for much more programming languages: Spyder relies now on the excellent Pygments
   library to provide syntax highlight and suggest code completions in the Editor, for all
   programming languages supported by it.
-* A new file switcher: Spyder 3.0 will come with a fancy file switcher, very similar in
+* A new file switcher: Spyder 3.0 comes with a fancy file switcher, very similar in
   spirit to the one present in Sublime Text. This is a dialog to select among the open
   files in the Editor, by doing a fuzzy search through their names. It also lets users to
   view the list of classes, methods and functions defined in the current file, and select
@@ -181,7 +182,8 @@ https://github.com/spyder-ide/spyder/wiki/Beta-version-changelog
 You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
-    conda install -c spyder-ide spyder==3.0.0b4
+    conda install -c qttesting qt pyqt
+    conda install -c spyder-ide spyder==3.0.0b7
 
 Or you can use pip with this command:
 

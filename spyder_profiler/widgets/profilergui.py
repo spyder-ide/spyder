@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009- The Spyder Development Team
+# Copyright © Spyder Project Contributors
 # based on pylintgui.py by Pierre Raybaut
 #
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Profiler widget
@@ -29,19 +29,19 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyderlib.config.base import get_conf_path, get_translation
-from spyderlib.py3compat import getcwd, to_text_string
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                       set_item_user_text)
-from spyderlib.utils.programs import shell_split
-from spyderlib.widgets.comboboxes import PythonModulesComboBox
-from spyderlib.widgets.externalshell import baseshell
-from spyderlib.widgets.variableexplorer.texteditor import TextEditor
+from spyder.config.base import get_conf_path, get_translation
+from spyder.py3compat import getcwd, to_text_string
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
+                                    set_item_user_text)
+from spyder.utils.programs import shell_split
+from spyder.widgets.comboboxes import PythonModulesComboBox
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH
+from spyder.widgets.variableexplorer.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
 try:
-    _ = get_translation("profiler", "spyplugins.ui.profiler")
+    _ = get_translation("profiler", "spyder_profiler")
 except KeyError as error:
     import gettext
     _ = gettext.gettext
@@ -51,7 +51,7 @@ locale_codec = QTextCodec.codecForLocale()
 
 
 def is_profiler_installed():
-    from spyderlib.utils.programs import is_module_installed
+    from spyder.utils.programs import is_module_installed
     return is_module_installed('cProfile') and is_module_installed('pstats')
 
 
@@ -263,7 +263,7 @@ class ProfilerWidget(QWidget):
         if pythonpath is not None:
             env = [to_text_string(_pth)
                    for _pth in self.process.systemEnvironment()]
-            baseshell.add_pathlist_to_PYTHONPATH(env, pythonpath)
+            add_pathlist_to_PYTHONPATH(env, pythonpath)
             processEnvironment = QProcessEnvironment()
             for envItem in env:
                 envName, separator, envValue = envItem.partition('=')
@@ -495,27 +495,57 @@ class ProfilerDataTree(QTreeWidget):
                 node_type = 'constructor'                
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
-        
+
+    def format_measure(self, measure):
+        """Get format and units for data coming from profiler task."""
+        # For number of calls
+        if isinstance(measure, int):
+            return to_text_string(measure)
+
+        # For time measurements
+        if 1.e-9 < measure <= 1.e-6:
+            measure = u"{0:.2f} ns".format(measure / 1.e-9)
+        elif 1.e-6 < measure <= 1.e-3:
+            measure = u"{0:.2f} us".format(measure / 1.e-6)
+        elif 1.e-3 < measure <= 1:
+            measure = u"{0:.2f} ms".format(measure / 1.e-3)
+        elif 1 < measure <= 60:
+            measure = u"{0:.2f} sec".format(measure)
+        elif 60 < measure <= 3600:
+            m, s = divmod(measure, 3600)
+            if s > 60:
+                m, s = divmod(measure, 60)
+                s = to_text_string(s).split(".")[-1]
+            measure = u"{0:.0f}.{1:.2s} min".format(m, s)
+        else:
+            h, m = divmod(measure, 3600)
+            if m > 60:
+                m /= 60
+            measure = u"{0:.0f}h:{1:.0f}min".format(h, m)
+        return measure
+
     def color_string(self, args):
-        x, format = args
+        x, fmt = args
         diff_str = ""
         color = "black"
+
         if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
             if difference < 0:
-                diff_str = "".join(['',format[1] % difference])
+                diff_str = "".join(['', fmt[1] % self.format_measure(difference)])
                 color = "green"
             elif difference > 0:
-                diff_str = "".join(['+',format[1] % difference])
+                diff_str = "".join(['+', fmt[1] % self.format_measure(difference)])
                 color = "red"
-        return [format[0] % x[0], [diff_str, color]]
+        return [fmt[0] % self.format_measure(x[0]), [diff_str, color]]
 
-
-    def format_output(self,child_key):
+    def format_output(self, child_key):
         """ Formats the data"""
         if True:
-            data = [x.stats.get(child_key,[0,0,0,0,0]) for x in self.stats1]
-            return map(self.color_string,zip(list(zip(*data))[1:4], [["%i"]*2, ["%.3f","%.3f"], ["%.3f","%.3f"]]))
+            data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
+            format_data = zip(list(zip(*data))[1:4],
+                              [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])
+            return (map(self.color_string, format_data))
             
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
@@ -527,14 +557,12 @@ class ProfilerDataTree(QTreeWidget):
             ((total_calls, total_calls_dif), (loc_time, loc_time_dif), (cum_time,
              cum_time_dif)) = self.format_output(child_key)
 
-            (primcalls, total_calls, loc_time, cum_time, callers
-             ) = self.stats[child_key]
             child_item = TreeWidgetItem(parentItem)
             self.item_list.append(child_item)
             self.set_item_data(child_item, filename, line_number)
 
             # FIXME: indexes to data should be defined by a dictionary on init
-            child_item.setToolTip(0, 'Function or module name')
+            child_item.setToolTip(0, _('Function or module name'))
             child_item.setData(0, Qt.DisplayRole, function_name)
             child_item.setIcon(0, self.icon_list[node_type])
 
@@ -670,7 +698,7 @@ def test():
     """Run widget test"""
     import inspect
     import tempfile
-    from spyderlib.utils.qthelpers import qapplication
+    from spyder.utils.qthelpers import qapplication
 
     primes_sc = inspect.getsource(primes)
     fd, script = tempfile.mkstemp(suffix='.py')

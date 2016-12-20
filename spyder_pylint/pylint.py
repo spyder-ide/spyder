@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """Pylint Code Analysis Plugin."""
 
@@ -19,10 +19,11 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
-from spyderlib.config.base import get_translation
-from spyderlib.plugins import PluginConfigPage, SpyderPluginMixin
-from spyderlib.utils import icon_manager as ima
-from spyderlib.utils.qthelpers import create_action
+from spyder.config.base import get_translation
+from spyder.plugins import SpyderPluginMixin
+from spyder.plugins.configdialog import PluginConfigPage
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
 
 
@@ -135,7 +136,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis")
         
-        self.main.source_menu_actions += [None, pylint_act]
+        self.main.source_menu_actions += [MENU_SEPARATOR, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
 
     def refresh_plugin(self):
@@ -156,7 +157,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     @Slot()
     def change_history_depth(self):
         "Change history max entries"""
-        depth, valid = QInputDialog.getInteger(self, _('History'),
+        depth, valid = QInputDialog.getInt(self, _('History'),
                                        _('Maximum entries'),
                                        self.get_option('max_entries'),
                                        10, 10000)

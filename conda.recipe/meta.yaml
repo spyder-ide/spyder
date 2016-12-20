@@ -32,6 +32,8 @@ requirements:
     - qtawesome
     - qtpy >=1.1.0
     - pyzmq
+    - chardet >=2.0.0
+    - numpydoc
 
 about:
   home: https://github.com/spyder-ide/spyder

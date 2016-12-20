@@ -79,23 +79,28 @@ function InstallCondaPackages ($python_home, $spec) {
 }
 
 
+function InstallPipPackages ($python_home, $spec) {
+    $pip_path = $python_home + "\Scripts\pip.exe"
+    $args = "install " + $spec
+    Write-Host ("pip " + $args)
+    Start-Process -FilePath "$pip_path" -ArgumentList $args -Wait -Passthru
+}
+
+
 function UpdateConda ($python_home) {
     $conda_path = $python_home + "\Scripts\conda.exe"
     Write-Host "Updating conda..."
     $args = "update --yes conda"
-    $spy_channel_args = "config --add channels spyder-ide"
-    $mlabs_channel_args = "config --add channels m-labs"
     Write-Host $conda_path $args
     Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
-    Start-Process -FilePath "$conda_path" -ArgumentList $spy_channel_args -Wait -Passthru
-    Start-Process -FilePath "$conda_path" -ArgumentList $mlabs_channel_args -Wait -Passthru
 }
 
 
 function main () {
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     UpdateConda $env:PYTHON
-    InstallCondaPackages $env:PYTHON "conda-build==1.21.0 pytest pytest-cov pytest-qt"
+    InstallCondaPackages $env:PYTHON "conda-build=2.0.0 pytest pytest-cov mock"
+    InstallPipPackages $env:PYTHON "pytest-qt"
 }
 
 

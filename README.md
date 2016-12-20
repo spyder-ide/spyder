@@ -1,12 +1,16 @@
 # Spyder - The Scientific PYthon Development EnviRonment
 
-Copyright © 2009- The Spyder Development Team.
+Copyright © Spyder Project Contributors.
 
+## Project details
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
-[![pypi downloads](https://img.shields.io/pypi/dm/spyder.svg)](https://pypi.python.org/pypi/spyder)
+[![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
+
+## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/awb92if4tl555fuy/branch/master?svg=true)](https://ci.appveyor.com/project/ccordoba12/spyder/branch/master)
+[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=svg)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 
 ## Overview
@@ -46,8 +50,8 @@ Spyder is a Python development environment with a lot of features:
 
 * **History log**
 
-Spyder may also be used as a PyQt5/PyQt4 extension library (module 
-`spyderlib`). For example, the Python interactive shell widget used in
+Spyder may also be used as a PyQt5/PyQt4 extension library (module
+`spyder`). For example, the Python interactive shell widget used in
 Spyder may be embedded in your own PyQt5/PyQt4 application.
 
 
@@ -68,12 +72,11 @@ The easiest way to install Spyder is:
 
 ### On Windows:
 
-- Or using one of these scientific Python distributions:
-  1. [Anaconda](http://continuum.io/downloads)
-  2. [WinPython](https://winpython.github.io/)
-  3. [Python(x,y)](http://pythonxy.googlecode.com)
-- Using one of our executable installers, which can be found
-  [here](https://github.com/spyder-ide/spyder/releases).
+Using one (and only one) of these scientific Python distributions:
+
+1. [Anaconda](http://continuum.io/downloads)
+2. [WinPython](https://winpython.github.io/)
+3. [Python(x,y)](http://python-xy.github.io)
 
 ### On Mac OSX:
 
@@ -106,7 +109,7 @@ For more details on supported platforms, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
 
 **Important note**: This does not install the graphical Python libraries (i.e.
-PyQt5 or PyQt4) that Spyder depend on. Those have to be installed separately
+PyQt5 or PyQt4) that Spyder depends on. Those have to be installed separately
 after installing Python.
 
 
@@ -154,6 +157,8 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **PyZMQ**: Run introspection services asynchronously.
 * **QtPy** 1.1.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
   and PyQt5.
+* **Chardet**: Character encoding auto-detection in Python.
+* **Numpydoc**: Used by Jedi to get return types for functions with Numpydoc docstrings.
 
 ### Optional dependencies
 

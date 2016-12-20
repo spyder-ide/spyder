@@ -12,11 +12,8 @@ env:
 matrix:
   include:
     # Linux using pip packages
-    - python: "2.7"
-      env: USE_QT_API=PyQt4 USE_CONDA=false
-      os: linux
-    - python: "3.4"
-      env: USE_QT_API=PyQt4 USE_CONDA=false
+    - python: "3.5"
+      env: USE_QT_API=PyQt5 USE_CONDA=false
       os: linux
     # Linux using conda packages
     - python: "2.7"
@@ -43,11 +40,8 @@ install:
   - if [ "${USE_CONDA}" = "true" ]; then
         source activate test-environment;
     fi
-  - pip install coveralls
 
 script:
   - ./continuous_integration/travis/build_test.sh
   - ./continuous_integration/travis/run_test.sh
   - ./continuous_integration/travis/modules_test.sh
-  - python runtests.py
-  - coveralls

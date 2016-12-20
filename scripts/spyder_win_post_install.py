@@ -136,7 +136,7 @@ def install():
     workdir = "%HOMEDRIVE%%HOMEPATH%"
     import distutils.sysconfig
     lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
-    ico_dir = osp.join(lib_dir, 'spyderlib', 'windows')
+    ico_dir = osp.join(lib_dir, 'spyder', 'windows')
     # if user is running -install manually then icons are in Scripts/
     if not osp.isdir(ico_dir):
         ico_dir = osp.dirname(osp.abspath(__file__))

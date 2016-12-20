@@ -47,7 +47,7 @@ Key features:
       
   * *to-do* lists (TODO, FIXME, XXX)
   * errors/warnings (real-time *code analysis* provided by `pyflakes`)
-  * integrated *`pylint` code analysis*
+  * integrated static code analysis (using `pylint`)
   * direct link to `winpdb` external debugger
     
 * :doc:`console`:
@@ -71,10 +71,10 @@ Key features:
     
 * :doc:`onlinehelp`: automatically generated html documentation on installed Python modules
 * :doc:`findinfiles`: find string occurrences in a directory, a mercurial repository or directly in PYTHONPATH (support for regular expressions and  included/excluded string lists)
-* :doc:`explorer`
-* :doc:`projectexplorer` (support Pydev project import)
+* :doc:`fileexplorer`
+* :doc:`projects`
 
 
 Spyder may also be used as a PyQt5 or PyQt4 extension library 
-(module 'spyderlib'). For example, the Python interactive shell widget
+(module 'spyder'). For example, the Python interactive shell widget
 used in Spyder may be embedded in your own PyQt5 or PyQt4 application.
