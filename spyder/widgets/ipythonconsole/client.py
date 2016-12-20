@@ -341,8 +341,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         before_prompt=True
                     )
                 else:
+                    sw.reset(clear=True)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
-                        before_prompt=True,
+                        before_prompt=False,
                     )
             else:
                 sw._append_plain_text(
