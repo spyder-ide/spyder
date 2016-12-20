@@ -239,18 +239,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        restart_action = create_action(self, _("Restart kernel"),
-                                       shortcut=QKeySequence("Ctrl+."),
-                                       icon=ima.icon('restart'),
-                                       triggered=self.restart_kernel,
-                                       context=Qt.WidgetWithChildrenShortcut)
-
         # Main menu
-        if self.menu_actions is not None:
-            actions = [restart_action, None] + self.menu_actions
-        else:
-            actions = [restart_action]
-        return actions
+        return self.menu_actions
 
     def get_toolbar_buttons(self):
         """Return toolbar buttons list"""

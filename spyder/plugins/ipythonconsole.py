@@ -729,20 +729,26 @@ class IPythonConsole(SpyderPluginWidget):
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
+        """Return a list of actions related to plugin."""
         main_create_client_action = create_action(self,
                                 _("Open an &IPython console"),
                                 None, ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                tip=_("Use %s+T when the console is selected "
-                                      "to open a new one") % ctrl)
+                                triggered=self.create_new_client)
+
         create_client_action = create_action(self,
                                 _("Open a new console"),
-                                QKeySequence("Ctrl+T"),
-                                ima.icon('ipython_console'),
+                                icon=ima.icon('ipython_console'),
                                 triggered=self.create_new_client,
                                 context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(create_client_action, context="ipython_console",
+                               name="Restart kernel")
+
+        restart_action = create_action(self, _("Restart kernel"),
+                                       icon=ima.icon('restart'),
+                                       triggered=self.restart_kernel,
+                                       context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(restart_action, context="ipython_console",
+                               name="Restart kernel")
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -752,10 +758,12 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, main_create_client_action)
-        main_consoles_menu += [MENU_SEPARATOR, connect_to_kernel_action]
+        main_consoles_menu += [MENU_SEPARATOR, restart_action,
+                               connect_to_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action]
+        self.menu_actions = [restart_action, MENU_SEPARATOR,
+                             create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
 
@@ -1317,6 +1325,12 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client.hb_channel.time_to_dead = 6.0
 
         return kernel_manager, kernel_client
+
+    def restart_kernel(self):
+        """Restart kernel of current client."""
+        client = self.get_current_client()
+        if client is not None:
+            client.restart_kernel()
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name):
