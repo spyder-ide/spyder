@@ -1258,13 +1258,11 @@ class CodeEditor(TextEditBaseWidget):
         painter.drawRect(make_slider(self.firstVisibleBlock().blockNumber()))
 
     def resizeEvent(self, event):
-        """Reimplemented Qt method to handle line number area resizing"""
+        """Reimplemented Qt method to handle p resizing"""
         TextEditBaseWidget.resizeEvent(self, event)
         cr = self.contentsRect()
-        self.linenumberarea.setGeometry(\
-                        QRect(cr.left(), cr.top(),
-                              self.linenumberarea.compute_width(), cr.height()))
         self.__set_scrollflagarea_geometry(cr)
+        self.panels.resize()
 
     def __set_scrollflagarea_geometry(self, contentrect):
         """Set scroll flag area geometry"""
