@@ -240,13 +240,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         return self.menu_actions
 
     def get_toolbar_buttons(self):
-        """Return toolbar buttons list"""
+        """Return toolbar buttons list."""
         buttons = []
         # Code to add the stop button
         if self.stop_button is None:
-            self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                             icon=self.stop_icon,
-                                             tip=_("Stop the current command"))
+            self.stop_button = create_toolbutton(
+                                   self,
+                                   text=_("Stop"),
+                                   icon=self.stop_icon,
+                                   tip=_("Stop the current command"))
             self.disable_stop_button()
             # set click event handler
             self.stop_button.clicked.connect(self.stop_button_click_handler)

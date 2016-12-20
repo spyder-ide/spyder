@@ -730,11 +730,12 @@ class IPythonConsole(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin."""
-        create_client_action = create_action(self,
-                                _("Open an &IPython console"),
-                                icon=ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                context=Qt.WidgetWithChildrenShortcut)
+        create_client_action = create_action(
+                                   self,
+                                   _("Open an &IPython console"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_new_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(create_client_action, context="ipython_console",
                                name="New tab")
 
@@ -1302,7 +1303,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_file):
-        """Create kernel manager and client"""
+        """Create kernel manager and client."""
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
