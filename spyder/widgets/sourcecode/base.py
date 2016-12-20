@@ -15,6 +15,7 @@
 import os
 import re
 import sys
+from collections import OrderedDict
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -229,7 +230,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         BaseEditMixin.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
-        self.extra_selections_dict = {}
+        self.extra_selections_dict = OrderedDict()
         
         self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
@@ -305,28 +306,40 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Extra selections
+    def extra_selection_length(self, key):
+        selection = self.get_extra_selections(key)
+        if selection:
+            cursor = self.extra_selections_dict[key][0].cursor
+            selection_length = cursor.selectionEnd() - cursor.selectionStart()
+            return selection_length
+        else:
+            return 0
+
     def get_extra_selections(self, key):
         return self.extra_selections_dict.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
         self.extra_selections_dict[key] = extra_selections
-        
+        self.extra_selections_dict = \
+            OrderedDict(sorted(self.extra_selections_dict.items(),
+                               key=lambda s: self.extra_selection_length(s[0]),
+                               reverse=True))
+
     def update_extra_selections(self):
         extra_selections = []
         for key, extra in list(self.extra_selections_dict.items()):
             if key == 'current_line' or key == 'current_cell':
-                # Python 3 compatibility (weird): current line has to be 
+                # Python 3 compatibility (weird): current line has to be
                 # highlighted first
                 extra_selections = extra + extra_selections
             else:
                 extra_selections += extra
         self.setExtraSelections(extra_selections)
-        
+
     def clear_extra_selections(self, key):
         self.extra_selections_dict[key] = []
         self.update_extra_selections()
-        
-        
+
     def changed(self):
         """Emit changed signal"""
         self.modificationChanged.emit(self.document().isModified())
