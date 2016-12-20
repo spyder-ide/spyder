@@ -23,7 +23,7 @@ def _logger():
 
 class PanelsManager(Manager):
     """
-    Manages the list of panels and draws them inised the margin of the
+    Manages the list of panels and draws them inside the margin of the
     CodeEditor widget.
     """
     def __init__(self, editor):
