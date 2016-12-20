@@ -164,6 +164,9 @@ the sympy module (e.g. plot)
                                   parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
+                                         context='ipython_console',
+                                         name='Restart kernel', parent=self)
         new_tab = config_shortcut(lambda: self.new_client.emit(),
                                   context='ipython_console', name='new tab', parent=self)
         reset_namespace = config_shortcut(lambda: self.reset_namespace(),
@@ -176,8 +179,8 @@ the sympy module (e.g. plot)
                                       context='array_builder',
                                       name='enter array table', parent=self)
 
-        return [inspect, clear_console, new_tab, reset_namespace,
-                array_inline, array_table]
+        return [inspect, clear_console, restart_kernel, new_tab,
+                reset_namespace, array_inline, array_table]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
