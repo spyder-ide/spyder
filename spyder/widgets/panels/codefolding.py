@@ -8,14 +8,15 @@ import sys
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
 from qtpy.QtWidgets import QApplication, QStyleOptionViewItem, QStyle
 from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
-                        QLinearGradient, QPen,
-                        QPalette, QResizeEvent, QIcon, QCursor)
+                        QLinearGradient, QPen, QPalette, QResizeEvent,
+                        QCursor)
 
 from spyder.api.decoration import TextDecoration
 from spyder.api.folding import FoldScope
 from spyder.api.panel import Panel
 from spyder.api.utils import (TextBlockHelper, TextHelper, DelayJobRunner,
                               drift_color)
+import spyder.utils.icon_manager as ima
 
 
 def _logger():
@@ -154,10 +155,10 @@ class FoldingPanel(Panel):
         Panel.__init__(self)
         self._native = True
         self._custom_indicators = (
-            ':/pyqode-icons/rc/arrow_right_off.png',
-            ':/pyqode-icons/rc/arrow_right_on.png',
-            ':/pyqode-icons/rc/arrow_down_off.png',
-            ':/pyqode-icons/rc/arrow_down_on.png'
+            'folding.arrow_right_off',
+            'folding.arrow_right_on',
+            'folding.arrow_down_off',
+            'folding.arrow_down_on'
         )
         self._custom_color = QColor('gray')
         self._block_nbr = -1
@@ -354,7 +355,7 @@ class FoldingPanel(Panel):
                 index = 2
             if mouse_over:
                 index += 1
-            QIcon(self._custom_indicators[index]).paint(painter, rect)
+            ima.icon(self._custom_indicators[index]).paint(painter, rect)
 
     @staticmethod
     def find_parent_scope(block):
