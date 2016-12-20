@@ -107,6 +107,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
+                                       ipyclient=self,
                                        additional_options=additional_options,
                                        interpreter_versions=interpreter_versions,
                                        external_kernel=external_kernel,
@@ -153,8 +154,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if give_focus:
             self.get_control().setFocus()
 
-        # Connect shellwidget to the client
-        self.shellwidget.set_ipyclient(self)
+        # Set exit callback
+        self.shellwidget.set_exit_action()
 
         # To save history
         self.shellwidget.executing.connect(self.add_to_history)

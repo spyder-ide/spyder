@@ -47,20 +47,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_got_reply = Signal()
     sig_kernel_restarted = Signal(str)
 
-    def __init__(self, additional_options, interpreter_versions,
+    def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         super(ShellWidget, self).__init__(*args, **kw)
+
+        self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
+        self.external_kernel = external_kernel
 
         self.set_background_color()
-
-        # Additional variables
-        self.ipyclient = None
-        self.external_kernel = external_kernel
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -69,10 +68,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self._kernel_reply = None
 
     #---- Public API ----------------------------------------------------------
-    def set_ipyclient(self, ipyclient):
-        """Bind this shell widget to an IPython client one"""
-        self.ipyclient = ipyclient
-        self.exit_requested.connect(ipyclient.exit_callback)
+    def set_exit_action(self):
+        """Set exit action for this widget."""
+        self.exit_requested.connect(self.ipyclient.exit_callback)
 
     def is_running(self):
         if self.kernel_client is not None and \
