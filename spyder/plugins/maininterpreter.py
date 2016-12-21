@@ -161,18 +161,17 @@ class MainInterpreterConfigPage(GeneralConfigPage):
     def is_python_interpreter(self, pyexec):
         if not osp.isfile(pyexec):
             return False
-        args = ["-c", "print('valid_python_interpreter')"]
         try:
-            proc = programs.run_program(pyexec, args)
+            proc = programs.run_program(pyexec, ["-h"])
             valid = str(proc.communicate()[0])
-            if not valid.startswith("b'valid_python_interpreter"):
+            if len(valid) > 2 and valid[2:].startswith("usage: {}".format(pyexec)):
+                return True
+            else:
                 QMessageBox.warning(self, _('Warning'),
                     _("You selected an invalid Python interpreter for the "
                       "console so the previous interpreter will stay. Please "
                       "make sure to select a valid one."), QMessageBox.Ok)
                 return False
-            else:
-                return True
         except:
             QMessageBox.warning(self, _('Warning'),
                 _("You selected an invalid Python interpreter for the console "
