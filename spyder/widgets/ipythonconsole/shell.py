@@ -139,18 +139,21 @@ the sympy module (e.g. plot)
     def clear_console(self):
         self.execute("%clear")
 
-    def reset_namespace(self):
+    def reset_namespace(self, predefined=False):
         """Resets the namespace by removing all names defined by the user"""
 
-        reply = QMessageBox.question(
-            self,
-            _("Reset IPython namespace"),
-            _("All user-defined variables will be removed."
-            "<br>Are you sure you want to reset the namespace?"),
-            QMessageBox.Yes | QMessageBox.No,
-            )
+        if not predefined:
+            reply = QMessageBox.question(
+                self,
+                _("Reset IPython namespace"),
+                _("All user-defined variables will be removed."
+                "<br>Are you sure you want to reset the namespace?"),
+                QMessageBox.Yes | QMessageBox.No,
+                )
 
-        if reply == QMessageBox.Yes:
+            if reply == QMessageBox.Yes:
+                self.execute("%reset -f")
+        else:
             self.execute("%reset -f")
 
     def set_background_color(self):

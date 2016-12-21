@@ -809,7 +809,7 @@ class IPythonConsole(SpyderPluginWidget):
             return client.shellwidget
 
     def run_script_in_current_client(self, filename, wdir, args, debug,
-            post_mortem):
+            post_mortem, clear_variables):
         """Run script in current client, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
@@ -832,7 +832,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
-            self.execute_code(line)
+            self.execute_code(line, clear_variables)
             self.visibility_changed(True)
             self.raise_()
         else:
@@ -849,9 +849,11 @@ class IPythonConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
-    def execute_code(self, lines):
+    def execute_code(self, lines, clear_variables):
         sw = self.get_current_shellwidget()
         if sw is not None:
+            if clear_variables:
+                sw.reset_namespace(True)
             sw.execute(to_text_string(lines))
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
