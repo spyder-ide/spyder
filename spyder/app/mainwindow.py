@@ -301,6 +301,10 @@ class MainWindow(QMainWindow):
             mac_style = mac_style.replace('$IMAGE_PATH', img_path)
             self.setStyleSheet(mac_style)
 
+        # Create our TEMPDIR
+        if not osp.isdir(programs.TEMPDIR):
+            os.mkdir(programs.TEMPDIR)
+
         # Shortcut management data
         self.shortcut_data = []
 

@@ -15,6 +15,7 @@ IPython Console plugin based on QtConsole
 
 # Standard library imports
 import atexit
+import codecs
 import os
 import os.path as osp
 import uuid
@@ -728,20 +729,22 @@ class IPythonConsole(SpyderPluginWidget):
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
-        main_create_client_action = create_action(self,
-                                _("Open an &IPython console"),
-                                None, ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                tip=_("Use %s+T when the console is selected "
-                                      "to open a new one") % ctrl)
-        create_client_action = create_action(self,
-                                _("Open a new console"),
-                                QKeySequence("Ctrl+T"),
-                                ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                context=Qt.WidgetWithChildrenShortcut)
+        """Return a list of actions related to plugin."""
+        create_client_action = create_action(
+                                   self,
+                                   _("Open an &IPython console"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_new_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(create_client_action, context="ipython_console",
+                               name="New tab")
+
+        restart_action = create_action(self, _("Restart kernel"),
+                                       icon=ima.icon('restart'),
+                                       triggered=self.restart_kernel,
+                                       context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(restart_action, context="ipython_console",
+                               name="Restart kernel")
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -750,11 +753,13 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, main_create_client_action)
-        main_consoles_menu += [MENU_SEPARATOR, connect_to_kernel_action]
+        main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu += [MENU_SEPARATOR, restart_action,
+                               connect_to_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action]
+        self.menu_actions = [restart_action, MENU_SEPARATOR,
+                             create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
 
@@ -915,7 +920,9 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        km, kc = self.create_kernel_manager_and_kernel_client(connection_file)
+        stderr_file = client.stderr_file
+        km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
+                                                              stderr_file)
 
         kc.started_channels.connect(lambda c=client: self.process_started(c))
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
@@ -1294,13 +1301,17 @@ class IPythonConsole(SpyderPluginWidget):
 
         return KernelSpec(resource_dir='', **kernel_dict)
 
-    def create_kernel_manager_and_kernel_client(self, connection_file):
-        """Create kernel manager and client"""
+    def create_kernel_manager_and_kernel_client(self, connection_file,
+                                                stderr_file):
+        """Create kernel manager and client."""
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
         kernel_manager._kernel_spec = self.create_kernel_spec()
-        kernel_manager.start_kernel()
+
+        # Save stderr in a file to read it later in case of errors
+        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -1310,6 +1321,12 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client.hb_channel.time_to_dead = 6.0
 
         return kernel_manager, kernel_client
+
+    def restart_kernel(self):
+        """Restart kernel of current client."""
+        client = self.get_current_client()
+        if client is not None:
+            client.restart_kernel()
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name):
