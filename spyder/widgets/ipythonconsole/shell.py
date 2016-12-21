@@ -68,8 +68,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self._kernel_reply = None
 
     #---- Public API ----------------------------------------------------------
-    def set_exit_action(self):
-        """Set exit action for this widget."""
+    def set_exit_callback(self):
+        """Set exit callback for this shell."""
         self.exit_requested.connect(self.ipyclient.exit_callback)
 
     def is_running(self):

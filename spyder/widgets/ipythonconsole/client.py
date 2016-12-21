@@ -152,7 +152,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.get_control().setFocus()
 
         # Set exit callback
-        self.shellwidget.set_exit_action()
+        self.shellwidget.set_exit_callback()
 
         # To save history
         self.shellwidget.executing.connect(self.add_to_history)
@@ -236,7 +236,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        # Main menu
         return self.menu_actions
 
     def get_toolbar_buttons(self):
