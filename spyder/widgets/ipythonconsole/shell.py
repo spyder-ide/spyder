@@ -45,21 +45,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     focus_changed = Signal()
     new_client = Signal()
     sig_got_reply = Signal()
+    sig_kernel_restarted = Signal(str)
 
-    def __init__(self, additional_options, interpreter_versions,
+    def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         super(ShellWidget, self).__init__(*args, **kw)
+
+        self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
+        self.external_kernel = external_kernel
 
         self.set_background_color()
-
-        # Additional variables
-        self.ipyclient = None
-        self.external_kernel = external_kernel
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -68,10 +68,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self._kernel_reply = None
 
     #---- Public API ----------------------------------------------------------
-    def set_ipyclient(self, ipyclient):
-        """Bind this shell widget to an IPython client one"""
-        self.ipyclient = ipyclient
-        self.exit_requested.connect(ipyclient.exit_callback)
+    def set_exit_callback(self):
+        """Set exit callback for this shell."""
+        self.exit_requested.connect(self.ipyclient.exit_callback)
 
     def is_running(self):
         if self.kernel_client is not None and \
@@ -165,6 +164,9 @@ the sympy module (e.g. plot)
                                   parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
+                                         context='ipython_console',
+                                         name='Restart kernel', parent=self)
         new_tab = config_shortcut(lambda: self.new_client.emit(),
                                   context='ipython_console', name='new tab', parent=self)
         reset_namespace = config_shortcut(lambda: self.reset_namespace(),
@@ -177,8 +179,8 @@ the sympy module (e.g. plot)
                                       context='array_builder',
                                       name='enter array table', parent=self)
 
-        return [inspect, clear_console, new_tab, reset_namespace,
-                array_inline, array_table]
+        return [inspect, clear_console, restart_kernel, new_tab,
+                reset_namespace, array_inline, array_table]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
@@ -273,6 +275,10 @@ the sympy module (e.g. plot)
             return self.long_banner()
         else:
             return self.short_banner()
+
+    def _kernel_restarted_message(self, died=True):
+        msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+        self.sig_kernel_restarted.emit(msg)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
