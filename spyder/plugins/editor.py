@@ -1857,8 +1857,8 @@ class Editor(SpyderPluginWidget):
                     continue
                 # --
                 current_es = self.get_current_editorstack(editorwindow)
-                # Creating the editor widget in the first editorstack 
-                # (the one that can't be destroyed), then cloning this 
+                # Creating the editor widget in the first editorstack
+                # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(filename, set_current=False)
                 finfo.path = self.main.get_spyder_pythonpath()
@@ -2628,6 +2628,14 @@ class Editor(SpyderPluginWidget):
         self.set_create_new_file_if_empty(True)
 
     def reorder_filenames(self, filenames):
+        """Take the last session filenames and puts the last open on first.
+
+        It takes a list of filenames and using the current filename from the 
+        layout settings, sets the one that had focused last in the position 0. 
+        It also reorders the current lines for each file (supposing that they 
+        are in the same order as the filenames) and sets them back in the 
+        layout settings.
+        """
         layout = self.get_option('layout_settings', None)
         splitsettings = layout.get('splitsettings')
         index_first_file = 0
