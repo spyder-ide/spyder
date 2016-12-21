@@ -2357,7 +2357,7 @@ class Editor(SpyderPluginWidget):
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
-         python, python_args, current, systerm, 
+         python, python_args, current, systerm,
          post_mortem, clear_namespace) = self.__last_ec_exec
         if current:
             if self.main.ipyconsole is not None:
@@ -2366,7 +2366,7 @@ class Editor(SpyderPluginWidget):
                                                         debug, post_mortem)
                 else:
                     self.run_in_current_ipyclient.emit(fname, wdir, args,
-                                                       debug, post_mortem, 
+                                                       debug, post_mortem,
                                                        clear_namespace)
             else:
                 self.run_in_current_extconsole.emit(fname, wdir, args, debug,

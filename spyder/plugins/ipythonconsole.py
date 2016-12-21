@@ -809,7 +809,7 @@ class IPythonConsole(SpyderPluginWidget):
             return client.shellwidget
 
     def run_script_in_current_client(self, filename, wdir, args, debug,
-            post_mortem, clear_variables):
+                                     post_mortem, clear_variables):
         """Run script in current client, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
@@ -850,6 +850,7 @@ class IPythonConsole(SpyderPluginWidget):
             shellwidget.set_cwd(directory)
 
     def execute_code(self, lines, clear_variables):
+        """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
             if clear_variables:
