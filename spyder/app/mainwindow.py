@@ -274,6 +274,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
+        self.open_project = options.open_project
 
         self.debug_print("Start of MainWindow constructor")
 
@@ -1216,13 +1217,16 @@ class MainWindow(QMainWindow):
         if not self.extconsole.isvisible and not ipy_visible:
             self.historylog.add_history(get_conf_path('history.py'))
 
-        # Load last project if a project was active when Spyder
-        # was closed
-        self.projects.reopen_last_project()
+        if self.open_project:
+            self.projects.open_project(self.open_project)
+        else:
+            # Load last project if a project was active when Spyder
+            # was closed
+            self.projects.reopen_last_project()
 
-        # If no project is active, load last session
-        if self.projects.get_active_project() is None:
-            self.editor.setup_open_files()
+            # If no project is active, load last session
+            if self.projects.get_active_project() is None:
+                self.editor.setup_open_files()
 
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
@@ -2810,23 +2814,15 @@ def initialize():
     from qtpy import QtWidgets
     QtWidgets.QApplication = FakeQApplication
 
-    #----Monkey patching rope
-    try:
-        from spyder import rope_patch
-        rope_patch.apply()
-    except ImportError:
-        # rope is not installed
-        pass
-
-    #----Monkey patching sys.exit
+    # ----Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass
     sys.exit = fake_sys_exit
 
-    #----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
+    # ----Monkey patching sys.excepthook to avoid crashes in PyQt 5.5+
     if PYQT5:
         def spy_excepthook(type_, value, tback):
-            sys.__excepthook__(type_, value, tback) 
+            sys.__excepthook__(type_, value, tback)
         sys.excepthook = spy_excepthook
 
     # Removing arguments from sys.argv as in standard Python interpreter

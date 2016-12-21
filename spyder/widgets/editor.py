@@ -966,9 +966,12 @@ class EditorStack(QWidget):
             title = "(%s)" % title
         return title
 
-    def get_tab_text(self, filename, is_modified=None, is_readonly=None):
-        """Return tab title"""
-        return self.__modified_readonly_title(osp.basename(filename),
+    def get_tab_text(self, index, is_modified=None, is_readonly=None):
+        """Return tab title."""
+        files_path_list = [finfo.filename for finfo in self.data]
+        fname = self.data[index].filename
+        fname = sourcecode.get_file_title(files_path_list, fname)
+        return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
@@ -1003,8 +1006,8 @@ class EditorStack(QWidget):
         self.data.append(finfo)
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
-        fname, editor = finfo.filename, finfo.editor
-        self.tabs.insertTab(index, editor, self.get_tab_text(fname))
+        editor = finfo.editor
+        self.tabs.insertTab(index, editor, self.get_tab_text(index))
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
@@ -1020,7 +1023,8 @@ class EditorStack(QWidget):
                 is_modified = True
             else:
                 is_modified = None
-            tab_text = self.get_tab_text(finfo.filename, is_modified)
+            index = self.data.index(finfo)
+            tab_text = self.get_tab_text(index, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
             index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
@@ -1054,7 +1058,7 @@ class EditorStack(QWidget):
         fname = finfo.filename
         is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
-        tab_text = self.get_tab_text(fname, is_modified, is_readonly)
+        tab_text = self.get_tab_text(index, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
         self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
@@ -1198,7 +1202,7 @@ class EditorStack(QWidget):
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
-
+        self.__modify_stack_title()
         return is_ok
 
     def close_all_files(self):
@@ -1599,6 +1603,11 @@ class EditorStack(QWidget):
         # Finally, resetting temporary flag:
         self.__file_status_flag = False
 
+    def __modify_stack_title(self):
+        for index, finfo in enumerate(self.data):
+            state = finfo.editor.document().isModified()
+            self.set_stack_title(index, state)
+
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -1614,6 +1623,7 @@ class EditorStack(QWidget):
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
+            self.__modify_stack_title()
             self.update_plugin_title.emit()
         else:
             editor = None
