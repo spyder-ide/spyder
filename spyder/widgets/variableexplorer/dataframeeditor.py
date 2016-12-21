@@ -609,31 +609,10 @@ class DataFrameView(QTableView):
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
 
-class ExtDataModel(object):
-    @property
-    def shape(self):
-        raise Exception()
-
-    @property
-    def header_shape(self):
-        raise Exception()
-
-    def data(self, y, x):
-        raise Exception()
-
-    def header(self, axis, x, level):
-        raise Exception()
-
-    def name(self, axis, level):
-        return 'L' + str(level)
-
-    @property
-    def chunk_size(self):
-        return max(*self.shape())
-
-class ExtFrameModel(ExtDataModel):
+class ExtDataFrameModel(object):
+    """."""
     def __init__(self, data):
-        super(ExtFrameModel, self).__init__()
+        super(ExtDataFrameModel, self).__init__()
         self._data = data
 
     def _axis(self, axis):
@@ -652,6 +631,10 @@ class ExtFrameModel(ExtDataModel):
     def header_shape(self):
         return (self._axis_levels(0), self._axis_levels(1))
 
+    @property
+    def chunk_size(self):
+        return max(*self.shape())
+
     def data(self, y, x):
         return self._data.iat[y, x]
 
@@ -666,11 +649,12 @@ class ExtFrameModel(ExtDataModel):
             return ax.names[level]
         if ax.name:
             return ax.name
-        return super(ExtFrameModel, self).name(axis, level)
+        return 'L' + to_text_string(level)
 
-class Header4ExtModel(QAbstractTableModel):
+class DataFrameHeader(QAbstractTableModel):
+    """."""
     def __init__(self, model, axis, palette):
-        super(Header4ExtModel, self).__init__()
+        super(DataFrameHeader, self).__init__()
         self.model = model
         self.axis = axis
         self._palette = palette
@@ -713,9 +697,10 @@ class Header4ExtModel(QAbstractTableModel):
         return to_text_string(self.model.header(self.axis, col, row))
 
 
-class Level4ExtModel(QAbstractTableModel):
+class DataFrameLevel(QAbstractTableModel):
+    """."""
     def __init__(self, model, palette, font):
-        super(Level4ExtModel, self).__init__()
+        super(DataFrameLevel, self).__init__()
         self.model = model
         self._background = palette.dark().color()
         if self._background.lightness() > 127:
@@ -914,7 +899,7 @@ class DataFrameEditor(QDialog):
         btn_layout.addWidget(bbox)
         btn_layout.setContentsMargins(4, 4, 4, 4)
         self.layout.addLayout(btn_layout, 4, 0, 2, 2)
-        model = ExtFrameModel(data)
+        model = ExtDataFrameModel(data)
         self.setModel(model)
         self.resizeColumnsToContents()
         
@@ -1010,11 +995,11 @@ class DataFrameEditor(QDialog):
         sel_model = self.dataTable.selectionModel()
         sel_model.currentColumnChanged.connect(self._resizeCurrentColumnToContents)
 
-        self._reset_model(self.table_level, Level4ExtModel(model, self.palette(), self.font()))
+        self._reset_model(self.table_level, DataFrameLevel(model, self.palette(), self.font()))
         
-        self._reset_model(self.table_header, Header4ExtModel(model, 0, self.palette()))
+        self._reset_model(self.table_header, DataFrameHeader(model, 0, self.palette()))
         
-        self._reset_model(self.table_index, Header4ExtModel(model, 1, self.palette()))
+        self._reset_model(self.table_index, DataFrameHeader(model, 1, self.palette()))
         
         # needs to be called after setting all table models
         if relayout: self._update_layout()
@@ -1025,7 +1010,6 @@ class DataFrameEditor(QDialog):
             QItemSelectionModel.ClearAndSelect)
 
     def _sizeHintForColumn(self, table, col, limit_ms=None):
-        # TODO: use current chunk boundaries, do not start from the beginning
         max_row = table.model().rowCount()
         lm_start = time.clock()
         lm_row = 64 if limit_ms else max_row
@@ -1038,7 +1022,6 @@ class DataFrameEditor(QDialog):
                 lm_elapsed = (lm_now - lm_start) * 1000
                 if lm_elapsed >= limit_ms:
                     break
-                olm_row = lm_row
                 lm_row = int((row / lm_elapsed) * limit_ms)
         return max_width
 
