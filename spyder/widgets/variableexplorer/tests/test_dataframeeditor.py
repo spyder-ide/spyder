@@ -46,7 +46,7 @@ def test_dataframemodel_basic():
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
     assert dfm.rowCount() == 2
-    assert dfm.columnCount() == 3
+    assert dfm.columnCount() == 2
     assert data(dfm, 0, 0) == '1'
     assert data(dfm, 0, 1) == 'c'
     assert data(dfm, 1, 0) == '3'

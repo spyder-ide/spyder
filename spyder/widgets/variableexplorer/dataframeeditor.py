@@ -67,7 +67,7 @@ def bool_false_check(value):
     """
     Used to convert bool intrance to false.
 
-    Needed since any string in bool('') will return True
+    Needed since any string in bool('') will return True.
     """
     if value.lower() in _bool_false:
         value = ''
@@ -223,7 +223,7 @@ class DataFrameModel(QAbstractTableModel):
         self.reset()
 
     def get_bgcolor(self, index):
-        """Background color depending on value"""
+        """Background color depending on value."""
         column = index.column()
         if not self.bgcolor_enabled:
             return
@@ -246,7 +246,8 @@ class DataFrameModel(QAbstractTableModel):
             if hue > 1:
                 hue = 1
             color = QColor.fromHsvF(hue, BACKGROUND_NUMBER_SATURATION,
-                                    BACKGROUND_NUMBER_VALUE, BACKGROUND_NUMBER_ALPHA)
+                                    BACKGROUND_NUMBER_VALUE,
+                                    BACKGROUND_NUMBER_ALPHA)
         return color
 
     def get_value(self, row, column):
@@ -460,6 +461,7 @@ class DataFrameView(QTableView):
     sig_sortByColumn = Signal()
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
+
     def __init__(self, parent, model, header, hscroll, vscroll):
         QTableView.__init__(self, parent)
         self.setModel(model)
@@ -548,7 +550,8 @@ class DataFrameView(QTableView):
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
         index = header = False
         df = self.model().df
-        obj = df.iloc[slice(row_min, row_max+1), slice(col_min, col_max+1)]
+        obj = df.iloc[slice(row_min, row_max + 1),
+                      slice(col_min, col_max + 1)]
         output = io.StringIO()
         print(output)
         obj.to_csv(output, sep='\t', index=index, header=header)
@@ -559,6 +562,7 @@ class DataFrameView(QTableView):
         output.close()
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
+
 
 class DataFrameHeader(QAbstractTableModel):
     """
