@@ -498,7 +498,7 @@ class FoldingPanel(Panel):
         line = th.line_nbr_from_position(event.pos().y())
         if line >= 0:
             block = FoldScope.find_parent_scope(
-                self.editor.document().findBlockByNumber(line))
+                self.editor.document().findBlockByNumber(line-1))
             if TextBlockHelper.is_fold_trigger(block):
                 if self._mouse_over_line is None:
                     # mouse enter fold scope
