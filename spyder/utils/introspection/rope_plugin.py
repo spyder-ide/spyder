@@ -25,7 +25,7 @@ from spyder.utils.introspection.manager import ROPE_REQVER
 
 try:
     try:
-        from spyder import rope_patch
+        from spyder.utils.introspection import rope_patch
         rope_patch.apply()
     except ImportError:
         # rope is not installed
@@ -281,39 +281,3 @@ class RopePlugin(IntrospectionPlugin):
         """Close the Rope project"""
         if self.project is not None:
             self.project.close()
-
-
-if __name__ == '__main__':
-
-    from spyder.utils.introspection.manager import CodeInfo
-
-    p = RopePlugin()
-    p.load_plugin()
-
-    source_code = "import numpy; numpy.ones"
-    docs = p.get_info(CodeInfo('info', source_code, len(source_code),
-                                           __file__))
-    assert 'ones(' in docs['calltip'] and 'ones(' in docs['docstring']
-
-    source_code = "import numpy; n"
-    completions = p.get_completions(CodeInfo('completions', source_code,
-        len(source_code), __file__))
-    assert ('numpy', 'module') in completions
-
-    source_code = "import a"
-    completions = p.get_completions(CodeInfo('completions', source_code,
-        len(source_code), __file__))
-    assert not completions
-
-    code = '''
-def test(a, b):
-    """Test docstring"""
-    pass
-test(1,'''
-    path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt', is_python_like=True))
-    assert line == 2
-
-    docs = p.get_info(CodeInfo('info', code, len(code), __file__,
-        is_python_like=True))
-    assert 'Test docstring' in docs['docstring']

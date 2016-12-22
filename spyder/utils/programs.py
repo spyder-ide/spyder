@@ -396,9 +396,6 @@ def is_module_installed(module_name, version=None, installed_version=None,
     in a determined interpreter
     """
     if interpreter:
-        if not osp.isdir(TEMPDIR):
-            os.mkdir(TEMPDIR)
-        
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
