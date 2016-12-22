@@ -584,7 +584,7 @@ class DataFrameHeader(QAbstractTableModel):
             self.total_rows = self.model.shape[0]
             self._shape = (self.model.shape[0], self.model.header_shape[1])
             if self.total_rows > LARGE_NROWS:
-                self.rows_loaded = self.ROWS_TO_LOAD
+                self.rows_loaded = ROWS_TO_LOAD
             else:
                 self.rows_loaded = self.total_rows
 
