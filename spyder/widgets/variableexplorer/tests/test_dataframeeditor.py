@@ -47,32 +47,28 @@ def test_dataframemodel_basic():
     dfm = DataFrameModel(df)
     assert dfm.rowCount() == 2
     assert dfm.columnCount() == 3
-    assert data(dfm, 0, 0) == '0'
-    assert data(dfm, 0, 1) == '1'
-    assert data(dfm, 0, 2) == 'c'
-    assert data(dfm, 1, 0) == '1'
-    assert data(dfm, 1, 1) == '3'
-    assert data(dfm, 1, 2) == 'a'
+    assert data(dfm, 0, 0) == '1'
+    assert data(dfm, 0, 1) == 'c'
+    assert data(dfm, 1, 0) == '3'
+    assert data(dfm, 1, 1) == 'a'
 
 def test_dataframemodel_sort():
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
-    dfm.sort(2)
-    assert data(dfm, 0, 0) == '1'
-    assert data(dfm, 0, 1) == '3'
-    assert data(dfm, 0, 2) == 'a'
-    assert data(dfm, 1, 0) == '0'
-    assert data(dfm, 1, 1) == '1'
-    assert data(dfm, 1, 2) == 'c'
+    dfm.sort(1)
+    assert data(dfm, 0, 0) == '3'
+    assert data(dfm, 1, 0) == '1'
+    assert data(dfm, 0, 1) == 'a'
+    assert data(dfm, 1, 1) == 'c'
 
 def test_dataframemodel_sort_is_stable():   # cf. issue 3010
     df = DataFrame([[2,14], [2,13], [2,16], [1,3], [2,9], [1,15], [1,17],
                     [2,2], [2,10], [1,6], [2,5], [2,8], [1,11], [1,1],
                     [1,12], [1,4], [2,7]])
     dfm = DataFrameModel(df)
-    dfm.sort(2)
     dfm.sort(1)
-    col2 = [data(dfm, i, 2) for i in range(len(df))]
+    dfm.sort(0)
+    col2 = [data(dfm, i, 1) for i in range(len(df))]
     assert col2 == [str(x) for x in [1, 3, 4, 6, 11, 12, 15, 17,
                                      2, 5, 7, 8, 9, 10, 13, 14, 16]]
 
@@ -106,12 +102,12 @@ def test_dataframemodel_get_bgcolor_with_numbers():
     s = dataframeeditor.BACKGROUND_NUMBER_SATURATION
     v = dataframeeditor.BACKGROUND_NUMBER_VALUE
     a = dataframeeditor.BACKGROUND_NUMBER_ALPHA
+    assert colorclose(bgcolor(dfm, 0, 0), (h0 + dh,         s, v, a))
+    assert colorclose(bgcolor(dfm, 1, 0), (h0 + 1 / 2 * dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 2, 0), (h0,              s, v, a))
     assert colorclose(bgcolor(dfm, 0, 1), (h0 + dh,         s, v, a))
-    assert colorclose(bgcolor(dfm, 1, 1), (h0 + 1 / 2 * dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 1, 1), (h0 + 2 / 3 * dh, s, v, a))
     assert colorclose(bgcolor(dfm, 2, 1), (h0,              s, v, a))
-    assert colorclose(bgcolor(dfm, 0, 2), (h0 + dh,         s, v, a))
-    assert colorclose(bgcolor(dfm, 1, 2), (h0 + 2 / 3 * dh, s, v, a))
-    assert colorclose(bgcolor(dfm, 2, 2), (h0,              s, v, a))
 
 def test_dataframemodel_get_bgcolor_with_numbers_using_global_max():
     df = DataFrame([[0, 10], [1, 20], [2, 40]])
@@ -122,33 +118,26 @@ def test_dataframemodel_get_bgcolor_with_numbers_using_global_max():
     s = dataframeeditor.BACKGROUND_NUMBER_SATURATION
     v = dataframeeditor.BACKGROUND_NUMBER_VALUE
     a = dataframeeditor.BACKGROUND_NUMBER_ALPHA
-    assert colorclose(bgcolor(dfm, 0, 1), (h0 + dh,           s, v, a))
-    assert colorclose(bgcolor(dfm, 1, 1), (h0 + 39 / 40 * dh, s, v, a))
-    assert colorclose(bgcolor(dfm, 2, 1), (h0 + 38 / 40 * dh, s, v, a))
-    assert colorclose(bgcolor(dfm, 0, 2), (h0 + 30 / 40 * dh, s, v, a))
-    assert colorclose(bgcolor(dfm, 1, 2), (h0 + 20 / 40 * dh, s, v, a))
-    assert colorclose(bgcolor(dfm, 2, 2), (h0,                s, v, a))
-
-def test_dataframemodel_get_bgcolor_for_index():
-    df = DataFrame([[0]])
-    dfm = DataFrameModel(df)
-    h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
-    a = dataframeeditor.BACKGROUND_INDEX_ALPHA
-    assert colorclose(bgcolor(dfm, 0, 0), (h, s, v, a))
+    assert colorclose(bgcolor(dfm, 0, 0), (h0 + dh,           s, v, a))
+    assert colorclose(bgcolor(dfm, 1, 0), (h0 + 39 / 40 * dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 2, 0), (h0 + 38 / 40 * dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 0, 1), (h0 + 30 / 40 * dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 1, 1), (h0 + 20 / 40 * dh, s, v, a))
+    assert colorclose(bgcolor(dfm, 2, 1), (h0,                s, v, a))
 
 def test_dataframemodel_get_bgcolor_with_string():
     df = DataFrame([['xxx']])
     dfm = DataFrameModel(df)
     h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
     a = dataframeeditor.BACKGROUND_STRING_ALPHA
-    assert colorclose(bgcolor(dfm, 0, 1), (h, s, v, a))
+    assert colorclose(bgcolor(dfm, 0, 0), (h, s, v, a))
 
 def test_dataframemodel_get_bgcolor_with_object():
     df = DataFrame([[None]])
     dfm = DataFrameModel(df)
     h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
     a = dataframeeditor.BACKGROUND_MISC_ALPHA
-    assert colorclose(bgcolor(dfm, 0, 1), (h, s, v, a))
+    assert colorclose(bgcolor(dfm, 0, 0), (h, s, v, a))
 
 def test_change_format_emits_signal(qtbot, monkeypatch):
     mockQInputDialog = Mock()
