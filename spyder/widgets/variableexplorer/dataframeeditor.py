@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
                             QMenu, QMessageBox, QPushButton, QTableView,
                             QHeaderView, QScrollBar, QTableWidget, QFrame,
-                            QItemDelegate, QWidget)
+                            QItemDelegate)
 import numpy as np
 
 # Local imports
@@ -63,8 +63,9 @@ BACKGROUND_MISC_ALPHA = 0.3
 
 def bool_false_check(value):
     """
-    Used to convert bool intrance to false since any string in bool('')
-    will return True
+    Used to convert bool intrance to false.
+
+    Needed since any string in bool('') will return True
     """
     if value.lower() in _bool_false:
         value = ''
@@ -72,7 +73,7 @@ def bool_false_check(value):
 
 
 def global_max(col_vals, index):
-    """Returns the global maximum and minimum"""
+    """Returns the global maximum and minimum."""
     col_vals_without_None = [x for x in col_vals if x is not None]
     max_col, min_col = zip(*col_vals_without_None)
     return max(max_col), min(min_col)
@@ -126,11 +127,11 @@ class DataFrameModel(QAbstractTableModel):
     def max_min_col_update(self):
         """
         Determines the maximum and minimum number in each column.
-        
+
         The result is a list whose k-th entry is [vmax, vmin], where vmax and
         vmin denote the maximum and minimum of the k-th column (ignoring NaN). 
         This list is stored in self.max_min_col.
-        
+
         If the k-th column has a non-numerical dtype, then the k-th entry
         is set to None. If the dtype is complex, then compute the maximum and
         minimum of the absolute values. If vmax equals vmin, then vmin is 
@@ -459,13 +460,14 @@ class DataFrameView(QTableView):
                         lambda val: self.load_more_data(val, rows=True))
 
     def load_more_data(self, value, rows=False, columns=False):
+        """Load more rows and columns to display."""
         if rows and value == self.verticalScrollBar().maximum():
             self.model().fetch_more(rows=rows)
         if columns and value == self.horizontalScrollBar().maximum():
             self.model().fetch_more(columns=columns)
 
     def sortByColumn(self, index):
-        """ Implement a Column sort """
+        """Implement a Column sort."""
         if self.sort_old == [None]:
             self.header_class.setSortIndicatorShown(True)
         sort_order = self.header_class.sortIndicatorOrder()
@@ -480,12 +482,12 @@ class DataFrameView(QTableView):
         self.sort_old = [index, self.header_class.sortIndicatorOrder()]
 
     def contextMenuEvent(self, event):
-        """Reimplement Qt method"""
+        """Reimplement Qt method."""
         self.menu.popup(event.globalPos())
         event.accept()
 
     def setup_menu(self):
-        """Setup context menu"""
+        """Setup context menu."""
         copy_action = create_action(self, _('Copy'),
                                     shortcut=keybinding('Copy'),
                                     icon=ima.icon('editcopy'),
@@ -509,7 +511,7 @@ class DataFrameView(QTableView):
         return menu
 
     def change_type(self, func):
-        """A function that changes types of cells"""
+        """A function that changes types of cells."""
         model = self.model()
         index_list = self.selectedIndexes()
         [model.setData(i, '', change_type=func) for i in index_list]
