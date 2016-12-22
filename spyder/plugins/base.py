@@ -77,16 +77,18 @@ class BasePluginWidget(QWidget):
 ##         # or non-Windows platforms (lot of warnings are printed out)
 ##         # (so in those cases, we use the default window flags: Qt.Widget):
 ##         flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
-        dock = SpyderDockWidget(self.get_plugin_title(), self.main)#, flags)
+        dock = SpyderDockWidget(title=self.get_plugin_title(),
+                                parent=self.main)#, flags)
 
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(self.ALLOWED_AREAS)
         dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
-        self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
         dock.plugin_closed.connect(self.plugin_closed)
+        self.update_margins()
         self.dockwidget = dock
+
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
@@ -107,6 +109,7 @@ class BasePluginWidget(QWidget):
             self.dockwidget.show()
         if not self.toggle_view_action.isChecked():
             self.toggle_view_action.setChecked(True)
+        self.dockwidget.setup()
         self.visibility_changed(True)
 
     def plugin_closed(self):
@@ -169,3 +172,4 @@ class BasePluginWidget(QWidget):
             self.dockwidget.raise_()
         else:
             self.dockwidget.hide()
+        self.dockwidget.setup()

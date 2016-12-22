@@ -250,7 +250,7 @@ def get_icon(name, default=None, resample=False):
         return icon
 
 
-def icon(name, resample=False, icon_path=None):
+def icon(name, resample=False, icon_path=None, options={}):
     theme = CONF.get('main', 'icon_theme')
     if theme == 'spyder 3':
         if not _resource['loaded']:
@@ -258,6 +258,7 @@ def icon(name, resample=False, icon_path=None):
                           directory=_resource['directory'])
             _resource['loaded'] = True
         args, kwargs = _qtaargs[name]
+        kwargs.update(options)
         return qta.icon(*args, **kwargs)
     elif theme == 'spyder 2':
         icon = get_icon(name + '.png', resample=resample)
