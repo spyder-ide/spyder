@@ -1977,7 +1977,6 @@ class CodeEditor(TextEditBaseWidget):
                  (prevtext.strip().startswith("return") and
                   len(re.split(r'\(|\{|\[', prevtext)) ==
                   len(re.split(r'\)|\}|\]', prevtext)))):
-                print(prevtext)
                 # Unindent
                 if self.indent_chars == '\t':
                     correct_indent -= self.tab_stop_width_spaces
