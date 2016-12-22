@@ -48,6 +48,8 @@ _bool_false = ['false', '0']
 LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
 LARGE_COLS = 60
+ROWS_TO_LOAD = 500
+COLS_TO_LOAD = 40
 
 # Background colours
 BACKGROUND_NUMBER_MINHUE = 0.66 # hue for largest number
@@ -80,11 +82,18 @@ def global_max(col_vals, index):
 
 
 class DataFrameModel(QAbstractTableModel):
-    """ DataFrame Table Model"""
+    """ DataFrame Table Model.
+
+    Partly based in ExtDataModel and ExtFrameModel classes
+    of the gtabview project.
+
+    For more information please see:
+    https://github.com/wavexx/gtabview/blob/master/gtabview/models.py
+    """
     
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
-    
+
     def __init__(self, dataFrame, format="%.3g", parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
@@ -123,6 +132,39 @@ class DataFrameModel(QAbstractTableModel):
                 self.cols_loaded = self.COLS_TO_LOAD
             else:
                 self.cols_loaded = self.total_cols
+
+    def _axis(self, axis):
+        return self.df.columns if axis == 0 else self.df.index
+
+    def _axis_levels(self, axis):
+        ax = self._axis(axis)
+        return 1 if not hasattr(ax, 'levels') \
+            else len(ax.levels)
+
+    @property
+    def shape(self):
+        return self.df.shape
+
+    @property
+    def header_shape(self):
+        return (self._axis_levels(0), self._axis_levels(1))
+
+    @property
+    def chunk_size(self):
+        return max(*self.shape())
+
+    def header(self, axis, x, level=0):
+        ax = self._axis(axis)
+        return ax.values[x] if not hasattr(ax, 'levels') \
+            else ax.values[x][level]
+
+    def name(self, axis, level):
+        ax = self._axis(axis)
+        if hasattr(ax, 'levels'):
+            return ax.names[level]
+        if ax.name:
+            return ax.name
+        return 'L' + to_text_string(level)
 
     def max_min_col_update(self):
         """
@@ -179,31 +221,6 @@ class DataFrameModel(QAbstractTableModel):
         else:
             self.return_max = global_max
         self.reset()
-
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        """Set header data"""
-        if role != Qt.DisplayRole:
-            return to_qvariant()
-
-        if orientation == Qt.Horizontal:
-            if section == 0:
-                return 'Index'
-            elif section == 1 and PY2:
-                # Get rid of possible BOM utf-8 data present at the
-                # beginning of a file, which gets attached to the first
-                # column header when headers are present in the first
-                # row.
-                # Fixes Issue 2514
-                try:
-                    header = to_text_string(self.df_header[0],
-                                            encoding='utf-8-sig')
-                except:
-                    header = to_text_string(self.df_header[0])
-                return to_qvariant(header)
-            else:
-                return to_qvariant(to_text_string(self.df_header[section-1]))
-        else:
-            return to_qvariant()
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
@@ -389,9 +406,9 @@ class DataFrameModel(QAbstractTableModel):
         if len(self.df.shape) == 1:
             return 2
         elif self.total_cols <= self.cols_loaded:
-            return self.total_cols + 1
+            return self.total_cols
         else:
-            return self.cols_loaded + 1
+            return self.cols_loaded
 
     def reset(self):
         self.beginResetModel()
@@ -441,10 +458,13 @@ class FrozenTableView(QTableView):
 class DataFrameView(QTableView):
     """Data Frame view class"""
     sig_sortByColumn = Signal()
-    def __init__(self, parent, model, header):
+    sig_fetch_more_columns = Signal()
+    sig_fetch_more_rows = Signal()
+    def __init__(self, parent, model, header, hscroll, vscroll):
         QTableView.__init__(self, parent)
         self.setModel(model)
-
+        self.setHorizontalScrollBar(hscroll)
+        self.setVerticalScrollBar(vscroll)
         self.setHorizontalScrollMode(1)
         self.setVerticalScrollMode(1)
 
@@ -461,10 +481,13 @@ class DataFrameView(QTableView):
 
     def load_more_data(self, value, rows=False, columns=False):
         """Load more rows and columns to display."""
+        print('load more')
         if rows and value == self.verticalScrollBar().maximum():
             self.model().fetch_more(rows=rows)
+            self.sig_fetch_more_rows.emit()
         if columns and value == self.horizontalScrollBar().maximum():
             self.model().fetch_more(columns=columns)
+            self.sig_fetch_more_columns.emit()
 
     def sortByColumn(self, index):
         """Implement a Column sort."""
@@ -524,76 +547,18 @@ class DataFrameView(QTableView):
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
         index = header = False
-        if col_min == 0:
-            col_min = 1
-            index = True
         df = self.model().df
-        if col_max == 0:  # To copy indices
-            contents = '\n'.join(map(str, df.index.tolist()[slice(row_min,
-                                                            row_max+1)]))
-        else:  # To copy DataFrame
-            if (col_min == 0 or col_min == 1) and (df.shape[1] == col_max):
-                header = True
-            obj = df.iloc[slice(row_min, row_max+1), slice(col_min-1, col_max)]
-            output = io.StringIO()
-            obj.to_csv(output, sep='\t', index=index, header=header)
-            if not PY2:
-                contents = output.getvalue()
-            else:
-                contents = output.getvalue().decode('utf-8')
-            output.close()
+        obj = df.iloc[slice(row_min, row_max+1), slice(col_min, col_max+1)]
+        output = io.StringIO()
+        print(output)
+        obj.to_csv(output, sep='\t', index=index, header=header)
+        if not PY2:
+            contents = output.getvalue()
+        else:
+            contents = output.getvalue().decode('utf-8')
+        output.close()
         clipboard = QApplication.clipboard()
         clipboard.setText(contents)
-
-
-class ExtDataFrameModel(object):
-    """
-    DataFrameModel for the header and level classes.
-
-    Based in ExtDataModel and ExtFrameModel classes of the gtabview project.
-    For more information please see:
-    https://github.com/wavexx/gtabview/blob/master/gtabview/models.py
-    """
-    def __init__(self, data):
-        super(ExtDataFrameModel, self).__init__()
-        self._data = data
-
-    def _axis(self, axis):
-        return self._data.columns if axis == 0 else self._data.index
-
-    def _axis_levels(self, axis):
-        ax = self._axis(axis)
-        return 1 if not hasattr(ax, 'levels') \
-            else len(ax.levels)
-
-    @property
-    def shape(self):
-        return self._data.shape
-
-    @property
-    def header_shape(self):
-        return (self._axis_levels(0), self._axis_levels(1))
-
-    @property
-    def chunk_size(self):
-        return max(*self.shape())
-
-    def data(self, y, x):
-        return self._data.iat[y, x]
-
-    def header(self, axis, x, level=0):
-        ax = self._axis(axis)
-        return ax.values[x] if not hasattr(ax, 'levels') \
-            else ax.values[x][level]
-
-    def name(self, axis, level):
-        ax = self._axis(axis)
-        if hasattr(ax, 'levels'):
-            return ax.names[level]
-        if ax.name:
-            return ax.name
-        return 'L' + to_text_string(level)
-
 
 class DataFrameHeader(QAbstractTableModel):
     """
@@ -609,15 +574,69 @@ class DataFrameHeader(QAbstractTableModel):
         self.axis = axis
         self._palette = palette
         if self.axis == 0:
+            self.total_cols = self.model.shape[1]
             self._shape = (self.model.header_shape[0], self.model.shape[1])
+            if self.total_cols > LARGE_COLS:
+                self.cols_loaded = COLS_TO_LOAD
+            else:
+                self.cols_loaded = self.total_cols
         else:
+            self.total_rows = self.model.shape[0]
             self._shape = (self.model.shape[0], self.model.header_shape[1])
+            if self.total_rows > LARGE_NROWS:
+                self.rows_loaded = self.ROWS_TO_LOAD
+            else:
+                self.rows_loaded = self.total_rows
 
     def rowCount(self, index=None):
-        return max(1, self._shape[0])
+        if self.axis == 0:
+            return max(1, self._shape[0])
+        else:
+            if self.total_rows <= self.rows_loaded:
+                return self.total_rows
+            else:
+                return self.rows_loaded
 
-    def columnCount(self, index=None):
-        return max(1, self._shape[1])
+    def columnCount(self, index=QModelIndex()):
+        """DataFrame column number"""
+        # This is done to implement series
+        if self.axis == 0:
+            if len(self.model.shape) == 1:
+                return 2
+            elif self.total_cols <= self.cols_loaded:
+                return self.total_cols
+            else:
+                return self.cols_loaded
+        else:
+            return max(1, self._shape[1])
+
+    def can_fetch_more(self):
+        if self.axis == 1:
+            if self.total_rows > self.rows_loaded:
+                return True
+            else:
+                return False
+        if self.axis == 0:
+            if self.total_cols > self.cols_loaded:
+                return True
+            else:
+                return False
+
+    def fetch_more(self, rows=False, columns=False):
+        if self.can_fetch_more() and self.axis == 1:
+            reminder = self.total_rows - self.rows_loaded
+            items_to_fetch = min(reminder, ROWS_TO_LOAD)
+            self.beginInsertRows(QModelIndex(), self.rows_loaded,
+                                 self.rows_loaded + items_to_fetch - 1)
+            self.rows_loaded += items_to_fetch
+            self.endInsertRows()
+        if self.can_fetch_more() and self.axis == 0:
+            reminder = self.total_cols - self.cols_loaded
+            items_to_fetch = min(reminder, COLS_TO_LOAD)
+            self.beginInsertColumns(QModelIndex(), self.cols_loaded,
+                                    self.cols_loaded + items_to_fetch - 1)
+            self.cols_loaded += items_to_fetch
+            self.endInsertColumns()
 
     def headerData(self, section, orientation, role):
         if role == Qt.TextAlignmentRole:
@@ -796,21 +815,21 @@ class DataFrameEditor(QDialog):
 
         self.dataModel = DataFrameModel(data, parent=self)
         self.dataTable = DataFrameView(self, self.dataModel,
-                                       self.table_header.horizontalHeader())
+                                       self.table_header.horizontalHeader(),
+                                       self.hscroll, self.vscroll)
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
         self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.dataTable.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.dataTable.setHorizontalScrollMode(QTableView.ScrollPerPixel)
         self.dataTable.setVerticalScrollMode(QTableView.ScrollPerPixel)
-        self.dataTable.setHorizontalScrollBar(self.hscroll)
-        self.dataTable.setVerticalScrollBar(self.vscroll)
         self.dataTable.setFrameStyle(QFrame.Plain)
         self.dataTable.setItemDelegate(QItemDelegate())
-        self.dataTable.setColumnHidden(len(data.columns), True);
         self.layout.addWidget(self.dataTable, 1, 1)
         self.setFocusProxy(self.dataTable)
-        self.dataTable.sig_sortByColumn.connect(self.sort_update)
+        self.dataTable.sig_sortByColumn.connect(self._sort_update)
+        self.dataTable.sig_fetch_more_columns.connect(self._fetch_more_columns)
+        self.dataTable.sig_fetch_more_rows.connect(self._fetch_more_rows)
 
         self.layout.addWidget(self.hscroll, 2, 0, 2, 2)
         self.layout.addWidget(self.vscroll, 0, 2, 2, 2)
@@ -859,8 +878,7 @@ class DataFrameEditor(QDialog):
         btn_layout.addWidget(bbox)
         btn_layout.setContentsMargins(4, 4, 4, 4)
         self.layout.addLayout(btn_layout, 4, 0, 2, 2)
-        model = ExtDataFrameModel(data)
-        self.setModel(model)
+        self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
         return True
@@ -1065,7 +1083,7 @@ class DataFrameEditor(QDialog):
         else:
             return df
 
-    def update_header_size(self):
+    def _update_header_size(self):
         """Update the column width of the header."""
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
@@ -1075,20 +1093,28 @@ class DataFrameEditor(QDialog):
             else:
                 break
 
-    def sort_update(self):
+    def _sort_update(self):
         """
         Update the model for all the QTableView objects.
 
         Uses the model of the dataTable as the base.
         """
-        self.setModel(ExtDataFrameModel(self.dataTable.model().df))
+        self.setModel(self.dataTable.model())
+
+    def _fetch_more_columns(self):
+        """Fetch more data for the header (columns)."""
+        self.table_header.model().fetch_more()
+
+    def _fetch_more_rows(self):
+        """Fetch more data for the index (rows)."""
+        self.table_index.model().fetch_more()
 
     def resize_to_contents(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.dataTable.resizeColumnsToContents()
         self.dataModel.fetch_more(columns=True)
         self.dataTable.resizeColumnsToContents()
-        self.update_header_size()
+        self._update_header_size()
         QApplication.restoreOverrideCursor()
 
 
