@@ -527,14 +527,15 @@ class DataFrameView(QTableView):
             # QAction.triggered works differently for PySide and PyQt
             if not API == 'pyside':
                 types_in_menu += [create_action(self, name,
-                                            triggered=lambda _checked,
-                                            func=func: self.change_type(func),
-                                            context=Qt.WidgetShortcut)]
+                                                triggered=lambda _checked,
+                                                func=func:
+                                                    self.change_type(func),
+                                                    context=Qt.WidgetShortcut)]
             else:
                 types_in_menu += [create_action(self, name,
-                                            triggered=lambda func=func:
-                                                self.change_type(func),
-                                            context=Qt.WidgetShortcut)]
+                                                triggered=lambda func=func:
+                                                    self.change_type(func),
+                                                    context=Qt.WidgetShortcut)]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)
         return menu

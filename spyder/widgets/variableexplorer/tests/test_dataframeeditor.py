@@ -53,6 +53,7 @@ def test_dataframemodel_basic():
     assert data(dfm, 1, 1) == 'a'
 
 def test_dataframemodel_sort():
+    """Validate the data in the model."""
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
     dfm.sort(1)
@@ -62,6 +63,7 @@ def test_dataframemodel_sort():
     assert data(dfm, 1, 1) == 'c'
 
 def test_dataframemodel_sort_is_stable():   # cf. issue 3010
+    """Validate the sort function."""
     df = DataFrame([[2,14], [2,13], [2,16], [1,3], [2,9], [1,15], [1,17],
                     [2,2], [2,10], [1,6], [2,5], [2,8], [1,11], [1,1],
                     [1,12], [1,4], [2,7]])
@@ -126,6 +128,7 @@ def test_dataframemodel_get_bgcolor_with_numbers_using_global_max():
     assert colorclose(bgcolor(dfm, 2, 1), (h0,                s, v, a))
 
 def test_dataframemodel_get_bgcolor_with_string():
+    """Validate the color of the cell when a string is the data."""
     df = DataFrame([['xxx']])
     dfm = DataFrameModel(df)
     h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
