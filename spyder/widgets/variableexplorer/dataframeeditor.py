@@ -251,7 +251,7 @@ class DataFrameModel(QAbstractTableModel):
         return color
 
     def get_value(self, row, column):
-        """Returns the value of the DataFrame"""
+        """Return the value of the DataFrame."""
         # To increase the performance iat is used but that requires error
         # handling, so fallback uses iloc
         try:
@@ -463,6 +463,7 @@ class DataFrameView(QTableView):
     sig_fetch_more_rows = Signal()
 
     def __init__(self, parent, model, header, hscroll, vscroll):
+        """Constructor."""
         QTableView.__init__(self, parent)
         self.setModel(model)
         self.setHorizontalScrollBar(hscroll)
@@ -525,11 +526,14 @@ class DataFrameView(QTableView):
         for name, func in functions:
             # QAction.triggered works differently for PySide and PyQt
             if not API == 'pyside':
-                slot = lambda _checked, func=func: self.change_type(func)
+                types_in_menu += [create_action(self, name,
+                                            triggered=lambda _checked,
+                                            func=func: self.change_type(func),
+                                            context=Qt.WidgetShortcut)]
             else:
-                slot = lambda func=func: self.change_type(func)
-            types_in_menu += [create_action(self, name,
-                                            triggered=slot,
+                types_in_menu += [create_action(self, name,
+                                            triggered=lambda func=func:
+                                                self.change_type(func),
                                             context=Qt.WidgetShortcut)]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)
