@@ -484,7 +484,6 @@ class DataFrameView(QTableView):
 
     def load_more_data(self, value, rows=False, columns=False):
         """Load more rows and columns to display."""
-        print('load more')
         if rows and value == self.verticalScrollBar().maximum():
             self.model().fetch_more(rows=rows)
             self.sig_fetch_more_rows.emit()
@@ -558,7 +557,6 @@ class DataFrameView(QTableView):
         obj = df.iloc[slice(row_min, row_max + 1),
                       slice(col_min, col_max + 1)]
         output = io.StringIO()
-        print(output)
         obj.to_csv(output, sep='\t', index=index, header=header)
         if not PY2:
             contents = output.getvalue()
@@ -577,6 +575,7 @@ class DataFrameHeader(QAbstractTableModel):
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
+    COLUMN_INDEX = -1 # Makes reference to the index of the table.
 
     def __init__(self, model, axis, palette):
         super(DataFrameHeader, self).__init__()
@@ -647,6 +646,12 @@ class DataFrameHeader(QAbstractTableModel):
                                     self.cols_loaded + items_to_fetch - 1)
             self.cols_loaded += items_to_fetch
             self.endInsertColumns()
+
+    def sort(self, column, order=Qt.AscendingOrder):
+        """Overriding sort method."""
+        ascending = order == Qt.AscendingOrder
+        self.model.sort(self.COLUMN_INDEX, order=ascending)
+        return True
 
     def headerData(self, section, orientation, role):
         if role == Qt.TextAlignmentRole:
@@ -796,7 +801,8 @@ class DataFrameEditor(QDialog):
         self.table_level.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_level, 0, 0)
         self.table_level.setContentsMargins(0, 0, 0, 0)
-
+        self.table_level.horizontalHeader().sectionClicked.connect(
+                                                            self.sortByIndex)
         self.table_header = QTableView()
         self.table_header.verticalHeader().hide()
         self.table_header.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -893,6 +899,13 @@ class DataFrameEditor(QDialog):
 
         return True
 
+    def sortByIndex(self, index):
+        """Implement a Index sort."""
+        self.table_level.horizontalHeader().setSortIndicatorShown(True)
+        sort_order = self.table_level.horizontalHeader().sortIndicatorOrder()
+        self.table_index.model().sort(index, sort_order)
+        self._sort_update()
+
     def model(self):
         return self._model
 
@@ -962,7 +975,7 @@ class DataFrameEditor(QDialog):
         self._reset_model(self.table_index, DataFrameHeader(model,
                                                             1,
                                                             self.palette()))
-        # needs to be called after setting all table models
+        # Needs to be called after setting all table models
         if relayout: self._update_layout()
 
     def setCurrentIndex(self, y, x):
@@ -1031,7 +1044,7 @@ class DataFrameEditor(QDialog):
                                              col, max_col_ms)
             col += 1
             if resized:
-                # as we resize columns, the boundary will change
+                # As we resize columns, the boundary will change
                 index_column = self.dataTable.rect().bottomRight().x()
                 end = self.dataTable.columnAt(index_column)
                 end = width if end == -1 else end + 1
