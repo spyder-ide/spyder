@@ -1265,7 +1265,7 @@ class CodeEditor(TextEditBaseWidget):
         self.panels.resize()
 
     def showEvent(self, event):
-        """ Overrides showEvent to update the viewport margins """
+        """Overrides showEvent to update the viewport margins."""
         super(CodeEditor, self).showEvent(event)
         self.panels.refresh()
 

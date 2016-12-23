@@ -33,13 +33,9 @@ class Manager(object):
 
     @property
     def editor(self):
-        """
-        Return a reference to the parent CodeEditor widget.
-        """
+        """Return a reference to the parent CodeEditor widget."""
         return self._editor()
 
     def __init__(self, editor):
-        """
-        :param editor: CodeEditor instance to control
-        """
+        """:param editor: CodeEditor instance to control."""
         self._editor = weakref.ref(editor)

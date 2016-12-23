@@ -31,16 +31,14 @@ class Panel(QWidget, Mode):
         visibility of the panel.
     """
     class Position(object):
-        """
-        Enumerates the possible panel positions
-        """
-        #: Top margin
+        """Enumerates the possible panel positions"""
+        # Top margin
         TOP = 0
-        #: Left margin
+        # Left margin
         LEFT = 1
-        #: Right margin
+        # Right margin
         RIGHT = 2
-        #: Bottom margin
+        # Bottom margin
         BOTTOM = 3
 
         @classmethod
@@ -51,9 +49,10 @@ class Panel(QWidget, Mode):
     @property
     def scrollable(self):
         """
-        A scrollable panel will follow the editor's scroll-bars. Left and right
-        panels follow the vertical scrollbar. Top and bottom panels follow the
-        horizontal scrollbar.
+        A scrollable panel will follow the editor's scroll-bars.
+
+        Left and right panels follow the vertical scrollbar. Top and bottom
+        panels follow the horizontal scrollbar.
 
         :type: bool
         """
@@ -66,19 +65,18 @@ class Panel(QWidget, Mode):
     def __init__(self, dynamic=False):
         Mode.__init__(self)
         QWidget.__init__(self)
-        #: Specifies whether the panel is dynamic. A dynamic panel is a panel
-        #: that will be shown/hidden depending on the context.
-        #: Dynamic panel should not appear in any GUI menu (e.g. no display
-        #: in the panels menu of the notepad example).
+        # Specifies whether the panel is dynamic. A dynamic panel is a panel
+        # that will be shown/hidden depending on the context.
+        # Dynamic panel should not appear in any GUI menu
         self.dynamic = dynamic
-        #: Panel order into the zone it is installed to. This value is
-        #: automatically set when installing the panel but it can be changed
-        #: later (negative values can also be used).
+        # Panel order into the zone it is installed to. This value is
+        # automatically set when installing the panel but it can be changed
+        # later (negative values can also be used).
         self.order_in_zone = -1
         self._scrollable = False
         self._background_brush = None
         self._foreground_pen = None
-        #: Position in the editor (top, left, right, bottom)
+        # Position in the editor (top, left, right, bottom)
         self.position = -1
 
     def on_install(self, editor):
@@ -103,7 +101,7 @@ class Panel(QWidget, Mode):
             self.palette().windowText().color()))
 
     def paintEvent(self, event):
-        # Fills the panel background using QPalette
+        """Fills the panel background using QPalette."""
         if self.isVisible():
             # fill background
             self._background_brush = QBrush(QColor(
@@ -115,7 +113,7 @@ class Panel(QWidget, Mode):
 
     def setVisible(self, visible):
         """
-        Shows/Hides the panel
+        Shows/Hides the panel.
 
         Automatically call PanelsManager.refresh_panels.
 

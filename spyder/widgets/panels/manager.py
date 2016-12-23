@@ -23,8 +23,8 @@ def _logger():
 
 class PanelsManager(Manager):
     """
-    Manages the list of panels and draws them inside the margin of the
-    CodeEditor widget.
+    Manage the list of panels and draw them inside the margins of
+    CodeEditor widgets.
     """
     def __init__(self, editor):
         super(PanelsManager, self).__init__(editor)
@@ -113,15 +113,11 @@ class PanelsManager(Manager):
         raise KeyError(name_or_klass)
 
     def keys(self):
-        """
-        Returns the list of installed panel names.
-        """
+        """Returns the list of installed panel names."""
         return self._modes.keys()
 
     def values(self):
-        """
-        Returns the list of installed panels.
-        """
+        """Returns the list of installed panels."""
         return self._modes.values()
 
     def __iter__(self):
@@ -149,14 +145,14 @@ class PanelsManager(Manager):
         return list(self._panels[zone].values())
 
     def refresh(self):
-        """ Refreshes the editor panels (resize and update margins) """
+        """Refreshes the editor panels (resize and update margins)."""
         _logger().log(5, 'refresh_panels')
         self.resize()
         self._update(self.editor.contentsRect(), 0,
                      force_update_margins=True)
 
     def resize(self):
-        """ Resizes panels """
+        """Resizes panels."""
         crect = self.editor.contentsRect()
         view_crect = self.editor.viewport().contentsRect()
         s_bottom, s_left, s_right, s_top = self._compute_zones_sizes()
@@ -217,7 +213,7 @@ class PanelsManager(Manager):
             bottom += size_hint.height()
 
     def _update(self, rect, delta_y, force_update_margins=False):
-        """ Updates panels """
+        """Updates panels."""
         if not self:
             return
         for zones_id, zone in self._panels.items():
@@ -238,7 +234,7 @@ class PanelsManager(Manager):
             self._update_viewport_margins()
 
     def _update_viewport_margins(self):
-        """ Update viewport margins """
+        """Update viewport margins."""
         top = 0
         left = 0
         right = 0
@@ -274,7 +270,7 @@ class PanelsManager(Manager):
         return self._margin_sizes[position]
 
     def _compute_zones_sizes(self):
-        """ Compute panel zone sizes """
+        """Compute panel zone sizes."""
         # Left panels
         left = 0
         for panel in self.panels_for_zone(Panel.Position.LEFT):

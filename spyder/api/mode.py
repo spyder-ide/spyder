@@ -18,8 +18,10 @@ def _logger():
 
 class Mode(object):
     """
-    Base class for editor extensions. An extension is a "thing" that can be
-    installed on an editor to add new behaviours or to modify its appearance.
+    Base class for editor extensions.
+
+    An extension is a "thing" that can be installed on an editor to add new
+    behaviours or to modify its appearance.
 
     At the current states Modes can't be added to an Editor but this class
     is needed because Panels can be added to an editor.
@@ -55,7 +57,8 @@ class Mode(object):
     @property
     def enabled(self):
         """
-        Tells if the mode is enabled,
+        Tells if the mode is enabled.
+
         :meth:`spyder.api.Mode.on_state_changed` will be called as soon
         as the mode state changed.
 
@@ -70,10 +73,12 @@ class Mode(object):
             self.on_state_changed(enabled)
 
     def __init__(self):
-        #: Mode name/identifier. :class:`spyder.widgets.sourcecode.CodeEditor`
-        # uses that as the attribute key when you install a mode.
+        """
+        Mode name/identifier. :class:`spyder.widgets.sourcecode.CodeEditor`
+        uses that as the attribute key when you install a mode.
+        """
         self.name = self.__class__.__name__
-        #: Mode description
+        # Mode description
         self.description = self.__doc__
         self._enabled = False
         self._editor = None
@@ -98,9 +103,7 @@ class Mode(object):
         self.enabled = True
 
     def on_uninstall(self):
-        """
-        Uninstalls the mode from the editor.
-        """
+        """Uninstalls the mode from the editor."""
         self._on_close = True
         self.enabled = False
         self._editor = None
