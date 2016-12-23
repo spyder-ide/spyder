@@ -848,7 +848,6 @@ class DataFrameEditor(QDialog):
          # autosize columns on-demand
         self._autosized_cols = set()
         self._max_autosize_ms = None
-        self.hscroll.sliderMoved.connect(self._resizeVisibleColumnsToContents)
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
