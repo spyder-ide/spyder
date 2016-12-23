@@ -577,6 +577,7 @@ class DataFrameHeader(QAbstractTableModel):
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
+
     def __init__(self, model, axis, palette):
         super(DataFrameHeader, self).__init__()
         self.model = model
@@ -683,6 +684,7 @@ class DataFrameLevel(QAbstractTableModel):
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
+
     def __init__(self, model, palette, font):
         super(DataFrameLevel, self).__init__()
         self.model = model
