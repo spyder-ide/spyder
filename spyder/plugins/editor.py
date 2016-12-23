@@ -614,13 +614,7 @@ class Editor(SpyderPluginWidget):
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_outline_action, context="Editor",
                                name="Show/hide outline")
-        self.toggle_project_action = create_action(self,
-                                _("Show/hide project explorer"),
-                                triggered=self.show_hide_projects,
-                                context=Qt.WidgetWithChildrenShortcut)
-        self.register_shortcut(self.toggle_project_action, context="Editor",
-                               name="Show/hide project explorer")
-        self.addActions([self.toggle_outline_action, self.toggle_project_action])
+        self.addActions([self.toggle_outline_action])
         
         # ---- File menu and toolbar ----
         self.new_action = create_action(self, _("&New file..."),

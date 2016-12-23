@@ -427,7 +427,6 @@ DEFAULTS = [
               'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
-              'editor/show/hide project explorer': "Ctrl+Alt+J",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
