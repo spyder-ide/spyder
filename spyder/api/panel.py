@@ -9,16 +9,11 @@
 This module contains the panel API.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/panel.py
 """
-import logging
-
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 
 from spyder.api.mode import Mode
-
-def _logger():
-    """ Returns module's logger """
-    return logging.getLogger(__name__)
+from spyder.config.base import debug_print
 
 
 class Panel(QWidget, Mode):
@@ -119,7 +114,7 @@ class Panel(QWidget, Mode):
 
         :param visible: Visible state
         """
-        _logger().log(5, '%s visibility changed', self.name)
+        debug_print('{} visibility changed'.format(self.name))
         super(Panel, self).setVisible(visible)
         if self.editor:
             self.editor.panels.refresh()

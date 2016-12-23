@@ -11,14 +11,9 @@ inside CodeEditor's margins
 Not all panels are using PanelsManager, but future panels should use it.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/panels.py
 """
-import logging
-
 from spyder.api.manager import Manager
 from spyder.api.panel import Panel
-
-
-def _logger():
-    return logging.getLogger(__name__)
+from spyder.config.base import debug_print
 
 
 class PanelsManager(Manager):
@@ -60,13 +55,13 @@ class PanelsManager(Manager):
             Panel.Position.RIGHT: 'right',
             Panel.Position.TOP: 'top'
         }
-        _logger().log(5, 'adding panel %s at %r', panel.name,
-                      pos_to_string[position])
+        debug_print('adding panel {} at {}'.format(panel.name,
+                                                   pos_to_string[position]))
         panel.order_in_zone = len(self._panels[position])
         self._panels[position][panel.name] = panel
         panel.position = position
         panel.on_install(self.editor)
-        _logger().log(5, 'panel %s installed', panel.name)
+        debug_print('panel {} installed'.format(panel.name))
         return panel
 
     def remove(self, name_or_klass):
@@ -76,7 +71,7 @@ class PanelsManager(Manager):
         :param name_or_klass: Name or class of the panel to remove.
         :return: The removed panel
         """
-        _logger().log(5, 'removing panel %r', name_or_klass)
+        debug_print('removing panel {}'.format(name_or_klass))
         panel = self.get(name_or_klass)
         panel.on_uninstall()
         panel.hide()
@@ -146,7 +141,7 @@ class PanelsManager(Manager):
 
     def refresh(self):
         """Refreshes the editor panels (resize and update margins)."""
-        _logger().log(5, 'refresh_panels')
+        debug_print('refresh_panels')
         self.resize()
         self._update(self.editor.contentsRect(), 0,
                      force_update_margins=True)
