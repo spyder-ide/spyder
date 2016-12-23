@@ -617,7 +617,7 @@ class Editor(SpyderPluginWidget):
         self.addActions([self.toggle_outline_action])
         # ---- File menu and toolbar ----
         self.new_action = create_action(
-                self, 
+                self,
                 _("&New file..."),
                 icon=ima.icon('filenew'), tip=_("New file"),
                 triggered=self.new,
@@ -626,9 +626,12 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_sc_to_tip=True)
 
-        self.open_last_closed_action = create_action(self, _("O&pen last closed"),
+        self.open_last_closed_action = create_action(
+                self,
+                _("O&pen last closed"),
                 tip=_("Open last closed"),
-                triggered=self.open_last_closed)
+                triggered=self.open_last_closed
+        )
         self.register_shortcut(self.open_last_closed_action, context="Editor",
                                name="Open last closed")
         
