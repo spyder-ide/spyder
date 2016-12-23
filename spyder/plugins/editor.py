@@ -615,12 +615,14 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.toggle_outline_action, context="Editor",
                                name="Show/hide outline")
         self.addActions([self.toggle_outline_action])
-        
         # ---- File menu and toolbar ----
-        self.new_action = create_action(self, _("&New file..."),
+        self.new_action = create_action(
+                self, 
+                _("&New file..."),
                 icon=ima.icon('filenew'), tip=_("New file"),
                 triggered=self.new,
-                context=Qt.WidgetShortcut)
+                context=Qt.WidgetShortcut
+        )
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_sc_to_tip=True)
 
