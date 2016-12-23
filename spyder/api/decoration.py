@@ -17,8 +17,10 @@ from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
 
 class TextDecoration(QTextEdit.ExtraSelection):
     """
-    Helper class to quickly create a text decoration. The text decoration is an
-    utility class that adds a few utility methods to QTextEdit.ExtraSelection.
+    Helper class to quickly create a text decoration.
+
+    The text decoration is an utility class that adds a few utility methods to
+    QTextEdit.ExtraSelection.
 
     In addition to the helper methods, a tooltip can be added to a decoration.
     (useful for errors markers and so on...)
@@ -88,7 +90,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
     def contains_cursor(self, cursor):
         """
-        Checks if the textCursor is in the decoration
+        Checks if the textCursor is in the decoration.
 
         :param cursor: The text cursor to test
         :type cursor: QtGui.QTextCursor
@@ -102,11 +104,11 @@ class TextDecoration(QTextEdit.ExtraSelection):
         return start <= cursor.position() <= end
 
     def set_as_bold(self):
-        """ Uses bold text """
+        """Uses bold text."""
         self.format.setFontWeight(QFont.Bold)
 
     def set_foreground(self, color):
-        """ Sets the foreground color.
+        """Sets the foreground color.
         :param color: Color
         :type color: QtGui.QColor
         """
@@ -161,7 +163,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
     def set_as_underlined(self, color=Qt.blue):
         """
-        Underlines the text
+        Underlines the text.
 
         :param color: underline color.
         """
@@ -170,7 +172,8 @@ class TextDecoration(QTextEdit.ExtraSelection):
         self.format.setUnderlineColor(color)
 
     def set_as_spell_check(self, color=Qt.blue):
-        """ Underlines text as a spellcheck error.
+        """
+        Underlines text as a spellcheck error.
 
         :param color: Underline color
         :type color: QtGui.QColor
@@ -180,7 +183,8 @@ class TextDecoration(QTextEdit.ExtraSelection):
         self.format.setUnderlineColor(color)
 
     def set_as_error(self, color=Qt.red):
-        """ Highlights text as a syntax error.
+        """
+        Highlights text as a syntax error.
 
         :param color: Underline color
         :type color: QtGui.QColor
@@ -191,7 +195,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
     def set_as_warning(self, color=QColor("orange")):
         """
-        Highlights text as a syntax warning
+        Highlights text as a syntax warning.
 
         :param color: Underline color
         :type color: QtGui.QColor

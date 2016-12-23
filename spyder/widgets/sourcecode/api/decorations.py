@@ -28,10 +28,10 @@ class TextDecorationsManager(Manager):
 
     def append(self, decoration):
         """
-        Adds a text decoration on a CodeEdit instance
+        Adds a text decoration on a CodeEditor instance
 
         :param decoration: Text decoration to add
-        :type decoration: pyqode.core.api.TextDecoration
+        :type decoration: spyder.api.TextDecoration
         """
         if decoration not in self._decorations:
             self._decorations.append(decoration)
@@ -46,7 +46,7 @@ class TextDecorationsManager(Manager):
         Removes a text decoration from the editor.
 
         :param decoration: Text decoration to remove
-        :type decoration: pyqode.core.api.TextDecoration
+        :type decoration: spyder.api.TextDecoration
         """
         try:
             self._decorations.remove(decoration)
@@ -56,10 +56,7 @@ class TextDecorationsManager(Manager):
             return False
 
     def clear(self):
-        """
-        Removes all text decoration from the editor.
-
-        """
+        """Removes all text decoration from the editor."""
         self._decorations[:] = []
         try:
             self.editor.setExtraSelections(self._decorations)

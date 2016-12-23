@@ -26,21 +26,22 @@ import spyder.utils.icon_manager as ima
 
 
 def _logger():
-    """ Gets module's logger """
+    """Gets module's logger."""
     return logging.getLogger(__name__)
 
 
 class FoldingPanel(Panel):
 
-    """ Displays the document outline and lets the user collapse/expand blocks.
+    """
+    Displays the document outline and lets the user collapse/expand blocks.
 
     The data represented by the panel come from the text block user state and
     is set by the SyntaxHighlighter mode.
 
     The panel does not expose any function that you can use directly. To
     interact with the fold tree, you need to modify text block fold level or
-    trigger state using :class:`pyqode.core.api.utils.TextBlockHelper` or
-    :mod:`pyqode.core.api.folding`
+    trigger state using :class:`spyder.api.utils.TextBlockHelper` or
+    :mod:`spyder.api.folding`
     """
     #: signal emitted when a fold trigger state has changed, parameters are
     #: the concerned text block and the new state (collapsed or not).
@@ -105,7 +106,7 @@ class FoldingPanel(Panel):
     @property
     def custom_fold_region_background(self):
         """
-        Custom base color for the fold region background
+        Custom base color for the fold region background.
 
         :return: QColor
         """
@@ -190,7 +191,7 @@ class FoldingPanel(Panel):
         self._highlight_runner = DelayJobRunner(delay=250)
 
     def sizeHint(self):
-        """ Returns the widget size hint (based on the editor font size) """
+        """Returns the widget size hint (based on the editor font size) """
         fm = QFontMetricsF(self.editor.font())
         size_hint = QSize(fm.height(), fm.height())
         if size_hint.width() > 16:
@@ -305,9 +306,7 @@ class FoldingPanel(Panel):
 
     @staticmethod
     def get_system_bck_color():
-        """
-        Gets a system color for drawing the fold scope background.
-        """
+        """Gets a system color for drawing the fold scope background."""
         def merged_colors(colorA, colorB, factor):
             maxFactor = 100
             colorA = QColor(colorA)
@@ -365,10 +364,7 @@ class FoldingPanel(Panel):
 
     @staticmethod
     def find_parent_scope(block):
-        """
-        Find parent scope, if the block is not a fold trigger.
-
-        """
+        """Find parent scope, if the block is not a fold trigger."""
         original = block
         if not TextBlockHelper.is_fold_trigger(block):
             # search level of next non blank line
@@ -383,10 +379,7 @@ class FoldingPanel(Panel):
         return block
 
     def _clear_scope_decos(self):
-        """
-        Clear scope decorations (on the editor)
-
-        """
+        """Clear scope decorations (on the editor)"""
         for deco in self._scope_decos:
             self.editor.decorations.remove(deco)
         self._scope_decos[:] = []
@@ -395,7 +388,6 @@ class FoldingPanel(Panel):
         """
         Gets the base scope highlight color (derivated from the editor
         background)
-
         """
         color = self.editor.background
         if color.lightness() < 128:
@@ -407,7 +399,8 @@ class FoldingPanel(Panel):
     def _add_scope_deco(self, start, end, parent_start, parent_end, base_color,
                         factor):
         """
-        Adds a scope decoration that enclose the current scope
+        Adds a scope decoration that enclose the current scope.
+
         :param start: Start of the current scope
         :param end: End of the current scope
         :param parent_start: Start of the parent scope
@@ -438,7 +431,7 @@ class FoldingPanel(Panel):
 
     def _add_scope_decorations(self, block, start, end):
         """
-        Show a scope decoration on the editor widget
+        Show a scope decoration on the code editor widget.
 
         :param start: Start line
         :param end: End line
@@ -534,7 +527,6 @@ class FoldingPanel(Panel):
         Removes scope decorations and background from the editor and the panel
         if highlight_caret_scope, else simply update the scope decorations to
         match the caret scope.
-
         """
         super(FoldingPanel, self).leaveEvent(event)
         QApplication.restoreOverrideCursor()
@@ -587,16 +579,14 @@ class FoldingPanel(Panel):
         self.trigger_state_changed.emit(region._trigger, region.collapsed)
 
     def mousePressEvent(self, event):
-        """ Folds/unfolds the pressed indicator if any. """
+        """Folds/unfolds the pressed indicator if any."""
         if self._mouse_over_line is not None:
             block = self.editor.document().findBlockByNumber(
                 self._mouse_over_line)
             self.toggle_fold_trigger(block)
 
     def _on_fold_deco_clicked(self, deco):
-        """
-        Unfold a folded block that has just been clicked by the user
-        """
+        """Unfold a folded block that has just been clicked by the user"""
         self.toggle_fold_trigger(deco.block)
 
     def on_state_changed(self, state):
@@ -669,7 +659,6 @@ class FoldingPanel(Panel):
         Refresh decorations colors. This function is called by the syntax
         highlighter when the style changed so that we may update our
         decorations colors according to the new style.
-
         """
         cursor = self.editor.textCursor()
         if (self._prev_cursor is None or force or
@@ -727,17 +716,13 @@ class FoldingPanel(Panel):
         self.collapse_all_triggered.emit()
 
     def _clear_block_deco(self):
-        """
-        Clear the folded block decorations.
-        """
+        """Clear the folded block decorations."""
         for deco in self._block_decos:
             self.editor.decorations.remove(deco)
         self._block_decos[:] = []
 
     def expand_all(self):
-        """
-        Expands all fold triggers.
-        """
+        """Expands all fold triggers."""
         block = self.editor.document().firstBlock()
         while block.isValid():
             TextBlockHelper.set_collapsed(block, False)
@@ -748,21 +733,17 @@ class FoldingPanel(Panel):
         self.expand_all_triggered.emit()
 
     def _on_action_toggle(self):
-        """
-        Toggle the current fold trigger.
-        """
+        """Toggle the current fold trigger."""
         block = FoldScope.find_parent_scope(self.editor.textCursor().block())
         self.toggle_fold_trigger(block)
 
     def _on_action_collapse_all_triggered(self):
-        """
-        Closes all top levels fold triggers recursively
-        """
+        """Closes all top levels fold triggers recursively."""
         self.collapse_all()
 
     def _on_action_expand_all_triggered(self):
         """
-        Expands all fold triggers
+        Expands all fold triggers.
         :return:
         """
         self.expand_all()
@@ -772,7 +753,7 @@ class FoldingPanel(Panel):
         Highlight the scope surrounding the current caret position.
 
         This get called only if :attr:`
-        pyqode.core.panels.FoldingPanel.highlight_care_scope` is True.
+        spyder.widgets.panels.FoldingPanel.highlight_care_scope` is True.
         """
         cursor = self.editor.textCursor()
         block_nbr = cursor.blockNumber()

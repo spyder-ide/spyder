@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QApplication
 
 
 def _logger():
-    """ Returns module logger """
+    """Returns module logger."""
     return logging.getLogger(__name__)
 
 
@@ -47,11 +47,11 @@ class memoized(object):
             return self.func(*args)
 
     def __repr__(self):
-        """ Return the function's docstring."""
+        """Return the function's docstring."""
         return self.func.__doc__
 
     def __get__(self, obj, objtype):
-        """ Support instance methods. """
+        """Support instance methods."""
         return functools.partial(self.__call__, obj)
 
 
@@ -78,9 +78,9 @@ def drift_color(base_color, factor=110):
 
 class DelayJobRunner(object):
     """
-    Utility class for running job after a certain delay. If a new request is
-    made during this delay, the previous request is dropped and the timer is
-    restarted for the new request.
+    Utility class for running job after a certain delay. 
+    If a new request is made during this delay, the previous request is dropped
+    and the timer is restarted for the new request.
 
     We use this to implement a cooldown effect that prevents jobs from being
     executed while the IDE is not idle.
@@ -101,9 +101,11 @@ class DelayJobRunner(object):
 
     def request_job(self, job, *args, **kwargs):
         """
-        Request a job execution. The job will be executed after the delay
-        specified in the DelayJobRunner contructor elapsed if no other job is
-        requested until then.
+        Request a job execution.
+
+        The job will be executed after the delay specified in the 
+        DelayJobRunner contructor elapsed if no other job is requested until 
+        then.
 
         :param job: job.
         :type job: callable
@@ -117,27 +119,25 @@ class DelayJobRunner(object):
         self._timer.start(self.delay)
 
     def cancel_requests(self):
-        """
-        Cancels pending requests.
-        """
+        """Cancels pending requests."""
         self._timer.stop()
         self._job = None
         self._args = None
         self._kwargs = None
 
     def _exec_requested_job(self):
-        """
-        Execute the requested job after the timer has timeout.
-        """
+        """Execute the requested job after the timer has timeout."""
         self._timer.stop()
         self._job(*self._args, **self._kwargs)
 
 
 class TextHelper(object):
     """
-    Text helper helps you manipulate the content of CodeEdit and extends the
+    Text helper helps you manipulate the content of CodeEditor and extends the
     Qt text api for an easier usage.
 
+    FIXME: Some of this methods are already implemented in CodeEditor, move
+    and unify redundant methods.
     """
     @property
     def _editor(self):
@@ -147,9 +147,7 @@ class TextHelper(object):
             return self._editor_ref
 
     def __init__(self, editor):
-        """
-        :param editor: The editor to work on.
-        """
+        """:param editor: The editor to work on."""
         try:
             self._editor_ref = weakref.ref(editor)
         except TypeError:
@@ -157,7 +155,7 @@ class TextHelper(object):
 
     def goto_line(self, line, column=0, move=True):
         """
-        Moves the text cursor to the specified position..
+        Moves the text cursor to the specified position.
 
         :param line: Number of the line to go to (0 based)
         :param column: Optional column number. Default is 0 (start of line).
@@ -187,15 +185,16 @@ class TextHelper(object):
         return text_cursor
 
     def selected_text(self):
-        """
-        Returns the selected text.
-        """
+        """Returns the selected text."""
         return self._editor.textCursor().selectedText()
 
     def word_under_cursor(self, select_whole_word=False, text_cursor=None):
         """
         Gets the word under cursor using the separators defined by
-        :attr:`pyqode.core.api.CodeEdit.word_separators`.
+        :attr:`spyder.widgets.sourcecode.CodeEditor.word_separators`.
+
+        FIXME: This is not working because CodeEditor have no attribute
+        word_separators
 
         .. note: Instead of returning the word string, this function returns
             a QTextCursor, that way you may get more information than just the
@@ -287,7 +286,7 @@ class TextHelper(object):
 
     def line_count(self):
         """
-        Returns the line count of the specified editor
+        Returns the line count of the specified editor.
 
         :return: number of lines in the document.
         """
@@ -295,7 +294,7 @@ class TextHelper(object):
 
     def line_text(self, line_nbr):
         """
-        Gets the text of the specified line
+        Gets the text of the specified line.
 
         :param line_nbr: The line number of the text to get
 
@@ -338,9 +337,7 @@ class TextHelper(object):
         editor.setTextCursor(text_cursor)
 
     def remove_last_line(self):
-        """
-        Removes the last line of the document.
-        """
+        """Removes the last line of the document."""
         editor = self._editor
         text_cursor = editor.textCursor()
         text_cursor.movePosition(text_cursor.End, text_cursor.MoveAnchor)
@@ -354,7 +351,7 @@ class TextHelper(object):
         Removes trailing whitespaces and ensure one single blank line at the
         end of the QTextDocument.
 
-        ..deprecated: since pyqode 2.6.3, document is cleaned on disk only.
+        FIXME: It was deprecated in pyqode, maybe It should be deleted
         """
         editor = self._editor
         value = editor.verticalScrollBar().value()
@@ -515,7 +512,7 @@ class TextHelper(object):
 
     def line_nbr_from_position(self, y_pos):
         """
-        Returns the line number from the y_pos
+        Returns the line number from the y_pos.
 
         :param y_pos: Y pos in the editor
         :return: Line number (0 based), -1 if out of range
@@ -538,7 +535,7 @@ class TextHelper(object):
 
     def line_indent(self, line_nbr=None):
         """
-        Returns the indent level of the specified line
+        Returns the indent level of the specified line.
 
         :param line_nbr: Number of the line to get indentation (1 base).
             Pass None to use the current line number. Note that you can also
@@ -602,10 +599,7 @@ class TextHelper(object):
         self._editor.setTextCursor(text_cursor)
 
     def clear_selection(self):
-        """
-        Clears text cursor selection
-
-        """
+        """Clears text cursor selection."""
         text_cursor = self._editor.textCursor()
         text_cursor.clearSelection()
         self._editor.setTextCursor(text_cursor)
@@ -625,15 +619,12 @@ class TextHelper(object):
         self._editor.setTextCursor(text_cursor)
 
     def selected_text_to_lower(self):
-        """ Replaces the selected text by its lower version """
+        """Replaces the selected text by its lower version."""
         txt = self.selected_text()
         self.insert_text(txt.lower())
 
     def selected_text_to_upper(self):
-        """
-        Replaces the selected text by its upper version
-
-        """
+        """Replaces the selected text by its upper version."""
         txt = self.selected_text()
         self.insert_text(txt.upper())
 
@@ -650,7 +641,7 @@ class TextHelper(object):
         """
         def compare_cursors(cursor_a, cursor_b):
             """
-            Compares two QTextCursor
+            Compares two QTextCursor.
 
             :param cursor_a: cursor a
             :param cursor_b: cursor b
@@ -805,7 +796,7 @@ class TextHelper(object):
 
         def find_closing_symbol(cursor, matching, opening_char, original_pos):
             """
-            Finds the position of the closing symbol
+            Finds the position of the closing symbol.
 
             :param cursor: current text cursor
             :param matching: symbold matching dict
@@ -915,7 +906,7 @@ class TextBlockHelper(object):
     @staticmethod
     def get_fold_lvl(block):
         """
-        Gets the block fold level
+        Gets the block fold level.
 
         :param block: block to access.
         :returns: The block fold level
@@ -1028,14 +1019,14 @@ def get_block_symbol_data(editor, block):
     """
     Gets the list of ParenthesisInfo for specific text block.
 
-    :param editor: Code edit instance
+    :param editor: Code editor instance
     :param block: block to parse
     """
     def list_symbols(editor, block, character):
         """
         Retuns  a list of symbols found in the block text
 
-        :param editor: code edit instance
+        :param editor: code editor instance
         :param block: block to parse
         :param character: character to look for.
         """

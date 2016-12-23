@@ -19,7 +19,7 @@ def print_tree(editor, file=sys.stdout, print_blocks=False):
     """
     Prints the editor fold tree to stdout, for debugging purpose.
 
-    :param editor: CodeEdit instance.
+    :param editor: CodeEditor instance.
     :param file: file handle where the tree will be printed. Default is stdout.
     :param print_blocks: True to print all blocks, False to only print blocks
         that are fold triggers
@@ -63,11 +63,11 @@ class FoldDetector(object):
         return None
 
     def __init__(self):
-        #: Reference to the parent editor, automatically set by the syntax
-        #: highlighter before process any block.
+        # Reference to the parent editor, automatically set by the syntax
+        # highlighter before process any block.
         self._editor = None
-        #: Fold level limit, any level greater or equal is skipped.
-        #: Default is sys.maxsize (i.e. all levels are accepted)
+        # Fold level limit, any level greater or equal is skipped.
+        # Default is sys.maxsize (i.e. all levels are accepted)
         self.limit = sys.maxsize
 
     def process_block(self, current_block, previous_block, text):
@@ -143,9 +143,7 @@ class FoldDetector(object):
 
 
 class IndentFoldDetector(FoldDetector):
-    """
-    Simple fold detector based on the line indentation level
-    """
+    """Simple fold detector based on the line indentation level."""
 
     def detect_fold_level(self, prev_block, block):
         """
@@ -197,7 +195,7 @@ class FoldScope(object):
     @property
     def trigger_level(self):
         """
-        Returns the fold level of the block trigger
+        Returns the fold level of the block trigger.
         :return:
         """
         return TextBlockHelper.get_fold_lvl(self._trigger)
@@ -206,7 +204,7 @@ class FoldScope(object):
     def scope_level(self):
         """
         Returns the fold level of the first block of the foldable scope (
-        just after the trigger)
+        just after the trigger).
 
         :return:
         """
@@ -214,10 +212,7 @@ class FoldScope(object):
 
     @property
     def collapsed(self):
-        """
-        Returns True if the block is collasped, False if it is expanded.
-
-        """
+        """Returns True if the block is collasped, False if it is expanded."""
         return TextBlockHelper.is_collapsed(self._trigger)
 
     def __init__(self, block):
@@ -265,9 +260,7 @@ class FoldScope(object):
         return first_line, last_line
 
     def fold(self):
-        """
-        Folds the region.
-        """
+        """Folds the region."""
         start, end = self.get_range()
         TextBlockHelper.set_collapsed(self._trigger, True)
         block = self._trigger.next()
@@ -276,9 +269,7 @@ class FoldScope(object):
             block = block.next()
 
     def unfold(self):
-        """
-        Unfolds the region.
-        """
+        """Unfolds the region."""
         # set all direct child blocks which are not triggers to be visible
         self._trigger.setVisible(True)
         TextBlockHelper.set_collapsed(self._trigger, False)
@@ -301,9 +292,7 @@ class FoldScope(object):
             block = block.next()
 
     def child_regions(self):
-        """
-        This generator generates the list of direct child regions.
-        """
+        """This generator generates the list of direct child regions."""
         start, end = self.get_range()
         block = self._trigger.next()
         ref_lvl = self.scope_level
