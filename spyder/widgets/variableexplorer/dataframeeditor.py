@@ -575,6 +575,7 @@ class DataFrameHeader(QAbstractTableModel):
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
+
     COLUMN_INDEX = -1 # Makes reference to the index of the table.
 
     def __init__(self, model, axis, palette):
@@ -1053,7 +1054,7 @@ class DataFrameEditor(QDialog):
 
     def _resizeCurrentColumnToContents(self, new_index, old_index):
         if new_index.column() not in self._autosized_cols:
-            # ensure the requested column is fully into view after resizing
+            # Ensure the requested column is fully into view after resizing
             self._resizeVisibleColumnsToContents()
             self.dataTable.scrollTo(new_index)
 
