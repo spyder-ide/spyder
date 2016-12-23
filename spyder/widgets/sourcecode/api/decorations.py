@@ -9,12 +9,7 @@
 Contains the text decorations manager.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/decorations.py
 """
-import logging
 from spyder.api.manager import Manager
-
-
-def _logger():
-    return logging.getLogger(__name__)
 
 
 class TextDecorationsManager(Manager):

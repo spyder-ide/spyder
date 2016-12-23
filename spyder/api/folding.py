@@ -10,7 +10,6 @@ This module contains the code folding API.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/folding.py
 """
 from __future__ import print_function
-import logging
 import sys
 from spyder.api.utils import TextBlockHelper
 
@@ -39,10 +38,6 @@ def print_tree(editor, file=sys.stdout, print_blocks=False):
             print('l%d:%s%s' %
                   (block.blockNumber() + 1, lvl, visible), file=file)
         block = block.next()
-
-
-def _logger():
-    return logging.getLogger(__name__)
 
 
 class FoldDetector(object):

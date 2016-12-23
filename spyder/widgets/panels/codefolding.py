@@ -8,7 +8,6 @@
 This module contains the marker panel.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/panels/folding.py
 """
-import logging
 import sys
 
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
@@ -23,11 +22,6 @@ from spyder.api.panel import Panel
 from spyder.api.utils import (TextBlockHelper, TextHelper, DelayJobRunner,
                               drift_color)
 import spyder.utils.icon_manager as ima
-
-
-def _logger():
-    """Gets module's logger."""
-    return logging.getLogger(__name__)
 
 
 class FoldingPanel(Panel):

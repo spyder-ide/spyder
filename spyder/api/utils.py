@@ -11,18 +11,12 @@ This module contains utility functions/classes.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/utils.py
 """
 import functools
-import logging
 import weakref
 
 from qtpy.QtCore import QTimer, Qt
 from qtpy.QtGui import QColor, QTextCursor, QTextBlock, QTextDocument, QCursor
 
 from qtpy.QtWidgets import QApplication
-
-
-def _logger():
-    """Returns module logger."""
-    return logging.getLogger(__name__)
 
 
 class memoized(object):
