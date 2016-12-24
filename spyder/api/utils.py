@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
+# -*- coding: utf-8 -*-
 """
 This module contains utility functions/classes.
+Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/utils.py
 """
 import functools
 import logging

@@ -1,5 +1,13 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Copyright © <2013-2016> <Colin Duquesnoy and others, see pyqode/AUTHORS.rst>
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 """
-Contains the text decorations manager
+Contains the text decorations manager.
+Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/decorations.py
 """
 import logging
 from spyder.api.manager import Manager
