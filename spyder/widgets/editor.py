@@ -2091,7 +2091,9 @@ class EditorSplitter(QSplitter):
             editorstack = splitter.widget(0)
             for index, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
-                # FIXME: Temporal fix
+                # TODO: go_to_line is not working properly (the line it jumps
+                # is not the corresponding to that file). It will be fix in a
+                # future PR (fixing issue #3857)
                 if dont_goto is not None:
                     # skip go to line for first file because is already there
                     pass
