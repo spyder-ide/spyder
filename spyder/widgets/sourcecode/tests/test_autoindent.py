@@ -129,15 +129,15 @@ def test_keep_unindent_fix_indent():
     assert text == correct_text, repr(text)
 
 
-def test_keep_unindent_return():
-    # Keep line unindented if the previous line starts with return and
-    # the current line is unindented
-    text = ("def f(x):\n"
-            "    return x\n"
+def test_keep_unindent_if_blank():
+    # Keep line unindented if return is pressed on a line which is both
+    # blank and unindented.
+    text = ("    def f(x):\n"
+            "        return x\n"
             "\n"
             "")
     text = get_indent_fix(text)
-    assert text == "def f(x):\n    return x\n\n", repr(text)
+    assert text == "    def f(x):\n        return x\n\n", repr(text)
 
 
 # --- Failing tests

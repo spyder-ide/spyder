@@ -2014,11 +2014,12 @@ class CodeEditor(TextEditBaseWidget):
         if not (diff_paren or diff_brack or diff_curly) and \
            not prevtext.endswith(':'):
             cur_indent = self.get_block_indentation(block_nb - 1)
+            is_blank = not self.get_text_line(block_nb - 1).strip()
             prevline_indent = self.get_block_indentation(prevline)
             trailing_text = self.get_text_line(block_nb).strip()
 
             if cur_indent < prevline_indent and \
-               (trailing_text or prevtext.strip().startswith("return")):
+               (trailing_text or is_blank):
                 if cur_indent % len(self.indent_chars) == 0:
                     correct_indent = cur_indent
                 else:
