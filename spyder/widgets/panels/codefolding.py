@@ -6,13 +6,11 @@ import logging
 import sys
 
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
-from qtpy.QtWidgets import (QMenu, QAction, QApplication, QStyleOptionViewItem,
-                            QStyle)
+from qtpy.QtWidgets import QApplication, QStyleOptionViewItem, QStyle
 from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
                         QLinearGradient, QPen,
                         QPalette, QResizeEvent, QIcon, QCursor)
 
-from spyder.config.base import _
 from spyder.api.decoration import TextDecoration
 from spyder.api.folding import FoldScope
 from spyder.api.panel import Panel
@@ -183,37 +181,6 @@ class FoldingPanel(Panel):
         self.action_expand_all = None
         self._original_background = None
         self._highlight_runner = DelayJobRunner(delay=250)
-
-    def on_install(self, editor):
-        """
-        Add the folding menu to the editor, on install.
-
-        :param editor: editor instance on which the mode has been installed to.
-        """
-        super(FoldingPanel, self).on_install(editor)
-        self.context_menu = QMenu(_('Folding'), self.editor)
-        action = self.action_collapse = QAction(
-            _('Collapse'), self.context_menu)
-        action.setShortcut('Shift+-')
-        action.triggered.connect(self._on_action_toggle)
-        self.context_menu.addAction(action)
-        action = self.action_expand = QAction(_('Expand'),
-                                                        self.context_menu)
-        action.setShortcut('Shift++')
-        action.triggered.connect(self._on_action_toggle)
-        self.context_menu.addAction(action)
-        self.context_menu.addSeparator()
-        action = self.action_collapse_all = QAction(
-            _('Collapse all'), self.context_menu)
-        action.setShortcut('Ctrl+Shift+-')
-        action.triggered.connect(self._on_action_collapse_all_triggered)
-        self.context_menu.addAction(action)
-        action = self.action_expand_all = QAction(
-            _('Expand all'), self.context_menu)
-        action.setShortcut('Ctrl+Shift++')
-        action.triggered.connect(self._on_action_expand_all_triggered)
-        self.context_menu.addAction(action)
-        self.editor.add_menu(self.context_menu)
 
     def sizeHint(self):
         """ Returns the widget size hint (based on the editor font size) """
