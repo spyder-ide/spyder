@@ -63,6 +63,7 @@ from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.api.folding import IndentFoldDetector
+from spyder.widgets.sourcecode.api.decorations import TextDecorationsManager
 from spyder.api.panel import Panel
 
 try:
@@ -273,6 +274,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Blanks enabled
         self.blanks_enabled = False
+
+        self.background = QColor('white')
+        self.decorations = TextDecorationsManager(self)
 
         # Folding
         self.panels.register(FoldingPanel())
