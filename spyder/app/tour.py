@@ -393,10 +393,12 @@ class FadingDialog(QDialog):
 
 class FadingCanvas(FadingDialog):
     """The black semi transparent canvas that covers the application"""
-    def __init__(self, parent, opacity, duration, easing_curve, color):
+    def __init__(self, parent, opacity, duration, easing_curve, color,
+                 tour=None):
         super(FadingCanvas, self).__init__(parent, opacity, duration,
                                            easing_curve)
         self.parent = parent
+        self.tour = tour
 
         self.color = color              # Canvas color
         self.color_decoration = Qt.red  # Decoration color
@@ -524,14 +526,29 @@ class FadingCanvas(FadingDialog):
         """Override Qt method"""
         pass
 
+    def focusInEvent(self, event):
+        """Reimplement Qt method."""
+
+        # To be used so tips do not appear outside spyder
+        if self.hasFocus():
+            self.tour.tour_gain_focus()
+
+    def focusOutEvent(self, event):
+        """Reimplement Qt method."""
+
+        # To be used so tips do not appear outside spyder
+        if self.tour.step_current != 0:
+            self.tour.tour_lost_focus()
+
 
 class FadingTipBox(FadingDialog):
     """ """
-    def __init__(self, parent, opacity, duration, easing_curve):
+    def __init__(self, parent, opacity, duration, easing_curve, tour=None):
         super(FadingTipBox, self).__init__(parent, opacity, duration,
                                            easing_curve)
         self.holder = self.anim  # needed for qt to work
         self.parent = parent
+        self.tour = tour
 
         self.frames = None
         self.color_top = QColor.fromRgb(230, 230, 230)
@@ -620,6 +637,7 @@ class FadingTipBox(FadingDialog):
         # Windows fix, slashes should be always in unix-style
         self.stylesheet = self.stylesheet.replace('\\', '/')
 
+        self.setFocusPolicy(Qt.StrongFocus)
         for widget in self.widgets:
             widget.setFocusPolicy(Qt.NoFocus)
             widget.setStyleSheet(self.stylesheet)
@@ -671,7 +689,7 @@ class FadingTipBox(FadingDialog):
         self.setLayout(layout)
 
         self.set_funcs_before_fade_in([self._disable_widgets])
-        self.set_funcs_after_fade_in([self._enable_widgets])
+        self.set_funcs_after_fade_in([self._enable_widgets, self.setFocus])
         self.set_funcs_before_fade_out([self._disable_widgets])
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -815,6 +833,12 @@ class FadingTipBox(FadingDialog):
 #            if clicked_widget == self.label_current:
 #            self.context_menu_requested(event)
 
+    def focusOutEvent(self, event):
+        """Reimplement Qt method."""
+
+        # To be used so tips do not appear outside spyder
+        self.tour.tour_lost_focus()
+
     def context_menu_requested(self, event):
         """ """
         pos = QPoint(event.x(), event.y())
@@ -868,13 +892,15 @@ class AnimatedTour(QWidget):
         self.run = None
 
         self.is_tour_set = False
+        self.is_tour_running = False
 
         # Widgets
         self.canvas = FadingCanvas(self.parent, self.opacity_canvas,
                                    self.duration_canvas, self.easing_curve,
-                                   self.color)
+                                   self.color, tour=self)
         self.tips = FadingTipBox(self.parent, self.opacity_tips,
-                                 self.duration_tips, self.easing_curve)
+                                 self.duration_tips, self.easing_curve,
+                                 tour=self)
 
         # Widgets setup
         # Needed to fix issue #2204
@@ -897,6 +923,10 @@ class AnimatedTour(QWidget):
 
         # To capture the arrow keys that allow moving the tour
         self.tips.sig_key_pressed.connect(self._key_pressed)
+
+        # To control the focus of tour
+        self.setting_data = False
+        self.tour_hidden = False
 
     def _resized(self, event):
         """ """
@@ -987,6 +1017,7 @@ class AnimatedTour(QWidget):
 
     def _set_data(self):
         """ """
+        self.setting_data = True
         step, steps, frames = self.step_current, self.steps, self.frames
         current = '{0}/{1}'.format(step + 1, steps)
         frame = frames[step]
@@ -1044,6 +1075,7 @@ class AnimatedTour(QWidget):
         # Make canvas black when starting a new place of decoration
         self.canvas.update_widgets(dockwidgets)
         self.canvas.update_decoration(decoration)
+        self.setting_data = False
 
     def _locate_tip_box(self):
         """ """
@@ -1124,6 +1156,10 @@ class AnimatedTour(QWidget):
             pos = self.tips.label_current.pos()
             self.tips.context_menu_requested(pos)
 
+    def _hiding(self):
+        self.tour_hidden = True
+        self.tips.hide()
+
     # --- public api
     def run_code(self):
         """ """
@@ -1154,12 +1190,13 @@ class AnimatedTour(QWidget):
         # FIXME: reset step to last used value
         # Reset step to begining
         self.step_current = self.last_frame_active
-
         # Adjust the canvas size to match the main window size
         self.canvas.setFixedSize(width, height)
         self.canvas.move(QPoint(x, y))
         self.canvas.fade_in(self._move_step)
         self._clear_canvas()
+
+        self.is_tour_running = True
 
     def close_tour(self):
         """ """
@@ -1173,6 +1210,19 @@ class AnimatedTour(QWidget):
                 self.step_current
         except:
             pass
+
+        self.is_tour_running = False
+
+    def hide_tips(self):
+        """ """
+        self._clear_canvas()
+        self.tips.fade_out(self._hiding)
+
+    def unhide_tips(self):
+        """ """
+        self._clear_canvas()
+        self._move_step()
+        self.tour_hidden = False
 
     def next_step(self):
         """ """
@@ -1199,6 +1249,22 @@ class AnimatedTour(QWidget):
     def first_step(self):
         """ """
         self.go_to_step(0)
+
+    def tour_lost_focus(self):
+        if (self.is_tour_running and not self.any_has_focus() and
+            not self.setting_data and not self.tour_hidden):
+            self.hide_tips()
+
+    def tour_gain_focus(self):
+        if (self.is_tour_running and self.any_has_focus() and 
+            not self.setting_data and self.tour_hidden):
+            self.unhide_tips()
+
+    def any_has_focus(self):
+        """Returns if tour or any of its components has focus."""
+        f = (self.hasFocus() or self.parent.hasFocus() or 
+             self.tips.hasFocus() or self.canvas.hasFocus())
+        return f
 
 # ----------------------------------------------------------------------------
 # Used for testing the functionality
