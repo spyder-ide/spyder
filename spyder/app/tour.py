@@ -395,6 +395,7 @@ class FadingCanvas(FadingDialog):
     """The black semi transparent canvas that covers the application"""
     def __init__(self, parent, opacity, duration, easing_curve, color,
                  tour=None):
+        """Creates a black semi transparent canvas that covers the app."""
         super(FadingCanvas, self).__init__(parent, opacity, duration,
                                            easing_curve)
         self.parent = parent
