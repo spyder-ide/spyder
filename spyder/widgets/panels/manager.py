@@ -79,9 +79,7 @@ class PanelsManager(Manager):
         return self._panels[panel.position].pop(panel.name, None)
 
     def clear(self):
-        """
-        Removes all panel from the CodeEditor.
-        """
+        """Removes all panel from the CodeEditor."""
         for i in range(4):
             while len(self._panels[i]):
                 key = sorted(list(self._panels[i].keys()))[0]
