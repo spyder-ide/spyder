@@ -154,7 +154,7 @@ class FoldingPanel(Panel):
 
     def __init__(self, highlight_caret_scope=False):
         Panel.__init__(self)
-        self._native = True
+        self._native = False
         self._custom_indicators = (
             'folding.arrow_right_off',
             'folding.arrow_right_on',
