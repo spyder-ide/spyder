@@ -57,8 +57,9 @@ from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.widgets.editortools import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
-from spyder.widgets.panels.line_number import LineNumberArea
+from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
+from spyder.widgets.panels.manager import PanelsManager
 
 try:
     import nbformat as nbformat
@@ -294,7 +295,6 @@ class CodeEditor(TextEditBaseWidget):
 
     # To have these attrs when early viewportEvent's are triggered
     edge_line = None
-    linenumberarea = None
 
     breakpoints_changed = Signal()
     get_completions = Signal(bool)
@@ -331,6 +331,8 @@ class CodeEditor(TextEditBaseWidget):
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
 
+        self._panels = PanelsManager(self)
+
         # 79-col edge line
         self.edge_line = EdgeLine(self)
 
@@ -338,8 +340,7 @@ class CodeEditor(TextEditBaseWidget):
         self.blanks_enabled = False
 
         # Line number area management
-        self.linenumberarea = LineNumberArea(self)
-        self.blockCountChanged.connect(self.linenumberarea.update_width)
+        self.linenumberarea = self.panels.register(LineNumberArea(self))
         self.updateRequest.connect(self.linenumberarea.update_)
 
         # Colors to be defined in _apply_highlighter_color_scheme()
@@ -382,7 +383,7 @@ class CodeEditor(TextEditBaseWidget):
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
 
-        self.linenumberarea.update_width()
+        self.panels.refresh()
 
         self.document_id = id(self)
 
@@ -596,6 +597,14 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable wrap mode"""
         self.set_wrap_mode('word' if enable else None)
 
+    @property
+    def panels(self):
+        """
+        Returns a reference to the :class:`spyder.widgets.panels.managers.PanelsManager`
+        used to manage the collection of installed panels
+        """
+        return self._panels
+
     def setup_editor(self, linenumbers=True, language=None, markers=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      intelligent_backspace=True, highlight_current_line=True,
@@ -658,7 +667,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
-            self.linenumberarea.update_width()
+            self.panels.refresh()
         elif font is not None:
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
@@ -1182,7 +1191,7 @@ class CodeEditor(TextEditBaseWidget):
         """Toggle scroll flag area visibility"""
         self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
-        self.linenumberarea.update_width()
+        self.panels.refresh()
 
     def get_scrollflagarea_width(self):
         """Return scroll flag area width"""
@@ -1249,13 +1258,16 @@ class CodeEditor(TextEditBaseWidget):
         painter.drawRect(make_slider(self.firstVisibleBlock().blockNumber()))
 
     def resizeEvent(self, event):
-        """Reimplemented Qt method to handle line number area resizing"""
+        """Reimplemented Qt method to handle p resizing"""
         TextEditBaseWidget.resizeEvent(self, event)
         cr = self.contentsRect()
-        self.linenumberarea.setGeometry(\
-                        QRect(cr.left(), cr.top(),
-                              self.linenumberarea.compute_width(), cr.height()))
         self.__set_scrollflagarea_geometry(cr)
+        self.panels.resize()
+
+    def showEvent(self, event):
+        """Overrides showEvent to update the viewport margins."""
+        super(CodeEditor, self).showEvent(event)
+        self.panels.refresh()
 
     def __set_scrollflagarea_geometry(self, contentrect):
         """Set scroll flag area geometry"""
@@ -1323,7 +1335,7 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
-        self.linenumberarea.update_width()
+        self.panels.refresh()
         self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
