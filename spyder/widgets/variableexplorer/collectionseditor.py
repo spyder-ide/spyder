@@ -1396,10 +1396,8 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                  get_array_shape_func=None, get_array_ndim_func=None,
                  oedit_func=None, plot_func=None, imshow_func=None,
                  is_data_frame_func=None, is_series_func=None,
-                 show_image_func=None, remote_editing=False):
+                 show_image_func=None):
         BaseTableView.__init__(self, parent)
-
-        self.remote_editing_enabled = None
 
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
@@ -1439,36 +1437,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         """Setup context menu"""
         menu = BaseTableView.setup_menu(self, minmax)
         return menu
-
-    def oedit_possible(self, key):
-        if (self.is_list(key) or self.is_dict(key)
-            or self.is_array(key) or self.is_image(key)
-            or self.is_data_frame(key) or self.is_series(key)):
-            # If this is a remote dict editor, the following avoid
-            # transfering large amount of data through the socket
-            return True
-
-    def edit_item(self):
-        """
-        Reimplement BaseTableView's method to edit item
-        
-        Some supported data types are directly edited in the remote process,
-        thus avoiding to transfer large amount of data through the socket from
-        the remote process to Spyder
-        """
-        if self.remote_editing_enabled:
-            index = self.currentIndex()
-            if not index.isValid():
-                return
-            key = self.model.get_key(index)
-            if self.oedit_possible(key):
-                # If this is a remote dict editor, the following avoid
-                # transfering large amount of data through the socket
-                self.oedit(key)
-            else:
-                BaseTableView.edit_item(self)
-        else:
-            BaseTableView.edit_item(self)
 
 
 #==============================================================================

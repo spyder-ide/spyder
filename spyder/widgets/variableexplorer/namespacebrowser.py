@@ -80,7 +80,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = None
         self.excluded_names = None
         self.minmax = None
-        self.remote_editing = None
         self.autorefresh = None
         
         # Other setting
@@ -102,7 +101,7 @@ class NamespaceBrowser(QWidget):
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
               minmax=None, dataframe_format=None,
-              remote_editing=None, autorefresh=None):
+              autorefresh=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -119,7 +118,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = exclude_unsupported
         self.excluded_names = excluded_names
         self.minmax = minmax
-        self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         self.dataframe_format = dataframe_format
         
@@ -138,7 +136,6 @@ class NamespaceBrowser(QWidget):
         self.editor = RemoteCollectionsEditorTableView(self, None,
                         minmax=minmax,
                         dataframe_format=dataframe_format,
-                        remote_editing=remote_editing,
                         get_value_func=self.get_value,
                         set_value_func=self.set_value,
                         new_value_func=self.set_value,
