@@ -1394,7 +1394,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                  copy_value_func=None, is_list_func=None, get_len_func=None,
                  is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
-                 oedit_func=None, plot_func=None, imshow_func=None,
+                 plot_func=None, imshow_func=None,
                  is_data_frame_func=None, is_series_func=None,
                  show_image_func=None):
         BaseTableView.__init__(self, parent)
@@ -1412,7 +1412,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.is_dict = is_dict_func
         self.get_array_shape = get_array_shape_func
         self.get_array_ndim = get_array_ndim_func
-        self.oedit = oedit_func
         self.plot = plot_func
         self.imshow = imshow_func
         self.show_image = show_image_func

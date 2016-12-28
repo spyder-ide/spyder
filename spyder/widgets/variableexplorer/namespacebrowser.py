@@ -150,7 +150,6 @@ class NamespaceBrowser(QWidget):
                         is_series_func=self.is_series,
                         get_array_shape_func=self.get_array_shape,
                         get_array_ndim_func=self.get_array_ndim,
-                        oedit_func=self.oedit,
                         plot_func=self.plot, imshow_func=self.imshow,
                         show_image_func=self.show_image)
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
@@ -471,11 +470,6 @@ class NamespaceBrowser(QWidget):
             self.shellwidget.execute(command)
         else:
             self.shellwidget.send_to_process(command)
-
-    def oedit(self, name):
-        command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
-                  "oedit('%s', modal=False, namespace=locals());" % name
-        self.shellwidget.send_to_process(command)
 
     #------ Set, load and save data -------------------------------------------
     def set_data(self, data):
