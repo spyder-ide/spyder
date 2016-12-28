@@ -49,7 +49,7 @@ from spyder.widgets.variableexplorer.utils import (
     array, DataFrame, display_to_value, FakeObject, get_color_name,
     get_human_readable_type, get_size, Image, is_editable_type, is_known_type,
     MaskedArray, ndarray, np_savetxt, Series, sort_against, try_to_eval,
-    unsorted_unique, value_to_display,)
+    unsorted_unique, value_to_display, get_object_attrs)
 
 if ndarray is not FakeObject:
     from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
@@ -59,18 +59,6 @@ if DataFrame is not FakeObject:
 
 
 LARGE_NROWS = 100
-
-
-def get_object_attrs(obj):
-    """
-    Get the attributes of an object using dir.
-
-    This filters protected attributes
-    """
-    attrs = [k for k in dir(obj) if not k.startswith('__')]
-    if not attrs:
-        attrs = dir(obj)
-    return attrs
 
 
 class ProxyObject(object):

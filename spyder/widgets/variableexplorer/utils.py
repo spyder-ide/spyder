@@ -138,10 +138,22 @@ def get_size(item):
         return 1
 
 
-#==============================================================================
+def get_object_attrs(obj):
+    """
+    Get the attributes of an object using dir.
+
+    This filters protected attributes
+    """
+    attrs = [k for k in dir(obj) if not k.startswith('__')]
+    if not attrs:
+        attrs = dir(obj)
+    return attrs
+
+
+# =============================================================================
 # Set limits for the amount of elements in the repr of collections (lists,
 # dicts, tuples and sets) and Numpy arrays
-#==============================================================================
+# =============================================================================
 CollectionsRepr = reprlib.Repr()
 CollectionsRepr.maxlist = 10
 CollectionsRepr.maxdict = 10
