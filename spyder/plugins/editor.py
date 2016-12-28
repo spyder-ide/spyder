@@ -2628,7 +2628,7 @@ class Editor(SpyderPluginWidget):
         self.set_create_new_file_if_empty(True)
 
     def reorder_filenames(self, filenames):
-        """Take the last session filenames and puts the last open on first.
+        """Take the last session filenames and put the last open on first.
 
         It takes a list of filenames and using the current filename from the 
         layout settings, sets the one that had focused last in the position 0. 
