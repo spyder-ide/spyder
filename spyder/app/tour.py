@@ -532,14 +532,14 @@ class FadingCanvas(FadingDialog):
 
         # To be used so tips do not appear outside spyder
         if self.hasFocus():
-            self.tour.tour_gain_focus()
+            self.tour.gain_focus()
 
     def focusOutEvent(self, event):
         """Reimplement Qt method."""
 
         # To be used so tips do not appear outside spyder
         if self.tour.step_current != 0:
-            self.tour.tour_lost_focus()
+            self.tour.lost_focus()
 
 
 class FadingTipBox(FadingDialog):
@@ -838,7 +838,7 @@ class FadingTipBox(FadingDialog):
         """Reimplement Qt method."""
 
         # To be used so tips do not appear outside spyder
-        self.tour.tour_lost_focus()
+        self.tour.lost_focus()
 
     def context_menu_requested(self, event):
         """ """
@@ -893,7 +893,7 @@ class AnimatedTour(QWidget):
         self.run = None
 
         self.is_tour_set = False
-        self.is_tour_running = False
+        self.is_running = False
 
         # Widgets
         self.canvas = FadingCanvas(self.parent, self.opacity_canvas,
@@ -927,7 +927,7 @@ class AnimatedTour(QWidget):
 
         # To control the focus of tour
         self.setting_data = False
-        self.tour_hidden = False
+        self.hidden = False
 
     def _resized(self, event):
         """ """
@@ -1017,7 +1017,7 @@ class AnimatedTour(QWidget):
         return widgets, dockwidgets
 
     def _set_data(self):
-        """ """
+        """Set data that is displayed in each step of the tour."""
         self.setting_data = True
         step, steps, frames = self.step_current, self.steps, self.frames
         current = '{0}/{1}'.format(step + 1, steps)
@@ -1158,7 +1158,7 @@ class AnimatedTour(QWidget):
             self.tips.context_menu_requested(pos)
 
     def _hiding(self):
-        self.tour_hidden = True
+        self.hidden = True
         self.tips.hide()
 
     # --- public api
@@ -1197,7 +1197,7 @@ class AnimatedTour(QWidget):
         self.canvas.fade_in(self._move_step)
         self._clear_canvas()
 
-        self.is_tour_running = True
+        self.is_running = True
 
     def close_tour(self):
         """ """
@@ -1212,7 +1212,7 @@ class AnimatedTour(QWidget):
         except:
             pass
 
-        self.is_tour_running = False
+        self.is_running = False
 
     def hide_tips(self):
         """ """
@@ -1223,7 +1223,7 @@ class AnimatedTour(QWidget):
         """ """
         self._clear_canvas()
         self._move_step()
-        self.tour_hidden = False
+        self.hidden = False
 
     def next_step(self):
         """ """
@@ -1251,14 +1251,14 @@ class AnimatedTour(QWidget):
         """ """
         self.go_to_step(0)
 
-    def tour_lost_focus(self):
-        if (self.is_tour_running and not self.any_has_focus() and
-            not self.setting_data and not self.tour_hidden):
+    def lost_focus(self):
+        if (self.is_running and not self.any_has_focus() and
+            not self.setting_data and not self.hidden):
             self.hide_tips()
 
-    def tour_gain_focus(self):
-        if (self.is_tour_running and self.any_has_focus() and 
-            not self.setting_data and self.tour_hidden):
+    def gain_focus(self):
+        if (self.is_running and self.any_has_focus() and 
+            not self.setting_data and self.hidden):
             self.unhide_tips()
 
     def any_has_focus(self):

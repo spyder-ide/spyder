@@ -2097,7 +2097,7 @@ class MainWindow(QMainWindow):
         """Reimplement Qt method."""
         QMainWindow.focusInEvent(self, event)
         if self.hasFocus():
-            self.tour.tour_gain_focus()
+            self.tour.gain_focus()
 
     def hideEvent(self, event):
         """Reimplement Qt method"""
