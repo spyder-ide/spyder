@@ -374,16 +374,17 @@ def display_to_value(value, default_value, ignore_errors=True):
     return value
 
 
-#==============================================================================
+# =============================================================================
 # Types
-#==============================================================================
+# =============================================================================
 def get_type_string(item):
-    """Return type string of an object"""
+    """Return type string of an object."""
     if isinstance(item, DataFrame):
         return "DataFrame"
     if isinstance(item, Series):
         return "Series"
-    found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
+    found = re.findall(r"<(?:type|class) '(\S*)'>",
+                       to_text_string(type(item)))
     if found:
         return found[0]
     
