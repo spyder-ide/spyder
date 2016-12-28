@@ -1845,12 +1845,12 @@ class Editor(SpyderPluginWidget):
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
             if index == 0:  # this is the last file focused in previous session
-                foc = True
+                focus = True
             else:
-                foc = False
+                focus = False
             current_editor = self.set_current_filename(filename,
                                                        editorwindow,
-                                                       focus=foc)
+                                                       focus=focus)
             if current_editor is None:
                 # -- Not a valid filename:
                 if not osp.isfile(filename):
@@ -1864,7 +1864,7 @@ class Editor(SpyderPluginWidget):
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
-                                                                 focus=foc)
+                                                                 focus=focus)
                 current_editor.set_breakpoints(load_breakpoints(filename))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
