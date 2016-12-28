@@ -1240,6 +1240,8 @@ class MainWindow(QMainWindow):
         # Show dialog with missing dependencies
         self.report_missing_dependencies()
 
+        # Raise the menuBar to the top of the main window widget's stack
+        # (Fixes issue 3887)
         self.menuBar().raise_()
         self.is_setting_up = False
 
