@@ -49,7 +49,7 @@ from spyder.widgets.variableexplorer.utils import (
     array, DataFrame, display_to_value, FakeObject, get_color_name,
     get_human_readable_type, get_size, Image, is_editable_type, is_known_type,
     MaskedArray, ndarray, np_savetxt, Series, sort_against, try_to_eval,
-    unsorted_unique, value_to_display, get_object_attrs)
+    unsorted_unique, value_to_display, get_object_attrs, get_type_string)
 
 if ndarray is not FakeObject:
     from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
@@ -109,21 +109,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         """Return model data"""
         return self._data
 
-    def get_data_type(self, data):
-        """Return data type"""
-        data_type = to_text_string(type(data))
-        # String representations of type(foo) are of the form
-        #     "<class 'datetime.timedelta'>"
-        # so the code below gives us
-        #     "datetime.timedelta"
-        # which is exactly what we want
-        data_type = data_type.split()[-1][1:-2]
-        return data_type
-
     def set_data(self, data, coll_filter=None):
         """Set model data"""
         self._data = data
-        data_type = self.get_data_type(data)
+        data_type = get_type_string(data)
 
         if coll_filter is not None and not self.remote and \
           isinstance(data, (tuple, list, dict)):
