@@ -529,14 +529,12 @@ class FadingCanvas(FadingDialog):
 
     def focusInEvent(self, event):
         """Reimplement Qt method."""
-
         # To be used so tips do not appear outside spyder
         if self.hasFocus():
             self.tour.gain_focus()
 
     def focusOutEvent(self, event):
         """Reimplement Qt method."""
-
         # To be used so tips do not appear outside spyder
         if self.tour.step_current != 0:
             self.tour.lost_focus()
@@ -836,7 +834,6 @@ class FadingTipBox(FadingDialog):
 
     def focusOutEvent(self, event):
         """Reimplement Qt method."""
-
         # To be used so tips do not appear outside spyder
         self.tour.lost_focus()
 
@@ -1191,6 +1188,7 @@ class AnimatedTour(QWidget):
         # FIXME: reset step to last used value
         # Reset step to begining
         self.step_current = self.last_frame_active
+
         # Adjust the canvas size to match the main window size
         self.canvas.setFixedSize(width, height)
         self.canvas.move(QPoint(x, y))
@@ -1215,12 +1213,12 @@ class AnimatedTour(QWidget):
         self.is_running = False
 
     def hide_tips(self):
-        """ """
+        """Hide tips dialog when the main window loses focus."""
         self._clear_canvas()
         self.tips.fade_out(self._hiding)
 
     def unhide_tips(self):
-        """ """
+        """Unhide tips dialog when the main window loses focus."""
         self._clear_canvas()
         self._move_step()
         self.hidden = False
@@ -1252,11 +1250,13 @@ class AnimatedTour(QWidget):
         self.go_to_step(0)
 
     def lost_focus(self):
+        """Confirm if the tour loses focus and hides the tips."""
         if (self.is_running and not self.any_has_focus() and
             not self.setting_data and not self.hidden):
             self.hide_tips()
 
     def gain_focus(self):
+        """Confirm if the tour regains focus and unhides the tips."""
         if (self.is_running and self.any_has_focus() and 
             not self.setting_data and self.hidden):
             self.unhide_tips()
