@@ -462,6 +462,24 @@ def is_module_installed(module_name, version=None, installed_version=None,
             
             return check_version(actver, version, symb)
 
+def is_python_interpreter(filename):
+    """Evaluate wether a file is a python interpreter or not."""
+    real_filename = os.path.realpath(filename) # To follow symlink if existent
+    if not osp.isfile(real_filename) or encoding.is_text_file(real_filename):
+        return False
+    possible_names = ['python', 'python2', 'python2.7', 'python3', 'python3.4',
+                      'python3.5']
+    if not any([real_filename.endswith(pn) for pn in possible_names]):
+        return False
+    try:
+        proc = run_program(filename, ["-h"])
+        valid = str(proc.communicate()[0])
+        if (len(valid) > 2 and
+            valid[2:].startswith("usage: {}".format(filename))):
+            return True
+    except:
+        return False
+
 
 def test_programs():
     assert find_program('git')

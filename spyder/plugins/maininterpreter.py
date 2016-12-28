@@ -141,10 +141,13 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             return
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        valid = self.is_python_interpreter(pyexec)
-        if valid:
+        if programs.is_python_interpreter(pyexec):
             self.warn_python_compatibility(pyexec)
         else:
+            QMessageBox.warning(self, _('Warning'),
+                    _("You selected an invalid Python interpreter for the "
+                      "console so the previous interpreter will stay. Please "
+                      "make sure to select a valid one."), QMessageBox.Ok)
             self.pyexec_edit.setText(get_python_executable())
             return
 
@@ -157,27 +160,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         if def_pyexec != cust_pyexec:
             if custom:
                 self.warn_python_compatibility(cust_pyexec)
-
-    def is_python_interpreter(self, pyexec):
-        if not osp.isfile(pyexec):
-            return False
-        try:
-            proc = programs.run_program(pyexec, ["-h"])
-            valid = str(proc.communicate()[0])
-            if len(valid) > 2 and valid[2:].startswith("usage: {}".format(pyexec)):
-                return True
-            else:
-                QMessageBox.warning(self, _('Warning'),
-                    _("You selected an invalid Python interpreter for the "
-                      "console so the previous interpreter will stay. Please "
-                      "make sure to select a valid one."), QMessageBox.Ok)
-                return False
-        except:
-            QMessageBox.warning(self, _('Warning'),
-                _("You selected an invalid Python interpreter for the console "
-                  "so the previous interpreter will stay. Please make sure to "
-                  "select a valid one."), QMessageBox.Ok)
-            return False
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
