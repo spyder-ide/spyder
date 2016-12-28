@@ -133,7 +133,9 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
             return
 
-        self.editor = RemoteCollectionsEditorTableView(self, None,
+        self.editor = RemoteCollectionsEditorTableView(
+                        self,
+                        None,
                         minmax=minmax,
                         dataframe_format=dataframe_format,
                         get_value_func=self.get_value,
@@ -152,6 +154,7 @@ class NamespaceBrowser(QWidget):
                         get_array_ndim_func=self.get_array_ndim,
                         plot_func=self.plot, imshow_func=self.imshow,
                         show_image_func=self.show_image)
+
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
 
@@ -471,21 +474,21 @@ class NamespaceBrowser(QWidget):
         else:
             self.shellwidget.send_to_process(command)
 
-    #------ Set, load and save data -------------------------------------------
+    # ------ Set, load and save data ------------------------------------------
     def set_data(self, data):
-        """Set data"""
+        """Set data."""
         if data != self.editor.model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
         
     def collapse(self):
-        """Collapse"""
+        """Collapse."""
         self.sig_collapse.emit()
 
     @Slot(bool)
     @Slot(list)
     def import_data(self, filenames=None):
-        """Import data from text file"""
+        """Import data from text file."""
         title = _("Import data")
         if filenames is None:
             if self.filename is None:

@@ -194,7 +194,7 @@ DEFAULTS = [
               'exclude_unsupported': True,
               'truncate': True,
               'minmax': False
-              }),
+             }),
             ('editor',
              {
               'printer_header/font/family': SANS_SERIF,

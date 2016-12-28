@@ -1438,22 +1438,25 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         return menu
 
 
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
+# =============================================================================
 def get_test_data():
-    """Create test data"""
+    """Create test data."""
     import numpy as np
     from spyder.pil_patch import Image
     image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
                             mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
+
     class Foobar(object):
+
         def __init__(self):
             self.text = "toto"
             self.testdict = testdict
             self.testdate = testdate
+
     foobar = Foobar()
     return {'object': foobar,
             'str': 'kjkj kj k j j kj k jkj',

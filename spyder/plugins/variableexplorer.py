@@ -42,12 +42,12 @@ class VariableExplorerConfigPage(PluginConfigPage):
         display_data = [('minmax', _("Show arrays min/max"), '')]
         display_boxes = [self.create_checkbox(text, option, tip=tip)
                          for option, text, tip in display_data]
-        
+
         ar_layout = QVBoxLayout()
         ar_layout.addWidget(ar_box)
         ar_layout.addWidget(ar_spin)
         ar_group.setLayout(ar_layout)
-        
+
         filter_layout = QVBoxLayout()
         for box in filter_boxes:
             filter_layout.addWidget(box)
