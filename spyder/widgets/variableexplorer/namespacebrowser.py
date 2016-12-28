@@ -59,7 +59,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = None
         self.excluded_names = None
         self.minmax = None
-        self.remote_editing = None
         
         # Other setting
         self.dataframe_format = None
@@ -75,8 +74,7 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, dataframe_format=None,
-              remote_editing=None):
+              minmax=None, dataframe_format=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -93,7 +91,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = exclude_unsupported
         self.excluded_names = excluded_names
         self.minmax = minmax
-        self.remote_editing = remote_editing
         self.dataframe_format = dataframe_format
         
         if self.editor is not None:
@@ -106,12 +103,13 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
             return
 
-        self.editor = RemoteCollectionsEditorTableView(self,
+        self.editor = RemoteCollectionsEditorTableView(
+                        self,
                         data=None,
                         minmax=minmax,
                         shellwidget=self.shellwidget,
-                        dataframe_format=dataframe_format,
-                        remote_editing=remote_editing)
+                        dataframe_format=dataframe_format)
+
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
 
@@ -223,6 +221,10 @@ class NamespaceBrowser(QWidget):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
             self.shellwidget.refresh_namespacebrowser()
+            try:
+                self.editor.resizeRowToContents()
+            except TypeError:
+                pass
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
@@ -233,21 +235,21 @@ class NamespaceBrowser(QWidget):
         """Set properties of variables"""
         self.editor.var_properties = properties
 
-    #------ Set, load and save data -------------------------------------------
+
     def set_data(self, data):
-        """Set data"""
+        """Set data."""
         if data != self.editor.model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
         
     def collapse(self):
-        """Collapse"""
+        """Collapse."""
         self.sig_collapse.emit()
 
     @Slot(bool)
     @Slot(list)
     def import_data(self, filenames=None):
-        """Import data from text file"""
+        """Import data from text file."""
         title = _("Import data")
         if filenames is None:
             if self.filename is None:
