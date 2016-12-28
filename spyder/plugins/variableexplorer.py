@@ -14,7 +14,6 @@ from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 from spyder.config.base import _
 from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
-from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
@@ -40,16 +39,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))
-        display_data = []
-        if programs.is_module_installed('numpy'):
-            display_data.append(('minmax', _("Show arrays min/max"), ''))
-        display_data.append(
-            ('remote_editing', _("Edit data in the remote process"),
-             _("Editors are opened in the remote process for NumPy "
-               "arrays, PIL images, lists, tuples and dictionaries.\n"
-               "This avoids transfering large amount of data between "
-               "the remote process and Spyder (through the socket)."))
-                            )
+        display_data = [('minmax', _("Show arrays min/max"), '')]
         display_boxes = [self.create_checkbox(text, option, tip=tip)
                          for option, text, tip in display_data]
         
