@@ -25,7 +25,7 @@ from qtpy.QtWidgets import QApplication
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.py3compat import builtins, is_text_string, to_text_string, PY3
+from spyder.py3compat import builtins, is_text_string, to_text_string
 from spyder.utils.sourcecode import CELL_LANGUAGES
 
 
@@ -356,9 +356,7 @@ class OutlineExplorerData(object):
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
-    add_kw = []
-    if PY3:
-        add_kw = ['async','await']
+    add_kw = ['async', 'await']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
