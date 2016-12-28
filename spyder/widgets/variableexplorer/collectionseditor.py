@@ -65,15 +65,19 @@ class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
 
     def __init__(self, obj):
+        """Constructor."""
         self.__obj__ = obj
 
     def __len__(self):
+        """Get len according to detected attributes."""
         return len(get_object_attrs(self.__obj__))
 
     def __getitem__(self, key):
+        """Get attribute corresponding to key."""
         return getattr(self.__obj__, key)
 
     def __setitem__(self, key, value):
+        """Set attribute corresponding to key with value."""
         try:
             setattr(self.__obj__, key, value)
         except TypeError:
