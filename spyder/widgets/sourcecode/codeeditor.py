@@ -2795,6 +2795,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.completion_text += text
 
     def handle_parentheses(self, text):
+        """Handle left and right parenthesis depending on editor config."""
         position = self.get_position('cursor')
         rest = self.get_text('cursor', 'eol').rstrip()
         valid = not rest or rest[0] in (',', ')', ']', '}')
