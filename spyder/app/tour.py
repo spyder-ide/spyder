@@ -528,13 +528,13 @@ class FadingCanvas(FadingDialog):
         pass
 
     def focusInEvent(self, event):
-        """Reimplement Qt method."""
+        """Override Qt method."""
         # To be used so tips do not appear outside spyder
         if self.hasFocus():
             self.tour.gain_focus()
 
     def focusOutEvent(self, event):
-        """Reimplement Qt method."""
+        """Override Qt method."""
         # To be used so tips do not appear outside spyder
         if self.tour.step_current != 0:
             self.tour.lost_focus()
@@ -833,7 +833,7 @@ class FadingTipBox(FadingDialog):
 #            self.context_menu_requested(event)
 
     def focusOutEvent(self, event):
-        """Reimplement Qt method."""
+        """Override Qt method."""
         # To be used so tips do not appear outside spyder
         self.tour.lost_focus()
 
