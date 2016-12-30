@@ -197,6 +197,10 @@ class DataFrameModel(QAbstractTableModel):
                 except:
                     header = to_text_string(self.df_header[0])
                 return to_qvariant(header)
+            elif PY2:
+                header = self.df_header[section-1]
+                coding = encoding.get_coding(header)
+                return to_qvariant(to_text_string(header, encoding=coding))
             else:
                 return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
