@@ -2516,12 +2516,9 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
-            if self.close_parentheses_enabled:
-                self.handle_close_parentheses(text)
-            else:
-                self.insert_text(text)
-        elif text in ('[', '{') and not self.has_selected_text() \
-          and self.close_parentheses_enabled:
+            self.handle_parentheses(text)
+        elif (text in ('[', '{') and not self.has_selected_text() and
+              self.close_parentheses_enabled):
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
                s_trailing_text[0] in (',', ')', ']', '}'):
@@ -2588,12 +2585,12 @@ class CodeEditor(TextEditBaseWidget):
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
 
-    def handle_close_parentheses(self, text):
-        if not self.close_parentheses_enabled:
-            return
+    def handle_parentheses(self, text):
+        """Handle left and right parenthesis depending on editor config."""
         position = self.get_position('cursor')
         rest = self.get_text('cursor', 'eol').rstrip()
-        if not rest or rest[0] in (',', ')', ']', '}'):
+        valid = not rest or rest[0] in (',', ')', ']', '}')
+        if self.close_parentheses_enabled and valid:
             self.insert_text('()')
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter)
