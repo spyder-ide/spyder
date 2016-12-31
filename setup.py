@@ -280,7 +280,7 @@ install_requires = [
     'pep8',
     'pylint',
     'psutil',
-    'qtawesome',
+    'qtawesome>=0.4',
     'qtpy>=1.1.0',
     'pickleshare',
     'pyzmq',

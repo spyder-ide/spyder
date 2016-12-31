@@ -130,8 +130,7 @@ QApplication.processEvents()
 #==============================================================================
 # Local utility imports
 #==============================================================================
-from spyder import (__version__, __project_url__, __forum_url__, get_versions,
-                    __project_fonts__)
+from spyder import __version__, __project_url__, __forum_url__, get_versions
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
                                 debug_print, MAC_APP_NAME, get_home_dir,
@@ -2969,23 +2968,12 @@ def main():
     try:
         mainwindow = run_spyder(app, options, args)
     except FontError as fontError:
-        import traceback
-        traceback.print_exc(file=STDERR)
-        traceback.print_exc(file=open('spyder_crash.log', 'w'))
         QMessageBox.information(None, "Spyder",
-                "Spyder can't get the fonts.<br><br>"
-                " %s <br><br>"
-                "If Spyder does not start at all and <u>before submitting a "
-                "bug report</u>, please try to replace the fonts files in the "
-                "route above with the .ttf files from <a href=\"%s\">here</a>."
-                "<br><br>"
-                "If trying this does not help, please take "
-                "the time to search for <a href=\"%s\">known bugs</a> or "
-                "<a href=\"%s\">discussions</a> matching your situation before"
-                " eventually creating a new issue <a href=\"%s\">here</a>. "
-                "Your feedback will always be greatly appreciated."
-                "" % (fontError ,__project_fonts__, __project_url__,
-                      __forum_url__, __project_url__))
+                "Spyder was unable to load the <i>Spyder 3</i> "
+                "icon theme. That's why it's going to fallback to the "
+                "theme used in Spyder 2.<br><br>"
+                "For that, please close this window and start Spyder again.")
+        CONF.set('main', 'icon_theme', 'spyder 2')
     except BaseException:
         CONF.set('main', 'crash', True)
         import traceback
