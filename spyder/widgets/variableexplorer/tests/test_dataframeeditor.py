@@ -174,6 +174,15 @@ def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch)
     with qtbot.assertNotEmitted(editor.sig_option_changed):
         editor.change_format()
 
+def test_header_encoding():
+    df = DataFrame({"ä": [1],
+                    "ï»¿Unieke_Idcode": ['a'],
+                    1: ['abcd'],
+                    "f": ['31/12/16'],
+                    "": ['']})
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+
 
 if __name__ == "__main__":
     pytest.main()
