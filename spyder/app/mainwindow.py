@@ -277,6 +277,8 @@ class MainWindow(QMainWindow):
         self.open_project = options.open_project
 
         self.debug_print("Start of MainWindow constructor")
+        
+        self.setFocusPolicy(Qt.StrongFocus)
 
         def signal_handler(signum, frame=None):
             """Handler for signals."""
@@ -2090,6 +2092,12 @@ class MainWindow(QMainWindow):
 
         # To be used by the tour to be able to move
         self.sig_moved.emit(event)
+
+    def focusInEvent(self, event):
+        """Reimplement Qt method."""
+        QMainWindow.focusInEvent(self, event)
+        if self.hasFocus():
+            self.tour.gain_focus()
 
     def hideEvent(self, event):
         """Reimplement Qt method"""
