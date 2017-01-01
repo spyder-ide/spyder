@@ -12,11 +12,11 @@ from spyder.utils.programs import (run_python_script_in_terminal,
                                    is_python_interpreter)
 
 if os.name == 'nt':
-    VALID_INTERPRETER = '%PYTHON%\bin\python.exe'
-    INVALID_INTERPRETER = '%PYTHON%\Scripts\ipython.exe'
+    VALID_INTERPRETER = r'%PYTHON%\bin\python.exe'
+    INVALID_INTERPRETER = r'%PYTHON%\Scripts\ipython.exe'
 else:
-    VALID_INTERPRETER = '$HOME/miniconda/bin/python'
-    INVALID_INTERPRETER = '$HOME/miniconda/bin/ipython'
+    VALID_INTERPRETER = r'$HOME/miniconda/bin/python'
+    INVALID_INTERPRETER = r'$HOME/miniconda/bin/ipython'
 
 @pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
 def test_run_python_script_in_terminal(tmpdir, qtbot):
