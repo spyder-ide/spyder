@@ -14,10 +14,15 @@ try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock # Python 2
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO # Python 2
 
 # Third party imports
-from pandas import DataFrame, date_range
+from pandas import DataFrame, date_range, read_csv
 from qtpy.QtGui import QColor
+from qtpy.QtCore import Qt
 import pytest
 
 # Local imports
@@ -175,13 +180,34 @@ def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch)
         editor.change_format()
 
 def test_header_encoding():
-    df = DataFrame({"ä": [1],
-                    "ï»¿Unieke_Idcode": ['a'],
-                    1: ['abcd'],
-                    "f": ['31/12/16'],
-                    "": ['']})
+    data =  u"""a,Unieke_Idcode,ü,b,1
+            0,flooooo,0.55,10100103,31/12/2016
+            """
+    test_data = StringIO(data)
+    df = read_csv(test_data, encoding='utf-8')
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
+    model = editor.dataModel
+    assert model.headerData(0, orientation=Qt.Horizontal) == u"Index"
+    assert model.headerData(1, orientation=Qt.Horizontal) == u"a"
+    assert model.headerData(2, orientation=Qt.Horizontal) == u"Unieke_Idcode"
+    assert model.headerData(3, orientation=Qt.Horizontal) == u"ü"
+    assert model.headerData(4, orientation=Qt.Horizontal) == u"b"
+    assert model.headerData(5, orientation=Qt.Horizontal) == u"1"
+
+def test_header_bom():
+    df = read_csv(r'spyder\widgets\variableexplorer\tests\test.csv',
+                  encoding='utf-8-sig')
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    assert model.headerData(0, orientation=Qt.Horizontal) == "Index"
+    assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
+    assert model.headerData(2, orientation=Qt.Horizontal) == "Unieke_Idcode"
+    assert model.headerData(3, orientation=Qt.Horizontal) == "a"
+    assert model.headerData(4, orientation=Qt.Horizontal) == "b"
+    assert model.headerData(5, orientation=Qt.Horizontal) == "c"
+    assert model.headerData(6, orientation=Qt.Horizontal) == "d"
 
 
 if __name__ == "__main__":
