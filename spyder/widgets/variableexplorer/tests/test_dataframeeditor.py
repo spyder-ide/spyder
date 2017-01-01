@@ -196,7 +196,7 @@ def test_header_encoding():
     assert model.headerData(5, orientation=Qt.Horizontal) == u"1"
 
 def test_header_bom():
-    df = read_csv(r'spyder\widgets\variableexplorer\tests\test.csv',
+    df = read_csv('spyder/widgets/variableexplorer/tests/test.csv',
                   encoding='utf-8-sig')
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
