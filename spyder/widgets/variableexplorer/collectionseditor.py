@@ -493,10 +493,14 @@ class CollectionsDelegate(QItemDelegate):
             return editor
         #---editor = TextEditor
         elif is_text_string(value) and len(value) > 40:
-            editor = TextEditor(value, key)
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
-                                            key=key, readonly=readonly))
-            return None
+            try:
+                editor = TextEditor(value, key)
+                self.create_dialog(editor, dict(model=index.model(),
+                                                editor=editor, key=key,
+                                                readonly=readonly))
+                return None
+            except:
+                return None
         #---editor = QLineEdit
         elif is_editable_type(value):
             editor = QLineEdit(parent)
