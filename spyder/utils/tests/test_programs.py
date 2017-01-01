@@ -6,11 +6,17 @@
 """Tests for programs.py"""
 
 import os
-
 import pytest
 
 from spyder.utils.programs import (run_python_script_in_terminal,
                                    is_python_interpreter)
+
+if os.name == 'nt':
+    VALID_INTERPRETER = '%PYTHON%\bin\python.exe'
+    INVALID_INTERPRETER = '%PYTHON%\Scripts\ipython.exe'
+else:
+    VALID_INTERPRETER = '$HOME/miniconda/bin/python'
+    INVALID_INTERPRETER = '$HOME/miniconda/bin/ipython'
 
 @pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
 def test_run_python_script_in_terminal(tmpdir, qtbot):
@@ -37,37 +43,15 @@ def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     res = outfilepath.read()
     assert res == 'done'
 
-@pytest.mark.skipif(os.environ.get('TEST_CI_WIDGETS', None) == True,
-                    reason='To only run the test in spyders CI services.')
-def test_is_python_interpreter_linux_true():
-    filename = "$HOME/miniconda/bin/python"
-    valid = is_python_interpreter(filename)
+@pytest.mark.skipif(os.environ.get('CI', None) == True,
+                    reason='It only runs in CI services.')
+def test_is_valid_interpreter():
+    assert is_python_interpreter(VALID_INTERPRETER)
 
-    assert valid == True
-
-@pytest.mark.skipif(os.environ.get('TEST_CI_WIDGETS', None) == True,
-                    reason='To only run the test in spyders CI services.')
-def test_is_python_interpreter_linux_false():
-    filename = "$HOME/miniconda/bin/ipython"
-    valid = is_python_interpreter(filename)
-
-    assert valid == False
-
-@pytest.mark.skipif(os.environ.get('TEST_CI_WIDGETS', None) == True,
-                    reason='To only run the test in spyders CI services.')
-def test_is_python_interpreter_windows_true():
-    filename = "%PYTHON%\bin\python.exe"
-    valid = is_python_interpreter(filename)
-
-    assert valid == True
-
-@pytest.mark.skipif(os.environ.get('TEST_CI_WIDGETS', None) == True,
-                    reason='To only run the test in spyders CI services.')
-def test_is_python_interpreter_windows_false():
-    filename = "%PYTHON%\Scripts\ipython.exe"
-    valid = is_python_interpreter(filename)
-
-    assert valid == False
+@pytest.mark.skipif(os.environ.get('CI', None) == True,
+                    reason='It only runs in CI services.')
+def test_is_invalid_interpreter():
+    assert not is_python_interpreter(INVALID_INTERPRETER)
 
 
 if __name__ == '__main__':
