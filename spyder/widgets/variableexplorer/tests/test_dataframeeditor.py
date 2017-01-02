@@ -14,10 +14,7 @@ try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock # Python 2
-try:
-    from io import StringIO
-except ImportError:
-    from StringIO import StringIO # Python 2
+import os
 
 # Third party imports
 from pandas import DataFrame, date_range, read_csv
@@ -29,6 +26,9 @@ import pytest
 from spyder.widgets.variableexplorer import dataframeeditor
 from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
+from spyder.py3compat import PY2
+
+FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 
 # Helper functions
 def colorclose(color, hsva_expected):
@@ -179,25 +179,23 @@ def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch)
     with qtbot.assertNotEmitted(editor.sig_option_changed):
         editor.change_format()
 
-def test_header_encoding():
-    data =  u"""a,Unieke_Idcode,ü,b,1
-            0,flooooo,0.55,10100103,31/12/2016
-            """
-    test_data = StringIO(data)
-    df = read_csv(test_data, encoding='utf-8')
+def test_header_bom():
+    if PY2:
+        df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
+    else:
+        df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'),
+                      encoding='utf-8-sig')
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     model = editor.dataModel
-    assert model.headerData(0, orientation=Qt.Horizontal) == u"Index"
-    assert model.headerData(1, orientation=Qt.Horizontal) == u"a"
-    assert model.headerData(2, orientation=Qt.Horizontal) == u"Unieke_Idcode"
-    assert model.headerData(3, orientation=Qt.Horizontal) == u"ü"
-    assert model.headerData(4, orientation=Qt.Horizontal) == u"b"
-    assert model.headerData(5, orientation=Qt.Horizontal) == u"1"
+    assert model.headerData(1, orientation=Qt.Horizontal) == "Date (MMM-YY)"
 
-def test_header_bom():
-    df = read_csv('spyder/widgets/variableexplorer/tests/test.csv',
-                  encoding='utf-8-sig')
+def test_header_encoding():
+    if PY2:
+        df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
+    else:
+        df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'),
+                      encoding='utf-8-sig')
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     model = editor.dataModel
