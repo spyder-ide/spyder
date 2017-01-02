@@ -1448,11 +1448,13 @@ class Editor(SpyderPluginWidget):
     def is_file_opened(self, filename=None):
         return self.editorstacks[0].is_file_opened(filename)
         
-    def set_current_filename(self, filename, editorwindow=None):
-        """Set focus to *filename* if this file has been opened
-        Return the editor instance associated to *filename*"""
+    def set_current_filename(self, filename, editorwindow=None, focus=True):
+        """Set focus to *filename* if this file has been opened.
+
+        Return the editor instance associated to *filename*.
+        """
         editorstack = self.get_current_editorstack(editorwindow)
-        return editorstack.set_current_filename(filename)
+        return editorstack.set_current_filename(filename, focus)
 
     def set_path(self):
         for finfo in self.editorstacks[0].data:
@@ -1841,27 +1843,32 @@ class Editor(SpyderPluginWidget):
             goto = [goto]
         elif goto is not None and len(goto) != len(filenames):
             goto = None
-            
+
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            current_editor = self.set_current_filename(filename, editorwindow)
+            if index == 0:  # this is the last file focused in previous session
+                focus = True
+            else:
+                focus = False
+            current_editor = self.set_current_filename(filename,
+                                                       editorwindow,
+                                                       focus=focus)
             if current_editor is None:
                 # -- Not a valid filename:
                 if not osp.isfile(filename):
                     continue
                 # --
                 current_es = self.get_current_editorstack(editorwindow)
-
-                # Creating the editor widget in the first editorstack (the one
-                # that can't be destroyed), then cloning this editor widget in
-                # all other editorstacks:
+                # Creating the editor widget in the first editorstack
+                # (the one that can't be destroyed), then cloning this
+                # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(filename, set_current=False)
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
-                current_editor = current_es.set_current_filename(filename)
+                current_editor = current_es.set_current_filename(filename,
+                                                                 focus=focus)
                 current_editor.set_breakpoints(load_breakpoints(filename))
                 self.register_widget_shortcuts(current_editor)
-
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
             if goto is not None: # 'word' is assumed to be None as well
@@ -2605,12 +2612,15 @@ class Editor(SpyderPluginWidget):
         else:
             filenames = self.get_option('filenames', default=[])
         self.close_all_files()
- 
+
         if filenames and any([osp.isfile(f) for f in filenames]):
-            self.load(filenames)
+            filenames = self.reorder_filenames(filenames)
             layout = self.get_option('layout_settings', None)
+            is_vertical, cfname, clines = layout.get('splitsettings')[0]
+            self.load(filenames, goto=clines)
             if layout is not None:
-                self.editorsplitter.set_layout_settings(layout)
+                self.editorsplitter.set_layout_settings(layout,
+                                                        dont_goto=filenames[0])
             win_layout = self.get_option('windows_layout_settings', None)
             if win_layout:
                 for layout_settings in win_layout:
@@ -2619,6 +2629,33 @@ class Editor(SpyderPluginWidget):
         else:
             self.__load_temp_file()
         self.set_create_new_file_if_empty(True)
+
+    def reorder_filenames(self, filenames):
+        """Take the last session filenames and put the last open on first.
+
+        It takes a list of filenames and using the current filename from the 
+        layout settings, sets the one that had focused last in the position 0. 
+        It also reorders the current lines for each file (supposing that they 
+        are in the same order as the filenames) and sets them back in the 
+        layout settings.
+        """
+        layout = self.get_option('layout_settings', None)
+        splitsettings = layout.get('splitsettings')
+        index_first_file = 0
+        reordered_splitsettings = []
+        for index, (is_vertical, cfname, clines) in enumerate(splitsettings):
+            #the first element of filenames is now the one that last had focus
+            if index == 0:
+                index_first_file = filenames.index(cfname)
+                filenames.pop(index_first_file)
+                filenames.insert(0, cfname)
+            clines_0 = clines[0]
+            clines.pop(index_first_file)
+            clines.insert(0, clines_0)
+            reordered_splitsettings.append((is_vertical, cfname, clines))
+        layout['splitsettings'] = reordered_splitsettings
+        self.set_option('layout_settings', layout)
+        return filenames
 
     def save_open_files(self):
         """Save the list of open files"""
