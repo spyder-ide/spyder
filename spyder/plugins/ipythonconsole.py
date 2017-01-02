@@ -302,17 +302,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_layout.addWidget(comp_box)
         comp_group.setLayout(comp_layout)
 
-        # Background Color Group
-        bg_group = QGroupBox(_("Background color"))
-        light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color')
-        dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color')
-        bg_layout = QVBoxLayout()
-        bg_layout.addWidget(light_radio)
-        bg_layout.addWidget(dark_radio)
-        bg_group.setLayout(bg_layout)
-
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
         buffer_spin = self.create_spinbox(
@@ -555,7 +544,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, comp_group,
-                                    bg_group, source_code_group), _("Display"))
+                                    source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
@@ -1054,20 +1043,40 @@ class IPythonConsole(SpyderPluginWidget):
 
     def get_style_sheet(self):
         
-        sheet = """QPlainTextEdit, QTextEdit {
-                                              background-color: white;
-                                              color: navy ;
-                                              selection-background-color: #ccc
-                                              }
-                  .error { color: red; }
-                  .in-prompt { color: navy; }
-                  .in-prompt-number { font-weight: bold; }
-                  .out-prompt { color: darkred; }
-                  .out-prompt-number { font-weight: bold; }
+        sheet = """QPlainTextEdit, QTextEdit {{
+                                              background-color: {0};
+                                              color: {1} ;
+                                              selection-background-color: {2}
+                                             }}
+                  .error {{ color: {3}; }}
+                  .in-prompt {{ color: {4}; }}
+                  .in-prompt-number {{ font-weight: {5}; }}
+                  .out-prompt {{ color: {6}; }}
+                  .out-prompt-number {{ font-weight: {7}; }}
                   /* .inverted is used to highlight selected completion */
-                  .inverted { background-color: black ; color: white; }"""
+                  .inverted {{ background-color: {8} ; color: {9}; }}"""
 
-        return sheet
+        background_color = 'red'
+        font_color = 'black'
+        selection_background_color = '#ccc'
+        error_color = 'red'
+        in_prompt_color = 'navy'
+        in_prompt_number_font_weight = 'bold'
+        out_prompt_color = 'darkred'
+        out_prompt_number_font_weight = 'bold'
+        inverted_background_color = 'black'
+        inverted_font_color = 'white'
+
+        sheet_formatted = sheet.format(background_color, font_color,
+                                       selection_background_color, error_color,
+                                       in_prompt_color,
+                                       in_prompt_number_font_weight,
+                                       out_prompt_color,
+                                       out_prompt_number_font_weight,
+                                       inverted_background_color,
+                                       inverted_font_color)
+
+        return sheet_formatted
 
     def register_client(self, client, give_focus=True):
         """Register new client"""
