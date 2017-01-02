@@ -154,9 +154,8 @@ the sympy module (e.g. plot)
             self.execute("%reset -f")
 
     def set_background_color(self):
-        light_color_o = self.additional_options['light_color']
-        if not light_color_o:
-            self.set_default_style(colors='linux')
+        style_sheet = self.additional_options['style_sheet']
+        self.style_sheet = style_sheet
 
     def create_shortcuts(self):
         inspect = config_shortcut(self._control.inspect_current_object,

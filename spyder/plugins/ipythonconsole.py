@@ -1046,11 +1046,28 @@ class IPythonConsole(SpyderPluginWidget):
             pylab = self.get_option('pylab'),
             autoload_pylab = self.get_option('pylab/autoload'),
             sympy = self.get_option('symbolic_math'),
-            light_color = self.get_option('light_color'),
+            style_sheet = self.get_style_sheet(),
             show_banner = self.get_option('show_banner')
         )
 
         return options
+
+    def get_style_sheet(self):
+        
+        sheet = """QPlainTextEdit, QTextEdit {
+                                              background-color: white;
+                                              color: navy ;
+                                              selection-background-color: #ccc
+                                              }
+                  .error { color: red; }
+                  .in-prompt { color: navy; }
+                  .in-prompt-number { font-weight: bold; }
+                  .out-prompt { color: darkred; }
+                  .out-prompt-number { font-weight: bold; }
+                  /* .inverted is used to highlight selected completion */
+                  .inverted { background-color: black ; color: white; }"""
+
+        return sheet
 
     def register_client(self, client, give_focus=True):
         """Register new client"""
