@@ -31,7 +31,7 @@ requirements:
     - pep8
     - psutil
     - pylint
-    - qtawesome >=0.4
+    - qtawesome >=0.4.1
     - qtpy
     - chardet >=2.0.0
     - numpydoc
