@@ -158,6 +158,8 @@ the sympy module (e.g. plot)
         syntax_style = self.additional_options['syntax_style']
         self.style_sheet = style_sheet
         self.syntax_style = syntax_style
+        self._style_sheet_changed()
+        self._syntax_style_changed()
 
     def create_shortcuts(self):
         inspect = config_shortcut(self._control.inspect_current_object,

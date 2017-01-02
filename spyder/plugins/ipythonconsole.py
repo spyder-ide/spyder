@@ -1131,7 +1131,9 @@ class IPythonConsole(SpyderPluginWidget):
             else:
                 return ''
 
-        color_scheme = get_color_scheme(CONF.get('color_schemes', 'selected'))
+        selected_color_scheme = CONF.get('color_schemes', 'selected')
+        print(selected_color_scheme)
+        color_scheme = get_color_scheme(selected_color_scheme)
 
         fon_c, fon_fw, fon_fs = color_scheme['normal']  # 'normal': ('#ffffff', False, False)
         font_color =  fon_c
