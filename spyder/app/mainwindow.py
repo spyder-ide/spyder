@@ -90,6 +90,8 @@ from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
+
+# To catch font errors in QtAwesome
 from qtawesome.iconic_font import FontError
 
 
