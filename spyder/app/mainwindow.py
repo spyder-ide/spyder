@@ -90,6 +90,7 @@ from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
+from qtawesome.iconic_font import FontError
 
 
 #==============================================================================
@@ -145,7 +146,6 @@ from spyder.py3compat import (getcwd, is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
-from qtawesome.iconic_font import FontError
 from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
