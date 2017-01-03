@@ -91,6 +91,9 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
+# To catch font errors in QtAwesome
+from qtawesome.iconic_font import FontError
+
 
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
@@ -2974,6 +2977,13 @@ def main():
     mainwindow = None
     try:
         mainwindow = run_spyder(app, options, args)
+    except FontError as fontError:
+        QMessageBox.information(None, "Spyder",
+                "Spyder was unable to load the <i>Spyder 3</i> "
+                "icon theme. That's why it's going to fallback to the "
+                "theme used in Spyder 2.<br><br>"
+                "For that, please close this window and start Spyder again.")
+        CONF.set('main', 'icon_theme', 'spyder 2')
     except BaseException:
         CONF.set('main', 'crash', True)
         import traceback

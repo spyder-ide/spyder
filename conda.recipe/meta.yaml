@@ -29,7 +29,7 @@ requirements:
     - pep8
     - psutil
     - pylint
-    - qtawesome
+    - qtawesome >=0.4.1
     - qtpy >=1.1.0
     - pyzmq
     - chardet >=2.0.0
