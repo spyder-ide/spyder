@@ -19,8 +19,8 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
 from spyder.api.decoration import TextDecoration
 from spyder.api.folding import FoldScope
 from spyder.api.panel import Panel
-from spyder.api.utils import (TextBlockHelper, TextHelper, DelayJobRunner,
-                              drift_color)
+from spyder.utils.editor import (TextBlockHelper, TextHelper, DelayJobRunner,
+                                 drift_color)
 import spyder.utils.icon_manager as ima
 
 
