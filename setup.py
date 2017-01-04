@@ -19,7 +19,7 @@ import subprocess
 import sys
 import shutil
 
-from distutils.core import setup
+from setuptools import setup
 from distutils.command.build import build
 from distutils.command.install import install
 from distutils.command.install_data import install_data
