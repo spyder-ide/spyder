@@ -177,30 +177,29 @@ class DataFrameModel(QAbstractTableModel):
             self.return_max = global_max
         self.reset()
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
+    def headerData(self, section, orientation, role):
         """Set header data"""
-        if role != Qt.DisplayRole:
-            return to_qvariant()
-
-        if orientation == Qt.Horizontal:
-            if section == 0:
-                return 'Index'
-            elif section == 1 and PY2:
-                # Get rid of possible BOM utf-8 data present at the
-                # beginning of a file, which gets attached to the first
-                # column header when headers are present in the first
-                # row.
-                # Fixes Issue 2514
-                try:
-                    header = to_text_string(self.df_header[0],
-                                            encoding='utf-8-sig')
-                except:
-                    header = to_text_string(self.df_header[0])
-                return to_qvariant(header)
+        if role == Qt.DisplayRole or role == Qt.ToolTipRole:
+            if orientation == Qt.Horizontal:
+                if section == 0:
+                    return 'Index'
+                elif section == 1 and PY2:
+                    # Get rid of possible BOM utf-8 data present at the
+                    # beginning of a file, which gets attached to the first
+                    # column header when headers are present in the first
+                    # row.
+                    # Fixes Issue 2514
+                    try:
+                        header = to_text_string(self.df_header[0],
+                                                encoding='utf-8-sig')
+                    except:
+                        header = to_text_string(self.df_header[0])
+                    return to_qvariant(header)
+                else:
+                    header = to_text_string(self.df_header[section - 1])
+                    return to_qvariant(header)
             else:
-                return to_qvariant(to_text_string(self.df_header[section-1]))
-        else:
-            return to_qvariant()
+                return to_qvariant()
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
