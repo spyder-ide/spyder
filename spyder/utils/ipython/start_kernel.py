@@ -34,7 +34,6 @@ init_session()
 
     return lines
 
-
 def kernel_config():
     """Create a config object with IPython kernel options"""
     from IPython.core.application import get_ipython_dir
@@ -70,6 +69,10 @@ def kernel_config():
         spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
     else:
         spy_cfg.IPKernelApp.exec_lines = []
+
+    # Clean terminal arguments input
+    clear_argv = 'import sys;sys.argv = [''];del sys'
+    spy_cfg.IPKernelApp.exec_lines.append(clear_argv)
 
     # Pylab configuration
     mpl_backend = None
