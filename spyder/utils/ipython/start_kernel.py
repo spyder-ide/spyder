@@ -34,8 +34,9 @@ init_session()
 
     return lines
 
+
 def kernel_config():
-    """Create a config object with IPython kernel options"""
+    """Create a config object with IPython kernel options."""
     from IPython.core.application import get_ipython_dir
     from traitlets.config.loader import Config, load_pyconfig_files
     if not IS_EXT_INTERPRETER:
