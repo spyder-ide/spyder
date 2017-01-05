@@ -1711,18 +1711,18 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            
-            if ((self.is_python_like() 
-                 and not prevtext.strip().startswith('#')
-                 and prevtext) 
-                or prevtext):
-                    
-                if (prevtext.strip().endswith(')')
-                    or prevtext.strip().endswith(']')
-                    or prevtext.strip().endswith('}')):
-                
+
+            if ((self.is_python_like() and
+               not prevtext.strip().startswith('#') and prevtext) or
+               prevtext):
+
+                if not prevtext.strip().startswith('return') and \
+                    (prevtext.strip().endswith(')') or
+                     prevtext.strip().endswith(']') or
+                     prevtext.strip().endswith('}')):
+
                     comment_or_string = True  # prevent further parsing
-                    
+
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
@@ -1761,8 +1761,13 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent += self.tab_stop_width_spaces
                 else:
                     correct_indent += len(self.indent_chars)
-            elif (prevtext.endswith('continue') or prevtext.endswith('break') \
-              or prevtext.endswith('pass')) and self.is_python_like():
+            elif self.is_python_like() and \
+                (prevtext.endswith('continue') or
+                 prevtext.endswith('break') or
+                 prevtext.endswith('pass') or
+                 (prevtext.strip().startswith("return") and
+                  len(re.split(r'\(|\{|\[', prevtext)) ==
+                  len(re.split(r'\)|\}|\]', prevtext)))):
                 # Unindent
                 if self.indent_chars == '\t':
                     correct_indent -= self.tab_stop_width_spaces
@@ -1796,6 +1801,22 @@ class CodeEditor(TextEditBaseWidget):
                                 correct_indent = len(prevtext)-len(prevexpr)
                             else:
                                 correct_indent = len(prevtext)
+
+        if not (diff_paren or diff_brack or diff_curly) and \
+           not prevtext.endswith(':'):
+            cur_indent = self.get_block_indentation(block_nb - 1)
+            is_blank = not self.get_text_line(block_nb - 1).strip()
+            prevline_indent = self.get_block_indentation(prevline)
+            trailing_text = self.get_text_line(block_nb).strip()
+
+            if cur_indent < prevline_indent and \
+               (trailing_text or is_blank):
+                if cur_indent % len(self.indent_chars) == 0:
+                    correct_indent = cur_indent
+                else:
+                    correct_indent = cur_indent \
+                                   + (len(self.indent_chars) -
+                                      cur_indent % len(self.indent_chars))
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
