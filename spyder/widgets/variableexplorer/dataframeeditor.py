@@ -29,7 +29,8 @@ import numpy as np
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
-from spyder.py3compat import io, is_text_string, PY2, to_text_string
+from spyder.py3compat import (io, is_text_string, PY2, to_text_string,
+                              TEXT_TYPES)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -197,6 +198,20 @@ class DataFrameModel(QAbstractTableModel):
                 except:
                     header = to_text_string(self.df_header[0])
                 return to_qvariant(header)
+            elif isinstance(self.df_header[section-1], TEXT_TYPES):
+                # Get the proper encoding of the text in the header.
+                # Fixes Issue 3896
+                if not PY2:
+                    try:
+                        header = self.df_header[section-1].encode('utf-8')
+                        coding = 'utf-8-sig'
+                    except:
+                        header = self.df_header[section-1].encode('utf-8')
+                        coding = encoding.get_coding(header)
+                else:
+                    header = self.df_header[section-1]
+                    coding = encoding.get_coding(header)
+                return to_qvariant(to_text_string(header, encoding=coding))
             else:
                 return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
