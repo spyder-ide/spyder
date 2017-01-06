@@ -205,8 +205,8 @@ class DataFrameModel(QAbstractTableModel):
                     try:
                         header = self.df_header[section-1].encode('utf-8')
                         coding = 'utf-8-sig'
-                    except Exception as e:
-                        header = self.df_header[section-1]
+                    except:
+                        header = self.df_header[section-1].encode('utf-8')
                         coding = encoding.get_coding(header)
                 else:
                     header = self.df_header[section-1]

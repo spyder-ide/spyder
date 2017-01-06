@@ -192,10 +192,7 @@ def test_header_encoding():
     editor.setup_and_check(df)
     model = editor.dataModel
     assert model.headerData(0, orientation=Qt.Horizontal) == "Index"
-    if PY2:
-        assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
-    else:
-        assert model.headerData(1, orientation=Qt.Horizontal) == ""
+    assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
     assert model.headerData(2, orientation=Qt.Horizontal) == "Unieke_Idcode"
     assert model.headerData(3, orientation=Qt.Horizontal) == "a"
     assert model.headerData(4, orientation=Qt.Horizontal) == "b"
