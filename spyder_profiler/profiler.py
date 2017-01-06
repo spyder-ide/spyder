@@ -151,5 +151,5 @@ class Profiler(SpyderPluginWidget):
                 wdir = runconf.wdir
             if runconf.args_enabled:
                 args = runconf.args
-        self.profiler.analyze(self, filename, wdir=wdir, args=args,
+        self.profiler.analyze(filename, wdir=wdir, args=args,
                               pythonpath=pythonpath)
