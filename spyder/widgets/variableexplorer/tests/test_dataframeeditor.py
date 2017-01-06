@@ -180,27 +180,22 @@ def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch)
         editor.change_format()
 
 def test_header_bom():
-    if PY2:
-        df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
-    else:
-        df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'),
-                      encoding='utf-8-sig')
+    df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     model = editor.dataModel
     assert model.headerData(1, orientation=Qt.Horizontal) == "Date (MMM-YY)"
 
 def test_header_encoding():
-    if PY2:
-        df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
-    else:
-        df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'),
-                      encoding='utf-8-sig')
+    df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
     model = editor.dataModel
     assert model.headerData(0, orientation=Qt.Horizontal) == "Index"
-    assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
+    if PY2:
+        assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
+    else:
+        assert model.headerData(1, orientation=Qt.Horizontal) == ""
     assert model.headerData(2, orientation=Qt.Horizontal) == "Unieke_Idcode"
     assert model.headerData(3, orientation=Qt.Horizontal) == "a"
     assert model.headerData(4, orientation=Qt.Horizontal) == "b"

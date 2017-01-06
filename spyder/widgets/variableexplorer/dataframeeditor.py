@@ -198,11 +198,19 @@ class DataFrameModel(QAbstractTableModel):
                 except:
                     header = to_text_string(self.df_header[0])
                 return to_qvariant(header)
-            elif PY2 and isinstance(self.df_header[section-1], TEXT_TYPES):
+            elif isinstance(self.df_header[section-1], TEXT_TYPES):
                 # Get the proper encoding of the text in the header.
                 # Fixes Issue 3896
-                header = self.df_header[section-1]
-                coding = encoding.get_coding(header)
+                if not PY2:
+                    try:
+                        header = self.df_header[section-1].encode('utf-8')
+                        coding = 'utf-8-sig'
+                    except Exception as e:
+                        header = self.df_header[section-1]
+                        coding = encoding.get_coding(header)
+                else:
+                    header = self.df_header[section-1]
+                    coding = encoding.get_coding(header)
                 return to_qvariant(to_text_string(header, encoding=coding))
             else:
                 return to_qvariant(to_text_string(self.df_header[section-1]))
