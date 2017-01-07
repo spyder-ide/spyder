@@ -139,6 +139,17 @@ def test_keep_unindent_if_blank():
     text = get_indent_fix(text)
     assert text == "    def f(x):\n        return x\n\n", repr(text)
 
+@pytest.mark.parametrize(
+    "text_input, expected, test_text",
+    [
+        ("tags = ['(a)', '(b)', '(c)']\n", "tags = ['(a)', '(b)', '(c)']\n",
+         "test_commented_brackets"),
+        ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
+         "test_balanced_brackets"),
+    ])
+def test_indentation_with_spaces(text_input, expected, test_text):
+    text = get_indent_fix(text_input)
+    assert text == expected, test_text
 
 # --- Failing tests
 # -----------------------------------------------------------------------------
@@ -164,6 +175,10 @@ def test_def_with_unindented_comment():
         ("def function():\n", "def function():\n\t", "test simple def"),
         ("open_parenthesis(\n", "open_parenthesis(\n\t\t",
          "open parenthesis"),
+        ("tags = ['(a)', '(b)', '(c)']\n", "tags = ['(a)', '(b)', '(c)']\n",
+         "test_commented_brackets"),
+        ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
+         "test_balanced_brackets"),
 
         # Failing test
         pytest.mark.xfail(
