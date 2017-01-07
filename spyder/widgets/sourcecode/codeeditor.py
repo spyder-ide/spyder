@@ -84,7 +84,8 @@ def is_letter_or_number(char):
 # =============================================================================
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
-        QDialog.__init__(self, editor)
+        QDialog.__init__(self, editor, Qt.WindowTitleHint
+                         | Qt.WindowCloseButtonHint)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
