@@ -464,7 +464,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
 
 def is_python_interpreter_valid_name(filename):
     """Check that the python interpreter file has a valid name."""
-    pattern = r'.*python(\d\.?\d*)?(.exe)?$'
+    pattern = r'.*python(\d\.?\d*)?(w)?(.exe)?$'
     if re.match(pattern, filename, flags=re.I) is None:
         return False
     else:

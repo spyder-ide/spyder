@@ -9,7 +9,8 @@ import os
 import pytest
 
 from spyder.utils.programs import (run_python_script_in_terminal,
-                                   is_python_interpreter)
+                                   is_python_interpreter,
+                                   is_python_interpreter_valid_name)
 
 
 if os.name == 'nt':
@@ -59,6 +60,11 @@ def test_is_valid_interpreter():
                     reason='It only runs in CI services.')
 def test_is_invalid_interpreter():
     assert not is_python_interpreter(INVALID_INTERPRETER)
+
+
+def test_is_invalid_interpreter():
+    names = ['python', 'pythonw', 'python2.7', 'python3.5', 'python.exe', 'pythonw.exe']
+    assert all([is_python_interpreter_valid_name(n) for n in names])
 
 
 if __name__ == '__main__':
