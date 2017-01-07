@@ -11,12 +11,16 @@ import pytest
 from spyder.utils.programs import (run_python_script_in_terminal,
                                    is_python_interpreter)
 
+
 if os.name == 'nt':
-    VALID_INTERPRETER = r'%PYTHON%\bin\python.exe'
-    INVALID_INTERPRETER = r'%PYTHON%\Scripts\ipython.exe'
+    python_dir = os.environ['PYTHON']
+    VALID_INTERPRETER = os.path.join(python_dir, 'python.exe')
+    INVALID_INTERPRETER = os.path.join(python_dir, 'Scripts', 'ipython.exe')
 else:
-    VALID_INTERPRETER = r'$HOME/miniconda/bin/python'
-    INVALID_INTERPRETER = r'$HOME/miniconda/bin/ipython'
+    home_dir = os.environ['HOME']
+    VALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'python')
+    INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
+
 
 @pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
 def test_run_python_script_in_terminal(tmpdir, qtbot):
@@ -31,6 +35,7 @@ def test_run_python_script_in_terminal(tmpdir, qtbot):
     res = outfilepath.read()
     assert res == 'done'
 
+
 @pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
 def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     scriptpath = tmpdir.join('write-done.py')
@@ -43,10 +48,12 @@ def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     res = outfilepath.read()
     assert res == 'done'
 
+
 @pytest.mark.skipif(os.environ.get('CI', None) == True,
                     reason='It only runs in CI services.')
 def test_is_valid_interpreter():
     assert is_python_interpreter(VALID_INTERPRETER)
+
 
 @pytest.mark.skipif(os.environ.get('CI', None) == True,
                     reason='It only runs in CI services.')
