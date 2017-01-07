@@ -175,7 +175,7 @@ def encode(text, orig_coding):
     if orig_coding:
         try:
             return text.encode(orig_coding), orig_coding
-        except UnicodeError:
+        except (UnicodeError, LookupError):
             pass
 
     # Try declared coding spec
