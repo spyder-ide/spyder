@@ -158,7 +158,7 @@ class ArrayModel(QAbstractTableModel):
             self.hue0 = huerange[0]
             self.dhue = huerange[1]-huerange[0]
             self.bgcolor_enabled = True
-        except TypeError:
+        except (TypeError, ValueError):
             self.vmin = None
             self.vmax = None
             self.hue0 = None
@@ -606,11 +606,10 @@ class ArrayEditor(QDialog):
         self.data.flags.writeable = True
         is_record_array = data.dtype.names is not None
         is_masked_array = isinstance(data, np.ma.MaskedArray)
-        if data.size == 0:
-            self.error(_("Array is empty"))
-            return False
+
         if data.ndim > 3:
-            self.error(_("Arrays with more than 3 dimensions are not supported"))
+            self.error(_("Arrays with more than 3 dimensions are not "
+                         "supported"))
             return False
         if xlabels is not None and len(xlabels) != self.data.shape[1]:
             self.error(_("The 'xlabels' argument length do no match array "

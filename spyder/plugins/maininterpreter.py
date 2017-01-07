@@ -141,7 +141,15 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             return
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        self.warn_python_compatibility(pyexec)
+        if programs.is_python_interpreter(pyexec):
+            self.warn_python_compatibility(pyexec)
+        else:
+            QMessageBox.warning(self, _('Warning'),
+                    _("You selected an invalid Python interpreter for the "
+                      "console so the previous interpreter will stay. Please "
+                      "make sure to select a valid one."), QMessageBox.Ok)
+            self.pyexec_edit.setText(get_python_executable())
+            return
 
     def python_executable_switched(self, custom):
         """Python executable default/custom radio button has been toggled"""

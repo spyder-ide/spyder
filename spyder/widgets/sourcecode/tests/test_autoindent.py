@@ -20,7 +20,9 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
-def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4):
+def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
+                   sol=False):
+    """Return text with last line's indentation fixed."""
     app = qapplication()
     editor = CodeEditor(parent=None)
     editor.setup_editor(language='Python', indent_chars=indent_chars,
@@ -29,6 +31,10 @@ def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4):
     editor.set_text(text)
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.End)
+    if sol:
+        lines = text.splitlines(True)
+        repeat = len(lines[-1].lstrip())
+        cursor.movePosition(QTextCursor.Left, n=repeat)
     editor.setTextCursor(cursor)
     editor.fix_indent()
     return to_text_string(editor.toPlainText())
@@ -92,7 +98,58 @@ def test_align_on_curly():
     # An open curly bracket with one or more item is followed by an indent
     # up to the parenthesis.
     text = get_indent_fix("curly_w_item = (1,\n")
-    assert text == "curly_w_item = (1,\n                ", repr(text)    
+    assert text == "curly_w_item = (1,\n                ", repr(text)
+
+
+def test_keep_unindent():
+    # Keep line unindented if there is more than one line under the statement
+    text = ("    def foo(bar):\n"
+            "        generic = bar\n"
+            "    \n"
+            "    keep_unindent\n")
+    correct_text = ("    def foo(bar):\n"
+                    "        generic = bar\n"
+                    "    \n"
+                    "    keep_unindent\n")
+    text = get_indent_fix(text, sol=True)
+    assert text == correct_text, repr(text)
+
+
+def test_keep_unindent_fix_indent():
+    # Keep line unindented but fix indent if not multiple of len(indent_chars)
+    text = ("    for x in range(n):\n"
+            "        increment += 1\n"
+            "  \n"
+            "  keep_unindent\n")
+    correct_text = ("    for x in range(n):\n"
+                    "        increment += 1\n"
+                    "  \n"
+                    "    keep_unindent\n")
+    text = get_indent_fix(text, sol=True)
+    assert text == correct_text, repr(text)
+
+
+def test_keep_unindent_if_blank():
+    # Keep line unindented if return is pressed on a line which is both
+    # blank and unindented.
+    text = ("    def f(x):\n"
+            "        return x\n"
+            "\n"
+            "")
+    text = get_indent_fix(text)
+    assert text == "    def f(x):\n        return x\n\n", repr(text)
+
+@pytest.mark.parametrize(
+    "text_input, expected, test_text",
+    [
+        ("tags = ['(a)', '(b)', '(c)']\n", "tags = ['(a)', '(b)', '(c)']\n",
+         "test_commented_brackets"),
+        ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
+         "test_balanced_brackets"),
+    ])
+def test_indentation_with_spaces(text_input, expected, test_text):
+    text = get_indent_fix(text_input)
+    assert text == expected, test_text
 
 # --- Failing tests
 # -----------------------------------------------------------------------------
@@ -118,6 +175,10 @@ def test_def_with_unindented_comment():
         ("def function():\n", "def function():\n\t", "test simple def"),
         ("open_parenthesis(\n", "open_parenthesis(\n\t\t",
          "open parenthesis"),
+        ("tags = ['(a)', '(b)', '(c)']\n", "tags = ['(a)', '(b)', '(c)']\n",
+         "test_commented_brackets"),
+        ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
+         "test_balanced_brackets"),
 
         # Failing test
         pytest.mark.xfail(

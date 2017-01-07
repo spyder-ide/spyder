@@ -81,7 +81,8 @@ def is_letter_or_number(char):
 # =============================================================================
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
-        QDialog.__init__(self, editor)
+        QDialog.__init__(self, editor, Qt.WindowTitleHint
+                         | Qt.WindowCloseButtonHint)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -1920,18 +1921,18 @@ class CodeEditor(TextEditBaseWidget):
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
-            
-            if ((self.is_python_like() 
-                 and not prevtext.strip().startswith('#')
-                 and prevtext) 
-                or prevtext):
-                    
-                if (prevtext.strip().endswith(')')
-                    or prevtext.strip().endswith(']')
-                    or prevtext.strip().endswith('}')):
-                
+
+            if ((self.is_python_like() and
+               not prevtext.strip().startswith('#') and prevtext) or
+               prevtext):
+
+                if not prevtext.strip().startswith('return') and \
+                    (prevtext.strip().endswith(')') or
+                     prevtext.strip().endswith(']') or
+                     prevtext.strip().endswith('}')):
+
                     comment_or_string = True  # prevent further parsing
-                    
+
                 elif prevtext.strip().endswith(':') and self.is_python_like():
                     add_indent = True
                     comment_or_string = True
@@ -1970,8 +1971,13 @@ class CodeEditor(TextEditBaseWidget):
                     correct_indent += self.tab_stop_width_spaces
                 else:
                     correct_indent += len(self.indent_chars)
-            elif (prevtext.endswith('continue') or prevtext.endswith('break') \
-              or prevtext.endswith('pass')) and self.is_python_like():
+            elif self.is_python_like() and \
+                (prevtext.endswith('continue') or
+                 prevtext.endswith('break') or
+                 prevtext.endswith('pass') or
+                 (prevtext.strip().startswith("return") and
+                  len(re.split(r'\(|\{|\[', prevtext)) ==
+                  len(re.split(r'\)|\}|\]', prevtext)))):
                 # Unindent
                 if self.indent_chars == '\t':
                     correct_indent -= self.tab_stop_width_spaces
@@ -2005,6 +2011,22 @@ class CodeEditor(TextEditBaseWidget):
                                 correct_indent = len(prevtext)-len(prevexpr)
                             else:
                                 correct_indent = len(prevtext)
+
+        if not (diff_paren or diff_brack or diff_curly) and \
+           not prevtext.endswith(':'):
+            cur_indent = self.get_block_indentation(block_nb - 1)
+            is_blank = not self.get_text_line(block_nb - 1).strip()
+            prevline_indent = self.get_block_indentation(prevline)
+            trailing_text = self.get_text_line(block_nb).strip()
+
+            if cur_indent < prevline_indent and \
+               (trailing_text or is_blank):
+                if cur_indent % len(self.indent_chars) == 0:
+                    correct_indent = cur_indent
+                else:
+                    correct_indent = cur_indent \
+                                   + (len(self.indent_chars) -
+                                      cur_indent % len(self.indent_chars))
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
@@ -2725,12 +2747,9 @@ class CodeEditor(TextEditBaseWidget):
             self.stdkey_end(shift, ctrl)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
-            if self.close_parentheses_enabled:
-                self.handle_close_parentheses(text)
-            else:
-                self.insert_text(text)
-        elif text in ('[', '{') and not self.has_selected_text() \
-          and self.close_parentheses_enabled:
+            self.handle_parentheses(text)
+        elif (text in ('[', '{') and not self.has_selected_text() and
+              self.close_parentheses_enabled):
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
                s_trailing_text[0] in (',', ')', ']', '}'):
@@ -2797,12 +2816,12 @@ class CodeEditor(TextEditBaseWidget):
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
 
-    def handle_close_parentheses(self, text):
-        if not self.close_parentheses_enabled:
-            return
+    def handle_parentheses(self, text):
+        """Handle left and right parenthesis depending on editor config."""
         position = self.get_position('cursor')
         rest = self.get_text('cursor', 'eol').rstrip()
-        if not rest or rest[0] in (',', ')', ']', '}'):
+        valid = not rest or rest[0] in (',', ')', ']', '}')
+        if self.close_parentheses_enabled and valid:
             self.insert_text('()')
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter)
