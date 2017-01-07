@@ -204,7 +204,7 @@ class FileInfo(QObject):
         self.pep8_results = []
         if self.editor.is_python():
             enc = self.encoding.replace('-guessed', '').replace('-bom', '')
-            source_code = self.get_source_code().encode(enc)
+            source_code, enc = encoding.encode(self.get_source_code(), enc)
             if run_pyflakes:
                 self.pyflakes_results = None
             if run_pep8:
