@@ -62,7 +62,7 @@ def test_is_invalid_interpreter():
     assert not is_python_interpreter(INVALID_INTERPRETER)
 
 
-def test_is_invalid_interpreter():
+def test_is_valid_interpreter_name():
     names = ['python', 'pythonw', 'python2.7', 'python3.5', 'python.exe', 'pythonw.exe']
     assert all([is_python_interpreter_valid_name(n) for n in names])
 
