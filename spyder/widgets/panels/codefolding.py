@@ -16,7 +16,7 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
                         QLinearGradient, QPen, QPalette, QResizeEvent,
                         QCursor)
 
-from spyder.api.decoration import TextDecoration
+from spyder.widgets.sourcecode.api.decoration import TextDecoration
 from spyder.api.folding import FoldScope
 from spyder.api.panel import Panel
 from spyder.utils.editor import (TextBlockHelper, TextHelper, DelayJobRunner,
