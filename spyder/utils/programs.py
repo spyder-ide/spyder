@@ -478,10 +478,13 @@ def is_python_interpreter(filename):
         return False
     try:
         proc = run_program(filename, ["-h"])
-        valid = to_text_string(proc.communicate()[0])
-        if (len(valid) > 2 and
-            valid[2:].startswith("usage: {}".format(filename))):
+        output = to_text_string(proc.communicate()[0])
+        valid = ("Options and arguments (and corresponding environment "
+                 "variables)")
+        if 'usage:' in output and valid in output:
             return True
+        else:
+            return False
     except:
         return False
 
