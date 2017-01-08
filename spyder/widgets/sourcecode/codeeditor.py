@@ -29,8 +29,8 @@ import time
 # Third party imports
 from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRect, QRegExp, QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, QIntValidator,
+from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
+from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
                         QTextDocument, QTextFormat, QTextOption)
@@ -38,7 +38,7 @@ from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout, QWidget)
+                            QTextEdit, QToolTip, QVBoxLayout)
 
 # %% This line is for cell execution testing
 
