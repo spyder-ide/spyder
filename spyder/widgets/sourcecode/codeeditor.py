@@ -61,6 +61,7 @@ from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
+from spyder.api.panel import Panel
 
 try:
     import nbformat as nbformat
@@ -301,7 +302,8 @@ class CodeEditor(TextEditBaseWidget):
         self.highlight_current_line_enabled = False
 
         # Scrollbar flag area
-        self.scrollflagarea = ScrollFlagArea(self)
+        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
+                                                   Panel.Position.RIGHT)
         self.scrollflagarea.hide()
         self.warning_color = "#FFAD07"
         self.error_color = "#EA2B0E"
