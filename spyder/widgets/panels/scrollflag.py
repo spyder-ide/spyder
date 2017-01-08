@@ -35,50 +35,50 @@ class ScrollFlagArea(Panel):
         Override Qt method.
         Painting the scroll flag area
         """
-        make_flag = self.scrollflagarea.make_flag_qrect
-        make_slider = self.scrollflagarea.make_slider_range
+        make_flag = self.make_flag_qrect
+        make_slider = self.make_slider_range
 
         # Filling the whole painting area
-        painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), self.sideareas_color)
-        block = self.document().firstBlock()
+        painter = QPainter(self)
+        painter.fillRect(event.rect(), self.editor.sideareas_color)
+        block = self.editor.document().firstBlock()
 
         # Painting warnings and todos
-        for line_number in range(1, self.document().blockCount()+1):
+        for line_number in range(1, self.editor.document().blockCount()+1):
             data = block.userData()
             if data:
-                position = self.scrollflagarea.value_to_position(line_number)
+                position = self.value_to_position(line_number)
                 if data.code_analysis:
                     # Warnings
-                    color = self.warning_color
+                    color = self.editor.warning_color
                     for _message, error in data.code_analysis:
                         if error:
-                            color = self.error_color
+                            color = self.editor.error_color
                             break
                     self.set_scrollflagarea_painter(painter, color)
                     painter.drawRect(make_flag(position))
                 if data.todo:
                     # TODOs
-                    self.set_scrollflagarea_painter(painter, self.todo_color)
+                    self.set_scrollflagarea_painter(painter, self.editor.todo_color)
                     painter.drawRect(make_flag(position))
                 if data.breakpoint:
                     # Breakpoints
-                    self.set_scrollflagarea_painter(painter, self.breakpoint_color)
+                    self.set_scrollflagarea_painter(painter, self.editor.breakpoint_color)
                     painter.drawRect(make_flag(position))
             block = block.next()
 
         # Occurrences
-        if self.occurrences:
-            self.set_scrollflagarea_painter(painter, self.occurrence_color)
-            for line_number in self.occurrences:
-                position = self.scrollflagarea.value_to_position(line_number)
+        if self.editor.occurrences:
+            self.set_scrollflagarea_painter(painter, self.editor.occurrence_color)
+            for line_number in self.editor.occurrences:
+                position = self.value_to_position(line_number)
                 painter.drawRect(make_flag(position))
 
         # Found results
-        if self.found_results:
-            self.set_scrollflagarea_painter(painter, self.found_results_color)
-            for line_number in self.found_results:
-                position = self.scrollflagarea.value_to_position(line_number)
+        if self.editor.found_results:
+            self.set_scrollflagarea_painter(painter, self.editor.found_results_color)
+            for line_number in self.editor.found_results:
+                position = self.value_to_position(line_number)
                 painter.drawRect(make_flag(position))
 
         # Painting the slider range
@@ -88,7 +88,7 @@ class ScrollFlagArea(Panel):
         brush_color = QColor(Qt.white)
         brush_color.setAlphaF(.5)
         painter.setBrush(QBrush(brush_color))
-        painter.drawRect(make_slider(self.firstVisibleBlock().blockNumber()))
+        painter.drawRect(make_slider(self.editor.firstVisibleBlock().blockNumber()))
 
     def mousePressEvent(self, event):
         """Override Qt method"""
