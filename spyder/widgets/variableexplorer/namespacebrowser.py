@@ -233,7 +233,8 @@ class NamespaceBrowser(QWidget):
 
     def set_var_properties(self, properties):
         """Set properties of variables"""
-        self.editor.var_properties = properties
+        if properties is not None:
+            self.editor.var_properties = properties
 
 
     def set_data(self, data):
