@@ -55,28 +55,28 @@ class ScrollFlagArea(Panel):
                         if error:
                             color = self.editor.error_color
                             break
-                    self.set_scrollflagarea_painter(painter, color)
+                    self.set_painter(painter, color)
                     painter.drawRect(make_flag(position))
                 if data.todo:
                     # TODOs
-                    self.set_scrollflagarea_painter(painter, self.editor.todo_color)
+                    self.set_painter(painter, self.editor.todo_color)
                     painter.drawRect(make_flag(position))
                 if data.breakpoint:
                     # Breakpoints
-                    self.set_scrollflagarea_painter(painter, self.editor.breakpoint_color)
+                    self.set_painter(painter, self.editor.breakpoint_color)
                     painter.drawRect(make_flag(position))
             block = block.next()
 
         # Occurrences
         if self.editor.occurrences:
-            self.set_scrollflagarea_painter(painter, self.editor.occurrence_color)
+            self.set_painter(painter, self.editor.occurrence_color)
             for line_number in self.editor.occurrences:
                 position = self.value_to_position(line_number)
                 painter.drawRect(make_flag(position))
 
         # Found results
         if self.editor.found_results:
-            self.set_scrollflagarea_painter(painter, self.editor.found_results_color)
+            self.set_painter(painter, self.editor.found_results_color)
             for line_number in self.editor.found_results:
                 position = self.value_to_position(line_number)
                 painter.drawRect(make_flag(position))
@@ -133,7 +133,7 @@ class ScrollFlagArea(Panel):
         """Override Qt method"""
         self.editor.wheelEvent(event)
 
-    def set_scrollflagarea_painter(painter, light_color):
+    def set_painter(self, painter, light_color):
         """Set scroll flag area painter pen and brush colors"""
         painter.setPen(QColor(light_color).darker(120))
         painter.setBrush(QBrush(QColor(light_color)))
