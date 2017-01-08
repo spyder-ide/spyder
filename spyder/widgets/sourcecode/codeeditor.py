@@ -1116,8 +1116,6 @@ class CodeEditor(TextEditBaseWidget):
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""
         TextEditBaseWidget.resizeEvent(self, event)
-        cr = self.contentsRect()
-        self.__set_scrollflagarea_geometry(cr)
         self.panels.resize()
 
     def showEvent(self, event):
@@ -1125,29 +1123,11 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).showEvent(event)
         self.panels.refresh()
 
-    def __set_scrollflagarea_geometry(self, contentrect):
-        """Set scroll flag area geometry"""
-        cr = contentrect
-        if self.verticalScrollBar().isVisible():
-            vsbw = self.verticalScrollBar().contentsRect().width()
-        else:
-            vsbw = 0
-        _left, _top, right, _bottom = self.getContentsMargins()
-        if right > vsbw:
-            # Depending on the platform (e.g. on Ubuntu), the scrollbar sizes
-            # may be taken into account in the contents margins whereas it is
-            # not on Windows for example
-            vsbw = 0
-        self.scrollflagarea.setGeometry(\
-                        QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
-                              self.scrollflagarea.WIDTH, cr.height()))
-
     #-----edgeline
     def viewportEvent(self, event):
         """Override Qt method"""
         cr = self.contentsRect()
         self.edge_line.set_geometry(cr)
-        self.__set_scrollflagarea_geometry(cr)
         return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
