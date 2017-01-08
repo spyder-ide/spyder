@@ -82,9 +82,9 @@ def get_numpy_dtype(obj):
 # Pandas support
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, Series
+    from pandas import DataFrame, DatetimeIndex, Series
 else:
-    DataFrame = Series = FakeObject      # analysis:ignore
+    DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
 
 
 #==============================================================================
@@ -132,7 +132,7 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
-    if isinstance(item, (DataFrame, Series)):
+    if isinstance(item, (DataFrame, DatetimeIndex, Series)):
         return item.shape
     else:
         return 1
@@ -201,7 +201,8 @@ COLORS = {
            MaskedArray,
            matrix,
            DataFrame,
-           Series):           ARRAY_COLOR,
+           Series,
+           DatetimeIndex):    ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -297,6 +298,8 @@ def value_to_display(value, minmax=False):
         elif isinstance(value, NavigableString):
             # Fixes Issue 2448
             display = to_text_string(value)
+        elif isinstance(value, DatetimeIndex):
+            display = value.summary()
         elif is_binary_string(value):
             try:
                 display = to_text_string(value, 'utf8')
@@ -381,6 +384,8 @@ def get_type_string(item):
     """Return type string of an object."""
     if isinstance(item, DataFrame):
         return "DataFrame"
+    if isinstance(item, DatetimeIndex):
+        return "DatetimeIndex"
     if isinstance(item, Series):
         return "Series"
     found = re.findall(r"<(?:type|class) '(\S*)'>",

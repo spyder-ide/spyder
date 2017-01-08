@@ -199,6 +199,17 @@ def test_header_encoding():
     assert model.headerData(5, orientation=Qt.Horizontal) == "c"
     assert model.headerData(6, orientation=Qt.Horizontal) == "d"
 
+def test_dataframeeditor_with_datetimeindex():
+    rng = date_range('20150101', periods=3)
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(rng)
+    dfm = editor.dataModel
+    assert dfm.rowCount() == 3
+    assert dfm.columnCount() == 2
+    assert data(dfm, 0, 1) == '2015-01-01 00:00:00'
+    assert data(dfm, 1, 1) == '2015-01-02 00:00:00'
+    assert data(dfm, 2, 1) == '2015-01-03 00:00:00'
+
 
 if __name__ == "__main__":
     pytest.main()
