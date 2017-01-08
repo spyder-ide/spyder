@@ -1119,14 +1119,6 @@ class CodeEditor(TextEditBaseWidget):
         self.scrollflagarea.setVisible(state)
         self.panels.refresh()
 
-    def get_scrollflagarea_width(self):
-        """Return scroll flag area width"""
-        if self.scrollflagarea_enabled:
-            return ScrollFlagArea.WIDTH
-        else:
-            return 0
-
-
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""
         TextEditBaseWidget.resizeEvent(self, event)
