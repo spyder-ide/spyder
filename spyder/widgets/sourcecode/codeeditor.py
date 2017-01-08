@@ -175,12 +175,6 @@ class BlockUserData(QTextBlockUserData):
         bud_list.pop(bud_list.index(self))
 
 
-def set_scrollflagarea_painter(painter, light_color):
-    """Set scroll flag area painter pen and brush colors"""
-    painter.setPen(QColor(light_color).darker(120))
-    painter.setBrush(QBrush(QColor(light_color)))
-
-
 def get_file_language(filename, text=None):
     """Get file language from filename"""
     ext = osp.splitext(filename)[1]
@@ -1132,62 +1126,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return 0
 
-    def scrollflagarea_paint_event(self, event):
-        """Painting the scroll flag area"""
-        make_flag = self.scrollflagarea.make_flag_qrect
-        make_slider = self.scrollflagarea.make_slider_range
-
-        # Filling the whole painting area
-        painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), self.sideareas_color)
-        block = self.document().firstBlock()
-
-        # Painting warnings and todos
-        for line_number in range(1, self.document().blockCount()+1):
-            data = block.userData()
-            if data:
-                position = self.scrollflagarea.value_to_position(line_number)
-                if data.code_analysis:
-                    # Warnings
-                    color = self.warning_color
-                    for _message, error in data.code_analysis:
-                        if error:
-                            color = self.error_color
-                            break
-                    set_scrollflagarea_painter(painter, color)
-                    painter.drawRect(make_flag(position))
-                if data.todo:
-                    # TODOs
-                    set_scrollflagarea_painter(painter, self.todo_color)
-                    painter.drawRect(make_flag(position))
-                if data.breakpoint:
-                    # Breakpoints
-                    set_scrollflagarea_painter(painter, self.breakpoint_color)
-                    painter.drawRect(make_flag(position))
-            block = block.next()
-
-        # Occurrences
-        if self.occurrences:
-            set_scrollflagarea_painter(painter, self.occurrence_color)
-            for line_number in self.occurrences:
-                position = self.scrollflagarea.value_to_position(line_number)
-                painter.drawRect(make_flag(position))
-
-        # Found results
-        if self.found_results:
-            set_scrollflagarea_painter(painter, self.found_results_color)
-            for line_number in self.found_results:
-                position = self.scrollflagarea.value_to_position(line_number)
-                painter.drawRect(make_flag(position))
-
-        # Painting the slider range
-        pen_color = QColor(Qt.white)
-        pen_color.setAlphaF(.8)
-        painter.setPen(pen_color)
-        brush_color = QColor(Qt.white)
-        brush_color.setAlphaF(.5)
-        painter.setBrush(QBrush(brush_color))
-        painter.drawRect(make_slider(self.firstVisibleBlock().blockNumber()))
 
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""
