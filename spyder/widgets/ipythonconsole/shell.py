@@ -243,11 +243,11 @@ the sympy module (e.g. plot)
                         self.sig_namespace_view.emit(view)
                     else:
                         view = None
-                elif 'get_var_properties' in method:
+                elif 'get_var_properties' in method and 'text/plain' in data:
                     properties = ast.literal_eval(data['text/plain'])
                     self.sig_var_properties.emit(properties)
                 else:
-                    if data is not None:
+                    if data is not None and 'text/plain' in data:
                         self._kernel_reply = ast.literal_eval(data['text/plain'])
                     else:
                         self._kernel_reply = None
