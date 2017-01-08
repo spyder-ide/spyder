@@ -342,7 +342,8 @@ class NamespaceBrowser(QWidget):
 
     def set_var_properties(self, properties):
         """Set properties of variables"""
-        self.var_properties = properties
+        if properties is not None:
+            self.var_properties = properties
 
     #------ Remote commands ------------------------------------
     def get_value(self, name):

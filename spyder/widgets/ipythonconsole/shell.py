@@ -240,11 +240,14 @@ the sympy module (e.g. plot)
                 if 'get_namespace_view' in method:
                     if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
-                        self.sig_namespace_view.emit(view)
                     else:
                         view = None
-                elif 'get_var_properties' in method and 'text/plain' in data:
-                    properties = ast.literal_eval(data['text/plain'])
+                    self.sig_namespace_view.emit(view)
+                elif 'get_var_properties' in method:
+                    if data is not None and 'text/plain' in data:
+                        properties = ast.literal_eval(data['text/plain'])
+                    else:
+                        properties = None
                     self.sig_var_properties.emit(properties)
                 else:
                     if data is not None and 'text/plain' in data:
