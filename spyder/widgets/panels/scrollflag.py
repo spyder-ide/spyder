@@ -22,6 +22,7 @@ class ScrollFlagArea(Panel):
     def __init__(self, editor):
         Panel.__init__(self, editor)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self._enabled = None
         editor.verticalScrollBar().valueChanged.connect(
                                                   lambda value: self.repaint())
 
@@ -136,3 +137,8 @@ class ScrollFlagArea(Panel):
         """Set scroll flag area painter pen and brush colors"""
         painter.setPen(QColor(light_color).darker(120))
         painter.setBrush(QBrush(QColor(light_color)))
+
+    def set_enabled(self, state):
+        """Toggle scroll flag area visibility"""
+        self.enabled = state
+        self.setVisible(state)

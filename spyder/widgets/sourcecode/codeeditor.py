@@ -301,7 +301,6 @@ class CodeEditor(TextEditBaseWidget):
         self.highlight_current_line_enabled = False
 
         # Scrollbar flag area
-        self.scrollflagarea_enabled = None
         self.scrollflagarea = ScrollFlagArea(self)
         self.scrollflagarea.hide()
         self.warning_color = "#FFAD07"
@@ -558,7 +557,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         # Scrollbar flag area
-        self.set_scrollflagarea_enabled(scrollflagarea)
+        self.scrollflagarea.set_enabled(scrollflagarea)
 
         # Edge line
         self.edge_line.set_enabled(edge_line)
@@ -1111,13 +1110,6 @@ class CodeEditor(TextEditBaseWidget):
         self.document().setDefaultTextOption(option)
         # Rehighlight to make the spaces less apparent.
         self.rehighlight()
-
-    #-----scrollflagarea
-    def set_scrollflagarea_enabled(self, state):
-        """Toggle scroll flag area visibility"""
-        self.scrollflagarea_enabled = state
-        self.scrollflagarea.setVisible(state)
-        self.panels.refresh()
 
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""
