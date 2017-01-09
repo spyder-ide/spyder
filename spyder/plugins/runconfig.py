@@ -41,6 +41,8 @@ WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
+CLEAR_ALL_VARIABLES = _("Clear all variables before execution (IPython "
+                        "consoles)")
 
 class RunConfiguration(object):
     """Run configuration"""
@@ -56,6 +58,7 @@ class RunConfiguration(object):
         self.post_mortem = None
         self.python_args = None
         self.python_args_enabled = None
+        self.clear_namespace = None
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
         if fname is not None and\
            CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True):
@@ -84,6 +87,8 @@ class RunConfiguration(object):
                            CONF.get('run', 'post_mortem', False))
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
+        self.clear_namespace = options.get('clear_namespace',  
+                                    CONF.get('run', 'clear_namespace', False))
         
     def get(self):
         return {
@@ -98,6 +103,7 @@ class RunConfiguration(object):
                 'post_mortem': self.post_mortem,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
+                'clear_namespace': self.clear_namespace
                 }
         
     def get_working_directory(self):
@@ -160,14 +166,16 @@ class RunConfigOptions(QWidget):
         common_group = QGroupBox(_("General settings"))
         common_layout = QGridLayout()
         common_group.setLayout(common_layout)
+        self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
+        common_layout.addWidget(self.clear_var_cb, 0, 0)
         self.clo_cb = QCheckBox(_("Command line options:"))
-        common_layout.addWidget(self.clo_cb, 0, 0)
+        common_layout.addWidget(self.clo_cb, 1, 0)
         self.clo_edit = QLineEdit()
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
-        common_layout.addWidget(self.clo_edit, 0, 1)
+        common_layout.addWidget(self.clo_edit, 1, 1)
         self.wd_cb = QCheckBox(_("Working directory:"))
-        common_layout.addWidget(self.wd_cb, 1, 0)
+        common_layout.addWidget(self.wd_cb, 2, 0)
         wd_layout = QHBoxLayout()
         self.wd_edit = QLineEdit()
         self.wd_cb.toggled.connect(self.wd_edit.setEnabled)
@@ -177,10 +185,12 @@ class RunConfigOptions(QWidget):
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(self.select_directory)
         wd_layout.addWidget(browse_btn)
-        common_layout.addLayout(wd_layout, 1, 1)
+        common_layout.addLayout(wd_layout, 2, 1)
         self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
                                           "errors appear during execution"))
         common_layout.addWidget(self.post_mortem_cb)
+        
+
         
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
@@ -260,6 +270,7 @@ class RunConfigOptions(QWidget):
         self.post_mortem_cb.setChecked(self.runconf.post_mortem)
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
+        self.clear_var_cb.setChecked(self.runconf.clear_namespace)
     
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
@@ -273,6 +284,7 @@ class RunConfigOptions(QWidget):
         self.runconf.post_mortem = self.post_mortem_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
+        self.runconf.clear_namespace = self.clear_var_cb.isChecked()
         return self.runconf.get()
     
     def is_valid(self):
@@ -491,8 +503,11 @@ class RunConfigPage(GeneralConfigPage):
         post_mortem = self.create_checkbox(
              _("Enter debugging mode when errors appear during execution"),
              'post_mortem', False)
+        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
+            'clear_namespace', False)
 
         general_layout = QVBoxLayout()
+        general_layout.addWidget(clear_variables)
         general_layout.addWidget(wdir_label)
         general_layout.addWidget(dirname_radio)
         general_layout.addLayout(thisdir_layout)
