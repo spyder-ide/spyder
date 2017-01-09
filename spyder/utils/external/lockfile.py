@@ -183,7 +183,7 @@ class FilesystemLock:
                         # For DEV
                         conditions += ['bootstrap.py' in p.cmdline()]
                         if not any(conditions):
-                            raise(OSError(3, 'No such process'))
+                            raise(OSError(errno.ESRCH, 'No such process'))
                     except OSError as e:
                         if e.errno == errno.ESRCH:
                             # The owner has vanished, try to claim it in the
