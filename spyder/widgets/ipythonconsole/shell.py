@@ -153,7 +153,7 @@ the sympy module (e.g. plot)
             if reply == QMessageBox.Yes:
                 self.execute("%reset -f")
         else:
-            self.execute("%reset -f")
+            self.silent_execute("%reset -f")
 
     def set_background_color(self):
         light_color_o = self.additional_options['light_color']
