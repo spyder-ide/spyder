@@ -357,7 +357,7 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool, bool)
+    run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
@@ -2328,11 +2328,13 @@ class Editor(SpyderPluginWidget):
             post_mortem = runconf.post_mortem
             current = runconf.current
             systerm = runconf.systerm
+            clear_namespace = runconf.clear_namespace
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
-                                   python, python_args, current, systerm, post_mortem)
+                                   python, python_args, current, systerm, 
+                                   post_mortem, clear_namespace)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -2364,7 +2366,8 @@ class Editor(SpyderPluginWidget):
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
-         python, python_args, current, systerm, post_mortem) = self.__last_ec_exec
+         python, python_args, current, systerm,
+         post_mortem, clear_namespace) = self.__last_ec_exec
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
@@ -2372,7 +2375,8 @@ class Editor(SpyderPluginWidget):
                                                         debug, post_mortem)
                 else:
                     self.run_in_current_ipyclient.emit(fname, wdir, args,
-                                                       debug, post_mortem)
+                                                       debug, post_mortem,
+                                                       clear_namespace)
             else:
                 self.run_in_current_extconsole.emit(fname, wdir, args, debug,
                                                     post_mortem)
