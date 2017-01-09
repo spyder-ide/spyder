@@ -160,6 +160,7 @@ def remove_backslashes(path):
             path = path[:-1]
         # Replacing backslashes by slashes
         path = path.replace('\\', '/')
+        path = path.replace('/\'', '\\\'')
     return path
 
 

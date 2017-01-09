@@ -239,7 +239,7 @@ if os.environ["QT_API"] == 'pyqt':
 #==============================================================================
 try:
     import matplotlib
-except ImportError:
+except (ImportError, UnicodeDecodeError):
     matplotlib = None   # analysis:ignore
 
 

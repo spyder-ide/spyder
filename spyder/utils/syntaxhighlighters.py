@@ -290,7 +290,9 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     kw = r"\b" + any("keyword", kwlist) + r"\b"
     builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
-    instance = any("instance", [r"\bself\b"])
+    instance = any("instance", [r"\bself\b",
+                                (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
+                                     r"(.[a-zA-Z_][a-zA-Z0-9_]*)*")])
     number = any("number",
                  [r"\b[+-]?[0-9]+[lLjJ]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
@@ -354,7 +356,8 @@ class OutlineExplorerData(object):
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
-    PROG = re.compile(make_python_patterns(), re.S)
+    add_kw = ['async', 'await']
+    PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):

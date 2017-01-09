@@ -37,5 +37,8 @@ def get_options():
                            "not related with Python profiling)")
     parser.add_option('--window-title', type=str, default=None,
                       help="String to show in the main window title")
+    parser.add_option('-p', '--project', default=None, type=str,
+                      dest="open_project",
+                      help="Path that contains an Spyder project")
     options, args = parser.parse_args()
     return options, args

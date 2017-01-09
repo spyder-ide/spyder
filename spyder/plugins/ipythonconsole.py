@@ -15,6 +15,7 @@ IPython Console plugin based on QtConsole
 
 # Standard library imports
 import atexit
+import codecs
 import os
 import os.path as osp
 import uuid
@@ -50,7 +51,7 @@ from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
@@ -728,20 +729,22 @@ class IPythonConsole(SpyderPluginWidget):
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
-        main_create_client_action = create_action(self,
-                                _("Open an &IPython console"),
-                                None, ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                tip=_("Use %s+T when the console is selected "
-                                      "to open a new one") % ctrl)
-        create_client_action = create_action(self,
-                                _("Open a new console"),
-                                QKeySequence("Ctrl+T"),
-                                ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                context=Qt.WidgetWithChildrenShortcut)
+        """Return a list of actions related to plugin."""
+        create_client_action = create_action(
+                                   self,
+                                   _("Open an &IPython console"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_new_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(create_client_action, context="ipython_console",
+                               name="New tab")
+
+        restart_action = create_action(self, _("Restart kernel"),
+                                       icon=ima.icon('restart'),
+                                       triggered=self.restart_kernel,
+                                       context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(restart_action, context="ipython_console",
+                               name="Restart kernel")
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -750,11 +753,13 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, main_create_client_action)
-        main_consoles_menu += [None, connect_to_kernel_action]
+        main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu += [MENU_SEPARATOR, restart_action,
+                               connect_to_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action]
+        self.menu_actions = [restart_action, MENU_SEPARATOR,
+                             create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
 
@@ -861,14 +866,22 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
+        cf = self._new_connection_file()
         client = ClientWidget(self, name=name,
                               history_filename='history.py',
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
-                              connection_file=self._new_connection_file(),
+                              connection_file=cf,
                               menu_actions=self.menu_actions)
         self.add_tab(client, name=client.get_name())
+
+        if cf is None:
+            error_msg = _("The directory {} is not writable and it is "
+                          "required to create IPython consoles. Please make "
+                          "it writable.").format(jupyter_runtime_dir())
+            client.show_kernel_error(error_msg)
+            return
 
         # Check if ipykernel is present in the external interpreter.
         # Else we won't be able to create a client
@@ -907,7 +920,9 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        km, kc = self.create_kernel_manager_and_kernel_client(connection_file)
+        stderr_file = client.stderr_file
+        km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
+                                                              stderr_file)
 
         kc.started_channels.connect(lambda c=client: self.process_started(c))
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
@@ -1162,7 +1177,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client_if_empty = False
         for i in range(len(self.clients)):
             client = self.clients[-1]
-            client.shutdown()
+            try:
+                client.shutdown()
+            except Exception as e:
+                QMessageBox.warning(self, _('Warning'),
+                    _("It was not possible to restart the IPython console "
+                      "when switching to this project. "
+                      "The error was {0}".format(e)), QMessageBox.Ok)
             self.close_client(client=client, force=True)
         self.create_new_client(give_focus=False)
         self.create_new_client_if_empty = True
@@ -1248,7 +1269,7 @@ class IPythonConsole(SpyderPluginWidget):
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
 
         if PY2:
-            original_list = umr_namelist.copy()
+            original_list = umr_namelist[:]
             for umr_n in umr_namelist:
                 try:
                     umr_n.encode('utf-8')
@@ -1286,18 +1307,32 @@ class IPythonConsole(SpyderPluginWidget):
 
         return KernelSpec(resource_dir='', **kernel_dict)
 
-    def create_kernel_manager_and_kernel_client(self, connection_file):
-        """Create kernel manager and client"""
+    def create_kernel_manager_and_kernel_client(self, connection_file,
+                                                stderr_file):
+        """Create kernel manager and client."""
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
         kernel_manager._kernel_spec = self.create_kernel_spec()
-        kernel_manager.start_kernel()
+
+        # Save stderr in a file to read it later in case of errors
+        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
         kernel_client = kernel_manager.client()
 
+        # Increase time to detect if a kernel is alive
+        # See Issue 3444
+        kernel_client.hb_channel.time_to_dead = 6.0
+
         return kernel_manager, kernel_client
+
+    def restart_kernel(self):
+        """Restart kernel of current client."""
+        client = self.get_current_client()
+        if client is not None:
+            client.restart_kernel()
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name):
@@ -1355,7 +1390,10 @@ class IPythonConsole(SpyderPluginWidget):
         """
         # Check if jupyter_runtime_dir exists (Spyder addition)
         if not osp.isdir(jupyter_runtime_dir()):
-            os.makedirs(jupyter_runtime_dir())
+            try:
+                os.makedirs(jupyter_runtime_dir())
+            except PermissionError:
+                return None
         cf = ''
         while not cf:
             ident = str(uuid.uuid4()).split('-')[-1]
@@ -1377,7 +1415,10 @@ class IPythonConsole(SpyderPluginWidget):
                                   password):
         # Verifying if the connection file exists
         try:
-            connection_file = find_connection_file(osp.basename(connection_file))
+            cf_path = osp.dirname(connection_file)
+            cf_filename = osp.basename(connection_file)
+            connection_file = find_connection_file(filename=cf_filename, 
+                                                   path=cf_path)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to "

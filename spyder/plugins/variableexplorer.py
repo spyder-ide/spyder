@@ -7,15 +7,13 @@
 """Variable Explorer Plugin"""
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
-from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
@@ -41,24 +39,15 @@ class VariableExplorerConfigPage(PluginConfigPage):
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))
-        display_data = []
-        if programs.is_module_installed('numpy'):
-            display_data.append(('minmax', _("Show arrays min/max"), ''))
-        display_data.append(
-            ('remote_editing', _("Edit data in the remote process"),
-             _("Editors are opened in the remote process for NumPy "
-               "arrays, PIL images, lists, tuples and dictionaries.\n"
-               "This avoids transfering large amount of data between "
-               "the remote process and Spyder (through the socket)."))
-                            )
+        display_data = [('minmax', _("Show arrays min/max"), '')]
         display_boxes = [self.create_checkbox(text, option, tip=tip)
                          for option, text, tip in display_data]
-        
+
         ar_layout = QVBoxLayout()
         ar_layout.addWidget(ar_box)
         ar_layout.addWidget(ar_spin)
         ar_group.setLayout(ar_layout)
-        
+
         filter_layout = QVBoxLayout()
         for box in filter_boxes:
             filter_layout.addWidget(box)
@@ -101,17 +90,41 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
 
-    @staticmethod
-    def get_settings():
+    def get_settings(self):
         """
-        Return Variable Explorer settings dictionary
-        (i.e. namespace browser settings according to Spyder's configuration file)
+        Retrieve all Variable Explorer configuration settings.
+        
+        Specifically, return the settings in CONF_SECTION with keys in 
+        REMOTE_SETTINGS, and the setting 'dataframe_format'.
+        
+        Returns:
+            dict: settings
         """
         settings = {}
-#        CONF.load_from_ini() # necessary only when called from another process
         for name in REMOTE_SETTINGS:
-            settings[name] = CONF.get(VariableExplorer.CONF_SECTION, name)
+            settings[name] = self.get_option(name)
+
+        # dataframe_format is stored without percent sign in config
+        # to avoid interference with ConfigParser's interpolation
+        name = 'dataframe_format'
+        settings[name] = '%{0}'.format(self.get_option(name))
         return settings
+
+    @Slot(str, object)
+    def change_option(self, option_name, new_value):
+        """
+        Change a config option.
+
+        This function is called if sig_option_changed is received. If the
+        option changed is the dataframe format, then the leading '%' character
+        is stripped (because it can't be stored in the user config). Then,
+        the signal is emitted again, so that the new value is saved in the
+        user config.
+        """
+        if option_name == 'dataframe_format':
+            assert new_value.startswith('%')
+            new_value = new_value[1:]
+        self.sig_option_changed.emit(option_name, new_value)
 
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
@@ -131,6 +144,12 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
 
     # ----- Public API --------------------------------------------------------
     def add_shellwidget(self, shellwidget):
+        """
+        Register shell with variable explorer.
+
+        This function opens a new NamespaceBrowser for browsing the variables
+        in the shell.
+        """
         shellwidget_id = id(shellwidget)
         # Add shell only once: this method may be called two times in a row
         # by the External console plugin (dev. convenience)
@@ -140,8 +159,8 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)
-            nsb.setup(**VariableExplorer.get_settings())
-            nsb.sig_option_changed.connect(self.sig_option_changed.emit)
+            nsb.setup(**self.get_settings())
+            nsb.sig_option_changed.connect(self.change_option)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget_from_id(shellwidget_id)
@@ -215,7 +234,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):
-            nsb.setup(**VariableExplorer.get_settings())
+            nsb.setup(**self.get_settings())
         ar_timeout = self.get_option('autorefresh/timeout')
         for shellwidget in self.main.extconsole.shellwidgets:
             shellwidget.set_autorefresh_timeout(ar_timeout)

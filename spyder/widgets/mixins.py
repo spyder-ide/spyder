@@ -19,9 +19,15 @@ import sre_constants
 import textwrap
 
 # Third party imports
-from qtpy.QtCore import QPoint, QRegExp, Qt
+from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
+from qtpy import PYQT5
+
+if PYQT5:
+    from qtpy.QtCore import QRegularExpression
+else:
+    from qtpy.QtCore import QRegExp
 
 # Local imports
 from spyder.config.base import _
@@ -119,9 +125,12 @@ class BaseEditMixin(object):
         if not is_text_string(text): # testing for QString (PyQt API#1)
             text = to_text_string(text)
         eol_chars = sourcecode.get_eol_chars(text)
-        if eol_chars is not None and self.eol_chars is not None:
-            self.document().setModified(True)
+        is_document_modified = eol_chars is not None and self.eol_chars is not None
         self.eol_chars = eol_chars
+        if is_document_modified:
+            self.document().setModified(True)
+            if self.sig_eol_chars_changed is not None:
+                self.sig_eol_chars_changed.emit(eol_chars)
         
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
@@ -382,6 +391,7 @@ class BaseEditMixin(object):
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
+        text = text.replace("\t", " "*self.tab_stop_width_spaces)
         return len(text)-len(text.lstrip())
     
     def get_selection_bounds(self):
@@ -480,9 +490,17 @@ class BaseEditMixin(object):
             moves += [QTextCursor.End]
         if not regexp:
             text = re.escape(to_text_string(text))
-        pattern = QRegExp(r"\b%s\b" % text if words else text,
-                          Qt.CaseSensitive if case else Qt.CaseInsensitive,
-                          QRegExp.RegExp2)
+        if PYQT5:
+            pattern = QRegularExpression(r"\b{}\b".format(text) if words else
+                                         text)
+            if case:
+                pattern.setPatternOptions(
+                    QRegularExpression.CaseInsensitiveOption)
+        else:
+            pattern = QRegExp(r"\b{}\b".format(text)
+                              if words else text, Qt.CaseSensitive if case else
+                              Qt.CaseInsensitive, QRegExp.RegExp2)
+
         for move in moves:
             cursor.movePosition(move)
             if regexp and '\\n' in text:

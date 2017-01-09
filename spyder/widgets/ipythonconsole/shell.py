@@ -15,10 +15,9 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut, fixed_shortcut
+from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
-from spyder.widgets.arraybuilder import SHORTCUT_INLINE, SHORTCUT_TABLE
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -46,21 +45,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     focus_changed = Signal()
     new_client = Signal()
     sig_got_reply = Signal()
+    sig_kernel_restarted = Signal(str)
 
-    def __init__(self, additional_options, interpreter_versions,
+    def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         super(ShellWidget, self).__init__(*args, **kw)
+
+        self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
+        self.external_kernel = external_kernel
 
         self.set_background_color()
-
-        # Additional variables
-        self.ipyclient = None
-        self.external_kernel = external_kernel
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -69,10 +68,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self._kernel_reply = None
 
     #---- Public API ----------------------------------------------------------
-    def set_ipyclient(self, ipyclient):
-        """Bind this shell widget to an IPython client one"""
-        self.ipyclient = ipyclient
-        self.exit_requested.connect(ipyclient.exit_callback)
+    def set_exit_callback(self):
+        """Set exit callback for this shell."""
+        self.exit_requested.connect(self.ipyclient.exit_callback)
 
     def is_running(self):
         if self.kernel_client is not None and \
@@ -84,7 +82,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     def set_cwd(self, dirname):
         """Set shell current working directory."""
         return self.silent_execute(
-                         "get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+            u"get_ipython().kernel.set_cwd(r'{}')".format(dirname))
 
     # --- To handle the banner
     def long_banner(self):
@@ -166,16 +164,23 @@ the sympy module (e.g. plot)
                                   parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
+                                         context='ipython_console',
+                                         name='Restart kernel', parent=self)
+        new_tab = config_shortcut(lambda: self.new_client.emit(),
+                                  context='ipython_console', name='new tab', parent=self)
+        reset_namespace = config_shortcut(lambda: self.reset_namespace(),
+                                          context='ipython_console',
+                                          name='reset namespace', parent=self)
+        array_inline = config_shortcut(lambda: self.enter_array_inline(),
+                                       context='array_builder',
+                                       name='enter array inline', parent=self)
+        array_table = config_shortcut(lambda: self.enter_array_table(),
+                                      context='array_builder',
+                                      name='enter array table', parent=self)
 
-        # Fixed shortcuts
-        fixed_shortcut("Ctrl+T", self, lambda: self.new_client.emit())
-        fixed_shortcut("Ctrl+Alt+R", self, lambda: self.reset_namespace())
-        fixed_shortcut(SHORTCUT_INLINE, self,
-                       lambda: self._control.enter_array_inline())
-        fixed_shortcut(SHORTCUT_TABLE, self,
-                       lambda: self._control.enter_array_table())
-
-        return [inspect, clear_console]
+        return [inspect, clear_console, restart_kernel, new_tab,
+                reset_namespace, array_inline, array_table]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
@@ -233,16 +238,19 @@ the sympy module (e.g. plot)
                 reply = user_exp[expression]
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
-                    if 'text/plain' in data:
+                    if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
-                        self.sig_namespace_view.emit(view)
                     else:
                         view = None
+                    self.sig_namespace_view.emit(view)
                 elif 'get_var_properties' in method:
-                    properties = ast.literal_eval(data['text/plain'])
+                    if data is not None and 'text/plain' in data:
+                        properties = ast.literal_eval(data['text/plain'])
+                    else:
+                        properties = None
                     self.sig_var_properties.emit(properties)
                 else:
-                    if data is not None:
+                    if data is not None and 'text/plain' in data:
                         self._kernel_reply = ast.literal_eval(data['text/plain'])
                     else:
                         self._kernel_reply = None
@@ -270,6 +278,10 @@ the sympy module (e.g. plot)
             return self.long_banner()
         else:
             return self.short_banner()
+
+    def _kernel_restarted_message(self, died=True):
+        msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+        self.sig_kernel_restarted.emit(msg)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
