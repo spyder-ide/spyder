@@ -87,7 +87,7 @@ class RunConfiguration(object):
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
         self.clear_namespace = options.get('clear_namespace',  
-                                    CONF.get('run', 'clear_namespace', True))
+                                    CONF.get('run', 'clear_namespace', False))
         
     def get(self):
         return {
@@ -503,7 +503,7 @@ class RunConfigPage(GeneralConfigPage):
              _("Enter debugging mode when errors appear during execution"),
              'post_mortem', False)
         clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
-            'clear_namespace', True)
+            'clear_namespace', False)
 
         general_layout = QVBoxLayout()
         general_layout.addWidget(clear_variables)
