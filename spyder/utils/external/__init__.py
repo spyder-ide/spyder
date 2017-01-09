@@ -8,6 +8,9 @@
 spyder.utils.external
 =====================
 
-External libraries needed for Spyder to work.
-Put here only untouched libraries, else put them in utils.
+* Libraries or modules taken from external projects verbatim.
+* Spyder developers can modify these modules to make them work
+  better for the project. So there's no guarantee that we will
+  maintain compatibility with the upstream project the code
+  was taken from.
 """
