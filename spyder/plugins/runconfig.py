@@ -41,7 +41,7 @@ WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
-CLEAR_ALL_VARIABLES = _("Clear all variables before execution (IPython)")
+CLEAR_ALL_VARIABLES = _("Clear all variables before execution (IPython consoles)")
 
 class RunConfiguration(object):
     """Run configuration"""
