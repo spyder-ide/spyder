@@ -174,9 +174,14 @@ class FilesystemLock:
                         # Verify that the running process corresponds to
                         # a Spyder one
                         p = psutil.Process(int(pid))
-                        conditions = [p.name() == 'spyder',
-                                      p.name() == 'spyder3',
-                                      'bootstrap.py' in p.cmdline()]
+                        if os.name == 'nt':
+                            conditions = ['spyder' in c.lower()
+                                          for c in p.cmdline()]
+                        else:
+                            conditions = [p.name() == 'spyder',
+                                          p.name() == 'spyder3']
+                        # For DEV
+                        conditions += ['bootstrap.py' in p.cmdline()]
                         if not any(conditions):
                             raise(OSError(3, 'No such process'))
                     except OSError as e:
