@@ -6,8 +6,12 @@
 """
 Filesystem-based interprocess mutex.
 
-Changes by the Spyder Team to the original Twisted file:
--. Rewrite kill Windows function to make it more reliable
+Taken from the Twisted project.
+Distributed under the MIT license.
+
+Changes by the Spyder Team to the original module:
+  * Rewrite kill Windows function to make it more reliable.
+  * Detect if the process that owns the lock is an Spyder one.
 """
 
 __metaclass__ = type
