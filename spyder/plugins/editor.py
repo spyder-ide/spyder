@@ -2641,9 +2641,7 @@ class Editor(SpyderPluginWidget):
             editorstack.create_new_file_if_empty = value
 
     def move_editorstack_data(self, start, end):
-        """
-        Move editorstack.data to be synchronized when tabs are moved.
-        """
+        """Move editorstack.data to be synchronized when tabs are moved."""
         if start < 0 or end < 0:
             return
         else:
