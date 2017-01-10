@@ -1300,6 +1300,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
+        editorstack.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -2638,3 +2639,23 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
+
+    def move_editorstack_data(self, start, end):
+        """
+        Move editorstack.data to be synchronized when tabs are moved.
+        """
+        if start < 0 or end < 0:
+            return
+        else:
+            steps = abs(end - start)
+            sign = (end - start) // steps
+
+            for editorstack in self.editorstacks :
+                data = editorstack.data
+                editorstack.blockSignals(True)
+
+                for i in range(start, end, sign*1):
+                    data[i], data[i+sign] = data[i+sign], data[i]
+
+                editorstack.blockSignals(False)
+                editorstack.refresh()
