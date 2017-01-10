@@ -316,6 +316,9 @@ class FileSwitcher(QDialog):
         """Get the normalized (lowecase) content of the filter text."""
         return to_text_string(self.edit.text()).lower()
 
+    def set_search_text(self, _str):
+        self.edit.setText(_str)
+
     def save_initial_state(self):
         """Saves initial cursors and initial active editor."""
         paths = self.paths
