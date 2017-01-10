@@ -82,9 +82,9 @@ def get_numpy_dtype(obj):
 # Pandas support
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, Series
+    from pandas import DataFrame, DatetimeIndex, Series
 else:
-    DataFrame = Series = FakeObject      # analysis:ignore
+    DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
 
 
 #==============================================================================
@@ -132,16 +132,28 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
-    if isinstance(item, (DataFrame, Series)):
+    if isinstance(item, (DataFrame, DatetimeIndex, Series)):
         return item.shape
     else:
         return 1
 
 
-#==============================================================================
+def get_object_attrs(obj):
+    """
+    Get the attributes of an object using dir.
+
+    This filters protected attributes
+    """
+    attrs = [k for k in dir(obj) if not k.startswith('__')]
+    if not attrs:
+        attrs = dir(obj)
+    return attrs
+
+
+# =============================================================================
 # Set limits for the amount of elements in the repr of collections (lists,
 # dicts, tuples and sets) and Numpy arrays
-#==============================================================================
+# =============================================================================
 CollectionsRepr = reprlib.Repr()
 CollectionsRepr.maxlist = 10
 CollectionsRepr.maxdict = 10
@@ -189,7 +201,8 @@ COLORS = {
            MaskedArray,
            matrix,
            DataFrame,
-           Series):           ARRAY_COLOR,
+           Series,
+           DatetimeIndex):    ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -285,6 +298,8 @@ def value_to_display(value, minmax=False):
         elif isinstance(value, NavigableString):
             # Fixes Issue 2448
             display = to_text_string(value)
+        elif isinstance(value, DatetimeIndex):
+            display = value.summary()
         elif is_binary_string(value):
             try:
                 display = to_text_string(value, 'utf8')
@@ -362,16 +377,19 @@ def display_to_value(value, default_value, ignore_errors=True):
     return value
 
 
-#==============================================================================
+# =============================================================================
 # Types
-#==============================================================================
+# =============================================================================
 def get_type_string(item):
-    """Return type string of an object"""
+    """Return type string of an object."""
     if isinstance(item, DataFrame):
         return "DataFrame"
+    if isinstance(item, DatetimeIndex):
+        return "DatetimeIndex"
     if isinstance(item, Series):
         return "Series"
-    found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
+    found = re.findall(r"<(?:type|class) '(\S*)'>",
+                       to_text_string(type(item)))
     if found:
         return found[0]
     
@@ -450,8 +468,7 @@ def globalsfilter(input_dict, check_all=False, filters=None,
 #==============================================================================
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'minmax', 'remote_editing',
-                   'autorefresh')
+                   'excluded_names', 'minmax', 'autorefresh')
 
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):

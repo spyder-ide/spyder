@@ -356,7 +356,8 @@ class OutlineExplorerData(object):
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
-    PROG = re.compile(make_python_patterns(), re.S)
+    add_kw = ['async', 'await']
+    PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):

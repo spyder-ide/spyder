@@ -177,7 +177,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         self._reading = False
 
         # Refresh namespacebrowser after the kernel starts running
-        exec_count = msg['content']['execution_count']
+        exec_count = msg['content'].get('execution_count', '')
         if exec_count == 0 and self._kernel_is_starting:
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()

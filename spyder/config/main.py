@@ -193,9 +193,8 @@ DEFAULTS = [
               'exclude_capitalized': False,
               'exclude_unsupported': True,
               'truncate': True,
-              'minmax': False,
-              'remote_editing': False,
-              }),
+              'minmax': False
+             }),
             ('editor',
              {
               'printer_header/font/family': SANS_SERIF,
@@ -657,7 +656,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '30.0.0'
+CONF_VERSION = '31.0.0'
 
 # Main configuration instance
 try:

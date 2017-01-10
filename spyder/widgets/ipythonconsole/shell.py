@@ -139,19 +139,21 @@ the sympy module (e.g. plot)
     def clear_console(self):
         self.execute("%clear")
 
-    def reset_namespace(self):
-        """Resets the namespace by removing all names defined by the user"""
-
-        reply = QMessageBox.question(
-            self,
-            _("Reset IPython namespace"),
-            _("All user-defined variables will be removed."
-            "<br>Are you sure you want to reset the namespace?"),
-            QMessageBox.Yes | QMessageBox.No,
+    def reset_namespace(self, force=False):
+        """Reset the namespace by removing all names defined by the user."""
+        reset_str = _("Reset IPython namespace")
+        warn_str = _("All user-defined variables will be removed."
+                     "<br>Are you sure you want to reset the namespace?")
+        if not force:
+            reply = QMessageBox.question(self, reset_str,
+                                         warn_str,
+                                         QMessageBox.Yes | QMessageBox.No
             )
 
-        if reply == QMessageBox.Yes:
-            self.execute("%reset -f")
+            if reply == QMessageBox.Yes:
+                self.execute("%reset -f")
+        else:
+            self.silent_execute("%reset -f")
 
     def set_background_color(self):
         light_color_o = self.additional_options['light_color']
@@ -240,14 +242,17 @@ the sympy module (e.g. plot)
                 if 'get_namespace_view' in method:
                     if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
-                        self.sig_namespace_view.emit(view)
                     else:
                         view = None
+                    self.sig_namespace_view.emit(view)
                 elif 'get_var_properties' in method:
-                    properties = ast.literal_eval(data['text/plain'])
+                    if data is not None and 'text/plain' in data:
+                        properties = ast.literal_eval(data['text/plain'])
+                    else:
+                        properties = None
                     self.sig_var_properties.emit(properties)
                 else:
-                    if data is not None:
+                    if data is not None and 'text/plain' in data:
                         self._kernel_reply = ast.literal_eval(data['text/plain'])
                     else:
                         self._kernel_reply = None
