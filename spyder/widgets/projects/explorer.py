@@ -15,7 +15,6 @@ import os.path as osp
 import shutil
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
                             QLabel, QMessageBox, QVBoxLayout, QWidget)

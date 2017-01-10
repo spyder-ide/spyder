@@ -15,7 +15,7 @@ Pandas DataFrame Editor Dialog
 
 # Third party imports
 from pandas import DataFrame, DatetimeIndex, Series
-from qtpy import API, PYQT5
+from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
 from qtpy.QtGui import QColor, QCursor
