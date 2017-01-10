@@ -560,6 +560,7 @@ class EditorStack(QWidget):
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
+        self.tabs.setMovable(True)
 
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
