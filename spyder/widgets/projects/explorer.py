@@ -15,7 +15,6 @@ import os.path as osp
 import shutil
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
                             QLabel, QMessageBox, QVBoxLayout, QWidget)
@@ -64,9 +63,9 @@ class ExplorerTreeWidget(FilteredDirView):
         self.show_hscrollbar = checked
         self.header().setStretchLastSection(not checked)
         self.header().setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        if PYQT5:
+        try:
             self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
-        else:
+        except:  # support for qtpy<1.2.0
             self.header().setResizeMode(QHeaderView.ResizeToContents)
 
     #---- Internal drag & drop
