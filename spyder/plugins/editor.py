@@ -614,25 +614,24 @@ class Editor(SpyderPluginWidget):
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_outline_action, context="Editor",
                                name="Show/hide outline")
-        self.toggle_project_action = create_action(self,
-                                _("Show/hide project explorer"),
-                                triggered=self.show_hide_projects,
-                                context=Qt.WidgetWithChildrenShortcut)
-        self.register_shortcut(self.toggle_project_action, context="Editor",
-                               name="Show/hide project explorer")
-        self.addActions([self.toggle_outline_action, self.toggle_project_action])
-        
+        self.addActions([self.toggle_outline_action])
         # ---- File menu and toolbar ----
-        self.new_action = create_action(self, _("&New file..."),
+        self.new_action = create_action(
+                self,
+                _("&New file..."),
                 icon=ima.icon('filenew'), tip=_("New file"),
                 triggered=self.new,
-                context=Qt.WidgetShortcut)
+                context=Qt.WidgetShortcut
+        )
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_sc_to_tip=True)
 
-        self.open_last_closed_action = create_action(self, _("O&pen last closed"),
+        self.open_last_closed_action = create_action(
+                self,
+                _("O&pen last closed"),
                 tip=_("Open last closed"),
-                triggered=self.open_last_closed)
+                triggered=self.open_last_closed
+        )
         self.register_shortcut(self.open_last_closed_action, context="Editor",
                                name="Open last closed")
         
@@ -650,6 +649,14 @@ class Editor(SpyderPluginWidget):
                                             context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher", add_sc_to_tip=True)
+
+        self.symbol_finder_action = create_action(self, _('Symbol finder...'),
+                                            icon=ima.icon('symbol_find'),
+                                            tip=_('Fast symbol search in file'),
+                                            triggered=self.call_symbol_finder,
+                                            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.symbol_finder_action, context="_",
+                               name="symbol finder", add_sc_to_tip=True)
 
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
@@ -995,6 +1002,7 @@ class Editor(SpyderPluginWidget):
                              self.save_all_action,
                              save_as_action,
                              self.file_switcher_action,
+                             self.symbol_finder_action,
                              self.revert_action,
                              MENU_SEPARATOR,
                              print_preview_action,
@@ -1007,7 +1015,8 @@ class Editor(SpyderPluginWidget):
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
                                 self.save_action, self.save_all_action,
-                                self.file_switcher_action]
+                                self.file_switcher_action,
+                                self.symbol_finder_action]
         self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
@@ -1724,6 +1733,11 @@ class Editor(SpyderPluginWidget):
     def call_file_switcher(self):
         if self.editorstacks:
             self.get_current_editorstack().open_fileswitcher_dlg()
+
+    @Slot()
+    def call_symbol_finder(self):
+        if self.editorstacks:
+            self.get_current_editorstack().open_symbolfinder_dlg()            
 
     def update_recent_file_menu(self):
         """Update recent file menu"""
