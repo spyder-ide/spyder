@@ -2646,14 +2646,14 @@ class Editor(SpyderPluginWidget):
             return
         else:
             steps = abs(end - start)
-            sign = (end - start) // steps
+            direction = (end-start) // steps  # +1 for right, -1 for left
 
             for editorstack in self.editorstacks :
                 data = editorstack.data
                 editorstack.blockSignals(True)
 
-                for i in range(start, end, sign*1):
-                    data[i], data[i+sign] = data[i+sign], data[i]
+                for i in range(start, end, direction):
+                    data[i], data[i+direction] = data[i+direction], data[i]
 
                 editorstack.blockSignals(False)
                 editorstack.refresh()
