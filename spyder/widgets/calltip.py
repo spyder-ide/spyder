@@ -41,6 +41,7 @@ class CallTipWidget(QLabel):
         self.app = QCoreApplication.instance()
 
         self.hide_timer_on = hide_timer_on
+        self.tip = None
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
 
@@ -152,8 +153,9 @@ class CallTipWidget(QLabel):
     def show_tip(self, point, tip, wrapped_tiplines):
         """ Attempts to show the specified tip at the current cursor location.
         """
-        # Don't attempt to show it if it's already visible
-        if self.isVisible():
+        # Don't attempt to show it if it's already visible and the text
+        # to be displayed is the same as the one displayed before.
+        if self.isVisible() and self.tip == tip:
             return True
 
         # Attempt to find the cursor position at which to show the call tip.
@@ -190,6 +192,7 @@ class CallTipWidget(QLabel):
             self._hide_timer.start(hide_time, self)
 
         # Set the text and resize the widget accordingly.
+        self.tip = tip
         self.setText(tip)
         self.resize(self.sizeHint())
 
