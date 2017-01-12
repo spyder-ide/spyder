@@ -226,6 +226,7 @@ class FileSwitcher(QDialog):
         self.initial_editor = None        # Initial active editor
         self.line_number = None           # Selected line number in filer
         self.is_visible = False           # Is the switcher visible?
+        self.clicked_outside = False      # User has not clicked outside dialog
 
         help_text = _("Press <b>Enter</b> to switch files or <b>Esc</b> to "
                       "cancel.<br><br>Type to filter filenames.<br><br>"
@@ -262,6 +263,8 @@ class FileSwitcher(QDialog):
         layout.addLayout(edit_layout)
         layout.addWidget(self.list)
         self.setLayout(layout)
+
+        self.setFocusPolicy(Qt.ClickFocus)
 
         # Signals
         self.rejected.connect(self.restore_initial_state)
@@ -316,6 +319,9 @@ class FileSwitcher(QDialog):
         """Get the normalized (lowecase) content of the filter text."""
         return to_text_string(self.edit.text()).lower()
 
+    def focusOutEvent(self, event):
+        self.clicked_outside = True
+
     def set_search_text(self, _str):
         self.edit.setText(_str)
 
@@ -341,14 +347,15 @@ class FileSwitcher(QDialog):
         self.is_visible = False
         editors = self.editors_by_path
 
-        for path in self.initial_cursors:
-            cursor = self.initial_cursors[path]
-            if path in editors:
-                self.set_editor_cursor(editors[path], cursor)
+        if not self.clicked_outside:
+            for path in self.initial_cursors:
+                cursor = self.initial_cursors[path]
+                if path in editors:
+                    self.set_editor_cursor(editors[path], cursor)
 
-        if self.initial_editor in self.paths_by_editor:
-            index = self.paths.index(self.initial_path)
-            self.sig_goto_file.emit(index)
+            if self.initial_editor in self.paths_by_editor:
+                index = self.paths.index(self.initial_path)
+                self.sig_goto_file.emit(index)
 
     def set_dialog_position(self):
         """Positions the file switcher dialog in the center of the editor."""
