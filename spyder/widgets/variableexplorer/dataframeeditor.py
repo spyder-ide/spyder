@@ -14,8 +14,8 @@ Pandas DataFrame Editor Dialog
 """
 
 # Third party imports
-from pandas import DataFrame, Series
-from qtpy import API, PYQT5
+from pandas import DataFrame, DatetimeIndex, Series
+from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
 from qtpy.QtGui import QColor, QCursor
@@ -29,7 +29,8 @@ import numpy as np
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
-from spyder.py3compat import io, is_text_string, PY2, to_text_string
+from spyder.py3compat import (io, is_text_string, PY2, to_text_string,
+                              TEXT_TYPES)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -197,6 +198,20 @@ class DataFrameModel(QAbstractTableModel):
                 except:
                     header = to_text_string(self.df_header[0])
                 return to_qvariant(header)
+            elif isinstance(self.df_header[section-1], TEXT_TYPES):
+                # Get the proper encoding of the text in the header.
+                # Fixes Issue 3896
+                if not PY2:
+                    try:
+                        header = self.df_header[section-1].encode('utf-8')
+                        coding = 'utf-8-sig'
+                    except:
+                        header = self.df_header[section-1].encode('utf-8')
+                        coding = encoding.get_coding(header)
+                else:
+                    header = self.df_header[section-1]
+                    coding = encoding.get_coding(header)
+                return to_qvariant(to_text_string(header, encoding=coding))
             else:
                 return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
@@ -411,9 +426,9 @@ class FrozenTableView(QTableView):
         self.setModel(parent.model())
         self.setFocusPolicy(Qt.NoFocus)
         self.verticalHeader().hide()
-        if PYQT5:
+        try:
             self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
-        else:
+        except:  # support for qtpy<1.2.0
             self.horizontalHeader().setResizeMode(QHeaderView.Fixed)
 
         parent.viewport().stackUnder(self)
@@ -633,7 +648,8 @@ class DataFrameEditor(QDialog):
     def setup_and_check(self, data, title=''):
         """
         Setup DataFrameEditor:
-        return False if data is not supported, True otherwise
+        return False if data is not supported, True otherwise.
+        Supported types for data are DataFrame, Series and DatetimeIndex.
         """
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -645,6 +661,8 @@ class DataFrameEditor(QDialog):
         if isinstance(data, Series):
             self.is_series = True
             data = data.to_frame()
+        elif isinstance(data, DatetimeIndex):
+            data = DataFrame(data)
 
         self.setWindowTitle(title)
         self.resize(600, 500)

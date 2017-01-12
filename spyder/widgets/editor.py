@@ -204,7 +204,7 @@ class FileInfo(QObject):
         self.pep8_results = []
         if self.editor.is_python():
             enc = self.encoding.replace('-guessed', '').replace('-bom', '')
-            source_code = self.get_source_code().encode(enc)
+            source_code, enc = encoding.encode(self.get_source_code(), enc)
             if run_pyflakes:
                 self.pyflakes_results = None
             if run_pep8:
@@ -346,6 +346,10 @@ class EditorStack(QWidget):
         fileswitcher_action = create_action(self, _("File switcher..."),
                 icon=ima.icon('filelist'),
                 triggered=self.open_fileswitcher_dlg)
+        symbolfinder_action = create_action(self, 
+                _("Find symbols in file..."),
+                icon=ima.icon('filelist'),
+                triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
@@ -356,6 +360,7 @@ class EditorStack(QWidget):
                                            triggered=self.close_all_but_this)
 
         self.menu_actions = actions + [None, fileswitcher_action,
+                                       symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this]
         self.outlineexplorer = None
@@ -617,6 +622,11 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
 
+    @Slot()
+    def open_symbolfinder_dlg(self): 
+        self.open_fileswitcher_dlg()
+        self.fileswitcher_dlg.set_search_text('@')
+        
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg:
