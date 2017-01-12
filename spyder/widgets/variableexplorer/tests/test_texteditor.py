@@ -24,7 +24,7 @@ def test_texteditor_setup_and_check():
         dig_its = string.digits;
         translate_digits = string.maketrans(dig_its,len(dig_its)*' ')
         editor = TextEditor(None)
-        assert editor.setup_and_check(translate_digits)
+        assert not editor.setup_and_check(translate_digits)
     else:
         assert True
 
