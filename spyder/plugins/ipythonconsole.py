@@ -849,7 +849,7 @@ class IPythonConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
-    def execute_code(self, lines, clear_variables):
+    def execute_code(self, lines, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
