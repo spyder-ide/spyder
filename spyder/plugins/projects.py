@@ -51,7 +51,6 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
-
     sig_new_file = Signal(str)
 
     def __init__(self, parent=None):
@@ -138,8 +137,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         self.sig_open_file.connect(self.main.open_file)
 
-        new_file_f = lambda x: self.editor.new(text=x)
-        self.sig_new_file.connect(new_file_f)
+        self.sig_new_file.connect(lambda x: self.editor.new(text=x))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
