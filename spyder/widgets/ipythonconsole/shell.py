@@ -59,8 +59,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.interpreter_versions = interpreter_versions
         self.external_kernel = external_kernel
 
-        self.set_style()
-
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
@@ -121,8 +119,8 @@ These commands were executed:
             banner = banner + lines
         if (pylab_o and sympy_o):
             lines = """
-Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both 
-enabled at the same time. Some pylab functions are going to be overrided by 
+Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
+enabled at the same time. Some pylab functions are going to be overrided by
 the sympy module (e.g. plot)
 """
             banner = banner + lines
@@ -152,14 +150,6 @@ the sympy module (e.g. plot)
 
         if reply == QMessageBox.Yes:
             self.execute("%reset -f")
-
-    def set_style(self):
-        style_sheet = self.additional_options['style_sheet']
-        syntax_style = self.additional_options['syntax_style']
-        self.style_sheet = style_sheet
-        self.syntax_style = syntax_style
-        self._style_sheet_changed()
-        self._syntax_style_changed()
 
     def create_shortcuts(self):
         inspect = config_shortcut(self._control.inspect_current_object,

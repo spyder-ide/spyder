@@ -988,6 +988,12 @@ class IPythonConsole(SpyderPluginWidget):
         if out_prompt_o:
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
 
+        # Style
+        syntax_style = self.get_syntax_style()
+        style_sheet = self.get_style_sheet()
+        spy_cfg.JupyterWidget.syntax_style = syntax_style
+        spy_cfg.JupyterWidget.style_sheet = style_sheet
+
         # Editor for %edit
         if CONF.get('main', 'single_instance'):
             spy_cfg.JupyterWidget.editor = self.set_editor()
@@ -1036,8 +1042,6 @@ class IPythonConsole(SpyderPluginWidget):
             pylab = self.get_option('pylab'),
             autoload_pylab = self.get_option('pylab/autoload'),
             sympy = self.get_option('symbolic_math'),
-            style_sheet = self.get_style_sheet(),
-            syntax_style = self.get_syntax_style(),
             show_banner = self.get_option('show_banner')
         )
 
@@ -1132,7 +1136,6 @@ class IPythonConsole(SpyderPluginWidget):
                 return ''
 
         selected_color_scheme = CONF.get('color_schemes', 'selected')
-        print(selected_color_scheme)
         color_scheme = get_color_scheme(selected_color_scheme)
 
         fon_c, fon_fw, fon_fs = color_scheme['normal']  # 'normal': ('#ffffff', False, False)
