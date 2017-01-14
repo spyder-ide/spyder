@@ -146,6 +146,12 @@ class CallTipWidget(QLabel):
             self._cursor_position_changed)
         self._text_edit.installEventFilter(self)
 
+    def focusOutEvent(self, event):
+        """ Reimplemented to hide it when focus goes out of the main
+            window.
+        """
+        self.hide()
+
     #--------------------------------------------------------------------------
     # 'CallTipWidget' interface
     #--------------------------------------------------------------------------
