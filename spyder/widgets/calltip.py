@@ -161,8 +161,11 @@ class CallTipWidget(QLabel):
         """
         # Don't attempt to show it if it's already visible and the text
         # to be displayed is the same as the one displayed before.
-        if self.isVisible() and self.tip == tip:
-            return True
+        if self.isVisible():
+            if self.tip == tip:
+                return True
+            else:
+                self.hide()
 
         # Attempt to find the cursor position at which to show the call tip.
         text_edit = self._text_edit
