@@ -496,10 +496,11 @@ if __name__ == "__main__":
     assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
     a['d'] = [1, 2, 3]
 
-    buf = io.BytesIO()
-    save_matlab(a, buf)
-    buf.seek(0)
-    data, err = load_matlab(buf)
-    assert data['b'] == 'spam'
-    assert data['c'].d == 'eggs'
-    assert data['d'].tolist() == [[1, 2, 3]]
+    if save_matlab:
+        buf = io.BytesIO()
+        save_matlab(a, buf)
+        buf.seek(0)
+        data, err = load_matlab(buf)
+        assert data['b'] == 'spam'
+        assert data['c'].d == 'eggs'
+        assert data['d'].tolist() == [[1, 2, 3]]
