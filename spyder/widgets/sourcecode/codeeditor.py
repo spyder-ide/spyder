@@ -29,8 +29,8 @@ import time
 # Third party imports
 from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRect, QRegExp, QSize, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, QIntValidator,
+from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
+from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
                         QTextDocument, QTextFormat, QTextOption)
@@ -38,7 +38,7 @@ from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout, QWidget)
+                            QTextEdit, QToolTip, QVBoxLayout)
 
 # %% This line is for cell execution testing
 
@@ -59,7 +59,9 @@ from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
 from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
+from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
+from spyder.api.panel import Panel
 
 try:
     import nbformat as nbformat
@@ -154,76 +156,6 @@ class GoToLineDialog(QDialog):
 
 
 #===============================================================================
-# Viewport widgets
-#===============================================================================
-
-
-class ScrollFlagArea(QWidget):
-    """Source code editor's scroll flag area"""
-    WIDTH = 12
-    FLAGS_DX = 4
-    FLAGS_DY = 2
-
-    def __init__(self, editor):
-        QWidget.__init__(self, editor)
-        self.setAttribute(Qt.WA_OpaquePaintEvent)
-        self.code_editor = editor
-        editor.verticalScrollBar().valueChanged.connect(
-                                                  lambda value: self.repaint())
-
-    def sizeHint(self):
-        """Override Qt method"""
-        return QSize(self.WIDTH, 0)
-
-    def paintEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.scrollflagarea_paint_event(event)
-
-    def mousePressEvent(self, event):
-        """Override Qt method"""
-        vsb = self.code_editor.verticalScrollBar()
-        value = self.position_to_value(event.pos().y()-1)
-        vsb.setValue(value-.5*vsb.pageStep())
-
-    def get_scale_factor(self, slider=False):
-        """Return scrollbar's scale factor:
-        ratio between pixel span height and value span height"""
-        delta = 0 if slider else 2
-        vsb = self.code_editor.verticalScrollBar()
-        position_height = vsb.height()-delta-1
-        value_height = vsb.maximum()-vsb.minimum()+vsb.pageStep()
-        return float(position_height)/value_height
-
-    def value_to_position(self, y, slider=False):
-        """Convert value to position"""
-        offset = 0 if slider else 1
-        vsb = self.code_editor.verticalScrollBar()
-        return (y-vsb.minimum())*self.get_scale_factor(slider)+offset
-
-    def position_to_value(self, y, slider=False):
-        """Convert position to value"""
-        offset = 0 if slider else 1
-        vsb = self.code_editor.verticalScrollBar()
-        return vsb.minimum()+max([0, (y-offset)/self.get_scale_factor(slider)])
-
-    def make_flag_qrect(self, position):
-        """Make flag QRect"""
-        return QRect(self.FLAGS_DX/2, position-self.FLAGS_DY/2,
-                     self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
-
-    def make_slider_range(self, value):
-        """Make slider range QRect"""
-        vsb = self.code_editor.verticalScrollBar()
-        pos1 = self.value_to_position(value, slider=True)
-        pos2 = self.value_to_position(value + vsb.pageStep(), slider=True)
-        return QRect(1, pos1, self.WIDTH-2, pos2-pos1+1)
-
-    def wheelEvent(self, event):
-        """Override Qt method"""
-        self.code_editor.wheelEvent(event)
-
-
-#===============================================================================
 # CodeEditor widget
 #===============================================================================
 class BlockUserData(QTextBlockUserData):
@@ -242,12 +174,6 @@ class BlockUserData(QTextBlockUserData):
     def __del__(self):
         bud_list = self.editor.blockuserdata_list
         bud_list.pop(bud_list.index(self))
-
-
-def set_scrollflagarea_painter(painter, light_color):
-    """Set scroll flag area painter pen and brush colors"""
-    painter.setPen(QColor(light_color).darker(120))
-    painter.setBrush(QBrush(QColor(light_color)))
 
 
 def get_file_language(filename, text=None):
@@ -376,8 +302,8 @@ class CodeEditor(TextEditBaseWidget):
         self.highlight_current_line_enabled = False
 
         # Scrollbar flag area
-        self.scrollflagarea_enabled = None
-        self.scrollflagarea = ScrollFlagArea(self)
+        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
+                                                   Panel.Position.RIGHT)
         self.scrollflagarea.hide()
         self.warning_color = "#FFAD07"
         self.error_color = "#EA2B0E"
@@ -633,7 +559,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         # Scrollbar flag area
-        self.set_scrollflagarea_enabled(scrollflagarea)
+        self.scrollflagarea.set_enabled(scrollflagarea)
 
         # Edge line
         self.edge_line.set_enabled(edge_line)
@@ -1187,82 +1113,9 @@ class CodeEditor(TextEditBaseWidget):
         # Rehighlight to make the spaces less apparent.
         self.rehighlight()
 
-    #-----scrollflagarea
-    def set_scrollflagarea_enabled(self, state):
-        """Toggle scroll flag area visibility"""
-        self.scrollflagarea_enabled = state
-        self.scrollflagarea.setVisible(state)
-        self.panels.refresh()
-
-    def get_scrollflagarea_width(self):
-        """Return scroll flag area width"""
-        if self.scrollflagarea_enabled:
-            return ScrollFlagArea.WIDTH
-        else:
-            return 0
-
-    def scrollflagarea_paint_event(self, event):
-        """Painting the scroll flag area"""
-        make_flag = self.scrollflagarea.make_flag_qrect
-        make_slider = self.scrollflagarea.make_slider_range
-
-        # Filling the whole painting area
-        painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), self.sideareas_color)
-        block = self.document().firstBlock()
-
-        # Painting warnings and todos
-        for line_number in range(1, self.document().blockCount()+1):
-            data = block.userData()
-            if data:
-                position = self.scrollflagarea.value_to_position(line_number)
-                if data.code_analysis:
-                    # Warnings
-                    color = self.warning_color
-                    for _message, error in data.code_analysis:
-                        if error:
-                            color = self.error_color
-                            break
-                    set_scrollflagarea_painter(painter, color)
-                    painter.drawRect(make_flag(position))
-                if data.todo:
-                    # TODOs
-                    set_scrollflagarea_painter(painter, self.todo_color)
-                    painter.drawRect(make_flag(position))
-                if data.breakpoint:
-                    # Breakpoints
-                    set_scrollflagarea_painter(painter, self.breakpoint_color)
-                    painter.drawRect(make_flag(position))
-            block = block.next()
-
-        # Occurrences
-        if self.occurrences:
-            set_scrollflagarea_painter(painter, self.occurrence_color)
-            for line_number in self.occurrences:
-                position = self.scrollflagarea.value_to_position(line_number)
-                painter.drawRect(make_flag(position))
-
-        # Found results
-        if self.found_results:
-            set_scrollflagarea_painter(painter, self.found_results_color)
-            for line_number in self.found_results:
-                position = self.scrollflagarea.value_to_position(line_number)
-                painter.drawRect(make_flag(position))
-
-        # Painting the slider range
-        pen_color = QColor(Qt.white)
-        pen_color.setAlphaF(.8)
-        painter.setPen(pen_color)
-        brush_color = QColor(Qt.white)
-        brush_color.setAlphaF(.5)
-        painter.setBrush(QBrush(brush_color))
-        painter.drawRect(make_slider(self.firstVisibleBlock().blockNumber()))
-
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""
         TextEditBaseWidget.resizeEvent(self, event)
-        cr = self.contentsRect()
-        self.__set_scrollflagarea_geometry(cr)
         self.panels.resize()
 
     def showEvent(self, event):
@@ -1270,29 +1123,11 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).showEvent(event)
         self.panels.refresh()
 
-    def __set_scrollflagarea_geometry(self, contentrect):
-        """Set scroll flag area geometry"""
-        cr = contentrect
-        if self.verticalScrollBar().isVisible():
-            vsbw = self.verticalScrollBar().contentsRect().width()
-        else:
-            vsbw = 0
-        _left, _top, right, _bottom = self.getContentsMargins()
-        if right > vsbw:
-            # Depending on the platform (e.g. on Ubuntu), the scrollbar sizes
-            # may be taken into account in the contents margins whereas it is
-            # not on Windows for example
-            vsbw = 0
-        self.scrollflagarea.setGeometry(\
-                        QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
-                              self.scrollflagarea.WIDTH, cr.height()))
-
     #-----edgeline
     def viewportEvent(self, event):
         """Override Qt method"""
         cr = self.contentsRect()
         self.edge_line.set_geometry(cr)
-        self.__set_scrollflagarea_geometry(cr)
         return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
