@@ -63,7 +63,7 @@ from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.api.folding import IndentFoldDetector
-from spyder.widgets.sourcecode.api.decorations import TextDecorationsManager
+from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
 from spyder.api.panel import Panel
 
 try:
