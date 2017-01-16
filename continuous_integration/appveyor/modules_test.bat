@@ -24,6 +24,10 @@ for /r "%SPYDER%" %%f in (*.py) do (
         :: We don't want py.test's to be run here
         echo --- NOT testing %%f ---
         echo.
+    ) else if not "!file:test\=!"=="!file!" (
+        :: We don't want py.test's to be run here
+        echo --- NOT testing %%f ---
+        echo.
     ) else if not "!file:site\=!"=="!file!" (
         :: We can't test our site files
         echo --- NOT testing %%f ---
