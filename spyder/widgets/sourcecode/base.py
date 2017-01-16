@@ -255,7 +255,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_text = ""
         self.setup_completion()
 
-        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
+        self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.calltips = True
         self.calltip_position = None
 
