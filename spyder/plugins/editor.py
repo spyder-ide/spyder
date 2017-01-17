@@ -543,9 +543,9 @@ class Editor(SpyderPluginWidget):
         """Return widget title"""
         title = _('Editor')
         return title
-    
+
     def get_plugin_icon(self):
-        """Return widget icon"""
+        """Return widget icon."""
         return ima.icon('edit')
     
     def get_focus_widget(self):
