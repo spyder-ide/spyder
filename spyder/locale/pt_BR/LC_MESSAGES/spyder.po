@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: 3.0POT-Creation-Date: 2016-09-21 11:43-0300\n"
-"POT-Creation-Date: 2017-01-16 11:48+COT\n"
-"PO-Revision-Date: 2016-09-24 07:03-0300\n"
+"Project-Id-Version: 3.8"
+"POT-Creation-Date: 2017-01-17 12:57-0300\n"
+"PO-Revision-Date: 2017-01-17 14:38-0300\n"
 "Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
 "Language-Team: pt_BR\n"
 "Language: pt_BR\n"
@@ -14,8 +14,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.8.9\n"
+"X-Generator: Poedit 1.8.11\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: pt_BR\n"
 
 #: spyder/app/mainwindow.py:128
 msgid "Initializing..."
@@ -1041,11 +1042,11 @@ msgstr "Habilite esta opção<br> se deseja separar os menus da janela principal
 
 #: spyder/plugins/configdialog.py:863
 msgid "Enable high DPI scaling"
-msgstr ""
+msgstr "Ativar escala alta de DPI"
 
 #: spyder/plugins/configdialog.py:865
 msgid "Set this for high DPI displays"
-msgstr ""
+msgstr "Ativar em telas de alto DPI"
 
 #: spyder/plugins/configdialog.py:866
 msgid "Custom margin for panes:"
@@ -1404,9 +1405,8 @@ msgid "Tab stop width:"
 msgstr "Largura da tabulação:"
 
 #: spyder/plugins/editor.py:208
-#, fuzzy
 msgid "spaces"
-msgstr "2 espaços"
+msgstr "espaços"
 
 #: spyder/plugins/editor.py:210
 msgid "Tab always indent"
@@ -1533,14 +1533,12 @@ msgid "New file"
 msgstr "Novo arquivo"
 
 #: spyder/plugins/editor.py:631
-#, fuzzy
 msgid "O&pen last closed"
-msgstr "Abrir um novo console"
+msgstr "Ab&rir último arquivo fechado"
 
 #: spyder/plugins/editor.py:632
-#, fuzzy
 msgid "Open last closed"
-msgstr "Abrir um novo console"
+msgstr "Abrir último arquivo fechado"
 
 #: spyder/plugins/editor.py:638
 msgid "&Open..."
@@ -1560,13 +1558,12 @@ msgid "Fast switch between files"
 msgstr "Troca rápida de seleção entre arquivos"
 
 #: spyder/plugins/editor.py:653
-#, fuzzy
 msgid "Symbol finder..."
-msgstr "Pasta..."
+msgstr "Pesquisador de símbolos...."
 
 #: spyder/plugins/editor.py:655
 msgid "Fast symbol search in file"
-msgstr ""
+msgstr "Pesquisa rápida de símbolos no arquivo"
 
 #: spyder/plugins/editor.py:661
 msgid "&Revert"
@@ -1857,21 +1854,19 @@ msgstr "Desfazer indentação da linha ou seleção atual"
 
 #: spyder/plugins/editor.py:930
 msgid "Toggle Uppercase"
-msgstr ""
+msgstr "Alternar Maiúsculas"
 
 #: spyder/plugins/editor.py:931
-#, fuzzy
 msgid "Change to uppercase current line or selection"
-msgstr "Indentar a linha ou seleção atual"
+msgstr "Mudar linha ou seleção atual para maiúsculo"
 
 #: spyder/plugins/editor.py:937
 msgid "Toggle Lowercase"
-msgstr ""
+msgstr "Alternar Minúsculas"
 
 #: spyder/plugins/editor.py:938
-#, fuzzy
 msgid "Change to lowercase current line or selection"
-msgstr "Indentar a linha ou seleção atual"
+msgstr "Mudar linha ou seleção atual para minúsculo"
 
 #: spyder/plugins/editor.py:945
 msgid "Carriage return and line feed (Windows)"
@@ -2809,6 +2804,8 @@ msgid ""
 "The directory {} is not writable and it is required to create IPython "
 "consoles. Please make it writable."
 msgstr ""
+"O diretório {} não está em modo de escrita e isto é necessário para criar "
+"consoles IPython. Por favor deixe-o em modo de escrita."
 
 #: spyder/plugins/ipythonconsole.py:896
 msgid ""
@@ -2837,13 +2834,12 @@ msgstr ""
 "esse?"
 
 #: spyder/plugins/ipythonconsole.py:1187
-#, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was {0}"
 msgstr ""
-"Não foi possível converter esse notebook. O erro é:\n"
-"\n"
+"Não foi possível reiniciar o console IPython enquanto trocava-se de projeto. "
+"O erro foi {0}"
 
 #: spyder/plugins/ipythonconsole.py:1426
 msgid "IPython"
@@ -2959,6 +2955,9 @@ msgid ""
 "You selected an invalid Python interpreter for the console so the previous "
 "interpreter will stay. Please make sure to select a valid one."
 msgstr ""
+"Você selecionou um interpretador inválido do Python para o console, o "
+"interpretador anterior irá continuar. Por favor tenha certeza se você "
+"selecionou um válido."
 
 #: spyder/plugins/maininterpreter.py:176
 msgid ""
@@ -2988,6 +2987,8 @@ msgid ""
 "You are working with Python 2, this means that you can not import a module "
 "that contains non-ascii characters."
 msgstr ""
+"Você está utilizando Python 2,  não é possível importar um módulo que "
+"contenha não contenha caracteres ascii."
 
 #: spyder/plugins/maininterpreter.py:214
 msgid ""
@@ -3031,9 +3032,8 @@ msgid "Close Project"
 msgstr "Fechar Projeto"
 
 #: spyder/plugins/projects.py:97
-#, fuzzy
 msgid "Delete Project"
-msgstr "Projetos Recentes"
+msgstr "Deletar Projeto"
 
 #: spyder/plugins/projects.py:103
 msgid "Project Preferences"
@@ -3069,7 +3069,7 @@ msgstr "Sempre mostrar %s na primeira execução"
 
 #: spyder/plugins/runconfig.py:44
 msgid "Clear all variables before execution (IPython consoles)"
-msgstr ""
+msgstr "Limpar todas variáveis antes da execução (Consoles IPython)"
 
 #: spyder/plugins/runconfig.py:166 spyder/plugins/runconfig.py:486
 msgid "General settings"
@@ -3656,7 +3656,6 @@ msgid "Dependencies"
 msgstr "Dependências"
 
 #: spyder/widgets/dependencies.py:141
-#, fuzzy
 msgid ""
 "Spyder depends on several Python modules to provide the right functionality "
 "for all its panes. The table below shows the required and installed versions "
@@ -3676,9 +3675,8 @@ msgid "Copy to clipboard"
 msgstr "Copiar para área transferência "
 
 #: spyder/widgets/editor.py:350
-#, fuzzy
 msgid "Find symbols in file..."
-msgstr "Procurar em arquivos"
+msgstr "Procurar símbolos no arquivo..."
 
 #: spyder/widgets/editor.py:353
 msgid "Copy path to clipboard"
@@ -3916,7 +3914,6 @@ msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr "<b>Não foi possível %s <i>%s</i></b><br><br>Mensagem de erro:<br>%s"
 
 #: spyder/widgets/explorer.py:548
-#, fuzzy
 msgid "File Explorer"
 msgstr "Explorador de arquivos"
 
@@ -3925,6 +3922,8 @@ msgid ""
 "The current directory contains a project.<br><br>If you want to delete the "
 "project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
 msgstr ""
+"O diretório atual contém um projeto.<br><br>Se você deseja mesmo deletar o "
+"projeto, por favor vá em <b>Projetos</b> &raquo; <b>Deletar Projeto</b>"
 
 #: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2078
 msgid "Conversion error"
@@ -4412,12 +4411,11 @@ msgstr ""
 
 #: spyder/widgets/ipythonconsole/shell.py:285
 msgid "Kernel died, restarting"
-msgstr ""
+msgstr "O Kernel morreu, reiniciando"
 
 #: spyder/widgets/ipythonconsole/shell.py:285
-#, fuzzy
 msgid "Kernel restarting"
-msgstr "Reiniciando"
+msgstr "Reiniciando Kernel"
 
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
@@ -4577,13 +4575,16 @@ msgid ""
 "action will only delete the project. Its files are going to be preserved on "
 "disk."
 msgstr ""
+"Você deseja mesmo deletar <b>{filename}</b>?<br><br><b>Nota:</b> Isso "
+"deletará apenas o projeto. Os arquivos continuarão no disco."
 
 #: spyder/widgets/projects/explorer.py:256
-#, fuzzy
 msgid ""
 "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:"
 "<br>{error}"
-msgstr "<b>Não foi possível mover <i>%s</i></b><br><br>Mensagem de erro:<br>%s"
+msgstr ""
+"<b>Não foi possível deletar <i>{varpath}</i></b><br><br>Mensagem de erro:"
+"<br>{error}"
 
 #: spyder/widgets/projects/projectdialog.py:69
 msgid "New directory"
@@ -5078,13 +5079,12 @@ msgid "Column min/max"
 msgstr "Min/max de coluna"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:734
-#, fuzzy
 msgid "Format ({}) is incorrect"
-msgstr "O formato (%s) está incorreto"
+msgstr "O formato ({}) éincorreto"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:738
 msgid "Format ({}) should start with '%'"
-msgstr ""
+msgstr "O formato ({}) deve começar com '%'"
 
 #: spyder/widgets/variableexplorer/importwizard.py:116
 #: spyder/widgets/variableexplorer/importwizard.py:431
