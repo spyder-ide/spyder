@@ -1063,7 +1063,8 @@ class Editor(SpyderPluginWidget):
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, re_run_last_cell_action,
+                               run_cell_advance_action,
+                               re_run_last_cell_action,
                                re_run_action, configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
