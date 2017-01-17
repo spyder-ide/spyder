@@ -301,9 +301,9 @@ class BaseEditMixin(object):
                 text = text[:-1]
         return text
     
-    def get_character(self, position):
-        """Return character at *position*"""
-        position = self.get_position(position)
+    def get_character(self, position, offset=0):
+        """Return character at *position* with the given offset."""
+        position = self.get_position(position) + offset
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         if position < cursor.position():
