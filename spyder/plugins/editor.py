@@ -542,9 +542,6 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        filename = self.get_current_filename()
-        if filename:
-            title += ' - '+to_text_string(filename)
         return title
     
     def get_plugin_icon(self):
