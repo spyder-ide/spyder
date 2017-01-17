@@ -57,9 +57,12 @@ CTRL = "Meta" if MAC else "Ctrl"
 # Run cell shortcuts
 if sys.platform == 'darwin':
     RUN_CELL_SHORTCUT = 'Meta+Return'
+    RE_RUN_LAST_CELL_SHORTCUT = 'Meta+Shift+R'
 else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
+    RE_RUN_LAST_CELL_SHORTCUT = 'Ctrl+Shift+R'
 RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
+
 
 # =============================================================================
 #  Defaults
@@ -424,6 +427,7 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': RUN_CELL_SHORTCUT,
               'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               # -- In Breakpoints

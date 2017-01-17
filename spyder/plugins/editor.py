@@ -839,6 +839,17 @@ class Editor(SpyderPluginWidget):
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
+        re_run_last_cell_action = create_action(self,
+                   _("Re-run last cell"),
+                   icon=ima.icon('re_run_last_cell'),
+                   tip=_("Re run last cell "),
+                   triggered=self.re_run_last_cell,
+                   context=Qt.WidgetShortcut)
+        self.register_shortcut(re_run_last_cell_action,
+                               context="Editor",
+                               name='re-run last cell',
+                               add_sc_to_tip=True)
+
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
@@ -1046,13 +1057,14 @@ class Editor(SpyderPluginWidget):
           
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
-                            run_cell_advance_action, MENU_SEPARATOR,
+                            run_cell_advance_action,
+                            re_run_last_cell_action, MENU_SEPARATOR,
                             run_selected_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, re_run_action,
-                               configure_action]
+                               run_cell_advance_action, re_run_last_cell_action,
+                               re_run_action, configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
@@ -1120,6 +1132,7 @@ class Editor(SpyderPluginWidget):
                                              debug_action, run_selected_action,
                                              run_cell_action,
                                              run_cell_advance_action,
+                                             re_run_last_cell_action,
                                              blockcomment_action,
                                              unblockcomment_action,
                                              self.winpdb_action]
@@ -2407,6 +2420,12 @@ class Editor(SpyderPluginWidget):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
+
+    @Slot()
+    def re_run_last_cell(self):
+        """Run last executed cell."""
+        editorstack = self.get_current_editorstack()
+        editorstack.re_run_last_cell()
 
     #------ Zoom in/out/reset
     def zoom(self, factor):

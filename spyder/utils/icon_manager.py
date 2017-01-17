@@ -61,6 +61,8 @@ _qtaargs = {
     'run_selection':           [('spyder.run-selection',), {}],
     'run_cell':                [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play'),
                                 {'options': [{'color': '#fff683'}, {}, {'color': 'green'}]}],
+    're_run_last_cell':        [('spyder.cell-code', 'spyder.cell-border', 'fa.repeat', 'spyder.cell-play'),
+                                {'options': [{'color': '#fff683'}, {}, {'offset':(0.0, -0.05)}, {'color': 'green', 'offset':(0, 0.3), 'scale_factor':0.9}]}],
     'run_cell_advance':        [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play', 'spyder.cell-next'),
                                 {'options': [{'color': '#fff683'}, {}, {'color': 'green'}, {'color': 'red'}]}],
     'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'color': '#3775a9', 'color_disabled': '#748fa6'}]}],
