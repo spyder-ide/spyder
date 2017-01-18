@@ -22,9 +22,11 @@ import textwrap
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
-from qtpy import PYQT5
+from qtpy import PYQT_VERSION
 
-if PYQT5:
+PYQT55_VERSION = tuple(int(x) for x in PYQT_VERSION.split('.')) >= (5, 5)
+
+if PYQT55_VERSION:
     from qtpy.QtCore import QRegularExpression
 else:
     from qtpy.QtCore import QRegExp
@@ -490,7 +492,7 @@ class BaseEditMixin(object):
             moves += [QTextCursor.End]
         if not regexp:
             text = re.escape(to_text_string(text))
-        if PYQT5:
+        if PYQT55_VERSION:
             pattern = QRegularExpression(r"\b{}\b".format(text) if words else
                                          text)
             if case:
