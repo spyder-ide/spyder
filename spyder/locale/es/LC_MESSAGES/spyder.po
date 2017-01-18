@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2017-01-16 11:48+COT\n"
-"PO-Revision-Date: 2016-11-11 18:52-0500\n"
+"PO-Revision-Date: 2017-01-17 20:23-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -761,7 +761,7 @@ msgstr ""
 
 #: spyder/app/tour.py:266
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
-msgstr ""
+msgstr "<b>Spyder</b> es un ambiente interactivo de desarrollo basado en bla"
 
 #: spyder/app/tour.py:270
 msgid "Welcome to Spyder introduction tour"
@@ -769,7 +769,7 @@ msgstr "Bienvenido al Tour Introductorio de Spyder!"
 
 #: spyder/app/tour.py:271
 msgid "Spyder is an interactive development environment based on bla"
-msgstr ""
+msgstr "Spyder es un ambiente de desarrollo interactivo basado en bla"
 
 #: spyder/app/tour.py:276
 msgid "Introduction tour"
@@ -777,7 +777,7 @@ msgstr "Tour Introductorio"
 
 #: spyder/app/tour.py:277
 msgid "New features in version 3.0"
-msgstr ""
+msgstr "Nuevas características en Spyder 3.0"
 
 #: spyder/app/tour.py:571 spyder/plugins/ipythonconsole.py:432
 msgid "Run code"
@@ -1413,9 +1413,8 @@ msgid "Tab stop width:"
 msgstr "Ancho de las tabulaciones:"
 
 #: spyder/plugins/editor.py:208
-#, fuzzy
 msgid "spaces"
-msgstr "2 espacios"
+msgstr "espacios"
 
 #: spyder/plugins/editor.py:210
 msgid "Tab always indent"
@@ -1545,14 +1544,12 @@ msgid "New file"
 msgstr "Nuevo archivo"
 
 #: spyder/plugins/editor.py:631
-#, fuzzy
 msgid "O&pen last closed"
-msgstr "Abrir una nueva terminal"
+msgstr "Abrir el último cerrado"
 
 #: spyder/plugins/editor.py:632
-#, fuzzy
 msgid "Open last closed"
-msgstr "Abrir una nueva terminal"
+msgstr "Abrir el último archivo cerrado"
 
 #: spyder/plugins/editor.py:638
 msgid "&Open..."
@@ -1572,13 +1569,12 @@ msgid "Fast switch between files"
 msgstr "Cambiar rápidamente entre archivos"
 
 #: spyder/plugins/editor.py:653
-#, fuzzy
 msgid "Symbol finder..."
-msgstr "Carpeta..."
+msgstr "Buscador de símbolos..."
 
 #: spyder/plugins/editor.py:655
 msgid "Fast symbol search in file"
-msgstr ""
+msgstr "Búsqueda rápida de símbolos en el archivo"
 
 #: spyder/plugins/editor.py:661
 msgid "&Revert"
@@ -2837,6 +2833,8 @@ msgid ""
 "The directory {} is not writable and it is required to create IPython "
 "consoles. Please make it writable."
 msgstr ""
+"El directorio {} no tiene permisos de escritura, lo cual es requerido para "
+"crear terminales de IPython. Por favor cambie sus permisos."
 
 #: spyder/plugins/ipythonconsole.py:896
 msgid ""
@@ -2864,13 +2862,12 @@ msgstr ""
 "¿Desea cerrar todas las otras terminales conectadas al mismo núcleo que ésta?"
 
 #: spyder/plugins/ipythonconsole.py:1187
-#, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was {0}"
 msgstr ""
-"No fue posible convertir este notebook. El error es:\n"
-"\n"
+"No fue posible reiniciar la terminal de IPython al abrir este proyecto. El "
+"error fue {0}"
 
 #: spyder/plugins/ipythonconsole.py:1426
 msgid "IPython"
@@ -2988,6 +2985,8 @@ msgid ""
 "You selected an invalid Python interpreter for the console so the previous "
 "interpreter will stay. Please make sure to select a valid one."
 msgstr ""
+"Se seleccionó un interprete de Python inválido así que se dejará el "
+"anterior. Por favor asegúrese de seleccionar un intérprete válido."
 
 #: spyder/plugins/maininterpreter.py:176
 msgid ""
@@ -3099,7 +3098,7 @@ msgstr "Siempre muestre %s en una primera ejecución"
 
 #: spyder/plugins/runconfig.py:44
 msgid "Clear all variables before execution (IPython consoles)"
-msgstr ""
+msgstr "Eliminar las variables antes de la ejecución (terminales de IPython)"
 
 #: spyder/plugins/runconfig.py:166 spyder/plugins/runconfig.py:486
 msgid "General settings"
@@ -3710,9 +3709,8 @@ msgid "Copy to clipboard"
 msgstr "Copiar al portapapeles"
 
 #: spyder/widgets/editor.py:350
-#, fuzzy
 msgid "Find symbols in file..."
-msgstr "Buscar en archivos"
+msgstr "Buscar símbolos en el archivo..."
 
 #: spyder/widgets/editor.py:353
 msgid "Copy path to clipboard"
@@ -4462,12 +4460,11 @@ msgstr ""
 
 #: spyder/widgets/ipythonconsole/shell.py:285
 msgid "Kernel died, restarting"
-msgstr ""
+msgstr "El núcleo dejó de funcionar, reiniciándolo"
 
 #: spyder/widgets/ipythonconsole/shell.py:285
-#, fuzzy
 msgid "Kernel restarting"
-msgstr "Reiniciando"
+msgstr "Reiniciando el núcleo"
 
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
@@ -5140,13 +5137,12 @@ msgid "Column min/max"
 msgstr "Min/max de columna"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:734
-#, fuzzy
 msgid "Format ({}) is incorrect"
-msgstr "El formato (%s) es incorrecto"
+msgstr "El formato ({}) es incorrecto"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:738
 msgid "Format ({}) should start with '%'"
-msgstr ""
+msgstr "El formato ({}) debe iniciar con '%'"
 
 #: spyder/widgets/variableexplorer/importwizard.py:116
 #: spyder/widgets/variableexplorer/importwizard.py:431
