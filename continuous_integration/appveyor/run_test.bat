@@ -8,6 +8,9 @@ set EXTRA_PACKAGES=pandas sympy pillow
 mkdir C:\projects\tmp
 cd C:\projects\tmp
 
+:: Don't auto-update conda
+conda config --set auto_update_conda False
+
 :: Install the package we created
 conda install -q -y --use-local spyder-dev
 
