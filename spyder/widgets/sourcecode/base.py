@@ -629,7 +629,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.setTextCursor(cursor)
         text = self.get_selection_as_executable_code()
         self.__restore_selection(start_pos, end_pos)
-        return text.rstrip()
+        if text is not None:
+            text = text.rstrip()
+        return text
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""
