@@ -154,16 +154,18 @@ the sympy module (e.g. plot)
             self.silent_execute("%reset -f")
 
     def create_shortcuts(self):
+        """Create shortcuts for ipyconsole."""
         inspect = config_shortcut(self._control.inspect_current_object,
-                                  context='Console', name='Inspect current object',
-                                  parent=self)
+                                  context='Console',
+                                  name='Inspect current object', parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
         restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
                                          context='ipython_console',
                                          name='Restart kernel', parent=self)
         new_tab = config_shortcut(lambda: self.new_client.emit(),
-                                  context='ipython_console', name='new tab', parent=self)
+                                  context='ipython_console', name='new tab',
+                                  parent=self)
         reset_namespace = config_shortcut(lambda: self.reset_namespace(),
                                           context='ipython_console',
                                           name='reset namespace', parent=self)
