@@ -59,8 +59,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.interpreter_versions = interpreter_versions
         self.external_kernel = external_kernel
 
-        self.set_background_color()
-
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
@@ -154,11 +152,6 @@ the sympy module (e.g. plot)
                 self.execute("%reset -f")
         else:
             self.silent_execute("%reset -f")
-
-    def set_background_color(self):
-        light_color_o = self.additional_options['light_color']
-        if not light_color_o:
-            self.set_default_style(colors='linux')
 
     def create_shortcuts(self):
         inspect = config_shortcut(self._control.inspect_current_object,
