@@ -1046,10 +1046,10 @@ class IPythonConsole(SpyderPluginWidget):
         in JupyterWidget config options
         """
         options = dict(
-            pylab = self.get_option('pylab'),
-            autoload_pylab = self.get_option('pylab/autoload'),
-            sympy = self.get_option('symbolic_math'),
-            show_banner = self.get_option('show_banner')
+            pylab=self.get_option('pylab'),
+            autoload_pylab=self.get_option('pylab/autoload'),
+            sympy=self.get_option('symbolic_math'),
+            show_banner=self.get_option('show_banner')
         )
 
         return options
