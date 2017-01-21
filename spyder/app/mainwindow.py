@@ -1962,9 +1962,6 @@ class MainWindow(QMainWindow):
 
     def update_edit_menu(self):
         """Update edit menu"""
-        if self.menuBar().hasFocus():
-            return
-
         widget, textedit_properties = self.get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
