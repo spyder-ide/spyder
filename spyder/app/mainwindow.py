@@ -216,22 +216,6 @@ def get_focus_python_shell():
         return widget.shell
 
 
-def get_focus_widget_properties():
-    """Get properties of focus widget
-    Returns tuple (widget, properties) where properties is a tuple of
-    booleans: (is_console, not_readonly, readwrite_editor)"""
-    widget = QApplication.focusWidget()
-    from spyder.widgets.shell import ShellBaseWidget
-    from spyder.widgets.editor import TextEditBaseWidget
-    textedit_properties = None
-    if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-        console = isinstance(widget, ShellBaseWidget)
-        not_readonly = not widget.isReadOnly()
-        readwrite_editor = not_readonly and not console
-        textedit_properties = (console, not_readonly, readwrite_editor)
-    return widget, textedit_properties
-
-
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -1956,12 +1940,27 @@ class MainWindow(QMainWindow):
                 if element._shown_shortcut is not None:
                     element.setShortcut(QKeySequence())
 
+    def get_focus_widget_properties(self):
+        """Get properties of focus widget
+        Returns tuple (widget, properties) where properties is a tuple of
+        booleans: (is_console, not_readonly, readwrite_editor)"""
+        widget = self.focusWidget()
+        from spyder.widgets.shell import ShellBaseWidget
+        from spyder.widgets.editor import TextEditBaseWidget
+        textedit_properties = None
+        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
+            console = isinstance(widget, ShellBaseWidget)
+            not_readonly = not widget.isReadOnly()
+            readwrite_editor = not_readonly and not console
+            textedit_properties = (console, not_readonly, readwrite_editor)
+        return widget, textedit_properties
+
     def update_edit_menu(self):
         """Update edit menu"""
         if self.menuBar().hasFocus():
             return
 
-        widget, textedit_properties = get_focus_widget_properties()
+        widget, textedit_properties = self.get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -2000,7 +1999,7 @@ class MainWindow(QMainWindow):
         if self.menuBar().hasFocus():
             return
 
-        widget, textedit_properties = get_focus_widget_properties()
+        widget, textedit_properties = self.get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
             action.setEnabled(self.editor.isAncestorOf(widget))
         if textedit_properties is None: # widget is not an editor/console
