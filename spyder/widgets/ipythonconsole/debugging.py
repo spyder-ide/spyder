@@ -12,10 +12,12 @@ mode and Spyder
 import ast
 
 from qtpy.QtCore import QEventLoop
+from qtpy.QtWidgets import QMessageBox
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.py3compat import to_text_string
+from spyder.config.base import _
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -53,13 +55,13 @@ class DebuggingWidget(RichJupyterWidget):
                 lineno = self._input_reply['lineno']
                 self.sig_pdb_step.emit(fname, lineno)
             elif 'get_namespace_view' in code:
-                if not 'fname' in self._input_reply:
+                if 'fname' not in self._input_reply:
                     view = self._input_reply
                 else:
                     view = None
                 self.sig_namespace_view.emit(view)
             elif 'get_var_properties' in code:
-                if not 'fname' in self._input_reply:
+                if 'fname' not in self._input_reply:
                     properties = self._input_reply
                 else:
                     properties = None
