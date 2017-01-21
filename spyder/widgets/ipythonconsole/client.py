@@ -82,6 +82,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     append_to_history = Signal(str, str)
 
+
     def __init__(self, plugin, name, history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
