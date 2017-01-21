@@ -1947,6 +1947,11 @@ class MainWindow(QMainWindow):
         widget = self.focusWidget()
         from spyder.widgets.shell import ShellBaseWidget
         from spyder.widgets.editor import TextEditBaseWidget
+
+        # if focused widget isn't valid try the last focused
+        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
+            widget = self.previous_focused_widget
+
         textedit_properties = None
         if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
             console = isinstance(widget, ShellBaseWidget)
@@ -2116,6 +2121,8 @@ class MainWindow(QMainWindow):
             self.last_focused_widget = QApplication.focusWidget()
         elif now is not None:
             self.last_focused_widget = now
+
+        self.previous_focused_widget =  old
 
     def closing(self, cancelable=False):
         """Exit tasks"""
@@ -2366,6 +2373,11 @@ class MainWindow(QMainWindow):
         action = self.sender()
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.widgets.editor import TextEditBaseWidget
+
+        # if focused widget isn't valid try the last focused^M
+        if not isinstance(widget, TextEditBaseWidget):
+            widget = self.previous_focused_widget
+
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
 
