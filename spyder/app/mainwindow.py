@@ -1960,9 +1960,6 @@ class MainWindow(QMainWindow):
         """Update edit menu"""
         if self.menuBar().hasFocus():
             return
-        # Disabling all actions to begin with
-        for child in self.edit_menu.actions():
-            child.setEnabled(False)
 
         widget, textedit_properties = get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
@@ -1973,6 +1970,10 @@ class MainWindow(QMainWindow):
         # Editor has focus and there is no file opened in it
         if not console and not_readonly and not self.editor.is_file_opened():
             return
+
+        # Disabling all actions to begin with
+        for child in self.edit_menu.actions():
+            child.setEnabled(False)
 
         self.selectall_action.setEnabled(True)
 
