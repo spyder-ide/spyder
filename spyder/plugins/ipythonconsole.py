@@ -1237,8 +1237,9 @@ class IPythonConsole(SpyderPluginWidget):
         #    manager
         spy_path = get_module_source_path('spyder')
         sc_path = osp.join(spy_path, 'utils', 'site')
-        spy_pythonpath = self.main.get_spyder_pythonpath()
-        print(spy_pythonpath)
+        spy_pythonpath = []
+        if not self.testing:
+            spy_pythonpath = self.main.get_spyder_pythonpath()
 
         default_interpreter = CONF.get('main_interpreter', 'default')
         if default_interpreter:
@@ -1324,8 +1325,11 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = self.create_kernel_spec()
 
         # Save stderr in a file to read it later in case of errors
-        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
-        kernel_manager.start_kernel(stderr=stderr)
+        if not self.testing:
+            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+            kernel_manager.start_kernel(stderr=stderr)
+        else:
+            kernel_manager.start_kernel()
 
         # Kernel client
         kernel_client = kernel_manager.client()
