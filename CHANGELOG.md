@@ -1,5 +1,29 @@
 # History of changes
 
+## Version 3.1.1 (2017-01-22)
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 4012](https://github.com/spyder-ide/spyder/issues/4012) - Edit menu items greyed out after update to Spyder 3.1.0
+* [Issue 3989](https://github.com/spyder-ide/spyder/issues/3989) - Spyder won't start after upgrade to 3.1.0 due to an error with QRegularExpression
+* [Issue 3987](https://github.com/spyder-ide/spyder/issues/3987) - Errors running or importing code because sys.argv is empty
+
+In this release 3 issues were closed
+
+**Pull requests**
+
+* [PR 4022](https://github.com/spyder-ide/spyder/pull/4022) - PR: Edit menu disable error
+* [PR 3997](https://github.com/spyder-ide/spyder/pull/3997) - PR: Enclosing quotes of sys.argv clearing instruction are now consistent
+* [PR 3994](https://github.com/spyder-ide/spyder/pull/3994) - PR: Use QRegularExpression only for Qt 5.5+
+
+In this release 3 pull requests were merged
+
+
+----
+
+
 ## Version 3.1 (2017-01-18)
 
 ### New features
