@@ -23,6 +23,7 @@ from qtpy.QtCore import Qt
 import pytest
 
 # Local imports
+from spyder.utils.programs import is_module_installed
 from spyder.widgets.variableexplorer import dataframeeditor
 from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
@@ -186,6 +187,8 @@ def test_header_bom():
     model = editor.dataModel
     assert model.headerData(1, orientation=Qt.Horizontal) == "Date (MMM-YY)"
 
+@pytest.mark.skipif(is_module_installed('pandas', '<0.19'),
+                    reason="It doesn't work for Pandas 0.19-")
 def test_header_encoding():
     df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
     editor = DataFrameEditor(None)
