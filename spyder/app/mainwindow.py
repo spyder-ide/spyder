@@ -1950,8 +1950,10 @@ class MainWindow(QMainWindow):
 
         # if focused widget isn't valid try the last focused
         if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-            widget = self.previous_focused_widget
-
+            try:
+                widget = self.previous_focused_widget
+            except AttributeError:  # no previous_focused_widget the first time
+                pass
         textedit_properties = None
         if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
             console = isinstance(widget, ShellBaseWidget)
