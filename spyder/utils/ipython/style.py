@@ -42,10 +42,9 @@ def get_style_sheet():
     background_color = color_scheme['background']
     selection_background_color = '#ccc'
     error_color = 'red'
-    instance_color = color_scheme['instance'][0]
-    in_prompt_color = instance_color
+    in_prompt_color = 'navy'
     in_prompt_number_font_weight = 'bold'
-    out_prompt_color = instance_color
+    out_prompt_color = 'darkred'
     out_prompt_number_font_weight = 'bold'
     inverted_background_color = font_color
     inverted_font_color = background_color
