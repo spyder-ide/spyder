@@ -14,7 +14,7 @@ from spyder.plugins.ipythonconsole import IPythonConsole
 # Qt Test Fixtures
 #--------------------------------
 @pytest.fixture
-def botipython(qtbot):
+def ipyconsole_bot(qtbot):
     widget = IPythonConsole(None, testing=True)
     widget.create_new_client()
     qtbot.addWidget(widget)
@@ -23,17 +23,12 @@ def botipython(qtbot):
 
 # Tests
 #-------------------------------
-def test_sys_argv_clear(botipython):
-    qtbot, ipy = botipython
-    shell = ipy.get_current_shellwidget()
-    client = ipy.get_current_client()
+def test_sys_argv_clear(ipyconsole_bot):
+    qtbot, ipyconsole = ipyconsole_bot
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
 
-    with qtbot.waitSignal(client.sig_shell_ready, timeout=6000) as blocker:
-        shell.silent_exec_method('import sys;A = len(sys.argv)')
-    len_argv = shell.get_value("A")
-    while len_argv is None:
-        shell.silent_exec_method('import sys;A = len(sys.argv)')
-        qtbot.keyClicks(client.get_control(), 'import sys;A = len(sys.argv)')
-        qtbot.keyPress(client.get_control(), Qt.Key_Return)
-        len_argv = shell.get_value("A")
-    assert len_argv == 1
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=6000)
+    shell.execute('import sys; A = sys.argv')
+    argv = shell.get_value("A")
+    assert argv == ['']
