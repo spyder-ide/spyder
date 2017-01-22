@@ -50,13 +50,13 @@ def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     assert res == 'done'
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) == True,
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason='It only runs in CI services.')
 def test_is_valid_interpreter():
     assert is_python_interpreter(VALID_INTERPRETER)
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) == True,
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason='It only runs in CI services.')
 def test_is_invalid_interpreter():
     assert not is_python_interpreter(INVALID_INTERPRETER)
