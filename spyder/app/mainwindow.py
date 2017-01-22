@@ -1955,7 +1955,7 @@ class MainWindow(QMainWindow):
         if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
             try:
                 widget = self.previous_focused_widget
-            except:  # no previous_focused_widget the first time
+            except AttributeError:  # no previous_focused_widget the first time
                 pass
 
         textedit_properties = None
