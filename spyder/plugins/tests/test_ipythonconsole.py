@@ -4,6 +4,8 @@
 # Licensed under the terms of the MIT License
 #
 
+import os
+
 import pytest
 from qtpy.QtCore import Qt
 from pytestqt import qtbot
@@ -23,6 +25,7 @@ def ipyconsole_bot(qtbot):
 
 # Tests
 #-------------------------------
+@pytest.mark.skipif(os.name == 'nt', reason="It's timing out on Windows")
 def test_sys_argv_clear(ipyconsole_bot):
     qtbot, ipyconsole = ipyconsole_bot
     shell = ipyconsole.get_current_shellwidget()
