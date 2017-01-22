@@ -190,7 +190,6 @@ In this release 79 issues were closed
 * [PR 3871](https://github.com/spyder-ide/spyder/pull/3871) - PR: Add option to "clear all" variables before running file
 * [PR 3866](https://github.com/spyder-ide/spyder/pull/3866) - PR: Add code to cancel active Appveyor builds in a branch
 * [PR 3864](https://github.com/spyder-ide/spyder/pull/3864) - PR: Extra selections is now an ordered dictionary
-* [PR 3863](https://github.com/spyder-ide/spyder/pull/3863) - PR: Update ja translations for 3.x
 * [PR 3861](https://github.com/spyder-ide/spyder/pull/3861) - PR: Show kernel initialization errors in the IPython console
 * [PR 3854](https://github.com/spyder-ide/spyder/pull/3854) - PR: Add disambiguation functionality to the Python console
 * [PR 3853](https://github.com/spyder-ide/spyder/pull/3853) - PR: Move rope_patch.py to utils/introspection
