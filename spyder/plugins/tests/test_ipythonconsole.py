@@ -18,7 +18,6 @@ def botipython(qtbot):
     widget = IPythonConsole(None, testing=True)
     widget.create_new_client()
     qtbot.addWidget(widget)
-    widget.show()
     return qtbot, widget
 
 
