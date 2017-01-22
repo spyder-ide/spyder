@@ -81,7 +81,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     append_to_history = Signal(str, str)
-    shell_ready = Signal()
+
+    sig_shell_ready = Signal()
 
     def __init__(self, plugin, name, history_filename, config_options,
                  additional_options, interpreter_versions,
@@ -432,4 +433,4 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         document = self.get_control().document()
         document.contentsChange.disconnect(self._hide_loading_page)
-        self.shell_ready.emit()
+        self.sig_shell_ready.emit()

@@ -29,7 +29,7 @@ def test_sys_argv_clear(botipython):
     shell = ipy.get_current_shellwidget()
     client = ipy.get_current_client()
 
-    with qtbot.waitSignal(shell.kernel_client.started_channels, timeout=6000) as blocker:
+    with qtbot.waitSignal(client.sig_shell_ready, timeout=6000) as blocker:
         shell.silent_exec_method('import sys;A = len(sys.argv)')
     len_argv = shell.get_value("A")
     while len_argv is None:
