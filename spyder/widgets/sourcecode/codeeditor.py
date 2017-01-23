@@ -1918,7 +1918,7 @@ class CodeEditor(TextEditBaseWidget):
         diff_curly = 0
         add_indent = False
         prevline = None
-        prevtext = None
+        prevtext = ""
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
@@ -2014,7 +2014,7 @@ class CodeEditor(TextEditBaseWidget):
                                 correct_indent = len(prevtext)
 
         if not (diff_paren or diff_brack or diff_curly) and \
-           not prevtext.endswith(':'):
+           not prevtext.endswith(':') and prevline:
             cur_indent = self.get_block_indentation(block_nb - 1)
             is_blank = not self.get_text_line(block_nb - 1).strip()
             prevline_indent = self.get_block_indentation(prevline)
