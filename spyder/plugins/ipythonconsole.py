@@ -576,7 +576,8 @@ class IPythonConsole(SpyderPluginWidget):
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
-    def __init__(self, parent):
+    def __init__(self, parent, testing=False):
+        """Ipython Console constructor."""
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
@@ -595,9 +596,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
+        self.testing = testing
 
         # Initialize plugin
-        self.initialize_plugin()
+        if not self.testing:
+            self.initialize_plugin()
 
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
@@ -609,7 +612,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
-                     
+
         self.tabwidget.set_close_function(self.close_client)
 
         if sys.platform == 'darwin':
@@ -625,7 +628,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts(self.find_widget)
+        if not self.testing:
+            self.register_widget_shortcuts(self.find_widget)
         layout.addWidget(self.find_widget)
 
         self.setLayout(layout)
@@ -711,11 +715,12 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = []
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
-        if client:
+        if client and not self.testing:
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
-        self.main.last_console_plugin_focus_was_python = False
+        if not self.testing:
+            self.main.last_console_plugin_focus_was_python = False
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
@@ -1228,7 +1233,9 @@ class IPythonConsole(SpyderPluginWidget):
         #    manager
         spy_path = get_module_source_path('spyder')
         sc_path = osp.join(spy_path, 'utils', 'site')
-        spy_pythonpath = self.main.get_spyder_pythonpath()
+        spy_pythonpath = []
+        if not self.testing:
+            spy_pythonpath = self.main.get_spyder_pythonpath()
 
         default_interpreter = CONF.get('main_interpreter', 'default')
         if default_interpreter:
@@ -1314,8 +1321,11 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = self.create_kernel_spec()
 
         # Save stderr in a file to read it later in case of errors
-        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
-        kernel_manager.start_kernel(stderr=stderr)
+        if not self.testing:
+            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+            kernel_manager.start_kernel(stderr=stderr)
+        else:
+            kernel_manager.start_kernel()
 
         # Kernel client
         kernel_client = kernel_manager.client()
