@@ -183,7 +183,7 @@ The requirements to run Spyder are:
 * `Nbconvert <http://nbconvert.readthedocs.org/>`_ -- to manipulate Jupyter notebooks
   on the Editor.
 
-* `Qtawesome <https://github.com/spyder-ide/qtawesome>`_ -- for an icon theme based on
+* `Qtawesome <https://github.com/spyder-ide/qtawesome>`_ >=0.4.1 -- for an icon theme based on
   FontAwesome.
 
 * Pickleshare -- To show import completions on the Editor and Consoles.
@@ -196,6 +196,9 @@ The requirements to run Spyder are:
 
 * `Chardet <https://github.com/chardet/chardet>`_ >=2.0.0-- Character encoding auto-detection
   in Python.
+  
+* `Numpydoc <https://github.com/numpy/numpydoc>`_ Used by Jedi to get return types for
+  functions with Numpydoc docstrings.
 
 Optional modules
 ~~~~~~~~~~~~~~~~

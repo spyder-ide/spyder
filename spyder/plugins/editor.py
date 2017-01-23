@@ -38,7 +38,7 @@ from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
-from spyder.utils.qthelpers import create_action, add_actions
+from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -354,7 +354,7 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool, bool)
+    run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
@@ -614,25 +614,24 @@ class Editor(SpyderPluginWidget):
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_outline_action, context="Editor",
                                name="Show/hide outline")
-        self.toggle_project_action = create_action(self,
-                                _("Show/hide project explorer"),
-                                triggered=self.show_hide_projects,
-                                context=Qt.WidgetWithChildrenShortcut)
-        self.register_shortcut(self.toggle_project_action, context="Editor",
-                               name="Show/hide project explorer")
-        self.addActions([self.toggle_outline_action, self.toggle_project_action])
-        
+        self.addActions([self.toggle_outline_action])
         # ---- File menu and toolbar ----
-        self.new_action = create_action(self, _("&New file..."),
+        self.new_action = create_action(
+                self,
+                _("&New file..."),
                 icon=ima.icon('filenew'), tip=_("New file"),
                 triggered=self.new,
-                context=Qt.WidgetShortcut)
+                context=Qt.WidgetShortcut
+        )
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", add_sc_to_tip=True)
 
-        self.open_last_closed_action = create_action(self, _("O&pen last closed"),
+        self.open_last_closed_action = create_action(
+                self,
+                _("O&pen last closed"),
                 tip=_("Open last closed"),
-                triggered=self.open_last_closed)
+                triggered=self.open_last_closed
+        )
         self.register_shortcut(self.open_last_closed_action, context="Editor",
                                name="Open last closed")
         
@@ -650,6 +649,14 @@ class Editor(SpyderPluginWidget):
                                             context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher", add_sc_to_tip=True)
+
+        self.symbol_finder_action = create_action(self, _('Symbol finder...'),
+                                            icon=ima.icon('symbol_find'),
+                                            tip=_('Fast symbol search in file'),
+                                            triggered=self.call_symbol_finder,
+                                            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.symbol_finder_action, context="_",
+                               name="symbol finder", add_sc_to_tip=True)
 
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
@@ -985,29 +992,31 @@ class Editor(SpyderPluginWidget):
         self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
 
         file_menu_actions = [self.new_action,
-                             None,
+                             MENU_SEPARATOR,
                              self.open_action,
                              self.open_last_closed_action,
                              self.recent_file_menu,
-                             None,
-                             None,
+                             MENU_SEPARATOR,
+                             MENU_SEPARATOR,
                              self.save_action,
                              self.save_all_action,
                              save_as_action,
                              self.file_switcher_action,
+                             self.symbol_finder_action,
                              self.revert_action,
-                             None,
+                             MENU_SEPARATOR,
                              print_preview_action,
                              self.print_action,
-                             None,
+                             MENU_SEPARATOR,
                              self.close_action,
                              self.close_all_action,
-                             None]                     
+                             MENU_SEPARATOR]
 
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
                                 self.save_action, self.save_all_action,
-                                self.file_switcher_action]
+                                self.file_switcher_action,
+                                self.symbol_finder_action]
         self.main.file_toolbar_actions += file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
@@ -1023,8 +1032,9 @@ class Editor(SpyderPluginWidget):
         self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action,
-                                  self.text_uppercase_action, self.text_lowercase_action]
-        self.main.edit_menu_actions += [None]+self.edit_menu_actions
+                                  self.text_uppercase_action,
+                                  self.text_lowercase_action]
+        self.main.edit_menu_actions += [MENU_SEPARATOR] + self.edit_menu_actions
         edit_toolbar_actions = [self.toggle_comment_action,
                                 self.unindent_action, self.indent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
@@ -1036,8 +1046,9 @@ class Editor(SpyderPluginWidget):
           
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
-                            run_cell_advance_action, None, run_selected_action,
-                            re_run_action, configure_action, None]
+                            run_cell_advance_action, MENU_SEPARATOR,
+                            run_selected_action, re_run_action,
+                            configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action, re_run_action,
@@ -1054,12 +1065,12 @@ class Editor(SpyderPluginWidget):
                               debug_return_action,
                               debug_continue_action,
                               debug_exit_action,
-                              None,
+                              MENU_SEPARATOR,
                               set_clear_breakpoint_action,
                               set_cond_breakpoint_action,
                               clear_all_breakpoints_action,
                               'list_breakpoints',
-                              None,
+                              MENU_SEPARATOR,
                               self.winpdb_action]
         self.main.debug_menu_actions += debug_menu_actions
         debug_toolbar_actions = [debug_action, debug_next_action,
@@ -1072,12 +1083,12 @@ class Editor(SpyderPluginWidget):
                                self.showblanks_action,
                                trailingspaces_action,
                                fixindentation_action,
-                               None,
+                               MENU_SEPARATOR,
                                self.todo_list_action,
                                self.warning_list_action,
                                self.previous_warning_action,
                                self.next_warning_action,
-                               None,
+                               MENU_SEPARATOR,
                                self.previous_edit_cursor_action,
                                self.previous_cursor_action,
                                self.next_cursor_action]
@@ -1087,23 +1098,31 @@ class Editor(SpyderPluginWidget):
                                   self.warning_list_action,
                                   self.previous_warning_action,
                                   self.next_warning_action,
-                                  None,
+                                  MENU_SEPARATOR,
                                   self.previous_edit_cursor_action,
                                   self.previous_cursor_action,
                                   self.next_cursor_action]
         self.main.source_toolbar_actions += source_toolbar_actions
 
         # ---- Dock widget and file dependent actions ----
-        self.dock_toolbar_actions = file_toolbar_actions + [None] + \
-                                    source_toolbar_actions + [None] + \
-                                    run_toolbar_actions + [None] + \
-                                    debug_toolbar_actions +  [None] + \
-                                    edit_toolbar_actions
+        self.dock_toolbar_actions = (file_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     source_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     run_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     debug_toolbar_actions +
+                                     [MENU_SEPARATOR] +
+                                     edit_toolbar_actions)
         self.pythonfile_dependent_actions = [run_action, configure_action,
-                     set_clear_breakpoint_action, set_cond_breakpoint_action,
-                     debug_action, run_selected_action, run_cell_action,
-                     run_cell_advance_action, blockcomment_action,
-                     unblockcomment_action, self.winpdb_action]
+                                             set_clear_breakpoint_action,
+                                             set_cond_breakpoint_action,
+                                             debug_action, run_selected_action,
+                                             run_cell_action,
+                                             run_cell_advance_action,
+                                             blockcomment_action,
+                                             unblockcomment_action,
+                                             self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
                  self.print_action, self.save_all_action, gotoline_action,
@@ -1351,23 +1370,27 @@ class Editor(SpyderPluginWidget):
     #------ Handling editor windows
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
-        self.toolbar_list = (
-            (_("File toolbar"), self.main.file_toolbar_actions),
-            (_("Search toolbar"), self.main.search_menu_actions),
-            (_("Source toolbar"), self.main.source_toolbar_actions),
-            (_("Run toolbar"), self.main.run_toolbar_actions),
-            (_("Debug toolbar"), self.main.debug_toolbar_actions),
-            (_("Edit toolbar"), self.main.edit_toolbar_actions),
-                             )
-        self.menu_list = (
-                          (_("&File"), self.main.file_menu_actions),
+
+        self.toolbar_list = ((_("File toolbar"), "file_toolbar",
+                              self.main.file_toolbar_actions),
+                             (_("Search toolbar"), "search_toolbar",
+                              self.main.search_menu_actions),
+                             (_("Source toolbar"), "source_toolbar",
+                              self.main.source_toolbar_actions),
+                             (_("Run toolbar"), "run_toolbar",
+                              self.main.run_toolbar_actions),
+                             (_("Debug toolbar"), "debug_toolbar",
+                              self.main.debug_toolbar_actions),
+                             (_("Edit toolbar"), "edit_toolbar",
+                              self.main.edit_toolbar_actions))
+        self.menu_list = ((_("&File"), self.main.file_menu_actions),
                           (_("&Edit"), self.main.edit_menu_actions),
                           (_("&Search"), self.main.search_menu_actions),
                           (_("Sour&ce"), self.main.source_menu_actions),
                           (_("&Run"), self.main.run_menu_actions),
                           (_("&Tools"), self.main.tools_menu_actions),
-                          (_("?"), self.main.help_menu_actions),
-                          )
+                          (_("&View"), []),
+                          (_("&Help"), self.main.help_menu_actions))
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
@@ -1382,6 +1405,8 @@ class Editor(SpyderPluginWidget):
                                   fullpath_sorting=fullpath_sorting,
                                   show_all_files=oe_options['show_all_files'],
                                   show_comments=oe_options['show_comments'])
+        window.add_toolbars_to_menu("&View", window.get_toolbars())
+        window.load_toolbars()
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
@@ -1708,6 +1733,11 @@ class Editor(SpyderPluginWidget):
     def call_file_switcher(self):
         if self.editorstacks:
             self.get_current_editorstack().open_fileswitcher_dlg()
+
+    @Slot()
+    def call_symbol_finder(self):
+        if self.editorstacks:
+            self.get_current_editorstack().open_symbolfinder_dlg()            
 
     def update_recent_file_menu(self):
         """Update recent file menu"""
@@ -2303,11 +2333,13 @@ class Editor(SpyderPluginWidget):
             post_mortem = runconf.post_mortem
             current = runconf.current
             systerm = runconf.systerm
+            clear_namespace = runconf.clear_namespace
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
-                                   python, python_args, current, systerm, post_mortem)
+                                   python, python_args, current, systerm, 
+                                   post_mortem, clear_namespace)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -2339,7 +2371,8 @@ class Editor(SpyderPluginWidget):
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
-         python, python_args, current, systerm, post_mortem) = self.__last_ec_exec
+         python, python_args, current, systerm,
+         post_mortem, clear_namespace) = self.__last_ec_exec
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
@@ -2347,7 +2380,8 @@ class Editor(SpyderPluginWidget):
                                                         debug, post_mortem)
                 else:
                     self.run_in_current_ipyclient.emit(fname, wdir, args,
-                                                       debug, post_mortem)
+                                                       debug, post_mortem,
+                                                       clear_namespace)
             else:
                 self.run_in_current_extconsole.emit(fname, wdir, args, debug,
                                                     post_mortem)

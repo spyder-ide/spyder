@@ -80,7 +80,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = None
         self.excluded_names = None
         self.minmax = None
-        self.remote_editing = None
         self.autorefresh = None
         
         # Other setting
@@ -102,7 +101,7 @@ class NamespaceBrowser(QWidget):
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
               minmax=None, dataframe_format=None,
-              remote_editing=None, autorefresh=None):
+              autorefresh=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -119,7 +118,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = exclude_unsupported
         self.excluded_names = excluded_names
         self.minmax = minmax
-        self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         self.dataframe_format = dataframe_format
         
@@ -135,10 +133,11 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
             return
 
-        self.editor = RemoteCollectionsEditorTableView(self, None,
+        self.editor = RemoteCollectionsEditorTableView(
+                        self,
+                        None,
                         minmax=minmax,
                         dataframe_format=dataframe_format,
-                        remote_editing=remote_editing,
                         get_value_func=self.get_value,
                         set_value_func=self.set_value,
                         new_value_func=self.set_value,
@@ -153,9 +152,9 @@ class NamespaceBrowser(QWidget):
                         is_series_func=self.is_series,
                         get_array_shape_func=self.get_array_shape,
                         get_array_ndim_func=self.get_array_ndim,
-                        oedit_func=self.oedit,
                         plot_func=self.plot, imshow_func=self.imshow,
                         show_image_func=self.show_image)
+
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
 
@@ -331,6 +330,10 @@ class NamespaceBrowser(QWidget):
                     except socket.error:
                         # Process was terminated before calling this method
                         pass
+            try:
+                self.editor.resizeRowToContents()
+            except TypeError:
+                pass
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
@@ -339,7 +342,8 @@ class NamespaceBrowser(QWidget):
 
     def set_var_properties(self, properties):
         """Set properties of variables"""
-        self.var_properties = properties
+        if properties is not None:
+            self.var_properties = properties
 
     #------ Remote commands ------------------------------------
     def get_value(self, name):
@@ -351,15 +355,10 @@ class NamespaceBrowser(QWidget):
             self.shellwidget._kernel_value = None
         else:
             value = monitor_get_global(self._get_sock(), name)
-            if value is None:
-                if communicate(self._get_sock(), '%s is not None' % name):
-                    import pickle
-                    msg = to_text_string(_("Object <b>%s</b> is not picklable")
-                                         % name)
-                    raise pickle.PicklingError(msg)
         return value
-        
+
     def set_value(self, name, value):
+        """Set value for a variable."""
         if self.is_ipyclient:
             value = serialize_object(value)
             self.shellwidget.set_value(name, value)
@@ -476,26 +475,21 @@ class NamespaceBrowser(QWidget):
         else:
             self.shellwidget.send_to_process(command)
 
-    def oedit(self, name):
-        command = "from spyder.widgets.variableexplorer.objecteditor import oedit; " \
-                  "oedit('%s', modal=False, namespace=locals());" % name
-        self.shellwidget.send_to_process(command)
-
-    #------ Set, load and save data -------------------------------------------
+    # ------ Set, load and save data ------------------------------------------
     def set_data(self, data):
-        """Set data"""
+        """Set data."""
         if data != self.editor.model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
         
     def collapse(self):
-        """Collapse"""
+        """Collapse."""
         self.sig_collapse.emit()
 
     @Slot(bool)
     @Slot(list)
     def import_data(self, filenames=None):
-        """Import data from text file"""
+        """Import data from text file."""
         title = _("Import data")
         if filenames is None:
             if self.filename is None:

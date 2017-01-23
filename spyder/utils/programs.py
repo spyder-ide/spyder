@@ -20,7 +20,7 @@ import tempfile
 
 # Local imports
 from spyder.utils import encoding
-from spyder.py3compat import PY2, is_text_string
+from spyder.py3compat import PY2, is_text_string, to_text_string
 
 
 class ProgramError(Exception):
@@ -396,9 +396,6 @@ def is_module_installed(module_name, version=None, installed_version=None,
     in a determined interpreter
     """
     if interpreter:
-        if not osp.isdir(TEMPDIR):
-            os.mkdir(TEMPDIR)
-        
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
@@ -461,6 +458,32 @@ def is_module_installed(module_name, version=None, installed_version=None,
             version = version[match.start():]
             
             return check_version(actver, version, symb)
+
+def is_python_interpreter_valid_name(filename):
+    """Check that the python interpreter file has a valid name."""
+    pattern = r'.*python(\d\.?\d*)?(w)?(.exe)?$'
+    if re.match(pattern, filename, flags=re.I) is None:
+        return False
+    else:
+        return True
+
+def is_python_interpreter(filename):
+    """Evaluate wether a file is a python interpreter or not."""
+    real_filename = os.path.realpath(filename)  # To follow symlink if existent
+    if (not osp.isfile(real_filename) or encoding.is_text_file(real_filename)
+        or not is_python_interpreter_valid_name(filename)):
+        return False
+    try:
+        proc = run_program(filename, ["-h"])
+        output = to_text_string(proc.communicate()[0])
+        valid = ("Options and arguments (and corresponding environment "
+                 "variables)")
+        if 'usage:' in output and valid in output:
+            return True
+        else:
+            return False
+    except:
+        return False
 
 
 def test_programs():

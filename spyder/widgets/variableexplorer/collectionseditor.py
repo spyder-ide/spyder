@@ -46,10 +46,11 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
 from spyder.widgets.variableexplorer.texteditor import TextEditor
 from spyder.widgets.variableexplorer.utils import (
-    array, DataFrame, display_to_value, FakeObject, get_color_name,
-    get_human_readable_type, get_size, Image, is_editable_type, is_known_type,
-    MaskedArray, ndarray, np_savetxt, Series, sort_against, try_to_eval,
-    unsorted_unique, value_to_display,)
+    array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
+    get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
+    is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
+    try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
+    get_type_string)
 
 if ndarray is not FakeObject:
     from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
@@ -62,18 +63,26 @@ LARGE_NROWS = 100
 
 
 class ProxyObject(object):
-    """Dictionary proxy to an unknown object"""
+    """Dictionary proxy to an unknown object."""
+
     def __init__(self, obj):
+        """Constructor."""
         self.__obj__ = obj
 
     def __len__(self):
-        return len(dir(self.__obj__))
+        """Get len according to detected attributes."""
+        return len(get_object_attrs(self.__obj__))
 
     def __getitem__(self, key):
+        """Get attribute corresponding to key."""
         return getattr(self.__obj__, key)
 
     def __setitem__(self, key, value):
-        setattr(self.__obj__, key, value)
+        """Set attribute corresponding to key with value."""
+        try:
+            setattr(self.__obj__, key, value)
+        except TypeError:
+            pass
 
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
@@ -108,6 +117,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def set_data(self, data, coll_filter=None):
         """Set model data"""
         self._data = data
+        data_type = get_type_string(data)
 
         if coll_filter is not None and not self.remote and \
           isinstance(data, (tuple, list, dict)):
@@ -129,13 +139,16 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = _("Key")
         else:
-            self.keys = dir(data)
+            self.keys = get_object_attrs(data)
             self._data = data = self.showndata = ProxyObject(data)
-            self.title += _("Object")
             if not self.names:
                 self.header0 = _("Attribute")
 
-        self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
+        if not isinstance(self._data, ProxyObject):
+            self.title += (' (' + str(len(self.keys)) + ' ' +
+                          _("elements") + ')')
+        else:
+            self.title += data_type
 
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
@@ -414,6 +427,8 @@ class CollectionsDelegate(QItemDelegate):
                 return None
         try:
             value = self.get_value(index)
+            if value is None:
+                return None
         except Exception as msg:
             QMessageBox.critical(self.parent(), _("Error"),
                                  _("Spyder was unable to retrieve the value of "
@@ -436,8 +451,6 @@ class CollectionsDelegate(QItemDelegate):
         #---editor = ArrayEditor
         elif isinstance(value, (ndarray, MaskedArray)) \
           and ndarray is not FakeObject:
-            if value.size == 0:
-                return None
             editor = ArrayEditor(parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
@@ -448,8 +461,6 @@ class CollectionsDelegate(QItemDelegate):
         elif isinstance(value, Image) and ndarray is not FakeObject \
           and Image is not FakeObject:
             arr = array(value)
-            if arr.size == 0:
-                return None
             editor = ArrayEditor(parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
@@ -459,7 +470,7 @@ class CollectionsDelegate(QItemDelegate):
                                             conv=conv_func))
             return None
         #--editor = DataFrameEditor
-        elif isinstance(value, (DataFrame, Series)) \
+        elif isinstance(value, (DataFrame, DatetimeIndex, Series)) \
           and DataFrame is not FakeObject:
             editor = DataFrameEditor()
             if not editor.setup_and_check(value, title=key):
@@ -482,7 +493,7 @@ class CollectionsDelegate(QItemDelegate):
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             return editor
         #---editor = TextEditor
-        elif is_text_string(value) and len(value)>40:
+        elif is_text_string(value) and len(value) > 40:
             editor = TextEditor(value, key)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
@@ -1277,8 +1288,9 @@ class CollectionsEditor(QDialog):
         self.data_copy = None
         self.widget = None
 
-    def setup(self, data, title='', readonly=False, width=500, remote=False,
+    def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
+        """Setup editor."""
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()
@@ -1291,7 +1303,7 @@ class CollectionsEditor(QDialog):
             # unknown object
             import copy
             self.data_copy = copy.deepcopy(data)
-            datalen = len(dir(data))
+            datalen = len(get_object_attrs(data))
         self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
                                               readonly=readonly, remote=remote)
 
@@ -1311,8 +1323,8 @@ class CollectionsEditor(QDialog):
 
         constant = 121
         row_height = 30
-        error_margin = 20
-        height = constant + row_height*min([15, datalen]) + error_margin
+        error_margin = 10
+        height = constant + row_height * min([10, datalen]) + error_margin
         self.resize(width, height)
 
         self.setWindowTitle(self.widget.get_title())
@@ -1364,12 +1376,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                  copy_value_func=None, is_list_func=None, get_len_func=None,
                  is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
-                 oedit_func=None, plot_func=None, imshow_func=None,
+                 plot_func=None, imshow_func=None,
                  is_data_frame_func=None, is_series_func=None,
-                 show_image_func=None, remote_editing=False):
+                 show_image_func=None):
         BaseTableView.__init__(self, parent)
-
-        self.remote_editing_enabled = None
 
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
@@ -1384,7 +1394,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.is_dict = is_dict_func
         self.get_array_shape = get_array_shape_func
         self.get_array_ndim = get_array_ndim_func
-        self.oedit = oedit_func
         self.plot = plot_func
         self.imshow = imshow_func
         self.show_image = show_image_func
@@ -1410,53 +1419,26 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         menu = BaseTableView.setup_menu(self, minmax)
         return menu
 
-    def oedit_possible(self, key):
-        if (self.is_list(key) or self.is_dict(key)
-            or self.is_array(key) or self.is_image(key)
-            or self.is_data_frame(key) or self.is_series(key)):
-            # If this is a remote dict editor, the following avoid
-            # transfering large amount of data through the socket
-            return True
 
-    def edit_item(self):
-        """
-        Reimplement BaseTableView's method to edit item
-        
-        Some supported data types are directly edited in the remote process,
-        thus avoiding to transfer large amount of data through the socket from
-        the remote process to Spyder
-        """
-        if self.remote_editing_enabled:
-            index = self.currentIndex()
-            if not index.isValid():
-                return
-            key = self.model.get_key(index)
-            if self.oedit_possible(key):
-                # If this is a remote dict editor, the following avoid
-                # transfering large amount of data through the socket
-                self.oedit(key)
-            else:
-                BaseTableView.edit_item(self)
-        else:
-            BaseTableView.edit_item(self)
-
-
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
+# =============================================================================
 def get_test_data():
-    """Create test data"""
+    """Create test data."""
     import numpy as np
     from spyder.pil_patch import Image
     image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
                             mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
+
     class Foobar(object):
+
         def __init__(self):
             self.text = "toto"
             self.testdict = testdict
             self.testdate = testdate
+
     foobar = Foobar()
     return {'object': foobar,
             'str': 'kjkj kj k j j kj k jkj',

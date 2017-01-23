@@ -87,19 +87,9 @@ function InstallPipPackages ($python_home, $spec) {
 }
 
 
-function UpdateConda ($python_home) {
-    $conda_path = $python_home + "\Scripts\conda.exe"
-    Write-Host "Updating conda..."
-    $args = "update --yes conda"
-    Write-Host $conda_path $args
-    Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
-}
-
-
 function main () {
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
-    UpdateConda $env:PYTHON
-    InstallCondaPackages $env:PYTHON "conda-build=2.0.0 pytest pytest-cov mock"
+    InstallCondaPackages $env:PYTHON "conda=4.2.* conda-build=2.0.0 pytest pytest-cov mock"
     InstallPipPackages $env:PYTHON "pytest-qt"
 }
 

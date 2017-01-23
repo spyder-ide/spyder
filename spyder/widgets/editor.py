@@ -48,6 +48,7 @@ from spyder.widgets.sourcecode.codeeditor import get_file_language
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
+from spyder.config.main import CONF
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -203,7 +204,7 @@ class FileInfo(QObject):
         self.pep8_results = []
         if self.editor.is_python():
             enc = self.encoding.replace('-guessed', '').replace('-bom', '')
-            source_code = self.get_source_code().encode(enc)
+            source_code, enc = encoding.encode(self.get_source_code(), enc)
             if run_pyflakes:
                 self.pyflakes_results = None
             if run_pep8:
@@ -345,6 +346,10 @@ class EditorStack(QWidget):
         fileswitcher_action = create_action(self, _("File switcher..."),
                 icon=ima.icon('filelist'),
                 triggered=self.open_fileswitcher_dlg)
+        symbolfinder_action = create_action(self, 
+                _("Find symbols in file..."),
+                icon=ima.icon('filelist'),
+                triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
@@ -355,6 +360,7 @@ class EditorStack(QWidget):
                                            triggered=self.close_all_but_this)
 
         self.menu_actions = actions + [None, fileswitcher_action,
+                                       symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this]
         self.outlineexplorer = None
@@ -616,6 +622,11 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
 
+    @Slot()
+    def open_symbolfinder_dlg(self): 
+        self.open_fileswitcher_dlg()
+        self.fileswitcher_dlg.set_search_text('@')
+        
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg:
@@ -965,9 +976,12 @@ class EditorStack(QWidget):
             title = "(%s)" % title
         return title
 
-    def get_tab_text(self, filename, is_modified=None, is_readonly=None):
-        """Return tab title"""
-        return self.__modified_readonly_title(osp.basename(filename),
+    def get_tab_text(self, index, is_modified=None, is_readonly=None):
+        """Return tab title."""
+        files_path_list = [finfo.filename for finfo in self.data]
+        fname = self.data[index].filename
+        fname = sourcecode.get_file_title(files_path_list, fname)
+        return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
@@ -1002,8 +1016,8 @@ class EditorStack(QWidget):
         self.data.append(finfo)
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
-        fname, editor = finfo.filename, finfo.editor
-        self.tabs.insertTab(index, editor, self.get_tab_text(fname))
+        editor = finfo.editor
+        self.tabs.insertTab(index, editor, self.get_tab_text(index))
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
@@ -1019,7 +1033,8 @@ class EditorStack(QWidget):
                 is_modified = True
             else:
                 is_modified = None
-            tab_text = self.get_tab_text(finfo.filename, is_modified)
+            index = self.data.index(finfo)
+            tab_text = self.get_tab_text(index, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
             index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
@@ -1053,7 +1068,7 @@ class EditorStack(QWidget):
         fname = finfo.filename
         is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
-        tab_text = self.get_tab_text(fname, is_modified, is_readonly)
+        tab_text = self.get_tab_text(index, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
         self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
@@ -1197,7 +1212,7 @@ class EditorStack(QWidget):
         if self.get_stack_count() == 0 and self.create_new_file_if_empty:
             self.sig_new_file[()].emit()
             return False
-
+        self.__modify_stack_title()
         return is_ok
 
     def close_all_files(self):
@@ -1598,6 +1613,11 @@ class EditorStack(QWidget):
         # Finally, resetting temporary flag:
         self.__file_status_flag = False
 
+    def __modify_stack_title(self):
+        for index, finfo in enumerate(self.data):
+            state = finfo.editor.document().isModified()
+            self.set_stack_title(index, state)
+
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -1613,6 +1633,7 @@ class EditorStack(QWidget):
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
+            self.__modify_stack_title()
             self.update_plugin_title.emit()
         else:
             editor = None
@@ -2209,18 +2230,18 @@ class EditorMainWindow(QMainWindow):
         self.setWindowIcon(plugin.windowIcon())
 
         if toolbar_list:
-            toolbars = []
-            for title, actions in toolbar_list:
+            self.toolbars = []
+            for title, object_name, actions in toolbar_list:
                 toolbar = self.addToolBar(title)
-                toolbar.setObjectName(str(id(toolbar)))
+                toolbar.setObjectName(object_name)
                 add_actions(toolbar, actions)
-                toolbars.append(toolbar)
+                self.toolbars.append(toolbar)
         if menu_list:
             quit_action = create_action(self, _("Close window"),
                                         icon="close_panel.png",
                                         tip=_("Close this window"),
                                         triggered=self.close)
-            menus = []
+            self.menus = []
             for index, (title, actions) in enumerate(menu_list):
                 menu = self.menuBar().addMenu(title)
                 if index == 0:
@@ -2228,7 +2249,37 @@ class EditorMainWindow(QMainWindow):
                     add_actions(menu, actions+[None, quit_action])
                 else:
                     add_actions(menu, actions)
-                menus.append(menu)
+                self.menus.append(menu)
+
+    def get_toolbars(self):
+        """Get the toolbars."""
+        return self.toolbars
+
+    def add_toolbars_to_menu(self, menu_title, actions):
+        """Add toolbars to a menu."""
+        # Six is the position of the view menu in menus list
+        # that you can find in plugins/editor.py setup_other_windows. 
+        view_menu = self.menus[6]
+        if actions == self.toolbars and view_menu:
+            toolbars = []
+            for toolbar in self.toolbars:
+                action = toolbar.toggleViewAction()
+                toolbars.append(action)
+            add_actions(view_menu, toolbars)
+
+    def load_toolbars(self):
+        """Loads the last visible toolbars from the .ini file."""
+        toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
+        if toolbars_names:            
+            dic = {}
+            for toolbar in self.toolbars:
+                dic[toolbar.objectName()] = toolbar
+                toolbar.toggleViewAction().setChecked(False)
+                toolbar.setVisible(False)
+            for name in toolbars_names:
+                if name in dic:
+                    dic[name].toggleViewAction().setChecked(True)
+                    dic[name].setVisible(True)
 
     def resizeEvent(self, event):
         """Reimplement Qt method"""

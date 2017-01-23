@@ -280,11 +280,12 @@ install_requires = [
     'pep8',
     'pylint',
     'psutil',
-    'qtawesome',
+    'qtawesome>=0.4.1',
     'qtpy>=1.1.0',
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
+    'numpydoc',
 ]
 
 if 'setuptools' in sys.modules:

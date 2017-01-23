@@ -193,9 +193,8 @@ DEFAULTS = [
               'exclude_capitalized': False,
               'exclude_unsupported': True,
               'truncate': True,
-              'minmax': False,
-              'remote_editing': False,
-              }),
+              'minmax': False
+             }),
             ('editor',
              {
               'printer_header/font/family': SANS_SERIF,
@@ -327,10 +326,12 @@ DEFAULTS = [
               '_/save current layout': "Shift+Alt+S",
               '_/layout preferences': "Shift+Alt+P",
               '_/show toolbars': "Alt+Shift+T",
+              '_/spyder documentation': "F1",
               '_/restart': "Shift+Alt+R",
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
               '_/file switcher': 'Ctrl+P',
+              '_/symbol finder': 'Ctrl+Alt+P',
               '_/debug': "Ctrl+F5",
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
@@ -425,7 +426,6 @@ DEFAULTS = [
               'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
-              'editor/show/hide project explorer': "Ctrl+Alt+P",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -439,6 +439,7 @@ DEFAULTS = [
               # ---- In widgets/ipythonconsole/shell.py ----
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
+              'ipython_console/restart kernel': "Ctrl+.",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
@@ -655,7 +656,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '30.0.0'
+CONF_VERSION = '32.0.0'
 
 # Main configuration instance
 try:

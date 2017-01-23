@@ -296,7 +296,8 @@ class FileSwitcher(QDialog):
 
     @property
     def filenames(self):
-        return [self.tabs.tabText(index) for index in range(self.tabs.count())]
+        return [os.path.basename(getattr(td, 'filename',
+                                         None)) for td in self.data]
 
     @property
     def current_path(self):
@@ -314,6 +315,9 @@ class FileSwitcher(QDialog):
     def filter_text(self):
         """Get the normalized (lowecase) content of the filter text."""
         return to_text_string(self.edit.text()).lower()
+
+    def set_search_text(self, _str):
+        self.edit.setText(_str)
 
     def save_initial_state(self):
         """Saves initial cursors and initial active editor."""

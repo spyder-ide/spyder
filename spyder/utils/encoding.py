@@ -171,6 +171,13 @@ def encode(text, orig_coding):
     if orig_coding == 'utf-8-bom':
         return BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
     
+    # Try saving with original encoding
+    if orig_coding:
+        try:
+            return text.encode(orig_coding), orig_coding
+        except (UnicodeError, LookupError):
+            pass
+
     # Try declared coding spec
     coding = get_coding(text)
     if coding:
@@ -249,4 +256,7 @@ def is_text_file(filename):
     """
     Test if the given path is a text-like file.
     """
-    return not is_binary(filename)
+    try:
+        return not is_binary(filename)
+    except (OSError, IOError):
+        return False
