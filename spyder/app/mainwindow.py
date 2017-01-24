@@ -486,6 +486,7 @@ class MainWindow(QMainWindow):
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
+        self.previous_focused_widget = None
 
         # Server to open external files on a single instance
         self.open_files_server = socket.socket(socket.AF_INET,
