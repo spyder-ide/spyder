@@ -139,6 +139,13 @@ def test_keep_unindent_if_blank():
     text = get_indent_fix(text)
     assert text == "    def f(x):\n        return x\n\n", repr(text)
 
+
+def test_first_line():
+    # Test fix_indent() when the cursor is on the first line.
+    text = get_indent_fix("import numpy")
+    assert text == "import numpy", repr(text)
+
+
 @pytest.mark.parametrize(
     "text_input, expected, test_text",
     [
