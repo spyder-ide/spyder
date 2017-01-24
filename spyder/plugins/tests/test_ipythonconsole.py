@@ -68,10 +68,10 @@ def test_console_coloring(ipyconsole_bot):
     editor_background_color = color_scheme['background']
     editor_font_color = color_scheme['normal'][0]
 
-    console_background_color.replace("'", "")
-    editor_background_color.replace("'", "")
-    console_font_color.replace("'", "")
-    editor_font_color.replace("'", "")
+    console_background_color = console_background_color.replace("'", "")
+    editor_background_color = editor_background_color.replace("'", "")
+    console_font_color = console_font_color.replace("'", "")
+    editor_font_color = editor_font_color.replace("'", "")
 
     assert console_background_color.strip() == editor_background_color.strip()
     assert console_font_color.strip() == editor_font_color.strip()
