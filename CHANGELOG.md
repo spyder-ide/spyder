@@ -1,5 +1,27 @@
 # History of changes
 
+## Version 3.1.2 (2017-01-24)
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 4025](https://github.com/spyder-ide/spyder/issues/4025) - Error when running cell for the first time in the Editor
+* [Issue 4021](https://github.com/spyder-ide/spyder/issues/4021) - Spyder fails to import numpy on first line of a file
+
+In this release 2 issues were closed
+
+**Pull requests**
+
+* [PR 4031](https://github.com/spyder-ide/spyder/pull/4031) - PR: Fix error when running cells because previous_focused_widget is not initialized in main window
+* [PR 4029](https://github.com/spyder-ide/spyder/pull/4029) - PR: Fix fix_indent() when editor cursor is on the first line
+
+In this release 2 pull requests were merged
+
+
+----
+
+
 ## Version 3.1.1 (2017-01-22)
 
 ### Bugs fixed

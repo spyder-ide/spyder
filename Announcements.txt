@@ -1,20 +1,20 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 3.1.1 is released!
+Subject: [ANN] Spyder 3.1.2 is released!
 
 
 Hi all,
 
 On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder 3.1.1 has been released and is available for
+I'm pleased to announce that Spyder 3.1.2 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes four days after version 3.1.0 and fixes an important bug in the
-IPython console, which was not clearing correctly sys.argv when initialized.
+This release comes four days after version 3.1.1 and fixes a couple of annoying
+bugs introduced in 3.1.1 and 3.1.0
 
-In this release we also fixed 3 issues and merged 3 pull requests that amount
-to more than 30 commits. For a full list of fixes, please see our changelog:
+In this release we also fixed 2 issues and merged 2 pull requests that amount
+to more than 10 commits. For a full list of fixes, please see our changelog:
 https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md
 
 Don't forget to follow Spyder updates/news on the project Github website:
