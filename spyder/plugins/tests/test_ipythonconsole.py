@@ -44,7 +44,7 @@ def test_console_coloring(ipyconsole_bot):
         syntax_style_filename = syntax_path + syntax_style + '.py'
         with open(syntax_style_filename, "r") as syntax_file:
             content = syntax_file.read()
-        font_color = content.split('Name:')[1].spit(',')[0]
+        font_color = content.split('Name:')[1].split(',')[0]
 
         return font_color
 
