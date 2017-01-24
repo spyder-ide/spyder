@@ -33,7 +33,8 @@ def get_style_sheet():
         else:
             return 'normal'
 
-    color_scheme = get_color_scheme(CONF.get('color_schemes', 'selected'))
+    selected_color_scheme = CONF.get('color_schemes', 'selected')
+    color_scheme = get_color_scheme(selected_color_scheme)
 
     fon_c, fon_fw, fon_fs = color_scheme['normal']
     font_color =  fon_c
@@ -80,12 +81,8 @@ def get_style_sheet():
 
     return sheet_formatted
 
-def get_syntax_style():
-    """Create a .py with the spyder custom style as a Pygment class.
-
-    The file is stored in the pygment/styles folder.
-    Returns the name of this file (whithout path nor entension)
-    """
+def get_syntax_style_dictionary():
+    """Create a dictionary to create the syntax style."""
 
     def give_font_weight(is_bold):
         if is_bold:
@@ -135,15 +132,6 @@ def get_syntax_style():
     instance_font_weight = give_font_weight(ins_fw)
     instance_font_style = give_font_style(ins_fs)
 
-    import pygments
-    syntax_path = pygments.__file__.rpartition('/')[0] + '/styles/'
-    syntax_name = 'spyder'
-    syntax_filename = syntax_path + syntax_name + '.py'
-
-    syntax_style_imports = ['Name', 'Keyword', 'Comment', 'String',
-                            'Number', 'Punctuation']
-    imports_string = ", ".join(syntax_style_imports)
-
     syntax_style_dic = {}
     syntax_style_dic['Name'] = [font_font_style, font_font_weight,
                                 font_color]
@@ -170,6 +158,26 @@ def get_syntax_style():
                                   number_color]
     syntax_style_dic['Punctuation'] = [font_font_style, font_font_weight,
                                        font_color]
+
+    return syntax_style_dic
+
+def get_syntax_style():
+    """Create a .py with the spyder custom style as a Pygment class.
+
+    The file is stored in the pygment/styles folder.
+    Returns the name of this file (whithout path nor entension)
+    """
+
+    import pygments
+    syntax_path = pygments.__file__.rpartition('/')[0] + '/styles/'
+    syntax_name = 'spyder'
+    syntax_filename = syntax_path + syntax_name + '.py'
+
+    syntax_style_imports = ['Name', 'Keyword', 'Comment', 'String',
+                            'Number', 'Punctuation']
+    imports_string = ", ".join(syntax_style_imports)
+    
+    syntax_style_dic = get_syntax_style_dictionary()
 
     syntax_file_string = "# -*- coding: utf-8 -*-\n"
     syntax_file_string += "from pygments.style import Style\n"
