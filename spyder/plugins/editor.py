@@ -819,7 +819,7 @@ class Editor(SpyderPluginWidget):
                                             triggered=self.run_selection,
                                             context=Qt.WidgetShortcut)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection")
+                               name="Run selection", add_sc_to_tip=True)
 
         run_cell_action = create_action(self,
                             _("Run cell"),
