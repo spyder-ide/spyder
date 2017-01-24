@@ -19,8 +19,9 @@ import sys
 # Third party imports
 from qtpy import PYQT5
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
+from qtpy.QtCore import Signal, Slot, Qt
+from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QVBoxLayout,
+                            QMessageBox)
 
 # Local imports
 from spyder.config.base import _, debug_print
@@ -91,7 +92,11 @@ class Console(SpyderPluginWidget):
             
         # Accepting drops
         self.setAcceptDrops(True)
-        
+
+        # Traceback MessageBox
+        self.msgbox_traceback= None
+        self.error_traceback = ""
+
     #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):
         """Bind historylog instance to this console
@@ -197,13 +202,33 @@ class Console(SpyderPluginWidget):
         # Connecting the following signal once the dockwidget has been created:
         self.shell.traceback_available.connect(self.traceback_available)
     
-    def traceback_available(self):
+    def traceback_available(self, text):
         """Traceback is available in the internal console: showing the 
         internal console automatically to warn the user"""
         if CONF.get('main', 'show_internal_console_if_traceback', False):
             self.dockwidget.show()
             self.dockwidget.raise_()
-        
+        else:
+            if self.msgbox_traceback is None:
+                self.msgbox_traceback = QMessageBox(
+                    QMessageBox.Critical,
+                    _('Error'),
+                    _("<b>Spyder-IDE has encountered a problem.</b>"
+                      "Sorry for the inconvenience."
+                      "<b>Please tell us about this problem.</b>"
+                      "<br><br>"
+                      "You can submit this error to the github issue tracker"),
+                    QMessageBox.Cancel | QMessageBox.Ok,
+                    parent=self)
+
+                self.msgbox_traceback.setWindowModality(Qt.NonModal)
+                self.error_traceback = ""
+                self.msgbox_traceback.show()
+
+            self.error_traceback += text
+            self.msgbox_traceback.setDetailedText(self.error_traceback)
+
+
     #------ Public API ---------------------------------------------------------
     @Slot()
     def quit(self):
