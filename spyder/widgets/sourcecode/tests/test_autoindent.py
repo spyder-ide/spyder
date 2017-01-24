@@ -21,7 +21,7 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 # --- Fixtures
 # -----------------------------------------------------------------------------
 def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
-                   sol=False):
+                   sol=False, forward=True):
     """Return text with last line's indentation fixed."""
     app = qapplication()
     editor = CodeEditor(parent=None)
@@ -36,7 +36,7 @@ def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
         repeat = len(lines[-1].lstrip())
         cursor.movePosition(QTextCursor.Left, n=repeat)
     editor.setTextCursor(cursor)
-    editor.fix_indent()
+    editor.fix_indent(forward=forward)
     return to_text_string(editor.toPlainText())
 
 
@@ -196,6 +196,20 @@ def test_indentation_with_tabs(text_input, expected, test_text,
                                tab_stop_width_spaces):
     text = get_indent_fix(text_input, indent_chars="\t",
                           tab_stop_width_spaces=tab_stop_width_spaces)
+    assert text == expected, test_text
+
+
+@pytest.mark.parametrize("tab_stop_width_spaces", [1,2,3,4,5,6,7,8])
+@pytest.mark.parametrize(
+    "text_input, expected, test_text",
+    [
+        ("\tx = 1", "x = 1", "simple test"),
+    ])
+def test_unindentation_with_tabs(text_input, expected, test_text,
+                               tab_stop_width_spaces):
+    text = get_indent_fix(text_input, indent_chars="\t",
+                          tab_stop_width_spaces=tab_stop_width_spaces, 
+                          forward=False)
     assert text == expected, test_text
 
 
