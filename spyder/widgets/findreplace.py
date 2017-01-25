@@ -77,7 +77,9 @@ class FindReplace(QWidget):
 
         self.search_text.lineEdit().textEdited.connect(
                                                      self.text_has_been_edited)
-        
+
+        self.number_matches_text = QLabel()
+        self.change_number_matches()
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
                                              icon=ima.icon('ArrowUp'))
@@ -112,9 +114,9 @@ class FindReplace(QWidget):
 
         hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.search_text,
-                        self.previous_button, self.next_button,
-                        self.re_button, self.case_button, self.words_button,
-                        self.highlight_button]
+                        self.number_matches_text, self.previous_button,
+                        self.next_button, self.re_button, self.case_button,
+                        self.words_button, self.highlight_button]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
         glayout.addLayout(hlayout, 0, 1)
@@ -382,6 +384,7 @@ class FindReplace(QWidget):
             if not self.is_code_editor:
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
+            self.change_number_matches()
             return None
         else:
             case = self.case_button.isChecked()
@@ -397,6 +400,9 @@ class FindReplace(QWidget):
                         self.highlight_timer.start()
                     else:
                         self.highlight_matches()
+                number_matches = self.editor.get_number_matches(text)
+                self.change_number_matches(current_match=0,
+                                           total_matches=number_matches)
             else:
                 self.clear_matches()
             return found
@@ -521,3 +527,14 @@ class FindReplace(QWidget):
                 self.replace_text.setFocus()
             else:
                 self.editor.setFocus()
+
+    def change_number_matches(self, current_match=0, total_matches=0):
+        if total_matches == 0:
+            self.number_matches_text.setText(_("no matches"))
+        elif current_match == 0:
+            matches_string = "{} matches".format(total_matches)
+            self.number_matches_text.setText(_(matches_string))
+        else:
+            matches_string = "{}/{}".format(current_match, total_matches)
+            self.number_matches_text.setText(_(matches_string))
+        self.number_matches_text.show()

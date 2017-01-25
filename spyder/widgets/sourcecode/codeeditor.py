@@ -1113,6 +1113,23 @@ class CodeEditor(TextEditBaseWidget):
         if self.found_results:
             self.clear_found_results()
 
+    def get_number_matches(self, pattern):
+        """Get the number of matches for the searched text"""
+        pattern = to_text_string(pattern)
+        if not pattern:
+            return 0
+        text = to_text_string(self.toPlainText())
+        try:
+            regobj = re.compile(pattern)
+        except sre_constants.error:
+            return
+
+        number_matches = 0
+        for match in regobj.finditer(text):
+            number_matches += 1
+
+        return number_matches
+
     #-----markers
     def get_markers_margin(self):
         if self.markers_margin:
