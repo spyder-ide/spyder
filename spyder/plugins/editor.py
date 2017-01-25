@@ -821,7 +821,7 @@ class Editor(SpyderPluginWidget):
                                             triggered=self.run_selection,
                                             context=Qt.WidgetShortcut)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection")
+                               name="Run selection", add_sc_to_tip=True)
 
         run_cell_action = create_action(self,
                             _("Run cell"),
@@ -1053,8 +1053,8 @@ class Editor(SpyderPluginWidget):
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, re_run_action,
-                               configure_action]
+                               run_cell_advance_action, run_selected_action,
+                               re_run_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
