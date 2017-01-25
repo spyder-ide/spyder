@@ -53,6 +53,7 @@ class BaseTimerStatus(StatusBarWidget):
         layout = self.layout()
         layout.addWidget(QLabel(self.TITLE))
         self.label = QLabel()
+        self.label.setFixedWidth(30)
         self.label.setFont(self.label_font)
         layout.addWidget(self.label)
         layout.addSpacing(20)
