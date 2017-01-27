@@ -542,19 +542,17 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        filename = self.get_current_filename()
-        if filename:
-            title += ' - '+to_text_string(filename)
         return title
-    
+
     def get_plugin_icon(self):
-        """Return widget icon"""
+        """Return widget icon."""
         return ima.icon('edit')
     
     def get_focus_widget(self):
         """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        Return the widget to give focus to.
+
+        This happens when plugin's dockwidget is raised on top-level.
         """
         return self.get_current_editor()
 
