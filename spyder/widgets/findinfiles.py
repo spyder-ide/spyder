@@ -13,18 +13,20 @@
 
 # Standard library imports
 from __future__ import with_statement
+from __future__ import unicode_literals
 import fnmatch
 import os
 import os.path as osp
 import re
 import sys
+import math
 import traceback
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
-                            QTreeWidgetItem, QVBoxLayout, QWidget)
+                            QTreeWidgetItem, QVBoxLayout, QWidget, QProgressBar)
 
 # Local imports
 from spyder.config.base import _
@@ -108,7 +110,9 @@ from spyder.widgets.onecolumntree import OneColumnTree
 class SearchThread(QThread):
     """Find in files search thread"""
     sig_finished = Signal(bool)
-    
+    sig_current_file = Signal(str)
+    sig_current_folder = Signal(str)
+
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
@@ -221,6 +225,7 @@ class SearchThread(QThread):
             try:
                 for d in dirs[:]:
                     dirname = os.path.join(path, d)
+                    self.sig_current_folder.emit(dirname)
                     if re.search(self.exclude, dirname+os.sep):
                         dirs.remove(d)
                 for f in files:
@@ -239,6 +244,7 @@ class SearchThread(QThread):
         self.nb = 0
         self.error_flag = False
         for fname in self.filenames:
+            self.sig_current_file.emit(fname)
             with QMutexLocker(self.mutex):
                 if self.stopped:
                     return
@@ -659,9 +665,13 @@ class ResultsBrowser(OneColumnTree):
                 colno_dict[lineno] = colno_dict.get(lineno, [])+[str(colno)]
             for lineno, colno, line in fname_res:
                 colno_str = ",".join(colno_dict[lineno])
-                item = QTreeWidgetItem(file_item,
-                           ["%d (%s): %s" % (lineno, colno_str, line.rstrip())],
+                try:
+                    item = QTreeWidgetItem(file_item,
+                           ["{0} ({1}): {2}".format(lineno, colno_str, line.rstrip())],
                            QTreeWidgetItem.Type)
+                except UnicodeDecodeError:
+                    #TODO: Check possible codification errors
+                    continue
                 item.setIcon(0, ima.icon('arrow'))
                 self.data[id(item)] = (filename, lineno)
         # Removing empty directories
@@ -671,6 +681,38 @@ class ResultsBrowser(OneColumnTree):
             if not item.childCount():
                 self.takeTopLevelItem(self.indexOfTopLevelItem(item))
 
+class FileProgressBar(QWidget):
+    """Simple progress bar with a label"""
+    MAX_LABEL_LENGTH = 60
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+
+        self.status_bar = QProgressBar(self)
+        self.status_bar.setRange(0, 0)
+        self.status_text = QLabel(self)
+        layout = QVBoxLayout()
+        layout.addWidget(self.status_text)
+        layout.addWidget(self.status_bar)
+        self.setLayout(layout)
+
+    def __truncate(self, text):
+        ellipsis = '...'
+        part_len = (self.MAX_LABEL_LENGTH - len(ellipsis))/2.0
+        left_text = text[:int(math.ceil(part_len))]
+        right_text = text[-int(math.floor(part_len)):]
+        return left_text + ellipsis + right_text
+
+    @Slot(str)
+    def set_label_path(self, path, folder=False):
+        text = self.__truncate(path)
+        if not folder:
+            status_str = _('Scanning: {0}'.format(text))
+        else:
+            status_str = _('Searching for files in folder: {0}'.format(text))
+        self.status_text.setText(status_str)
+
+    def reset(self):
+        self.status_text.setText(_("Searching for files..."))
 
 class FindInFilesWidget(QWidget):
     """
@@ -685,12 +727,14 @@ class FindInFilesWidget(QWidget):
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
                  in_python_path=False, more_options=False):
         QWidget.__init__(self, parent)
-        
+
         self.setWindowTitle(_('Find in files'))
 
         self.search_thread = None
         self.get_pythonpath_callback = None
-        
+
+        self.status_bar = FileProgressBar(self)
+        self.status_bar.hide()
         self.find_options = FindOptions(self, search_text, search_text_regexp,
                                         search_path,
                                         include, include_idx, include_regexp,
@@ -699,9 +743,9 @@ class FindInFilesWidget(QWidget):
                                         more_options)
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
-        
+
         self.result_browser = ResultsBrowser(self)
-        
+
         collapse_btn = create_toolbutton(self)
         collapse_btn.setDefaultAction(self.result_browser.collapse_all_action)
         expand_btn = create_toolbutton(self)
@@ -724,14 +768,15 @@ class FindInFilesWidget(QWidget):
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
         hlayout.addLayout(btn_layout)
-        
+
         layout = QVBoxLayout()
         left, _x, right, bottom = layout.getContentsMargins()
         layout.setContentsMargins(left, 0, right, bottom)
         layout.addWidget(self.find_options)
         layout.addLayout(hlayout)
+        layout.addWidget(self.status_bar)
         self.setLayout(layout)
-            
+
     def set_search_text(self, text):
         """Set search pattern"""
         self.find_options.set_search_text(text)
@@ -746,11 +791,19 @@ class FindInFilesWidget(QWidget):
         self.search_thread.get_pythonpath_callback = \
                                                 self.get_pythonpath_callback
         self.search_thread.sig_finished.connect(self.search_complete)
+        self.search_thread.sig_current_file.connect(
+            lambda x: self.status_bar.set_label_path(x, folder=False)
+        )
+        self.search_thread.sig_current_folder.connect(
+            lambda x: self.status_bar.set_label_path(x, folder=True)
+        )
+        self.status_bar.reset()
         self.search_thread.initialize(*options)
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
         self.find_options.stop_button.setEnabled(True)
-            
+        self.status_bar.show()
+
     def stop_and_reset_thread(self, ignore_results=False):
         """Stop current search thread and clean-up"""
         if self.search_thread is not None:
@@ -771,6 +824,7 @@ class FindInFilesWidget(QWidget):
         """Current search thread has finished"""
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
+        self.status_bar.hide()
         if self.search_thread is None:
             return
         found = self.search_thread.get_results()
