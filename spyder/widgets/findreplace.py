@@ -400,11 +400,12 @@ class FindReplace(QWidget):
                         self.highlight_timer.start()
                     else:
                         self.highlight_matches()
-                number_matches = self.editor.get_number_matches(text)
-                self.change_number_matches(current_match=0,
-                                           total_matches=number_matches)
             else:
                 self.clear_matches()
+
+            number_matches = self.editor.get_number_matches(text)
+            self.change_number_matches(current_match=0,
+                                       total_matches=number_matches)
             return found
 
     @Slot()
