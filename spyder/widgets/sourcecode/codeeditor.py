@@ -2385,6 +2385,8 @@ class CodeEditor(TextEditBaseWidget):
                 for fmt in block_formats:
                     if (pos >= fmt.start) and (pos < fmt.start + fmt.length):
                         current_format = fmt.format
+                if current_format is None:
+                    return None
             color = current_format.foreground().color().name()
             return color
         else:
