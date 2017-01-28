@@ -37,6 +37,7 @@ class WorkerUpdates(QObject):
         self._parent = parent
         self.error = None
         self.latest_release = None
+        self.foo = 1
 
     def check_update_available(self, version, releases):
         """Checks if there is an update available.
