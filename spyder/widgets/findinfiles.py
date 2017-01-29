@@ -39,6 +39,8 @@ from spyder.utils.vcs import is_hg_installed, get_vcs_root
 from spyder.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 
+#Testing imports
+# from timeit import default_timer as timer
 
 #def find_files_in_hg_manifest(rootpath, include, exclude):
 #    p = Popen("hg manifest", stdout=PIPE)
@@ -130,19 +132,21 @@ class SearchThread(QThread):
         self.text_re = None
         self.completed = None
         self.get_pythonpath_callback = None
-        
+        self.results = {}
+        self.nb = 0
+
     def initialize(self, path, python_path, hg_manifest,
                    include, exclude, texts, text_re):
         self.rootpath = path
         self.python_path = python_path
         self.hg_manifest = hg_manifest
-        self.include = include
-        self.exclude = exclude
+        self.include = re.compile(include)
+        self.exclude = re.compile(exclude)
         self.texts = texts
         self.text_re = text_re
         self.stopped = False
         self.completed = False
-        
+
     def run(self):
         try:
             self.filenames = []
@@ -152,8 +156,8 @@ class SearchThread(QThread):
                 ok = self.find_files_in_python_path()
             else:
                 ok = self.find_files_in_path(self.rootpath)
-            if ok:
-                self.find_string_in_files()
+            # if ok:
+                # self.find_string_in_files()
         except Exception:
             # Important note: we have to handle unexpected exceptions by 
             # ourselves because they won't be catched by the main thread
@@ -162,7 +166,7 @@ class SearchThread(QThread):
             self.error_flag = _("Unexpected error: see internal console")
         self.stop()
         self.sig_finished.emit(self.completed)
-        
+
     def stop(self):
         with QMutexLocker(self.mutex):
             self.stopped = True
@@ -213,7 +217,7 @@ class SearchThread(QThread):
                 self.error_flag = _("invalid regular expression")
                 return False
         return True
-    
+
     def find_files_in_path(self, path):
         if self.pathlist is None:
             self.pathlist = []
@@ -225,7 +229,7 @@ class SearchThread(QThread):
             try:
                 for d in dirs[:]:
                     dirname = os.path.join(path, d)
-                    self.sig_current_folder.emit(dirname)
+                    # self.sig_current_folder.emit(dirname)
                     if re.search(self.exclude, dirname+os.sep):
                         dirs.remove(d)
                 for f in files:
@@ -233,65 +237,108 @@ class SearchThread(QThread):
                     if re.search(self.exclude, filename):
                         continue
                     if re.search(self.include, filename):
-                        self.filenames.append(filename)
+                        # self.filenames.append(filename)
+                        size = os.stat(filename).st_size
+                        if size <= 10e6:
+                            self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")
                 return False
         return True
-        
-    def find_string_in_files(self):
-        self.results = {}
-        self.nb = 0
+
+    def find_string_in_file(self, fname):
         self.error_flag = False
-        for fname in self.filenames:
-            self.sig_current_file.emit(fname)
-            with QMutexLocker(self.mutex):
-                if self.stopped:
-                    return
-            try:
-                for lineno, line in enumerate(open(fname, 'rb')):
-                    for text, enc in self.texts:
-                        if self.text_re:
-                            found = re.search(text, line)
-                            if found is not None:
-                                break
-                        else:
-                            found = line.find(text)
+        self.sig_current_file.emit(fname)
+        try:
+            for lineno, line in enumerate(open(fname, 'rb')):
+                for text, enc in self.texts:
+                    if self.text_re:
+                        found = re.search(text, line)
+                        if found is not None:
+                            break
+                    else:
+                        found = line.find(text)
+                        if found > -1:
+                            break
+                try:
+                    line_dec = line.decode(enc)
+                except UnicodeDecodeError:
+                    line_dec = line
+                if self.text_re:
+                    for match in re.finditer(text, line):
+                        res = self.results.get(osp.abspath(fname), [])
+                        res.append((lineno+1, match.start(), line_dec))
+                        self.results[osp.abspath(fname)] = res
+                        self.nb += 1
+                else:
+                    while found > -1:
+                        res = self.results.get(osp.abspath(fname), [])
+                        res.append((lineno+1, found, line_dec))
+                        self.results[osp.abspath(fname)] = res
+                        for text, enc in self.texts:
+                            found = line.find(text, found+1)
                             if found > -1:
                                 break
-                    try:
-                        line_dec = line.decode(enc)
-                    except UnicodeDecodeError:
-                        line_dec = line
-                    if self.text_re:
-                        for match in re.finditer(text, line):
-                            res = self.results.get(osp.abspath(fname), [])
-                            res.append((lineno+1, match.start(), line_dec))
-                            self.results[osp.abspath(fname)] = res
-                            self.nb += 1
-                    else:
-                        while found > -1:
-                            res = self.results.get(osp.abspath(fname), [])
-                            res.append((lineno+1, found, line_dec))
-                            self.results[osp.abspath(fname)] = res
-                            for text, enc in self.texts:
-                                found = line.find(text, found+1)
-                                if found > -1:
-                                    break
-                            self.nb += 1
-            except IOError as xxx_todo_changeme:
-                (_errno, _strerror) = xxx_todo_changeme.args
-                self.error_flag = _("permission denied errors were encountered")
-            except re.error:
-                self.error_flag = _("invalid regular expression")
+                        self.nb += 1
+        except IOError as xxx_todo_changeme:
+            (_errno, _strerror) = xxx_todo_changeme.args
+            self.error_flag = _("permission denied errors were encountered")
         self.completed = True
-    
+
+    # def find_string_in_files(self):
+    #     self.results = {}
+    #     self.nb = 0
+    #     self.error_flag = False
+    #     for fname in self.filenames:
+    #         self.sig_current_file.emit(fname)
+    #         with QMutexLocker(self.mutex):
+    #             if self.stopped:
+    #                 return
+    #         try:
+    #             for lineno, line in enumerate(open(fname, 'rb')):
+    #                 for text, enc in self.texts:
+    #                     if self.text_re:
+    #                         found = re.search(text, line)
+    #                         if found is not None:
+    #                             break
+    #                     else:
+    #                         found = line.find(text)
+    #                         if found > -1:
+    #                             break
+    #                 try:
+    #                     line_dec = line.decode(enc)
+    #                 except UnicodeDecodeError:
+    #                     line_dec = line
+    #                 if self.text_re:
+    #                     for match in re.finditer(text, line):
+    #                         res = self.results.get(osp.abspath(fname), [])
+    #                         res.append((lineno+1, match.start(), line_dec))
+    #                         self.results[osp.abspath(fname)] = res
+    #                         self.nb += 1
+    #                 else:
+    #                     while found > -1:
+    #                         res = self.results.get(osp.abspath(fname), [])
+    #                         res.append((lineno+1, found, line_dec))
+    #                         self.results[osp.abspath(fname)] = res
+    #                         for text, enc in self.texts:
+    #                             found = line.find(text, found+1)
+    #                             if found > -1:
+    #                                 break
+    #                         self.nb += 1
+    #         except IOError as xxx_todo_changeme:
+    #             (_errno, _strerror) = xxx_todo_changeme.args
+    #             self.error_flag = _("permission denied errors were encountered")
+    #         except re.error:
+    #             self.error_flag = _("invalid regular expression")
+    #     self.completed = True
+
     def get_results(self):
         return self.results, self.pathlist, self.nb, self.error_flag
 
 
 class FindOptions(QWidget):
     """Find widget with options"""
+    REGEX_INVALID = "background-color:rgb(255, 175, 90);"
     find = Signal()
     stop = Signal()
     
@@ -453,14 +500,18 @@ class FindOptions(QWidget):
             self.search_text.add_text(text)
             self.search_text.lineEdit().selectAll()
         self.search_text.setFocus()
-        
+
     def get_options(self, all=False):
         # Getting options
+        self.search_text.lineEdit().setStyleSheet("")
+        self.exclude_pattern.lineEdit().setStyleSheet("")
+        self.include_pattern.lineEdit().setStyleSheet("")
+
         utext = to_text_string(self.search_text.currentText())
         if not utext:
             return
         try:
-            texts = [(utext.encode('ascii'), 'ascii')]
+            texts = [(utext.encode('utf-8'), 'utf-8')]
         except UnicodeEncodeError:
             texts = []
             for enc in self.supported_encodings:
@@ -476,13 +527,32 @@ class FindOptions(QWidget):
         python_path = self.python_path.isChecked()
         hg_manifest = self.hg_manifest.isChecked()
         path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
-        
+
         # Finding text occurrences
         if not include_re:
             include = fnmatch.translate(include)
+        else:
+            try:
+                include = re.compile(include)
+            except Exception:
+                self.include_pattern.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                return None
         if not exclude_re:
             exclude = fnmatch.translate(exclude)
-            
+        else:
+            try:
+                exclude = re.compile(exclude)
+            except Exception:
+                self.exclude_pattern.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                return None
+
+        if text_re:
+            try:
+                texts = [(re.compile(x[0]), x[1]) for x in texts]
+            except Exception:
+                self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                return None
+
         if all:
             search_text = [to_text_string(self.search_text.itemText(index)) \
                            for index in range(self.search_text.count())]
@@ -596,65 +666,66 @@ class ResultsBrowser(OneColumnTree):
             return
 
         # Directory set
-        dir_set = set()
-        for filename in sorted(self.results.keys()):
-            dirname = osp.abspath(osp.dirname(filename))
-            dir_set.add(dirname)
-                
-        # Root path
-        root_path_list = None
-        _common = get_common_path(list(dir_set))
-        if _common is not None:
-            root_path_list = [_common]
-        else:
-            _common = get_common_path(self.pathlist)
-            if _common is not None:
-                root_path_list = [_common]
-            else:
-                root_path_list = self.pathlist
-        if not root_path_list:
-            return
-        for _root_path in root_path_list:
-            dir_set.add(_root_path)
-        # Populating tree: directories
-        def create_dir_item(dirname, parent):
-            if dirname not in root_path_list:
-                displayed_name = osp.basename(dirname)
-            else:
-                displayed_name = dirname
-            item = QTreeWidgetItem(parent, [displayed_name],
-                                   QTreeWidgetItem.Type)
-            item.setIcon(0, ima.icon('DirClosedIcon'))
-            return item
-        dirs = {}
-        for dirname in sorted(list(dir_set)):
-            if dirname in root_path_list:
-                parent = self
-            else:
-                parent_dirname = abspardir(dirname)
-                parent = dirs.get(parent_dirname)
-                if parent is None:
-                    # This is related to directories which contain found
-                    # results only in some of their children directories
-                    if osp.commonprefix([dirname]+root_path_list):
-                        # create new root path
-                        pass
-                    items_to_create = []
-                    while dirs.get(parent_dirname) is None:
-                        items_to_create.append(parent_dirname)
-                        parent_dirname = abspardir(parent_dirname)
-                    items_to_create.reverse()
-                    for item_dir in items_to_create:
-                        item_parent = dirs[abspardir(item_dir)]
-                        dirs[item_dir] = create_dir_item(item_dir, item_parent)
-                    parent_dirname = abspardir(dirname)
-                    parent = dirs[parent_dirname]
-            dirs[dirname] = create_dir_item(dirname, parent)
-        self.root_items = [dirs[_root_path] for _root_path in root_path_list]
+        # dir_set = set()
+        # for filename in sorted(self.results.keys()):
+        #     dirname = osp.abspath(osp.dirname(filename))
+        #     dir_set.add(dirname)
+
+        # # Root path
+        # root_path_list = None
+        # _common = get_common_path(list(dir_set))
+        # if _common is not None:
+        #     root_path_list = [_common]
+        # else:
+        #     _common = get_common_path(self.pathlist)
+        #     if _common is not None:
+        #         root_path_list = [_common]
+        #     else:
+        #         root_path_list = self.pathlist
+        # if not root_path_list:
+        #     return
+        # for _root_path in root_path_list:
+        #     dir_set.add(_root_path)
+        # # Populating tree: directories
+        # def create_dir_item(dirname, parent):
+        #     if dirname not in root_path_list:
+        #         displayed_name = osp.basename(dirname)
+        #     else:
+        #         displayed_name = dirname
+        #     item = QTreeWidgetItem(parent, [displayed_name],
+        #                            QTreeWidgetItem.Type)
+        #     item.setIcon(0, ima.icon('DirClosedIcon'))
+        #     return item
+        # dirs = {}
+        # for dirname in sorted(list(dir_set)):
+        #     if dirname in root_path_list:
+        #         parent = self
+        #     else:
+        #         parent_dirname = abspardir(dirname)
+        #         parent = dirs.get(parent_dirname)
+        #         if parent is None:
+        #             # This is related to directories which contain found
+        #             # results only in some of their children directories
+        #             if osp.commonprefix([dirname]+root_path_list):
+        #                 # create new root path
+        #                 pass
+        #             items_to_create = []
+        #             while dirs.get(parent_dirname) is None:
+        #                 items_to_create.append(parent_dirname)
+        #                 parent_dirname = abspardir(parent_dirname)
+        #             items_to_create.reverse()
+        #             for item_dir in items_to_create:
+        #                 item_parent = dirs[abspardir(item_dir)]
+        #                 dirs[item_dir] = create_dir_item(item_dir, item_parent)
+        #             parent_dirname = abspardir(dirname)
+        #             parent = dirs[parent_dirname]
+        #     dirs[dirname] = create_dir_item(dirname, parent)
+        # self.root_items = [dirs[_root_path] for _root_path in root_path_list]
         # Populating tree: files
         for filename in sorted(self.results.keys()):
-            parent_item = dirs[osp.dirname(filename)]
-            file_item = QTreeWidgetItem(parent_item, [osp.basename(filename)],
+            # parent_item = dirs[osp.dirname(filename)]
+            file_item = QTreeWidgetItem(self, [osp.basename(filename) +
+                                        " - "+osp.dirname(filename)],
                                         QTreeWidgetItem.Type)
             file_item.setIcon(0, get_filetype_icon(filename))
             colno_dict = {}
@@ -667,10 +738,12 @@ class ResultsBrowser(OneColumnTree):
                 colno_str = ",".join(colno_dict[lineno])
                 try:
                     item = QTreeWidgetItem(file_item,
-                           ["{0} ({1}): {2}".format(lineno, colno_str, line.rstrip())],
-                           QTreeWidgetItem.Type)
+                                        ["{0} ({1}): {2}".format(
+                                        lineno, colno_str, line.rstrip())],
+                                        QTreeWidgetItem.Type)
                 except UnicodeDecodeError:
                     #TODO: Check possible codification errors
+                    print(osp.dirname(filename))
                     continue
                 item.setIcon(0, ima.icon('arrow'))
                 self.data[id(item)] = (filename, lineno)
