@@ -542,19 +542,17 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        filename = self.get_current_filename()
-        if filename:
-            title += ' - '+to_text_string(filename)
         return title
-    
+
     def get_plugin_icon(self):
-        """Return widget icon"""
+        """Return widget icon."""
         return ima.icon('edit')
     
     def get_focus_widget(self):
         """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        Return the widget to give focus to.
+
+        This happens when plugin's dockwidget is raised on top-level.
         """
         return self.get_current_editor()
 
@@ -819,7 +817,7 @@ class Editor(SpyderPluginWidget):
                                             triggered=self.run_selection,
                                             context=Qt.WidgetShortcut)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection")
+                               name="Run selection", add_sc_to_tip=True)
 
         run_cell_action = create_action(self,
                             _("Run cell"),
@@ -1051,8 +1049,8 @@ class Editor(SpyderPluginWidget):
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, re_run_action,
-                               configure_action]
+                               run_cell_advance_action, run_selected_action,
+                               re_run_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
@@ -1477,7 +1475,7 @@ class Editor(SpyderPluginWidget):
     def refresh_save_all_action(self):
         """Enable 'Save All' if there are files to be saved"""
         editorstack = self.get_current_editorstack()
-        state = any(finfo.editor.document().isModified()
+        state = any(finfo.editor.document().isModified() or finfo.newly_created
                     for finfo in editorstack.data)
         self.save_all_action.setEnabled(state)
             

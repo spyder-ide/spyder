@@ -2037,6 +2037,9 @@ class CodeEditor(TextEditBaseWidget):
         if correct_indent >= 0:
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
+            if self.indent_chars == '\t':
+                indent = indent // self.tab_stop_width_spaces \
+                + correct_indent % self.tab_stop_width_spaces
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
@@ -2382,6 +2385,8 @@ class CodeEditor(TextEditBaseWidget):
                 for fmt in block_formats:
                     if (pos >= fmt.start) and (pos < fmt.start + fmt.length):
                         current_format = fmt.format
+                if current_format is None:
+                    return None
             color = current_format.foreground().color().name()
             return color
         else:

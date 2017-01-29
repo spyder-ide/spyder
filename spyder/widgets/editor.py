@@ -346,9 +346,9 @@ class EditorStack(QWidget):
         fileswitcher_action = create_action(self, _("File switcher..."),
                 icon=ima.icon('filelist'),
                 triggered=self.open_fileswitcher_dlg)
-        symbolfinder_action = create_action(self, 
+        symbolfinder_action = create_action(self,
                 _("Find symbols in file..."),
-                icon=ima.icon('filelist'),
+                icon=ima.icon('symbol_find'),
                 triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
@@ -1301,7 +1301,8 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
 
         finfo = self.data[index]
-        if not finfo.editor.document().isModified() and not force:
+        if not (finfo.editor.document().isModified() or
+                finfo.newly_created) and not force:
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
@@ -1662,7 +1663,7 @@ class EditorStack(QWidget):
             return
         finfo = self.data[index]
         if state is None:
-            state = finfo.editor.document().isModified()
+            state = finfo.editor.document().isModified() or finfo.newly_created
         self.set_stack_title(index, state)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
