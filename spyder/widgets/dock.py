@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
@@ -20,25 +19,47 @@ import spyder.utils.icon_manager as ima
 
 
 class SpyderDockWidget(QDockWidget):
-    """Spyder dockwidget that overrides methods."""
+    """
+    Dockwidget that overrides methods and creates curstom title bar.
 
+    When dockwidgets are docked together Qt provides a QTabBar that is
+    created on the fly and is not accessible globally. Additional to the tabbar
+    docked widgets have a title bar that offer float and close buttons.
+
+    This dockwidget includes a custom title bar that acts as both the tab bar
+    (if needed) and hides the original QTabBar that gets created on the fly.
+    """
+    ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    LOCATION = Qt.LeftDockWidgetArea
+    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
+
+    # Signals
     plugin_closed = Signal()
     sig_selected = Signal()
 
-    def __init__(self, title, parent):
+    def __init__(self, title, parent=None, plugin=None):
+        """Dockwidget that overrides methods and creates curstom title bar."""
+
         super(SpyderDockWidget, self).__init__(title, parent)
 
         # Needed for the installation of the event filter
         self.title = title
         self.main = parent
+        self.plugin = plugin
 
         # Widgets
         self.dock_tabbar = None
         self.title_bar = TitleBarWidget(parent=self, title=title)
 
         # Widget setup
+        if self.plugin:
+            self.setWidget(plugin)
+            self.setObjectName(self.plugin.__class__.__name__+"_dw")
+
         self.setTitleBarWidget(self.title_bar)
         self.setAttribute(Qt.WA_LayoutUsesWidgetRect, True)
+        self.setAllowedAreas(self.ALLOWED_AREAS)
+        self.setFeatures(self.FEATURES)
 
         # Signals
         self.visibilityChanged.connect(self.setup)
@@ -64,22 +85,25 @@ class SpyderDockWidget(QDockWidget):
     # --- Helpers
     # -------------------------------------------------------------------------
     def _tab_closed(self, text=None):
-        """"""
+        """Close the selected tab on the custom title bar."""
         for plugin in self.main.widgetlist:
             if text == plugin.get_plugin_title():
                 plugin.dockwidget.closeEvent(None)
-            plugin.dockwidget.setup()
+            if plugin.dockwidget.dock_tabbar is self.dock_tabbar:
+                plugin.dockwidget.setup()
             
     def _tab_moved(self, from_index, to_index):
-        """"""
+        """Move the tabs on the custom title bar."""
         if self.dock_tabbar:
             self.dock_tabbar.moveTab(from_index, to_index)
 
     def _tab_selected(self, index):
-        """"""
+        """Select tab on mouse click on the custom title bar."""
         self.blockSignals(True)
+        self.setUpdatesEnabled(False)
         if self.dock_tabbar:
             self.dock_tabbar.setCurrentIndex(index)
+        self.setUpdatesEnabled(True)
         self.blockSignals(False)
 
     # --- API
@@ -124,7 +148,7 @@ class SpyderDockWidget(QDockWidget):
         return titles
 
     def hide_dock_tabbar(self):
-        """Hide dockwidget tabbar"""
+        """Hide original dockwidget tabbar."""
         self.dock_tabbar.setStyleSheet('''
             QTabBar:tab {
                 border: 0px solid black;
@@ -137,15 +161,8 @@ class SpyderDockWidget(QDockWidget):
             }
         ''')
 
-    def has_tabbar_changed(self):
-        return self.dock_tabbar_titles() != self.title_bar.tabs_titles()
-
     def setup(self, value=None):
         """"""
-#        if self.has_tabbar_changed():
-#            return
-
-        print(self.title, self.dock_tabbar)
         #self.title_bar.setVisible(not self.isFloating())
         dock_tabbar = None
         for tabbar in self.dock_tabbars():
@@ -155,6 +172,7 @@ class SpyderDockWidget(QDockWidget):
                     dock_tabbar = tabbar
                     break
 
+        # Disconnect signals to avoid duplication of actions
         for signal in (self.title_bar.sig_tab_closed,
                        self.title_bar.sig_tab_moved,
                        self.title_bar.sig_tab_selected):
@@ -163,6 +181,7 @@ class SpyderDockWidget(QDockWidget):
             except Exception:
                 pass
 
+#        print(self.title, self.dock_tabbar)
         if dock_tabbar is not None:
             self.dock_tabbar = dock_tabbar
 
@@ -170,7 +189,6 @@ class SpyderDockWidget(QDockWidget):
             self.title_bar.sig_tab_moved.connect(self._tab_moved)
             self.title_bar.sig_tab_selected.connect(self._tab_selected)
             self.title_bar.add_tabs(self.dock_tabbar_titles())
-
             self.hide_dock_tabbar()
         else:
             self.dock_tabbar = None
@@ -179,7 +197,11 @@ class SpyderDockWidget(QDockWidget):
 
 
 class FocusIndicatorFrame(QFrame):
-    pass
+    """
+    Frame located on the bottom of the custom title bar widget.
+
+    This class is used for CSS styling.
+    """
 
 
 class TitleBarWidget(QFrame):
@@ -247,11 +269,13 @@ class TitleBarWidget(QFrame):
 
     def add_tabs(self, tabs):
         """TODO:"""
+        self.setUpdatesEnabled(False)
         self._tabbar.add_tabs(tabs)
         for i in range(self._tabbar.count()):
             if self._tabbar.tabText(i) == self._title:
                 self._tabbar.setCurrentIndex(i)
                 break
+        self.setUpdatesEnabled(True)
 
 
 
@@ -391,23 +415,26 @@ class DockTabBar(QTabBar):
             current_tab_names.append(self.tabText(i))
 
         # First delete all tabs and associated buttons
-        if current_tab_names != tabs:
-            self._tab_buttons = {}
-            for i in range(self.count(), -1, -1):
-                self.removeTab(i)
+        self.blockSignals(True)
+        self.setUpdatesEnabled(False)
+#        if current_tab_names != tabs:
+        self._tab_buttons = {}
+        for i in range(self.count(), -1, -1):
+            self.removeTab(i)
 
-            # Add tabs
-            for tab in tabs:
-                self.addTab(tab)
-    
-            # Add the close buttons
-            for i in range(self.count()):
-                button = TabButton(self)
-                self.setTabButton(i, self.side, button)
-                self._tab_buttons[self.tabText(i)] = button
-            self._reconnect_buttons()
+        # Add tabs
+        for tab in tabs:
+            self.addTab(tab)
 
+        # Add the close buttons
+        for i in range(self.count()):
+            button = TabButton(self)
+            self.setTabButton(i, self.side, button)
+            self._tab_buttons[self.tabText(i)] = button
+        self._reconnect_buttons()
         self._refresh_buttons()
+        self.setUpdatesEnabled(True)
+        self.blockSignals(False)
 
     def set_menu_actions(self, actions):
         """Set the actions for the context menu."""

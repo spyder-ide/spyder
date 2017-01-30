@@ -11,7 +11,7 @@ Base plugin class
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QShortcut, QWidget
+from qtpy.QtWidgets import QShortcut, QWidget
 
 # Local imports
 from spyder.config.base import _
@@ -22,13 +22,7 @@ from spyder.widgets.dock import SpyderDockWidget
 
 
 class BasePluginWidget(QWidget):
-    """
-    Basic functionality for Spyder plugin widgets
-    """
-
-    ALLOWED_AREAS = Qt.AllDockWidgetAreas
-    LOCATION = Qt.LeftDockWidgetArea
-    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable
+    """Basic functionality for Spyder plugin widgets."""
 
     def initialize_plugin_in_mainwindow_layout(self):
         """
@@ -78,12 +72,9 @@ class BasePluginWidget(QWidget):
 ##         # (so in those cases, we use the default window flags: Qt.Widget):
 ##         flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
         dock = SpyderDockWidget(title=self.get_plugin_title(),
-                                parent=self.main)#, flags)
+                                parent=self.main,
+                                plugin=self)#, flags)
 
-        dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(self.ALLOWED_AREAS)
-        dock.setFeatures(self.FEATURES)
-        dock.setWidget(self)
         dock.visibilityChanged.connect(self.visibility_changed)
         dock.plugin_closed.connect(self.plugin_closed)
         self.update_margins()
@@ -93,7 +84,7 @@ class BasePluginWidget(QWidget):
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
             self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
-        return (dock, self.LOCATION)
+        return (dock, dock.LOCATION)
 
     def create_configwidget(self, parent):
         """Create configuration dialog box page widget"""
@@ -165,6 +156,7 @@ class BasePluginWidget(QWidget):
 
     def toggle_view(self, checked):
         """Toggle view"""
+        self.dockwidget.setup()
         if not self.dockwidget:
             return
         if checked:
@@ -172,4 +164,4 @@ class BasePluginWidget(QWidget):
             self.dockwidget.raise_()
         else:
             self.dockwidget.hide()
-        self.dockwidget.setup()
+
