@@ -14,8 +14,10 @@ import tempfile
 
 # Third party imports
 import pytest
+from qtpy.QtGui import QFont
 
 # Local imports
+from spyder.widgets.editor import codeeditor
 from spyder.config.user import UserConfig
 from spyder.config.main import CONF_VERSION, DEFAULTS
 
@@ -41,3 +43,14 @@ def tmpconfig(request):
 
     request.addfinalizer(fin)
     return CONF
+
+@pytest.fixture
+def editorbot(qtbot):
+    widget = codeeditor.CodeEditor(None)
+    widget.setup_editor(linenumbers=True, markers=True, tab_mode=False,
+                         font=QFont("Courier New", 10),
+                         show_blanks=True, color_scheme='Zenburn')
+    widget.setup_editor(language='Python')
+    qtbot.addWidget(widget)
+    widget.show()
+    return qtbot, widget
