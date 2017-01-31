@@ -11,13 +11,18 @@ Testing utilities to be used with pytest.
 # Standard library imports
 import shutil
 import tempfile
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock # Python 2
 
 # Third party imports
 import pytest
-from qtpy.QtGui import QFont
 
 # Local imports
-from spyder.widgets.editor import codeeditor
+# Local imports
+from spyder.widgets.editor import EditorStack
+from spyder.widgets.findreplace import FindReplace
 from spyder.config.user import UserConfig
 from spyder.config.main import CONF_VERSION, DEFAULTS
 
@@ -45,12 +50,20 @@ def tmpconfig(request):
     return CONF
 
 @pytest.fixture
-def editorbot(qtbot):
-    widget = codeeditor.CodeEditor(None)
-    widget.setup_editor(linenumbers=True, markers=True, tab_mode=False,
-                         font=QFont("Courier New", 10),
-                         show_blanks=True, color_scheme='Zenburn')
-    widget.setup_editor(language='Python')
-    qtbot.addWidget(widget)
-    widget.show()
-    return qtbot, widget
+def setup_editor(qtbot):
+    """
+    Set up EditorStack with CodeEditor containing some Python code.
+    The cursor is at the empty line below the code.
+    Returns tuple with EditorStack and CodeEditor.
+    """
+    text = ('a = 1\n'
+            'print(a)\n'
+            '\n'
+            'x = 2')  # a newline is added at end
+    editorStack = EditorStack(None, [])
+    editorStack.set_introspector(Mock())
+    editorStack.set_find_widget(FindReplace(editorStack))
+    editorStack.set_io_actions(Mock(), Mock(), Mock(), Mock())
+    finfo = editorStack.new('foo.py', 'utf-8', text)
+    qtbot.addWidget(editorStack)
+    return editorStack, finfo.editor
