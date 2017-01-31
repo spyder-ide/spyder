@@ -33,7 +33,7 @@ from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
-                        QTextDocument, QTextFormat, QTextOption)
+                        QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
@@ -61,6 +61,9 @@ from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
+from spyder.widgets.panels.codefolding import FoldingPanel
+from spyder.widgets.sourcecode.folding import IndentFoldDetector
+from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
 from spyder.api.panel import Panel
 
 try:
@@ -235,6 +238,12 @@ class CodeEditor(TextEditBaseWidget):
     focus_changed = Signal()
     sig_new_file = Signal(str)
 
+    #: Signal emitted when a key is pressed
+    key_pressed = Signal(QKeyEvent)
+
+    #: Signal emitted when a new text is set on the widget
+    new_text_set = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -265,6 +274,12 @@ class CodeEditor(TextEditBaseWidget):
 
         # Blanks enabled
         self.blanks_enabled = False
+
+        self.background = QColor('white')
+        self.decorations = TextDecorationsManager(self)
+
+        # Folding
+        self.panels.register(FoldingPanel())
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
@@ -694,6 +709,9 @@ class CodeEditor(TextEditBaseWidget):
                                                   self.font(),
                                                   self.color_scheme)
         self._apply_highlighter_color_scheme()
+
+        self.highlighter.fold_detector = IndentFoldDetector()
+        self.highlighter.editor = self
 
     def is_json(self):
         return (isinstance(self.highlighter, sh.PygmentsSH) and
@@ -2280,6 +2298,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+        self.key_pressed.emit(event)
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
@@ -2492,6 +2511,18 @@ class CodeEditor(TextEditBaseWidget):
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
         TextEditBaseWidget.mouseMoveEvent(self, event)
+
+    def setPlainText(self, txt):
+        """
+        Extends setPlainText to emit the new_text_set signal.
+
+        :param txt: The new text to set.
+        :param mime_type: Associated mimetype. Setting the mime will update the
+                          pygments lexer.
+        :param encoding: text encoding
+        """
+        super(CodeEditor, self).setPlainText(txt)
+        self.new_text_set.emit()
 
     def leaveEvent(self, event):
         """If cursor has not been restored yet, do it now"""
