@@ -105,12 +105,9 @@ class EditorConfigPage(PluginConfigPage):
         
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
-        fpsorting_box = newcb(_("Sort files according to full path"),
-                              'fullpath_sorting')
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
         
@@ -1303,6 +1300,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
+        editorstack.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -2641,3 +2639,21 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
+
+    def move_editorstack_data(self, start, end):
+        """Move editorstack.data to be synchronized when tabs are moved."""
+        if start < 0 or end < 0:
+            return
+        else:
+            steps = abs(end - start)
+            direction = (end-start) // steps  # +1 for right, -1 for left
+
+            for editorstack in self.editorstacks :
+                data = editorstack.data
+                editorstack.blockSignals(True)
+
+                for i in range(start, end, direction):
+                    data[i], data[i+direction] = data[i+direction], data[i]
+
+                editorstack.blockSignals(False)
+                editorstack.refresh()
