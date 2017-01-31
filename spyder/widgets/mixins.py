@@ -477,6 +477,8 @@ class BaseEditMixin(object):
         findflag = QTextDocument.FindFlag()
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
+        if case:
+            findflag = findflag | QTextDocument.FindCaseSensitively
         moves = [QTextCursor.NoMove]
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
