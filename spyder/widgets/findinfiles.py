@@ -114,6 +114,7 @@ class SearchThread(QThread):
     sig_finished = Signal(bool)
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
+    sig_file_match = Signal(dict, int)
 
     def __init__(self, parent):
         QThread.__init__(self, parent)
@@ -238,17 +239,30 @@ class SearchThread(QThread):
                         continue
                     if re.search(self.include, filename):
                         # self.filenames.append(filename)
-                        size = os.stat(filename).st_size
-                        if size <= 10e6:
-                            self.find_string_in_file(filename)
+                        # size = os.stat(filename).st_size
+                        # large_file = size <= 10e6:
+                        self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")
                 return False
         return True
 
+    def truncate_result(self, line, start, end):
+        ellipsis = '...'
+        before_offset = 4
+        if len(line) > 80:
+            if start <= before_offset:
+                before_offset = 0
+                ellipsis = ''
+            trunc_line = ellipsis + line[start-before_offset:end+4]
+        else:
+            trunc_line = line
+        return trunc_line
+
     def find_string_in_file(self, fname):
         self.error_flag = False
         self.sig_current_file.emit(fname)
+        results = {}
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
@@ -267,19 +281,27 @@ class SearchThread(QThread):
                 if self.text_re:
                     for match in re.finditer(text, line):
                         res = self.results.get(osp.abspath(fname), [])
-                        res.append((lineno+1, match.start(), line_dec))
-                        self.results[osp.abspath(fname)] = res
+                        displ_line = self.truncate_result(line_dec,
+                                                          match.start(),
+                                                          match.end())
+                        res.append((lineno+1, match.start(), displ_line))
+                        results[osp.abspath(fname)] = res
                         self.nb += 1
                 else:
                     while found > -1:
                         res = self.results.get(osp.abspath(fname), [])
-                        res.append((lineno+1, found, line_dec))
-                        self.results[osp.abspath(fname)] = res
+                        displ_line = self.truncate_result(line_dec,
+                                                          found,
+                                                          found+len(text))
+                        res.append((lineno+1, found, displ_line))
+                        results[osp.abspath(fname)] = res
                         for text, enc in self.texts:
                             found = line.find(text, found+1)
                             if found > -1:
                                 break
                         self.nb += 1
+            if len(results) > 0:
+                self.sig_file_match.emit(results, self.nb)
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
@@ -623,7 +645,7 @@ class ResultsBrowser(OneColumnTree):
     def clicked(self, item):
         """Click event"""
         self.activated(item)
-        
+
     def set_results(self, search_text, results, pathlist, nb,
                     error_flag, completed):
         self.search_text = search_text
@@ -635,7 +657,56 @@ class ResultsBrowser(OneColumnTree):
         self.refresh()
         if not self.error_flag and self.nb:
             self.restore()
-        
+
+    def init(self, search_text):
+        self.clear()
+        self.num_files = 0
+        self.data = {}
+        self.search_text = search_text
+        title = "'%s' - " % search_text
+        text = _('String not found')
+        self.set_title(title+text)
+
+    @Slot(dict, int)
+    def append_result(self, results, num_matches):
+        """Real-time update of search results"""
+        self.num_files += 1
+        search_text = self.search_text
+        title = "'%s' - " % search_text
+        nb_files = self.num_files
+        if nb_files == 0:
+            text = _('String not found')
+        else:
+            text_matches = _('matches in')
+            text_files = _('file')
+            if nb_files > 1:
+                text_files += 's'
+            text = "%d %s %d %s" % (num_matches, text_matches,
+                                    nb_files, text_files)
+        self.set_title(title+text)
+        # parent_item = dirs[osp.dirname(filename)]
+        for filename in sorted(results.keys()):
+            # parent_item = dirs[osp.dirname(filename)]
+            file_item = QTreeWidgetItem(self, [osp.basename(filename) +
+                                        " - "+osp.dirname(filename)],
+                                        QTreeWidgetItem.Type)
+            file_item.setIcon(0, get_filetype_icon(filename))
+            colno_dict = {}
+            fname_res = []
+            for lineno, colno, line in results[filename]:
+                if lineno not in colno_dict:
+                    fname_res.append((lineno, colno, line))
+                colno_dict[lineno] = colno_dict.get(lineno, [])+[str(colno)]
+            for lineno, colno, line in fname_res:
+                colno_str = ",".join(colno_dict[lineno])
+                item = QTreeWidgetItem(file_item,
+                                       ["{0} ({1}): {2}".format(
+                                       lineno, colno_str, line.rstrip())],
+                                       QTreeWidgetItem.Type)
+                item.setIcon(0, ima.icon('arrow'))
+                self.data[id(item)] = (filename, lineno)
+
+
     def refresh(self):
         """
         Refreshing search results panel
@@ -736,15 +807,10 @@ class ResultsBrowser(OneColumnTree):
                 colno_dict[lineno] = colno_dict.get(lineno, [])+[str(colno)]
             for lineno, colno, line in fname_res:
                 colno_str = ",".join(colno_dict[lineno])
-                try:
-                    item = QTreeWidgetItem(file_item,
-                                        ["{0} ({1}): {2}".format(
-                                        lineno, colno_str, line.rstrip())],
-                                        QTreeWidgetItem.Type)
-                except UnicodeDecodeError:
-                    #TODO: Check possible codification errors
-                    print(osp.dirname(filename))
-                    continue
+                item = QTreeWidgetItem(file_item,
+                                       ["{0} ({1}): {2}".format(
+                                       lineno, colno_str, line.rstrip())],
+                                       QTreeWidgetItem.Type)
                 item.setIcon(0, ima.icon('arrow'))
                 self.data[id(item)] = (filename, lineno)
         # Removing empty directories
@@ -870,7 +936,11 @@ class FindInFilesWidget(QWidget):
         self.search_thread.sig_current_folder.connect(
             lambda x: self.status_bar.set_label_path(x, folder=True)
         )
+        self.search_thread.sig_file_match.connect(
+            self.result_browser.append_result
+        )
         self.status_bar.reset()
+        self.result_browser.init(self.find_options.search_text.currentText())
         self.search_thread.initialize(*options)
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
@@ -906,11 +976,11 @@ class FindInFilesWidget(QWidget):
             results, pathlist, nb, error_flag = found
             search_text = to_text_string(
                                 self.find_options.search_text.currentText())
-            self.result_browser.set_results(search_text, results, pathlist,
-                                            nb, error_flag, completed)
+            # self.result_browser.set_results(search_text, results, pathlist,
+                                            # nb, error_flag, completed)
             self.result_browser.show()
-            
-            
+
+
 def test():
     """Run Find in Files widget test"""
     from spyder.utils.qthelpers import qapplication
