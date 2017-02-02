@@ -613,7 +613,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.initialize_plugin()
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions)
+        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
@@ -756,6 +756,10 @@ class IPythonConsole(SpyderPluginWidget):
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
         
+        rename_tab_action = create_action(self, _("&Rename tab"),
+                                       icon=ima.icon('rename'),
+                                       triggered=self.tab_name_editor)
+        
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
@@ -764,7 +768,9 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Plugin actions
         self.menu_actions = [restart_action, MENU_SEPARATOR,
-                             create_client_action, connect_to_kernel_action]
+                             create_client_action, connect_to_kernel_action,
+                             MENU_SEPARATOR,
+                             rename_tab_action]
         
         return self.menu_actions
 
@@ -1509,3 +1515,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Register client
         self.register_client(client)
+
+    def tab_name_editor(self):
+        """Triggers the tab name editor"""
+        index = self.tabwidget.currentIndex()
+        self.tabwidget.tabBar().tab_name_editor.edit_tab(index)
