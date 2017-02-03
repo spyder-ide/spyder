@@ -66,6 +66,15 @@ class DebuggingWidget(RichJupyterWidget):
                 else:
                     properties = None
                 self.sig_var_properties.emit(properties)
+        else:
+            self.kernel_client.iopub_channel.flush()
+            self.kernel_client.input('exit')
+            self.kernel_client.shutdown()
+            QMessageBox.information(self, "stdout/stdin invalid",
+                                    "The line runned changes stdout/stdin "
+                                    "making imposible to continue debugging. "
+                                    "<br><br>The debug of the file will "
+                                    "exit now.")
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
