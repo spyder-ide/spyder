@@ -8,13 +8,19 @@
 Tests for iofuncs.py
 """
 
+import os
 import pytest
 import numpy as np
 import spyder.utils.iofuncs as io
 
+__location__ = os.path.realpath(os.path.join(os.getcwd(),
+                                             os.path.dirname(__file__)))
+
+
 @pytest.fixture
 def real_values():
-    file_s = np.load('numpy_data.npz')
+    path = os.path.join(__location__, 'numpy_data.npz')
+    file_s = np.load(path)
     A = file_s['A'].item()
     B = file_s['B']
     C = file_s['C']
@@ -23,7 +29,8 @@ def real_values():
     return {'A':A, 'B':B, 'C':C, 'D':D, 'E':E}
 
 def test_matlab_import(real_values):
-    inf = io.load_matlab('data.mat')[0]
+    path = os.path.join(__location__, 'data.mat')
+    inf, _ = io.load_matlab(path)
     valid = True
     for var in sorted(real_values.keys()):
         valid = valid and np.sum(real_values[var] == inf[var])
