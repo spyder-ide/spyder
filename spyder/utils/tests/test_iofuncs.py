@@ -33,5 +33,5 @@ def test_matlab_import(real_values):
     inf, _ = io.load_matlab(path)
     valid = True
     for var in sorted(real_values.keys()):
-        valid = valid and np.sum(real_values[var] == inf[var])
+        valid = valid and bool(np.mean(real_values[var] == inf[var]))
     assert valid
