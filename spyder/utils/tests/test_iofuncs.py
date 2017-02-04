@@ -14,7 +14,7 @@ import spyder.utils.iofuncs as io
 
 @pytest.fixture
 def real_values():
-    file_s = np.load('./numpy_data.npz')
+    file_s = np.load('numpy_data.npz')
     A = file_s['A'].item()
     B = file_s['B']
     C = file_s['C']
@@ -23,7 +23,7 @@ def real_values():
     return {'A':A, 'B':B, 'C':C, 'D':D, 'E':E}
 
 def test_matlab_import(real_values):
-    inf = io.load_matlab('./data.mat')[0]
+    inf = io.load_matlab('data.mat')[0]
     valid = True
     for var in sorted(real_values.keys()):
         valid = valid and np.sum(real_values[var] == inf[var])
