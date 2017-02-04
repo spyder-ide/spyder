@@ -10,7 +10,7 @@ export TEST_CI_APP=True
 # We install them here and not in travis_install.sh to see if
 # Spyder is correctly pulling its deps (some of them are shared
 # with mpl)
-export EXTRA_PACKAGES="nomkl pandas sympy pillow"
+export EXTRA_PACKAGES="nomkl pandas sympy pillow scipy"
 
 # Install our builds of Spyder
 if [ "$USE_CONDA" = true ] ; then
