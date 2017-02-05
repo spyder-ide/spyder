@@ -30,7 +30,11 @@ fi
 
 
 # Testing that the app starts and runs
-spyder
+if [[ "$USE_CONDA" = false && "$TRAVIS_PYTHON_VERSION" != "2.7" ]] ; then
+    spyder3
+else
+    spyder
+fi
 if [ $? -ne 0 ]; then
     exit 1
 fi
