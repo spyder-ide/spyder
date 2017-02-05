@@ -1945,7 +1945,7 @@ class MainWindow(QMainWindow):
         """Get properties of focus widget
         Returns tuple (widget, properties) where properties is a tuple of
         booleans: (is_console, not_readonly, readwrite_editor)"""
-        widget = self.focusWidget()
+        widget = QApplication.focusWidget()
         from spyder.widgets.shell import ShellBaseWidget
         from spyder.widgets.editor import TextEditBaseWidget
 
