@@ -1326,11 +1326,11 @@ class CollectionsEditor(QDialog):
         buttons = QDialogButtonBox.Ok
         if not readonly:
             buttons = buttons | QDialogButtonBox.Cancel
-        bbox = QDialogButtonBox(buttons)
-        bbox.accepted.connect(self.accept)
+        self.bbox = QDialogButtonBox(buttons)
+        self.bbox.accepted.connect(self.accept)
         if not readonly:
-            bbox.rejected.connect(self.reject)
-        layout.addWidget(bbox)
+            self.bbox.rejected.connect(self.reject)
+        layout.addWidget(self.bbox)
 
         constant = 121
         row_height = 30

@@ -9,11 +9,16 @@ File for running tests programmatically.
 """
 
 # Standard library imports
+import os
 import sys
 
 # Third party imports
 import qtpy  # to ensure that Qt4 uses API v2
 import pytest
+
+
+# To activate/deactivate certain things for pytest's only
+os.environ['SPYDER_PYTEST'] = 'True'
 
 
 def main():

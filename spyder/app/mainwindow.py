@@ -1951,14 +1951,17 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         from spyder.widgets.shell import ShellBaseWidget
         from spyder.widgets.editor import TextEditBaseWidget
+        from spyder.widgets.ipythonconsole import ControlWidget
 
         # if focused widget isn't valid try the last focused
-        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
+        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                                   ControlWidget)):
             widget = self.previous_focused_widget
 
         textedit_properties = None
-        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-            console = isinstance(widget, ShellBaseWidget)
+        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                               ControlWidget)):
+            console = isinstance(widget, (ShellBaseWidget, ControlWidget))
             not_readonly = not widget.isReadOnly()
             readwrite_editor = not_readonly and not console
             textedit_properties = (console, not_readonly, readwrite_editor)
@@ -2007,7 +2010,10 @@ class MainWindow(QMainWindow):
 
         widget, textedit_properties = self.get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
-            action.setEnabled(self.editor.isAncestorOf(widget))
+            try:
+                action.setEnabled(self.editor.isAncestorOf(widget))
+            except RuntimeError:
+                pass
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -2926,7 +2932,8 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    app.exec_()
+    if not os.environ.get('SPYDER_PYTEST', None):
+        app.exec_()
     return main
 
 
