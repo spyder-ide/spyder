@@ -8,35 +8,11 @@
 Tests for editor.py
 """
 
-# Standard library imports
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock # Python 2
-
 # Third party imports
 import pytest
 
 # Local imports
-from spyder.widgets.editor import EditorStack
-
-def setup_editor(qtbot):
-    """
-    Set up EditorStack with CodeEditor containing some Python code.
-    The cursor is at the empty line below the code.
-    Returns tuple with EditorStack and CodeEditor.
-    """
-    text = ('a = 1\n'
-            'print(a)\n'
-            '\n'
-            'x = 2')  # a newline is added at end
-    editorStack = EditorStack(None, [])
-    editorStack.set_introspector(Mock())
-    editorStack.set_find_widget(Mock())
-    editorStack.set_io_actions(Mock(), Mock(), Mock(), Mock())
-    finfo = editorStack.new('foo.py', 'utf-8', text)
-    qtbot.addWidget(editorStack)
-    return editorStack, finfo.editor
+from spyder.utils.fixtures import setup_editor
 
 def test_run_top_line(qtbot):
     editorStack, editor = setup_editor(qtbot)
@@ -84,6 +60,20 @@ def test_run_last_line_when_nonempty(qtbot):
     assert editor.toPlainText() == expected_new_text # check blank line got added
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
-    
+def test_find_replace_case_sensitive(qtbot):
+    editorStack, editor = setup_editor(qtbot)
+    editorStack.find_widget.case_button.setChecked(True)
+    text = ' test \nTEST \nTest \ntesT '
+    editor.set_text(text)
+    editorStack.find_widget.search_text.add_text('test')
+    editorStack.find_widget.replace_text.add_text('pass')
+    editorStack.find_widget.replace_find()
+    editorStack.find_widget.replace_find()
+    editorStack.find_widget.replace_find()
+    editorStack.find_widget.replace_find()
+    editor_text = editor.toPlainText()
+    assert editor_text == ' pass \nTEST \nTest \ntesT '
+
+
 if __name__ == "__main__":
     pytest.main()

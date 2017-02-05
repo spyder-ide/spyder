@@ -55,7 +55,7 @@ def test_get_path():
     source_code = 'from spyder.utils.introspection.manager import CodeInfo'
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
                                               len(source_code), __file__))
-    assert 'utils.py' in path and 'introspection' in path
+    assert 'utils' in path and 'introspection' in path
 
 
 def test_get_docstring():
