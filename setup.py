@@ -293,7 +293,8 @@ if 'setuptools' in sys.modules:
 
     setup_args['entry_points'] = {
         'gui_scripts': [
-            'spyder = spyder.app.start:main'
+            '{} = spyder.app.start:main'.format(
+                'spyder3' if PY3 else 'spyder')
         ]
     }
 
