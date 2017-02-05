@@ -2007,7 +2007,10 @@ class MainWindow(QMainWindow):
 
         widget, textedit_properties = self.get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
-            action.setEnabled(self.editor.isAncestorOf(widget))
+            try:
+                action.setEnabled(self.editor.isAncestorOf(widget))
+            except RuntimeError:
+                pass
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
