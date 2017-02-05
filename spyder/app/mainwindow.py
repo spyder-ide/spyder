@@ -2929,7 +2929,8 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    app.exec_()
+    if not os.environ.get('SPYDER_PYTEST', None):
+        app.exec_()
     return main
 
 
