@@ -23,6 +23,28 @@ def main_window():
     return widget
 
 
+def test_maximize_minimize_plugins(main_window, qtbot):
+    """Test that the maximize button is working correctly."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=6000)
+
+    # Set focus to the Editor
+    main_window.editor.get_focus_widget().setFocus()
+
+    # Click the maximize button
+    max_action = main_window.maximize_action
+    max_button = main_window.main_toolbar.widgetForAction(max_action)
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+
+    # Verify that the Editor is maximized
+    assert main_window.editor.ismaximized
+
+    # Verify that the action minimizes the plugin too
+    qtbot.mouseClick(max_button, Qt.LeftButton)
+    assert not main_window.editor.ismaximized
+
+
 def test_issue_4066(main_window, qtbot):
     """
     Test for a segfault when these steps are followed:
