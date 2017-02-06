@@ -119,7 +119,7 @@ MAIN_APP = qapplication()
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV
+from spyder.config.base import _, get_image_path, DEV, PYTEST
 SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg'), 'svg'))
 SPLASH_FONT = SPLASH.font()
 SPLASH_FONT.setPixelSize(10)
@@ -2922,7 +2922,7 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    if not os.environ.get('SPYDER_PYTEST', None):
+    if not PYTEST:
         app.exec_()
     return main
 
