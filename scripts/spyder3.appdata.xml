@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop-application">
+  <id>spyder3.desktop</id>
+  <name>Spyder</name>
+  <summary>Scientific Python Development Environment</summary>
+
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <developer_name>Spyder Project Contributors</developer_name>
+
+  <description>
+    <p>
+      Spyder is a free open-source Python development environment providing MATLAB-like features in a simple and light-weighted software.
+    </p>
+    <p>
+      It contains a powerful interactive development environment for the Python language with advanced editing, interactive testing, debugging and introspection features
+      and a numerical computing environment thanks to the support of IPython (enhanced interactive Python interpreter) and popular Python libraries such as NumPy
+      (linear algebra), SciPy (signal and image processing) or matplotlib (interactive 2D/3D plotting).
+    </p>
+    <p>
+      Spyder may also be used as a library providing powerful console-related widgets for your PyQt-based applications – for example, it may be used to integrate
+      a debugging console directly in the layout of your graphical user interface.
+    </p>
+  </description>
+
+  <screenshots>
+​    <screenshot type="default">
+​      <image>https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/screenshot.png</image>
+​    </screenshot>
+​  </screenshots>
+
+</component>
