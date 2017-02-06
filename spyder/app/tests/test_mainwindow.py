@@ -8,11 +8,31 @@
 Tests for the main window
 """
 
+import os
+import os.path as osp
+
 import pytest
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QTimer
+from qtpy.QtTest import QTest
+from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
+
+
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
+
+
+def open_file_in_editor(main_window, fname, directory=None):
+    """Open a file using the Editor and its open file dialog"""
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, QFileDialog):
+            if directory is not None:
+                w.setDirectory(directory)
+            input_field = w.findChildren(QLineEdit)[0]
+            input_field.setText(fname)
+            QTest.keyClick(w, Qt.Key_Enter)
 
 
 @pytest.fixture
@@ -21,6 +41,34 @@ def main_window():
     options, args = get_options()
     widget = run_spyder(app, options, args)
     return widget
+
+
+def test_open_files_in_new_editor_window(main_window, qtbot):
+    """
+    This tests that opening files in a new editor window
+    is working as expected.
+
+    Test for issue 4085
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=6000)
+
+    # Set a timer to manipulate the open dialog while it's running
+    QTimer.singleShot(2000, lambda: open_file_in_editor(main_window,
+                                                        'script.py',
+                                                        directory=LOCATION))
+
+    # Create a new editor window
+    # Note: editor.load() uses the current editorstack by default
+    main_window.editor.create_new_window()
+    main_window.editor.load()
+
+    # Perform the test
+    # Note: There's always one file open in the Editor
+    editorstack = main_window.editor.get_current_editorstack()
+    assert editorstack.get_stack_count() == 2
+    main_window.close()
 
 
 def test_maximize_minimize_plugins(main_window, qtbot):
@@ -43,6 +91,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
     assert not main_window.editor.ismaximized
+    main_window.close()
 
 
 def test_issue_4066(main_window, qtbot):
