@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _, get_conf_path
+from spyder.config.base import _, get_conf_path, PYTEST
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -1813,11 +1813,19 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            filenames, _sf = getopenfilenames(parent_widget,
-                                     _("Open file"), basedir,
-                                     self.edit_filters,
-                                     selectedfilter=selectedfilter,
-                                     options=QFileDialog.HideNameFilterDetails)
+            if not PYTEST:
+                filenames, _sf = getopenfilenames(
+                                    parent_widget,
+                                    _("Open file"), basedir,
+                                    self.edit_filters,
+                                    selectedfilter=selectedfilter,
+                                    options=QFileDialog.HideNameFilterDetails)
+            else:
+                # Use a Qt (i.e. scriptable) dialog for pytest
+                dialog = QFileDialog(parent_widget, _("Open file"),
+                                     options=QFileDialog.DontUseNativeDialog)
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
             self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
