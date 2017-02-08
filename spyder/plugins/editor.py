@@ -2319,7 +2319,7 @@ class Editor(SpyderPluginWidget):
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
-                if CONF.get('run', 'open_at_least_once', True):
+                if CONF.get('run', 'open_at_least_once', not PYTEST):
                     # Open Run Config dialog at least once: the first time 
                     # a script is ever run in Spyder, so that the user may 
                     # see it at least once and be conscious that it exists
