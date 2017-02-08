@@ -2,7 +2,7 @@
 set TEST_CI_APP=True
 
 :: Set extra packages
-set EXTRA_PACKAGES=pandas sympy pillow
+set EXTRA_PACKAGES=pandas sympy pillow scipy
 
 :: Move to a tmp dir before doing the installation
 mkdir C:\projects\tmp
