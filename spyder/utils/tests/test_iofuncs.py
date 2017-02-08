@@ -13,13 +13,25 @@ import pytest
 import numpy as np
 import spyder.utils.iofuncs as io
 
-__location__ = os.path.realpath(os.path.join(os.getcwd(),
+LOCATION = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
 
 
 @pytest.fixture
 def real_values():
-    path = os.path.join(__location__, 'numpy_data.npz')
+    """
+    Loads a Numpy pickled file.
+
+    The file numpy_data.npz contains six variables, each one represents the
+    expected test values after a manual conversion of the same variables
+    defined and evaluated in MATLAB. The manual type conversion was done
+    over several variable types, such as: Matrices/Vectors, Scalar and
+    Complex numbers, Structs, Strings and Cell Arrays. The set of variables
+    was defined to allow and test the deep conversion of a compound type,
+    i.e., A struct that contains other types that need to be converted,
+    like other structs, matrices and Cell Arrays.
+    """
+    path = os.path.join(LOCATION, 'numpy_data.npz')
     file_s = np.load(path)
     A = file_s['A'].item()
     B = file_s['B']
@@ -29,7 +41,16 @@ def real_values():
     return {'A':A, 'B':B, 'C':C, 'D':D, 'E':E}
 
 def test_matlab_import(real_values):
-    path = os.path.join(__location__, 'data.mat')
+    """
+    Tests the automatic conversion and import of variables from MATLAB.
+
+    This test loads a file stored in MATLAB, the variables defined are
+    equivalent to the manually converted values done over Numpy. This test
+    allows to evaluate the function which processes the conversion automa
+    tically. i.e., The automatic conversion results should be equal to the
+    manual conversion of the variables.
+    """
+    path = os.path.join(LOCATION, 'data.mat')
     inf, _ = io.load_matlab(path)
     valid = True
     for var in sorted(real_values.keys()):
