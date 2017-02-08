@@ -16,18 +16,16 @@ from spyder.plugins.ipythonconsole import IPythonConsole
 # Qt Test Fixtures
 #--------------------------------
 @pytest.fixture
-def ipyconsole_bot(qtbot):
+def ipyconsole():
     widget = IPythonConsole(None, testing=True)
     widget.create_new_client()
-    qtbot.addWidget(widget)
-    return qtbot, widget
+    return widget
 
 
 # Tests
 #-------------------------------
 @pytest.mark.skipif(os.name == 'nt', reason="It's timing out on Windows")
-def test_sys_argv_clear(ipyconsole_bot):
-    qtbot, ipyconsole = ipyconsole_bot
+def test_sys_argv_clear(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     client = ipyconsole.get_current_client()
 

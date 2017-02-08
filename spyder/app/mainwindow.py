@@ -264,8 +264,6 @@ class MainWindow(QMainWindow):
         self.open_project = options.open_project
 
         self.debug_print("Start of MainWindow constructor")
-        
-        self.setFocusPolicy(Qt.StrongFocus)
 
         def signal_handler(signum, frame=None):
             """Handler for signals."""
@@ -1945,17 +1943,20 @@ class MainWindow(QMainWindow):
         """Get properties of focus widget
         Returns tuple (widget, properties) where properties is a tuple of
         booleans: (is_console, not_readonly, readwrite_editor)"""
-        widget = self.focusWidget()
+        widget = QApplication.focusWidget()
         from spyder.widgets.shell import ShellBaseWidget
         from spyder.widgets.editor import TextEditBaseWidget
+        from spyder.widgets.ipythonconsole import ControlWidget
 
         # if focused widget isn't valid try the last focused
-        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
+        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                                   ControlWidget)):
             widget = self.previous_focused_widget
 
         textedit_properties = None
-        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-            console = isinstance(widget, ShellBaseWidget)
+        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                               ControlWidget)):
+            console = isinstance(widget, (ShellBaseWidget, ControlWidget))
             not_readonly = not widget.isReadOnly()
             readwrite_editor = not_readonly and not console
             textedit_properties = (console, not_readonly, readwrite_editor)
@@ -2004,7 +2005,10 @@ class MainWindow(QMainWindow):
 
         widget, textedit_properties = self.get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
-            action.setEnabled(self.editor.isAncestorOf(widget))
+            try:
+                action.setEnabled(self.editor.isAncestorOf(widget))
+            except RuntimeError:
+                pass
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -2099,12 +2103,6 @@ class MainWindow(QMainWindow):
         # To be used by the tour to be able to move
         self.sig_moved.emit(event)
 
-    def focusInEvent(self, event):
-        """Reimplement Qt method."""
-        QMainWindow.focusInEvent(self, event)
-        if self.hasFocus():
-            self.tour.gain_focus()
-
     def hideEvent(self, event):
         """Reimplement Qt method"""
         for plugin in self.widgetlist:
@@ -2185,6 +2183,7 @@ class MainWindow(QMainWindow):
         self.maximize_action.setToolTip(tip)
 
     @Slot()
+    @Slot(bool)
     def maximize_dockwidget(self, restore=False):
         """Shortcut: Ctrl+Alt+Shift+M
         First call: maximize current dockwidget
@@ -2923,7 +2922,8 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    app.exec_()
+    if not os.environ.get('SPYDER_PYTEST', None):
+        app.exec_()
     return main
 
 
