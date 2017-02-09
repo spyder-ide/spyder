@@ -143,16 +143,16 @@ def find_return_types(module_context, func):
             found = _search_return_in_numpydocstr(docstr)
         return found
     try:
-        docstr = func.raw_doc
+        docstr = u(func.raw_doc)
     except AttributeError:
-        docstr = func.doc
+        docstr = u(func.doc)
     types = []
     for type_str in search_return_in_docstr(docstr):
         if is_module_installed('jedi', '=0.10.0'):
             type_ = _evaluate_for_statement_string(module_context, type_str)
         else:
             module = func.get_parent_until()
-            type_ = _evaluate_for_statement_string(module_context, type_str, module)
+            type_ = _evaluate_for_statement_string(module_context,
+                                                   type_str, module)
         types.extend(type_)
     return types
-

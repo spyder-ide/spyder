@@ -25,13 +25,11 @@ try:
     try:
         from spyder.utils.introspection import jedi_patch
         jedi = jedi_patch.apply()
-    except ImportError as err:
+    except ImportError:
         import jedi
-        debug_print(jedi.__version__ +' '+ str(err))
 except ImportError:
     jedi = None
 
-#jedi.set_debug_function()
 
 class JediPlugin(IntrospectionPlugin):
     """
