@@ -255,7 +255,10 @@ class KernelConnectionDialog(QDialog):
                 falsy_to_none(dialog.pw.text()), # ssh password
                 accepted)                        # ok
         else:
-            return (dialog.cf.text(), None, None, None, accepted)
+            path = dialog.cf.text()
+            if osp.dirname(path) == '':
+                path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
+            return (path, None, None, None, accepted)
 
 
 #------------------------------------------------------------------------------
