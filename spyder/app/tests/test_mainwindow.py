@@ -146,6 +146,7 @@ def test_run_code(main_window, qtbot):
     main_window.close()
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="It's timing out sometimes on Windows")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
