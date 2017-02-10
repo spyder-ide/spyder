@@ -756,7 +756,7 @@ class IPythonConsole(SpyderPluginWidget):
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
         
-        rename_tab_action = create_action(self, _("&Rename tab"),
+        rename_tab_action = create_action(self, _("Rename tab"),
                                        icon=ima.icon('rename'),
                                        triggered=self.tab_name_editor)
         
@@ -1517,6 +1517,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.register_client(client)
 
     def tab_name_editor(self):
-        """Triggers the tab name editor"""
+        """Trigger the tab name editor."""
         index = self.tabwidget.currentIndex()
         self.tabwidget.tabBar().tab_name_editor.edit_tab(index)
