@@ -1129,7 +1129,10 @@ class MainWindow(QMainWindow):
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
-                child.aboutToShow.connect(self.update_edit_menu)
+                try:
+                    child.aboutToShow.connect(self.update_edit_menu)
+                except TypeError:
+                    pass
 
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
