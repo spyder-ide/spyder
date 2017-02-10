@@ -34,7 +34,7 @@ SHELL_TIMEOUT = 30000
 
 # Time to wait for the IPython console to evaluate something (in
 # miliseconds)
-EVAL_TIMEOUT = 1500
+EVAL_TIMEOUT = 3000
 
 
 #==============================================================================
