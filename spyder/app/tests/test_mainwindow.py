@@ -155,7 +155,7 @@ def test_run_code(main_window, qtbot):
     main_window.close()
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It's timing out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -209,7 +209,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     main_window.close()
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It's timing out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_issue_4066(main_window, qtbot):
     """
     Test for a segfault when these steps are followed:
@@ -242,7 +242,7 @@ def test_issue_4066(main_window, qtbot):
     qtbot.mouseClick(ok_widget, Qt.LeftButton)
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It's timing out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_varexp_edit_inline(main_window, qtbot):
     """
     Test for errors when editing inline values in the Variable Explorer
