@@ -10,7 +10,7 @@ function DownloadMiniconda ($python_version, $platform_suffix) {
     if ($python_version -match "3.5") {
         $filename = "Miniconda3-latest-Windows-" + $platform_suffix + ".exe"
     } else {
-        $filename = "Miniconda-latest-Windows-" + $platform_suffix + ".exe"
+        $filename = "Miniconda2-latest-Windows-" + $platform_suffix + ".exe"
     }
     $url = $MINICONDA_URL + $filename
 
