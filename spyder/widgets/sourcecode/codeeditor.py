@@ -1918,6 +1918,7 @@ class CodeEditor(TextEditBaseWidget):
         diff_curly = 0
         add_indent = False
         prevline = None
+        prevtext = ""
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
@@ -2013,7 +2014,7 @@ class CodeEditor(TextEditBaseWidget):
                                 correct_indent = len(prevtext)
 
         if not (diff_paren or diff_brack or diff_curly) and \
-           not prevtext.endswith(':'):
+           not prevtext.endswith(':') and prevline:
             cur_indent = self.get_block_indentation(block_nb - 1)
             is_blank = not self.get_text_line(block_nb - 1).strip()
             prevline_indent = self.get_block_indentation(prevline)
@@ -2036,6 +2037,9 @@ class CodeEditor(TextEditBaseWidget):
         if correct_indent >= 0:
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
+            if self.indent_chars == '\t':
+                indent = indent // self.tab_stop_width_spaces \
+                + correct_indent % self.tab_stop_width_spaces
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
@@ -2381,6 +2385,8 @@ class CodeEditor(TextEditBaseWidget):
                 for fmt in block_formats:
                     if (pos >= fmt.start) and (pos < fmt.start + fmt.length):
                         current_format = fmt.format
+                if current_format is None:
+                    return None
             color = current_format.foreground().color().name()
             return color
         else:

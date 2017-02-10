@@ -22,22 +22,23 @@ import textwrap
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
-from qtpy import PYQT5
-
-if PYQT5:
-    from qtpy.QtCore import QRegularExpression
-else:
-    from qtpy.QtCore import QRegExp
+from qtpy import QT_VERSION
 
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import is_text_string, to_text_string, u
-from spyder.utils import encoding, sourcecode
+from spyder.utils import encoding, sourcecode, programs
 from spyder.utils.dochelpers import (getargspecfromtext, getobj,
                                      getsignaturefromtext)
 from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import NumpyArrayDialog
 
+QT55_VERSION = programs.check_version(QT_VERSION, "5.5", ">=")
+
+if QT55_VERSION:
+    from qtpy.QtCore import QRegularExpression
+else:
+    from qtpy.QtCore import QRegExp
 
 HISTORY_FILENAMES = []
 
@@ -476,6 +477,8 @@ class BaseEditMixin(object):
         findflag = QTextDocument.FindFlag()
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
+        if case:
+            findflag = findflag | QTextDocument.FindCaseSensitively
         moves = [QTextCursor.NoMove]
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
@@ -490,7 +493,7 @@ class BaseEditMixin(object):
             moves += [QTextCursor.End]
         if not regexp:
             text = re.escape(to_text_string(text))
-        if PYQT5:
+        if QT55_VERSION:
             pattern = QRegularExpression(r"\b{}\b".format(text) if words else
                                          text)
             if case:

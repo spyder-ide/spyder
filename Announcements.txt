@@ -1,67 +1,20 @@
 Minor release to list
 =====================
 
-Subject: [ANN] Spyder 3.1 is released!
+Subject: [ANN] Spyder 3.1.2 is released!
 
 
 Hi all,
 
 On the behalf of the Spyder Project Contributors (https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder 3.1 has been released and is available for
+I'm pleased to announce that Spyder 3.1.2 has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two months after version 3.0.2 and introduces several new features
-and enhancements:
+This release comes four days after version 3.1.1 and fixes a couple of annoying
+bugs introduced in 3.1.1 and 3.1.0
 
-**Main Window**
-* Add an introduction interactive tour to explain the main Spyder
-  components (in `Help > Interactive tours`). This tour was
-  announced in Spyder 3.0 but deactivated due to an error.
-
-**Editor**
-* Add the Solarized Light and Dark color schemes.
-* Add support for greedy regular expressions in the find/replace widget
-  (only available with PyQt5).
-* Improve the use of tabs instead of spaces for indentation.
-* Add `Ctrl+Shift+T` shortcut to reopen the last closed file.
-* Show completions for Numpy and Matplotlib compiled objects (e.g.
-  `np.array` and `plt.figure`)
-* Disambiguate tabs in case users open several files with the same
-  name.
-* Add the shortcut `Ctrl+Alt+P` to open a switcher to select among
-  the symbols (functions, methods or classes) present in a file.
-  Also add an entry in the `File` menu and toolbar button to show
-  this switcher. 
-
-**Variable Explorer**
-* Add support for the most important numeric types of Numpy (32 and 64
-  bits int, float and complex numbers).
-* Save format for floats in DataFrame editor.
-* Make the index column of DataFrame editor always visible when scrolling
-  to right and left.
-* Add support for Pandas DatetimeIndex objects.
-* Show empty Numpy arrays.
-
-**IPython Console**
-* Be able to load kernel json files anywhere in the file system when
-  connecting to external kernels.
-* Add an option (under `Preferences > Run` and `Run > Configure`) to
-  clear all variables present in a console before running a file (it
-  runs `%reset -f` in the associated kernel).
-
-**Profiler**
-* Show time units (in seconds) spent by each function or method.
-
-**Settings**
-* Make all keyboard shortcuts configurable
-
-**Under the hood**
-* Add the `--project <path-to-dir>` command line option to load
-  projects at startup.
-* Add the chardet and numpydoc libraries as new dependencies.
-
-In this release we also fixed 79 issues and merged 91 pull requests that amount
-to more than 500 commits. For a full list of fixes, please see our changelog:
+In this release we also fixed 2 issues and merged 2 pull requests that amount
+to more than 10 commits. For a full list of fixes, please see our changelog:
 https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md
 
 Don't forget to follow Spyder updates/news on the project Github website:

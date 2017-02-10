@@ -1,5 +1,51 @@
 # History of changes
 
+## Version 3.1.2 (2017-01-24)
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 4025](https://github.com/spyder-ide/spyder/issues/4025) - Error when running cell for the first time in the Editor
+* [Issue 4021](https://github.com/spyder-ide/spyder/issues/4021) - Spyder fails to import numpy on first line of a file
+
+In this release 2 issues were closed
+
+**Pull requests**
+
+* [PR 4031](https://github.com/spyder-ide/spyder/pull/4031) - PR: Fix error when running cells because previous_focused_widget is not initialized in main window
+* [PR 4029](https://github.com/spyder-ide/spyder/pull/4029) - PR: Fix fix_indent() when editor cursor is on the first line
+
+In this release 2 pull requests were merged
+
+
+----
+
+
+## Version 3.1.1 (2017-01-22)
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 4012](https://github.com/spyder-ide/spyder/issues/4012) - Edit menu items greyed out after update to Spyder 3.1.0
+* [Issue 3989](https://github.com/spyder-ide/spyder/issues/3989) - Spyder won't start after upgrade to 3.1.0 due to an error with QRegularExpression
+* [Issue 3987](https://github.com/spyder-ide/spyder/issues/3987) - Errors running or importing code because sys.argv is empty
+
+In this release 3 issues were closed
+
+**Pull requests**
+
+* [PR 4022](https://github.com/spyder-ide/spyder/pull/4022) - PR: Edit menu disable error
+* [PR 3997](https://github.com/spyder-ide/spyder/pull/3997) - PR: Enclosing quotes of sys.argv clearing instruction are now consistent
+* [PR 3994](https://github.com/spyder-ide/spyder/pull/3994) - PR: Use QRegularExpression only for Qt 5.5+
+
+In this release 3 pull requests were merged
+
+
+----
+
+
 ## Version 3.1 (2017-01-18)
 
 ### New features
@@ -166,7 +212,6 @@ In this release 79 issues were closed
 * [PR 3871](https://github.com/spyder-ide/spyder/pull/3871) - PR: Add option to "clear all" variables before running file
 * [PR 3866](https://github.com/spyder-ide/spyder/pull/3866) - PR: Add code to cancel active Appveyor builds in a branch
 * [PR 3864](https://github.com/spyder-ide/spyder/pull/3864) - PR: Extra selections is now an ordered dictionary
-* [PR 3863](https://github.com/spyder-ide/spyder/pull/3863) - PR: Update ja translations for 3.x
 * [PR 3861](https://github.com/spyder-ide/spyder/pull/3861) - PR: Show kernel initialization errors in the IPython console
 * [PR 3854](https://github.com/spyder-ide/spyder/pull/3854) - PR: Add disambiguation functionality to the Python console
 * [PR 3853](https://github.com/spyder-ide/spyder/pull/3853) - PR: Move rope_patch.py to utils/introspection
