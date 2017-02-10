@@ -39,6 +39,11 @@ DEV = os.environ.get('SPYDER_DEV')
 TEST = os.environ.get('SPYDER_TEST')
 
 
+# To do some adjustments for pytest
+# This env var is defined in runtests.py
+PYTEST = os.environ.get('SPYDER_PYTEST')
+
+
 #==============================================================================
 # Debug helpers
 #==============================================================================
