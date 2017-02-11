@@ -257,7 +257,8 @@ class KernelConnectionDialog(QDialog):
                 accepted)                        # ok
         else:
             path = dialog.cf.text()
-            if osp.dirname(path) == '':
+            _dir, filename = osp.dirname(path), osp.basename(path)
+            if _dir == '' and not filename.endswith('.json'):
                 path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
             return (path, None, None, None, accepted)
 
