@@ -446,7 +446,6 @@ class IOFunctions(object):
 
     def save(self, data, filename):
         ext = osp.splitext(filename)[1].lower()
-        filename = filename.encode('string-escape')
         if ext in self.save_funcs:
             return self.save_funcs[ext](data, filename)
         else:
