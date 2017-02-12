@@ -4,15 +4,17 @@
 # Licensed under the terms of the MIT License
 #
 
+import os
 import os.path as osp
 import shutil
 import tempfile
 
 import pytest
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import QApplication, QDialog
+from qtpy.QtWidgets import QApplication
 
-from spyder.plugins.ipythonconsole import IPythonConsole
+from spyder.plugins.ipythonconsole import (IPythonConsole,
+                                           KernelConnectionDialog)
 
 
 #==============================================================================
@@ -27,7 +29,7 @@ SHELL_TIMEOUT = 30000
 def open_client_from_connection_file(connection_info, qtbot):
     top_level_widgets = QApplication.topLevelWidgets()
     for w in top_level_widgets:
-        if isinstance(w, QDialog):
+        if isinstance(w, KernelConnectionDialog):
             w.cf.setText(connection_info)
             qtbot.keyClick(w, Qt.Key_Enter)
 
@@ -57,7 +59,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     connection_file = osp.basename(client.connection_file)
     id_ = connection_file.split('kernel-')[-1].split('.json')[0]
 
-    QTimer.singleShot(1000, lambda: open_client_from_connection_file(
+    QTimer.singleShot(2000, lambda: open_client_from_connection_file(
                                         id_, qtbot))
     ipyconsole.create_client_for_kernel()
 
@@ -80,7 +82,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
                                osp.basename(client.connection_file))
     shutil.copy2(client.connection_file, connection_file)
 
-    QTimer.singleShot(1000, lambda: open_client_from_connection_file(
+    QTimer.singleShot(2000, lambda: open_client_from_connection_file(
                                         connection_file,
                                         qtbot))
     ipyconsole.create_client_for_kernel()
@@ -99,7 +101,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    QTimer.singleShot(1000, lambda: open_client_from_connection_file(
+    QTimer.singleShot(2000, lambda: open_client_from_connection_file(
                                         client.connection_file,
                                         qtbot))
     ipyconsole.create_client_for_kernel()
@@ -115,6 +117,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     ipyconsole.close()
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
     shell = ipyconsole.get_current_shellwidget()
