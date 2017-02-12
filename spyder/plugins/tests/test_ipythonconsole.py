@@ -92,7 +92,6 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
     ipyconsole.close()
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It times out on Linux")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
     Test that a new client is created using the connection file
@@ -109,7 +108,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
 
     new_client = ipyconsole.get_clients()[1]
     new_shell = new_client.shellwidget
-    qtbot.waitUntil(lambda: new_shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.wait(2000)
     new_shell.execute('a = 10')
 
     assert new_client.name == '1/B'
