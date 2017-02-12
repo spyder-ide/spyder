@@ -74,6 +74,7 @@ def main_window():
 #==============================================================================
 # Tests
 #==============================================================================
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
