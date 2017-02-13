@@ -43,6 +43,9 @@ COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', '0']
 
+# Default format for data frames with floats
+DEFAULT_FORMAT = '%.3g'
+
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
@@ -83,7 +86,7 @@ class DataFrameModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
     
-    def __init__(self, dataFrame, format="%.3g", parent=None):
+    def __init__(self, dataFrame, format=DEFAULT_FORMAT, parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
@@ -274,7 +277,12 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 value = self.get_value(row, column-1)
                 if isinstance(value, float):
-                    return to_qvariant(self._format % value)
+                    try:
+                        return to_qvariant(self._format % value)
+                    except ValueError:
+                        # may happen if format = '%d' and value = NaN;
+                        # see issue 4139
+                        return to_qvariant(DEFAULT_FORMAT % value)
                 else:
                     try:
                         return to_qvariant(to_text_string(value))
