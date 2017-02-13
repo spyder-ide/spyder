@@ -279,7 +279,7 @@ class DataFrameModel(QAbstractTableModel):
                 if isinstance(value, float):
                     try:
                         return to_qvariant(self._format % value)
-                    except ValueError:
+                    except (ValueError, TypeError):
                         # may happen if format = '%d' and value = NaN;
                         # see issue 4139
                         return to_qvariant(DEFAULT_FORMAT % value)
