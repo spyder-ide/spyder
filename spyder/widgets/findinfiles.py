@@ -398,6 +398,8 @@ class FindOptions(QWidget):
                        self.dir_combo, browse]:
             hlayout3.addWidget(widget)
 
+        self.search_text.valid.connect(lambda valid: self.find.emit())
+
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addLayout(hlayout1)
