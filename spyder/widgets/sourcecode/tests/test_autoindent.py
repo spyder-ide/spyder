@@ -153,6 +153,7 @@ def test_first_line():
          "test_commented_brackets"),
         ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
          "test_balanced_brackets"),
+        ("a = (a  #  some comment\n", "a = (a  #  some comment\n     ", "test_inline_comment"),
     ])
 def test_indentation_with_spaces(text_input, expected, test_text):
     text = get_indent_fix(text_input)
