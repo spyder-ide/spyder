@@ -40,6 +40,7 @@ def real_values():
     E = file_s['E']
     return {'A':A, 'B':B, 'C':C, 'D':D, 'E':E}
 
+@pytest.mark.skipif(io.load_matlab is None, reason="SciPy required")
 def test_matlab_import(real_values):
     """
     Test the automatic conversion and import of variables from MATLAB.
