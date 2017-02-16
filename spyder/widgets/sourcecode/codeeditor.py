@@ -1985,9 +1985,31 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
+
+                # Check if all braces are matching using a stack
+                stack = ['dummy']  # Dummy elemet to avoid index errors
+                deactivate = None
+                for c in prevtext:
+                    if deactivate is not None:
+                        if c == deactivate:
+                            deactivate = None
+                    elif c in ["'", '"']:
+                        deactivate = c
+                    elif c in ['(', '[','{']:
+                        stack.append(c)
+                    elif c == ')' and stack[-1] == '(':
+                        stack.pop()
+                    elif c == ']' and stack[-1] == '[':
+                        stack.pop()
+                    elif c == '}' and stack[-1] == '{':
+                        stack.pop()
+
+                if len(stack) == 1:  # all braces matching
+                    pass
+
                 # Hanging indent
                 # find out if the last one is (, {, or []})
-                if re.search(r'[\(|\{|\[]\s*$', prevtext) is not None:
+                elif re.search(r'[\(|\{|\[]\s*$', prevtext) is not None:
                     if self.indent_chars == '\t':
                         correct_indent += self.tab_stop_width_spaces * 2
                     else:

@@ -154,11 +154,9 @@ def test_first_line():
         ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
          "test_balanced_brackets"),
         ("a = (a  #  some comment\n", "a = (a  #  some comment\n     ", "test_inline_comment"),
+        ("len(a) == 1\n", "len(a) == 1\n", "test_balanced_brackets_not_ending_in_bracket"),
 
-        # Failing test
-        pytest.mark.xfail(
-            ("len(a) == 1\n", "len(a) == 1\n",
-             "test_balanced_brackets_not_ending_in_bracket")),
+        # Failing test,
         pytest.mark.xfail(
             ("x = f(\n", "x = f\n      ",
              "test_short_open_bracket_not_hanging_indent")),
