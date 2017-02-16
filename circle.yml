@@ -15,6 +15,10 @@ machine:
     PIP_DEPENDENCIES: "coveralls pytest-qt"
 
 dependencies:
+  pre:
+    # We need to run a window manager to avoid focus problems when running our tests.
+    # See https://github.com/TestFX/TestFX/issues/158#issuecomment-62421691
+    - sudo apt-get install matchbox-window-manager
   override:
     # First convert PY_VERSIONS to an array and then select the python version based on the CIRCLE_NODE_INDEX
     - export PY_VERSIONS=($PY_VERSIONS) &&
@@ -26,6 +30,9 @@ dependencies:
       source activate test &&
       conda install -q ciocheck -c spyder-ide --no-update-deps &&
       python setup.py install > /dev/null;
+    - DISPLAY=:99 /usr/bin/matchbox-window-manager:
+        background: true
+    - sleep 5
 
 test:
   override:
