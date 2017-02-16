@@ -2368,9 +2368,11 @@ class CodeEditor(TextEditBaseWidget):
         self.setTextCursor(cursor)
 
     #------Autoinsertion of quotes/colons
-    def __get_current_color(self):
+    def __get_current_color(self, cursor=None):
         """Get the syntax highlighting color for the current cursor position"""
-        cursor = self.textCursor()
+        if cursor is None:
+            cursor = self.textCursor()
+
         block = cursor.block()
         pos = cursor.position() - block.position()  # relative pos within block
         layout = block.layout()
@@ -2392,10 +2394,14 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return None
 
-    def in_comment_or_string(self):
+    def in_comment_or_string(self, cursor=None):
         """Is the cursor inside or next to a comment or string?"""
         if self.highlighter:
-            current_color = self.__get_current_color()
+            if cursor is None:
+                current_color = self.__get_current_color()
+            else:
+                current_color = self.__get_current_color(cursor=cursor)
+
             comment_color = self.highlighter.get_color_name('comment')
             string_color = self.highlighter.get_color_name('string')
             if (current_color == comment_color) or (current_color == string_color):
@@ -2698,7 +2704,15 @@ class CodeEditor(TextEditBaseWidget):
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
-                    cmt_or_str = self.in_comment_or_string()
+                    cmt_or_str_cursor = self.in_comment_or_string()
+
+                    # Check if the line start with a comment or string
+                    cursor = self.textCursor()
+                    cursor.setPosition(cursor.block().position(), QTextCursor.KeepAnchor)
+                    cmt_or_str_line_begin = self.in_comment_or_string(cursor=cursor)
+
+                    cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
+
                     self.textCursor().beginEditBlock()
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
