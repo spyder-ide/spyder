@@ -104,55 +104,48 @@ def get_matlab_value(val):
     http://pythonhosted.org/oct2py/conversions.html
     """
     import numpy as np
+
+    # Extract each item of a list.
+    if isinstance(val, list):
+        return [get_matlab_value(v) for v in val]
+
+    # Ignore leaf objects.
     if not isinstance(val, np.ndarray):
         return val
-    # check for objects
-    if "'|O" in str(val.dtype) or "O'" in str(val.dtype):
-        data = MatlabStruct()
-        for key in val.dtype.fields.keys():
-            data[key] = get_matlab_value(val[key][0])
-        return data
-    # handle cell arrays
-    if val.dtype == np.object:
-        if val.size == 1:
-            val = val[0]
-            if "'|O" in str(val.dtype) or "O'" in str(val.dtype):
-                val = get_matlab_value(val)
-            if isinstance(val, MatlabStruct):
-                return val
-            if val.size == 1:
-                val = val.flatten()
-    if val.dtype == np.object:
-        if len(val.shape) > 2:
-            val = val.T
-            val = np.array([get_matlab_value(val[i].T)
-                            for i in range(val.shape[0])])
-        if len(val.shape) > 1:
-            if len(val.shape) == 2:
-                val = val.T
-            try:
-                return val.astype(val[0][0].dtype)
-            except ValueError:
-                # dig into the cell type
-                for row in range(val.shape[0]):
-                    for i in range(val[row].size):
-                        if not np.isscalar(val[row][i]):
-                            if val[row][i].size > 1:
-                                val[row][i] = val[row][i].squeeze()
-                            else:
-                                val[row][i] = val[row][i][0]
-        else:
-            val = np.array([get_matlab_value(val[i])
-                            for i in range(val.size)])
-        if len(val.shape) == 1 or val.shape[0] == 1 or val.shape[1] == 1:
-            val = val.flatten()
-        val = val.tolist()
+
+    # Convert user defined classes.
+    if hasattr(val, 'classname'):
+        out = dict()
+        for name in val.dtype.names:
+            out[name] = get_matlab_value(val[name].squeeze().tolist())
+        cls = type(val.classname, (object,), out)
+        return cls()
+
+    # Extract struct data.
+    elif val.dtype.names:
+        out = MatlabStruct()
+        for name in val.dtype.names:
+            out[name] = get_matlab_value(val[name].squeeze().tolist())
+        val = out
+
+    # Extract cells.
+    elif val.dtype.kind == 'O':
+        val = val.squeeze().tolist()
+        if not isinstance(val, list):
+            val = [val]
+        val = get_matlab_value(val)
+
+    # Compress singleton values.
     elif val.size == 1:
-        if hasattr(val, 'flatten'):
-            val = val.flatten()[0]
-    if isinstance(val, MatlabStruct) and isinstance(val.size, MatlabStruct):
-        del val['size']
-        del val['dtype']
+        val = val.item()
+
+    # Compress empty values.
+    elif val.size == 0:
+        if val.dtype.kind in 'US':
+            val = ''
+        else:
+            val = []
+
     return val
 
 
@@ -174,10 +167,11 @@ try:
     else:
         def load_matlab(filename):
             try:
-                out = spio.loadmat(filename)
-                for key, value in list(out.items()):
-                    out[key] = get_matlab_value(value)
-                return out, None
+                out = spio.loadmat(filename, struct_as_record=True)
+                data = dict()
+                for (key, value) in out.items():
+                    data[key] = get_matlab_value(value)
+                return data, None
             except Exception as error:
                 return None, str(error)
 
@@ -468,7 +462,7 @@ def save_auto(data, filename):
 
 
 if __name__ == "__main__":
-    from spyder.py3compat import u
+    from spyder.py3compat import u, io
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
@@ -490,6 +484,7 @@ if __name__ == "__main__":
     t0 = time.time()
     example2, ok = load_dictionary("test.spydata")
     print("Data loaded in %.3f seconds" % (time.time()-t0))
+    os.remove("test.spydata")
 #    for key in example:
 #        print key, ":", example[key] == example2[key]
 
@@ -499,3 +494,13 @@ if __name__ == "__main__":
     a.c["d"] = 'eggs'
     assert a.c.d == 'eggs'
     assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
+    a['d'] = [1, 2, 3]
+
+    if save_matlab:
+        buf = io.BytesIO()
+        save_matlab(a, buf)
+        buf.seek(0)
+        data, err = load_matlab(buf)
+        assert data['b'] == 'spam'
+        assert data['c'].d == 'eggs'
+        assert data['d'].tolist() == [[1, 2, 3]]
