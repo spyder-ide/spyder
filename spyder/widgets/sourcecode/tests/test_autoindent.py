@@ -155,11 +155,7 @@ def test_first_line():
          "test_balanced_brackets"),
         ("a = (a  #  some comment\n", "a = (a  #  some comment\n     ", "test_inline_comment"),
         ("len(a) == 1\n", "len(a) == 1\n", "test_balanced_brackets_not_ending_in_bracket"),
-
-        # Failing test,
-        pytest.mark.xfail(
-            ("x = f(\n", "x = f\n      ",
-             "test_short_open_bracket_not_hanging_indent")),
+        ("x = f(\n", "x = f(\n      ", "test_short_open_bracket_not_hanging_indent"),
     ])
 def test_indentation_with_spaces(text_input, expected, test_text):
     text = get_indent_fix(text_input)
@@ -185,7 +181,7 @@ def test_def_with_unindented_comment():
          "test with indented comment"),
         ("def function():\n\tprint []\n", "def function():\n\tprint []\n\t",
          "test brackets alone"),
-        ("\na = {\n", "\na = {\n\t\t", "indentation after opening bracket"),
+        ("\nsome_long_name = {\n", "\nsome_long_name = {\n\t\t", "indentation after opening bracket"),
         ("def function():\n", "def function():\n\t", "test simple def"),
         ("open_parenthesis(\n", "open_parenthesis(\n\t\t",
          "open parenthesis"),

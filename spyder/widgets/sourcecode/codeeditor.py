@@ -2009,7 +2009,12 @@ class CodeEditor(TextEditBaseWidget):
 
                 # Hanging indent
                 # find out if the last one is (, {, or []})
-                elif re.search(r'[\(|\{|\[]\s*$', prevtext) is not None:
+                # only if prevtext is long that the hanging indentation
+                elif (re.search(r'[\(|\{|\[]\s*$', prevtext) is not None and
+                      ((self.indent_chars == '\t' and
+                        self.tab_stop_width_spaces * 2 < len(prevtext)) or
+                       (self.indent_chars.startswith(' ') and
+                        len(self.indent_chars) * 2 < len(prevtext)))):
                     if self.indent_chars == '\t':
                         correct_indent += self.tab_stop_width_spaces * 2
                     else:
