@@ -120,14 +120,17 @@ MAIN_APP = qapplication()
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyder.config.base import _, get_image_path, DEV, PYTEST
-SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
-SPLASH_FONT = SPLASH.font()
-SPLASH_FONT.setPixelSize(10)
-SPLASH.setFont(SPLASH_FONT)
-SPLASH.show()
-SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
-                   Qt.AlignAbsolute, QColor(Qt.white))
-QApplication.processEvents()
+if not PYTEST:
+    SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
+    SPLASH_FONT = SPLASH.font()
+    SPLASH_FONT.setPixelSize(10)
+    SPLASH.setFont(SPLASH_FONT)
+    SPLASH.show()
+    SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
+                    Qt.AlignAbsolute, QColor(Qt.white))
+    QApplication.processEvents()
+else:
+    SPLASH = None
 
 
 #==============================================================================
@@ -1118,7 +1121,8 @@ class MainWindow(QMainWindow):
                 menu_object.aboutToHide.connect(
                     lambda name=name: self.hide_shortcuts(name))
 
-        self.splash.hide()
+        if self.splash is not None:
+            self.splash.hide()
 
         # Enabling tear off for all menus except help menu
         if CONF.get('main', 'tear_off_menus'):
@@ -2070,6 +2074,8 @@ class MainWindow(QMainWindow):
 
     def set_splash(self, message):
         """Set splash message"""
+        if self.splash is None:
+            return
         if message:
             self.debug_print(message)
         self.splash.show()
@@ -2967,7 +2973,8 @@ def main():
     # Show crash dialog
     if CONF.get('main', 'crash', False) and not DEV:
         CONF.set('main', 'crash', False)
-        SPLASH.hide()
+        if SPLASH is not None:
+            SPLASH.hide()
         QMessageBox.information(None, "Spyder",
             "Spyder crashed during last session.<br><br>"
             "If Spyder does not start at all and <u>before submitting a "
@@ -3004,7 +3011,8 @@ def main():
         traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
         # An exception occured
-        SPLASH.hide()
+        if SPLASH is not None:
+            SPLASH.hide()
         return
 
     ORIGINAL_SYS_EXIT()

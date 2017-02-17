@@ -48,6 +48,7 @@ def ipyconsole():
 #==============================================================================
 # Tests
 #==============================================================================
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
     Test that a new client is created using its id
@@ -62,6 +63,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     QTimer.singleShot(2000, lambda: open_client_from_connection_info(
                                         id_, qtbot))
     ipyconsole.create_client_for_kernel()
+    qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
     assert new_client.name == '1/B'
@@ -86,6 +88,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
                                         connection_file,
                                         qtbot))
     ipyconsole.create_client_for_kernel()
+    qtbot.wait(1000)
 
     assert len(ipyconsole.get_clients()) == 2
 
@@ -105,11 +108,12 @@ def test_load_kernel_file(ipyconsole, qtbot):
                                         client.connection_file,
                                         qtbot))
     ipyconsole.create_client_for_kernel()
+    qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
     new_shell = new_client.shellwidget
-    qtbot.wait(2000)
     new_shell.execute('a = 10')
+    qtbot.wait(500)
 
     assert new_client.name == '1/B'
     assert shell.get_value('a') == new_shell.get_value('a')
