@@ -12,6 +12,7 @@ from qtpy.QtWidgets import QWidget
 from qtpy.QtCore import Qt, QRect
 from qtpy.QtGui import QPainter, QColor
 
+from spyder.py3compat import is_text_string
 
 class EdgeLine(QWidget):
     """Source code editor's edge line (default: 79 columns, PEP8)"""
@@ -53,7 +54,7 @@ class EdgeLine(QWidget):
         """Set edge line columns values."""
         if isinstance(columns, tuple):
             self.columns = columns
-        elif isinstance(columns, str):
+        elif is_text_string(columns):
             self.columns = tuple(int(e) for e in columns.split(','))
 
         self.update()

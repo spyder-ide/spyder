@@ -14,7 +14,7 @@ Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/manag
 from spyder.api.manager import Manager
 from spyder.api.panel import Panel
 from spyder.config.base import debug_print
-
+from spyder.py3compat import is_text_string
 
 class PanelsManager(Manager):
     """
@@ -94,7 +94,7 @@ class PanelsManager(Manager):
         :param name_or_klass: Name or class of the panel to retrieve.
         :return: The specified panel instance.
         """
-        if not isinstance(name_or_klass, str):
+        if not is_text_string(name_or_klass, str):
             name_or_klass = name_or_klass.__name__
         for zone in range(4):
             try:
