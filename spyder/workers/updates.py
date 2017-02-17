@@ -76,7 +76,7 @@ class WorkerUpdates(QObject):
                 data = page.read()
 
                 # Needed step for python3 compatibility
-                if not is_text_string(data, str):
+                if not is_text_string(data):
                     data = data.decode()
 
                 data = json.loads(data)

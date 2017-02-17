@@ -94,7 +94,7 @@ class PanelsManager(Manager):
         :param name_or_klass: Name or class of the panel to retrieve.
         :return: The specified panel instance.
         """
-        if not is_text_string(name_or_klass, str):
+        if not is_text_string(name_or_klass):
             name_or_klass = name_or_klass.__name__
         for zone in range(4):
             try:
