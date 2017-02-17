@@ -613,6 +613,11 @@ class IPythonConsole(SpyderPluginWidget):
         if not self.testing:
             self.initialize_plugin()
 
+        # Create temp dir on testing to save kernel errors
+        if self.testing:
+            if not osp.isdir(programs.TEMPDIR):
+                os.mkdir(programs.TEMPDIR)
+
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
         if hasattr(self.tabwidget, 'setDocumentMode')\
@@ -1327,11 +1332,8 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = self.create_kernel_spec()
 
         # Save stderr in a file to read it later in case of errors
-        if not self.testing:
-            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
-            kernel_manager.start_kernel(stderr=stderr)
-        else:
-            kernel_manager.start_kernel()
+        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
         kernel_client = kernel_manager.client()
