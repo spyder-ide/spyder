@@ -74,6 +74,7 @@ def main_window():
 #==============================================================================
 # Tests
 #==============================================================================
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -152,6 +153,7 @@ def test_run_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
     assert nsb.editor.model.rowCount() == 1
 
+    main_window.editor.close_file()
     main_window.close()
 
 
@@ -165,7 +167,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Set a timer to manipulate the open dialog while it's running
     QTimer.singleShot(2000, lambda: open_file_in_editor(main_window,
@@ -187,10 +188,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working correctly."""
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
     # Set focus to the Editor
     main_window.editor.get_focus_widget().setFocus()
 
