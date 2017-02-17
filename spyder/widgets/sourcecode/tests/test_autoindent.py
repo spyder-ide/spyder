@@ -156,6 +156,11 @@ def test_first_line():
         ("a = (a  #  some comment\n", "a = (a  #  some comment\n     ", "test_inline_comment"),
         ("len(a) == 1\n", "len(a) == 1\n", "test_balanced_brackets_not_ending_in_bracket"),
         ("x = f(\n", "x = f(\n      ", "test_short_open_bracket_not_hanging_indent"),
+
+        pytest.mark.xfail(
+            ("foo = 1  # Comment open parenthesis (\n",
+             "foo = 1  # Comment open parenthesis (\n",
+             "test_comment_with parenthesis")),
     ])
 def test_indentation_with_spaces(text_input, expected, test_text):
     text = get_indent_fix(text_input)
