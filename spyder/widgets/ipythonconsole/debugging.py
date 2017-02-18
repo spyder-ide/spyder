@@ -12,12 +12,10 @@ mode and Spyder
 import ast
 
 from qtpy.QtCore import QEventLoop
-from qtpy.QtWidgets import QMessageBox
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.py3compat import to_text_string
-from spyder.config.base import _
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -28,6 +26,7 @@ class DebuggingWidget(RichJupyterWidget):
     """
 
     _input_reply = None
+    _input_none = False
 
     # --- Public API --------------------------------------------------
     def silent_exec_input(self, code):
@@ -68,14 +67,15 @@ class DebuggingWidget(RichJupyterWidget):
                 self.sig_var_properties.emit(properties)
         else:
             self.kernel_client.iopub_channel.flush()
-            self.kernel_client.input('exit')
-            self.restart_kernel(_("The line runned changes stdout/stdin "
-                                "making imposible to continue debugging. "),
-                                now=True)
+            self.write_to_stdin('exit')
+            self._input_reply = {}
+            self._input_none = True
+            self.kernel_client.shutdown()
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
         wait_loop = QEventLoop()
+        self.kernel_client.iopub_channel.flush()
         self.sig_prompt_ready.connect(wait_loop.quit)
         self.kernel_client.input(line)
         wait_loop.exec_()

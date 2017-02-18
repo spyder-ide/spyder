@@ -316,7 +316,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.request_interrupt_kernel()
 
     @Slot()
-    def restart_kernel(self):
+    def restart_kernel(self, force=False):
         """
         Restart the associanted kernel
 
@@ -327,7 +327,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         buttons = QMessageBox.Yes | QMessageBox.No
         result = QMessageBox.question(self, _('Restart kernel?'),
                                       message, buttons)
-        if result == QMessageBox.Yes:
+        if result == QMessageBox.Yes or force:
             sw = self.shellwidget
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
@@ -351,7 +351,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     before_prompt=True
                 )
 
-    @Slot(str)
+    @Slot(str, bool)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
         stderr = codecs.open(self.stderr_file, 'r', encoding='utf-8').read()
