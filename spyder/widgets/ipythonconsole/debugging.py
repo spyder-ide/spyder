@@ -25,7 +25,7 @@ class DebuggingWidget(RichJupyterWidget):
     Spyder
     """
 
-    _input_reply = None
+    _input_reply = {}
     _input_none = False
 
     # --- Public API --------------------------------------------------
@@ -67,10 +67,9 @@ class DebuggingWidget(RichJupyterWidget):
                 self.sig_var_properties.emit(properties)
         else:
             self.kernel_client.iopub_channel.flush()
-            self.write_to_stdin('exit')
             self._input_reply = {}
             self._input_none = True
-            self.kernel_client.shutdown()
+            self.sig_debug_restart.emit()
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""

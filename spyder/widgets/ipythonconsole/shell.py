@@ -40,12 +40,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_input_reply = Signal()
     sig_pdb_step = Signal(str, int)
     sig_prompt_ready = Signal()
+    sig_debug_restart = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
     sig_got_reply = Signal()
-    sig_kernel_restarted = Signal(str, bool)
+    sig_kernel_restarted = Signal(str)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
@@ -282,15 +283,8 @@ the sympy module (e.g. plot)
             return self.short_banner()
 
     def _kernel_restarted_message(self, died=True):
-        if self._input_none:
-            msg = _("Kernel restarting because an error raised "
-                    "while debugging (stdout change)")
-        elif died:
-            msg = _("Kernel died, restarting")
-        else:
-            msg = _("Kernel restarting")
-        self.sig_kernel_restarted.emit(msg, self._input_none)
-        self._input_none = False
+        msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+        self.sig_kernel_restarted.emit(msg)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
