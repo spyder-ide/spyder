@@ -348,7 +348,6 @@ def load_dictionary(filename):
         tar.extractall()
         data_file = osp.basename(filename)
         pickle_filename = osp.splitext(data_file)[0]+'.pickle'
-        print(pickle_filename)
         try:
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(pickle_filename, 'U') as fdesc:
@@ -375,7 +374,10 @@ def load_dictionary(filename):
     except (EOFError, ValueError) as error:
         error_message = to_text_string(error)
     os.chdir(old_cwd)
-    shutil.rmtree(tmp_folder)
+    try:
+        shutil.rmtree(tmp_folder)
+    except OSError as error:
+        error_message = to_text_string(error)
     return data, error_message
 
 
