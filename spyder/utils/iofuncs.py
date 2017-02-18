@@ -372,8 +372,6 @@ def load_dictionary(filename):
                         data[name].insert(index, arr)
             except KeyError:
                 pass
-        # for fname in [pickle_filename]+[fn for fn in list(saved_arrays.values())]:
-        #     os.remove(fname)
     except (EOFError, ValueError) as error:
         error_message = to_text_string(error)
     os.chdir(old_cwd)
