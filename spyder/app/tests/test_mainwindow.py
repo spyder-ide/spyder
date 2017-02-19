@@ -65,10 +65,13 @@ def reset_run_code(qtbot, shell, code_editor, nsb):
 # Fixtures
 #==============================================================================
 @pytest.fixture
-def main_window():
+def main_window(request):
     app = initialize()
     options, args = get_options()
     widget = run_spyder(app, options, args)
+    def close_widget():
+        widget.close()
+    request.addfinalizer(close_widget)
     return widget
 
 
@@ -76,6 +79,7 @@ def main_window():
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -158,10 +162,10 @@ def test_run_code(main_window, qtbot):
     assert nsb.editor.model.rowCount() == 1
 
     main_window.editor.close_file()
-    main_window.close()
 
 
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -188,8 +192,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     # Note: There's always one file open in the Editor
     assert editorstack.get_stack_count() == 2
 
-    main_window.close()
-
 
 @flaky(max_runs=10)
 def test_maximize_minimize_plugins(main_window, qtbot):
@@ -209,10 +211,9 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     qtbot.mouseClick(max_button, Qt.LeftButton)
     assert not main_window.editor.ismaximized
 
-    main_window.close()
-
 
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_issue_4066(main_window, qtbot):
     """
     Test for a segfault when these steps are followed:
@@ -246,8 +247,12 @@ def test_issue_4066(main_window, qtbot):
     ok_widget = obj_editor.bbox.button(obj_editor.bbox.Ok)
     qtbot.mouseClick(ok_widget, Qt.LeftButton)
 
+    # Wait for the segfault
+    qtbot.wait(4000)
+
 
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_varexp_edit_inline(main_window, qtbot):
     """
     Test for errors when editing inline values in the Variable Explorer
@@ -273,6 +278,9 @@ def test_varexp_edit_inline(main_window, qtbot):
 
     # Change focus to IPython console
     main_window.ipyconsole.get_focus_widget().setFocus()
+
+    # Wait for the error
+    qtbot.wait(4000)
 
 
 if __name__ == "__main__":
