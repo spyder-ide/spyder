@@ -248,7 +248,7 @@ def test_issue_4066(main_window, qtbot):
     qtbot.mouseClick(ok_widget, Qt.LeftButton)
 
     # Wait for the segfault
-    qtbot.wait(4000)
+    qtbot.wait(3000)
 
 
 @flaky(max_runs=10)
@@ -280,7 +280,7 @@ def test_varexp_edit_inline(main_window, qtbot):
     main_window.ipyconsole.get_focus_widget().setFocus()
 
     # Wait for the error
-    qtbot.wait(4000)
+    qtbot.wait(3000)
 
 
 if __name__ == "__main__":
