@@ -94,6 +94,9 @@ def test_run_code(main_window, qtbot):
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.get_focus_widget()
 
+    # Reset in a case of a re-run
+    reset_run_code(qtbot, shell, code_editor, nsb)
+
     # ---- Run file ----
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
@@ -166,8 +169,10 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
     Test for issue 4085
     """
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
+    # Account for a re-run
+    editorstack = main_window.editor.get_current_editorstack()
+    if editorstack.get_stack_count() > 1:
+        main_window.editor.close_file()
 
     # Set a timer to manipulate the open dialog while it's running
     QTimer.singleShot(2000, lambda: open_file_in_editor(main_window,
@@ -181,7 +186,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
     # Perform the test
     # Note: There's always one file open in the Editor
-    editorstack = main_window.editor.get_current_editorstack()
     assert editorstack.get_stack_count() == 2
 
     main_window.close()
@@ -221,6 +225,8 @@ def test_issue_4066(main_window, qtbot):
     # Create the object
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    shell.execute('%reset -f')
+    qtbot.wait(500)
     shell.execute('myobj = [1, 2, 3]')
 
     # Open editor associated with that object and get a reference to it
@@ -254,6 +260,8 @@ def test_varexp_edit_inline(main_window, qtbot):
     # Create object
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    shell.execute('%reset -f')
+    qtbot.wait(500)
     shell.execute('a = 10')
 
     # Edit object

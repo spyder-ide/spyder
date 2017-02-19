@@ -106,6 +106,8 @@ def test_load_kernel_file(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    shell.execute('%reset -f')
+    qtbot.wait(500)
 
     QTimer.singleShot(2000, lambda: open_client_from_connection_info(
                                         client.connection_file,
@@ -129,6 +131,8 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    shell.execute('%reset -f')
+    qtbot.wait(500)
 
     shell.execute('import sys; A = sys.argv')
     argv = shell.get_value("A")
