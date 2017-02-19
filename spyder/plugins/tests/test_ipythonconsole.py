@@ -9,6 +9,7 @@ import os.path as osp
 import shutil
 import tempfile
 
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
@@ -20,7 +21,7 @@ from spyder.plugins.ipythonconsole import (IPythonConsole,
 #==============================================================================
 # Constants
 #==============================================================================
-SHELL_TIMEOUT = 30000
+SHELL_TIMEOUT = 20000
 
 
 #==============================================================================
@@ -38,9 +39,12 @@ def open_client_from_connection_info(connection_info, qtbot):
 # Qt Test Fixtures
 #==============================================================================
 @pytest.fixture
-def ipyconsole():
+def ipyconsole(request):
     widget = IPythonConsole(None, testing=True)
     widget.create_new_client()
+    def close_widget():
+        widget.close()
+    request.addfinalizer(close_widget)
     widget.show()
     return widget
 
@@ -48,6 +52,7 @@ def ipyconsole():
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
@@ -68,9 +73,8 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     new_client = ipyconsole.get_clients()[1]
     assert new_client.name == '1/B'
 
-    ipyconsole.close()
 
-
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
@@ -93,9 +97,8 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
     assert len(ipyconsole.get_clients()) == 2
 
-    ipyconsole.close()
 
-
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
@@ -120,9 +123,8 @@ def test_load_kernel_file(ipyconsole, qtbot):
     assert new_client.name == '1/B'
     assert shell.get_value('a') == new_shell.get_value('a')
 
-    ipyconsole.close()
 
-
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
@@ -133,4 +135,6 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     argv = shell.get_value("A")
     assert argv == ['']
 
-    ipyconsole.close()
+
+if __name__ == "__main__":
+    pytest.main()

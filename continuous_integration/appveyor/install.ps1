@@ -90,7 +90,7 @@ function InstallPipPackages ($python_home, $spec) {
 function main () {
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     InstallCondaPackages $env:PYTHON "conda=4.2.* conda-build=2.0.0 pytest pytest-cov mock"
-    InstallPipPackages $env:PYTHON "pytest-qt"
+    InstallPipPackages $env:PYTHON "pytest-qt flaky"
 }
 
 
