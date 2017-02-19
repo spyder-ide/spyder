@@ -9,6 +9,7 @@ import os.path as osp
 import shutil
 import tempfile
 
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
@@ -48,7 +49,7 @@ def ipyconsole():
 #==============================================================================
 # Tests
 #==============================================================================
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@flaky(max_runs=10)
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
     Test that a new client is created using its id
@@ -71,7 +72,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     ipyconsole.close()
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@flaky(max_runs=10)
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
     Test that a new client is created using a connection file
@@ -96,7 +97,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
     ipyconsole.close()
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@flaky(max_runs=10)
 def test_load_kernel_file(ipyconsole, qtbot):
     """
     Test that a new client is created using the connection file
@@ -123,7 +124,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     ipyconsole.close()
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@flaky(max_runs=10)
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
     shell = ipyconsole.get_current_shellwidget()
@@ -134,3 +135,7 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     assert argv == ['']
 
     ipyconsole.close()
+
+
+if __name__ == "__main__":
+    pytest.main()
