@@ -2731,13 +2731,18 @@ class CodeEditor(TextEditBaseWidget):
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
+                    # Check if we're in a comment or a string at the
+                    # current position
                     cmt_or_str_cursor = self.in_comment_or_string()
 
                     # Check if the line start with a comment or string
                     cursor = self.textCursor()
-                    cursor.setPosition(cursor.block().position(), QTextCursor.KeepAnchor)
-                    cmt_or_str_line_begin = self.in_comment_or_string(cursor=cursor)
+                    cursor.setPosition(cursor.block().position(),
+                                       QTextCursor.KeepAnchor)
+                    cmt_or_str_line_begin = self.in_comment_or_string(
+                                                cursor=cursor)
 
+                    # Check if we are in a comment or a string
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
 
                     self.textCursor().beginEditBlock()
