@@ -16,6 +16,19 @@ import spyder.utils.iofuncs as io
 LOCATION = os.path.realpath(os.path.join(os.getcwd(),
                                          os.path.dirname(__file__)))
 
+@pytest.fixture
+def spydata_values():
+    """
+    Define spydata file ground truth values.
+
+    The file test_export.spydata contains four variables to be loaded, this
+    function declares those variables in a static way.
+    """
+    A = 1
+    B = 'ham'
+    C = np.eye(3)
+    D = {'a':1}
+    return {'A':A, 'B':B, 'C':C, 'D':D}
 
 @pytest.fixture
 def real_values():
@@ -56,4 +69,18 @@ def test_matlab_import(real_values):
     valid = True
     for var in sorted(real_values.keys()):
         valid = valid and bool(np.mean(real_values[var] == inf[var]))
+    assert valid
+
+def test_spydata_import(spydata_values):
+    """
+    Test spydata handling and variable importing.
+
+    This test loads all the variables contained inside a spydata tar
+    container and compares them against their static values.
+    """
+    path = os.path.join(LOCATION, 'test_export.spydata')
+    data, error = io.load_dictionary(path)
+    valid = True
+    for var in sorted(spydata_values.keys()):
+        valid = valid and bool(np.mean(spydata_values[var] == data[var]))
     assert valid
