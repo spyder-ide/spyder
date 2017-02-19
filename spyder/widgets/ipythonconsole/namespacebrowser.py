@@ -113,7 +113,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
         self.silent_exec_method(
-                "get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
+                r"get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
         wait_loop.exec_()
 
         # Remove loop connection and loop
@@ -126,7 +126,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         # Wait until the kernel tries to save the file
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
-        self.silent_exec_method("get_ipython().kernel.save_namespace('%s')" %
+        self.silent_exec_method(r"get_ipython().kernel.save_namespace('%s')" %
                                 filename)
         wait_loop.exec_()
 
