@@ -39,9 +39,12 @@ def open_client_from_connection_info(connection_info, qtbot):
 # Qt Test Fixtures
 #==============================================================================
 @pytest.fixture
-def ipyconsole():
+def ipyconsole(request):
     widget = IPythonConsole(None, testing=True)
     widget.create_new_client()
+    def close_widget():
+        widget.close()
+    request.addfinalizer(close_widget)
     widget.show()
     return widget
 
@@ -49,7 +52,8 @@ def ipyconsole():
 #==============================================================================
 # Tests
 #==============================================================================
-@flaky(max_runs=10)
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
     Test that a new client is created using its id
@@ -69,10 +73,9 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     new_client = ipyconsole.get_clients()[1]
     assert new_client.name == '1/B'
 
-    ipyconsole.close()
-
 
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
     Test that a new client is created using a connection file
@@ -94,10 +97,9 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
     assert len(ipyconsole.get_clients()) == 2
 
-    ipyconsole.close()
-
 
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
     Test that a new client is created using the connection file
@@ -123,10 +125,9 @@ def test_load_kernel_file(ipyconsole, qtbot):
     assert new_client.name == '1/B'
     assert shell.get_value('a') == new_shell.get_value('a')
 
-    ipyconsole.close()
-
 
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
     shell = ipyconsole.get_current_shellwidget()
@@ -137,8 +138,6 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     shell.execute('import sys; A = sys.argv')
     argv = shell.get_value("A")
     assert argv == ['']
-
-    ipyconsole.close()
 
 
 if __name__ == "__main__":
