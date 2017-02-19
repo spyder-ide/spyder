@@ -71,6 +71,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     ipyconsole.close()
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
     Test that a new client is created using a connection file
@@ -95,6 +96,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
     ipyconsole.close()
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
     Test that a new client is created using the connection file
