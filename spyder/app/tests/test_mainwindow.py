@@ -162,7 +162,9 @@ def test_run_code(main_window, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
+                    reason="It times out sometimes on Windows and it's not "
+                           "meant to be run outside of a CI")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
