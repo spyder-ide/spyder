@@ -80,6 +80,43 @@ def main_window(request):
 #==============================================================================
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_set_new_breakpoints(main_window, qtbot):
+    """Test that new breakpoints are set in the IPython console."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+
+    # Click the debug button
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Set a breakpoint
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.add_remove_breakpoint(line_number=6)
+    qtbot.wait(500)
+
+    # Verify that the breakpoint was set
+    shell.kernel_client.input("b")
+    qtbot.wait(500)
+    assert "1   breakpoint   keep yes   at {}:6".format(test_file) in control.toPlainText()
+
+    # Remove breakpoint and close test file
+    main_window.editor.clear_all_breakpoints()
+    main_window.editor.close_file()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
