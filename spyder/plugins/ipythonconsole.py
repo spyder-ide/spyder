@@ -794,6 +794,7 @@ class IPythonConsole(SpyderPluginWidget):
                          lambda fname, lineno, word, processevents:
                              self.editor.load(fname, lineno, word,
                                               processevents=processevents))
+        self.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.editor.run_in_current_ipyclient.connect(
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
@@ -1214,6 +1215,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
         self.activateWindow()
         shellwidget._control.setFocus()
+
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_spyder_breakpoints()
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
