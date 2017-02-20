@@ -1,13 +1,12 @@
-Minor release to list
-=====================
+# Minor release to list
 
-Subject: [ANN] Spyder 3.1.3 is released!
+**Subject**: [ANN] Spyder 3.1.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder 3.1.3 has been released and is available for
+I'm pleased to announce that Spyder **3.1.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
 This release comes almost one month after version 3.1.2 and fixes several
@@ -25,23 +24,22 @@ Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development and computing environment. Join us to help
 creating your favorite environment!
 
-Enjoy!
--Carlos
+Enjoy!<br>
+- Carlos
 
 
 ----
 
 
-Major release to list
-=====================
+# Major release to list
 
-Subject: [ANN] Spyder 3.0 is released!
+**Subject**: [ANN] Spyder 3.0 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder 3.0 has been released and is available for
+I'm pleased to announce that Spyder **3.0** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
 This release represents more than two years of development since version 2.3.0 was
@@ -91,17 +89,19 @@ Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development/computing environment. Join us to help creating
 your favorite environment!
 
-Enjoy!
+Enjoy!<br>
 -Carlos
 
 
 ----
 
 
-Major release to others
-=======================
+# Major release to others
 
-Subject: [ANN] Spyder 3.0 is released!
+**Note**: Leave this free of Markdown because it could go to mailing lists that
+don't support it.
+
+**Subject**: [ANN] Spyder 3.0 is released!
 
 
 Hi all,
@@ -119,19 +119,19 @@ scientific computing and software development.
 
 <The rest is the same as for the list>
 
+
 ----
 
 
-Beta release
-============
+# Beta release
 
-Subject: [ANN] Spyder 3.0 seventh public beta release
+**Subject**: [ANN] Spyder 3.0 seventh public beta release
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the seventh beta of our next major version: Spyder 3.0.
+I'm pleased to announce the seventh beta of our next major version: Spyder **3.0**.
 
 We've been working on this version for more than two years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
@@ -183,5 +183,5 @@ Or you can use pip with this command:
     pip install --pre -U spyder
 
 
-Enjoy!
+Enjoy!<br>
 -Carlos
