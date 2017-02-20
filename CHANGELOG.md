@@ -1,5 +1,77 @@
 # History of changes
 
+## Version 3.1.3 (2017-02-20)
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 4139](https://github.com/spyder-ide/spyder/issues/4139) - Nan value in dataframe editor crash Spyder
+* [Issue 4128](https://github.com/spyder-ide/spyder/issues/4128) - Add the version of PyQt in the report of the issue
+* [Issue 4127](https://github.com/spyder-ide/spyder/issues/4127) - UnboundLocalError: local variable 'img_path' referenced before assignment
+* [Issue 4122](https://github.com/spyder-ide/spyder/issues/4122) - Spyder closes after completing Run settings dialog for a first run.
+* [Issue 4096](https://github.com/spyder-ide/spyder/issues/4096) - More issues with autoindentation
+* [Issue 4088](https://github.com/spyder-ide/spyder/issues/4088) - Crash when saving an image in the IPython console
+* [Issue 4086](https://github.com/spyder-ide/spyder/issues/4086) - Error when launching a new Editor window from the options in the menu.
+* [Issue 4085](https://github.com/spyder-ide/spyder/issues/4085) - Crash in "New window" when opening new file.
+* [Issue 4076](https://github.com/spyder-ide/spyder/issues/4076) - Add tests to verify that importing .mat files is working
+* [Issue 4074](https://github.com/spyder-ide/spyder/issues/4074) - Identation broken after statements with closing parenthesis followed by more code
+* [Issue 4072](https://github.com/spyder-ide/spyder/issues/4072) - Case sensitive replace does not respect case
+* [Issue 4066](https://github.com/spyder-ide/spyder/issues/4066) - Spyder core dumps if an opened variable in variable explorer gets deleted
+* [Issue 4063](https://github.com/spyder-ide/spyder/issues/4063) - Spyder crashes when killing the current process to start a new one
+* [Issue 4053](https://github.com/spyder-ide/spyder/issues/4053) - Spyder 3.1.2 cannot connect to kernel as 3.0.2
+* [Issue 4052](https://github.com/spyder-ide/spyder/issues/4052) - Maximising current pane fails and hangs Spyder 3.1.x
+* [Issue 4050](https://github.com/spyder-ide/spyder/issues/4050) - Wrong binary in Python 3 wheels
+* [Issue 4041](https://github.com/spyder-ide/spyder/issues/4041) - Create a way to add tests for the whole app
+* [Issue 4037](https://github.com/spyder-ide/spyder/issues/4037) - Tabs as indentation - characters being removed in editor
+* [Issue 4030](https://github.com/spyder-ide/spyder/issues/4030) - Inconsistent icon for "Find symbols in file..."
+* [Issue 4005](https://github.com/spyder-ide/spyder/issues/4005) - Find in Files not working after 3.1.0 update
+* [Issue 3992](https://github.com/spyder-ide/spyder/issues/3992) - Remove unnecessary newlines in run cell
+* [Issue 3972](https://github.com/spyder-ide/spyder/issues/3972) - Remove file path from Editor's plugin title
+* [Issue 3970](https://github.com/spyder-ide/spyder/issues/3970) - Error when editing markdown
+* [Issue 3917](https://github.com/spyder-ide/spyder/issues/3917) - Failed to import data in Variable Explorer on Windows
+* [Issue 3476](https://github.com/spyder-ide/spyder/issues/3476) - New breakpoints can't be created in the IPython console
+
+In this release 25 issues were closed
+
+**Pull requests**
+
+* [PR 4175](https://github.com/spyder-ide/spyder/pull/4175) - PR: Set new breakpoints in the IPython console while on a debugging session
+* [PR 4171](https://github.com/spyder-ide/spyder/pull/4171) - PR: Re-run flaky tests several times
+* [PR 4165](https://github.com/spyder-ide/spyder/pull/4165) - PR: Loading spydata files now uncompress them inside a temp folder
+* [PR 4152](https://github.com/spyder-ide/spyder/pull/4152) - PR: Skip matlab import test if SciPy is not installed.
+* [PR 4151](https://github.com/spyder-ide/spyder/pull/4151) - PR: Make tests more reliable
+* [PR 4148](https://github.com/spyder-ide/spyder/pull/4148) - PR: Use an older Miniconda version for Python 3
+* [PR 4144](https://github.com/spyder-ide/spyder/pull/4144) - PR: Some fixes for Find in files
+* [PR 4142](https://github.com/spyder-ide/spyder/pull/4142) - PR: Gracefully handle ValueError in DataFrameModel
+* [PR 4140](https://github.com/spyder-ide/spyder/pull/4140) - PR: Disable some tests on Windows because they are timing out recurrently
+* [PR 4133](https://github.com/spyder-ide/spyder/pull/4133) - PR: Add an initialization value to img_path
+* [PR 4130](https://github.com/spyder-ide/spyder/pull/4130) - PR: Correctly stop pytest's on failure
+* [PR 4129](https://github.com/spyder-ide/spyder/pull/4129) - PR: Add Qt and PyQt version in the report of the issue
+* [PR 4125](https://github.com/spyder-ide/spyder/pull/4125) - PR: Make loading IPython kernels by using their ids to work again
+* [PR 4113](https://github.com/spyder-ide/spyder/pull/4113) - PR: Add a validation for the PyQt version used to show a message in the Python console
+* [PR 4110](https://github.com/spyder-ide/spyder/pull/4110) - PR: Add more tests for the main window
+* [PR 4109](https://github.com/spyder-ide/spyder/pull/4109) - PR: Fix maximize button
+* [PR 4106](https://github.com/spyder-ide/spyder/pull/4106) - PR: Prevent some crashes and errors when editing objects in the Variable Explorer
+* [PR 4105](https://github.com/spyder-ide/spyder/pull/4105) - PR: Fix hard crash when trying to open files in a new editor window
+* [PR 4104](https://github.com/spyder-ide/spyder/pull/4104) - PR: Pin Jedi to 0.9.0
+* [PR 4102](https://github.com/spyder-ide/spyder/pull/4102) - PR: Added Matlab files import tests
+* [PR 4097](https://github.com/spyder-ide/spyder/pull/4097) - PR: Add a validation for editorstack existence
+* [PR 4082](https://github.com/spyder-ide/spyder/pull/4082) - PR: More autoindentation fixes
+* [PR 4079](https://github.com/spyder-ide/spyder/pull/4079) - PR: Add a flag to use case sensitive search/replace
+* [PR 4069](https://github.com/spyder-ide/spyder/pull/4069) - PR: Fix executable name in Python 3 wheels
+* [PR 4043](https://github.com/spyder-ide/spyder/pull/4043) - PR: Use the "at" symbol to represent the symbol finder everywhere
+* [PR 4042](https://github.com/spyder-ide/spyder/pull/4042) - PR: Unindent with tabs was deleting some text.
+* [PR 4034](https://github.com/spyder-ide/spyder/pull/4034) - PR: Fix error when using TextSH (default highligher)
+* [PR 4006](https://github.com/spyder-ide/spyder/pull/4006) - PR: Remove unnecessary new lines when running cells
+* [PR 3975](https://github.com/spyder-ide/spyder/pull/3975) - PR: Remove file path from the Editor's plugin title.
+
+In this release 29 pull requests were merged
+
+
+----
+
+
 ## Version 3.1.2 (2017-01-24)
 
 ### Bugs fixed
@@ -858,7 +930,7 @@ In this release 50 pull requests were merged
 ----
 
 
-## Version 3.0beta1/beta2 (2016-12-11)
+## Version 3.0beta1/beta2 (2015-12-11)
 
 ### Bugfixes
 
