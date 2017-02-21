@@ -136,11 +136,10 @@ class SearchThread(QThread):
         self.results = {}
         self.nb = 0
 
-    def initialize(self, path, python_path, hg_manifest,
-                   include, exclude, texts, text_re):
+    def initialize(self, path, include, exclude, texts, text_re):
         self.rootpath = path
-        self.python_path = python_path
-        self.hg_manifest = hg_manifest
+        self.python_path = False
+        self.hg_manifest = False
         self.include = re.compile(include)
         self.exclude = re.compile(exclude)
         self.texts = texts
@@ -372,6 +371,8 @@ class FindOptions(QWidget):
         
         if search_path is None:
             search_path = getcwd()
+
+        self.path = ''
         
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -448,42 +449,42 @@ class FindOptions(QWidget):
             hlayout2.addWidget(widget)
 
         # Layout 3
-        hlayout3 = QHBoxLayout()
-        self.python_path = QRadioButton(_("PYTHONPATH"), self)
-        self.python_path.setChecked(in_python_path)
-        self.python_path.setToolTip(_(
-                          "Search in all directories listed in sys.path which"
-                          " are outside the Python installation directory"))        
-        self.hg_manifest = QRadioButton(_("Hg repository"), self)
-        self.detect_hg_repository()
-        self.hg_manifest.setToolTip(
-                                _("Search in current directory hg repository"))
-        self.custom_dir = QRadioButton(_("Here:"), self)
-        self.custom_dir.setChecked(not in_python_path)
-        self.dir_combo = PathComboBox(self)
-        self.dir_combo.addItems(search_path)
-        self.dir_combo.setToolTip(_("Search recursively in this directory"))
-        self.dir_combo.open_dir.connect(self.set_directory)
-        self.python_path.toggled.connect(self.dir_combo.setDisabled)
-        self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
-        browse = create_toolbutton(self, icon=ima.icon('DirOpenIcon'),
-                                   tip=_('Browse a search directory'),
-                                   triggered=self.select_directory)
-        for widget in [self.python_path, self.hg_manifest, self.custom_dir,
-                       self.dir_combo, browse]:
-            hlayout3.addWidget(widget)
+        # hlayout3 = QHBoxLayout()
+        # self.python_path = QRadioButton(_("PYTHONPATH"), self)
+        # self.python_path.setChecked(in_python_path)
+        # self.python_path.setToolTip(_(
+        #                   "Search in all directories listed in sys.path which"
+        #                   " are outside the Python installation directory"))        
+        # self.hg_manifest = QRadioButton(_("Hg repository"), self)
+        # self.detect_hg_repository()
+        # self.hg_manifest.setToolTip(
+        #                         _("Search in current directory hg repository"))
+        # self.custom_dir = QRadioButton(_("Here:"), self)
+        # self.custom_dir.setChecked(not in_python_path)
+        # self.dir_combo = PathComboBox(self)
+        # self.dir_combo.addItems(search_path)
+        # self.dir_combo.setToolTip(_("Search recursively in this directory"))
+        # self.dir_combo.open_dir.connect(self.set_directory)
+        # self.python_path.toggled.connect(self.dir_combo.setDisabled)
+        # self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
+        # browse = create_toolbutton(self, icon=ima.icon('DirOpenIcon'),
+        #                            tip=_('Browse a search directory'),
+        #                            triggered=self.select_directory)
+        # for widget in [self.python_path, self.hg_manifest, self.custom_dir,
+        #                self.dir_combo, browse]:
+        #     hlayout3.addWidget(widget)
             
         self.search_text.valid.connect(lambda valid: self.find.emit())
         self.include_pattern.valid.connect(lambda valid: self.find.emit())
         self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
-        self.dir_combo.valid.connect(lambda valid: self.find.emit())
+        # self.dir_combo.valid.connect(lambda valid: self.find.emit())
             
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addLayout(hlayout1)
         vlayout.addLayout(hlayout2)
-        vlayout.addLayout(hlayout3)
-        self.more_widgets = (hlayout2, hlayout3)
+        # vlayout.addLayout(hlayout3)
+        self.more_widgets = (hlayout2,)
         self.toggle_more_options(more_options)
         self.setLayout(vlayout)
                 
@@ -509,13 +510,13 @@ class FindOptions(QWidget):
         self.include_pattern.lineEdit().returnPressed.emit()
         self.exclude_pattern.lineEdit().returnPressed.emit()
         
-    def detect_hg_repository(self, path=None):
-        if path is None:
-            path = getcwd()
-        hg_repository = is_hg_installed() and get_vcs_root(path) is not None
-        self.hg_manifest.setEnabled(hg_repository)
-        if not hg_repository and self.hg_manifest.isChecked():
-            self.custom_dir.setChecked(True)
+    # def detect_hg_repository(self, path=None):
+    #     if path is None:
+    #         path = getcwd()
+    #     hg_repository = is_hg_installed() and get_vcs_root(path) is not None
+    #     self.hg_manifest.setEnabled(hg_repository)
+    #     if not hg_repository and self.hg_manifest.isChecked():
+    #         self.custom_dir.setChecked(True)
         
     def set_search_text(self, text):
         if text:
@@ -546,9 +547,11 @@ class FindOptions(QWidget):
         include_re = self.include_regexp.isChecked()
         exclude = to_text_string(self.exclude_pattern.currentText())
         exclude_re = self.exclude_regexp.isChecked()
-        python_path = self.python_path.isChecked()
-        hg_manifest = self.hg_manifest.isChecked()
-        path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
+        python_path = False
+        hg_manifest = False
+        # python_path = self.python_path.isChecked()
+        # hg_manifest = self.hg_manifest.isChecked()
+        # path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
 
         # Finding text occurrences
         if not include_re:
@@ -578,8 +581,8 @@ class FindOptions(QWidget):
         if all:
             search_text = [to_text_string(self.search_text.itemText(index)) \
                            for index in range(self.search_text.count())]
-            search_path = [to_text_string(self.dir_combo.itemText(index)) \
-                           for index in range(self.dir_combo.count())]
+            # search_path = [to_text_string(self.dir_combo.itemText(index)) \
+                           # for index in range(self.dir_combo.count())]
             include = [to_text_string(self.include_pattern.itemText(index)) \
                        for index in range(self.include_pattern.count())]
             include_idx = self.include_pattern.currentIndex()
@@ -587,13 +590,12 @@ class FindOptions(QWidget):
                        for index in range(self.exclude_pattern.count())]
             exclude_idx = self.exclude_pattern.currentIndex()
             more_options = self.more_options.isChecked()
-            return (search_text, text_re, search_path,
+            return (search_text, text_re, [],
                     include, include_idx, include_re,
                     exclude, exclude_idx, exclude_re,
                     python_path, more_options)
         else:
-            return (path, python_path, hg_manifest,
-                    include, exclude, texts, text_re)
+            return (self.path, include, exclude, texts, text_re)
 
     @Slot()
     def select_directory(self):
@@ -606,9 +608,9 @@ class FindOptions(QWidget):
         self.parent().redirect_stdio.emit(True)
         
     def set_directory(self, directory):
-        path = to_text_string(osp.abspath(to_text_string(directory)))
-        self.dir_combo.setEditText(path)
-        self.detect_hg_repository(path)
+        self.path = to_text_string(osp.abspath(to_text_string(directory)))
+        # self.dir_combo.setEditText(path)
+        # self.detect_hg_repository(path)
         
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
@@ -870,6 +872,7 @@ class FindInFilesWidget(QWidget):
         self.setWindowTitle(_('Find in files'))
 
         self.search_thread = None
+        self.search_path = ''
         self.get_pythonpath_callback = None
 
         self.status_bar = FileProgressBar(self)
