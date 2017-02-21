@@ -11,6 +11,7 @@ Tests for the main window
 import os
 import os.path as osp
 
+from flaky import flaky
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -30,7 +31,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 # Time to wait until the IPython console is ready to receive input
 # (in miliseconds)
-SHELL_TIMEOUT = 30000
+SHELL_TIMEOUT = 20000
 
 # Time to wait for the IPython console to evaluate something (in
 # miliseconds)
@@ -64,16 +65,58 @@ def reset_run_code(qtbot, shell, code_editor, nsb):
 # Fixtures
 #==============================================================================
 @pytest.fixture
-def main_window():
+def main_window(request):
     app = initialize()
     options, args = get_options()
     widget = run_spyder(app, options, args)
+    def close_widget():
+        widget.close()
+    request.addfinalizer(close_widget)
     return widget
 
 
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_set_new_breakpoints(main_window, qtbot):
+    """Test that new breakpoints are set in the IPython console."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+
+    # Click the debug button
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Set a breakpoint
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.add_remove_breakpoint(line_number=6)
+    qtbot.wait(500)
+
+    # Verify that the breakpoint was set
+    shell.kernel_client.input("b")
+    qtbot.wait(500)
+    assert "1   breakpoint   keep yes   at {}:6".format(test_file) in control.toPlainText()
+
+    # Remove breakpoint and close test file
+    main_window.editor.clear_all_breakpoints()
+    main_window.editor.close_file()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -152,10 +195,13 @@ def test_run_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
     assert nsb.editor.model.rowCount() == 1
 
-    main_window.close()
+    main_window.editor.close_file()
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
+                    reason="It times out sometimes on Windows and it's not "
+                           "meant to be run outside of a CI")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
@@ -163,10 +209,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
     Test for issue 4085
     """
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
     # Set a timer to manipulate the open dialog while it's running
     QTimer.singleShot(2000, lambda: open_file_in_editor(main_window,
                                                         'script.py',
@@ -182,15 +224,10 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     editorstack = main_window.editor.get_current_editorstack()
     assert editorstack.get_stack_count() == 2
 
-    main_window.close()
 
-
+@flaky(max_runs=10)
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working correctly."""
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
     # Set focus to the Editor
     main_window.editor.get_focus_widget().setFocus()
 
@@ -206,9 +243,8 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     qtbot.mouseClick(max_button, Qt.LeftButton)
     assert not main_window.editor.ismaximized
 
-    main_window.close()
 
-
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_issue_4066(main_window, qtbot):
     """
@@ -241,7 +277,11 @@ def test_issue_4066(main_window, qtbot):
     ok_widget = obj_editor.bbox.button(obj_editor.bbox.Ok)
     qtbot.mouseClick(ok_widget, Qt.LeftButton)
 
+    # Wait for the segfault
+    qtbot.wait(3000)
 
+
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_varexp_edit_inline(main_window, qtbot):
     """
@@ -266,6 +306,9 @@ def test_varexp_edit_inline(main_window, qtbot):
 
     # Change focus to IPython console
     main_window.ipyconsole.get_focus_widget().setFocus()
+
+    # Wait for the error
+    qtbot.wait(3000)
 
 
 if __name__ == "__main__":

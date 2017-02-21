@@ -20,6 +20,7 @@ import os
 from pandas import DataFrame, date_range, read_csv
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt
+import numpy
 import pytest
 
 # Local imports
@@ -155,6 +156,19 @@ def test_dataframemodel_get_bgcolor_with_object():
     h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
     a = dataframeeditor.BACKGROUND_MISC_ALPHA
     assert colorclose(bgcolor(dfm, 0, 1), (h, s, v, a))
+
+def test_dataframemodel_with_format_percent_d_and_nan():
+    """
+    Test DataFrameModel with format `%d` and dataframe containing NaN
+
+    Regression test for issue 4139.
+    """
+    np_array = numpy.zeros(2)
+    np_array[1] = numpy.nan
+    dataframe = DataFrame(np_array)
+    dfm = DataFrameModel(dataframe, format='%d')
+    assert data(dfm, 0, 1) == '0'
+    assert data(dfm, 1, 1) == 'nan'
 
 def test_change_format_emits_signal(qtbot, monkeypatch):
     mockQInputDialog = Mock()
