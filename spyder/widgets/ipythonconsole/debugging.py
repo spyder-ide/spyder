@@ -72,6 +72,12 @@ class DebuggingWidget(RichJupyterWidget):
         # Run post exec commands
         self._post_exec_input(line)
 
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into a debugging session"""
+        if self._reading:
+            self.kernel_client.input(
+                "!get_ipython().kernel._set_spyder_breakpoints()")
+
     # ---- Private API (defined by us) -------------------------------
     def _post_exec_input(self, line):
         """Commands to be run after writing to stdin"""

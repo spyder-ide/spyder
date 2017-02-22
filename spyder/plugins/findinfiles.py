@@ -153,6 +153,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.main.search_menu_actions += [MENU_SEPARATOR, findinfiles_action]
         self.main.search_toolbar_actions += [MENU_SEPARATOR,
                                              findinfiles_action]
+        self.refreshdir()
     
     def refresh_plugin(self):
         """Refresh widget"""

@@ -515,11 +515,19 @@ class ExternalConsole(SpyderPluginWidget):
                 if old_shell.is_running():
                     runconfig = get_run_configuration(fname)
                     if runconfig is None or runconfig.show_kill_warning:
-                        answer = QMessageBox.question(self, self.get_plugin_title(),
-                            _("%s is already running in a separate process.\n"
-                              "Do you want to kill the process before starting "
-                              "a new one?") % osp.basename(fname),
-                            QMessageBox.Yes | QMessageBox.Cancel)
+                        if PYQT5:
+                            answer = QMessageBox.question(self, self.get_plugin_title(),
+                                _("%s is already running in a separate process.\n"
+                                  "Do you want to kill the process before starting "
+                                  "a new one?") % osp.basename(fname),
+                                QMessageBox.Yes | QMessageBox.Cancel)
+                        else:
+                            mb = QMessageBox(self)
+                            answer = mb.question(mb, self.get_plugin_title(),
+                                _("%s is already running in a separate process.\n"
+                                  "Do you want to kill the process before starting "
+                                  "a new one?") % osp.basename(fname),
+                                QMessageBox.Yes | QMessageBox.Cancel)
                     else:
                         answer = QMessageBox.Yes
 
