@@ -20,9 +20,10 @@ except ImportError:
 import pytest
 
 # Local imports
-# Local imports
+from spyder.widgets.explorer import FileExplorerTest, ProjectExplorerTest
 from spyder.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.browser import WebBrowser
 from spyder.config.user import UserConfig
 from spyder.config.main import CONF_VERSION, DEFAULTS
 
@@ -67,3 +68,25 @@ def setup_editor(qtbot):
     finfo = editorStack.new('foo.py', 'utf-8', text)
     qtbot.addWidget(editorStack)
     return editorStack, finfo.editor
+
+@pytest.fixture
+def setup_browser(qtbot):
+    """Set up WebBrowser."""
+    widget = WebBrowser()
+    qtbot.addWidget(widget)
+    return widget
+
+@pytest.fixture
+def setup_file_explorer(qtbot):
+    """Set up FileExplorerTest."""
+    widget = FileExplorerTest()
+    qtbot.addWidget(widget)
+    return widget
+
+@pytest.fixture
+def setup_project_explorer(qtbot):
+    """Set up FileExplorerTest."""
+    widget = ProjectExplorerTest()
+    qtbot.addWidget(widget)
+    return widget
+    

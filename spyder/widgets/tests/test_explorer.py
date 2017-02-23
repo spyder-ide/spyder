@@ -12,24 +12,20 @@ Tests for explorer.py
 import pytest
 
 # Local imports
-from spyder.widgets.explorer import FileExplorerTest, ProjectExplorerTest
-from spyder.utils.qthelpers import qapplication
+from spyder.utils.fixtures import setup_file_explorer, setup_project_explorer
 
-def test_file_explorer():
+def test_file_explorer(qtbot):
     """Run FileExplorerTest."""
-    app = qapplication()
-    test = FileExplorerTest()
-    test.resize(640, 480)
-    test.show()
-    app.exec_()
+    fe = setup_file_explorer(qtbot)
+    fe.resize(640, 480)
+    fe.show()
+    assert fe
 
-def test_project_explorer():
+def test_project_explorer(qtbot):
     """Run ProjectExplorerTest."""
-    app = qapplication()
-    test = ProjectExplorerTest()
-    test.resize(640, 480)
-    test.show()
-    app.exec_()
+    pe = setup_project_explorer(qtbot)
+    pe.resize(640, 480)
+    pe.show()
 
 if __name__ == "__main__":
     pytest.main()
