@@ -108,7 +108,7 @@ def _search_return_in_numpydocstr(docstr):
     return found
 
 
-#@memoize_default()
+@memoize_default(None, evaluator_is_first_arg=True)
 def find_return_types(module_context, func):
     """
     Determines a set of potential return types for `func` using docstring hints
