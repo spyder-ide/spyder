@@ -174,10 +174,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.disable_stop_button)
 
         # To show kernel restarted/died messages
-        self.shellwidget.sig_dbg_kernel_restart.connect(
+        self.shellwidget.sig_kernel_restarted.connect(
             self.kernel_restarted_message)
         
-        self.shellwidget.sig_debug_restart.connect(
+        self.shellwidget.sig_dbg_kernel_restart.connect(
                 self.restart_kernel)
 
     def enable_stop_button(self):

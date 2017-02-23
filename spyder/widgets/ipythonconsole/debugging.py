@@ -69,7 +69,7 @@ class DebuggingWidget(RichJupyterWidget):
             self.kernel_client.iopub_channel.flush()
             self._input_reply = {}
             self._input_reply_failed = True
-            self.sig_debug_restart.emit()
+            self.sig_dbg_kernel_restart.emit()
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""

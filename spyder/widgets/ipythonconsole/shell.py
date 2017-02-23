@@ -40,13 +40,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_input_reply = Signal()
     sig_pdb_step = Signal(str, int)
     sig_prompt_ready = Signal()
-    sig_debug_restart = Signal()
+    sig_dbg_kernel_restart = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
     sig_got_reply = Signal()
-    sig_dbg_kernel_restart = Signal(str)
+    sig_kernel_restarted = Signal(str)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
