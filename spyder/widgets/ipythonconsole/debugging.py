@@ -26,7 +26,7 @@ class DebuggingWidget(RichJupyterWidget):
     """
 
     _input_reply = {}
-    _input_none = False
+    _input_reply_failed = False
 
     # --- Public API --------------------------------------------------
     def silent_exec_input(self, code):
@@ -68,7 +68,7 @@ class DebuggingWidget(RichJupyterWidget):
         else:
             self.kernel_client.iopub_channel.flush()
             self._input_reply = {}
-            self._input_none = True
+            self._input_reply_failed = True
             self.sig_debug_restart.emit()
 
     def write_to_stdin(self, line):
