@@ -284,7 +284,7 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
-        self.sig_dbg_kernel_restart.emit(msg)
+        self.sig_kernel_restarted.emit(msg)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):

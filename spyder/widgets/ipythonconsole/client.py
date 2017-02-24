@@ -176,7 +176,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted.connect(
             self.kernel_restarted_message)
-        
+
+        # To restart the kernel when errors happened while debugging
+        # See issue 4003
         self.shellwidget.sig_dbg_kernel_restart.connect(
                 self.restart_kernel)
 
