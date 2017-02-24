@@ -200,6 +200,36 @@ if sys.platform == 'darwin':
 
 
 #==============================================================================
+# Add Cython files import and runfile support
+#==============================================================================
+try:
+    # Import pyximport for enable Cython files support for import statement
+    import pyximport
+    HAS_PYXIMPORT = True
+    pyx_setup_args = {}
+except ImportError:
+    HAS_PYXIMPORT = False
+
+if HAS_PYXIMPORT:
+    # Add Numpy include dir to pyximport/distutils
+    try:
+        import numpy
+        pyx_setup_args['include_dirs'] = numpy.get_include()
+    except ImportError:
+        pass
+
+    # Setup pyximport and enable Cython files reload
+    pyximport.install(setup_args=pyx_setup_args, reload_support=True)
+    
+try:
+    # Import cython_inline for runfile function
+    from Cython.Build.Inline import cython_inline
+    HAS_CYTHON = True
+except ImportError:
+    HAS_CYTHON = False
+
+
+#==============================================================================
 # Importing user's sitecustomize
 #==============================================================================
 try:
@@ -701,6 +731,9 @@ class UserModuleReloader(object):
         self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
+        if modname.startswith('_cython_inline'):
+            # Don't return cached inline compiled .PYX files
+            return True
         for path in [sys.prefix]+self.pathlist:
             if modpath.startswith(path):
                 return True
@@ -863,7 +896,13 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         os.chdir(wdir)
     if post_mortem:
         set_post_mortem()
-    execfile(filename, namespace)
+    if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
+        # Cython files
+        with open(filename, 'rt') as f:
+            cython_inline(f.read(), globals=namespace, quiet=True)
+    else:
+        execfile(filename, namespace)
+
     clear_post_mortem()
     sys.argv = ['']
     namespace.pop('__file__')
