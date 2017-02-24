@@ -14,7 +14,15 @@ import sys
 import pytest
 
 # Local imports
-from spyder.utils.fixtures import setup_pathmanager
+from spyder.widgets.pathmanager import PathManager
+
+@pytest.fixture
+def setup_pathmanager(qtbot, parent=None, pathlist=None, ro_pathlist=None,
+                      sync=True):
+    """Set up PathManager."""
+    widget = PathManager(None, pathlist=pathlist, ro_pathlist=ro_pathlist)
+    qtbot.addWidget(widget)
+    return widget
 
 def test_pathmanager(qtbot):
     """Run PathManager test"""

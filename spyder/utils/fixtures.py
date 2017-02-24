@@ -18,14 +18,10 @@ except ImportError:
 
 # Third party imports
 import pytest
-from qtpy.QtWidgets import QMainWindow
 
 # Local imports
-from spyder.widgets.explorer import FileExplorerTest, ProjectExplorerTest
 from spyder.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.pathmanager import PathManager
-from spyder.widgets.browser import WebBrowser
 from spyder.config.user import UserConfig
 from spyder.config.main import CONF_VERSION, DEFAULTS
 
@@ -70,43 +66,3 @@ def setup_editor(qtbot):
     finfo = editorStack.new('foo.py', 'utf-8', text)
     qtbot.addWidget(editorStack)
     return editorStack, finfo.editor
-
-@pytest.fixture
-def setup_browser(qtbot):
-    """Set up WebBrowser."""
-    widget = WebBrowser()
-    qtbot.addWidget(widget)
-    return widget
-
-@pytest.fixture
-def setup_file_explorer(qtbot):
-    """Set up FileExplorerTest."""
-    widget = FileExplorerTest()
-    qtbot.addWidget(widget)
-    return widget
-
-@pytest.fixture
-def setup_project_explorer(qtbot):
-    """Set up FileExplorerTest."""
-    widget = ProjectExplorerTest()
-    qtbot.addWidget(widget)
-    return widget
-
-@pytest.fixture
-def setup_pathmanager(qtbot, parent=None, pathlist=None, ro_pathlist=None,
-                      sync=True):
-    """Set up PathManager."""
-    widget = PathManager(None, pathlist=pathlist, ro_pathlist=ro_pathlist)
-    qtbot.addWidget(widget)
-    return widget
-
-@pytest.fixture
-def setup_status_bar(qtbot):
-    """Set up StatusBarWidget."""
-    win = QMainWindow()
-    win.setWindowTitle("Status widgets test")
-    win.resize(900, 300)
-    statusbar = win.statusBar()
-    qtbot.addWidget(win)
-    return (win, statusbar)
- 

@@ -12,7 +12,21 @@ Tests for explorer.py
 import pytest
 
 # Local imports
-from spyder.utils.fixtures import setup_file_explorer, setup_project_explorer
+from spyder.widgets.explorer import FileExplorerTest, ProjectExplorerTest
+
+@pytest.fixture
+def setup_file_explorer(qtbot):
+    """Set up FileExplorerTest."""
+    widget = FileExplorerTest()
+    qtbot.addWidget(widget)
+    return widget
+
+@pytest.fixture
+def setup_project_explorer(qtbot):
+    """Set up FileExplorerTest."""
+    widget = ProjectExplorerTest()
+    qtbot.addWidget(widget)
+    return widget
 
 def test_file_explorer(qtbot):
     """Run FileExplorerTest."""
