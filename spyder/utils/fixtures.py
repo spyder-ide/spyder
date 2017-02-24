@@ -18,6 +18,7 @@ except ImportError:
 
 # Third party imports
 import pytest
+from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.widgets.explorer import FileExplorerTest, ProjectExplorerTest
@@ -98,4 +99,14 @@ def setup_pathmanager(qtbot, parent=None, pathlist=None, ro_pathlist=None,
     widget = PathManager(None, pathlist=pathlist, ro_pathlist=ro_pathlist)
     qtbot.addWidget(widget)
     return widget
+
+@pytest.fixture
+def setup_status_bar(qtbot):
+    """Set up StatusBarWidget."""
+    win = QMainWindow()
+    win.setWindowTitle("Status widgets test")
+    win.resize(900, 300)
+    statusbar = win.statusBar()
+    qtbot.addWidget(win)
+    return (win, statusbar)
  

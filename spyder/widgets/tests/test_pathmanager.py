@@ -5,7 +5,7 @@
 #
 
 """
-Tests for browser.py
+Tests for pathmanager.py
 """
 # Standard library imports
 import sys
@@ -17,10 +17,10 @@ import pytest
 from spyder.utils.fixtures import setup_pathmanager
 
 def test_pathmanager(qtbot):
-    """Run path manager test"""
+    """Run PathManager test"""
     pathmanager = setup_pathmanager(qtbot, None, pathlist=sys.path[:-10],
                                     ro_pathlist=sys.path[-10:])
-    pathmanager.exec_()
+    pathmanager.show()
     assert pathmanager
 
 

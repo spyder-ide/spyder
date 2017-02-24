@@ -26,7 +26,8 @@ def test_project_explorer(qtbot):
     pe = setup_project_explorer(qtbot)
     pe.resize(640, 480)
     pe.show()
+    assert pe
+
 
 if __name__ == "__main__":
     pytest.main()
-    
