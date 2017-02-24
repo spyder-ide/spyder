@@ -23,6 +23,7 @@ import pytest
 from spyder.widgets.explorer import FileExplorerTest, ProjectExplorerTest
 from spyder.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.pathmanager import PathManager
 from spyder.widgets.browser import WebBrowser
 from spyder.config.user import UserConfig
 from spyder.config.main import CONF_VERSION, DEFAULTS
@@ -89,4 +90,12 @@ def setup_project_explorer(qtbot):
     widget = ProjectExplorerTest()
     qtbot.addWidget(widget)
     return widget
-    
+
+@pytest.fixture
+def setup_pathmanager(qtbot, parent=None, pathlist=None, ro_pathlist=None,
+                      sync=True):
+    """Set up PathManager."""
+    widget = PathManager(None, pathlist=pathlist, ro_pathlist=ro_pathlist)
+    qtbot.addWidget(widget)
+    return widget
+ 
