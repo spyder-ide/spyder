@@ -14,6 +14,7 @@
 # Standard library imports
 from __future__ import with_statement
 from __future__ import unicode_literals
+from __future__ import print_function
 import fnmatch
 import os
 import os.path as osp
@@ -36,78 +37,12 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import abspardir, get_common_path
 from spyder.utils.qthelpers import create_toolbutton, get_filetype_icon
 from spyder.utils.vcs import is_hg_installed, get_vcs_root
+from spyder.utils.encoding import is_text_file
 from spyder.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 
-#Testing imports
-# from timeit import default_timer as timer
+from waitingspinner import QWaitingSpinner
 
-#def find_files_in_hg_manifest(rootpath, include, exclude):
-#    p = Popen("hg manifest", stdout=PIPE)
-#    found = []
-#    hgroot = get_vcs_root(rootpath)
-#    for path in p.stdout.read().splitlines():
-#        dirname = osp.join('.', osp.dirname(path))
-#        if re.search(exclude, dirname+os.sep):
-#            continue
-#        filename = osp.join('.', osp.dirname(path))
-#        if re.search(exclude, filename):
-#            continue
-#        if re.search(include, filename):
-#            found.append(osp.join(hgroot, path))
-#    return found
-#
-#def find_files_in_path(rootpath, include, exclude):
-#    found = []
-#    for path, dirs, files in os.walk(rootpath):
-#        for d in dirs[:]:
-#            dirname = os.path.join(path, d)
-#            if re.search(exclude, dirname+os.sep):
-#                dirs.remove(d)
-#        for f in files:
-#            filename = os.path.join(path, f)
-#            if re.search(exclude, filename):
-#                continue
-#            if re.search(include, filename):
-#                found.append(filename)
-#    return found
-
-
-#def find_string_in_files(texts, filenames, regexp=False):
-#    results = {}
-#    nb = 0
-#    for fname in filenames:
-#        for lineno, line in enumerate(file(fname)):
-#            for text, enc in texts:
-#                if regexp:
-#                    found = re.search(text, line)
-#                    if found is not None:
-#                        break
-#                else:
-#                    found = line.find(text)
-#                    if found > -1:
-#                        break
-#                    try:
-#                        line_dec = line.decode(enc)
-#                    except UnicodeDecodeError:
-#                        line_dec = line
-#            if regexp:
-#                for match in re.finditer(text, line):
-#                    res = results.get(osp.abspath(fname), [])
-#                    res.append((lineno+1, match.start(), line_dec))
-#                    results[osp.abspath(fname)] = res
-#                    nb += 1
-#            else:
-#                while found > -1:
-#                    res = results.get(osp.abspath(fname), [])
-#                    res.append((lineno+1, found, line_dec))
-#                    results[osp.abspath(fname)] = res
-#                    for text in texts:
-#                        found = line.find(text, found+1)
-#                        if found>-1:
-#                            break
-#                    nb += 1
-#    return results, nb
 
 class SearchThread(QThread):
     """Find in files search thread"""
@@ -115,6 +50,7 @@ class SearchThread(QThread):
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
     sig_file_match = Signal(dict, int)
+    sig_out_print = Signal(object)
 
     def __init__(self, parent):
         QThread.__init__(self, parent)
@@ -240,7 +176,8 @@ class SearchThread(QThread):
                         # self.filenames.append(filename)
                         # size = os.stat(filename).st_size
                         # large_file = size <= 10e6:
-                        self.find_string_in_file(filename)
+                        if is_text_file(filename):
+                            self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")
                 return False
@@ -279,16 +216,17 @@ class SearchThread(QThread):
                     line_dec = line
                 if self.text_re:
                     for match in re.finditer(text, line):
-                        res = self.results.get(osp.abspath(fname), [])
+                        res = results.get(osp.abspath(fname), [])
                         displ_line = self.truncate_result(line_dec,
                                                           match.start(),
                                                           match.end())
                         res.append((lineno+1, match.start(), displ_line))
                         results[osp.abspath(fname)] = res
+                        # self.sig_out_print.emit(res)
                         self.nb += 1
                 else:
                     while found > -1:
-                        res = self.results.get(osp.abspath(fname), [])
+                        res = results.get(osp.abspath(fname), [])
                         displ_line = self.truncate_result(line_dec,
                                                           found,
                                                           found+len(text))
@@ -641,8 +579,9 @@ class ResultsBrowser(OneColumnTree):
         """Double-click event"""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
-            filename, lineno = itemdata
+            filename, lineno, colno = itemdata
             self.parent().edit_goto.emit(filename, lineno, self.search_text)
+            # self.parent().edit_goto.emit(filename, lineno, colno)
 
     def clicked(self, item):
         """Click event"""
@@ -687,6 +626,7 @@ class ResultsBrowser(OneColumnTree):
                                     nb_files, text_files)
         self.set_title(title+text)
         # parent_item = dirs[osp.dirname(filename)]
+        # print(results)
         for filename in sorted(results.keys()):
             # parent_item = dirs[osp.dirname(filename)]
             file_item = QTreeWidgetItem(self, [osp.basename(filename) +
@@ -696,17 +636,12 @@ class ResultsBrowser(OneColumnTree):
             colno_dict = {}
             fname_res = []
             for lineno, colno, line in results[filename]:
-                if lineno not in colno_dict:
-                    fname_res.append((lineno, colno, line))
-                colno_dict[lineno] = colno_dict.get(lineno, [])+[str(colno)]
-            for lineno, colno, line in fname_res:
-                colno_str = ",".join(colno_dict[lineno])
                 item = QTreeWidgetItem(file_item,
                                        ["{0} ({1}): {2}".format(
-                                       lineno, colno_str, line.rstrip())],
+                                       lineno, colno, line.rstrip())],
                                        QTreeWidgetItem.Type)
                 item.setIcon(0, ima.icon('arrow'))
-                self.data[id(item)] = (filename, lineno)
+                self.data[id(item)] = (filename, lineno, colno)
 
 
     def refresh(self):
@@ -828,12 +763,22 @@ class FileProgressBar(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        self.status_bar = QProgressBar(self)
-        self.status_bar.setRange(0, 0)
+        # self.status_bar = QProgressBar(self)
+        # self.status_bar.setRange(0, 0)
         self.status_text = QLabel(self)
-        layout = QVBoxLayout()
+        self.spinner = QWaitingSpinner(self, centerOnParent=False)
+        # self.spinner.setRoundness(70.0)
+        # self.spinner.setMinimumTrailOpacity(15.0)
+        # self.spinner.setTrailFadePercentage(70.0)
+        self.spinner.setNumberOfLines(12)
+        # self.spinner.setLineLength(10)
+        # self.spinner.setLineWidth(5)
+        self.spinner.setInnerRadius(2)
+        self.spinner.start()
+        layout = QHBoxLayout()
+        # layout.addWidget(self.status_bar)
+        layout.addWidget(self.spinner)
         layout.addWidget(self.status_text)
-        layout.addWidget(self.status_bar)
         self.setLayout(layout)
 
     def __truncate(self, text):
@@ -847,13 +792,13 @@ class FileProgressBar(QWidget):
     def set_label_path(self, path, folder=False):
         text = self.__truncate(path)
         if not folder:
-            status_str = _('Scanning: {0}'.format(text))
+            status_str = _('  Scanning: {0}'.format(text))
         else:
-            status_str = _('Searching for files in folder: {0}'.format(text))
+            status_str = _('  Searching for files in folder: {0}'.format(text))
         self.status_text.setText(status_str)
 
     def reset(self):
-        self.status_text.setText(_("Searching for files..."))
+        self.status_text.setText(_("  Searching for files..."))
 
 class FindInFilesWidget(QWidget):
     """
@@ -941,6 +886,9 @@ class FindInFilesWidget(QWidget):
         )
         self.search_thread.sig_file_match.connect(
             self.result_browser.append_result
+        )
+        self.search_thread.sig_out_print.connect(
+            lambda x: sys.stdout.write(str(x) + "\n")
         )
         self.status_bar.reset()
         self.result_browser.init(self.find_options.search_text.currentText())
