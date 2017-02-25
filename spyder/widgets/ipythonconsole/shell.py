@@ -82,8 +82,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        return self.silent_execute(
-            u"get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+        code = u"get_ipython().kernel.set_cwd(r'{}')".format(dirname)
+        if self._reading:
+            self.kernel_client.input(u'!' + code)
+        else:
+            self.silent_execute(code)
 
     # --- To handle the banner
     def long_banner(self):
