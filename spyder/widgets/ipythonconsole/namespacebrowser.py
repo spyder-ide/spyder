@@ -57,10 +57,15 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
-            self.silent_exec_method(
-                'get_ipython().kernel.get_namespace_view()')
-            self.silent_exec_method(
-                'get_ipython().kernel.get_var_properties()')
+            codes = [u'get_ipython().kernel.get_namespace_view()',
+                     u'get_ipython().kernel.get_var_properties()']
+            if self._reading:
+                method = self.silent_exec_input
+                codes = [u'!' + c for c in codes]
+            else:
+                method = self.silent_exec_method
+            for code in codes:
+                method(code)
 
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
@@ -97,8 +102,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def set_value(self, name, value):
         """Set value for a variable"""
         value = to_text_string(value)
-        self.silent_execute("get_ipython().kernel.set_value('%s', %s)" %
-                            (name, value))
+        code = u"get_ipython().kernel.set_value('%s', %s)" % (name, value)
+        if self._reading:
+            self.kernel_client.input(u'!' + code)
+        else:
+            self.silent_execute(code)
 
     def remove_value(self, name):
         """Remove a variable"""
