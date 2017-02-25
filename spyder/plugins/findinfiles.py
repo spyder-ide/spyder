@@ -79,6 +79,18 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Refresh search directory"""
         self.find_options.set_directory(getcwd())
 
+    def set_project_path(self, path):
+        """Refresh current project path"""
+        self.find_options.set_project_path(path)
+
+    def set_current_opened_file(self, path):
+        """Get path of current opened file in editor"""
+        self.find_options.set_file_path(path)
+
+    def unset_project_path(self):
+        """Refresh current project path"""
+        self.find_options.disable_project_search()
+
     @Slot()
     def findinfiles_callback(self):
         """Find in files callback"""
@@ -145,7 +157,10 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
-        
+        self.main.projects.sig_project_loaded.connect(self.set_project_path)
+        self.main.projects.sig_project_closed.connect(self.unset_project_path)
+        self.main.editor.open_file_update.connect(self.set_current_opened_file)
+
         findinfiles_action = create_action(self, _("&Find in files"),
                                    icon=ima.icon('findf'),
                                    triggered=self.findinfiles_callback,

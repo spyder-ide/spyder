@@ -71,8 +71,9 @@ class SearchThread(QThread):
         self.get_pythonpath_callback = None
         self.results = {}
         self.nb = 0
+        self.is_file = False
 
-    def initialize(self, path, include, exclude, texts, text_re):
+    def initialize(self, path, is_file, include, exclude, texts, text_re):
         self.rootpath = path
         self.python_path = False
         self.hg_manifest = False
@@ -80,16 +81,15 @@ class SearchThread(QThread):
         self.exclude = re.compile(exclude)
         self.texts = texts
         self.text_re = text_re
+        self.is_file = is_file
         self.stopped = False
         self.completed = False
 
     def run(self):
         try:
             self.filenames = []
-            if self.hg_manifest:
-                ok = self.find_files_in_hg_manifest()
-            elif self.python_path:
-                ok = self.find_files_in_python_path()
+            if self.is_file:
+                self.find_string_in_file(self.rootpath)
             else:
                 ok = self.find_files_in_path(self.rootpath)
         except Exception:
@@ -104,53 +104,6 @@ class SearchThread(QThread):
     def stop(self):
         with QMutexLocker(self.mutex):
             self.stopped = True
-
-    def find_files_in_python_path(self):
-        pathlist = os.environ.get('PYTHONPATH', '').split(os.pathsep)
-        if self.get_pythonpath_callback is not None:
-            pathlist += self.get_pythonpath_callback()
-        if os.name == "nt":
-            # The following avoid doublons on Windows platforms:
-            # (e.g. "d:\Python" in PYTHONPATH environment variable,
-            #  and  "D:\Python" in Spyder's python path would lead
-            #  to two different search folders)
-            winpathlist = []
-            lcpathlist = []
-            for path in pathlist:
-                lcpath = osp.normcase(path)
-                if lcpath not in lcpathlist:
-                    lcpathlist.append(lcpath)
-                    winpathlist.append(path)
-            pathlist = winpathlist
-        ok = True
-        for path in set(pathlist):
-            if osp.isdir(path):
-                ok = self.find_files_in_path(path)
-                if not ok:
-                    break
-        return ok
-
-    def find_files_in_hg_manifest(self):
-        p = programs.run_shell_command('hg manifest', cwd=self.rootpath)
-        hgroot = get_vcs_root(self.rootpath)
-        self.pathlist = [hgroot]
-        for path in p.stdout.read().decode().splitlines():
-            with QMutexLocker(self.mutex):
-                if self.stopped:
-                    return False
-            dirname = osp.dirname(path)
-            try:
-                if re.search(self.exclude, dirname+os.sep):
-                    continue
-                filename = osp.basename(path)
-                if re.search(self.exclude, filename):
-                    continue
-                if re.search(self.include, filename):
-                    self.filenames.append(osp.join(hgroot, path))
-            except re.error:
-                self.error_flag = _("invalid regular expression")
-                return False
-        return True
 
     def find_files_in_path(self, path):
         if self.pathlist is None:
@@ -257,6 +210,8 @@ class FindOptions(QWidget):
             search_path = getcwd()
 
         self.path = ''
+        self.project_path = None
+        self.file_path = None
 
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -347,6 +302,8 @@ class FindOptions(QWidget):
                                          "directories present on the"
                                          "current project path (If opened)"))
 
+        self.project_search.setEnabled(False)
+
         self.file_search = QRadioButton(_("Current File"), self)
         self.file_search.setToolTip(_("Search in current opened file"))
 
@@ -421,6 +378,17 @@ class FindOptions(QWidget):
         python_path = False
         hg_manifest = False
 
+        global_path_search = self.global_path_search.isChecked()
+        project_search = self.project_search.isChecked()
+        file_search = self.file_search.isChecked()
+
+        if global_path_search:
+            path = self.path
+        elif project_search:
+            path = self.project_path
+        else:
+            path = self.file_path
+
         # Finding text occurrences
         if not include_re:
             include = fnmatch.translate(include)
@@ -461,7 +429,7 @@ class FindOptions(QWidget):
                     exclude, exclude_idx, exclude_re,
                     python_path, more_options)
         else:
-            return (self.path, include, exclude, texts, text_re)
+            return (path, file_search, include, exclude, texts, text_re)
 
     @Slot()
     def select_directory(self):
@@ -475,6 +443,18 @@ class FindOptions(QWidget):
 
     def set_directory(self, directory):
         self.path = to_text_string(osp.abspath(to_text_string(directory)))
+
+    def set_project_path(self, path):
+        self.project_path = to_text_string(osp.abspath(to_text_string(path)))
+        self.project_search.setEnabled(True)
+
+    def disable_project_search(self):
+        self.project_search.setEnabled(False)
+        self.project_search.setChecked(False)
+        self.project_path = None
+
+    def set_file_path(self, path):
+        self.file_path = path
 
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
