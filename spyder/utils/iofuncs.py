@@ -467,7 +467,7 @@ def save_auto(data, filename):
 
 
 if __name__ == "__main__":
-    from spyder.py3compat import io
+    import io
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
