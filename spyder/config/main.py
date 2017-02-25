@@ -28,8 +28,7 @@ from spyder.utils import codeanalysis
 # Main constants
 #==============================================================================
 # Find in files exclude patterns
-EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
-                    r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
+EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
