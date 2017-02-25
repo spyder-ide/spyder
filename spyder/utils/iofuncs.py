@@ -467,12 +467,12 @@ def save_auto(data, filename):
 
 
 if __name__ == "__main__":
-    from spyder.py3compat import u, io
+    from spyder.py3compat import io
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     example = {'str': 'kjkj kj k j j kj k jkj',
-               'unicode': u('éù'),
+               'unicode': u'éù',
                'list': [1, 3, [4, 5, 6], 'kjkj', None],
                'tuple': ([1, testdate, testdict], 'kjkj', None),
                'dict': testdict,
