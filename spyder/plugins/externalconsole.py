@@ -715,6 +715,11 @@ class ExternalConsole(SpyderPluginWidget):
             self.help.set_shell(shell.shell)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(shell)
+        shell.shell.write("NOTE: The Python console is going to "
+                          "be REMOVED in Spyder 3.2. Please start "
+                          "to migrate your work to the "
+                          "IPython console instead.\n\n", prompt=True)
+        shell.shell.new_prompt("")
 
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)

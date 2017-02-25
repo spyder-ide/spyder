@@ -26,7 +26,7 @@ from qtpy.QtWidgets import QMessageBox
 from spyder import get_versions
 from spyder.interpreter import Interpreter
 from spyder.py3compat import (builtins, getcwd, to_binary_string,
-                              to_text_string, u)
+                              to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
@@ -335,7 +335,7 @@ class InternalShell(PythonShellWidget):
             t0 = time()
             for _ in range(10):
                 self.execute_command(command)
-            self.insert_text(u("\n<Δt>=%dms\n") % (1e2*(time()-t0)))
+            self.insert_text(u"\n<Δt>=%dms\n" % (1e2*(time()-t0)))
             self.new_prompt(self.interpreter.p1)
         else:
             self.execute_command(command)
