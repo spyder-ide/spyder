@@ -346,9 +346,9 @@ class EditorStack(QWidget):
         fileswitcher_action = create_action(self, _("File switcher..."),
                 icon=ima.icon('filelist'),
                 triggered=self.open_fileswitcher_dlg)
-        symbolfinder_action = create_action(self, 
+        symbolfinder_action = create_action(self,
                 _("Find symbols in file..."),
-                icon=ima.icon('filelist'),
+                icon=ima.icon('symbol_find'),
                 triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
@@ -560,6 +560,7 @@ class EditorStack(QWidget):
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
+        self.tabs.setMovable(True)
 
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
@@ -567,7 +568,7 @@ class EditorStack(QWidget):
             # a crash when the editor is detached from the main window
             # Fixes Issue 561
             self.tabs.setDocumentMode(True)
-        self.tabs.currentChanged.connect(self.current_changed)
+        self.tabs.currentChanged.connect(self.current_changed_tabs)
 
         if sys.platform == 'darwin':
             tab_container = QWidget()
@@ -926,7 +927,6 @@ class EditorStack(QWidget):
         self.fullpath_sorting_enabled = state
         if self.data:
             finfo = self.data[self.get_stack_index()]
-            self.data.sort(key=self.__get_sorting_func())
             new_index = self.data.index(finfo)
             self.__repopulate_stack()
             self.set_stack_index(new_index)
@@ -1005,16 +1005,8 @@ class EditorStack(QWidget):
             else:
                 return text % (osp.basename(filename), osp.dirname(filename))
 
-    def __get_sorting_func(self):
-        if self.fullpath_sorting_enabled:
-            return lambda item: osp.join(osp.dirname(item.filename),
-                                         '_'+osp.basename(item.filename))
-        else:
-            return lambda item: osp.basename(item.filename)
-
     def add_to_data(self, finfo, set_current):
         self.data.append(finfo)
-        self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         editor = finfo.editor
         self.tabs.insertTab(index, editor, self.get_tab_text(index))
@@ -1051,7 +1043,6 @@ class EditorStack(QWidget):
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
         finfo.filename = new_filename
-        self.data.sort(key=self.__get_sorting_func())
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -1301,7 +1292,8 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
 
         finfo = self.data[index]
-        if not finfo.editor.document().isModified() and not force:
+        if not (finfo.editor.document().isModified() or
+                finfo.newly_created) and not force:
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
@@ -1448,14 +1440,17 @@ class EditorStack(QWidget):
         if self.data:
             return self.data[self.get_stack_index()].todo_results
 
-    def current_changed(self, index):
+    def  current_changed_tabs(self, index):
+        self.current_changed(index, set_focus=False)
+
+    def current_changed(self, index, set_focus=True):
         """Stack index has changed"""
 #        count = self.get_stack_count()
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
 
         editor = self.get_current_editor()
-        if index != -1:
+        if index != -1 and set_focus:
             editor.setFocus()
             if DEBUG_EDITOR:
                 print("setfocusto:", editor, file=STDOUT)
@@ -1662,7 +1657,7 @@ class EditorStack(QWidget):
             return
         finfo = self.data[index]
         if state is None:
-            state = finfo.editor.document().isModified()
+            state = finfo.editor.document().isModified() or finfo.newly_created
         self.set_stack_title(index, state)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)

@@ -397,12 +397,9 @@ class FindOptions(QWidget):
         for widget in [self.python_path, self.hg_manifest, self.custom_dir,
                        self.dir_combo, browse]:
             hlayout3.addWidget(widget)
-            
+
         self.search_text.valid.connect(lambda valid: self.find.emit())
-        self.include_pattern.valid.connect(lambda valid: self.find.emit())
-        self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
-        self.dir_combo.valid.connect(lambda valid: self.find.emit())
-            
+
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addLayout(hlayout1)
@@ -411,7 +408,7 @@ class FindOptions(QWidget):
         self.more_widgets = (hlayout2, hlayout3)
         self.toggle_more_options(more_options)
         self.setLayout(vlayout)
-                
+
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
     @Slot(bool)

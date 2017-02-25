@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _, get_conf_path
+from spyder.config.base import _, get_conf_path, PYTEST
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -105,12 +105,9 @@ class EditorConfigPage(PluginConfigPage):
         
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
-        fpsorting_box = newcb(_("Sort files according to full path"),
-                              'fullpath_sorting')
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
         
@@ -542,19 +539,17 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        filename = self.get_current_filename()
-        if filename:
-            title += ' - '+to_text_string(filename)
         return title
-    
+
     def get_plugin_icon(self):
-        """Return widget icon"""
+        """Return widget icon."""
         return ima.icon('edit')
     
     def get_focus_widget(self):
         """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        Return the widget to give focus to.
+
+        This happens when plugin's dockwidget is raised on top-level.
         """
         return self.get_current_editor()
 
@@ -819,7 +814,7 @@ class Editor(SpyderPluginWidget):
                                             triggered=self.run_selection,
                                             context=Qt.WidgetShortcut)
         self.register_shortcut(run_selected_action, context="Editor",
-                               name="Run selection")
+                               name="Run selection", add_sc_to_tip=True)
 
         run_cell_action = create_action(self,
                             _("Run cell"),
@@ -1051,8 +1046,8 @@ class Editor(SpyderPluginWidget):
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
-                               run_cell_advance_action, re_run_action,
-                               configure_action]
+                               run_cell_advance_action, run_selected_action,
+                               re_run_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
@@ -1305,6 +1300,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
+        editorstack.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1477,9 +1473,10 @@ class Editor(SpyderPluginWidget):
     def refresh_save_all_action(self):
         """Enable 'Save All' if there are files to be saved"""
         editorstack = self.get_current_editorstack()
-        state = any(finfo.editor.document().isModified()
-                    for finfo in editorstack.data)
-        self.save_all_action.setEnabled(state)
+        if editorstack:
+            state = any(finfo.editor.document().isModified() or finfo.newly_created
+                        for finfo in editorstack.data)
+            self.save_all_action.setEnabled(state)
             
     def update_warning_menu(self):
         """Update warning list menu"""
@@ -1814,11 +1811,19 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            filenames, _sf = getopenfilenames(parent_widget,
-                                     _("Open file"), basedir,
-                                     self.edit_filters,
-                                     selectedfilter=selectedfilter,
-                                     options=QFileDialog.HideNameFilterDetails)
+            if not PYTEST:
+                filenames, _sf = getopenfilenames(
+                                    parent_widget,
+                                    _("Open file"), basedir,
+                                    self.edit_filters,
+                                    selectedfilter=selectedfilter,
+                                    options=QFileDialog.HideNameFilterDetails)
+            else:
+                # Use a Qt (i.e. scriptable) dialog for pytest
+                dialog = QFileDialog(parent_widget, _("Open file"),
+                                     options=QFileDialog.DontUseNativeDialog)
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
             self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
@@ -2312,7 +2317,7 @@ class Editor(SpyderPluginWidget):
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
-                if CONF.get('run', 'open_at_least_once', True):
+                if CONF.get('run', 'open_at_least_once', not PYTEST):
                     # Open Run Config dialog at least once: the first time 
                     # a script is ever run in Spyder, so that the user may 
                     # see it at least once and be conscious that it exists
@@ -2643,3 +2648,21 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
+
+    def move_editorstack_data(self, start, end):
+        """Move editorstack.data to be synchronized when tabs are moved."""
+        if start < 0 or end < 0:
+            return
+        else:
+            steps = abs(end - start)
+            direction = (end-start) // steps  # +1 for right, -1 for left
+
+            for editorstack in self.editorstacks :
+                data = editorstack.data
+                editorstack.blockSignals(True)
+
+                for i in range(start, end, direction):
+                    data[i], data[i+direction] = data[i+direction], data[i]
+
+                editorstack.blockSignals(False)
+                editorstack.refresh()

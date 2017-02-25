@@ -110,6 +110,20 @@ def test_run_last_line_when_nonempty(editor_bot):
     assert editor.toPlainText() == expected_new_text
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
+def test_find_replace_case_sensitive(qtbot):
+    editorStack, editor = setup_editor(qtbot)
+    editorStack.find_widget.case_button.setChecked(True)
+    text = ' test \nTEST \nTest \ntesT '
+    editor.set_text(text)
+    editorStack.find_widget.search_text.add_text('test')
+    editorStack.find_widget.replace_text.add_text('pass')
+    editorStack.find_widget.replace_find()
+    editorStack.find_widget.replace_find()
+    editorStack.find_widget.replace_find()
+    editorStack.find_widget.replace_find()
+    editor_text = editor.toPlainText()
+    assert editor_text == ' pass \nTEST \nTest \ntesT '
+
 def test_replace_current_selected_line(editor_find_replace_bot):
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     expected_new_text = ('ham bacon\n'

@@ -515,11 +515,19 @@ class ExternalConsole(SpyderPluginWidget):
                 if old_shell.is_running():
                     runconfig = get_run_configuration(fname)
                     if runconfig is None or runconfig.show_kill_warning:
-                        answer = QMessageBox.question(self, self.get_plugin_title(),
-                            _("%s is already running in a separate process.\n"
-                              "Do you want to kill the process before starting "
-                              "a new one?") % osp.basename(fname),
-                            QMessageBox.Yes | QMessageBox.Cancel)
+                        if PYQT5:
+                            answer = QMessageBox.question(self, self.get_plugin_title(),
+                                _("%s is already running in a separate process.\n"
+                                  "Do you want to kill the process before starting "
+                                  "a new one?") % osp.basename(fname),
+                                QMessageBox.Yes | QMessageBox.Cancel)
+                        else:
+                            mb = QMessageBox(self)
+                            answer = mb.question(mb, self.get_plugin_title(),
+                                _("%s is already running in a separate process.\n"
+                                  "Do you want to kill the process before starting "
+                                  "a new one?") % osp.basename(fname),
+                                QMessageBox.Yes | QMessageBox.Cancel)
                     else:
                         answer = QMessageBox.Yes
 
@@ -707,6 +715,11 @@ class ExternalConsole(SpyderPluginWidget):
             self.help.set_shell(shell.shell)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(shell)
+        shell.shell.write("NOTE: The Python console is going to "
+                          "be REMOVED in Spyder 3.2. Please start "
+                          "to migrate your work to the "
+                          "IPython console instead.\n\n", prompt=True)
+        shell.shell.new_prompt("")
 
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
