@@ -92,6 +92,12 @@ class DebuggingWidget(RichJupyterWidget):
             self.kernel_client.input(
                 "!get_ipython().kernel._set_spyder_breakpoints()")
 
+    def dbg_exec_magic(self, magic, args=''):
+        """Run an IPython magic while debugging."""
+        code = "!get_ipython().kernel.shell.run_line_magic('{}', '{}')".format(
+                    magic, args)
+        self.kernel_client.input(code)
+
     # ---- Private API (defined by us) -------------------------------
     def _post_exec_input(self, line):
         """Commands to be run after writing to stdin"""
