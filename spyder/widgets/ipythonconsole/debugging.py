@@ -102,10 +102,7 @@ class DebuggingWidget(RichJupyterWidget):
                 self.silent_exec_input("!get_ipython().kernel.get_pdb_step()")
 
                 # To refresh the Variable Explorer
-                self.silent_exec_input(
-                    "!get_ipython().kernel.get_namespace_view()")
-                self.silent_exec_input(
-                    "!get_ipython().kernel.get_var_properties()")
+                self.refresh_namespacebrowser()
 
     # ---- Private API (overrode by us) -------------------------------
     def _handle_input_request(self, msg):
