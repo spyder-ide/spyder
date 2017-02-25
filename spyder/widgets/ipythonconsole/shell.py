@@ -138,7 +138,11 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        self.execute("%clear")
+        if self._reading:
+            code = "!get_ipython().kernel.shell.run_line_magic('clear', '')"
+            self.kernel_client.input(code)
+        else:
+            self.execute("%clear")
 
     def reset_namespace(self, force=False):
         """Reset the namespace by removing all names defined by the user."""
