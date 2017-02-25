@@ -41,7 +41,7 @@ from spyder.utils.encoding import is_text_file
 from spyder.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 
-from waitingspinner import QWaitingSpinner
+from spyder.widgets.waitingspinner import QWaitingSpinner
 
 
 class SearchThread(QThread):
