@@ -449,7 +449,11 @@ class NamespaceBrowser(QWidget):
         
     def plot(self, name, funcname):
         if self.is_ipyclient:
-            self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
+            sw = self.shellwidget
+            if sw._reading:
+                sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
+            else:
+                sw.execute("%%varexp --%s %s" % (funcname, name))
         else:
             command = "import spyder.pyplot; "\
                   "__fig__ = spyder.pyplot.figure(); "\
@@ -460,7 +464,11 @@ class NamespaceBrowser(QWidget):
         
     def imshow(self, name):
         if self.is_ipyclient:
-            self.shellwidget.execute("%%varexp --imshow %s" % name)
+            sw = self.shellwidget
+            if sw._reading:
+                sw.dbg_exec_magic('varexp', '--imshow %s' % name)
+            else:
+                sw.execute("%%varexp --imshow %s" % name)
         else:
             command = "import spyder.pyplot; " \
                   "__fig__ = spyder.pyplot.figure(); " \
@@ -471,7 +479,11 @@ class NamespaceBrowser(QWidget):
     def show_image(self, name):
         command = "%s.show()" % name
         if self.is_ipyclient:
-            self.shellwidget.execute(command)
+            sw = self.shellwidget
+            if sw._reading:
+                sw.kernel_client.input(command)
+            else:
+                sw.execute(command)
         else:
             self.shellwidget.send_to_process(command)
 
