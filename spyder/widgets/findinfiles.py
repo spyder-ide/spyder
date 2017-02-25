@@ -92,10 +92,8 @@ class SearchThread(QThread):
                 ok = self.find_files_in_python_path()
             else:
                 ok = self.find_files_in_path(self.rootpath)
-            # if ok:
-                # self.find_string_in_files()
         except Exception:
-            # Important note: we have to handle unexpected exceptions by 
+            # Important note: we have to handle unexpected exceptions by
             # ourselves because they won't be catched by the main thread
             # (known QThread limitation/bug)
             traceback.print_exc()
@@ -114,7 +112,7 @@ class SearchThread(QThread):
         if os.name == "nt":
             # The following avoid doublons on Windows platforms:
             # (e.g. "d:\Python" in PYTHONPATH environment variable,
-            #  and  "D:\Python" in Spyder's python path would lead 
+            #  and  "D:\Python" in Spyder's python path would lead
             #  to two different search folders)
             winpathlist = []
             lcpathlist = []
@@ -165,7 +163,6 @@ class SearchThread(QThread):
             try:
                 for d in dirs[:]:
                     dirname = os.path.join(path, d)
-                    # self.sig_current_folder.emit(dirname)
                     if re.search(self.exclude, dirname+os.sep):
                         dirs.remove(d)
                 for f in files:
@@ -173,9 +170,6 @@ class SearchThread(QThread):
                     if re.search(self.exclude, filename):
                         continue
                     if re.search(self.include, filename):
-                        # self.filenames.append(filename)
-                        # size = os.stat(filename).st_size
-                        # large_file = size <= 10e6:
                         if is_text_file(filename):
                             self.find_string_in_file(filename)
             except re.error:
@@ -222,7 +216,6 @@ class SearchThread(QThread):
                                                           match.end())
                         res.append((lineno+1, match.start(), displ_line))
                         results[osp.abspath(fname)] = res
-                        # self.sig_out_print.emit(res)
                         self.nb += 1
                 else:
                     while found > -1:
@@ -244,53 +237,6 @@ class SearchThread(QThread):
             self.error_flag = _("permission denied errors were encountered")
         self.completed = True
 
-    # def find_string_in_files(self):
-    #     self.results = {}
-    #     self.nb = 0
-    #     self.error_flag = False
-    #     for fname in self.filenames:
-    #         self.sig_current_file.emit(fname)
-    #         with QMutexLocker(self.mutex):
-    #             if self.stopped:
-    #                 return
-    #         try:
-    #             for lineno, line in enumerate(open(fname, 'rb')):
-    #                 for text, enc in self.texts:
-    #                     if self.text_re:
-    #                         found = re.search(text, line)
-    #                         if found is not None:
-    #                             break
-    #                     else:
-    #                         found = line.find(text)
-    #                         if found > -1:
-    #                             break
-    #                 try:
-    #                     line_dec = line.decode(enc)
-    #                 except UnicodeDecodeError:
-    #                     line_dec = line
-    #                 if self.text_re:
-    #                     for match in re.finditer(text, line):
-    #                         res = self.results.get(osp.abspath(fname), [])
-    #                         res.append((lineno+1, match.start(), line_dec))
-    #                         self.results[osp.abspath(fname)] = res
-    #                         self.nb += 1
-    #                 else:
-    #                     while found > -1:
-    #                         res = self.results.get(osp.abspath(fname), [])
-    #                         res.append((lineno+1, found, line_dec))
-    #                         self.results[osp.abspath(fname)] = res
-    #                         for text, enc in self.texts:
-    #                             found = line.find(text, found+1)
-    #                             if found > -1:
-    #                                 break
-    #                         self.nb += 1
-    #         except IOError as xxx_todo_changeme:
-    #             (_errno, _strerror) = xxx_todo_changeme.args
-    #             self.error_flag = _("permission denied errors were encountered")
-    #         except re.error:
-    #             self.error_flag = _("invalid regular expression")
-    #     self.completed = True
-
     def get_results(self):
         return self.results, self.pathlist, self.nb, self.error_flag
 
@@ -300,18 +246,18 @@ class FindOptions(QWidget):
     REGEX_INVALID = "background-color:rgb(255, 175, 90);"
     find = Signal()
     stop = Signal()
-    
+
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  include, include_idx, include_regexp,
                  exclude, exclude_idx, exclude_regexp,
                  supported_encodings, in_python_path, more_options):
         QWidget.__init__(self, parent)
-        
+
         if search_path is None:
             search_path = getcwd()
 
         self.path = ''
-        
+
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
         if not isinstance(search_path, (list, tuple)):
@@ -337,7 +283,7 @@ class FindOptions(QWidget):
                                               toggled=self.toggle_more_options)
         self.more_options.setCheckable(True)
         self.more_options.setChecked(more_options)
-        
+
         self.ok_button = create_toolbutton(self, text=_("Search"),
                                 icon=ima.icon('DialogApplyButton'),
                                 triggered=lambda: self.find.emit(),
@@ -387,45 +333,40 @@ class FindOptions(QWidget):
             hlayout2.addWidget(widget)
 
         # Layout 3
-        # hlayout3 = QHBoxLayout()
-        # self.python_path = QRadioButton(_("PYTHONPATH"), self)
-        # self.python_path.setChecked(in_python_path)
-        # self.python_path.setToolTip(_(
-        #                   "Search in all directories listed in sys.path which"
-        #                   " are outside the Python installation directory"))        
-        # self.hg_manifest = QRadioButton(_("Hg repository"), self)
-        # self.detect_hg_repository()
-        # self.hg_manifest.setToolTip(
-        #                         _("Search in current directory hg repository"))
-        # self.custom_dir = QRadioButton(_("Here:"), self)
-        # self.custom_dir.setChecked(not in_python_path)
-        # self.dir_combo = PathComboBox(self)
-        # self.dir_combo.addItems(search_path)
-        # self.dir_combo.setToolTip(_("Search recursively in this directory"))
-        # self.dir_combo.open_dir.connect(self.set_directory)
-        # self.python_path.toggled.connect(self.dir_combo.setDisabled)
-        # self.hg_manifest.toggled.connect(self.dir_combo.setDisabled)
-        # browse = create_toolbutton(self, icon=ima.icon('DirOpenIcon'),
-        #                            tip=_('Browse a search directory'),
-        #                            triggered=self.select_directory)
-        # for widget in [self.python_path, self.hg_manifest, self.custom_dir,
-        #                self.dir_combo, browse]:
-        #     hlayout3.addWidget(widget)
-            
+        hlayout3 = QHBoxLayout()
+        search_label = QLabel(_("Search on: "))
+
+        self.global_path_search = QRadioButton(_("Current Path"), self)
+        self.global_path_search.setChecked(True)
+        self.global_path_search.setToolTip(_("Search in all files and "
+                                             "directories present on the"
+                                             "current Spyder path"))
+
+        self.project_search = QRadioButton(_("Current Project"), self)
+        self.project_search.setToolTip(_("Search in all files and "
+                                         "directories present on the"
+                                         "current project path (If opened)"))
+
+        self.file_search = QRadioButton(_("Current File"), self)
+        self.file_search.setToolTip(_("Search in current opened file"))
+
+        for wid in [search_label, self.global_path_search,
+                    self.project_search, self.file_search]:
+            hlayout3.addWidget(wid)
+
         self.search_text.valid.connect(lambda valid: self.find.emit())
         self.include_pattern.valid.connect(lambda valid: self.find.emit())
         self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
-        # self.dir_combo.valid.connect(lambda valid: self.find.emit())
-            
+
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addLayout(hlayout1)
         vlayout.addLayout(hlayout2)
-        # vlayout.addLayout(hlayout3)
+        vlayout.addLayout(hlayout3)
         self.more_widgets = (hlayout2,)
         self.toggle_more_options(more_options)
         self.setLayout(vlayout)
-                
+
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
     @Slot(bool)
@@ -442,20 +383,12 @@ class FindOptions(QWidget):
             tip = _('Show advanced options')
         self.more_options.setIcon(icon)
         self.more_options.setToolTip(tip)
-        
+
     def update_combos(self):
         self.search_text.lineEdit().returnPressed.emit()
         self.include_pattern.lineEdit().returnPressed.emit()
         self.exclude_pattern.lineEdit().returnPressed.emit()
-        
-    # def detect_hg_repository(self, path=None):
-    #     if path is None:
-    #         path = getcwd()
-    #     hg_repository = is_hg_installed() and get_vcs_root(path) is not None
-    #     self.hg_manifest.setEnabled(hg_repository)
-    #     if not hg_repository and self.hg_manifest.isChecked():
-    #         self.custom_dir.setChecked(True)
-        
+
     def set_search_text(self, text):
         if text:
             self.search_text.add_text(text)
@@ -487,9 +420,6 @@ class FindOptions(QWidget):
         exclude_re = self.exclude_regexp.isChecked()
         python_path = False
         hg_manifest = False
-        # python_path = self.python_path.isChecked()
-        # hg_manifest = self.hg_manifest.isChecked()
-        # path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
 
         # Finding text occurrences
         if not include_re:
@@ -519,8 +449,6 @@ class FindOptions(QWidget):
         if all:
             search_text = [to_text_string(self.search_text.itemText(index)) \
                            for index in range(self.search_text.count())]
-            # search_path = [to_text_string(self.dir_combo.itemText(index)) \
-                           # for index in range(self.dir_combo.count())]
             include = [to_text_string(self.include_pattern.itemText(index)) \
                        for index in range(self.include_pattern.count())]
             include_idx = self.include_pattern.currentIndex()
@@ -544,12 +472,10 @@ class FindOptions(QWidget):
         if directory:
             self.set_directory(directory)
         self.parent().redirect_stdio.emit(True)
-        
+
     def set_directory(self, directory):
         self.path = to_text_string(osp.abspath(to_text_string(directory)))
-        # self.dir_combo.setEditText(path)
-        # self.detect_hg_repository(path)
-        
+
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -574,30 +500,17 @@ class ResultsBrowser(OneColumnTree):
         self.data = None
         self.set_title('')
         self.root_items = None
-        
+
     def activated(self, item):
         """Double-click event"""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno, colno = itemdata
             self.parent().edit_goto.emit(filename, lineno, self.search_text)
-            # self.parent().edit_goto.emit(filename, lineno, colno)
 
     def clicked(self, item):
         """Click event"""
         self.activated(item)
-
-    def set_results(self, search_text, results, pathlist, nb,
-                    error_flag, completed):
-        self.search_text = search_text
-        self.results = results
-        self.pathlist = pathlist
-        self.nb = nb
-        self.error_flag = error_flag
-        self.completed = completed
-        self.refresh()
-        if not self.error_flag and self.nb:
-            self.restore()
 
     def init(self, search_text):
         self.clear()
@@ -625,10 +538,7 @@ class ResultsBrowser(OneColumnTree):
             text = "%d %s %d %s" % (num_matches, text_matches,
                                     nb_files, text_files)
         self.set_title(title+text)
-        # parent_item = dirs[osp.dirname(filename)]
-        # print(results)
         for filename in sorted(results.keys()):
-            # parent_item = dirs[osp.dirname(filename)]
             file_item = QTreeWidgetItem(self, [osp.basename(filename) +
                                         " - "+osp.dirname(filename)],
                                         QTreeWidgetItem.Type)
@@ -643,140 +553,18 @@ class ResultsBrowser(OneColumnTree):
                 item.setIcon(0, ima.icon('arrow'))
                 self.data[id(item)] = (filename, lineno, colno)
 
-
-    def refresh(self):
-        """
-        Refreshing search results panel
-        """
-        title = "'%s' - " % self.search_text
-        if self.results is None:
-            text = _('Search canceled')
-        else:
-            nb_files = len(self.results)
-            if nb_files == 0:
-                text = _('String not found')
-            else:
-                text_matches = _('matches in')
-                text_files = _('file')
-                if nb_files > 1:
-                    text_files += 's'
-                text = "%d %s %d %s" % (self.nb, text_matches,
-                                        nb_files, text_files)
-        if self.error_flag:
-            text += ' (' + self.error_flag + ')'
-        elif self.results is not None and not self.completed:
-            text += ' (' + _('interrupted') + ')'
-        self.set_title(title+text)
-        self.clear()
-        self.data = {}
-        
-        if not self.results: # First search interrupted *or* No result
-            return
-
-        # Directory set
-        # dir_set = set()
-        # for filename in sorted(self.results.keys()):
-        #     dirname = osp.abspath(osp.dirname(filename))
-        #     dir_set.add(dirname)
-
-        # # Root path
-        # root_path_list = None
-        # _common = get_common_path(list(dir_set))
-        # if _common is not None:
-        #     root_path_list = [_common]
-        # else:
-        #     _common = get_common_path(self.pathlist)
-        #     if _common is not None:
-        #         root_path_list = [_common]
-        #     else:
-        #         root_path_list = self.pathlist
-        # if not root_path_list:
-        #     return
-        # for _root_path in root_path_list:
-        #     dir_set.add(_root_path)
-        # # Populating tree: directories
-        # def create_dir_item(dirname, parent):
-        #     if dirname not in root_path_list:
-        #         displayed_name = osp.basename(dirname)
-        #     else:
-        #         displayed_name = dirname
-        #     item = QTreeWidgetItem(parent, [displayed_name],
-        #                            QTreeWidgetItem.Type)
-        #     item.setIcon(0, ima.icon('DirClosedIcon'))
-        #     return item
-        # dirs = {}
-        # for dirname in sorted(list(dir_set)):
-        #     if dirname in root_path_list:
-        #         parent = self
-        #     else:
-        #         parent_dirname = abspardir(dirname)
-        #         parent = dirs.get(parent_dirname)
-        #         if parent is None:
-        #             # This is related to directories which contain found
-        #             # results only in some of their children directories
-        #             if osp.commonprefix([dirname]+root_path_list):
-        #                 # create new root path
-        #                 pass
-        #             items_to_create = []
-        #             while dirs.get(parent_dirname) is None:
-        #                 items_to_create.append(parent_dirname)
-        #                 parent_dirname = abspardir(parent_dirname)
-        #             items_to_create.reverse()
-        #             for item_dir in items_to_create:
-        #                 item_parent = dirs[abspardir(item_dir)]
-        #                 dirs[item_dir] = create_dir_item(item_dir, item_parent)
-        #             parent_dirname = abspardir(dirname)
-        #             parent = dirs[parent_dirname]
-        #     dirs[dirname] = create_dir_item(dirname, parent)
-        # self.root_items = [dirs[_root_path] for _root_path in root_path_list]
-        # Populating tree: files
-        for filename in sorted(self.results.keys()):
-            # parent_item = dirs[osp.dirname(filename)]
-            file_item = QTreeWidgetItem(self, [osp.basename(filename) +
-                                        " - "+osp.dirname(filename)],
-                                        QTreeWidgetItem.Type)
-            file_item.setIcon(0, get_filetype_icon(filename))
-            colno_dict = {}
-            fname_res = []
-            for lineno, colno, line in self.results[filename]:
-                if lineno not in colno_dict:
-                    fname_res.append((lineno, colno, line))
-                colno_dict[lineno] = colno_dict.get(lineno, [])+[str(colno)]
-            for lineno, colno, line in fname_res:
-                colno_str = ",".join(colno_dict[lineno])
-                item = QTreeWidgetItem(file_item,
-                                       ["{0} ({1}): {2}".format(
-                                       lineno, colno_str, line.rstrip())],
-                                       QTreeWidgetItem.Type)
-                item.setIcon(0, ima.icon('arrow'))
-                self.data[id(item)] = (filename, lineno)
-        # Removing empty directories
-        top_level_items = [self.topLevelItem(index)
-                           for index in range(self.topLevelItemCount())]
-        for item in top_level_items:
-            if not item.childCount():
-                self.takeTopLevelItem(self.indexOfTopLevelItem(item))
-
 class FileProgressBar(QWidget):
-    """Simple progress bar with a label"""
+    """Simple progress spinner with a label"""
     MAX_LABEL_LENGTH = 60
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        # self.status_bar = QProgressBar(self)
-        # self.status_bar.setRange(0, 0)
         self.status_text = QLabel(self)
         self.spinner = QWaitingSpinner(self, centerOnParent=False)
-        # self.spinner.setRoundness(70.0)
-        # self.spinner.setMinimumTrailOpacity(15.0)
-        # self.spinner.setTrailFadePercentage(70.0)
         self.spinner.setNumberOfLines(12)
-        # self.spinner.setLineLength(10)
-        # self.spinner.setLineWidth(5)
         self.spinner.setInnerRadius(2)
         self.spinner.start()
         layout = QHBoxLayout()
-        # layout.addWidget(self.status_bar)
         layout.addWidget(self.spinner)
         layout.addWidget(self.status_text)
         self.setLayout(layout)
@@ -839,19 +627,12 @@ class FindInFilesWidget(QWidget):
         expand_btn.setDefaultAction(self.result_browser.expand_all_action)
         restore_btn = create_toolbutton(self)
         restore_btn.setDefaultAction(self.result_browser.restore_action)
-#        collapse_sel_btn = create_toolbutton(self)
-#        collapse_sel_btn.setDefaultAction(
-#                                self.result_browser.collapse_selection_action)
-#        expand_sel_btn = create_toolbutton(self)
-#        expand_sel_btn.setDefaultAction(
-#                                self.result_browser.expand_selection_action)
-        
+
         btn_layout = QVBoxLayout()
         btn_layout.setAlignment(Qt.AlignTop)
         for widget in [collapse_btn, expand_btn, restore_btn]:
-#                       collapse_sel_btn, expand_sel_btn]:
             btn_layout.addWidget(widget)
-        
+
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
         hlayout.addLayout(btn_layout)
@@ -909,11 +690,11 @@ class FindInFilesWidget(QWidget):
                 self.search_thread.wait()
             self.search_thread.setParent(None)
             self.search_thread = None
-        
+
     def closing_widget(self):
         """Perform actions before widget is closed"""
         self.stop_and_reset_thread(ignore_results=True)
-        
+
     def search_complete(self, completed):
         """Current search thread has finished"""
         self.find_options.ok_button.setEnabled(True)
@@ -927,8 +708,6 @@ class FindInFilesWidget(QWidget):
             results, pathlist, nb, error_flag = found
             search_text = to_text_string(
                                 self.find_options.search_text.currentText())
-            # self.result_browser.set_results(search_text, results, pathlist,
-                                            # nb, error_flag, completed)
             self.result_browser.show()
 
 
