@@ -107,7 +107,7 @@ def _search_return_in_numpydocstr(docstr):
         found.extend(_expand_typestr(p_type))
     return found
 
-
+# Caching disabled because jedi_patch breaks it
 # @memoize_default(None, evaluator_is_first_arg=True)
 def find_return_types(module_context, func):
     """
