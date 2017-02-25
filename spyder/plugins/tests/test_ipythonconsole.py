@@ -59,7 +59,7 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
-#@flaky(max_runs=10)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_forced_restart_kernel(ipyconsole, qtbot):
     """
