@@ -19,6 +19,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
+from spyder.utils.fixtures import setup_editor
 from spyder.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 
@@ -111,16 +112,16 @@ def test_run_last_line_when_nonempty(editor_bot):
     assert editor.get_cursor_line_column() == (4, 0) # check cursor moves down
 
 def test_find_replace_case_sensitive(qtbot):
-    editorStack, editor = setup_editor(qtbot)
-    editorStack.find_widget.case_button.setChecked(True)
+    editor_stack, editor = setup_editor(qtbot)
+    editor_stack.find_widget.case_button.setChecked(True)
     text = ' test \nTEST \nTest \ntesT '
     editor.set_text(text)
-    editorStack.find_widget.search_text.add_text('test')
-    editorStack.find_widget.replace_text.add_text('pass')
-    editorStack.find_widget.replace_find()
-    editorStack.find_widget.replace_find()
-    editorStack.find_widget.replace_find()
-    editorStack.find_widget.replace_find()
+    editor_stack.find_widget.search_text.add_text('test')
+    editor_stack.find_widget.replace_text.add_text('pass')
+    editor_stack.find_widget.replace_find()
+    editor_stack.find_widget.replace_find()
+    editor_stack.find_widget.replace_find()
+    editor_stack.find_widget.replace_find()
     editor_text = editor.toPlainText()
     assert editor_text == ' pass \nTEST \nTest \ntesT '
 
