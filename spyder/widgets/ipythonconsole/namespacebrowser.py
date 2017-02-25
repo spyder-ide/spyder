@@ -71,18 +71,19 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def get_value(self, name):
         """Ask kernel for a value"""
         # Wait until the kernel returns the value
-        wait_loop = QEventLoop()
-        self.sig_got_reply.connect(wait_loop.quit)
         if self._reading:
-            self.kernel_client.input(u"!get_ipython().kernel.get_value('%s')" %
-                                     name)
+            self.silent_exec_input(u"!get_ipython().kernel.get_value('%s')" %
+                                   name)
         else:
-            self.silent_execute(u"get_ipython().kernel.get_value('%s')" % name)
-        wait_loop.exec_()
+            wait_loop = QEventLoop()
+            self.sig_got_reply.connect(wait_loop.quit)
+            self.silent_execute(u"get_ipython().kernel.get_value('%s')" %
+                                name)
+            wait_loop.exec_()
 
-        # Remove loop connection and loop
-        self.sig_got_reply.disconnect(wait_loop.quit)
-        wait_loop = None
+            # Remove loop connection and loop
+            self.sig_got_reply.disconnect(wait_loop.quit)
+            wait_loop = None
 
         # Handle exceptions
         if self._kernel_value is None:
@@ -159,7 +160,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             if isinstance(value, CannedObject):
                 value = value.get_object()
             self._kernel_value = value
-            self.sig_got_reply.emit()
+            if self._reading:
+                self.sig_input_reply.emit()
+            else:
+                self.sig_got_reply.emit()
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):
