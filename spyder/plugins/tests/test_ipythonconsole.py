@@ -35,7 +35,7 @@ def open_client_from_connection_info(connection_info, qtbot):
             qtbot.keyClick(w, Qt.Key_Enter)
 
 
-def restart_kernel(qtbot):
+def pass_qmessagebox(qtbot):
     top_level_widgets = QApplication.topLevelWidgets()
     for w in top_level_widgets:
         if isinstance(w, QMessageBox):
@@ -60,6 +60,47 @@ def ipyconsole(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
+    """
+    Test that clear and reset magics are working while debugging
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a traceback and enter debugging mode
+    shell.execute('1/0')
+    qtbot.wait(500)
+    shell.execute('%debug')
+    qtbot.wait(500)
+
+    # Test clear magic
+    qtbot.keyClick(control, Qt.Key_L, modifier=Qt.ControlModifier)
+    qtbot.wait(500)
+    assert '\nipdb> ' == control.toPlainText()
+
+    # Test reset magic
+    qtbot.keyClicks(control, '!bb = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+    assert shell.get_value('bb') == 10
+
+    QTimer.singleShot(1000, lambda: pass_qmessagebox(qtbot))
+    qtbot.keyClick(control, Qt.Key_R, modifier=(Qt.ControlModifier | Qt.AltModifier))
+    qtbot.wait(500)
+
+    qtbot.keyClicks(control, '!bb')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    assert "*** NameError: name 'bb' is not defined" in control.toPlainText()
+
+
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_restart_kernel(ipyconsole, qtbot):
     """
@@ -75,7 +116,7 @@ def test_restart_kernel(ipyconsole, qtbot):
 
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
-    QTimer.singleShot(1000, lambda: restart_kernel(qtbot))
+    QTimer.singleShot(1000, lambda: pass_qmessagebox(qtbot))
     client.restart_kernel()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
