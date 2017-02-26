@@ -139,12 +139,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     #------ Public API --------------------------------------------------------
     @property
+    def kernel_id(self):
+        """Get kernel id"""
+        if self.connection_file is not None:
+            json_file = osp.basename(self.connection_file)
+            return json_file.split('.json')[0]
+
+    @property
     def stderr_file(self):
         """Filename to save kernel stderr output."""
-        json_file = osp.basename(self.connection_file)
-        stderr_file = json_file.split('json')[0] + 'stderr'
-        stderr_file = osp.join(TEMPDIR, stderr_file)
-        return stderr_file
+        if self.connection_file is not None:
+            stderr_file = self.kernel_id + '.stderr'
+            stderr_file = osp.join(TEMPDIR, stderr_file)
+            return stderr_file
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
