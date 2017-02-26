@@ -77,18 +77,7 @@ class DebuggingWidget(RichJupyterWidget):
 
     def write_to_stdin(self, line):
         """Send raw characters to the IPython kernel through stdin"""
-        wait_loop = QEventLoop()
-        self.kernel_client.iopub_channel.flush()
-        self.sig_prompt_ready.connect(wait_loop.quit)
         self.kernel_client.input(line)
-        wait_loop.exec_()
-
-        # Remove loop connection and loop
-        self.sig_prompt_ready.disconnect(wait_loop.quit)
-        wait_loop = None
-
-        # Run post exec commands
-        self._post_exec_input(line)
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into a debugging session"""
@@ -103,17 +92,6 @@ class DebuggingWidget(RichJupyterWidget):
         self.kernel_client.input(code)
 
     # ---- Private API (defined by us) -------------------------------
-    def _post_exec_input(self, line):
-        """Commands to be run after writing to stdin"""
-        if self._reading:
-            pdb_commands = ['next', 'continue', 'step', 'return']
-            if any([x == line for x in pdb_commands]):
-                # To open the file where the current pdb frame points to
-                self.silent_exec_input("!get_ipython().kernel.get_pdb_step()")
-
-                # To refresh the Variable Explorer
-                self.refresh_namespacebrowser()
-
     def _load_pdb_state(self):
         """
         Load Pdb state saved to disk after running any pdb command.
@@ -144,21 +122,11 @@ class DebuggingWidget(RichJupyterWidget):
     # ---- Private API (overrode by us) -------------------------------
     def _handle_input_request(self, msg):
         """
-        Reimplemented to be able to handle requests when we ask for
-        hidden inputs
+        Reimplemented to refresh the Variable Explorer and the Editor
+        after every Pdb command.
         """
-        self.kernel_client.iopub_channel.flush()
-        if not self._hidden:
-            def callback(line):
-                self.kernel_client.input(line)
-            if self._reading:
-                self._reading = False
-            self._readline(msg['content']['prompt'], callback=callback,
-                           password=msg['content']['password'])
-        else:
-            # This is what we added, i.e. not doing anything if
-            # Spyder asks for silent inputs
-            pass
+        super(DebuggingWidget, self)._handle_input_request(msg)
+        self._refresh_from_pdb()
 
     def _handle_stream(self, msg):
         """
