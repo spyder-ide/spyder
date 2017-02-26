@@ -21,6 +21,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
+from spyder.utils.programs import is_module_installed
 
 
 #==============================================================================
@@ -198,7 +199,8 @@ def test_run_code(main_window, qtbot):
     main_window.editor.close_file()
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
+                    reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -211,6 +213,10 @@ def test_run_cython_code(main_window, qtbot):
 
     # Get a reference to the code editor widget
     code_editor = main_window.editor.get_focus_widget()
+    
+    # Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
+    # before import and eval it
+    COMPILE_AND_EVAL_TIMEOUT=30000
 
     # ---- Run pyx file ----
     # Load test file
@@ -224,7 +230,8 @@ def test_run_cython_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+                    timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 10
@@ -245,7 +252,8 @@ def test_run_cython_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3, timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+                    timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
     assert shell.get_value('a') == 4.0
