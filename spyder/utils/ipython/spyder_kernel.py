@@ -83,7 +83,7 @@ class SpyderKernel(IPythonKernel):
             return {}
 
     # -- Public API ---------------------------------------------------
-    # For the Variable Explorer
+    # --- For the Variable Explorer
     def get_namespace_view(self):
         """
         Return the namespace view
@@ -328,6 +328,12 @@ class SpyderKernel(IPythonKernel):
     def _register_pdb_session(self, pdb_obj):
         """Register Pdb session to use it later"""
         self._pdb_obj = pdb_obj
+
+    def _set_spyder_breakpoints(self):
+        """Set all Spyder breakpoints in an active pdb session"""
+        if not self._pdb_obj:
+            return
+        self._pdb_obj.set_spyder_breakpoints()
 
     # --- For the Help plugin
     def _eval(self, text):

@@ -236,7 +236,6 @@ DEFAULTS = [
               'occurrence_highlighting': True,
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
-              'fullpath_sorting': True,
               'show_tab_bar': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
@@ -660,7 +659,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '32.0.0'
+CONF_VERSION = '33.0.0'
 
 # Main configuration instance
 try:

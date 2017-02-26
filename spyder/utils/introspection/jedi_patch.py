@@ -28,8 +28,11 @@ def apply():
         raise ImportError("jedi %s can't be patched" % jedi.__version__)
 
     # [1] Adding numpydoc type returns to docstrings
-    from spyder.utils.introspection import docstrings
-    jedi.evaluate.representation.docstrings = docstrings
+    from spyder.utils.introspection import numpy_docstr
+    jedi.evaluate.representation.docstrings._search_param_in_numpydocstr = \
+        numpy_docstr._search_param_in_numpydocstr
+    jedi.evaluate.representation.docstrings.find_return_types = \
+        numpy_docstr.find_return_types
 
     # [2] Adding type returns for compiled objects in jedi
     # Patching jedi.evaluate.compiled.CompiledObject...
@@ -42,8 +45,8 @@ def apply():
             if self.type != 'funcdef':
                 return
             # patching docstrings here
-            from spyder.utils.introspection import docstrings
-            types = docstrings.find_return_types(evaluator, self)
+            from spyder.utils.introspection import numpy_docstr
+            types = numpy_docstr.find_return_types(evaluator, self)
             if types:
                 for result in types:
                     debug.dbg('docstrings type return: %s in %s', result, self)
@@ -111,7 +114,7 @@ def apply():
     # [4] Fixing introspection for matplotlib Axes objects
     # Patching jedi.evaluate.precedence...
     from jedi.evaluate.representation import (
-        tree, InstanceName, Instance, compiled, FunctionExecution, InstanceElement)
+        InstanceName, Instance, compiled, FunctionExecution, InstanceElement)
 
     def get_instance_el(evaluator, instance, var, is_class_var=False):
         """

@@ -119,15 +119,18 @@ MAIN_APP = qapplication()
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV
-SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg'), 'svg'))
-SPLASH_FONT = SPLASH.font()
-SPLASH_FONT.setPixelSize(10)
-SPLASH.setFont(SPLASH_FONT)
-SPLASH.show()
-SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
-                   Qt.AlignAbsolute, QColor(Qt.white))
-QApplication.processEvents()
+from spyder.config.base import _, get_image_path, DEV, PYTEST
+if not PYTEST:
+    SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
+    SPLASH_FONT = SPLASH.font()
+    SPLASH_FONT.setPixelSize(10)
+    SPLASH.setFont(SPLASH_FONT)
+    SPLASH.show()
+    SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
+                    Qt.AlignAbsolute, QColor(Qt.white))
+    QApplication.processEvents()
+else:
+    SPLASH = None
 
 
 #==============================================================================
@@ -216,22 +219,6 @@ def get_focus_python_shell():
         return widget.shell
 
 
-def get_focus_widget_properties():
-    """Get properties of focus widget
-    Returns tuple (widget, properties) where properties is a tuple of
-    booleans: (is_console, not_readonly, readwrite_editor)"""
-    widget = QApplication.focusWidget()
-    from spyder.widgets.shell import ShellBaseWidget
-    from spyder.widgets.editor import TextEditBaseWidget
-    textedit_properties = None
-    if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-        console = isinstance(widget, ShellBaseWidget)
-        not_readonly = not widget.isReadOnly()
-        readwrite_editor = not_readonly and not console
-        textedit_properties = (console, not_readonly, readwrite_editor)
-    return widget, textedit_properties
-
-
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -280,8 +267,6 @@ class MainWindow(QMainWindow):
         self.open_project = options.open_project
 
         self.debug_print("Start of MainWindow constructor")
-        
-        self.setFocusPolicy(Qt.StrongFocus)
 
         def signal_handler(signum, frame=None):
             """Handler for signals."""
@@ -502,6 +487,7 @@ class MainWindow(QMainWindow):
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
+        self.previous_focused_widget = None
 
         # Server to open external files on a single instance
         self.open_files_server = socket.socket(socket.AF_INET,
@@ -1135,7 +1121,8 @@ class MainWindow(QMainWindow):
                 menu_object.aboutToHide.connect(
                     lambda name=name: self.hide_shortcuts(name))
 
-        self.splash.hide()
+        if self.splash is not None:
+            self.splash.hide()
 
         # Enabling tear off for all menus except help menu
         if CONF.get('main', 'tear_off_menus'):
@@ -1146,7 +1133,10 @@ class MainWindow(QMainWindow):
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
-                child.aboutToShow.connect(self.update_edit_menu)
+                try:
+                    child.aboutToShow.connect(self.update_edit_menu)
+                except TypeError:
+                    pass
 
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
@@ -1956,15 +1946,32 @@ class MainWindow(QMainWindow):
                 if element._shown_shortcut is not None:
                     element.setShortcut(QKeySequence())
 
+    def get_focus_widget_properties(self):
+        """Get properties of focus widget
+        Returns tuple (widget, properties) where properties is a tuple of
+        booleans: (is_console, not_readonly, readwrite_editor)"""
+        widget = QApplication.focusWidget()
+        from spyder.widgets.shell import ShellBaseWidget
+        from spyder.widgets.editor import TextEditBaseWidget
+        from spyder.widgets.ipythonconsole import ControlWidget
+
+        # if focused widget isn't valid try the last focused
+        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                                   ControlWidget)):
+            widget = self.previous_focused_widget
+
+        textedit_properties = None
+        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                               ControlWidget)):
+            console = isinstance(widget, (ShellBaseWidget, ControlWidget))
+            not_readonly = not widget.isReadOnly()
+            readwrite_editor = not_readonly and not console
+            textedit_properties = (console, not_readonly, readwrite_editor)
+        return widget, textedit_properties
+
     def update_edit_menu(self):
         """Update edit menu"""
-        if self.menuBar().hasFocus():
-            return
-        # Disabling all actions to begin with
-        for child in self.edit_menu.actions():
-            child.setEnabled(False)
-
-        widget, textedit_properties = get_focus_widget_properties()
+        widget, textedit_properties = self.get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -1973,6 +1980,10 @@ class MainWindow(QMainWindow):
         # Editor has focus and there is no file opened in it
         if not console and not_readonly and not self.editor.is_file_opened():
             return
+
+        # Disabling all actions to begin with
+        for child in self.edit_menu.actions():
+            child.setEnabled(False)
 
         self.selectall_action.setEnabled(True)
 
@@ -1999,9 +2010,12 @@ class MainWindow(QMainWindow):
         if self.menuBar().hasFocus():
             return
 
-        widget, textedit_properties = get_focus_widget_properties()
+        widget, textedit_properties = self.get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
-            action.setEnabled(self.editor.isAncestorOf(widget))
+            try:
+                action.setEnabled(self.editor.isAncestorOf(widget))
+            except RuntimeError:
+                pass
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -2060,6 +2074,8 @@ class MainWindow(QMainWindow):
 
     def set_splash(self, message):
         """Set splash message"""
+        if self.splash is None:
+            return
         if message:
             self.debug_print(message)
         self.splash.show()
@@ -2096,12 +2112,6 @@ class MainWindow(QMainWindow):
         # To be used by the tour to be able to move
         self.sig_moved.emit(event)
 
-    def focusInEvent(self, event):
-        """Reimplement Qt method."""
-        QMainWindow.focusInEvent(self, event)
-        if self.hasFocus():
-            self.tour.gain_focus()
-
     def hideEvent(self, event):
         """Reimplement Qt method"""
         for plugin in self.widgetlist:
@@ -2116,6 +2126,8 @@ class MainWindow(QMainWindow):
             self.last_focused_widget = QApplication.focusWidget()
         elif now is not None:
             self.last_focused_widget = now
+
+        self.previous_focused_widget =  old
 
     def closing(self, cancelable=False):
         """Exit tasks"""
@@ -2180,6 +2192,7 @@ class MainWindow(QMainWindow):
         self.maximize_action.setToolTip(tip)
 
     @Slot()
+    @Slot(bool)
     def maximize_dockwidget(self, restore=False):
         """Shortcut: Ctrl+Alt+Shift+M
         First call: maximize current dockwidget
@@ -2366,6 +2379,11 @@ class MainWindow(QMainWindow):
         action = self.sender()
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.widgets.editor import TextEditBaseWidget
+
+        # if focused widget isn't valid try the last focused^M
+        if not isinstance(widget, TextEditBaseWidget):
+            widget = self.previous_focused_widget
+
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
 
@@ -2913,7 +2931,8 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    app.exec_()
+    if not PYTEST:
+        app.exec_()
     return main
 
 
@@ -2954,7 +2973,8 @@ def main():
     # Show crash dialog
     if CONF.get('main', 'crash', False) and not DEV:
         CONF.set('main', 'crash', False)
-        SPLASH.hide()
+        if SPLASH is not None:
+            SPLASH.hide()
         QMessageBox.information(None, "Spyder",
             "Spyder crashed during last session.<br><br>"
             "If Spyder does not start at all and <u>before submitting a "
@@ -2991,7 +3011,8 @@ def main():
         traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
         # An exception occured
-        SPLASH.hide()
+        if SPLASH is not None:
+            SPLASH.hide()
         return
 
     ORIGINAL_SYS_EXIT()

@@ -23,7 +23,8 @@ else:
     INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
 
 
-@pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
+@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
+                    reason='gets stuck on Windows and fails sometimes locally') # FIXME
 def test_run_python_script_in_terminal(tmpdir, qtbot):
     scriptpath = tmpdir.join('write-done.py')
     outfilepath = tmpdir.join('out.txt')
@@ -37,7 +38,8 @@ def test_run_python_script_in_terminal(tmpdir, qtbot):
     assert res == 'done'
 
 
-@pytest.mark.skipif(os.name == 'nt', reason='gets stuck on Windows') # FIXME
+@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
+                    reason='gets stuck on Windows and fails sometimes locally') # FIXME
 def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     scriptpath = tmpdir.join('write-done.py')
     outfilepath = tmpdir.join('out.txt')
@@ -50,13 +52,13 @@ def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
     assert res == 'done'
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) == True,
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason='It only runs in CI services.')
 def test_is_valid_interpreter():
     assert is_python_interpreter(VALID_INTERPRETER)
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) == True,
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason='It only runs in CI services.')
 def test_is_invalid_interpreter():
     assert not is_python_interpreter(INVALID_INTERPRETER)

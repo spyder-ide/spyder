@@ -1919,6 +1919,7 @@ class CodeEditor(TextEditBaseWidget):
         diff_curly = 0
         add_indent = False
         prevline = None
+        prevtext = ""
         for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
@@ -1985,9 +1986,36 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     correct_indent -= len(self.indent_chars)
             elif len(re.split(r'\(|\{|\[', prevtext)) > 1:
+
+                # Check if all braces are matching using a stack
+                stack = ['dummy']  # Dummy elemet to avoid index errors
+                deactivate = None
+                for c in prevtext:
+                    if deactivate is not None:
+                        if c == deactivate:
+                            deactivate = None
+                    elif c in ["'", '"']:
+                        deactivate = c
+                    elif c in ['(', '[','{']:
+                        stack.append(c)
+                    elif c == ')' and stack[-1] == '(':
+                        stack.pop()
+                    elif c == ']' and stack[-1] == '[':
+                        stack.pop()
+                    elif c == '}' and stack[-1] == '{':
+                        stack.pop()
+
+                if len(stack) == 1:  # all braces matching
+                    pass
+
                 # Hanging indent
                 # find out if the last one is (, {, or []})
-                if re.search(r'[\(|\{|\[]\s*$', prevtext) is not None:
+                # only if prevtext is long that the hanging indentation
+                elif (re.search(r'[\(|\{|\[]\s*$', prevtext) is not None and
+                      ((self.indent_chars == '\t' and
+                        self.tab_stop_width_spaces * 2 < len(prevtext)) or
+                       (self.indent_chars.startswith(' ') and
+                        len(self.indent_chars) * 2 < len(prevtext)))):
                     if self.indent_chars == '\t':
                         correct_indent += self.tab_stop_width_spaces * 2
                     else:
@@ -2014,7 +2042,7 @@ class CodeEditor(TextEditBaseWidget):
                                 correct_indent = len(prevtext)
 
         if not (diff_paren or diff_brack or diff_curly) and \
-           not prevtext.endswith(':'):
+           not prevtext.endswith(':') and prevline:
             cur_indent = self.get_block_indentation(block_nb - 1)
             is_blank = not self.get_text_line(block_nb - 1).strip()
             prevline_indent = self.get_block_indentation(prevline)
@@ -2037,6 +2065,9 @@ class CodeEditor(TextEditBaseWidget):
         if correct_indent >= 0:
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
+            if self.indent_chars == '\t':
+                indent = indent // self.tab_stop_width_spaces \
+                + correct_indent % self.tab_stop_width_spaces
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
@@ -2365,9 +2396,11 @@ class CodeEditor(TextEditBaseWidget):
         self.setTextCursor(cursor)
 
     #------Autoinsertion of quotes/colons
-    def __get_current_color(self):
+    def __get_current_color(self, cursor=None):
         """Get the syntax highlighting color for the current cursor position"""
-        cursor = self.textCursor()
+        if cursor is None:
+            cursor = self.textCursor()
+
         block = cursor.block()
         pos = cursor.position() - block.position()  # relative pos within block
         layout = block.layout()
@@ -2382,15 +2415,21 @@ class CodeEditor(TextEditBaseWidget):
                 for fmt in block_formats:
                     if (pos >= fmt.start) and (pos < fmt.start + fmt.length):
                         current_format = fmt.format
+                if current_format is None:
+                    return None
             color = current_format.foreground().color().name()
             return color
         else:
             return None
 
-    def in_comment_or_string(self):
+    def in_comment_or_string(self, cursor=None):
         """Is the cursor inside or next to a comment or string?"""
         if self.highlighter:
-            current_color = self.__get_current_color()
+            if cursor is None:
+                current_color = self.__get_current_color()
+            else:
+                current_color = self.__get_current_color(cursor=cursor)
+
             comment_color = self.highlighter.get_color_name('comment')
             string_color = self.highlighter.get_color_name('string')
             if (current_color == comment_color) or (current_color == string_color):
@@ -2698,7 +2737,20 @@ class CodeEditor(TextEditBaseWidget):
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
-                    cmt_or_str = self.in_comment_or_string()
+                    # Check if we're in a comment or a string at the
+                    # current position
+                    cmt_or_str_cursor = self.in_comment_or_string()
+
+                    # Check if the line start with a comment or string
+                    cursor = self.textCursor()
+                    cursor.setPosition(cursor.block().position(),
+                                       QTextCursor.KeepAnchor)
+                    cmt_or_str_line_begin = self.in_comment_or_string(
+                                                cursor=cursor)
+
+                    # Check if we are in a comment or a string
+                    cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
+
                     self.textCursor().beginEditBlock()
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)

@@ -632,6 +632,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cur
         self.__restore_selection(start_pos, end_pos)
+        if text is not None:
+            text = text.rstrip()
         return text
 
     def get_cell_as_executable_code(self):
