@@ -157,10 +157,6 @@ the sympy module (e.g. plot)
             if reply == QMessageBox.Yes:
                 if self._reading:
                     self.dbg_exec_magic('reset', '-f')
-                    # Clean nsb manually because we don't know when the
-                    # previous command will return
-                    self.namespacebrowser.process_remote_view({})
-                    self.namespacebrowser.set_var_properties({})
                 else:
                     self.execute("%reset -f")
         else:
