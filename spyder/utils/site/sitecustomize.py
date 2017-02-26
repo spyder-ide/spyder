@@ -552,6 +552,7 @@ class SpyderPdb(pdb.Pdb):
                     if ipython_shell:
                         step = dict(fname=fname, lineno=lineno)
                         ipython_shell.kernel._pdb_step = step
+                        ipython_shell.kernel.dump_pdb_state()
                 elif monitor is not None:
                     monitor.notify_pdb_step(fname, lineno)
                     time.sleep(0.1)
