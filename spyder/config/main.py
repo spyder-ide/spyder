@@ -57,10 +57,9 @@ CTRL = "Meta" if MAC else "Ctrl"
 # Run cell shortcuts
 if sys.platform == 'darwin':
     RUN_CELL_SHORTCUT = 'Meta+Return'
-    RE_RUN_LAST_CELL_SHORTCUT = 'Meta+Shift+R'
 else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
-    RE_RUN_LAST_CELL_SHORTCUT = 'Ctrl+Shift+R'
+RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Shift+R'
 RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
 
 
