@@ -10,12 +10,15 @@ mode and Spyder
 """
 
 import ast
+import os.path as osp
+import pickle
 
 from qtpy.QtCore import QEventLoop
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.py3compat import to_text_string
+from spyder.utils.programs import TEMPDIR
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -27,6 +30,7 @@ class DebuggingWidget(RichJupyterWidget):
 
     _input_reply = {}
     _input_reply_failed = False
+    _pdb_state = {}
 
     # --- Public API --------------------------------------------------
     def silent_exec_input(self, code):
@@ -109,6 +113,18 @@ class DebuggingWidget(RichJupyterWidget):
 
                 # To refresh the Variable Explorer
                 self.refresh_namespacebrowser()
+
+    def _load_pdb_state(self):
+        """
+        Load Pdb state saved to disk after running any pdb command.
+
+        See dump_pdb_state in utils/ipython/spyder_kernel.py and
+        notify_spyder in utils/site/sitecustomize.py and
+        """
+        filename = osp.join(TEMPDIR, self.ipyclient.kernel_id +
+                            '-pdb_state.pkl')
+        with open(filename, 'rb') as f:
+            self._pdb_state = pickle.load(f)
 
     # ---- Private API (overrode by us) -------------------------------
     def _handle_input_request(self, msg):
