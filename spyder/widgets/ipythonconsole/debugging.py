@@ -126,6 +126,21 @@ class DebuggingWidget(RichJupyterWidget):
         with open(filename, 'rb') as f:
             self._pdb_state = pickle.load(f)
 
+    def _refresh_from_pdb(self):
+        """Refresh Variable Explorer and Editor from a Pdb session."""
+        self._load_pdb_state()
+
+        if 'step' in self._pdb_state and 'fname' in self._pdb_state['step']:
+            fname = self._pdb_state['step']['fname']
+            lineno = self._pdb_state['step']['lineno']
+            self.sig_pdb_step.emit(fname, lineno)
+
+        if 'namespace_view' in self._pdb_state:
+            self.sig_namespace_view.emit(self._pdb_state['namespace_view'])
+
+        if 'var_properties' in self._pdb_state:
+            self.sig_var_properties.emit(self._pdb_state['var_properties'])
+
     # ---- Private API (overrode by us) -------------------------------
     def _handle_input_request(self, msg):
         """
