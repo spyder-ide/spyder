@@ -57,8 +57,11 @@ class DebuggingWidget(RichJupyterWidget):
         """
         filename = osp.join(TEMPDIR, self.ipyclient.kernel_id +
                             '-pdb_state.pkl')
-        with open(filename, 'rb') as f:
-            self._pdb_state = pickle.load(f)
+        try:
+            with open(filename, 'rb') as f:
+                self._pdb_state = pickle.load(f)
+        except IOError:
+            pass
 
     def _refresh_from_pdb(self):
         """Refresh Variable Explorer and Editor from a Pdb session."""
