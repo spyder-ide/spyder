@@ -537,6 +537,12 @@ class SpyderPdb(pdb.Pdb):
     def notify_spyder(self, frame):
         if not frame:
             return
+
+        if IS_IPYKERNEL:
+            from IPython.core.getipython import get_ipython
+            ipython_shell = get_ipython()
+
+        # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
         if PY2:
             try:
@@ -544,18 +550,22 @@ class SpyderPdb(pdb.Pdb):
             except TypeError:
                 pass
         lineno = frame.f_lineno
+
+        # Set step of the current frame (if any)
+        step = {}
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname):
-                if IS_IPYKERNEL:
-                    from IPython.core.getipython import get_ipython
-                    ipython_shell = get_ipython()
-                    if ipython_shell:
-                        step = dict(fname=fname, lineno=lineno)
-                        ipython_shell.kernel._pdb_step = step
-                        ipython_shell.kernel.dump_pdb_state()
+                if ipython_shell:
+                    step = dict(fname=fname, lineno=lineno)
                 elif monitor is not None:
                     monitor.notify_pdb_step(fname, lineno)
                     time.sleep(0.1)
+
+        # Dump Pdb state to a file so we can read it from the
+        # Spyder side
+        if ipython_shell:
+            ipython_shell.kernel._pdb_step = step
+            ipython_shell.kernel.dump_pdb_state()
 
 pdb.Pdb = SpyderPdb
 
