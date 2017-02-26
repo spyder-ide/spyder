@@ -37,10 +37,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
 
     # For DebuggingWidget
-    sig_input_reply = Signal()
     sig_pdb_step = Signal(str, int)
-    sig_prompt_ready = Signal()
-    sig_dbg_kernel_restart = Signal()
 
     # For ShellWidget
     focus_changed = Signal()

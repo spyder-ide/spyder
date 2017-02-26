@@ -57,15 +57,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def refresh_namespacebrowser(self):
         """Refresh namespace browser"""
         if self.namespacebrowser:
-            codes = [u'get_ipython().kernel.get_namespace_view()',
-                     u'get_ipython().kernel.get_var_properties()']
-            if self._reading:
-                method = self.silent_exec_input
-                codes = [u'!' + c for c in codes]
-            else:
-                method = self.silent_exec_method
-            for code in codes:
-                method(code)
+            self.silent_exec_method(
+                'get_ipython().kernel.get_namespace_view()')
+            self.silent_exec_method(
+                'get_ipython().kernel.get_var_properties()')
 
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
