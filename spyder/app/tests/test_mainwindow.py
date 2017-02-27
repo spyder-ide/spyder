@@ -203,6 +203,7 @@ def test_run_code(main_window, qtbot):
                     reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
+    print('Cython installed', is_module_installed('Cython'))
     # ---- Setup ----
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -230,7 +231,7 @@ def test_run_cython_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
@@ -252,7 +253,7 @@ def test_run_cython_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
 
     # Wait until all objects have appeared in the variable explorer
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
