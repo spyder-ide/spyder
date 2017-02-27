@@ -202,8 +202,7 @@ def test_run_code(main_window, qtbot):
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
                     reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
-    """Test all the different ways we have to run code"""
-    print('Cython installed', is_module_installed('Cython'))
+    """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
