@@ -2645,7 +2645,7 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=QKeySequence(RUN_CELL_AND_ADVANCE_SHORTCUT),
             triggered=self.run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
-            self, _("Re-run last cell"), icon=ima.icon('re_run_last_cell'),
+            self, _("Re-run last cell"), icon=ima.icon('run_cell'),
             shortcut=get_shortcut('editor', 're-run last cell'),
             triggered=self.re_run_last_cell.emit)
         self.run_selection_action = create_action(

@@ -842,7 +842,7 @@ class Editor(SpyderPluginWidget):
 
         re_run_last_cell_action = create_action(self,
                    _("Re-run last cell"),
-                   icon=ima.icon('re_run_last_cell'),
+                   icon=ima.icon('run_cell'),
                    tip=_("Re run last cell "),
                    triggered=self.re_run_last_cell,
                    context=Qt.WidgetShortcut)
