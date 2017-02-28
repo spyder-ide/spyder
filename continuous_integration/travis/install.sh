@@ -61,14 +61,10 @@ install_conda()
 install_pip()
 {
     # Install PyQt5
-    conda install 'pyqt>=5.6.0';
+    pip install pyqt5;
 
     # Install testing packages
-    pip install pytest pytest-cov pytest-qt mock
-
-    # Install extra packages
-    EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
-    pip install $EXTRA_PACKAGES
+    pip install -e .[test]
 }
 
 
