@@ -26,6 +26,9 @@ if [ "$USE_CONDA" = true ] ; then
 else
     cd $FULL_SPYDER_CLONE
     pip install dist/spyder-*.whl
+
+    # Install testing packages
+    pip install -e .[test]
 fi
 
 

@@ -62,9 +62,6 @@ install_pip()
 {
     # Install PyQt5
     pip install pyqt5;
-
-    # Install testing packages
-    pip install -e .[test]
 }
 
 
