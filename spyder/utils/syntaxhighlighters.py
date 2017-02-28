@@ -558,7 +558,7 @@ class CythonSH(PythonSH):
     ADDITIONAL_KEYWORDS = [
         "cdef", "ctypedef", "cpdef", "inline", "cimport", "extern",
 	"include", "begin", "end", "by", "gil", "nogil", "const", "public",
-	"readonly", "fused ", "static", "api", "DEF", "IF", "ELIF", "ELSE"]
+	"readonly", "fused", "static", "api", "DEF", "IF", "ELIF", "ELSE"]
 	
     ADDITIONAL_BUILTINS = C_TYPES.split() + [
         "array", "bint", "Py_ssize_t", "intern", "reload", "sizeof"]
