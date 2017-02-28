@@ -551,7 +551,7 @@ class PythonSH(BaseSH):
 #==============================================================================
 # Cython syntax highlighter
 #==============================================================================
-C_TYPES = 'bool char double enum float int long mutable short signed struct unsigned void NULL'
+C_TYPES = 'bool char double enum float int long mutable short signed struct unsigned void'
 
 class CythonSH(PythonSH):
     """Cython Syntax Highlighter"""
@@ -561,7 +561,7 @@ class CythonSH(PythonSH):
 	"readonly", "fused", "static", "api", "DEF", "IF", "ELIF", "ELSE"]
 	
     ADDITIONAL_BUILTINS = C_TYPES.split() + [
-        "array", "bint", "Py_ssize_t", "intern", "reload", "sizeof"]
+        "array", "bint", "Py_ssize_t", "intern", "reload", "sizeof", "NULL"]
     PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
                                            ADDITIONAL_BUILTINS), re.S)
     IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
