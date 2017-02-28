@@ -1,3 +1,3 @@
-import pyx_lib
+import pyx_script
 
-a = pyx_lib.f(2.0)
+b = pyx_script.factorial(10)
