@@ -899,7 +899,10 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
     if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
         # Cython files
         with open(filename, 'rt') as f:
-            cython_inline(f.read(), globals=namespace, quiet=True)
+            if IS_IPYKERNEL:
+                from IPython.core.getipython import get_ipython
+                ipython_shell = get_ipython()
+                ipython_shell.run_cell_magic('cython', '', f.read())
     else:
         execfile(filename, namespace)
 
