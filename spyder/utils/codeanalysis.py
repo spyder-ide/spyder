@@ -92,7 +92,7 @@ dependencies.add("pyflakes", _("Real-time code analysis on the Editor"),
                  required_version=PYFLAKES_REQVER)
 
 PEP8_REQVER = '>=0.6'
-dependencies.add("pep8", _("Real-time code style analysis on the Editor"),
+dependencies.add("pycodestyle", _("Real-time code style analysis on the Editor"),
                  required_version=PEP8_REQVER)
 
 
@@ -167,7 +167,7 @@ def check(args, source_code, filename=None, options=None):
 def check_with_pep8(source_code, filename=None):
     """Check source code with pep8"""
     try:
-        args = get_checker_executable('pep8')
+        args = get_checker_executable('pycodestyle')
         results = check(args, source_code, filename=filename, options=['-r'])
     except Exception:
         # Never return None to avoid lock in spyder/widgets/editor.py
