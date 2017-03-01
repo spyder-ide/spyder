@@ -83,7 +83,7 @@ def main_window(request):
 #==============================================================================
 # Tests
 #==============================================================================
-#@flaky(max_runs=10)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
                     reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):

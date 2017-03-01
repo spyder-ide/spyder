@@ -9,14 +9,15 @@
 # Spyder consoles sitecustomize
 #
 
-import sys
+import bdb
+import io
 import os
 import os.path as osp
 import pdb
-import bdb
+import shlex
+import sys
 import time
 import traceback
-import shlex
 
 
 PY2 = sys.version[0] == '2'
@@ -898,7 +899,7 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         set_post_mortem()
     if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
         # Cython files
-        with open(filename, 'rt') as f:
+        with io.open(filename, encoding='utf-8') as f:
             if IS_IPYKERNEL:
                 from IPython.core.getipython import get_ipython
                 ipython_shell = get_ipython()
