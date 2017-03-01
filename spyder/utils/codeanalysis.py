@@ -117,7 +117,7 @@ def get_checker_executable(name):
             return [sys.executable, path1]
         elif path2 is not None:  # checker.py is available
             # Checker package is available but its script has not been
-            # installed (this works with pep8 but not with pyflakes)
+            # installed (this works with pycodestyle but not with pyflakes)
             return [sys.executable, path2]
 
 
@@ -129,7 +129,7 @@ def check(args, source_code, filename=None, options=None):
     if options is not None:
         args += options
     if any(['pyflakes' in arg for arg in args]):
-        #  Pyflakes requires an ending new line (pep8 don't! -- see Issue 1123)
+        #  Pyflakes requires an ending new line (pycodestyle don't! -- see Issue 1123)
         #  Note: this code is not used right now as it is faster to invoke 
         #  pyflakes in current Python interpreter (see `check_with_pyflakes` 
         #  function above) than calling it through a subprocess
@@ -165,7 +165,7 @@ def check(args, source_code, filename=None, options=None):
 
 
 def check_with_pep8(source_code, filename=None):
-    """Check source code with pep8"""
+    """Check source code with pycodestyle"""
     try:
         args = get_checker_executable('pycodestyle')
         results = check(args, source_code, filename=filename, options=['-r'])
