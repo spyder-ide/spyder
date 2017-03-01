@@ -11,7 +11,6 @@ Spyder kernel for Jupyter
 # Standard library imports
 import os
 import os.path as osp
-import pickle
 
 # Third-party imports
 from ipykernel.datapub import publish_data
@@ -26,22 +25,18 @@ IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true
 # Local imports
 if not IS_EXT_INTERPRETER:
     from spyder.py3compat import is_text_string
-    from spyder.utils.bsdsocket import PICKLE_HIGHEST_PROTOCOL
     from spyder.utils.dochelpers import isdefined, getdoc, getsource
     from spyder.utils.iofuncs import iofunctions
     from spyder.utils.misc import fix_reference_name
-    from spyder.utils.programs import TEMPDIR
     from spyder.widgets.variableexplorer.utils import (get_remote_data,
                                                        make_remote_view)
 else:
     # We add "spyder" to sys.path for external interpreters, so this works!
     # See create_kernel_spec of plugins/ipythonconsole
     from py3compat import is_text_string
-    from utils.bsdsocket import PICKLE_HIGHEST_PROTOCOL
     from utils.dochelpers import isdefined, getdoc, getsource
     from utils.iofuncs import iofunctions
     from utils.misc import fix_reference_name
-    from utils.programs import TEMPDIR
     from widgets.variableexplorer.utils import (get_remote_data,
                                                 make_remote_view)
 
@@ -206,15 +201,16 @@ class SpyderKernel(IPythonKernel):
         """Return info about pdb current frame"""
         return self._pdb_step
 
-    def dump_pdb_state(self):
-        """Dump Variable Explorer state and Pdb step to a pickle file."""
+    def publish_pdb_state(self):
+        """
+        Publish Variable Explorer state and Pdb step through
+        publish_data.
+        """
         if self._pdb_obj:
             state = dict(namespace_view = self.get_namespace_view(),
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
-            filename = osp.join(TEMPDIR, self._kernel_id + '-pdb_state.pkl')
-            with open(filename, 'wb') as f:
-                pickle.dump(state, f, PICKLE_HIGHEST_PROTOCOL)
+            publish_data({'__spy_pdb_state__': state})
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):

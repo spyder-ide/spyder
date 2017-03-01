@@ -561,11 +561,11 @@ class SpyderPdb(pdb.Pdb):
                     monitor.notify_pdb_step(fname, lineno)
                     time.sleep(0.1)
 
-        # Dump Pdb state to a file so we can read it from the
-        # Spyder side
+        # Publish Pdb state so we can update the Variable Explorer
+        # and the Editor on the Spyder side
         if ipython_shell:
             ipython_shell.kernel._pdb_step = step
-            ipython_shell.kernel.dump_pdb_state()
+            ipython_shell.kernel.publish_pdb_state()
 
 pdb.Pdb = SpyderPdb
 
