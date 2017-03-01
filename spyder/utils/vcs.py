@@ -107,7 +107,6 @@ def get_hg_revision(repopath):
         # Split 2 times max to allow spaces in branch names.
         return tuple(output.decode().strip().split(None, 2))
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
-        # print("Error: Failed to get revision number from Mercurial - %s" % exc)
         return (None, None, None)
 
 
