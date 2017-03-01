@@ -60,6 +60,32 @@ def ipyconsole(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+def test_ctrl_c_dbg(ipyconsole, qtbot):
+    """
+    Test that Ctrl+C works while debugging
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a traceback and enter debugging mode
+    shell.execute('1/0')
+    qtbot.wait(500)
+    shell.execute('%debug')
+    qtbot.wait(500)
+
+    # Test Ctrl+C
+    qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
+    qtbot.wait(500)
+    assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
+
+
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
