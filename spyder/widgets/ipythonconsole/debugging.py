@@ -54,3 +54,28 @@ class DebuggingWidget(RichJupyterWidget):
 
         if 'var_properties' in pdb_state:
             self.sig_var_properties.emit(pdb_state['var_properties'])
+
+    # ---- Private API (overrode by us) ----------------------------
+    def _handle_input_request(self, msg):
+        """ Handle requests for raw_input.
+        """
+        if self._hidden:
+            raise RuntimeError('Request for raw input during hidden execution.')
+
+        # Make sure that all output from the SUB channel has been processed
+        # before entering readline mode.
+        self.kernel_client.iopub_channel.flush()
+
+        def callback(line):
+            # This is the Spyder addition: add a %plot magic to display
+            # plots while debugging
+            if line.startswith('%plot '):
+                line = line.split()[-1]
+                code = "__spy_code__ = get_ipython().run_cell('%s')" % line
+                self.kernel_client.input(code)
+            else:
+                self.kernel_client.input(line)
+        if self._reading:
+            self._reading = False
+        self._readline(msg['content']['prompt'], callback=callback,
+                       password=msg['content']['password'])
