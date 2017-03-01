@@ -10,11 +10,13 @@ the Variable Explorer
 """
 
 from qtpy.QtCore import QEventLoop
+from qtpy.QtWidgets import QMessageBox
 
 from ipykernel.pickleutil import CannedObject
 from ipykernel.serialize import deserialize_object
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
+from spyder.config.base import _
 from spyder.py3compat import to_text_string
 
 
@@ -123,6 +125,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self.silent_execute(code)
 
     def load_data(self, filename, ext):
+        if self._reading:
+            message = _("Loading this kind of data while debugging is not "
+                        "supported.")
+            QMessageBox.warning(self, _("Warning"), message)
+            return
         # Wait until the kernel tries to load the file
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
@@ -137,6 +144,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         return self._kernel_reply
 
     def save_namespace(self, filename):
+        if self._reading:
+            message = _("Saving data while debugging is not supported.")
+            QMessageBox.warning(self, _("Warning"), message)
+            return
         # Wait until the kernel tries to save the file
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
