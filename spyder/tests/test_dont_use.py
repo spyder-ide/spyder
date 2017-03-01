@@ -19,10 +19,17 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
 
     (r"(?<!_)print\(((?!file=).)*\)", ['.*test.*'],
      ("Don't use print functions, ",
-      "for debuging you could use debug_print instead")),
+      "for debuging you could use debug_print instead"), 62),
 ])
 def test_dont_use(pattern, exclude_patterns, message):
-    pattern = re.compile(pattern)
+    """
+    This test is used for discouraged using of some expresions that could
+    introduce errors, and encourage use spyder function instead.
+
+    If you want to skip some line from this test just use:
+        # spyder: test-skip
+    """
+    pattern = re.compile(pattern + "((?!# spyder: test-skip)\s)*$")
 
     found = 0
     for dir_name, _, file_list in os.walk(root_path):
