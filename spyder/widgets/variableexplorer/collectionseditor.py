@@ -429,8 +429,6 @@ class CollectionsDelegate(QItemDelegate):
             value = self.get_value(index)
             if value is None:
                 return None
-            if isinstance(value, Exception):
-                raise value
         except Exception as msg:
             QMessageBox.critical(self.parent(), _("Error"),
                                  _("Spyder was unable to retrieve the value of "

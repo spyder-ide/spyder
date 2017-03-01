@@ -149,13 +149,12 @@ class SpyderKernel(IPythonKernel):
         value = ns[name]
         try:
             publish_data({'__spy_data__': value})
-        except (pickle.PicklingError, pickle.PickleError):
-            # There is no need to inform users about these
-            # errors because they are the most common ones
+        except:
+            # * There is no need to inform users about
+            #   these errors.
+            # * value = None makes Spyder to ignore
+            #   petitions to display a value
             value = None
-        except Exception as e:
-            value = e
-        finally:
             publish_data({'__spy_data__': value})
 
     def set_value(self, name, value):
