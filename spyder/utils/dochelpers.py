@@ -6,8 +6,6 @@
 
 """Utilities and wrappers around inspect module"""
 
-from __future__ import print_function
-
 import inspect
 import re
 
@@ -328,17 +326,19 @@ def isdefined(obj, force_import=False, namespace=None):
     
 
 if __name__ == "__main__":
+    from spyder.config.base import debug_print
+
     class Test(object):
         def method(self, x, y=2):
             pass
-    print(getargtxt(Test.__init__))
-    print(getargtxt(Test.method))
-    print(isdefined('numpy.take', force_import=True))
-    print(isdefined('__import__'))
-    print(isdefined('.keys', force_import=True))
-    print(getobj('globals'))
-    print(getobj('globals().keys'))
-    print(getobj('+scipy.signal.'))
-    print(getobj('4.'))
-    print(getdoc(sorted))
-    print(getargtxt(sorted))
+    debug_print(getargtxt(Test.__init__))
+    debug_print(getargtxt(Test.method))
+    debug_print(isdefined('numpy.take', force_import=True))
+    debug_print(isdefined('__import__'))
+    debug_print(isdefined('.keys', force_import=True))
+    debug_print(getobj('globals'))
+    debug_print(getobj('globals().keys'))
+    debug_print(getobj('+scipy.signal.'))
+    debug_print(getobj('4.'))
+    debug_print(getdoc(sorted))
+    debug_print(getargtxt(sorted))

@@ -835,7 +835,7 @@ def test():
     table = ShortcutsTable()
     table.show()
     app.exec_()
-    print([str(s) for s in table.source_model.shortcuts])
+    debug_print([str(s) for s in table.source_model.shortcuts])
     table.check_shortcuts()
 
 if __name__ == '__main__':

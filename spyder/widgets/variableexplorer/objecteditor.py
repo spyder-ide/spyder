@@ -8,9 +8,6 @@
 Generic object editor dialog
 """
 
-# Standard library imports
-from __future__ import print_function
-
 # Third party imports
 from qtpy.QtCore import QObject
 
@@ -150,6 +147,7 @@ def test():
     """Run object editor test"""
     import datetime, numpy as np
     from spyder.pil_patch import Image
+    from spyder.config.base import debug_print
     data = np.random.random_integers(255, size=(100, 100)).astype('uint8')
     image = Image.fromarray(data)
     example = {'str': 'kjkj kj k j j kj k jkj',
@@ -167,11 +165,11 @@ def test():
             self.text = "toto"
     foobar = Foobar()
 
-    print(oedit(foobar))
-    print(oedit(example))
-    print(oedit(np.random.rand(10, 10)))
-    print(oedit(oedit.__doc__))
-    print(example)
+    debug_print(oedit(foobar))
+    debug_print(oedit(example))
+    debug_print(oedit(np.random.rand(10, 10)))
+    debug_print(oedit(oedit.__doc__))
+    debug_print(example)
 
 
 if __name__ == "__main__":

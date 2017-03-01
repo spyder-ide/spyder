@@ -548,6 +548,7 @@ def fedit(data, title="", comment="", icon=None, parent=None, apply=None):
 
 
 if __name__ == "__main__":
+    from spyder.config.base import debug_print
 
     def create_datalist_example():
         return [('str', 'this is a string'),
@@ -577,19 +578,19 @@ if __name__ == "__main__":
     #--------- datalist example
     datalist = create_datalist_example()
     def apply_test(data):
-        print("data:", data)
-    print("result:", fedit(datalist, title="Example",
+        debug_print("data:", data)
+    debug_print("result:", fedit(datalist, title="Example",
                            comment="This is just an <b>example</b>.",
                            apply=apply_test))
     
     #--------- datagroup example
     datagroup = create_datagroup_example()
-    print("result:", fedit(datagroup, "Global title"))
+    debug_print("result:", fedit(datagroup, "Global title"))
     
     #--------- datagroup inside a datagroup example
     datalist = create_datalist_example()
     datagroup = create_datagroup_example()
-    print("result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),
+    debug_print("result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),
                             (datalist, "Title 2", "Tab 2 comment"),
                             (datalist, "Title 3", "Tab 3 comment")),
                             "Global title"))
