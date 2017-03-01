@@ -618,10 +618,24 @@ def user_return(self, frame, return_value):
 def interaction(self, frame, traceback):
     self.setup(frame, traceback)
     if self.send_initial_notification:
-        self.notify_spyder(frame) #-----Spyder-specific-----------------------
+        self.notify_spyder(frame)
     self.print_stack_entry(self.stack[self.curindex])
-    self.cmdloop()
+    self._cmdloop()
     self.forget()
+
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def _cmdloop(self):
+    while True:
+        try:
+            # keyboard interrupts allow for an easy way to cancel
+            # the current command, so allow them during interactive input
+            self.allow_kbdint = True
+            self.cmdloop()
+            self.allow_kbdint = False
+            break
+        except KeyboardInterrupt:
+            self.message("--KeyboardInterrupt--\n"
+                         "For copying text while debugging, use Ctrl+Shift+C")
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def reset(self):
