@@ -251,7 +251,7 @@ def test_run_code(main_window, qtbot):
     assert nsb.editor.model.rowCount() == 1
 
     main_window.editor.close_file()
-    
+
 
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
