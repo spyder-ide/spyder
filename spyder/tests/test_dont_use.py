@@ -17,7 +17,7 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
      ("Don't use builtin isinstance() function,"
       "use spyder.py3compat.is_text_string() instead")),
 
-    (r"(?<!_)print\(.*\)", ['.*test.*'],
+    (r"(?<!_)print\(((?!file=).)*\)", ['.*test.*'],
      ("Don't use print functions, ",
       "for debuging you could use debug_print instead")),
 ])
