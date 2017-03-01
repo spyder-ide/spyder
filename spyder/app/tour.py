@@ -811,7 +811,7 @@ class FadingTipBox(FadingDialog):
         """ """
         key = event.key()
         self.key_pressed = key
-#        print(key)
+
         keys = [Qt.Key_Right, Qt.Key_Left, Qt.Key_Down, Qt.Key_Up,
                 Qt.Key_Escape, Qt.Key_PageUp, Qt.Key_PageDown,
                 Qt.Key_Home, Qt.Key_End, Qt.Key_Menu]

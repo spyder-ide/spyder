@@ -1620,7 +1620,6 @@ class MainWindow(QMainWindow):
 #            widget.setMinimumWidth(new_width)
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
-#            print(c, widgets_layout[c][0][0], new_width)
         
         # fix column height
         for c, column in enumerate(widgets_layout):
