@@ -11,6 +11,7 @@ Spyder kernel for Jupyter
 # Standard library imports
 import os
 import os.path as osp
+import pickle
 
 # Third-party imports
 from ipykernel.datapub import publish_data
@@ -146,7 +147,16 @@ class SpyderKernel(IPythonKernel):
         """Get the value of a variable"""
         ns = self._get_current_namespace()
         value = ns[name]
-        publish_data({'__spy_data__': value})
+        try:
+            publish_data({'__spy_data__': value})
+        except (pickle.PicklingError, pickle.PickleError):
+            # There is no need to inform users about these
+            # errors because they are the most common ones
+            value = None
+        except Exception as e:
+            value = e
+        finally:
+            publish_data({'__spy_data__': value})
 
     def set_value(self, name, value):
         """Set the value of a variable"""
