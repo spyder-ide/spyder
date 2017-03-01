@@ -28,7 +28,7 @@ requirements:
     - nbconvert
     - pygments
     - sphinx
-    - pep8
+    - pycodestyle
     - psutil
     - pylint
     - qtawesome >=0.4.1
