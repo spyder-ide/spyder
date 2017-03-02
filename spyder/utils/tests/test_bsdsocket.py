@@ -9,6 +9,7 @@ Tests for bsdsocket.py
 """
 
 # Standard library imports
+import os
 import socket
 
 # Test library imports
@@ -17,7 +18,9 @@ import pytest
 # Local imports
 from spyder.utils.bsdsocket import write_packet, read_packet
 
-
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="A non-blocking socket operation cannot "
+                           "be completed in Windows immediately")
 def test_bsdsockets():
     """Test write-read packet methods."""
     # socket read/write testing - client and server in one thread
