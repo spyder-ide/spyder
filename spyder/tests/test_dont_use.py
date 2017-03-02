@@ -6,6 +6,7 @@
 
 import os
 import re
+import codecs
 
 import pytest
 
@@ -39,9 +40,10 @@ def test_dont_use(pattern, exclude_patterns, message):
             if fname.endswith('.py') and not exclude:
                 file = os.path.join(dir_name, fname)
 
-                for i, line in enumerate(open(file)):
-                    for match in re.finditer(pattern, line):
-                        print("{}\nline:{}, {}".format(file, i + 1, line))
-                        found += 1
+                with codecs.open(file, encoding="utf-8") as f:
+                    for i, line in enumerate(f):
+                        for match in re.finditer(pattern, line):
+                            print("{}\nline:{}, {}".format(file, i + 1, line))
+                            found += 1
 
     assert found == 0, "{}\n{} errors found".format(message, found)
