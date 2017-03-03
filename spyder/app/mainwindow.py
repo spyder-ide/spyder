@@ -2759,9 +2759,9 @@ class MainWindow(QMainWindow):
         box.set_checkbox_text(_("Check for updates on startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
-        #The next line is commented because it freezes the dialog.
-        #For now there is then no info icon. This solves issue #3609.
-        #box.setIcon(QMessageBox.Information)
+        # The next line is commented because it freezes the dialog.
+        # For now there is then no info icon. This solves issue #3609.
+        # box.setIcon(QMessageBox.Information)
 
         # Adjust the checkbox depending on the stored configuration
         section, option = 'main', 'check_updates_on_startup'
@@ -2776,6 +2776,16 @@ class MainWindow(QMainWindow):
             check_updates = box.is_checked()
         else:
             if update_available:
+                anaconda_msg = ''
+                if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
+                    anaconda_msg = _("<b>Important note: </b> It seems that "
+                                     "you are using Spyder with Anaconda/"
+                                     "Miniconda, please <b>don't</b> use pip "
+                                     "to update as it would probably break "
+                                     "your installation.<br> Instead, please "
+                                     "wait until new conda packages are made "
+                                     "available and use <code>conda install "
+                                     "spyder</code> to perform the update.")
                 msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
                         "your package manager to update Spyder or go to our "
                         "<a href=\"%s\">Releases</a> page to download this "
@@ -2783,6 +2793,7 @@ class MainWindow(QMainWindow):
                         "proceed to update Spyder please refer to our "
                         " <a href=\"%s\">Installation</a> instructions."
                         "") % (latest_release, url_r, url_i)
+                msg += '<br>' + anaconda_msg
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
@@ -2799,7 +2810,7 @@ class MainWindow(QMainWindow):
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)
-        
+
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
 
