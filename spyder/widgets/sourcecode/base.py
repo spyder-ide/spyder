@@ -624,13 +624,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         return ls.join(lines)
 
     def __exec_cell(self):
-        init_cur = QTextCursor(self.textCursor())
+        init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
         if not whole_file_selected:
             self.setTextCursor(cursor)
         text = self.get_selection_as_executable_code()
-        self.last_cursor_cell = init_cur
+        self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
             text = text.rstrip()

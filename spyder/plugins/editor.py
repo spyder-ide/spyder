@@ -105,12 +105,9 @@ class EditorConfigPage(PluginConfigPage):
         
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
-        fpsorting_box = newcb(_("Sort files according to full path"),
-                              'fullpath_sorting')
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
         
@@ -542,9 +539,6 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        filename = self.get_current_filename()
-        if filename:
-            title += ' - '+to_text_string(filename)
         return title
 
     def get_plugin_icon(self):
@@ -842,7 +836,6 @@ class Editor(SpyderPluginWidget):
 
         re_run_last_cell_action = create_action(self,
                    _("Re-run last cell"),
-                   icon=ima.icon('run_cell'),
                    tip=_("Re run last cell "),
                    triggered=self.re_run_last_cell,
                    context=Qt.WidgetShortcut)
@@ -1065,7 +1058,7 @@ class Editor(SpyderPluginWidget):
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, run_cell_action,
                                run_cell_advance_action,
-                               re_run_action, configure_action]
+                               re_run_action]
         self.main.run_toolbar_actions += run_toolbar_actions
 
         # ---- Debug menu/toolbar construction ----
