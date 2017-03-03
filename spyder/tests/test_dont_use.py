@@ -18,11 +18,11 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
      ("Don't use builtin isinstance() function,"
       "use spyder.py3compat.is_text_string() instead")),
 
-    (r"(?<!_)print\(((?!file=).)*\)", ['.*test.*'],
+    (r"^[\s\#]*\bprint\(((?!file=).)*\)", ['.*test.*', 'example.py', 'binaryornot'],
      ("Don't use print() functions, ",
       "for debuging you could use debug_print instead")),
 
-    (r"(?<!_)print\s+((?!file=).)*", ['.*test.*'],
+    (r"^[\s\#]*\bprint\s+(?!>>)((?!#).)*", ['.*test.*'],
      ("Don't use print __builtin__, ",
       "for debuging you could use debug_print instead")),
 ])
@@ -40,6 +40,7 @@ def test_dont_use(pattern, exclude_patterns, message):
     for dir_name, _, file_list in os.walk(root_path):
         for fname in file_list:
             exclude = any([re.search(ex, fname) for ex in exclude_patterns])
+            exclude = exclude or any([re.search(ex, dir_name) for ex in exclude_patterns])
 
             if fname.endswith('.py') and not exclude:
                 file = os.path.join(dir_name, fname)
