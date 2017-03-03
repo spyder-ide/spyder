@@ -242,11 +242,11 @@ class FormWidget(QWidget):
             self.formlayout.addRow(QLabel(comment))
             self.formlayout.addRow(QLabel(" "))
         if DEBUG_FORMLAYOUT:
-            print("\n"+("*"*80))
-            print("DATA:", self.data)
-            print("*"*80)
-            print("COMMENT:", comment)
-            print("*"*80)
+            print("\n"+("*"*80))  # spyder: test-skip
+            print("DATA:", self.data)  # spyder: test-skip
+            print("*"*80)  # spyder: test-skip
+            print("COMMENT:", comment)  # spyder: test-skip
+            print("*"*80)  # spyder: test-skip
             
     def get_dialog(self):
         """Return FormDialog instance"""
@@ -258,7 +258,7 @@ class FormWidget(QWidget):
     def setup(self):
         for label, value in self.data:
             if DEBUG_FORMLAYOUT:
-                print("value:", value)
+                print("value:", value)  # spyder: test-skip
             if label is None and value is None:
                 # Separator: (None, None)
                 self.formlayout.addRow(QLabel(" "), QLabel(" "))
