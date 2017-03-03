@@ -2781,12 +2781,11 @@ class MainWindow(QMainWindow):
                     anaconda_msg = _("<b>Important note: </b> It seems that "
                                      "you are using Spyder with Anaconda/"
                                      "Miniconda, please <b>don't</b> use pip "
-                                     "to update as it would probably break "
-                                     "your installation.<br><br> Instead, "
-                                     "please wait until new conda packages "
-                                     "are made available and use <code>conda "
-                                     "install spyder</code> to perform the "
-                                     "update.")
+                                     "to update as that would probably break "
+                                     "your installation.<br><br> "
+                                     "Instead, please wait until new conda "
+                                     "packages are made available and use "
+                                     "<br>conda</br> to perform the update.")
                 msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
                         "your package manager to update Spyder or go to our "
                         "<a href=\"%s\">Releases</a> page to download this "
