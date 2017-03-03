@@ -323,7 +323,7 @@ class PreviewTableModel(QAbstractTableModel):
                     self._data[index.row()][index.column()])
             self.dataChanged.emit(index, index)
         except Exception as instance:
-            print(instance)
+            print(instance)  # spyder: test-skip
 
     def reset(self):
         self.beginResetModel()

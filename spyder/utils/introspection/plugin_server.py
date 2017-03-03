@@ -51,7 +51,7 @@ class AsyncServer(object):
             if events == 0 and initialized:
                 if timed_out:
                     delta = int(time.time() - t0)
-                    print('Timed out after %s sec' % delta)
+                    print('Timed out after %s sec' % delta)  # spyder: test-skip
                     return
                 timed_out = True
                 continue
@@ -66,13 +66,13 @@ class AsyncServer(object):
                     time.sleep(0.1)
                     continue
                 if request['func_name'] == 'server_quit':
-                    print('Quitting')
+                    print('Quitting')  # spyder: test-skip
                     sys.stdout.flush()
                     return
                 elif request['func_name'] != 'server_heartbeat':
                     requests.append(request)
                 else:
-                    print('Got heartbeat')
+                    print('Got heartbeat')  # spyder: test-skip
                 try:
                     events = self.socket.poll(0)
                 except KeyboardInterrupt:

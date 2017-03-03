@@ -181,7 +181,7 @@ except ImportError:
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
     v = dateparse(value[rp:-1])
-    print(value, "-->", v)
+    print(value, "-->", v)  # spyder: test-skip
     return v
 
 
