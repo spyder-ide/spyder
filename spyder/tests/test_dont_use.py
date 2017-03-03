@@ -19,8 +19,12 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
       "use spyder.py3compat.is_text_string() instead")),
 
     (r"(?<!_)print\(((?!file=).)*\)", ['.*test.*'],
-     ("Don't use print functions, ",
-      "for debuging you could use debug_print instead"), 62),
+     ("Don't use print() functions, ",
+      "for debuging you could use debug_print instead")),
+
+    (r"(?<!_)print\s+((?!file=).)*", ['.*test.*'],
+     ("Don't use print __builtin__, ",
+      "for debuging you could use debug_print instead")),
 ])
 def test_dont_use(pattern, exclude_patterns, message):
     """
