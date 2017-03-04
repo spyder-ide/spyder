@@ -195,6 +195,30 @@ def test_run_code(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ControlModifier)
     assert nsb.editor.model.rowCount() == 1
 
+    reset_run_code(qtbot, shell, code_editor, nsb)
+
+    # ---- Re-run last cell ----
+    # Run the first two cells in file
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+
+    # Wait until objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 2, timeout=EVAL_TIMEOUT)
+
+    # Clean namespace
+    shell.execute('%reset -f')
+
+    # Wait until there are no objects in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
+
+    # Re-run last cell
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.AltModifier)
+
+    # Wait until the object has appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1, timeout=EVAL_TIMEOUT)
+    assert shell.get_value('li') == [1, 2, 3]
+
+    # ---- Closing test file ----
     main_window.editor.close_file()
 
 
