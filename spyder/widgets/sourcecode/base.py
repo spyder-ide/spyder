@@ -272,6 +272,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
 
+        self.last_cursor_cell = None
+
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()
@@ -621,16 +623,29 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         return ls.join(lines)
 
-    def get_cell_as_executable_code(self):
-        """Return cell contents as executable code"""
+    def __exec_cell(self):
+        init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
         if not whole_file_selected:
             self.setTextCursor(cursor)
         text = self.get_selection_as_executable_code()
+        self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
             text = text.rstrip()
+        return text
+
+    def get_cell_as_executable_code(self):
+        """Return cell contents as executable code"""
+        return self.__exec_cell()
+
+    def get_last_cell_as_executable_code(self):
+        text = None
+        if self.last_cursor_cell:
+            self.setTextCursor(self.last_cursor_cell)
+            self.highlight_current_cell()
+            text = self.__exec_cell()
         return text
 
     def is_cell_separator(self, cursor=None, block=None):
@@ -691,7 +706,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             prev_pos = cur_pos
         cell_at_file_end = cursor.atEnd()
         return cursor, cell_at_file_start and cell_at_file_end
-    
+
     def select_current_cell_in_visible_portion(self):
         """Select cell under cursor in the visible portion of the file
         cell = group of lines separated by CELL_SEPARATORS
