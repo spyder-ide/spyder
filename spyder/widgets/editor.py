@@ -510,13 +510,18 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="run cell and advance",
                                       parent=self)
+        re_run_last_cell = config_shortcut(self.re_run_last_cell,
+                                      context="Editor",
+                                      name="re-run last cell",
+                                      parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
                 tabshift, run_selection, new_file, open_file, save_file,
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, run_cell_and_advance]
+                close_file_1, close_file_2, run_cell, run_cell_and_advance,
+                re_run_last_cell]
 
     def get_shortcut_data(self):
         """
@@ -1736,6 +1741,7 @@ class EditorStack(QWidget):
         editor.run_selection.connect(self.run_selection)
         editor.run_cell.connect(self.run_cell)
         editor.run_cell_and_advance.connect(self.run_cell_and_advance)
+        editor.re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
         language = get_file_language(fname, txt)
         editor.setup_editor(
@@ -1926,6 +1932,12 @@ class EditorStack(QWidget):
             term = QApplication.focusWidget()
             self.get_current_editor().go_to_next_cell()
             term.setFocus()
+
+    def re_run_last_cell(self):
+        text = self.get_current_editor().get_last_cell_as_executable_code()
+        finfo = self.get_current_finfo()
+        if finfo.editor.is_python() and text:
+            self.exec_in_extconsole.emit(text, self.focus_to_editor)
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
