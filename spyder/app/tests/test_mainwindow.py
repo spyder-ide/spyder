@@ -21,6 +21,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
+from spyder.utils.programs import is_module_installed
 
 
 #==============================================================================
@@ -32,6 +33,10 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 # Time to wait until the IPython console is ready to receive input
 # (in miliseconds)
 SHELL_TIMEOUT = 20000
+
+# Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
+# before import and eval it
+COMPILE_AND_EVAL_TIMEOUT=30000
 
 # Time to wait for the IPython console to evaluate something (in
 # miliseconds)
@@ -78,6 +83,56 @@ def main_window(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
+                    reason="It times out sometimes on Windows and Cython is needed")
+def test_run_cython_code(main_window, qtbot):
+    """Test all the different ways we have to run Cython code"""
+    # ---- Setup ----
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Get a reference to the code editor widget
+    code_editor = main_window.editor.get_focus_widget()
+
+    # ---- Run pyx file ----
+    # Load test file
+    main_window.editor.load(osp.join(LOCATION, 'pyx_script.pyx'))
+
+    # run file
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+                    timeout=COMPILE_AND_EVAL_TIMEOUT)
+
+    # Verify result
+    assert shell.get_value('a') == 3628800
+
+    # Reset and close file
+    reset_run_code(qtbot, shell, code_editor, nsb)
+    main_window.editor.close_file()
+
+    # ---- Import pyx file ----
+    # Load test file
+    main_window.editor.load(osp.join(LOCATION, 'pyx_lib_import.py'))
+
+    # Run file
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
+                    timeout=COMPILE_AND_EVAL_TIMEOUT)
+
+    # Verify result
+    assert shell.get_value('b') == 3628800
+
+    # Close file
+    main_window.editor.close_file()
+
+
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_set_new_breakpoints(main_window, qtbot):
