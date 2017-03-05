@@ -167,6 +167,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
+* **Cython**: Run Cython files in the IPython console.
 
 
 ## More information

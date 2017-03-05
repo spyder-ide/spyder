@@ -218,6 +218,9 @@ Optional modules
 * `Scipy <http://www.scipy.org/>`_ -- for importing Matlab workspace files in
   the Variable Explorer.
 
+* `Cython <http://cython.org/>`_ >=0.21 -- Run Cython files or Python files that
+  depend on Cython libraries in the IPython console.
+
 
 Installation procedure
 ~~~~~~~~~~~~~~~~~~~~~~
