@@ -1130,6 +1130,7 @@ class Editor(SpyderPluginWidget):
                                              blockcomment_action,
                                              unblockcomment_action,
                                              self.winpdb_action]
+        self.cythonfile_compatible_actions = [run_action, configure_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
                  self.print_action, self.save_all_action, gotoline_action,
@@ -1576,8 +1577,14 @@ class Editor(SpyderPluginWidget):
         # Refresh Python file dependent actions:
         editor = self.get_current_editor()
         if editor:
-            enable = editor.is_python()
+            python_enable = editor.is_python()
+            cython_enable = python_enable or (
+                programs.is_module_installed('Cython') and editor.is_cython())
             for action in self.pythonfile_dependent_actions:
+                if action in self.cythonfile_compatible_actions:
+                    enable = cython_enable
+                else:
+                    enable = python_enable
                 if action is self.winpdb_action:
                     action.setEnabled(enable and WINPDB_PATH is not None)
                 else:

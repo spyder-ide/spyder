@@ -66,6 +66,11 @@ dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
 
 
+CYTHON_REQVER = '>=0.21'
+dependencies.add("cython", _("Run Cython files in the IPython Console"),
+                 required_version=CYTHON_REQVER, optional=True)
+
+
 #------------------------------------------------------------------------------
 # Existing kernels
 #------------------------------------------------------------------------------
