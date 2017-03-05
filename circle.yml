@@ -3,7 +3,7 @@
 machine:
   environment:
     # Python versions to tests (Maximum of 4 different versions)
-    PY_VERSIONS: "2.7 3.4 3.5"
+    PY_VERSIONS: "2.7 3.5 3.6"
     # For Coveralls
     COVERALLS_REPO_TOKEN: yt7YToGxRtnAcM6kSULoiCmOPetq10TaU
     # Environment variables used by astropy helpers
@@ -44,7 +44,4 @@ test:
         parallel: true
     # PyQt4
     - ./continuous_integration/circle/test-qt4.sh: # note the colon
-        parallel: true
-    # Coveralls
-    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls: # note the colon
         parallel: true
