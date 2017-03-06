@@ -7,6 +7,8 @@
 """
 Tests for dochelpers.py
 """
+# Standard library imports
+import os
 
 # Test library imports
 import pytest
@@ -34,17 +36,36 @@ def test_dochelpers():
                                      ' key=None, ', ' reverse=False']
     else:
         assert getargtxt(Test.method) == None
-        assert getdoc(sorted) == {'note': 'Function of builtins module',
-                                  'argspec': '(...)',
-                                  'docstring': 'Return a new list containing '
-                                               'all items from the iterable in'
-                                               ' ascending order.\n\nA custom '
-                                               'key function can be supplied '
-                                               'to customise the sort order, '
-                                               'and the\nreverse flag can be '
-                                               'set to request the result '
-                                               'in descending order.',
-                                               'name': 'sorted'}
+        if os.name == 'nt':
+            assert getdoc(sorted) == {'note': 'Function of builtins module',
+                                      'argspec': '(...)',
+                                      'docstring': 'Return a new list '
+                                                   'containing '
+                                                   'all items from the '
+                                                   'iterable in ascending '
+                                                   'order.\n\nA custom '
+                                                   'key function can be '
+                                                   'supplied to customise the '
+                                                   'sort order, and '
+                                                   'the\nreverse flag can be '
+                                                   'set to request the result '
+                                                   'in descending order.',
+                                                   'name': 'sorted'}
+        else:
+            assert getdoc(sorted) == {'note': 'Function of builtins module',
+                                      'argspec': '(...)',
+                                      'docstring': 'Return a new list '
+                                                   'containing '
+                                                   'all items from the '
+                                                   'iterable in ascending '
+                                                   'order.\n\nA custom '
+                                                   'key function can be '
+                                                   'supplied to customize the '
+                                                   'sort order, and '
+                                                   'the\nreverse flag can be '
+                                                   'set to request the result '
+                                                   'in descending order.',
+                                                   'name': 'sorted'}          
         assert getargtxt(sorted) == None
     assert isdefined('numpy.take', force_import=True) == True
     assert isdefined('__import__') == True
