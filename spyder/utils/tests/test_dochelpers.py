@@ -20,7 +20,7 @@ def test_dochelpers():
         def method(self, x, y=2):
             pass
     assert getargtxt(Test.__init__) == None
-    assert getargtxt(Test.method) == None
+    assert getargtxt(Test.method) == ['x,', 'y=2']
     assert isdefined('numpy.take', force_import=True) == True
     assert isdefined('__import__') == True
     assert isdefined('.keys', force_import=True) == False

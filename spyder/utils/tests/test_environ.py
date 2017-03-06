@@ -18,15 +18,16 @@ import pytest
 from qtpy.QtCore import QTimer
 
 # Local imports
-from spyder.utils.environ import EnvDialog, WinUserEnvDialog
 from spyder.utils.tests import close_message_box
 
 @pytest.fixture
 def setup_environ(qtbot):
     "Setup the Environment variables Dialog taking into account the os."    
     if os.name == 'nt':
+        from spyder.utils.environ import WinUserEnvDialog
         dialog = WinUserEnvDialog()
-    else:
+    else:        
+        from spyder.utils.environ import EnvDialog
         dialog = EnvDialog()
     qtbot.addWidget(dialog)
     
