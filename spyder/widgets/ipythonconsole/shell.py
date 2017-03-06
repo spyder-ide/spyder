@@ -40,6 +40,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_input_reply = Signal()
     sig_pdb_step = Signal(str, int)
     sig_prompt_ready = Signal()
+    sig_dbg_kernel_restart = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
@@ -88,7 +89,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
         # Default banner
-        from IPython.core.usage import quick_guide
+        try:
+            from IPython.core.usage import quick_guide
+        except Exception:
+            quick_guide = ''
         banner_parts = [
             'Python %s\n' % self.interpreter_versions['python_version'],
             'Type "copyright", "credits" or "license" for more information.\n\n',

@@ -12,7 +12,7 @@ import tempfile
 from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QMessageBox
 
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
@@ -35,6 +35,13 @@ def open_client_from_connection_info(connection_info, qtbot):
             qtbot.keyClick(w, Qt.Key_Enter)
 
 
+def restart_kernel(qtbot):
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, QMessageBox):
+            qtbot.keyClick(w, Qt.Key_Enter)
+
+
 #==============================================================================
 # Qt Test Fixtures
 #==============================================================================
@@ -52,7 +59,59 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
-@flaky(max_runs=3)
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+def test_forced_restart_kernel(ipyconsole, qtbot):
+    """
+    Test that kernel is restarted if we force it do it
+    during debugging
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Do an assigment to verify that it's not there after restarting
+    shell.execute('a = 10')
+    qtbot.wait(500)
+
+    # Generate a traceback and enter debugging mode
+    shell.execute('1/0')
+    qtbot.wait(500)
+    shell.execute('%debug')
+    qtbot.wait(500)
+
+    # Force a kernel restart and wait until it's up again
+    shell._prompt_html = None
+    shell.silent_exec_input("1+1")  # The return type of this must be a dict!!
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    assert not shell.is_defined('a')
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+def test_restart_kernel(ipyconsole, qtbot):
+    """
+    Test that kernel is restarted correctly
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Do an assigment to verify that it's not there after restarting
+    shell.execute('a = 10')
+    qtbot.wait(500)
+
+    # Restart kernel and wait until it's up again
+    shell._prompt_html = None
+    QTimer.singleShot(1000, lambda: restart_kernel(qtbot))
+    client.restart_kernel()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    assert not shell.is_defined('a')
+
+
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """

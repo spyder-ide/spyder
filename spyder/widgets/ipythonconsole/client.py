@@ -177,6 +177,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_kernel_restarted.connect(
             self.kernel_restarted_message)
 
+        # To restart the kernel when errors happened while debugging
+        # See issue 4003
+        self.shellwidget.sig_dbg_kernel_restart.connect(
+                self.restart_kernel)
+
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
 
@@ -323,12 +328,20 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         Took this code from the qtconsole project
         Licensed under the BSD license
         """
-        message = _('Are you sure you want to restart the kernel?')
-        buttons = QMessageBox.Yes | QMessageBox.No
-        result = QMessageBox.question(self, _('Restart kernel?'),
-                                      message, buttons)
-        if result == QMessageBox.Yes:
-            sw = self.shellwidget
+        sw = self.shellwidget
+
+        # This is needed to restart the kernel without a prompt
+        # when an error in stdout corrupts the debugging process.
+        # See issue 4003
+        if not sw._input_reply_failed:
+            message = _('Are you sure you want to restart the kernel?')
+            buttons = QMessageBox.Yes | QMessageBox.No
+            result = QMessageBox.question(self, _('Restart kernel?'),
+                                          message, buttons)
+        else:
+            result = None
+
+        if result == QMessageBox.Yes or sw._input_reply_failed:
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
@@ -341,10 +354,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         before_prompt=True
                     )
                 else:
-                    sw.reset(clear=True)
-                    sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
-                        before_prompt=False,
-                    )
+                    sw.reset(clear=not sw._input_reply_failed)
+                    if sw._input_reply_failed:
+                        sw._append_html(_("<br>Restarting kernel because "
+                                        "an error occurred while "
+                                        "debugging\n<hr><br>"),
+                                        before_prompt=False)
+                        sw._input_reply_failed = False
+                    else:
+                        sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
+                                before_prompt=False)
             else:
                 sw._append_plain_text(
                     _('Cannot restart a kernel not started by Spyder\n'),
