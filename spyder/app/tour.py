@@ -1271,13 +1271,13 @@ class AnimatedTour(QWidget):
 # Used for testing the functionality
 
 
-class TestWindow(QMainWindow):
+class TourTestWindow(QMainWindow):
     """ """
     sig_resized = Signal("QResizeEvent")
     sig_moved = Signal("QMoveEvent")
 
     def __init__(self):
-        super(TestWindow, self).__init__()
+        super(TourTestWindow, self).__init__()
         self.setGeometry(300, 100, 400, 600)
         self.setWindowTitle('Exploring QMainWindow')
 
@@ -1301,7 +1301,7 @@ class TestWindow(QMainWindow):
 
         effect = QGraphicsOpacityEffect(self.button2)
         self.button2.setGraphicsEffect(effect)
-        self.anim = QPropertyAnimation(effect, "opacity")
+        self.anim = QPropertyAnimation(effect, to_binary_string("opacity"))
         self.anim.setStartValue(0.01)
         self.anim.setEndValue(1.0)
         self.anim.setDuration(500)
@@ -1346,7 +1346,7 @@ class TestWindow(QMainWindow):
 def test():
     """ """
     app = QApplication([])
-    win = TestWindow()
+    win = TourTestWindow()
     win.show()
     app.exec_()
 
