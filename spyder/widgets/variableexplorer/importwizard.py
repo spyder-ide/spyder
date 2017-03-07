@@ -635,7 +635,7 @@ def test(text):
     _app = qapplication()  # analysis:ignore
     dialog = ImportWizard(None, text)
     if dialog.exec_():
-        print(dialog.get_data())
+        print(dialog.get_data())  # spyder: test-skip
 
 if __name__ == "__main__":
     test(u"17/11/1976\t1.34\n14/05/09\t3.14")

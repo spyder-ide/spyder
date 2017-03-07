@@ -122,8 +122,8 @@ class PluginServer(AsyncServer):
 if __name__ == '__main__':
     args = sys.argv[1:]
     if not len(args) == 2:
-        print('Usage: plugin_server.py client_port plugin_name')
+        print('Usage: plugin_server.py client_port plugin_name')  # spyder: test-skip
         sys.exit(0)
     plugin = PluginServer(*args)
-    print('Started')
+    print('Started')  # spyder: test-skip
     plugin.run()

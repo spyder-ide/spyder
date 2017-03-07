@@ -577,19 +577,19 @@ if __name__ == "__main__":
     #--------- datalist example
     datalist = create_datalist_example()
     def apply_test(data):
-        print("data:", data)
-    print("result:", fedit(datalist, title="Example",
+        print("data:", data)  # spyder: test-skip
+    print("result:", fedit(datalist, title="Example",  # spyder: test-skip
                            comment="This is just an <b>example</b>.",
                            apply=apply_test))
     
     #--------- datagroup example
     datagroup = create_datagroup_example()
-    print("result:", fedit(datagroup, "Global title"))
+    print("result:", fedit(datagroup, "Global title"))  # spyder: test-skip
     
     #--------- datagroup inside a datagroup example
     datalist = create_datalist_example()
     datagroup = create_datagroup_example()
-    print("result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),
+    print("result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),  # spyder: test-skip
                             (datalist, "Title 2", "Tab 2 comment"),
                             (datalist, "Title 3", "Tab 3 comment")),
                             "Global title"))
