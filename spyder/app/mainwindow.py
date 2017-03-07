@@ -2778,15 +2778,16 @@ class MainWindow(QMainWindow):
             if update_available:
                 anaconda_msg = ''
                 if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
-                    anaconda_msg = _("<b>Important note: </b> It seems that "
-                                     "you are using Spyder with Anaconda/"
-                                     "Miniconda, please <b>don't</b> use "
-                                     "<code>pip</code> "
-                                     "to update it as that would probably break "
-                                     "your installation.<br><br> "
+                    anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
+                                     "that you are using Spyder with "
+                                     "<b>Anaconda/Miniconda</b>. Please "
+                                     "<<b>don't</b> use code>pip</code> to "
+                                     "update it as that will probably break "
+                                     "your installation.<br><br>"
                                      "Instead, please wait until new conda "
-                                     "packages are made available and use "
-                                     "<code>conda</code> to perform the update.")
+                                     "packages are available and use "
+                                     "<code>conda</code> to perform the "
+                                     "update.<hr>")
                 msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
                         "your package manager to update Spyder or go to our "
                         "<a href=\"%s\">Releases</a> page to download this "
@@ -2794,7 +2795,7 @@ class MainWindow(QMainWindow):
                         "proceed to update Spyder please refer to our "
                         " <a href=\"%s\">Installation</a> instructions."
                         "") % (latest_release, url_r, url_i)
-                msg += '<br><br>' + anaconda_msg
+                msg += '<br>' + anaconda_msg
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
