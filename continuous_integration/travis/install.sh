@@ -61,7 +61,7 @@ install_conda()
 install_pip()
 {
     # Install PyQt5
-    pip install pyqt5;
+    conda install 'pyqt>=5.6.0';
 }
 
 
