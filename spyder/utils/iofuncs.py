@@ -485,13 +485,11 @@ if __name__ == "__main__":
     import time
     t0 = time.time()
     save_dictionary(example, "test.spydata")
-    print(" Data saved in %.3f seconds" % (time.time()-t0))
+    print(" Data saved in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
     t0 = time.time()
     example2, ok = load_dictionary("test.spydata")
-    print("Data loaded in %.3f seconds" % (time.time()-t0))
+    print("Data loaded in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
     os.remove("test.spydata")
-#    for key in example:
-#        print key, ":", example[key] == example2[key]
 
     a = MatlabStruct()
     a.b = 'spam'

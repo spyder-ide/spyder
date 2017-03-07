@@ -146,12 +146,12 @@ def qt4():
                 event_loop.exec_()
                 timer.stop()
     except KeyboardInterrupt:
-        print("\nKeyboardInterrupt - Press Enter for new prompt")
+        print("\nKeyboardInterrupt - Press Enter for new prompt")  # spyder: test-skip
     except: # NO exceptions are allowed to escape from a ctypes callback
         ignore_CTRL_C()
         from traceback import print_exc
         print_exc()
-        print("Got exception from inputhook, unregistering.")
+        print("Got exception from inputhook, unregistering.")  # spyder: test-skip
         clear_inputhook()
     finally:
         allow_CTRL_C()

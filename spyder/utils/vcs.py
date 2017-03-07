@@ -6,8 +6,6 @@
 
 """Utilities for version control systems"""
 
-from __future__ import print_function
-
 import sys
 import os.path as osp
 import subprocess
@@ -107,7 +105,6 @@ def get_hg_revision(repopath):
         # Split 2 times max to allow spaces in branch names.
         return tuple(output.decode().strip().split(None, 2))
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
-        # print("Error: Failed to get revision number from Mercurial - %s" % exc)
         return (None, None, None)
 
 
@@ -146,8 +143,9 @@ def get_git_revision(repopath):
 
 
 if __name__ == '__main__':
-    print(get_vcs_root(osp.dirname(__file__)))
-    print(get_vcs_root(r'D:\Python\ipython\IPython\kernel'))
+    from spyder.config.base import debug_print
+    debug_print(get_vcs_root(osp.dirname(__file__)))
+    debug_print(get_vcs_root(r'D:\Python\ipython\IPython\kernel'))
     #run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
-    print(get_git_revision(osp.dirname(__file__)+"/../.."))
-    print(get_git_revision('/'))
+    debug_print(get_git_revision(osp.dirname(__file__)+"/../.."))
+    debug_print(get_git_revision('/'))

@@ -231,6 +231,8 @@ def get_search_scores(query, choices, ignore_case=True, template='{}',
 
 
 def test():
+    from spyder.config.base import debug_print
+
     template = '<b>{0}</b>'
     names = ['close pane', 'debug continue', 'debug exit', 'debug step into',
              'debug step over', 'debug step return', 'fullscreen mode',
@@ -268,13 +270,13 @@ def test():
                           sort=True)
     # Full results
     for r in a:
-        print(r)
+        debug_print(r)
     
     # Ordered and filtered results
-    print('\n')
+    debug_print('\n')
 
     for r in b:
-        print(r)
+        debug_print(r)
 
 if __name__ == '__main__':
     test()

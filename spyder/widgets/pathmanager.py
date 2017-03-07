@@ -244,11 +244,12 @@ class PathManager(QDialog):
 def test():
     """Run path manager test"""
     from spyder.utils.qthelpers import qapplication
+    from spyder.config.base import debug_print
     _app = qapplication()  # analysis:ignore
     test = PathManager(None, pathlist=sys.path[:-10],
                        ro_pathlist=sys.path[-10:])
     test.exec_()
-    print(test.get_path_list())
+    debug_print(test.get_path_list())
 
 
 if __name__ == "__main__":

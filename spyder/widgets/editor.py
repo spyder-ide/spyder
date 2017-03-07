@@ -2496,7 +2496,7 @@ class EditorPluginExample(QSplitter):
 
 def test():
     from spyder.utils.qthelpers import qapplication
-    from spyder.config.base import get_module_path
+    from spyder.config.base import get_module_path, debug_print
     from spyder.utils.introspection.manager import IntrospectionManager
 
     cur_dir = osp.join(get_module_path('spyder'), 'widgets')
@@ -2517,7 +2517,7 @@ def test():
     test.load(osp.join(cur_dir, "explorer.py"))
     test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
     test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
-    print("Elapsed time: %.3f s" % (time.time()-t0))
+    debug_print("Elapsed time: %.3f s" % (time.time()-t0))
 
     sys.exit(app.exec_())
 
