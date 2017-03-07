@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
 #
 # Copyright © Spyder Project Contributors
-# Based loosely on p_pylint.py by Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
@@ -15,29 +14,37 @@
 # Standard library imports
 import os.path as osp
 
+# Third party imports
+from qtpy.QtWidgets import QVBoxLayout
+
 # Local imports
 from spyder.config.base import get_translation
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
-from spyder.plugins import SpyderPluginMixin
-from spyder.py3compat import to_text_string, is_text_string
+from spyder.api.plugins import SpyderPluginWidget
+
 from .widgets.breakpointsgui import BreakpointWidget
 
 _ = get_translation("breakpoints", "spyder_breakpoints")
 
 
-class Breakpoints(BreakpointWidget, SpyderPluginMixin):
+class Breakpoints(SpyderPluginWidget):
     """Breakpoint list"""
     CONF_SECTION = 'breakpoints'
 
-#    CONFIGWIDGET_CLASS = BreakpointConfigPage
     def __init__(self, parent=None):
-        BreakpointWidget.__init__(self, parent=parent)
-        SpyderPluginMixin.__init__(self, parent)
-        
+        """Initialization."""
+        SpyderPluginWidget.__init__(self, parent)
+
+        self.breakpoints = BreakpointWidget(self)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.breakpoints)
+        self.setLayout(layout)
+
         # Initialize plugin
         self.initialize_plugin()
-        self.set_data()
+        self.breakpoints.set_data()
     
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -54,7 +61,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.dictwidget
+        return self.breakpoints.dictwidget
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -66,13 +73,14 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.edit_goto.connect(self.main.editor.load)
+        self.breakpoints.edit_goto.connect(self.main.editor.load)
         #self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.clear_all_breakpoints.connect(
+        self.breakpoints.clear_all_breakpoints.connect(
                                         self.main.editor.clear_all_breakpoints)
-        self.clear_breakpoint.connect(self.main.editor.clear_breakpoint)
-        self.main.editor.breakpoints_saved.connect(self.set_data)
-        self.set_or_edit_conditional_breakpoint.connect(
+        self.breakpoints.clear_breakpoint.connect(
+            self.main.editor.clear_breakpoint)
+        self.main.editor.breakpoints_saved.connect(self.breakpoints.set_data)
+        self.breakpoints.set_or_edit_conditional_breakpoint.connect(
                            self.main.editor.set_or_edit_conditional_breakpoint)
         
         self.main.add_dockwidget(self)

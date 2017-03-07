@@ -12,13 +12,13 @@
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.config.base import get_translation
-from spyder.plugins import SpyderPluginMixin
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.plugins.runconfig import get_run_configuration
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
@@ -55,17 +55,22 @@ class ProfilerConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class Profiler(ProfilerWidget, SpyderPluginMixin):
-    """Profiler (after python's profile and pstats)"""
+class Profiler(SpyderPluginWidget):
+    """Profiler (after python's profile and pstats)."""
+
     CONF_SECTION = 'profiler'
     CONFIGWIDGET_CLASS = ProfilerConfigPage
-    edit_goto = Signal(str, int, str)
-    
+
     def __init__(self, parent=None):
-        ProfilerWidget.__init__(self, parent=parent,
-                              max_entries=self.get_option('max_entries', 50))
-        SpyderPluginMixin.__init__(self, parent)
-        
+        SpyderPluginWidget.__init__(self, parent)
+
+        max_entries = self.get_option('max_entries', 50)
+        self.profiler = ProfilerWidget(self, max_entries)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.profiler)
+        self.setLayout(layout)
+
         # Initialize plugin
         self.initialize_plugin()
         
@@ -84,7 +89,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.datatree
+        return self.profiler.datatree
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -97,8 +102,9 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.edit_goto.connect(self.main.editor.load)
-        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.profiler.datatree.sig_edit_goto.connect(self.main.editor.load)
+        self.profiler.redirect_stdio.connect(
+            self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
 
         profiler_act = create_action(self, _("Profile"),
@@ -145,5 +151,5 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
                 wdir = runconf.wdir
             if runconf.args_enabled:
                 args = runconf.args
-        ProfilerWidget.analyze(self, filename, wdir=wdir, args=args,
-                               pythonpath=pythonpath)
+        self.profiler.analyze(filename, wdir=wdir, args=args,
+                              pythonpath=pythonpath)
