@@ -91,9 +91,9 @@ PYFLAKES_REQVER = '>=0.6.0' if PY3 else '>=0.5.0'
 dependencies.add("pyflakes", _("Real-time code analysis on the Editor"),
                  required_version=PYFLAKES_REQVER)
 
-PEP8_REQVER = '>=0.6'
+PYCODESTYLE_REQVER = '>=2.3'
 dependencies.add("pycodestyle", _("Real-time code style analysis on the Editor"),
-                 required_version=PEP8_REQVER)
+                 required_version=PYCODESTYLE_REQVER)
 
 
 def is_pyflakes_installed():
