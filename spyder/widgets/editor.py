@@ -2504,7 +2504,7 @@ def test():
     test.load(osp.join(cur_dir, "explorer.py"))
     test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
     test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
-    print("Elapsed time: %.3f s" % (time.time()-t0))
+    print("Elapsed time: %.3f s" % (time.time()-t0))  # spyder: test-skip
 
     sys.exit(app.exec_())
 

@@ -17,14 +17,14 @@ import os
 def exec_print(string="", end_space=False):
     if sys.version[0] == '2':
         if end_space:
-            exec("print '" + string + "',")
+            exec("print '" + string + "',")  # spyder: test-skip
         else:
-            exec("print '" + string + "'")
+            exec("print '" + string + "'")  # spyder: test-skip
     else:
         if end_space:
-            exec("print('" + string + "', end=' ')")
+            exec("print('" + string + "', end=' ')")  # spyder: test-skip
         else:
-            exec("print('" + string + "')")
+            exec("print('" + string + "')")  # spyder: test-skip
 
 
 #==============================================================================
