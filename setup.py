@@ -290,8 +290,16 @@ install_requires = [
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
-    'test': ['pytest', 'pytest-qt', 'pytest-cov', 'mock', 'coveralls',
-             'flaky', 'pandas', 'scipy', 'sympy', 'pillow'],
+    'test': ['pytest',
+             'pytest-qt',
+             'pytest-cov',
+             'mock',
+             'flaky',
+             'pandas',
+             'scipy',
+             'sympy',
+             'pillow',
+             'matplotlib'],
 }
 
 if 'setuptools' in sys.modules:
