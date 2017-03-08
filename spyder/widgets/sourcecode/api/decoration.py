@@ -34,7 +34,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
         deco.signals.clicked.connect(a_slot)
 
         def a_slot(decoration):
-            print(decoration)
+            print(decoration)  # spyder: test-skip
     """
     class Signals(QObject):
         """
