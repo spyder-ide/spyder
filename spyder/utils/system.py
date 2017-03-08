@@ -62,11 +62,11 @@ else:
 
 
 if __name__ == '__main__':
-    print("*"*80)
-    print(memory_usage.__doc__)
-    print(memory_usage())
+    print("*"*80)  # spyder: test-skip
+    print(memory_usage.__doc__)  # spyder: test-skip
+    print(memory_usage())  # spyder: test-skip
     if os.name == 'nt':
         #  windll can only be imported if os.name = 'nt' or 'ce'
-        print("*"*80)
-        print(windows_memory_usage.__doc__)
-        print(windows_memory_usage())
+        print("*"*80)  # spyder: test-skip
+        print(windows_memory_usage.__doc__)  # spyder: test-skip
+        print(windows_memory_usage())  # spyder: test-skip

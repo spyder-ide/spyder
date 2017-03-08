@@ -182,7 +182,7 @@ class CompletionWidget(QListWidget):
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.case_sensitive:
-                    print(completion_text)
+                    print(completion_text)  # spyder: test-skip
                     completion = completion.lower()
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
