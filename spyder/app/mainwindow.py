@@ -1623,7 +1623,6 @@ class MainWindow(QMainWindow):
 #            widget.setMinimumWidth(new_width)
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
-#            print(c, widgets_layout[c][0][0], new_width)
         
         # fix column height
         for c, column in enumerate(widgets_layout):
@@ -2728,8 +2727,8 @@ class MainWindow(QMainWindow):
         except Exception as error:
             # If there is an error with subprocess, Spyder should not quit and
             # the error can be inspected in the internal console
-            print(error)
-            print(command)
+            print(error)  # spyder: test-skip
+            print(command)  # spyder: test-skip
 
     # ---- Interactive Tours
     def show_tour(self, index):
