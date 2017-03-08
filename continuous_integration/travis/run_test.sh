@@ -25,10 +25,8 @@ if [ "$USE_CONDA" = true ] ; then
     conda install -q $EXTRA_PACKAGES
 else
     cd $FULL_SPYDER_CLONE
-    pip install dist/spyder-*.whl
-
-    # Install testing packages
-    pip install -e .[test]
+    export WHEEL=`ls dist/spyder-*.whl`
+    pip install $WHEEL[test]
 fi
 
 
