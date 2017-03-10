@@ -1230,7 +1230,7 @@ class MainWindow(QMainWindow):
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
-            self.check_updates()
+            self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
         self.report_missing_dependencies()
@@ -2819,7 +2819,7 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
     @Slot()
-    def check_updates(self):
+    def check_updates(self, startup=False):
         """
         Check for spyder updates on github releases using a QThread.
         """
@@ -2832,7 +2832,7 @@ class MainWindow(QMainWindow):
             self.thread_updates.terminate()
 
         self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self)
+        self.worker_updates = WorkerUpdates(self, startup=startup)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)
