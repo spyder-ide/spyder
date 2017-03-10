@@ -265,6 +265,23 @@ the sympy module (e.g. plot)
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
 
+    def set_backend_for_mayavi(self, command):
+        """
+        Mayavi plots require the Qt backend, so we try to detect if one is
+        generated to change backends
+        """
+        calling_mayavi = False
+        lines = command.splitlines()
+        for l in lines:
+            if not l.startswith('#'):
+                if 'import mayavi' in l or 'from mayavi' in l:
+                    calling_mayavi = True
+                    break
+        if calling_mayavi:
+            message = _("Changing backend to Qt for Mayavi")
+            self._append_plain_text(message + '\n')
+            self.silent_execute("%gui inline\n%gui qt")
+
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
