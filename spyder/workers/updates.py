@@ -97,6 +97,6 @@ class WorkerUpdates(QObject):
             error_msg = _('Unable to check for updates.')
 
         # Don't show dialog when starting up spyder and an error occur
-        if not self.startup or error_msg is None:
+        if not (self.startup and error_msg is not None):
             self.error = error_msg
             self.sig_ready.emit()
