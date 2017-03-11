@@ -102,12 +102,13 @@ def test_forced_restart_kernel(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Do an assigment to verify that it's not there after restarting
-    shell.execute('a = 10')
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
 
     # Generate a traceback and enter debugging mode
-    shell.execute('1/0')
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+
     shell.execute('%debug')
     qtbot.wait(500)
 
@@ -130,8 +131,8 @@ def test_restart_kernel(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Do an assigment to verify that it's not there after restarting
-    shell.execute('a = 10')
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
 
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
@@ -207,8 +208,8 @@ def test_load_kernel_file(ipyconsole, qtbot):
 
     new_client = ipyconsole.get_clients()[1]
     new_shell = new_client.shellwidget
-    new_shell.execute('a = 10')
-    qtbot.wait(500)
+    with qtbot.waitSignal(new_shell.executed):
+        new_shell.execute('a = 10')
 
     assert new_client.name == '1/B'
     assert shell.get_value('a') == new_shell.get_value('a')
