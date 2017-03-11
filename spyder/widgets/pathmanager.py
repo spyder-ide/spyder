@@ -248,7 +248,7 @@ def test():
     test = PathManager(None, pathlist=sys.path[:-10],
                        ro_pathlist=sys.path[-10:])
     test.exec_()
-    print(test.get_path_list())
+    print(test.get_path_list())  # spyder: test-skip
 
 
 if __name__ == "__main__":

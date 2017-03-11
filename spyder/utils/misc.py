@@ -198,7 +198,7 @@ def monkeypatch_method(cls, patch_name):
         if old_func is not None:
             # Add the old func to a list of old funcs.
             old_ref = "_old_%s_%s" % (patch_name, fname)
-            #print old_ref, old_func
+
             old_attr = getattr(cls, old_ref, None)
             if old_attr is None:
                 setattr(cls, old_ref, old_func)
