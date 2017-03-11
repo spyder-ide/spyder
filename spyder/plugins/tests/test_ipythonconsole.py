@@ -61,6 +61,37 @@ def ipyconsole(request):
 #==============================================================================
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+def test_mpl_backend_change(ipyconsole, qtbot):
+    """
+    Test that Matplotlib backend is changed correctly when
+    using the %matplotlib magic
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Import Matplotlib
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import matplotlib.pyplot as plt')
+
+    # Generate an inline plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('plt.plot(range(10))')
+
+    # Change backends
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%matplotlib tk')
+
+    # Generate another plot
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('plt.plot(range(10))')
+
+    # Assert that there's a single inline plot in the console
+    assert shell._control.toHtml().count('img src') == 1
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_forced_restart_kernel(ipyconsole, qtbot):
     """
     Test that kernel is restarted if we force it do it
