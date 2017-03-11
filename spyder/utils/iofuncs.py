@@ -497,10 +497,3 @@ if __name__ == "__main__":
     print("Data loaded in %.3f seconds" % (time.time()-t0))
 #    for key in example:
 #        print key, ":", example[key] == example2[key]
-
-    a = MatlabStruct()
-    a.b = 'spam'
-    assert a["b"] == 'spam'
-    a.c["d"] = 'eggs'
-    assert a.c.d == 'eggs'
-    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
