@@ -8,6 +8,7 @@ import os
 import os.path as osp
 import shutil
 import tempfile
+from textwrap import dedent
 
 from flaky import flaky
 import pytest
@@ -61,13 +62,48 @@ def ipyconsole(request):
 #==============================================================================
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+def test_run_doctest(ipyconsole, qtbot):
+    """
+    Test that doctests can be run without problems
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    code = dedent('''
+    def add(x, y):
+        """
+        >>> add(1, 2)
+        3
+        >>> add(5.1, 2.2)
+        7.3
+        """
+        return x + y
+    ''')
+
+    # Run code
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(code)
+
+    # Import doctest
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import doctest')
+
+    # Run doctest
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('doctest.testmod()')
+
+    # Assert that doctests were run correctly
+    assert "TestResults(failed=0, attempted=2)" in shell._control.toPlainText()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
     Test that Matplotlib backend is changed correctly when
     using the %matplotlib magic
     """
     shell = ipyconsole.get_current_shellwidget()
-    client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Import Matplotlib
