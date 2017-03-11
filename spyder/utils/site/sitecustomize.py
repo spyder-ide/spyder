@@ -513,6 +513,10 @@ except (ImportError, AttributeError):
 class SpyderPdb(pdb.Pdb):
     send_initial_notification = True
 
+    def __init__(self, completekey='tab', stdin=None, stdout=None,
+                 skip=None, nosigint=False):
+        super(pdb.Pdb, self).__init__()
+
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
         #------Really deleting all breakpoints:
