@@ -183,6 +183,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_dbg_kernel_restart.connect(
                 self.restart_kernel)
 
+        # To correctly change Matplotlib backend interactively
+        self.shellwidget.executing.connect(
+            self.shellwidget.change_mpl_backend)
+
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
 

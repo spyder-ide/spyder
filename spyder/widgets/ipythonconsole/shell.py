@@ -282,6 +282,18 @@ the sympy module (e.g. plot)
             self._append_plain_text(message + '\n')
             self.silent_execute("%gui inline\n%gui qt")
 
+    def change_mpl_backend(self, command):
+        """
+        If the user is trying to change Matplotlib backends with
+        %matplotlib, send the same command again to the kernel to
+        correctly change it.
+
+        Fixes issue 4002
+        """
+        if command.startswith('%matplotlib') and \
+          len(command.splitlines()) == 1:
+            self.silent_execute(command)
+
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
