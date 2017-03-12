@@ -30,7 +30,6 @@ FALLBACK_PLUGIN_FILE = osp.join(os.path.dirname(__file__), '..',
 def test_fallback_plugin():
     """Test the fallback plugin."""
     p = FallbackPlugin()
-    print(FALLBACK_PLUGIN_FILE)
     with open(FALLBACK_PLUGIN_FILE, 'rb') as fid:
         code = fid.read().decode('utf-8')
     code += '\nlog_dt'
@@ -57,18 +56,8 @@ def test_fallback_plugin():
         'dummy.py'))
     assert resp is None
 
-    code = """
-    class Test(object):
-        def __init__(self):
-            self.foo = bar
-
-    t = Test()
-    t.foo"""
-    path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.py', is_python_like=True))
-    assert line == 4
-
-    # test extensions
+def test_extensions():
+    """Test the extentions related methods from the fallback plugin."""
     ext = python_like_exts()
     assert '.py' in ext and '.pyx' in ext
 
@@ -89,12 +78,9 @@ def test_fallback_plugin():
         path = get_parent_until(path)
         assert path == '.spyder2.temp', path
 
-    code = 'import re\n\nre'
-    path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.py', is_python_like=True))
-    assert path == 'dummy.py' and line == 1
-
-    # get completitions
+def test_get_completions():
+    """Test the get_completions method from the Fallback plugin."""
+    p = FallbackPlugin()
     code = 'self.proxy.widget; self.p'
     comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
     assert ('proxy', '') in comp, comp
@@ -111,6 +97,9 @@ def test_fallback_plugin():
     comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.sh'))
     assert ('function', '') in comp, comp
 
+def test_get_definition_method():
+    """Test the get_definition method for methods."""
+    p = FallbackPlugin()
     code = '''
 def test(a, b):
     pass
@@ -118,6 +107,25 @@ test(1,'''
     path, line = p.get_definition(CodeInfo('definition', code, len(code),
         'dummy.py', is_python_like=True))
     assert line == 2
+
+    code = 'import re\n\nre'
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.py', is_python_like=True))
+    assert path == 'dummy.py' and line == 1
+
+def test_get_definition_class():
+    """Test the get_definition method for classes."""
+    p = FallbackPlugin()
+    code = """
+    class Test(object):
+        def __init__(self):
+            self.foo = bar
+
+    t = Test()
+    t.foo"""
+    path, line = p.get_definition(CodeInfo('definition', code, len(code),
+        'dummy.py', is_python_like=True))
+    assert line == 4
 
 
 if __name__ == "__main__":

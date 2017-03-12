@@ -17,7 +17,7 @@ import pytest
 # Local imports
 from spyder.utils.introspection.utils import CodeInfo
 
-def test_codeanalysis():
+def test_codeinfo():
     """Test CodeInfo."""
     code = 'import numpy'
     test = CodeInfo('test', code, len(code) - 2)
