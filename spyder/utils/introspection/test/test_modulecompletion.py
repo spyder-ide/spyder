@@ -16,7 +16,7 @@ from spyder.utils.introspection.module_completion import (module_completion,
                                                           get_preferred_submodules)
 from spyder.py3compat import PY3
 
-def test_codeanalysis():
+def test_module_completion():
     """Test module_completion."""
     # Some simple tests.
     # Sort operations are done by the completion widget, so we have to
