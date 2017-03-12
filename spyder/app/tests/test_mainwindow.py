@@ -15,6 +15,7 @@ from flaky import flaky
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
+from qtpy import PYQT5
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
@@ -199,9 +200,10 @@ def test_run_code(main_window, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
-                    reason="It times out sometimes on Windows and it's not "
-                           "meant to be run outside of a CI")
+@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None or PYQT5,
+                    reason="It times out sometimes on Windows, it's not "
+                           "meant to be run outside of a CI and it segfaults "
+                           "too frequently in PyQt5")
 def test_open_files_in_new_editor_window(main_window, qtbot):
     """
     This tests that opening files in a new editor window
