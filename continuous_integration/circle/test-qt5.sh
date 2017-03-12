@@ -6,6 +6,8 @@ source activate test
 # We use container 3 to test with pip
 if [ "$CIRCLE_NODE_INDEX" != "3" ]; then
     conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
+else
+    pip install -q pyqt5
 fi
 
 python runtests.py

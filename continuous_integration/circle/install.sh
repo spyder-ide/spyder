@@ -3,7 +3,7 @@
 # We use container 3 to run our tests with pip packages
 if [ "$CIRCLE_NODE_INDEX" = "3" ]; then
     export PIP_DEPENDENCIES_FLAGS="-q"
-    export PIP_DEPENDENCIES="pyqt5 coveralls"
+    export PIP_DEPENDENCIES="coveralls"
     export CONDA_DEPENDENCIES=""
 else
     export CONDA_DEPENDENCIES_FLAGS="--quiet"
@@ -27,7 +27,7 @@ source activate test
 
 # Install Spyder
 if [ "$CIRCLE_NODE_INDEX" = "3" ]; then
-    pip install -e .[test] > /dev/null
+    pip install -q -e .[test]
 else
     conda install -q ciocheck -c spyder-ide --no-update-deps
     python setup.py install > /dev/null
