@@ -2,6 +2,7 @@
 
 # We use container 3 to run our tests with pip packages
 if [ "$CIRCLE_NODE_INDEX" = "3" ]; then
+    export PIP_DEPENDENCIES_FLAGS="-q"
     export PIP_DEPENDENCIES="pyqt5 coveralls"
     export CONDA_DEPENDENCIES=""
 else

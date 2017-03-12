@@ -3,6 +3,8 @@
 machine:
   environment:
     # Python versions to tests (Maximum of 4 different versions)
+    # The last container is reserved to test with PyQt5 wheels
+    # because they are more up to date than conda páckages.
     PY_VERSIONS: "2.7 3.5 3.6 3.5"
     # For Coveralls
     COVERALLS_REPO_TOKEN: yt7YToGxRtnAcM6kSULoiCmOPetq10TaU
