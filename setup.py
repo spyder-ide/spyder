@@ -300,7 +300,8 @@ extras_require = {
              'scipy',
              'sympy',
              'pillow',
-             'matplotlib'],
+             'matplotlib',
+             'cython'],
 }
 
 if 'setuptools' in sys.modules:
