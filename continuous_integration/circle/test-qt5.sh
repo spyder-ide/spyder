@@ -10,6 +10,11 @@ fi
 
 python runtests.py
 
+# Force quitting if exit status of runtests.py was not 0
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
 # Run coveralls also here because there are errors if run
 # as an independent command
 coveralls
