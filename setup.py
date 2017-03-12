@@ -294,6 +294,7 @@ extras_require = {
     'test': ['pytest',
              'pytest-qt',
              'pytest-cov',
+             'pytest-xvfb',
              'mock',
              'flaky',
              'pandas',
