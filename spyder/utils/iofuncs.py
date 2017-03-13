@@ -490,4 +490,3 @@ if __name__ == "__main__":
     os.remove("test.spydata")
 
     print("Data loaded in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
-    os.remove("test.spydata")
