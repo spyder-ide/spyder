@@ -1230,7 +1230,7 @@ class MainWindow(QMainWindow):
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
-            self.check_updates()
+            self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
         self.report_missing_dependencies()
@@ -1620,7 +1620,6 @@ class MainWindow(QMainWindow):
 #            widget.setMinimumWidth(new_width)
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
-#            print(c, widgets_layout[c][0][0], new_width)
         
         # fix column height
         for c, column in enumerate(widgets_layout):
@@ -2725,8 +2724,8 @@ class MainWindow(QMainWindow):
         except Exception as error:
             # If there is an error with subprocess, Spyder should not quit and
             # the error can be inspected in the internal console
-            print(error)
-            print(command)
+            print(error)  # spyder: test-skip
+            print(command)  # spyder: test-skip
 
     # ---- Interactive Tours
     def show_tour(self, index):
@@ -2759,9 +2758,9 @@ class MainWindow(QMainWindow):
         box.set_checkbox_text(_("Check for updates on startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
-        #The next line is commented because it freezes the dialog.
-        #For now there is then no info icon. This solves issue #3609.
-        #box.setIcon(QMessageBox.Information)
+        # The next line is commented because it freezes the dialog.
+        # For now there is then no info icon. This solves issue #3609.
+        # box.setIcon(QMessageBox.Information)
 
         # Adjust the checkbox depending on the stored configuration
         section, option = 'main', 'check_updates_on_startup'
@@ -2776,6 +2775,18 @@ class MainWindow(QMainWindow):
             check_updates = box.is_checked()
         else:
             if update_available:
+                anaconda_msg = ''
+                if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
+                    anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
+                                     "that you are using Spyder with "
+                                     "<b>Anaconda/Miniconda</b>. Please "
+                                     "<<b>don't</b> use code>pip</code> to "
+                                     "update it as that will probably break "
+                                     "your installation.<br><br>"
+                                     "Instead, please wait until new conda "
+                                     "packages are available and use "
+                                     "<code>conda</code> to perform the "
+                                     "update.<hr>")
                 msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
                         "your package manager to update Spyder or go to our "
                         "<a href=\"%s\">Releases</a> page to download this "
@@ -2783,6 +2794,7 @@ class MainWindow(QMainWindow):
                         "proceed to update Spyder please refer to our "
                         " <a href=\"%s\">Installation</a> instructions."
                         "") % (latest_release, url_r, url_i)
+                msg += '<br>' + anaconda_msg
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
@@ -2799,12 +2811,12 @@ class MainWindow(QMainWindow):
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)
-        
+
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
 
     @Slot()
-    def check_updates(self):
+    def check_updates(self, startup=False):
         """
         Check for spyder updates on github releases using a QThread.
         """
@@ -2817,7 +2829,7 @@ class MainWindow(QMainWindow):
             self.thread_updates.terminate()
 
         self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self)
+        self.worker_updates = WorkerUpdates(self, startup=startup)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)

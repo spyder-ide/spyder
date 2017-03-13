@@ -835,7 +835,7 @@ def test():
     table = ShortcutsTable()
     table.show()
     app.exec_()
-    print([str(s) for s in table.source_model.shortcuts])
+    print([str(s) for s in table.source_model.shortcuts])  # spyder: test-skip
     table.check_shortcuts()
 
 if __name__ == '__main__':

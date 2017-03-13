@@ -289,8 +289,24 @@ install_requires = [
     'numpydoc',
 ]
 
+extras_require = {
+    'test:python_version == "2.7"': ['mock'],
+    'test': ['pytest',
+             'pytest-qt',
+             'pytest-cov',
+             'pytest-xvfb',
+             'mock',
+             'flaky',
+             'pandas',
+             'scipy',
+             'sympy',
+             'pillow',
+             'matplotlib'],
+}
+
 if 'setuptools' in sys.modules:
     setup_args['install_requires'] = install_requires
+    setup_args['extras_require'] = extras_require
 
     setup_args['entry_points'] = {
         'gui_scripts': [
