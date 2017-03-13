@@ -467,7 +467,6 @@ def save_auto(data, filename):
 
 
 if __name__ == "__main__":
-    import io
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
@@ -488,22 +487,7 @@ if __name__ == "__main__":
     print(" Data saved in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
     t0 = time.time()
     example2, ok = load_dictionary("test.spydata")
-    print("Data loaded in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
     os.remove("test.spydata")
 
-    a = MatlabStruct()
-    a.b = 'spam'
-    assert a["b"] == 'spam'
-    a.c["d"] = 'eggs'
-    assert a.c.d == 'eggs'
-    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
-    a['d'] = [1, 2, 3]
-
-    if save_matlab:
-        buf = io.BytesIO()
-        save_matlab(a, buf)
-        buf.seek(0)
-        data, err = load_matlab(buf)
-        assert data['b'] == 'spam'
-        assert data['c'].d == 'eggs'
-        assert data['d'].tolist() == [[1, 2, 3]]
+    print("Data loaded in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
+    os.remove("test.spydata")

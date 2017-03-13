@@ -260,7 +260,7 @@ class ProjectExplorerWidget(QWidget):
 #==============================================================================
 # Tests
 #==============================================================================
-class Test(QWidget):
+class ProjectExplorerTest(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
@@ -293,7 +293,7 @@ class Test(QWidget):
 def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    test = Test()
+    test = ProjectExplorerTest()
     test.resize(250, 480)
     test.show()
     app.exec_()
