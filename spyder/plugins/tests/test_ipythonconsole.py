@@ -13,11 +13,11 @@ from textwrap import dedent
 from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import QApplication, QMessageBox
+from qtpy.QtWidgets import QApplication
 
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
-
+from spyder.utils.tests import close_message_box
 
 #==============================================================================
 # Constants
@@ -33,13 +33,6 @@ def open_client_from_connection_info(connection_info, qtbot):
     for w in top_level_widgets:
         if isinstance(w, KernelConnectionDialog):
             w.cf.setText(connection_info)
-            qtbot.keyClick(w, Qt.Key_Enter)
-
-
-def restart_kernel(qtbot):
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, QMessageBox):
             qtbot.keyClick(w, Qt.Key_Enter)
 
 
@@ -172,7 +165,7 @@ def test_restart_kernel(ipyconsole, qtbot):
 
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
-    QTimer.singleShot(1000, lambda: restart_kernel(qtbot))
+    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
     client.restart_kernel()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
