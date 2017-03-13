@@ -84,3 +84,15 @@ def test_spydata_import(spydata_values):
     for var in sorted(spydata_values.keys()):
         valid = valid and bool(np.mean(spydata_values[var] == data[var]))
     assert valid
+
+def test_matlabstruct():
+    """Test support for matlab stlye struct."""
+    a = io.MatlabStruct()
+    a.b = 'spam'
+    assert a["b"] == 'spam'
+    a.c["d"] = 'eggs'
+    assert a.c.d == 'eggs'
+    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
+
+if __name__ == "__main__":
+    pytest.main()
