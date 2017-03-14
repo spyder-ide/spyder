@@ -10,8 +10,10 @@ Tests for the main window
 
 import os
 import os.path as osp
+import tempfile
 
 from flaky import flaky
+import nbformat
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -132,6 +134,38 @@ def test_run_cython_code(main_window, qtbot):
 
     # Close file
     main_window.editor.close_file()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_open_notebooks_from_project_explorer(main_window, qtbot):
+    """Test that new breakpoints are set in the IPython console."""
+    projects = main_window.projects
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Create a temp project directory
+    project_dir = tempfile.mkdtemp()
+
+    # Create an empty notebook in the project dir
+    nb_contents = nbformat.v4.new_notebook()
+    nbformat.write(nb_contents, osp.join(project_dir, 'notebook.ipynb'))
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects._create_project(project_dir)
+
+    # Select notebook in the project explorer
+    idx = projects.explorer.treewidget.get_index('notebook.ipynb')
+    projects.explorer.treewidget.setCurrentIndex(idx)
+
+    # Prese Enter there
+    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+
+    # Assert that notebook was open
+    assert 'notebook.ipynb' in editorstack.get_current_filename()
+
+    # Close project
+    projects.close_project()
 
 
 @flaky(max_runs=10)
