@@ -43,12 +43,13 @@ class PluginManager(QObject):
 
     introspection_complete = Signal(object)
 
-    def __init__(self, executable):
+    def __init__(self, executable, extra_path=None):
+
         super(PluginManager, self).__init__()
         plugins = OrderedDict()
         for name in PLUGINS:
             try:
-                plugin = PluginClient(name, executable)
+                plugin = PluginClient(name, executable, extra_path=extra_path)
                 plugin.run()
             except Exception as e:
                 debug_print('Introspection Plugin Failed: %s' % name)
@@ -129,7 +130,7 @@ class PluginManager(QObject):
             self.pending = response
 
     def close(self):
-        [plugin.close() for plugin in self.plugins]
+        [plugin.close() for plugin in self.plugins.values()]
 
     def _finalize(self, response):
         self.waiting = False
@@ -164,13 +165,25 @@ class IntrospectionManager(QObject):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = None
         self.pending = None
+        self.spyder_path = None
+        self.executable = executable
         self.plugin_manager = PluginManager(executable)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 
     def change_executable(self, executable):
+        self.executable = executable
+        self._restart_plugin()
+
+    def change_spyder_path(self, spyder_path):
+        if spyder_path != self.spyder_path:
+            self.spyder_path = spyder_path
+            self._restart_plugin()
+
+    def _restart_plugin(self):
         self.plugin_manager.close()
-        self.plugin_manager = PluginManager(executable)
+        self.plugin_manager = PluginManager(self.executable,
+                                            extra_path=self.spyder_path)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 

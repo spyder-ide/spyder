@@ -41,7 +41,8 @@ class AsyncClient(QObject):
     received = Signal(object)
 
     def __init__(self, target, executable=None, name=None,
-                 extra_args=None, libs=None, cwd=None, env=None):
+                 extra_args=None, libs=None, cwd=None, env=None,
+                 extra_path=None):
         super(AsyncClient, self).__init__()
         self.executable = executable or sys.executable
         self.extra_args = extra_args
@@ -50,8 +51,11 @@ class AsyncClient(QObject):
         self.libs = libs
         self.cwd = cwd
         self.env = env
+        self.extra_path = extra_path
         self.is_initialized = False
         self.closing = False
+        self.notifier = None
+        self.process = None
         self.context = zmq.Context()
         QApplication.instance().aboutToQuit.connect(self.close)
 
@@ -85,6 +89,12 @@ class AsyncClient(QObject):
                     path = osp.dirname(imp.find_module(lib)[1])
                     python_path = osp.pathsep.join([python_path, path])
                 except ImportError:
+                    pass
+            if self.extra_path:
+                try:
+                    python_path = osp.pathsep.join([python_path] +
+                                                   self.extra_path)
+                except Exception:
                     pass
             env.append("PYTHONPATH=%s" % python_path)
         if self.env:
@@ -129,12 +139,17 @@ class AsyncClient(QObject):
         self.closing = True
         self.is_initialized = False
         self.timer.stop()
-        self.notifier.activated.disconnect(self._on_msg_received)
-        self.notifier.setEnabled(False)
-        del self.notifier
+
+        if self.notifier is not None:
+            self.notifier.activated.disconnect(self._on_msg_received)
+            self.notifier.setEnabled(False)
+            self.notifier = None
+
         self.request('server_quit')
-        self.process.waitForFinished(1000)
-        self.process.close()
+
+        if self.process is not None:
+            self.process.waitForFinished(1000)
+            self.process.close()
         self.context.destroy()
 
     def _on_finished(self):
@@ -192,11 +207,13 @@ class AsyncClient(QObject):
 
 class PluginClient(AsyncClient):
 
-    def __init__(self, plugin_name, executable=None, env=None):
+    def __init__(self, plugin_name, executable=None, env=None,
+                 extra_path=None):
         cwd = os.path.dirname(__file__)
         super(PluginClient, self).__init__('plugin_server.py',
             executable=executable, cwd=cwd, env=env,
-            extra_args=[plugin_name], libs=[plugin_name])
+            extra_args=[plugin_name], libs=[plugin_name],
+            extra_path=extra_path)
         self.name = plugin_name
 
 
