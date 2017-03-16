@@ -44,80 +44,59 @@ class FoldingPanel(Panel):
     expand_all_triggered = Signal()
 
     @property
-    def native_look(self):
+    def native_icons(self):
         """
-        Defines whether the panel will use native indicator icons and color or
-        use custom one.
+        Defines whether the panel will use native indicator icons or
+        use custom ones.
 
-        If you want to use custom indicator icons and color, you must first
+        If you want to use custom indicator icons, you must first
         set this flag to False.
         """
-        return self._native
+        return self.native_icons
 
-    @native_look.setter
-    def native_look(self, value):
-        self._native = value
+    @native_icons.setter
+    def native_icons(self, value):
+        self._native_icons = value
         # propagate changes to every clone
         if self.editor:
             for clone in self.editor.clones:
                 try:
-                    clone.modes.get(self.__class__).native_look = value
+                    clone.modes.get(self.__class__).native_icons = value
                 except KeyError:
                     # this should never happen since we're working with clones
                     pass
 
     @property
-    def custom_indicators_icons(self):
+    def indicators_icons(self):
         """
-        Gets/sets the custom icon for the fold indicators.
+        Gets/sets the icons for the fold indicators.
 
         The list of indicators is interpreted as follow::
 
             (COLLAPSED_OFF, COLLAPSED_ON, EXPANDED_OFF, EXPANDED_ON)
 
-        To use this property you must first set `native_look` to False.
+        To use this property you must first set `native_icons` to False.
 
         :returns: tuple(str, str, str, str)
         """
-        return self._custom_indicators
+        return self._indicators_icons
 
-    @custom_indicators_icons.setter
-    def custom_indicators_icons(self, value):
+    @indicators_icons.setter
+    def indicators_icons(self, value):
         if len(value) != 4:
             raise ValueError('The list of custom indicators must contains 4 '
                              'strings')
-        self._custom_indicators = value
+        self._indicators_icons = value
         if self.editor:
             # propagate changes to every clone
             for clone in self.editor.clones:
                 try:
                     clone.modes.get(
-                        self.__class__).custom_indicators_icons = value
+                        self.__class__).indicators_icons = value
                 except KeyError:
                     # this should never happen since we're working with clones
                     pass
 
-    @property
-    def custom_fold_region_background(self):
-        """
-        Custom base color for the fold region background.
-
-        :return: QColor
-        """
-        return self._custom_color
-
-    @custom_fold_region_background.setter
-    def custom_fold_region_background(self, value):
-        self._custom_color = value
-        # propagate changes to every clone
-        if self.editor:
-            for clone in self.editor.clones:
-                try:
-                    clone.modes.get(
-                        self.__class__).custom_fold_region_background = value
-                except KeyError:
-                    # this should never happen since we're working with clones
-                    pass
 
     @property
     def highlight_caret_scope(self):
@@ -154,14 +133,13 @@ class FoldingPanel(Panel):
 
     def __init__(self, highlight_caret_scope=False):
         Panel.__init__(self)
-        self._native = False
-        self._custom_indicators = (
+        self._native_icons = False
+        self._indicators_icons = (
             'folding.arrow_right_off',
             'folding.arrow_right_on',
             'folding.arrow_down_off',
             'folding.arrow_down_on'
         )
-        self._custom_color = QColor('gray')
         self._block_nbr = -1
         self._highlight_caret = False
         self.highlight_caret_scope = highlight_caret_scope
@@ -259,16 +237,13 @@ class FoldingPanel(Panel):
 
     def _draw_rect(self, rect, painter):
         """
-        Draw the background rectangle using the current style primitive color
-        or foldIndicatorBackground if nativeFoldingIndicator is true.
+        Draw the background rectangle using the current style primitive color.
 
         :param rect: The fold zone rect to draw
 
         :param painter: The widget's painter.
         """
-        c = self._custom_color
-        if self._native:
-            c = self.get_system_bck_color()
+        c = self.editor.sideareas_color
         grad = QLinearGradient(rect.topLeft(),
                                      rect.topRight())
         if sys.platform == 'darwin':
@@ -298,27 +273,6 @@ class FoldingPanel(Panel):
                          rect.bottomLeft() -
                          QPointF(0, 1))
 
-    @staticmethod
-    def get_system_bck_color():
-        """Gets a system color for drawing the fold scope background."""
-        def merged_colors(colorA, colorB, factor):
-            maxFactor = 100
-            colorA = QColor(colorA)
-            colorB = QColor(colorB)
-            tmp = colorA
-            tmp.setRed((tmp.red() * factor) / maxFactor +
-                       (colorB.red() * (maxFactor - factor)) / maxFactor)
-            tmp.setGreen((tmp.green() * factor) / maxFactor +
-                         (colorB.green() * (maxFactor - factor)) / maxFactor)
-            tmp.setBlue((tmp.blue() * factor) / maxFactor +
-                        (colorB.blue() * (maxFactor - factor)) / maxFactor)
-            return tmp
-
-        pal = QApplication.instance().palette()
-        b = pal.window().color()
-        h = pal.highlight().color()
-        return merged_colors(b, h, 50)
-
     def _draw_fold_indicator(self, top, mouse_over, collapsed, painter):
         """
         Draw the fold indicator/trigger (arrow).
@@ -330,7 +284,7 @@ class FoldingPanel(Panel):
         """
         rect = QRect(0, top, self.sizeHint().width(),
                             self.sizeHint().height())
-        if self._native:
+        if self._native_icons:
             opt = QStyleOptionViewItem()
 
             opt.rect = rect
@@ -354,7 +308,7 @@ class FoldingPanel(Panel):
                 index = 2
             if mouse_over:
                 index += 1
-            ima.icon(self._custom_indicators[index]).paint(painter, rect)
+            ima.icon(self._indicators_icons[index]).paint(painter, rect)
 
     @staticmethod
     def find_parent_scope(block):
@@ -765,8 +719,8 @@ class FoldingPanel(Panel):
         self._block_nbr = block_nbr
 
     def clone_settings(self, original):
-        self.native_look = original.native_look
-        self.custom_indicators_icons = original.custom_indicators_icons
+        self.native_icons = original.native_icons
+        self.indicators_icons = original.indicators_icons
         self.highlight_caret_scope = original.highlight_caret_scope
         self.custom_fold_region_background = \
             original.custom_fold_region_background
