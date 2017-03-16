@@ -100,7 +100,7 @@ class Panel(QWidget, Mode):
         if self.isVisible():
             # fill background
             self._background_brush = QBrush(QColor(
-                self.palette().window().color()))
+                self.editor.sideareas_color))
             self._foreground_pen = QPen(QColor(
                 self.palette().windowText().color()))
             painter = QPainter(self)
