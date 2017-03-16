@@ -336,89 +336,29 @@ class FoldingPanel(Panel):
         """
         Gets the base scope highlight color (derivated from the editor
         background)
+
+        For lighter themes will be a darker color, 
+        and for darker ones will be a lighter color
         """
-        color = self.editor.background
+        color = self.editor.sideareas_color
         if color.lightness() < 128:
             color = drift_color(color, 130)
         else:
             color = drift_color(color, 105)
         return color
 
-    def _add_scope_deco(self, start, end, parent_start, parent_end, base_color,
-                        factor):
-        """
-        Adds a scope decoration that enclose the current scope.
+    def _decorate_block(self, start, end):
+        color = self._get_scope_highlight_color()
+        d = TextDecoration(self.editor.document(),
+                           start_line=start, end_line=end+1)
+        d.set_background(color)
+        d.set_full_width(True, clear=False)
+        self.editor.decorations.append(d)
+        self._scope_decos.append(d)
 
-        :param start: Start of the current scope
-        :param end: End of the current scope
-        :param parent_start: Start of the parent scope
-        :param parent_end: End of the parent scope
-        :param base_color: base color for scope decoration
-        :param factor: color factor to apply on the base color (to make it
-            darker).
+    def _highlight_block(self, block):
         """
-        color = drift_color(base_color, factor=factor)
-        # upper part
-        if start > 0:
-            d = TextDecoration(self.editor.document(),
-                               start_line=parent_start, end_line=start)
-            d.set_full_width(True, clear=False)
-            d.draw_order = 2
-            d.set_background(color)
-            self.editor.decorations.append(d)
-            self._scope_decos.append(d)
-        # lower part
-        if end <= self.editor.document().blockCount():
-            d = TextDecoration(self.editor.document(),
-                               start_line=end, end_line=parent_end + 1)
-            d.set_full_width(True, clear=False)
-            d.draw_order = 2
-            d.set_background(color)
-            self.editor.decorations.append(d)
-            self._scope_decos.append(d)
-
-    def _add_scope_decorations(self, block, start, end):
-        """
-        Show a scope decoration on the code editor widget.
-
-        :param start: Start line
-        :param end: End line
-        """
-        try:
-            parent = FoldScope(block).parent()
-        except ValueError:
-            parent = None
-        if TextBlockHelper.is_fold_trigger(block):
-            base_color = self._get_scope_highlight_color()
-            factor_step = 5
-            if base_color.lightness() < 128:
-                factor_step = 10
-                factor = 70
-            else:
-                factor = 100
-            while parent:
-                # highlight parent scope
-                parent_start, parent_end = parent.get_range()
-                self._add_scope_deco(
-                    start, end + 1, parent_start, parent_end,
-                    base_color, factor)
-                # next parent scope
-                start = parent_start
-                end = parent_end
-                parent = parent.parent()
-                factor += factor_step
-            # global scope
-            parent_start = 0
-            parent_end = self.editor.document().blockCount()
-            self._add_scope_deco(
-                start, end + 1, parent_start, parent_end, base_color,
-                factor + factor_step)
-        else:
-            self._clear_scope_decos()
-
-    def _highlight_surrounding_scopes(self, block):
-        """
-        Highlights the scopes surrounding the current fold scope.
+        Highlights the current fold scope.
 
         :param block: Block that starts the current fold scope.
         """
@@ -427,10 +367,10 @@ class FoldingPanel(Panel):
                 self._current_scope.get_range() != scope.get_range()):
             self._current_scope = scope
             self._clear_scope_decos()
-            # highlight surrounding parent scopes with a darker color
+            # highlight current scope with darker or lighter color
             start, end = scope.get_range()
             if not TextBlockHelper.is_collapsed(block):
-                self._add_scope_decorations(block, start, end)
+                self._decorate_block(start, end)
 
     def mouseMoveEvent(self, event):
         """
@@ -456,12 +396,12 @@ class FoldingPanel(Panel):
                     # fold scope changed, a previous block was highlighter so
                     # we quickly update our highlighting
                     self._mouse_over_line = block.blockNumber()
-                    self._highlight_surrounding_scopes(block)
+                    self._highlight_block(block)
                 else:
                     # same fold scope, request highlight
                     self._mouse_over_line = block.blockNumber()
                     self._highlight_runner.request_job(
-                        self._highlight_surrounding_scopes, block)
+                        self._highlight_block, block)
                 self._highight_block = block
             else:
                 # no fold scope to highlight, cancel any pending requests
@@ -518,8 +458,7 @@ class FoldingPanel(Panel):
         if region.collapsed:
             region.unfold()
             if self._mouse_over_line is not None:
-                self._add_scope_decorations(
-                    region._trigger, *region.get_range())
+                self._decorate_block(*region.get_range())
         else:
             region.fold()
             self._clear_scope_decos()
@@ -698,7 +637,7 @@ class FoldingPanel(Panel):
 
     def _highlight_caret_scope(self):
         """
-        Highlight the scope surrounding the current caret position.
+        Highlight the scope of the current caret position.
 
         This get called only if :attr:`
         spyder.widgets.panels.FoldingPanel.highlight_care_scope` is True.
@@ -715,7 +654,7 @@ class FoldingPanel(Panel):
             else:
                 self._mouse_over_line = block.blockNumber()
                 if TextBlockHelper.is_fold_trigger(block):
-                    self._highlight_surrounding_scopes(block)
+                    self._highlight_block(block)
         self._block_nbr = block_nbr
 
     def clone_settings(self, original):
