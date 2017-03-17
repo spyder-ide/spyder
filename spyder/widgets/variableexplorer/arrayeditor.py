@@ -20,7 +20,7 @@ from __future__ import print_function
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
-from qtpy.QtGui import QColor, QCursor, QDoubleValidator
+from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGridLayout,
                             QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
