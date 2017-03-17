@@ -161,13 +161,13 @@ class IntrospectionManager(QObject):
     send_to_help = Signal(str, str, str, str, bool)
     edit_goto = Signal(str, int, str)
 
-    def __init__(self, executable=None):
+    def __init__(self, executable=None, extra_path=None):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = None
         self.pending = None
-        self.spyder_path = None
+        self.extra_path = extra_path
         self.executable = executable
-        self.plugin_manager = PluginManager(executable)
+        self.plugin_manager = PluginManager(executable, extra_path)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 
@@ -175,15 +175,15 @@ class IntrospectionManager(QObject):
         self.executable = executable
         self._restart_plugin()
 
-    def change_spyder_path(self, spyder_path):
-        if spyder_path != self.spyder_path:
-            self.spyder_path = spyder_path
+    def change_extra_path(self, extra_path):
+        if extra_path != self.extra_path:
+            self.extra_path = extra_path
             self._restart_plugin()
 
     def _restart_plugin(self):
         self.plugin_manager.close()
         self.plugin_manager = PluginManager(self.executable,
-                                            extra_path=self.spyder_path)
+                                            extra_path=self.extra_path)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 
