@@ -390,6 +390,7 @@ class ArrayView(QTableView):
     """Array view class"""
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
+
         self.setModel(model)
         self.setItemDelegate(ArrayDelegate(dtype, self))
         total_width = 0
