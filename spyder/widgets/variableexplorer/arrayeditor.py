@@ -390,7 +390,6 @@ class ArrayView(QTableView):
     """Array view class"""
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
-
         self.setModel(model)
         self.setItemDelegate(ArrayDelegate(dtype, self))
         total_width = 0
@@ -492,7 +491,7 @@ class ArrayView(QTableView):
             output = io.StringIO()
         try:
             np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t')
+                       delimiter='\t', fmt=self.model().get_format())
         except:
             QMessageBox.warning(self, _("Warning"),
                                 _("It was not possible to copy values for "
