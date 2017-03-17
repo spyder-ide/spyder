@@ -130,7 +130,9 @@ class PluginManager(QObject):
             self.pending = response
 
     def close(self):
-        [plugin.close() for plugin in self.plugins.values()]
+        for name, plugin in self.plugins.items():
+            plugin.close()
+            debug_print("Introspection Plugin Closed: {}".format(name))
 
     def _finalize(self, response):
         self.waiting = False
