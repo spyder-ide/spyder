@@ -18,7 +18,7 @@ from qtpy.QtWidgets import QApplication
 import zmq
 
 # Local imports
-from spyder.config.base import debug_print, DEV, get_module_path
+from spyder.config.base import debug_print, get_module_path
 
 
 # Heartbeat timer in milliseconds
@@ -81,7 +81,7 @@ class AsyncClient(QObject):
         # Set up environment variables.
         processEnvironment = QProcessEnvironment()
         env = self.process.systemEnvironment()
-        if (self.env and 'PYTHONPATH' not in self.env) or DEV:
+        if (self.env and 'PYTHONPATH' not in self.env) or self.env is None:
             python_path = osp.dirname(get_module_path('spyder'))
             # Add the libs to the python path.
             for lib in self.libs:
@@ -94,8 +94,9 @@ class AsyncClient(QObject):
                 try:
                     python_path = osp.pathsep.join([python_path] +
                                                    self.extra_path)
-                except Exception:
-                    pass
+                except Exception as e:
+                    debug_print("Error when adding extra_path to plugin env")
+                    debug_print(e)
             env.append("PYTHONPATH=%s" % python_path)
         if self.env:
             env.update(self.env)
