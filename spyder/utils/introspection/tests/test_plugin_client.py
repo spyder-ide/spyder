@@ -5,6 +5,9 @@
 #
 """Tests for plugin_client.py."""
 
+# Standard library imports
+import os.path as osp
+
 # Test library imports
 import pytest
 
@@ -32,7 +35,7 @@ def test_plugin_client_extra_path(qtbot, plugin_name):
     plugin = PluginClient(plugin_name=plugin_name, extra_path=[extra_path])
     plugin.run()
     python_path = plugin.process.processEnvironment().value('PYTHONPATH')
-    assert extra_path in python_path.split(':')
+    assert extra_path in python_path.split(osp.pathsep)
 
 
 if __name__ == "__main__":
