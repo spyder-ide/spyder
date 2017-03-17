@@ -54,7 +54,6 @@ class JediPlugin(IntrospectionPlugin):
         completions = self.get_jedi_object('completions', info)
         if DEBUG_EDITOR:
             log_last_error(LOG_FILENAME, str("comp: " + str(completions)[:100]))
-        debug_print("comp: " + str(completions)[:100])
         completions = [(c.name, c.type) for c in completions]
         debug_print(str(completions)[:100])
         return completions

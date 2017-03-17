@@ -198,7 +198,7 @@ def monkeypatch_method(cls, patch_name):
         if old_func is not None:
             # Add the old func to a list of old funcs.
             old_ref = "_old_%s_%s" % (patch_name, fname)
-            #print old_ref, old_func
+
             old_attr = getattr(cls, old_ref, None)
             if old_attr is None:
                 setattr(cls, old_ref, old_func)
@@ -283,20 +283,3 @@ def memoize(obj):
             cache.popitem(last=False)
         return cache[key]
     return memoizer
-
-
-if __name__ == '__main__':
-    if os.name == 'nt':
-        assert get_common_path([
-                                'D:\\Python\\spyder-v21\\spyder\\widgets',
-                                'D:\\Python\\spyder\\spyder\\utils',
-                                'D:\\Python\\spyder\\spyder\\widgets',
-                                'D:\\Python\\spyder-v21\\spyder\\utils',
-                                ]) == 'D:\\Python'
-    else:
-        assert get_common_path([
-                                '/Python/spyder-v21/spyder.widgets',
-                                '/Python/spyder/spyder.utils',
-                                '/Python/spyder/spyder.widgets',
-                                '/Python/spyder-v21/spyder.utils',
-                                ]) == '/Python'

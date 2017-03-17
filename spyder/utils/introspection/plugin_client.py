@@ -206,18 +206,18 @@ if __name__ == '__main__':
     plugin.run()
 
     def handle_return(value):
-        print(value)
+        print(value)  # spyder: test-skip
         if value['func_name'] == 'foo':
             app.quit()
         else:
             plugin.request('foo')
 
     def handle_errored():
-        print('errored')
+        print('errored')  # spyder: test-skip
         sys.exit(1)
 
     def start():
-        print('start')
+        print('start')  # spyder: test-skip
         plugin.request('validate')
 
     plugin.errored.connect(handle_errored)

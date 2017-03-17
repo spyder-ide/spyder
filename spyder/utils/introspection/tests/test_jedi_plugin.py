@@ -32,7 +32,7 @@ p.load_plugin()
 
 
 def test_get_info():
-    source_code = "import os; os.walk("
+    source_code = "import os; os.walk"
     docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
     assert docs['calltip'].startswith('walk(') and docs['name'] == 'walk'
 
@@ -63,7 +63,7 @@ def test_get_docstring():
     def test(a, b):
         """Test docstring"""
         pass
-    test(1,''')
+    test''')
     path, line = p.get_definition(CodeInfo('definition', source_code,
                                            len(source_code), 'dummy.txt',
                                            is_python_like=True))

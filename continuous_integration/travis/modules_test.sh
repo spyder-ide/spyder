@@ -16,7 +16,7 @@ fi
 
 # Depth 1
 for f in spyder/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     if [[ $f == spyder/pyplot.py ]]; then
@@ -31,7 +31,7 @@ done
 
 # Depth 2
 for f in spyder/*/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     if [[ $f == spyder/app/*.py ]]; then
@@ -62,7 +62,7 @@ done
 
 # Depth 3
 for f in spyder/*/*/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     if [[ $f == spyder/external/*/*.py ]]; then
@@ -101,7 +101,7 @@ done
 
 # Depth 4
 for f in spyder/*/*/*/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     python "$f"
@@ -113,7 +113,7 @@ done
 
 # Spyderplugins
 for f in spyder_*/widgets/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     python "$f"

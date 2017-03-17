@@ -158,7 +158,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executing.connect(self.add_to_history)
 
         # For Mayavi to run correctly
-        self.shellwidget.executing.connect(self.set_backend_for_mayavi)
+        self.shellwidget.executing.connect(
+            self.shellwidget.set_backend_for_mayavi)
 
         # To update history after execution
         self.shellwidget.executed.connect(self.update_history)
@@ -181,6 +182,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # See issue 4003
         self.shellwidget.sig_dbg_kernel_restart.connect(
                 self.restart_kernel)
+
+        # To correctly change Matplotlib backend interactively
+        self.shellwidget.executing.connect(
+            self.shellwidget.change_mpl_backend)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -404,23 +409,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def update_history(self):
         self.history = self.shellwidget._history
-
-    def set_backend_for_mayavi(self, command):
-        """
-        Mayavi plots require the Qt backend, so we try to detect if one is
-        generated to change backends
-        """
-        calling_mayavi = False
-        lines = command.splitlines()
-        for l in lines:
-            if not l.startswith('#'):
-                if 'import mayavi' in l or 'from mayavi' in l:
-                    calling_mayavi = True
-                    break
-        if calling_mayavi:
-            message = _("Changing backend to Qt for Mayavi")
-            self.shellwidget._append_plain_text(message + '\n')
-            self.shellwidget.execute("%gui inline\n%gui qt")
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

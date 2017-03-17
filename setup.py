@@ -272,7 +272,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 
 install_requires = [
     'rope_py3k' if PY3 else 'rope>=0.9.4',
-    'jedi==0.9.0',
+    'jedi>=0.9.0',
     'pyflakes',
     'pygments>=2.0',
     'qtconsole>=4.2.0',
@@ -289,8 +289,25 @@ install_requires = [
     'numpydoc',
 ]
 
+extras_require = {
+    'test:python_version == "2.7"': ['mock'],
+    'test': ['pytest',
+             'pytest-qt',
+             'pytest-cov',
+             'pytest-xvfb',
+             'mock',
+             'flaky',
+             'pandas',
+             'scipy',
+             'sympy',
+             'pillow',
+             'matplotlib',
+             'cython'],
+}
+
 if 'setuptools' in sys.modules:
     setup_args['install_requires'] = install_requires
+    setup_args['extras_require'] = extras_require
 
     setup_args['entry_points'] = {
         'gui_scripts': [
