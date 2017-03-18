@@ -15,7 +15,6 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets  import QApplication
 
 # Local imports
 from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
