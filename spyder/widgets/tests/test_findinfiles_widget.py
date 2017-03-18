@@ -100,7 +100,7 @@ def test_include_extension(qtbot):
     assert files_filtered
 
 
-def test_include_extension(qtbot):
+def test_exclude_extension(qtbot):
     find_in_files = setup_findinfiles(qtbot, exclude="\.py$")
     find_in_files.set_search_text("spam")
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
