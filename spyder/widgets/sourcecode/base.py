@@ -182,7 +182,7 @@ class CompletionWidget(QListWidget):
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.case_sensitive:
-                    print(completion_text)
+                    print(completion_text)  # spyder: test-skip
                     completion = completion.lower()
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
@@ -629,6 +629,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.setTextCursor(cursor)
         text = self.get_selection_as_executable_code()
         self.__restore_selection(start_pos, end_pos)
+        if text is not None:
+            text = text.rstrip()
         return text
 
     def is_cell_separator(self, cursor=None, block=None):

@@ -20,9 +20,11 @@ import os
 from pandas import DataFrame, date_range, read_csv
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt
+import numpy
 import pytest
 
 # Local imports
+from spyder.utils.programs import is_module_installed
 from spyder.widgets.variableexplorer import dataframeeditor
 from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
@@ -155,6 +157,19 @@ def test_dataframemodel_get_bgcolor_with_object():
     a = dataframeeditor.BACKGROUND_MISC_ALPHA
     assert colorclose(bgcolor(dfm, 0, 1), (h, s, v, a))
 
+def test_dataframemodel_with_format_percent_d_and_nan():
+    """
+    Test DataFrameModel with format `%d` and dataframe containing NaN
+
+    Regression test for issue 4139.
+    """
+    np_array = numpy.zeros(2)
+    np_array[1] = numpy.nan
+    dataframe = DataFrame(np_array)
+    dfm = DataFrameModel(dataframe, format='%d')
+    assert data(dfm, 0, 1) == '0'
+    assert data(dfm, 1, 1) == 'nan'
+
 def test_change_format_emits_signal(qtbot, monkeypatch):
     mockQInputDialog = Mock()
     mockQInputDialog.getText = lambda parent, title, label, mode, text: ('%10.3e', True)
@@ -186,6 +201,8 @@ def test_header_bom():
     model = editor.dataModel
     assert model.headerData(1, orientation=Qt.Horizontal) == "Date (MMM-YY)"
 
+@pytest.mark.skipif(is_module_installed('pandas', '<0.19'),
+                    reason="It doesn't work for Pandas 0.19-")
 def test_header_encoding():
     df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
     editor = DataFrameEditor(None)

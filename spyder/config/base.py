@@ -39,6 +39,11 @@ DEV = os.environ.get('SPYDER_DEV')
 TEST = os.environ.get('SPYDER_TEST')
 
 
+# To do some adjustments for pytest
+# This env var is defined in runtests.py
+PYTEST = os.environ.get('SPYDER_PYTEST')
+
+
 #==============================================================================
 # Debug helpers
 #==============================================================================
@@ -209,6 +214,7 @@ def get_image_path(name, default="not_found.png"):
         if osp.isfile(full_path):
             return osp.abspath(full_path)
     if default is not None:
+        img_path = osp.join(get_module_path('spyder'), 'images')
         return osp.abspath(osp.join(img_path, default))
 
 
@@ -348,7 +354,7 @@ def get_translation(modname, dirname=None):
                 return to_text_string(y, "utf-8")
         return translate_gettext
     except IOError as _e:  # analysis:ignore
-        #print "Not using translations (%s)" % _e
+        # Not using translations
         def translate_dumb(x):
             if not is_unicode(x):
                 return to_text_string(x, "utf-8")

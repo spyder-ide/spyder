@@ -12,5 +12,5 @@ include img_src/spyder3.png
 include MANIFEST.in
 include README.md
 include LICENSE
-include CHANGELOG
+include CHANGELOG.md
 include bootstrap.py

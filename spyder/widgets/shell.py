@@ -82,6 +82,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         
         # Buffer to increase performance of write/flush operations
         self.__buffer = []
+        self.__buffer.append("NOTE: The Python console is going to "
+                             "be REMOVED in Spyder 3.2. Please start "
+                             "to migrate your work to the "
+                             "IPython console instead.\n\n")
         self.__timestamp = 0.0
         self.__flushtimer = QTimer(self)
         self.__flushtimer.setSingleShot(True)

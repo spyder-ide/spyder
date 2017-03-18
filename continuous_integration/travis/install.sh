@@ -38,7 +38,7 @@ install_conda()
     if [ "$PY_VERSION" = "2.7" ]; then
         wget "http://repo.continuum.io/miniconda/Miniconda-$MINICONDA_VERSION-$MINICONDA_OS.sh" -O miniconda.sh;
     else
-        wget "http://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VERSION-$MINICONDA_OS.sh" -O miniconda.sh;
+        wget "http://repo.continuum.io/miniconda/Miniconda3-4.2.12-$MINICONDA_OS.sh" -O miniconda.sh;
     fi
 
     bash miniconda.sh -b -p "$HOME/miniconda";
@@ -62,13 +62,6 @@ install_pip()
 {
     # Install PyQt5
     conda install 'pyqt>=5.6.0';
-
-    # Install testing packages
-    pip install pytest pytest-cov pytest-qt mock
-
-    # Install extra packages
-    EXTRA_PACKAGES="matplotlib pandas sympy pyzmq pillow"
-    pip install $EXTRA_PACKAGES
 }
 
 

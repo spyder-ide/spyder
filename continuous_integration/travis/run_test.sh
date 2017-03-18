@@ -6,14 +6,14 @@ set -ex
 export TEST_CI_APP=True
 
 
-# Extra packages to install besides Spyder regular dependencies
-# We install them here and not in travis_install.sh to see if
-# Spyder is correctly pulling its deps (some of them are shared
-# with mpl)
-export EXTRA_PACKAGES="nomkl pandas sympy pillow"
-
 # Install our builds of Spyder
 if [ "$USE_CONDA" = true ] ; then
+    # Extra packages to install besides Spyder regular dependencies
+    # We install them here and not in travis_install.sh to see if
+    # Spyder is correctly pulling its deps (some of them are shared
+    # with mpl)
+    export EXTRA_PACKAGES="nomkl pandas sympy pillow scipy"
+
     # Move to a tmp dir
     mkdir ~/tmp
     cd ~/tmp
@@ -25,12 +25,17 @@ if [ "$USE_CONDA" = true ] ; then
     conda install -q $EXTRA_PACKAGES
 else
     cd $FULL_SPYDER_CLONE
-    pip install dist/spyder-*.whl
+    export WHEEL=`ls dist/spyder-*.whl`
+    pip install $WHEEL[test]
 fi
 
 
 # Testing that the app starts and runs
-spyder
+if [[ "$USE_CONDA" = false && "$TRAVIS_PYTHON_VERSION" != "2.7" ]] ; then
+    spyder3
+else
+    spyder
+fi
 if [ $? -ne 0 ]; then
     exit 1
 fi

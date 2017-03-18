@@ -79,7 +79,8 @@ def get_data_files():
     if sys.platform.startswith('linux'):
         if PY3:
             data_files = [('share/applications', ['scripts/spyder3.desktop']),
-                          ('share/pixmaps', ['img_src/spyder3.png'])]
+                          ('share/pixmaps', ['img_src/spyder3.png']),
+                          ('share/metainfo', ['scripts/spyder3.appdata.xml'])]
         else:
             data_files = [('share/applications', ['scripts/spyder.desktop']),
                           ('share/pixmaps', ['img_src/spyder.png'])]
@@ -271,7 +272,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 
 install_requires = [
     'rope_py3k' if PY3 else 'rope>=0.9.4',
-    'jedi',
+    'jedi==0.9.0',
     'pyflakes',
     'pygments>=2.0',
     'qtconsole>=4.2.0',
@@ -288,12 +289,29 @@ install_requires = [
     'numpydoc',
 ]
 
+extras_require = {
+    'test:python_version == "2.7"': ['mock'],
+    'test': ['pytest',
+             'pytest-qt',
+             'pytest-cov',
+             'pytest-xvfb',
+             'mock',
+             'flaky',
+             'pandas',
+             'scipy',
+             'sympy',
+             'pillow',
+             'matplotlib'],
+}
+
 if 'setuptools' in sys.modules:
     setup_args['install_requires'] = install_requires
+    setup_args['extras_require'] = extras_require
 
     setup_args['entry_points'] = {
         'gui_scripts': [
-            'spyder = spyder.app.start:main'
+            '{} = spyder.app.start:main'.format(
+                'spyder3' if PY3 else 'spyder')
         ]
     }
 

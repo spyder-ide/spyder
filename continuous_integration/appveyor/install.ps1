@@ -8,9 +8,9 @@ $MINICONDA_URL = "http://repo.continuum.io/miniconda/"
 function DownloadMiniconda ($python_version, $platform_suffix) {
     $webclient = New-Object System.Net.WebClient
     if ($python_version -match "3.5") {
-        $filename = "Miniconda3-latest-Windows-" + $platform_suffix + ".exe"
+        $filename = "Miniconda3-4.2.12-Windows-" + $platform_suffix + ".exe"
     } else {
-        $filename = "Miniconda-latest-Windows-" + $platform_suffix + ".exe"
+        $filename = "Miniconda2-latest-Windows-" + $platform_suffix + ".exe"
     }
     $url = $MINICONDA_URL + $filename
 
@@ -87,20 +87,10 @@ function InstallPipPackages ($python_home, $spec) {
 }
 
 
-function UpdateConda ($python_home) {
-    $conda_path = $python_home + "\Scripts\conda.exe"
-    Write-Host "Updating conda..."
-    $args = "update --yes conda"
-    Write-Host $conda_path $args
-    Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
-}
-
-
 function main () {
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
-    UpdateConda $env:PYTHON
-    InstallCondaPackages $env:PYTHON "conda-build=2.1.0 pytest pytest-cov mock"
-    InstallPipPackages $env:PYTHON "pytest-qt"
+    InstallCondaPackages $env:PYTHON "conda=4.2.* conda-build=2.0.0 pytest pytest-cov mock"
+    InstallPipPackages $env:PYTHON "pytest-qt flaky"
 }
 
 
