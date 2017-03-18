@@ -494,11 +494,5 @@ if __name__ == "__main__":
     print(" Data saved in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
     t0 = time.time()
     example2, ok = load_dictionary("test.spydata")
-    print("Data loaded in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
 
-    a = MatlabStruct()
-    a.b = 'spam'
-    assert a["b"] == 'spam'
-    a.c["d"] = 'eggs'
-    assert a.c.d == 'eggs'
-    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
+    print("Data loaded in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
