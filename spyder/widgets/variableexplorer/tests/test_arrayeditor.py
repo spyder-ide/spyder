@@ -42,11 +42,10 @@ def test_arrayeditor_format(qtbot):
     """Changes the format of the array and validates its selected content."""
     arr = np.array([1, 2, 3], dtype=np.float32)
     dlg = setup_arrayeditor(qtbot, arr, "test array float32")
-    qtbot.waitForWindowShown(dlg)
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
-    assert contents == "1.000\n2.000\n3.000\n"
+    assert contents == "1.000\n2.000\n"
     dlg.arraywidget.view.model().set_format("%.18e")
     assert dlg.arraywidget.view.model().get_format() == "%.18e"
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
