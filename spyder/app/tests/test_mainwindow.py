@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
-
+from spyder.utils.tests import close_message_box
 
 #==============================================================================
 # Constants
@@ -81,6 +81,39 @@ def main_window(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name != 'nt',
+                    reason="The mainwindow stays open: "
+                           "makes a segfault in PYQT5 and "
+                           "a error in the count of the editorStack in PYQT4.")#FIXME Probably caused by the save message of the file
+def test_calltip(main_window, qtbot):
+    """Hide the calltip in the editor when a matching ')' is found."""
+    # Load test file
+    text = 'a = [1,2,3]\n(max'
+    test_file = osp.join(LOCATION, 'edit_calltip.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+    
+    # Set text to start
+    code_editor.set_text(text)
+    code_editor.go_to_line(2)
+    code_editor.move_cursor(5)
+    calltip = code_editor.calltip_widget
+    assert not calltip.isVisible()
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Space)
+    assert not calltip.isVisible()
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+        
+    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
+
+
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
