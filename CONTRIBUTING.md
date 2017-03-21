@@ -54,12 +54,12 @@ You can also run spyder from source code without installing it, (but you will ne
 ### Installing dependencies
 
 ```bash
-  $ conda install rope jedi pyflakes pygments qtconsole nbconvert sphinx pep8 pylint psutil qtawesome qtpy pickleshare pyzmq chardet numpydoc
+  $ conda install --file requirements/requirements.txt
 ```
 or using pip:
 
 ```bash
-  $ pip install rope jedi pyflakes pygments qtconsole nbconvert sphinx pep8 pylint psutil qtawesome qtpy pickleshare pyzmq chardet numpydoc
+  $ pip install -r requirements/requirements.txt
 ```
 
 > If you are using pip you also need to install a Qt binding (pyqt4, pyqt5)
@@ -94,7 +94,11 @@ You could start working in a new PR in this way:
 
 Install test dependencies:
 ```bash
-  $ conda install pytest pytest-qt pytest-cov mock flaky pandas scipy sympy pillow matplotlib cython
+  $ conda install --file requirements/requirements.txt && pip install flaky
+```
+
+```bash
+  $ pip install -r requirements/requirements.txt && pip install flaky
 ```
 
 or using pip:
