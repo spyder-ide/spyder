@@ -44,80 +44,59 @@ class FoldingPanel(Panel):
     expand_all_triggered = Signal()
 
     @property
-    def native_look(self):
+    def native_icons(self):
         """
-        Defines whether the panel will use native indicator icons and color or
-        use custom one.
+        Defines whether the panel will use native indicator icons or
+        use custom ones.
 
-        If you want to use custom indicator icons and color, you must first
+        If you want to use custom indicator icons, you must first
         set this flag to False.
         """
-        return self._native
+        return self.native_icons
 
-    @native_look.setter
-    def native_look(self, value):
-        self._native = value
+    @native_icons.setter
+    def native_icons(self, value):
+        self._native_icons = value
         # propagate changes to every clone
         if self.editor:
             for clone in self.editor.clones:
                 try:
-                    clone.modes.get(self.__class__).native_look = value
+                    clone.modes.get(self.__class__).native_icons = value
                 except KeyError:
                     # this should never happen since we're working with clones
                     pass
 
     @property
-    def custom_indicators_icons(self):
+    def indicators_icons(self):
         """
-        Gets/sets the custom icon for the fold indicators.
+        Gets/sets the icons for the fold indicators.
 
         The list of indicators is interpreted as follow::
 
             (COLLAPSED_OFF, COLLAPSED_ON, EXPANDED_OFF, EXPANDED_ON)
 
-        To use this property you must first set `native_look` to False.
+        To use this property you must first set `native_icons` to False.
 
         :returns: tuple(str, str, str, str)
         """
-        return self._custom_indicators
+        return self._indicators_icons
 
-    @custom_indicators_icons.setter
-    def custom_indicators_icons(self, value):
+    @indicators_icons.setter
+    def indicators_icons(self, value):
         if len(value) != 4:
             raise ValueError('The list of custom indicators must contains 4 '
                              'strings')
-        self._custom_indicators = value
+        self._indicators_icons = value
         if self.editor:
             # propagate changes to every clone
             for clone in self.editor.clones:
                 try:
                     clone.modes.get(
-                        self.__class__).custom_indicators_icons = value
+                        self.__class__).indicators_icons = value
                 except KeyError:
                     # this should never happen since we're working with clones
                     pass
 
-    @property
-    def custom_fold_region_background(self):
-        """
-        Custom base color for the fold region background.
-
-        :return: QColor
-        """
-        return self._custom_color
-
-    @custom_fold_region_background.setter
-    def custom_fold_region_background(self, value):
-        self._custom_color = value
-        # propagate changes to every clone
-        if self.editor:
-            for clone in self.editor.clones:
-                try:
-                    clone.modes.get(
-                        self.__class__).custom_fold_region_background = value
-                except KeyError:
-                    # this should never happen since we're working with clones
-                    pass
 
     @property
     def highlight_caret_scope(self):
@@ -154,14 +133,13 @@ class FoldingPanel(Panel):
 
     def __init__(self, highlight_caret_scope=False):
         Panel.__init__(self)
-        self._native = False
-        self._custom_indicators = (
+        self._native_icons = False
+        self._indicators_icons = (
             'folding.arrow_right_off',
             'folding.arrow_right_on',
             'folding.arrow_down_off',
             'folding.arrow_down_on'
         )
-        self._custom_color = QColor('gray')
         self._block_nbr = -1
         self._highlight_caret = False
         self.highlight_caret_scope = highlight_caret_scope
@@ -259,16 +237,13 @@ class FoldingPanel(Panel):
 
     def _draw_rect(self, rect, painter):
         """
-        Draw the background rectangle using the current style primitive color
-        or foldIndicatorBackground if nativeFoldingIndicator is true.
+        Draw the background rectangle using the current style primitive color.
 
         :param rect: The fold zone rect to draw
 
         :param painter: The widget's painter.
         """
-        c = self._custom_color
-        if self._native:
-            c = self.get_system_bck_color()
+        c = self.editor.sideareas_color
         grad = QLinearGradient(rect.topLeft(),
                                      rect.topRight())
         if sys.platform == 'darwin':
@@ -298,27 +273,6 @@ class FoldingPanel(Panel):
                          rect.bottomLeft() -
                          QPointF(0, 1))
 
-    @staticmethod
-    def get_system_bck_color():
-        """Gets a system color for drawing the fold scope background."""
-        def merged_colors(colorA, colorB, factor):
-            maxFactor = 100
-            colorA = QColor(colorA)
-            colorB = QColor(colorB)
-            tmp = colorA
-            tmp.setRed((tmp.red() * factor) / maxFactor +
-                       (colorB.red() * (maxFactor - factor)) / maxFactor)
-            tmp.setGreen((tmp.green() * factor) / maxFactor +
-                         (colorB.green() * (maxFactor - factor)) / maxFactor)
-            tmp.setBlue((tmp.blue() * factor) / maxFactor +
-                        (colorB.blue() * (maxFactor - factor)) / maxFactor)
-            return tmp
-
-        pal = QApplication.instance().palette()
-        b = pal.window().color()
-        h = pal.highlight().color()
-        return merged_colors(b, h, 50)
-
     def _draw_fold_indicator(self, top, mouse_over, collapsed, painter):
         """
         Draw the fold indicator/trigger (arrow).
@@ -330,7 +284,7 @@ class FoldingPanel(Panel):
         """
         rect = QRect(0, top, self.sizeHint().width(),
                             self.sizeHint().height())
-        if self._native:
+        if self._native_icons:
             opt = QStyleOptionViewItem()
 
             opt.rect = rect
@@ -354,7 +308,7 @@ class FoldingPanel(Panel):
                 index = 2
             if mouse_over:
                 index += 1
-            ima.icon(self._custom_indicators[index]).paint(painter, rect)
+            ima.icon(self._indicators_icons[index]).paint(painter, rect)
 
     @staticmethod
     def find_parent_scope(block):
@@ -382,89 +336,29 @@ class FoldingPanel(Panel):
         """
         Gets the base scope highlight color (derivated from the editor
         background)
+
+        For lighter themes will be a darker color, 
+        and for darker ones will be a lighter color
         """
-        color = self.editor.background
+        color = self.editor.sideareas_color
         if color.lightness() < 128:
             color = drift_color(color, 130)
         else:
             color = drift_color(color, 105)
         return color
 
-    def _add_scope_deco(self, start, end, parent_start, parent_end, base_color,
-                        factor):
-        """
-        Adds a scope decoration that enclose the current scope.
+    def _decorate_block(self, start, end):
+        color = self._get_scope_highlight_color()
+        d = TextDecoration(self.editor.document(),
+                           start_line=start, end_line=end+1)
+        d.set_background(color)
+        d.set_full_width(True, clear=False)
+        self.editor.decorations.append(d)
+        self._scope_decos.append(d)
 
-        :param start: Start of the current scope
-        :param end: End of the current scope
-        :param parent_start: Start of the parent scope
-        :param parent_end: End of the parent scope
-        :param base_color: base color for scope decoration
-        :param factor: color factor to apply on the base color (to make it
-            darker).
+    def _highlight_block(self, block):
         """
-        color = drift_color(base_color, factor=factor)
-        # upper part
-        if start > 0:
-            d = TextDecoration(self.editor.document(),
-                               start_line=parent_start, end_line=start)
-            d.set_full_width(True, clear=False)
-            d.draw_order = 2
-            d.set_background(color)
-            self.editor.decorations.append(d)
-            self._scope_decos.append(d)
-        # lower part
-        if end <= self.editor.document().blockCount():
-            d = TextDecoration(self.editor.document(),
-                               start_line=end, end_line=parent_end + 1)
-            d.set_full_width(True, clear=False)
-            d.draw_order = 2
-            d.set_background(color)
-            self.editor.decorations.append(d)
-            self._scope_decos.append(d)
-
-    def _add_scope_decorations(self, block, start, end):
-        """
-        Show a scope decoration on the code editor widget.
-
-        :param start: Start line
-        :param end: End line
-        """
-        try:
-            parent = FoldScope(block).parent()
-        except ValueError:
-            parent = None
-        if TextBlockHelper.is_fold_trigger(block):
-            base_color = self._get_scope_highlight_color()
-            factor_step = 5
-            if base_color.lightness() < 128:
-                factor_step = 10
-                factor = 70
-            else:
-                factor = 100
-            while parent:
-                # highlight parent scope
-                parent_start, parent_end = parent.get_range()
-                self._add_scope_deco(
-                    start, end + 1, parent_start, parent_end,
-                    base_color, factor)
-                # next parent scope
-                start = parent_start
-                end = parent_end
-                parent = parent.parent()
-                factor += factor_step
-            # global scope
-            parent_start = 0
-            parent_end = self.editor.document().blockCount()
-            self._add_scope_deco(
-                start, end + 1, parent_start, parent_end, base_color,
-                factor + factor_step)
-        else:
-            self._clear_scope_decos()
-
-    def _highlight_surrounding_scopes(self, block):
-        """
-        Highlights the scopes surrounding the current fold scope.
+        Highlights the current fold scope.
 
         :param block: Block that starts the current fold scope.
         """
@@ -473,10 +367,10 @@ class FoldingPanel(Panel):
                 self._current_scope.get_range() != scope.get_range()):
             self._current_scope = scope
             self._clear_scope_decos()
-            # highlight surrounding parent scopes with a darker color
+            # highlight current scope with darker or lighter color
             start, end = scope.get_range()
             if not TextBlockHelper.is_collapsed(block):
-                self._add_scope_decorations(block, start, end)
+                self._decorate_block(start, end)
 
     def mouseMoveEvent(self, event):
         """
@@ -502,12 +396,12 @@ class FoldingPanel(Panel):
                     # fold scope changed, a previous block was highlighter so
                     # we quickly update our highlighting
                     self._mouse_over_line = block.blockNumber()
-                    self._highlight_surrounding_scopes(block)
+                    self._highlight_block(block)
                 else:
                     # same fold scope, request highlight
                     self._mouse_over_line = block.blockNumber()
                     self._highlight_runner.request_job(
-                        self._highlight_surrounding_scopes, block)
+                        self._highlight_block, block)
                 self._highight_block = block
             else:
                 # no fold scope to highlight, cancel any pending requests
@@ -564,8 +458,7 @@ class FoldingPanel(Panel):
         if region.collapsed:
             region.unfold()
             if self._mouse_over_line is not None:
-                self._add_scope_decorations(
-                    region._trigger, *region.get_range())
+                self._decorate_block(*region.get_range())
         else:
             region.fold()
             self._clear_scope_decos()
@@ -744,7 +637,7 @@ class FoldingPanel(Panel):
 
     def _highlight_caret_scope(self):
         """
-        Highlight the scope surrounding the current caret position.
+        Highlight the scope of the current caret position.
 
         This get called only if :attr:`
         spyder.widgets.panels.FoldingPanel.highlight_care_scope` is True.
@@ -761,12 +654,12 @@ class FoldingPanel(Panel):
             else:
                 self._mouse_over_line = block.blockNumber()
                 if TextBlockHelper.is_fold_trigger(block):
-                    self._highlight_surrounding_scopes(block)
+                    self._highlight_block(block)
         self._block_nbr = block_nbr
 
     def clone_settings(self, original):
-        self.native_look = original.native_look
-        self.custom_indicators_icons = original.custom_indicators_icons
+        self.native_icons = original.native_icons
+        self.indicators_icons = original.indicators_icons
         self.highlight_caret_scope = original.highlight_caret_scope
         self.custom_fold_region_background = \
             original.custom_fold_region_background
