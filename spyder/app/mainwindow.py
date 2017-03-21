@@ -1230,7 +1230,7 @@ class MainWindow(QMainWindow):
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
-            self.check_updates()
+            self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
         self.report_missing_dependencies()
@@ -1620,7 +1620,6 @@ class MainWindow(QMainWindow):
 #            widget.setMinimumWidth(new_width)
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
-#            print(c, widgets_layout[c][0][0], new_width)
         
         # fix column height
         for c, column in enumerate(widgets_layout):
@@ -2725,8 +2724,8 @@ class MainWindow(QMainWindow):
         except Exception as error:
             # If there is an error with subprocess, Spyder should not quit and
             # the error can be inspected in the internal console
-            print(error)
-            print(command)
+            print(error)  # spyder: test-skip
+            print(command)  # spyder: test-skip
 
     # ---- Interactive Tours
     def show_tour(self, index):
@@ -2817,7 +2816,7 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
     @Slot()
-    def check_updates(self):
+    def check_updates(self, startup=False):
         """
         Check for spyder updates on github releases using a QThread.
         """
@@ -2830,7 +2829,7 @@ class MainWindow(QMainWindow):
             self.thread_updates.terminate()
 
         self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self)
+        self.worker_updates = WorkerUpdates(self, startup=startup)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)

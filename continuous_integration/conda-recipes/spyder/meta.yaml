@@ -23,7 +23,7 @@ requirements:
     - rope 0.9.*  # [py34 or py35]
     - rope  # [py27]
     - pyflakes
-    - jedi 0.9.*
+    - jedi
     - qtconsole
     - nbconvert
     - pygments
