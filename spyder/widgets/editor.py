@@ -199,7 +199,7 @@ class FileInfo(QObject):
         """Run code analysis"""
         run_pyflakes = run_pyflakes and codeanalysis.is_pyflakes_installed()
         run_pep8 = run_pep8 and\
-                   codeanalysis.get_checker_executable('pep8') is not None
+                   codeanalysis.get_checker_executable('pycodestyle') is not None
         self.pyflakes_results = []
         self.pep8_results = []
         if self.editor.is_python():

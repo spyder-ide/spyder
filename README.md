@@ -149,7 +149,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Sphinx**: Rich text mode for the Help pane.
 * **Pygments** 2.0+: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
-* **Pep8**: Style analysis.
+* **Pycodestyle**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
