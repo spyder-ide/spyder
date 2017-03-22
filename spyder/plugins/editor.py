@@ -237,8 +237,8 @@ class EditorConfigPage(PluginConfigPage):
                                     codeanalysis.PYFLAKES_REQVER)
         pep8_box = newcb(_("Real-time code style analysis"),
                       'code_analysis/pep8', default=False,
-                      tip=_("<p>If enabled, Python source code will be analyzed"
-                            "using pep8, lines that are not following PEP8 "
+                      tip=_("<p>If enabled, Python source code will be analyzed "
+                            "using pycodestyle, lines that are not following PEP8 "
                             "style guide will be highlighted.</p>"
                             "<p><u>Note</u>: add <b>analysis:ignore</b> in "
                             "a comment to ignore style analysis "

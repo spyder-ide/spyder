@@ -175,7 +175,7 @@ The requirements to run Spyder are:
 
 * `Pylint <http://www.logilab.org/project/pylint>`_  -- for static code analysis.
 
-* `Pep8 <https://pypi.python.org/pypi/pep8>`_ -- for style analysis.
+* `Pycodestyle <https://pypi.python.org/pypi/pycodestyle>`_ -- for style analysis.
 
 * `Psutil <http://code.google.com/p/psutil/>`_  -- for memory/CPU usage in the status
   bar.

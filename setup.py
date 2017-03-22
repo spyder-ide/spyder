@@ -278,7 +278,7 @@ install_requires = [
     'qtconsole>=4.2.0',
     'nbconvert',
     'sphinx',
-    'pep8',
+    'pycodestyle',
     'pylint',
     'psutil',
     'qtawesome>=0.4.1',
