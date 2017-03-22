@@ -41,8 +41,10 @@ class ExtPythonShellWidget(PythonShellWidget):
     go_to_error = Signal(str)
     focus_changed = Signal()
     
-    def __init__(self, parent, history_filename, profile=False):
-        PythonShellWidget.__init__(self, parent, history_filename, profile)
+    def __init__(self, parent, history_filename, profile=False,
+                 pythonconsole=False):
+        PythonShellWidget.__init__(self, parent, history_filename, profile,
+                                   pythonconsole=True)
         self.path = []
     
     def set_externalshell(self, externalshell):
