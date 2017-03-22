@@ -52,7 +52,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     append_to_history = Signal(str, str)
     
     def __init__(self, parent, history_filename, profile=False,
-                 pythonconsole=False):
+                 initial_message=None):
         """
         parent : specifies the parent widget
         """
@@ -83,11 +83,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         
         # Buffer to increase performance of write/flush operations
         self.__buffer = []
-        if pythonconsole:
-            self.__buffer.append("NOTE: The Python console is going to "
-                                 "be REMOVED in Spyder 3.2. Please start "
-                                 "to migrate your work to the "
-                                 "IPython console instead.\n\n")
+        if initial_message:
+            self.__buffer.append(initial_message)
+
         self.__timestamp = 0.0
         self.__flushtimer = QTimer(self)
         self.__flushtimer.setSingleShot(True)
@@ -684,9 +682,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     go_to_error = Signal(str)
     
-    def __init__(self, parent, history_filename, profile=False, pythonconsole=False):
+    def __init__(self, parent, history_filename, profile=False, initial_message=None):
         ShellBaseWidget.__init__(self, parent, history_filename, profile,
-                                 pythonconsole)
+                                 initial_message)
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
 

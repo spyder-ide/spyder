@@ -41,10 +41,13 @@ class ExtPythonShellWidget(PythonShellWidget):
     go_to_error = Signal(str)
     focus_changed = Signal()
     
-    def __init__(self, parent, history_filename, profile=False,
-                 pythonconsole=False):
+    def __init__(self, parent, history_filename, profile=False):
+        initial_message = _("NOTE: The Python console is going to "
+                            "be REMOVED in Spyder 3.2. Please start "
+                            "to migrate your work to the "
+                            "IPython console instead.\n\n")
         PythonShellWidget.__init__(self, parent, history_filename, profile,
-                                   pythonconsole=True)
+                                   initial_message=initial_message)
         self.path = []
     
     def set_externalshell(self, externalshell):
