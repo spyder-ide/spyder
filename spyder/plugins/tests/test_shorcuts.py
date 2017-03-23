@@ -8,6 +8,8 @@
 Tests for shortcuts.py
 """
 
+import os
+
 # Test library imports
 import pytest
 
@@ -21,6 +23,8 @@ def setup_shorcuts(qtbot):
     qtbot.addWidget(widget)
     return widget
 
+
+@pytest.mark.skipif(not os.name == 'nt', reason="It segfaults too much on Linux")
 def test_shortcuts(qtbot):
     """Run shortcuts table."""
     shortcuts = setup_shorcuts(qtbot)
