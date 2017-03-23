@@ -94,19 +94,20 @@ You could start working in a new PR in this way:
 
 Install test dependencies:
 ```bash
-  $ conda install --file requirements/requirements.txt -c spyder-ide
+  $ conda install --file requirements/test_requirements.txt -c spyder-ide
 ```
 
+or using pip
 ```bash
-  $ pip install -r requirements/requirements.txt
+  $ pip install -r requirements/test_requirements.txt
 ```
 
-or using pip:
+or using setup.py:
 ```bash
   $ pip install -e .[test]
 ```
 
-To run the Python tests, use:
+To run Spyder tests suite, use:
 ```bash
   $ python runtests.py
 ```
