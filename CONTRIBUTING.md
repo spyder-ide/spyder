@@ -54,7 +54,7 @@ You can also run spyder from source code without installing it, (but you will ne
 ### Installing dependencies
 
 ```bash
-  $ conda install --file requirements/requirements.txt
+  $ conda install --file requirements/requirements.txt -c spyder-ide
 ```
 or using pip:
 
@@ -94,7 +94,7 @@ You could start working in a new PR in this way:
 
 Install test dependencies:
 ```bash
-  $ conda install --file requirements/requirements.txt
+  $ conda install --file requirements/requirements.txt -c spyder-ide
 ```
 
 ```bash
