@@ -94,11 +94,11 @@ You could start working in a new PR in this way:
 
 Install test dependencies:
 ```bash
-  $ conda install --file requirements/requirements.txt && pip install flaky
+  $ conda install --file requirements/requirements.txt
 ```
 
 ```bash
-  $ pip install -r requirements/requirements.txt && pip install flaky
+  $ pip install -r requirements/requirements.txt
 ```
 
 or using pip:

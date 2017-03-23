@@ -8,3 +8,4 @@ sympy
 pillow
 matplotlib
 cython
+flaky
