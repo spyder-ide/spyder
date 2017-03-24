@@ -329,7 +329,7 @@ class FileSwitcher(QDialog):
             if editor is self.initial_editor:
                 self.initial_path = paths[i]
             # This try is needed to make the fileswitcher work with 
-            # plugins that does not have a textCursor like the notebookpuglin.
+            # plugins that does not have a textCursor.
             try:
                 self.initial_cursors[paths[i]] = editor.textCursor()
             except AttributeError:
@@ -442,12 +442,7 @@ class FileSwitcher(QDialog):
         elif path:
             return self.tabs.widget(index)
         else:
-            # this try is needed in order to get
-            # the current client in the notebookplugin
-            try:
-                return self.parent().get_current_editor()
-            except AttributeError:
-                return self.parent().get_current_client()
+            return self.tabs.currentWidget()
 
     def set_editor_cursor(self, editor, cursor):
         """Set the cursor of an editor."""
