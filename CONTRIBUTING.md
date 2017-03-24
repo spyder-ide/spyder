@@ -20,13 +20,13 @@ Please Check the [Spyder-IDE Contributor Documentation](https://github.com/spyde
 ### Creating a conda environment (or virtualenv)
 
 ```bash
-  $ conda create -n spyder spyder
+  $ conda create -n spyder spyder python=3
   $ source activate spyder
 ```
 This will also install spyder latest version and dependencies into the environment, if you want only to create the environment and install them manually, run:
 
 ```bash
-  $ conda create -n spyder
+  $ conda create -n spyder python=3
   $ source activate spyder
 ```
 
