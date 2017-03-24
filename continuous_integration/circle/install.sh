@@ -7,7 +7,7 @@ if [ "$CIRCLE_NODE_INDEX" = "3" ]; then
     export CONDA_DEPENDENCIES=""
 else
     export CONDA_DEPENDENCIES_FLAGS="--quiet"
-    export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint pep8 psutil nbconvert \
+    export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert \
                                qtawesome pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-xvfb flaky jedi"

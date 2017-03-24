@@ -237,8 +237,8 @@ class EditorConfigPage(PluginConfigPage):
                                     codeanalysis.PYFLAKES_REQVER)
         pep8_box = newcb(_("Real-time code style analysis"),
                       'code_analysis/pep8', default=False,
-                      tip=_("<p>If enabled, Python source code will be analyzed"
-                            "using pep8, lines that are not following PEP8 "
+                      tip=_("<p>If enabled, Python source code will be analyzed "
+                            "using pycodestyle, lines that are not following PEP8 "
                             "style guide will be highlighted.</p>"
                             "<p><u>Note</u>: add <b>analysis:ignore</b> in "
                             "a comment to ignore style analysis "
@@ -424,7 +424,8 @@ class Editor(SpyderPluginWidget):
         self.toolbar_list = None
         self.menu_list = None
 
-        self.introspector = IntrospectionManager()
+        self.introspector = IntrospectionManager(
+                extra_path=self.main.get_spyder_pythonpath())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -1474,6 +1475,9 @@ class Editor(SpyderPluginWidget):
     def set_path(self):
         for finfo in self.editorstacks[0].data:
             finfo.path = self.main.get_spyder_pythonpath()
+        if self.introspector:
+            self.introspector.change_extra_path(
+                    self.main.get_spyder_pythonpath())
     
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
