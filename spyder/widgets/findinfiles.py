@@ -572,6 +572,8 @@ class FindInFilesWidget(QWidget):
     """
     Find in files widget
     """
+    sig_finished = Signal()
+
     def __init__(self, parent,
                  search_text = r"# ?TODO|# ?FIXME|# ?XXX",
                  search_text_regexp=True, search_path=None,
@@ -682,6 +684,7 @@ class FindInFilesWidget(QWidget):
         self.status_bar.hide()
         if self.search_thread is None:
             return
+        self.sig_finished.emit()
         found = self.search_thread.get_results()
         self.stop_and_reset_thread()
         if found is not None:
