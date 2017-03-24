@@ -171,7 +171,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 
 ## Contributing
 
-Everyone is invited to contribute. [Read the contributing instructions](CONTRIBUTING.md), then get started.
+Everyone is invited to contribute. [Read the contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md), then get started.
 
 ## More information
 
