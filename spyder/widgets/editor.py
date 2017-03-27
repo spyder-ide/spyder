@@ -1558,28 +1558,6 @@ class EditorStack(QWidget):
                 if id(self.tabs.widget(_i)) == last_id:
                     return _i
 
-    def go_to_previous_file(self):
-        """Ctrl+Tab"""
-        prev_index = self._get_previous_file_index()
-        if prev_index is not None:
-            self.set_stack_index(prev_index)
-        elif len(self.stack_history) == 0 and self.get_stack_count():
-            self.stack_history = [id(self.tabs.currentWidget())]
-
-    def go_to_next_file(self):
-        """Ctrl+Shift+Tab"""
-        if len(self.stack_history) > 1:
-            last = len(self.stack_history)-1
-            w_id = self.stack_history.pop(0)
-            self.stack_history.append(w_id)
-            last_id = self.stack_history[last]
-            for _i in range(self.tabs.count()):
-                if id(self.tabs.widget(_i)) == last_id:
-                    self.set_stack_index(_i)
-                    break
-        elif len(self.stack_history) == 0 and self.get_stack_count():
-            self.stack_history = [id(self.tabs.currentWidget())]
-
     def tab_navigation_mru(self, forward=True):
         """
         Tab navigation with "most recently used" behaviour.
