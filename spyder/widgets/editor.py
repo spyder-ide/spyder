@@ -1769,6 +1769,7 @@ class EditorStack(QWidget):
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
         self.refresh_eol_chars(eol_chars)
+        self.stack_history.refresh()
 
     def refresh_eol_chars(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
