@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
 
 # Local imports
 from spyder.config.base import _, DEBUG, STDERR, STDOUT
-from spyder.config.gui import config_shortcut
+from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import qbytearray_to_str, to_text_string
@@ -2048,11 +2048,18 @@ class EditorStack(QWidget):
         Handle "most recent used" tab behavior,
         When ctrl is released and tab_switcher is visible, tab will be changed.
         """
-        if (event.key() == Qt.Key_Control and self.tabs_switcher is not None
-           and self.tabs_switcher.isVisible()):
-            self.tabs_switcher.item_selected()
-        else:
-            super(EditorStack, self).keyPressEvent(event)
+        if self.tabs_switcher is not None and self.tabs_switcher.isVisible():
+            qsc = get_shortcut(context='Editor', name='Go to next file')
+
+            for key in qsc.split('+'):
+                key = key.lower()
+                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
+                   (key == 'alt' and event.key() == Qt.Key_Alt)):
+                        self.tabs_switcher.item_selected()
+                        self.tabs_switcher = None
+                        return
+
+        super(EditorStack, self).keyPressEvent(event)
 
 
 class EditorSplitter(QSplitter):
