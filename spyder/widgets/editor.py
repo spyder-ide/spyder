@@ -334,7 +334,7 @@ class TabSwitcherWidget(QListWidget):
         """Positions the tab switcher in the center of the editor."""
         parent = self.parent()
         left = parent.geometry().width()/2 - self.width()/2
-        top = parent.geometry().height()/2 - self.height()/2
+        top = 0
 
         self.move(left, top + self.tabs.tabBar().geometry().height())
 
