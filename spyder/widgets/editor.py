@@ -16,6 +16,7 @@ from __future__ import print_function
 import os
 import os.path as osp
 import sys
+from collections import MutableSequence
 
 # Third party imports
 from qtpy import is_pyqt46
@@ -274,6 +275,50 @@ class FileInfo(QObject):
             self.save_breakpoints.emit(self.filename, repr(breakpoints))
 
 
+class StackHistory(MutableSequence):
+    """Handles editor stack history"""
+
+    def __init__(self, editor):
+        self.history = list()
+        self.id_list = list()
+        self.editor = editor
+
+    def _update_id_list(self):
+        """Update list of corresponpding ids and tabs."""
+        self.id_list = [id(self.editor.tabs.widget(_i))
+                        for _i in range(self.editor.tabs.count())]
+
+    def refresh(self):
+        """Remove editors that are not longer open."""
+        self._update_id_list()
+        for _id in self.history[:]:
+            if _id not in self.id_list:
+                self.history.remove(_id)
+
+    def __len__(self): return len(self.history)
+
+    def __getitem__(self, i):
+        return self.id_list.index(self.history[i])
+
+    def __delitem__(self, i): del self.history[i]
+
+    def __setitem__(self, i, v):
+        _id = id(self.editor.tabs.widget(v))
+        self.history[i] = _id
+
+    def __str__(self):
+        return str(list(self))
+
+    def insert(self, i, v):
+        _id = id(self.editor.tabs.widget(v))
+        self.history.insert(i, _id)
+
+    def remove(self, index):
+        _id = id(self.editor.tabs.widget(index))
+        if _id in self.history:
+            self.history.remove(_id)
+
+
 class TabSwitcherWidget(QListWidget):
     """Show tabs in mru order and change between them."""
 
@@ -300,12 +345,9 @@ class TabSwitcherWidget(QListWidget):
 
         Add elements in inverse order of stack_history.
         """
-        # Fill a list to track ids and corresponding tab index
-        self.id_list = [id(self.tabs.widget(i))
-                        for i in range(self.tabs.count())]
 
-        for index in self.stack_history[::-1]:
-            text = self.tabs.tabText(self.id_list.index(index))
+        for index in reversed(self.stack_history):
+            text = self.tabs.tabText(index)
             item = QListWidgetItem(ima.icon('FileIcon'), text)
             self.addItem(item)
 
@@ -315,9 +357,8 @@ class TabSwitcherWidget(QListWidget):
             item = self.currentItem()
 
         # stack history is in inverse order
-        id_ = self.stack_history[-(self.currentRow()+1)]
+        index = self.stack_history[-(self.currentRow()+1)]
 
-        index = self.id_list.index(id_)
         self.editor.set_stack_index(index)
         self.editor.current_changed(index)
         self.hide()
@@ -402,7 +443,7 @@ class EditorStack(QWidget):
         self.tabs = None
         self.tabs_switcher = None
 
-        self.stack_history = []
+        self.stack_history = StackHistory(self)
 
         self.setup_editorstack(parent, layout)
 
@@ -633,6 +674,8 @@ class EditorStack(QWidget):
         self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
         self.tabs.setMovable(True)
+
+        self.stack_history.refresh()
 
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
@@ -1530,16 +1573,11 @@ class EditorStack(QWidget):
             self.reset_statusbar.emit()
         self.opened_files_list_changed.emit()
 
-        # Index history management
-        id_list = [id(self.tabs.widget(_i))
-                   for _i in range(self.tabs.count())]
-        for _id in self.stack_history[:]:
-            if _id not in id_list:
-                self.stack_history.pop(self.stack_history.index(_id))
-        current_id = id(self.tabs.widget(index))
-        while current_id in self.stack_history:
-            self.stack_history.pop(self.stack_history.index(current_id))
-        self.stack_history.append(current_id)
+        self.stack_history.refresh()
+
+        while index in self.stack_history:
+            self.stack_history.remove(index)
+        self.stack_history.append(index)
         if DEBUG_EDITOR:
             print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
             print(self.data[index].editor.get_document_id(), file=STDOUT)
@@ -1554,10 +1592,8 @@ class EditorStack(QWidget):
             last = len(self.stack_history)-1
             w_id = self.stack_history.pop(last)
             self.stack_history.insert(0, w_id)
-            last_id = self.stack_history[last]
-            for _i in range(self.tabs.count()):
-                if id(self.tabs.widget(_i)) == last_id:
-                    return _i
+
+            return self.stack_history[last]
 
     def tab_navigation_mru(self, forward=True):
         """
