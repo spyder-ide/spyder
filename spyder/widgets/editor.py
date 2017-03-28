@@ -276,6 +276,7 @@ class FileInfo(QObject):
 
 class TabSwitcherWidget(QListWidget):
     """Show tabs in mru order and change between them."""
+
     def __init__(self, parent, stack_history, tabs):
         QListWidget.__init__(self, parent)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
