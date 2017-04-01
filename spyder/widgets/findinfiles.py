@@ -33,13 +33,10 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import getcwd, to_text_string
-from spyder.utils import programs
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import abspardir, get_common_path
 from spyder.utils.qthelpers import create_toolbutton, get_filetype_icon
-from spyder.utils.vcs import is_hg_installed, get_vcs_root
 from spyder.utils.encoding import is_text_file
-from spyder.widgets.comboboxes import PathComboBox, PatternComboBox
+from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 
 from spyder.widgets.waitingspinner import QWaitingSpinner
@@ -92,7 +89,7 @@ class SearchThread(QThread):
             if self.is_file:
                 self.find_string_in_file(self.rootpath)
             else:
-                ok = self.find_files_in_path(self.rootpath)
+                self.find_files_in_path(self.rootpath)
         except Exception:
             # Important note: we have to handle unexpected exceptions by
             # ourselves because they won't be catched by the main thread
@@ -117,7 +114,7 @@ class SearchThread(QThread):
             try:
                 for d in dirs[:]:
                     dirname = os.path.join(path, d)
-                    if re.search(self.exclude, dirname+os.sep):
+                    if re.search(self.exclude, dirname + os.sep):
                         dirs.remove(d)
                 for f in files:
                     filename = os.path.join(path, f)
@@ -138,7 +135,7 @@ class SearchThread(QThread):
             if start <= before_offset:
                 before_offset = 0
                 ellipsis = ''
-            trunc_line = ellipsis + line[start-before_offset:end+4]
+            trunc_line = ellipsis + line[start - before_offset:end + 4]
         else:
             trunc_line = line
         return trunc_line
@@ -168,7 +165,7 @@ class SearchThread(QThread):
                         displ_line = self.truncate_result(line_dec,
                                                           match.start(),
                                                           match.end())
-                        res.append((lineno+1, match.start(), displ_line))
+                        res.append((lineno + 1, match.start(), displ_line))
                         results[osp.abspath(fname)] = res
                         self.nb += 1
                 else:
@@ -176,11 +173,11 @@ class SearchThread(QThread):
                         res = results.get(osp.abspath(fname), [])
                         displ_line = self.truncate_result(line_dec,
                                                           found,
-                                                          found+len(text))
-                        res.append((lineno+1, found, displ_line))
+                                                          found + len(text))
+                        res.append((lineno + 1, found, displ_line))
                         results[osp.abspath(fname)] = res
                         for text, enc in self.texts:
-                            found = line.find(text, found+1)
+                            found = line.find(text, found + 1)
                             if found > -1:
                                 break
                         self.nb += 1
@@ -241,16 +238,17 @@ class FindOptions(QWidget):
         self.more_options.setChecked(more_options)
 
         self.ok_button = create_toolbutton(self, text=_("Search"),
-                                icon=ima.icon('DialogApplyButton'),
-                                triggered=lambda: self.find.emit(),
-                                tip=_("Start search"),
-                                text_beside_icon=True)
+                                           icon=ima.icon('DialogApplyButton'),
+                                           triggered=lambda: self.find.emit(),
+                                           tip=_("Start search"),
+                                           text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                icon=ima.icon('stop'),
-                                triggered=lambda: self.stop.emit(),
-                                tip=_("Stop search"),
-                                text_beside_icon=True)
+                                             icon=ima.icon('stop'),
+                                             triggered=lambda:
+                                             self.stop.emit(),
+                                             tip=_("Stop search"),
+                                             text_beside_icon=True)
         self.stop_button.setEnabled(False)
         for widget in [self.search_text, self.edit_regexp,
                        self.ok_button, self.stop_button, self.more_options]:
@@ -264,8 +262,8 @@ class FindOptions(QWidget):
            and include_idx < self.include_pattern.count():
             self.include_pattern.setCurrentIndex(include_idx)
         self.include_regexp = create_toolbutton(self,
-                                            icon=ima.icon('advanced'),
-                                            tip=_('Regular expression'))
+                                                icon=ima.icon('advanced'),
+                                                tip=_('Regular expression'))
         self.include_regexp.setCheckable(True)
         self.include_regexp.setChecked(include_regexp)
         include_label = QLabel(_("Include:"))
@@ -276,8 +274,8 @@ class FindOptions(QWidget):
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self,
-                                            icon=ima.icon('advanced'),
-                                            tip=_('Regular expression'))
+                                                icon=ima.icon('advanced'),
+                                                tip=_('Regular expression'))
         self.exclude_regexp.setCheckable(True)
         self.exclude_regexp.setChecked(exclude_regexp)
         exclude_label = QLabel(_("Exclude:"))
@@ -377,7 +375,6 @@ class FindOptions(QWidget):
         exclude = to_text_string(self.exclude_pattern.currentText())
         exclude_re = self.exclude_regexp.isChecked()
         python_path = False
-        hg_manifest = False
 
         global_path_search = self.global_path_search.isChecked()
         project_search = self.project_search.isChecked()
@@ -397,7 +394,8 @@ class FindOptions(QWidget):
             try:
                 include = re.compile(include)
             except Exception:
-                self.include_pattern.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                include_edit = self.include_pattern.lineEdit()
+                include_edit.setStyleSheet(self.REGEX_INVALID)
                 return None
         if not exclude_re:
             exclude = fnmatch.translate(exclude)
@@ -405,7 +403,8 @@ class FindOptions(QWidget):
             try:
                 exclude = re.compile(exclude)
             except Exception:
-                self.exclude_pattern.lineEdit().setStyleSheet(self.REGEX_INVALID)
+                exclude_edit = self.exclude_pattern.lineEdit()
+                exclude_edit.setStyleSheet(self.REGEX_INVALID)
                 return None
 
         if text_re:
@@ -416,12 +415,12 @@ class FindOptions(QWidget):
                 return None
 
         if all:
-            search_text = [to_text_string(self.search_text.itemText(index)) \
+            search_text = [to_text_string(self.search_text.itemText(index))
                            for index in range(self.search_text.count())]
-            include = [to_text_string(self.include_pattern.itemText(index)) \
+            include = [to_text_string(self.include_pattern.itemText(index))
                        for index in range(self.include_pattern.count())]
             include_idx = self.include_pattern.currentIndex()
-            exclude = [to_text_string(self.exclude_pattern.itemText(index)) \
+            exclude = [to_text_string(self.exclude_pattern.itemText(index))
                        for index in range(self.exclude_pattern.count())]
             exclude_idx = self.exclude_pattern.currentIndex()
             more_options = self.more_options.isChecked()
@@ -508,7 +507,7 @@ class ResultsBrowser(OneColumnTree):
         self.search_text = search_text
         title = "'%s' - " % search_text
         text = _('String not found')
-        self.set_title(title+text)
+        self.set_title(title + text)
 
     @Slot(dict, int)
     def append_result(self, results, num_matches):
@@ -526,25 +525,28 @@ class ResultsBrowser(OneColumnTree):
                 text_files += 's'
             text = "%d %s %d %s" % (num_matches, text_matches,
                                     nb_files, text_files)
-        self.set_title(title+text)
+        self.set_title(title + text)
         for filename in sorted(results.keys()):
             file_item = QTreeWidgetItem(self, [osp.basename(filename) +
-                                        " - "+osp.dirname(filename)],
+                                        " - " + osp.dirname(filename)],
                                         QTreeWidgetItem.Type)
+            file_item.setToolTip(0, filename)
             file_item.setIcon(0, get_filetype_icon(filename))
-            colno_dict = {}
-            fname_res = []
             for lineno, colno, line in results[filename]:
                 item = QTreeWidgetItem(file_item,
-                                       ["{0} ({1}): {2}".format(
-                                       lineno, colno, line.rstrip())],
+                                       ["{0} ({1}): {2}".format(lineno,
+                                                                colno,
+                                                                line.rstrip()
+                                                                )],
                                        QTreeWidgetItem.Type)
                 item.setIcon(0, ima.icon('arrow'))
                 self.data[id(item)] = (filename, lineno, colno)
 
+
 class FileProgressBar(QWidget):
     """Simple progress spinner with a label"""
     MAX_LABEL_LENGTH = 60
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
@@ -560,7 +562,7 @@ class FileProgressBar(QWidget):
 
     def __truncate(self, text):
         ellipsis = '...'
-        part_len = (self.MAX_LABEL_LENGTH - len(ellipsis))/2.0
+        part_len = (self.MAX_LABEL_LENGTH - len(ellipsis)) / 2.0
         left_text = text[:int(math.ceil(part_len))]
         right_text = text[-int(math.floor(part_len)):]
         return left_text + ellipsis + right_text
@@ -577,6 +579,7 @@ class FileProgressBar(QWidget):
     def reset(self):
         self.status_text.setText(_("  Searching for files..."))
 
+
 class FindInFilesWidget(QWidget):
     """
     Find in files widget
@@ -584,7 +587,7 @@ class FindInFilesWidget(QWidget):
     sig_finished = Signal()
 
     def __init__(self, parent,
-                 search_text = r"# ?TODO|# ?FIXME|# ?XXX",
+                 search_text=r"# ?TODO|# ?FIXME|# ?XXX",
                  search_text_regexp=True, search_path=None,
                  include=[".", ".py"], include_idx=None, include_regexp=True,
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
@@ -676,7 +679,7 @@ class FindInFilesWidget(QWidget):
             if self.search_thread.isRunning():
                 if ignore_results:
                     self.search_thread.sig_finished.disconnect(
-                                                         self.search_complete)
+                        self.search_complete)
                 self.search_thread.stop()
                 self.search_thread.wait()
             self.search_thread.setParent(None)
@@ -698,8 +701,6 @@ class FindInFilesWidget(QWidget):
         self.stop_and_reset_thread()
         if found is not None:
             results, pathlist, nb, error_flag = found
-            search_text = to_text_string(
-                                self.find_options.search_text.currentText())
             self.result_browser.show()
 
 
