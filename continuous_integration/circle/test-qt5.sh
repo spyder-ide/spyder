@@ -20,3 +20,8 @@ fi
 # Run coveralls also here because there are errors if run
 # as an independent command
 coveralls
+
+# Don't stop if coveralls fails for whatever reason
+if [ $? -ne 0 ]; then
+    exit 0
+fi

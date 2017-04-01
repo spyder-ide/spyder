@@ -27,9 +27,9 @@ def test_codeanalysis():
     check_results = check_with_pyflakes(code, TEST_FILE) + \
                     check_with_pep8(code, TEST_FILE) + find_tasks(code)
     if PY2:
-        num_results = 86
-    else:
         num_results = 87
+    else:
+        num_results = 88
     assert len(check_results) == num_results
 
 
