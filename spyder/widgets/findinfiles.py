@@ -27,7 +27,8 @@ import traceback
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
-                            QTreeWidgetItem, QVBoxLayout, QWidget, QProgressBar)
+                            QTreeWidgetItem, QVBoxLayout, QWidget,
+                            QHeaderView)
 
 # Local imports
 from spyder.config.base import _
@@ -469,6 +470,11 @@ class FindOptions(QWidget):
             QWidget.keyPressEvent(self, event)
 
 
+class ResultsHeader(QHeaderView):
+    def __init__(self, parent):
+        QHeaderView.__init__(self, parent)
+
+
 class ResultsBrowser(OneColumnTree):
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
@@ -480,6 +486,9 @@ class ResultsBrowser(OneColumnTree):
         self.data = None
         self.set_title('')
         self.root_items = None
+        self.setSortingEnabled(True)
+        self.header().setSectionsClickable(True)
+        # self.setHeaderLabel(_("Filename"))
 
     def activated(self, item):
         """Double-click event"""
