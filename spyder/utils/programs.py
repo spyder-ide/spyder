@@ -9,6 +9,7 @@
 from __future__ import print_function
 
 from distutils.version import LooseVersion
+from getpass import getuser
 import imp
 import inspect
 import os
@@ -30,7 +31,6 @@ class ProgramError(Exception):
 if os.name == 'nt':
     TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
 else:
-    from getpass import getuser
     username = encoding.to_unicode_from_fs(getuser())
     TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder-' + username
 
