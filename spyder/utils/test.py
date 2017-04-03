@@ -13,8 +13,8 @@ from qtpy.QtWidgets import QMessageBox, QApplication
 def close_message_box(qtbot):
     """
     Closes QMessageBox's that can appear when testing.
-    
-    You can use this with QTimer to close a QMessageBox.        
+
+    You can use this with QTimer to close a QMessageBox.
     Before calling anything that may show a QMessageBox call:
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
     """
