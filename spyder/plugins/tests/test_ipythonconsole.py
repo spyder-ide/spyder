@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QApplication
 
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
-from spyder.utils.tests import close_message_box
+from spyder.utils.test import close_message_box
 
 #==============================================================================
 # Constants
