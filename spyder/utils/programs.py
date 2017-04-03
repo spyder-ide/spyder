@@ -30,7 +30,8 @@ class ProgramError(Exception):
 if os.name == 'nt':
     TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
 else:
-    username = encoding.to_unicode_from_fs(os.environ.get('USER'))
+    from getpass import getuser
+    username = encoding.to_unicode_from_fs(getuser())
     TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder-' + username
 
 
