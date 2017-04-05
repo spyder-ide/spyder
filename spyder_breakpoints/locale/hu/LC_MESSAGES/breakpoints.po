@@ -1,0 +1,50 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-04-05 12:15+0200\n"
+"PO-Revision-Date: 2017-04-05 12:18+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.8.12\n"
+"Last-Translator: Barcza Károly <kbarcza@blackpanther.hu>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: hu_HU\n"
+
+#: spyder_breakpoints/breakpoints.py:45
+msgid "Breakpoints"
+msgstr "Töréspontok"
+
+#: spyder_breakpoints/breakpoints.py:80
+msgid "List breakpoints"
+msgstr "Töréspontok listája"
+
+#: spyder_breakpoints/widgets/breakpointsgui.py:97
+msgid "Condition"
+msgstr "Feltétel"
+
+#: spyder_breakpoints/widgets/breakpointsgui.py:97
+msgid "File"
+msgstr "Fájl"
+
+#: spyder_breakpoints/widgets/breakpointsgui.py:97
+msgid "Line"
+msgstr "Vonal"
+
+#: spyder_breakpoints/widgets/breakpointsgui.py:180
+msgid "Clear breakpoints in all files"
+msgstr "A töréspontok törlése minden fájlban"
+
+#: spyder_breakpoints/widgets/breakpointsgui.py:201
+msgid "Clear this breakpoint"
+msgstr "Törölje ezt a töréspontot"
+
+#: spyder_breakpoints/widgets/breakpointsgui.py:206
+msgid "Edit this breakpoint"
+msgstr "Szekeszti ezt a töréspontot"
