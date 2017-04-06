@@ -17,6 +17,8 @@ import os
 import os.path as osp
 import re
 import shutil
+import subprocess
+import sys
 
 # Third party imports
 from qtpy import API, is_pyqt46
@@ -293,6 +295,10 @@ class DirView(QTreeView):
             actions.append(edit_action)
         else:
             actions.append(open_action)
+        if sys.platform == 'darwin':
+            show_in_finder_action = create_action(self, _("Show in finder"), 
+                                              triggered=self.showInFinder)
+            actions.append(show_in_finder_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
@@ -605,6 +611,16 @@ class DirView(QTreeView):
                               "<br><br>Error message:<br>%s"
                               ) % (osp.basename(fname), to_text_string(error)))
 
+    @Slot()
+    def showInFinder(self, fnames=None):
+        """Show file in finder"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        for fname in fnames:
+            subprocess.call(["open", "-R", fname])
+    
     @Slot()
     def rename(self, fnames=None):
         """Rename files"""
