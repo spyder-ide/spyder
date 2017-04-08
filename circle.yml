@@ -30,6 +30,3 @@ test:
     # PyQt5
     - ./continuous_integration/circle/test-qt5.sh || ./continuous_integration/circle/test-qt5.sh || ./continuous_integration/circle/test-qt5.sh: # note the colon
         parallel: true
-    # PyQt4
-    - ./continuous_integration/circle/test-qt4.sh || ./continuous_integration/circle/test-qt4.sh: # note the colon
-        parallel: true
