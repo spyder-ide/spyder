@@ -10,7 +10,7 @@ environment:
     PIP_DEPENDENCIES_FLAGS: "-q"
     CONDA_DEPENDENCIES_FLAGS: "--quiet"
     CONDA_DEPENDENCIES: >
-      rope pyflakes sphinx pygments pylint pep8 psutil nbconvert
+      rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
       qtawesome pickleshare qtpy pyzmq chardet mock pandas pytest
       pytest-cov numpydoc scipy pillow qtconsole matplotlib
     PIP_DEPENDENCIES: "pytest-qt flaky jedi"
