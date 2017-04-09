@@ -17,7 +17,7 @@ dependencies:
     # See https://github.com/TestFX/TestFX/issues/158#issuecomment-62421691
     - sudo apt-get install matchbox-window-manager
   override:
-    - ./continuous_integration/circle/install.sh
+    - ./continuous_integration/install.sh
     - DISPLAY=:99 /usr/bin/matchbox-window-manager:
         background: true
     - sleep 5

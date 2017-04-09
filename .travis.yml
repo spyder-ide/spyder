@@ -28,12 +28,12 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - ./continuous_integration/circle/install.sh;
+  - ./continuous_integration/install.sh;
 
 script:
   - |
     if [ "$TEST_MODULES" = "true" ]; then
         ./continuous_integration/travis/modules_test.sh
     else
-        ./continuous_integration/circle/test-qt4.sh
+        ./continuous_integration/travis/test-qt4.sh
     fi
