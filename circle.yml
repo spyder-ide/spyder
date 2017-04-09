@@ -17,7 +17,7 @@ dependencies:
     # See https://github.com/TestFX/TestFX/issues/158#issuecomment-62421691
     - sudo apt-get install matchbox-window-manager
   override:
-    - ./continuous_integration/circle/install.sh
+    - ./continuous_integration/install.sh
     - DISPLAY=:99 /usr/bin/matchbox-window-manager:
         background: true
     - sleep 5
@@ -29,7 +29,4 @@ test:
     #    parallel: true
     # PyQt5
     - ./continuous_integration/circle/test-qt5.sh || ./continuous_integration/circle/test-qt5.sh || ./continuous_integration/circle/test-qt5.sh: # note the colon
-        parallel: true
-    # PyQt4
-    - ./continuous_integration/circle/test-qt4.sh || ./continuous_integration/circle/test-qt4.sh: # note the colon
         parallel: true
