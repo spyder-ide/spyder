@@ -910,6 +910,69 @@ class HtmlSH(BaseWebSH):
     PROG = re.compile(make_html_patterns(), re.S)
 
 
+# =============================================================================
+# Markdown highlighter
+# =============================================================================
+
+def make_md_patterns():
+    titles = any('keyword', ['^#[^#]+'])
+
+    html_tags = any("builtin", [r"<", r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
+    html_symbols = '&[^; ].+;'
+    html_comment = '<!--.+-->'
+
+    strikethrough = any('strikethrough', [r'(~~)(.*?)~~'])
+    strong = any('strong', [r'(\*\*)(.*?)\*\*'])
+
+    italic = r'(__)(.*?)__'
+    emphasis = r'(//)(.*?)//'
+    fence = '^(?:~{3,}|`{3,}).*$'     # fence - ``` or ~~~
+    italic = any('italic', [italic, emphasis, fence])
+
+    # links - (links) after [] or links after []:
+    link_html = (r'(?<=(\]\())[^\(\)]*(?=\))|'
+                 '(<https?://[^>]+>)|'
+                 '(<[^ >]+@[^ >]+>)')
+    # link/image references - [] or ![]
+    link = r'!?\[[^\[\]]*\]'
+    links = any('string', [link_html, link])
+
+    # blockquotes and lists -  > or - or * or 0.
+    blockquotes = (r'(^>+.*)'
+                   r'|(^(?:    |\t)*[0-9]+\. )'
+                   r'|(^(?:    |\t)*- )'
+                   r'|(^(?:    |\t)*\* )')
+
+    # math - $$
+    math = any('number', [r'^(?:\${2}).*$', html_symbols])
+
+    comment = any('comment', [blockquotes, html_comment])
+
+    return '|'.join([titles, comment, html_tags, math, links, italic, strong,
+                     strikethrough])
+
+
+class MarkdownSH(GenericSH):
+    """Markdown Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_md_patterns(), re.S)
+
+    def setup_formats(self, font=None):
+        super(MarkdownSH, self).setup_formats(font)
+
+        font = QTextCharFormat(self.formats['normal'])
+        font.setFontItalic(True)
+        self.formats['italic'] = font
+
+        font = QTextCharFormat(self.formats['normal'])
+        font.setFontWeight(QFont.Bold)
+        self.formats['strong'] = font
+
+        font = QTextCharFormat(self.formats['normal'])
+        font.setFontStrikeOut(True)
+        self.formats['strikethrough'] = font
+
+
 #==============================================================================
 # Pygments based omni-parser
 #==============================================================================
