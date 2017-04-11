@@ -82,6 +82,7 @@ def main_window(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that new breakpoints are set in the IPython console."""
     projects = main_window.projects
