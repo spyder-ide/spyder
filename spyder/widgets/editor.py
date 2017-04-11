@@ -16,6 +16,7 @@ from __future__ import print_function
 import os
 import os.path as osp
 import sys
+import subprocess
 
 # Third party imports
 from qtpy import is_pyqt46
@@ -359,9 +360,16 @@ class EditorStack(QWidget):
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
 
-        self.menu_actions = actions + [None, fileswitcher_action,
+        actions = actions + [None, fileswitcher_action,
                                        symbolfinder_action,
-                                       copy_to_cb_action, None, close_right,
+                                       copy_to_cb_action]
+        
+        if sys.platform == 'darwin':
+            show_in_finder_action = create_action(self, _("Show in finder"), 
+                                              triggered=self.showInFinder)
+            actions.append(show_in_finder_action)
+        
+        self.menu_actions = actions + [None, close_right,
                                        close_all_but_this]
         self.outlineexplorer = None
         self.help = None
@@ -429,6 +437,16 @@ class EditorStack(QWidget):
 
         #For opening last closed tabs
         self.last_closed_files = []
+
+    @Slot()
+    def showInFinder(self, fnames=None):
+        """Show file in finder"""
+        if fnames is None:
+            fnames = self.get_current_filename()
+        if not isinstance(fnames, (tuple, list)):
+            fnames = [fnames]
+        for fname in fnames:
+            subprocess.call(["open", "-R", fname])
 
     def create_shortcuts(self):
         """Create local shortcuts"""
