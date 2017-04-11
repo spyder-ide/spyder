@@ -82,12 +82,13 @@ def main_window(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name != 'nt' and PYQT5,
+                    reason="It times out sometimes on Linux with PyQt5")
 def test_calltip(main_window, qtbot):
     """Hide the calltip in the editor when a matching ')' is found."""
     # Load test file
     text = 'a = [1,2,3]\n(max'
-    test_file = osp.join(LOCATION, 'edit_calltip.py')
-    main_window.editor.load(test_file)
+    main_window.editor.new(fname="test.py", text=text)
     code_editor = main_window.editor.get_focus_widget()
     
     # Set text to start
