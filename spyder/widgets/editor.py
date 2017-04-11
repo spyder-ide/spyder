@@ -359,22 +359,19 @@ class EditorStack(QWidget):
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
-
-        actions = actions + [None, fileswitcher_action,
-                                       symbolfinder_action,
-                                       copy_to_cb_action]
         
         if sys.platform == 'darwin':
-            show_in_finder_action = create_action(self, _("Show in finder"), 
-                                              triggered=self.showInFinder)
+           text=_("Show in finder")
         else:
-            show_in_finder_action = create_action(self, 
-                                          _("Show in external file explorer"), 
-                                              triggered=self.showInFinder)
+           text= _("Show in external file explorer")
+        external_fileexp_action = create_action(self, text,
+                                triggered=self.show_in_external_file_explorer)
                 
-        actions.append(show_in_finder_action)
+        actions.append(external_fileexp_action)
         
-        self.menu_actions = actions + [None, close_right,
+        self.menu_actions = actions + [None, fileswitcher_action,
+                                       symbolfinder_action,
+                                       copy_to_cb_action, None, close_right,
                                        close_all_but_this]
         self.outlineexplorer = None
         self.help = None
@@ -444,8 +441,8 @@ class EditorStack(QWidget):
         self.last_closed_files = []
 
     @Slot()
-    def showInFinder(self, fnames=None):
-        """Show file in finder"""
+    def show_in_external_file_explorer(self, fnames=None):
+        """Show file in external file explorer"""
         if fnames is None:
             fnames = self.get_current_filename()
         if not isinstance(fnames, (tuple, list)):

@@ -305,14 +305,12 @@ class DirView(QTreeView):
         else:
             actions.append(open_action)
         if sys.platform == 'darwin':
-            show_in_finder_action = create_action(self, _("Show in finder"), 
-                                              triggered=self.showInFinder)
+            text=_("Show in finder")
         else:
-            show_in_finder_action = create_action(self,
-                                        _("Show in external file explorer"), 
-                                              triggered=self.showInFinder)
-                
-        actions.append(show_in_finder_action)
+            text=_("Show in external file explorer")
+        external_fileexp_action = create_action(self, text, 
+                                triggered=self.show_in_external_file_explorer)        
+        actions.append(external_fileexp_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
@@ -626,8 +624,8 @@ class DirView(QTreeView):
                               ) % (osp.basename(fname), to_text_string(error)))
 
     @Slot()
-    def showInFinder(self, fnames=None):
-        """Show file in finder"""
+    def show_in_external_file_explorer(self, fnames=None):
+        """Show file in external file explorer"""
         if fnames is None:
             fnames = self.get_selected_filenames()
         if not isinstance(fnames, (tuple, list)):
