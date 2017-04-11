@@ -915,7 +915,14 @@ class HtmlSH(BaseWebSH):
 # =============================================================================
 
 def make_md_patterns():
-    titles = any('keyword', ['^#[^#]+'])
+    h1 = '^#[^#]+'
+    h2 = '^##[^#]+'
+    h3 = '^###[^#]+'
+    h4 = '^####[^#]+'
+    h5 = '^#####[^#]+'
+    h6 = '^######[^#]+'
+
+    titles = any('keyword', [h1, h2, h3, h4, h5, h6])
 
     html_tags = any("builtin", [r"<", r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
     html_symbols = '&[^; ].+;'
@@ -935,7 +942,7 @@ def make_md_patterns():
                  '(<[^ >]+@[^ >]+>)')
     # link/image references - [] or ![]
     link = r'!?\[[^\[\]]*\]'
-    links = any('string', [link_html, link])
+    links = any('link', [link_html, link])
 
     # blockquotes and lists -  > or - or * or 0.
     blockquotes = (r'(^>+.*)'
@@ -964,14 +971,15 @@ class MarkdownSH(GenericSH):
         font.setFontItalic(True)
         self.formats['italic'] = font
 
-        font = QTextCharFormat(self.formats['normal'])
-        font.setFontWeight(QFont.Bold)
-        self.formats['strong'] = font
+        self.formats['strong'] = self.formats['definition']
 
         font = QTextCharFormat(self.formats['normal'])
         font.setFontStrikeOut(True)
         self.formats['strikethrough'] = font
 
+        font = QTextCharFormat(self.formats['string'])
+        font.setUnderlineStyle(True)
+        self.formats['link'] = font
 
 #==============================================================================
 # Pygments based omni-parser
