@@ -44,7 +44,7 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
-def open_file_external_explorer(filename):
+def open_file__in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
     else:
@@ -631,7 +631,7 @@ class DirView(QTreeView):
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         for fname in fnames:
-            open_file_external_explorer(fname)
+            open_file__in_external_explorer(fname)
 
     @Slot()
     def rename(self, fnames=None):
