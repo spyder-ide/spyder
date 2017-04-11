@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
-from spyder.utils.tests import close_save_message_box
+from spyder.utils.test import close_save_message_box
 
 #==============================================================================
 # Constants
