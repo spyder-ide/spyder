@@ -922,7 +922,7 @@ def make_md_patterns():
     h5 = '^#####[^#]+'
     h6 = '^######[^#]+'
 
-    titles = any('keyword', [h1, h2, h3, h4, h5, h6])
+    titles = any('title', [h1, h2, h3, h4, h5, h6])
 
     html_tags = any("builtin", [r"<", r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
     html_symbols = '&[^; ].+;'
@@ -933,8 +933,7 @@ def make_md_patterns():
 
     italic = r'(__)(.*?)__'
     emphasis = r'(//)(.*?)//'
-    fence = '^(?:~{3,}|`{3,}).*$'     # fence - ``` or ~~~
-    italic = any('italic', [italic, emphasis, fence])
+    italic = any('italic', [italic, emphasis])
 
     # links - (links) after [] or links after []:
     link_html = (r'(?<=(\]\())[^\(\)]*(?=\))|'
@@ -949,6 +948,9 @@ def make_md_patterns():
                    r'|(^(?:    |\t)*[0-9]+\. )'
                    r'|(^(?:    |\t)*- )'
                    r'|(^(?:    |\t)*\* )')
+    # code
+    code = any('code', ['^`{3,}.*$'])
+    inline_code = any('inline_code', ['`.*`'])
 
     # math - $$
     math = any('number', [r'^(?:\${2}).*$', html_symbols])
@@ -956,13 +958,56 @@ def make_md_patterns():
     comment = any('comment', [blockquotes, html_comment])
 
     return '|'.join([titles, comment, html_tags, math, links, italic, strong,
-                     strikethrough])
+                     strikethrough, code, inline_code])
 
 
-class MarkdownSH(GenericSH):
+class MarkdownSH(BaseSH):
     """Markdown Syntax Highlighter"""
     # Syntax highlighting rules:
     PROG = re.compile(make_md_patterns(), re.S)
+    NORMAL = 0
+    CODE = 1
+
+    def highlightBlock(self, text):
+        text = to_text_string(text)
+        previous_state = self.previousBlockState()
+
+        if previous_state == self.CODE:
+            self.setFormat(0, len(text), self.formats["code"])
+        else:
+            previous_state = self.NORMAL
+            self.setFormat(0, len(text), self.formats["normal"])
+
+        self.setCurrentBlockState(previous_state)
+
+        match = self.PROG.search(text)
+        while match:
+            for key, value in list(match.groupdict().items()):
+                start, end = match.span(key)
+
+                if value:
+                    previous_state = self.previousBlockState()
+
+                    if previous_state == self.CODE:
+                        if key == "code":
+                            # Change to normal
+                            self.setFormat(0, len(text),
+                                           self.formats["normal"])
+                            self.setCurrentBlockState(self.NORMAL)
+                        else:
+                            continue
+                    else:
+                        if key == "code":
+                            # Change to code
+                            self.setFormat(0, len(text), self.formats["code"])
+                            self.setCurrentBlockState(self.CODE)
+                            continue
+
+                    self.setFormat(start, end - start, self.formats[key])
+
+            match = self.PROG.search(text, match.end())
+
+        self.highlight_spaces(text)
 
     def setup_formats(self, font=None):
         super(MarkdownSH, self).setup_formats(font)
@@ -980,6 +1025,14 @@ class MarkdownSH(GenericSH):
         font = QTextCharFormat(self.formats['string'])
         font.setUnderlineStyle(True)
         self.formats['link'] = font
+
+        self.formats['code'] = self.formats['string']
+        self.formats['inline_code'] = self.formats['string']
+
+        font = QTextCharFormat(self.formats['keyword'])
+        font.setFontWeight(QFont.Bold)
+        self.formats['title'] = font
+
 
 #==============================================================================
 # Pygments based omni-parser
