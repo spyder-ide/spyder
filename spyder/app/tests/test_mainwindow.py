@@ -108,6 +108,7 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
         
     QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
+    main_window.editor.close_file()
 
 
 @flaky(max_runs=10)
