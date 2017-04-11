@@ -49,7 +49,7 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
-from spyder.widgets.explorer import open_file_external_explorer
+from spyder.widgets.explorer import open_file__in_external_explorer
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -448,7 +448,7 @@ class EditorStack(QWidget):
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         for fname in fnames:
-            open_file_external_explorer(fname)
+            open_file__in_external_explorer(fname)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
