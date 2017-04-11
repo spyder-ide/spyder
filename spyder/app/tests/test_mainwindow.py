@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
-from spyder.utils.tests import close_message_box
+from spyder.utils.tests import close_save_message_box
 
 #==============================================================================
 # Constants
@@ -82,10 +82,6 @@ def main_window(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name != 'nt',
-                    reason="The mainwindow stays open: "
-                           "makes a segfault in PYQT5 and "
-                           "a error in the count of the editorStack in PYQT4.")#FIXME Probably caused by the save message of the file
 def test_calltip(main_window, qtbot):
     """Hide the calltip in the editor when a matching ')' is found."""
     # Load test file
@@ -111,7 +107,7 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
         
-    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
+    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
 
 
 @flaky(max_runs=10)
