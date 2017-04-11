@@ -50,6 +50,7 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
+from spyder.widgets.explorer import open_file_external_explorer
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -367,7 +368,12 @@ class EditorStack(QWidget):
         if sys.platform == 'darwin':
             show_in_finder_action = create_action(self, _("Show in finder"), 
                                               triggered=self.showInFinder)
-            actions.append(show_in_finder_action)
+        else:
+            show_in_finder_action = create_action(self, 
+                                          _("Show in external file explorer"), 
+                                              triggered=self.showInFinder)
+                
+        actions.append(show_in_finder_action)
         
         self.menu_actions = actions + [None, close_right,
                                        close_all_but_this]
@@ -446,7 +452,7 @@ class EditorStack(QWidget):
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         for fname in fnames:
-            subprocess.call(["open", "-R", fname])
+            open_file_external_explorer(fname)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
