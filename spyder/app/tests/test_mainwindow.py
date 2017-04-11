@@ -10,10 +10,10 @@ Tests for the main window
 
 import os
 import os.path as osp
+import shutil
 import tempfile
 
 from flaky import flaky
-import nbformat
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -147,8 +147,8 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
     project_dir = tempfile.mkdtemp()
 
     # Create an empty notebook in the project dir
-    nb_contents = nbformat.v4.new_notebook()
-    nbformat.write(nb_contents, osp.join(project_dir, 'notebook.ipynb'))
+    nb = osp.join(LOCATION, 'notebook.ipynb')
+    shutil.copy(nb, osp.join(project_dir, 'notebook.ipynb'))
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
@@ -163,6 +163,19 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
+
+    # Convert notebook to a Python file
+    projects.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
+
+    # Assert notebook was open
+    assert 'untitled0.py' in editorstack.get_current_filename()
+
+    # Assert its contents are the expected ones
+    file_text = editorstack.get_current_editor().toPlainText()
+    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n'
+
+    # Close last file (else tests hang here)
+    editorstack.close_file(force=True)
 
     # Close project
     projects.close_project()
