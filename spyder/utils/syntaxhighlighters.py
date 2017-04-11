@@ -950,7 +950,7 @@ def make_md_patterns():
                    r'|(^(?:    |\t)*\* )')
     # code
     code = any('code', ['^`{3,}.*$'])
-    inline_code = any('inline_code', ['`.*`'])
+    inline_code = any('inline_code', ['`[^`]*`'])
 
     # math - $$
     math = any('number', [r'^(?:\${2}).*$', html_symbols])
