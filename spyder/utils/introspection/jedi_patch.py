@@ -23,7 +23,7 @@ def apply():
     See [1] and [2] module docstring."""
     from spyder.utils.programs import is_module_installed
     if (is_module_installed('jedi', '=0.9.0') or
-            is_module_installed('jedi', '=0.10.0')):
+            is_module_installed('jedi', '>=0.10.0;<0.11')):
         import jedi
     else:
         raise ImportError("jedi not =0.9.0 or 0.10.0, can't be patched")

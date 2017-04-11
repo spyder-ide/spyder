@@ -426,7 +426,8 @@ class Editor(SpyderPluginWidget):
         self.toolbar_list = None
         self.menu_list = None
 
-        self.introspector = IntrospectionManager()
+        self.introspector = IntrospectionManager(
+                extra_path=self.main.get_spyder_pythonpath())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -1462,6 +1463,9 @@ class Editor(SpyderPluginWidget):
     def set_path(self):
         for finfo in self.editorstacks[0].data:
             finfo.path = self.main.get_spyder_pythonpath()
+        if self.introspector:
+            self.introspector.change_extra_path(
+                    self.main.get_spyder_pythonpath())
     
     #------ Refresh methods
     def refresh_file_dependent_actions(self):

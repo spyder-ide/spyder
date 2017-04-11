@@ -6,6 +6,8 @@
 """Tests for programs.py"""
 
 import os
+
+from flaky import flaky
 import pytest
 
 from spyder.utils.programs import (run_python_script_in_terminal,
@@ -40,6 +42,7 @@ def test_run_python_script_in_terminal(tmpdir, qtbot):
     assert res == 'done'
 
 
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
                     reason='gets stuck on Windows and fails sometimes locally') # FIXME
 def test_run_python_script_in_terminal_with_wdir_empty(tmpdir, qtbot):
