@@ -1511,7 +1511,7 @@ class CodeEditor(TextEditBaseWidget):
 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                if self.get_character(cursor.position()) == ' ':
+                if self.get_character(cursor.position()) == ' ' and '#' in prefix:
                     cursor.movePosition(QTextCursor.NextWord)
                 cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
@@ -1536,7 +1536,7 @@ class CodeEditor(TextEditBaseWidget):
             # Add prefix to current line
             cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
-            if self.get_character(cursor.position()) == ' ':
+            if self.get_character(cursor.position()) == ' ' and '#' in prefix:
                 cursor.movePosition(QTextCursor.NextWord)
             cursor.insertText(prefix)
             cursor.endEditBlock()
@@ -1583,7 +1583,17 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     old_pos = new_pos
                 line_text = to_text_string(cursor.block().text())
-                if (prefix.strip() and line_text.lstrip().startswith(prefix)
+                if (prefix.strip()
+                      and line_text.lstrip().startswith(prefix + ' ')
+                      or line_text.startswith(prefix + ' ')
+                      and '#' in prefix):
+                    cursor.movePosition(QTextCursor.Right,
+                                        QTextCursor.MoveAnchor,
+                                        line_text.find(prefix + ' '))
+                    cursor.movePosition(QTextCursor.Right,
+                                        QTextCursor.KeepAnchor, len(prefix + ' '))
+                    cursor.removeSelectedText()
+                elif (prefix.strip() and line_text.lstrip().startswith(prefix)
                     or line_text.startswith(prefix)):
                     cursor.movePosition(QTextCursor.Right,
                                         QTextCursor.MoveAnchor,
@@ -1597,14 +1607,22 @@ class CodeEditor(TextEditBaseWidget):
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
             line_text = to_text_string(cursor.block().text())
-            if (prefix.strip() and line_text.lstrip().startswith(prefix)
-                or line_text.startswith(prefix)):
+            if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
+                or line_text.startswith(prefix + ' ') and '#' in prefix):
                 cursor.movePosition(QTextCursor.Right,
                                     QTextCursor.MoveAnchor,
-                                    line_text.find(prefix))
+                                    line_text.find(prefix + ' '))
                 cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix))
+                                    QTextCursor.KeepAnchor, len(prefix + ' '))
                 cursor.removeSelectedText()
+            elif (prefix.strip() and line_text.lstrip().startswith(prefix)
+                  or line_text.startswith(prefix)):
+                  cursor.movePosition(QTextCursor.Right,
+                                      QTextCursor.MoveAnchor,
+                                      line_text.find(prefix))
+                  cursor.movePosition(QTextCursor.Right,
+                                      QTextCursor.KeepAnchor, len(prefix))
+                  cursor.removeSelectedText()
 
 
     def fix_indent(self, *args, **kwargs):
@@ -1953,7 +1971,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def comment(self):
         """Comment current line or selection."""
-        self.add_prefix(self.comment_string)
+        self.add_prefix(self.comment_string + ' ')
 
     def uncomment(self):
         """Uncomment current line or selection."""
