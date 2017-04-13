@@ -186,9 +186,7 @@ def shorten_paths(path_list, is_unsaved):
 
 
 class KeyPressFilter(QObject):
-    """
-    Use with `installEventFilter` to get up/down arrow key press signal.
-    """
+    """Use with `installEventFilter` to get up/down arrow key press signal."""
     UP, DOWN = [-1, 1]  # Step constants
 
     sig_up_key_pressed = Signal()
@@ -202,6 +200,23 @@ class KeyPressFilter(QObject):
                 self.sig_down_key_pressed.emit()
 
         return super(KeyPressFilter, self).eventFilter(src, e)
+
+
+class FilesFilterLine(QLineEdit):
+    """QLineEdit used to filter files by name."""
+
+    # User has not clicked outside this widget
+    clicked_outside = False
+
+    def focusOutEvent(self, event):
+        """
+        Detect when the focus goes out of this widget.
+
+        This is used to make the file switcher leave focus on the
+        last selected file by the user.
+        """
+        self.clicked_outside = True
+        return super(QLineEdit, self).focusOutEvent(event)
 
 
 class FileSwitcher(QDialog):
@@ -226,7 +241,6 @@ class FileSwitcher(QDialog):
         self.initial_editor = None        # Initial active editor
         self.line_number = None           # Selected line number in filer
         self.is_visible = False           # Is the switcher visible?
-        self.clicked_outside = False      # User has not clicked outside dialog
 
         help_text = _("Press <b>Enter</b> to switch files or <b>Esc</b> to "
                       "cancel.<br><br>Type to filter filenames.<br><br>"
@@ -241,7 +255,7 @@ class FileSwitcher(QDialog):
                         "([A-Za-z0-9_]{0,100}:{0,1}[0-9]{0,100})")
 
         # Widgets
-        self.edit = QLineEdit(self)
+        self.edit = FilesFilterLine(self)
         self.help = HelperToolButton()
         self.list = QListWidget(self)
         self.filter = KeyPressFilter()
@@ -263,8 +277,6 @@ class FileSwitcher(QDialog):
         layout.addLayout(edit_layout)
         layout.addWidget(self.list)
         self.setLayout(layout)
-
-        self.setFocusPolicy(Qt.ClickFocus)
 
         # Signals
         self.rejected.connect(self.restore_initial_state)
@@ -319,9 +331,6 @@ class FileSwitcher(QDialog):
         """Get the normalized (lowecase) content of the filter text."""
         return to_text_string(self.edit.text()).lower()
 
-    def focusOutEvent(self, event):
-        self.clicked_outside = True
-
     def set_search_text(self, _str):
         self.edit.setText(_str)
 
@@ -347,7 +356,7 @@ class FileSwitcher(QDialog):
         self.is_visible = False
         editors = self.editors_by_path
 
-        if not self.clicked_outside:
+        if not self.edit.clicked_outside:
             for path in self.initial_cursors:
                 cursor = self.initial_cursors[path]
                 if path in editors:
