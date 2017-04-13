@@ -169,9 +169,13 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
 * **Cython**: Run Cython files in the IPython console.
 
+
 ## Contributing
 
-Everyone is invited to contribute. [Read the contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md), then get started.
+Everyone is welcome to contribute. Please read our
+[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md),
+then get started!
+
 
 ## More information
 
