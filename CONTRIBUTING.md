@@ -68,6 +68,9 @@ environment, you need to run
   $ python bootstrap.py
 ```
 
+**Important Note**: You need to restart Spyder after any change you do to its
+source code. This is the only way to test your new code.
+
 ## Spyder Branches
 
 When you start to work on a new pull request (PR), you need to be sure that your
@@ -109,11 +112,6 @@ Install our test dependencies:
 or using pip
 ```bash
   $ pip install -r requirements/test_requirements.txt
-```
-
-or using setup.py:
-```bash
-  $ pip install -e .[test]
 ```
 
 To run Spyder test suite, please use:
