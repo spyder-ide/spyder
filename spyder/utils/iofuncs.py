@@ -16,6 +16,7 @@ from __future__ import print_function
 import sys
 import os
 import tarfile
+import tempfile
 import os.path as osp
 import shutil
 import warnings
@@ -338,13 +339,15 @@ def load_dictionary(filename):
     """Load dictionary from .spydata file"""
     filename = osp.abspath(filename)
     old_cwd = getcwd()
-    os.chdir(osp.dirname(filename))
+    tmp_folder = tempfile.mkdtemp()
+    os.chdir(tmp_folder)
     data = None
     error_message = None
     try:
         tar = tarfile.open(filename, "r")
         tar.extractall()
-        pickle_filename = osp.splitext(filename)[0]+'.pickle'
+        data_file = osp.basename(filename)
+        pickle_filename = osp.splitext(data_file)[0]+'.pickle'
         try:
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(pickle_filename, 'U') as fdesc:
@@ -359,7 +362,7 @@ def load_dictionary(filename):
             try:
                 saved_arrays = data.pop('__saved_arrays__')
                 for (name, index), fname in list(saved_arrays.items()):
-                    arr = np.load( osp.join(osp.dirname(filename), fname) )
+                    arr = np.load( osp.join(tmp_folder, fname) )
                     if index is None:
                         data[name] = arr
                     elif isinstance(data[name], dict):
@@ -368,11 +371,13 @@ def load_dictionary(filename):
                         data[name].insert(index, arr)
             except KeyError:
                 pass
-        for fname in [pickle_filename]+[fn for fn in list(saved_arrays.values())]:
-            os.remove(fname)
     except (EOFError, ValueError) as error:
         error_message = to_text_string(error)
     os.chdir(old_cwd)
+    try:
+        shutil.rmtree(tmp_folder)
+    except OSError as error:
+        error_message = to_text_string(error)
     return data, error_message
 
 
@@ -486,16 +491,8 @@ if __name__ == "__main__":
     import time
     t0 = time.time()
     save_dictionary(example, "test.spydata")
-    print(" Data saved in %.3f seconds" % (time.time()-t0))
+    print(" Data saved in %.3f seconds" % (time.time()-t0))  # spyder: test-skip
     t0 = time.time()
     example2, ok = load_dictionary("test.spydata")
-    print("Data loaded in %.3f seconds" % (time.time()-t0))
-#    for key in example:
-#        print key, ":", example[key] == example2[key]
 
-    a = MatlabStruct()
-    a.b = 'spam'
-    assert a["b"] == 'spam'
-    a.c["d"] = 'eggs'
-    assert a.c.d == 'eggs'
-    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
+    print("Data loaded in %.3f seconds" % (time.time()-t0))  # spyder: test-skip

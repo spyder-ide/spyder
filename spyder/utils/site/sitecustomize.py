@@ -511,6 +511,7 @@ except (ImportError, AttributeError):
 # Pdb adjustments
 #==============================================================================
 class SpyderPdb(pdb.Pdb):
+
     send_initial_notification = True
 
     def set_spyder_breakpoints(self):
@@ -556,7 +557,9 @@ class SpyderPdb(pdb.Pdb):
                     monitor.notify_pdb_step(fname, lineno)
                     time.sleep(0.1)
 
+
 pdb.Pdb = SpyderPdb
+
 
 #XXX: I know, this function is now also implemented as is in utils/misc.py but
 #     I'm kind of reluctant to import spyder in sitecustomize, even if this
@@ -580,7 +583,7 @@ def monkeypatch_method(cls, patch_name):
         if old_func is not None:
             # Add the old func to a list of old funcs.
             old_ref = "_old_%s_%s" % (patch_name, fname)
-            #print(old_ref, old_func)
+
             old_attr = getattr(cls, old_ref, None)
             if old_attr is None:
                 setattr(cls, old_ref, old_func)
@@ -590,6 +593,13 @@ def monkeypatch_method(cls, patch_name):
         setattr(cls, fname, func)
         return func
     return decorator
+
+
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def __init__(self, completekey='tab', stdin=None, stdout=None,
+             skip=None, nosigint=False):
+    self._old_Pdb___init__()
+
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def user_return(self, frame, return_value):
@@ -603,6 +613,7 @@ def user_return(self, frame, return_value):
         self._wait_for_mainpyfile = 0
     self._old_Pdb_user_return(frame, return_value)
 
+
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
     self.setup(frame, traceback)
@@ -611,6 +622,7 @@ def interaction(self, frame, traceback):
     self.print_stack_entry(self.stack[self.curindex])
     self.cmdloop()
     self.forget()
+
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def reset(self):
@@ -624,12 +636,14 @@ def reset(self):
         monitor.register_pdb_session(self)
     self.set_spyder_breakpoints()
 
+
 #XXX: notify spyder on any pdb command (is that good or too lazy? i.e. is more
 #     specific behaviour desired?)
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def postcmd(self, stop, line):
     self.notify_spyder(self.curframe)
     return self._old_Pdb_postcmd(stop, line)
+
 
 # Breakpoints don't work for files with non-ascii chars in Python 2
 # Fixes Issue 1484

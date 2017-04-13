@@ -343,7 +343,12 @@ class FileSwitcher(QDialog):
         for i, editor in enumerate(self.editors):
             if editor is self.initial_editor:
                 self.initial_path = paths[i]
-            self.initial_cursors[paths[i]] = editor.textCursor()
+            # This try is needed to make the fileswitcher work with 
+            # plugins that does not have a textCursor.
+            try:
+                self.initial_cursors[paths[i]] = editor.textCursor()
+            except AttributeError:
+                pass
 
     def accept(self):
         self.is_visible = False
@@ -453,7 +458,7 @@ class FileSwitcher(QDialog):
         elif path:
             return self.tabs.widget(index)
         else:
-            return self.parent().get_current_editor()
+            return self.tabs.currentWidget()
 
     def set_editor_cursor(self, editor, cursor):
         """Set the cursor of an editor."""

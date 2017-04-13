@@ -41,6 +41,7 @@ class CallTipWidget(QLabel):
         self.app = QCoreApplication.instance()
 
         self.hide_timer_on = hide_timer_on
+        self.tip = None
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
 
@@ -64,12 +65,17 @@ class CallTipWidget(QLabel):
 
             if etype == QEvent.KeyPress:
                 key = event.key()
+                cursor = self._text_edit.textCursor()
+                prev_char = self._text_edit.get_character(cursor.position(),
+                                                          offset=-1)
                 if key in (Qt.Key_Enter, Qt.Key_Return,
-                           Qt.Key_Down):
+                           Qt.Key_Down, Qt.Key_Up):
                     self.hide()
                 elif key == Qt.Key_Escape:
                     self.hide()
                     return True
+                elif prev_char == ')':
+                    self.hide()
 
             elif etype == QEvent.FocusOut:
                 self.hide()
@@ -145,6 +151,12 @@ class CallTipWidget(QLabel):
             self._cursor_position_changed)
         self._text_edit.installEventFilter(self)
 
+    def focusOutEvent(self, event):
+        """ Reimplemented to hide it when focus goes out of the main
+            window.
+        """
+        self.hide()
+
     #--------------------------------------------------------------------------
     # 'CallTipWidget' interface
     #--------------------------------------------------------------------------
@@ -152,6 +164,14 @@ class CallTipWidget(QLabel):
     def show_tip(self, point, tip, wrapped_tiplines):
         """ Attempts to show the specified tip at the current cursor location.
         """
+        # Don't attempt to show it if it's already visible and the text
+        # to be displayed is the same as the one displayed before.
+        if self.isVisible():
+            if self.tip == tip:
+                return True
+            else:
+                self.hide()
+
         # Attempt to find the cursor position at which to show the call tip.
         text_edit = self._text_edit
         cursor = text_edit.textCursor()
@@ -186,6 +206,7 @@ class CallTipWidget(QLabel):
             self._hide_timer.start(hide_time, self)
 
         # Set the text and resize the widget accordingly.
+        self.tip = tip
         self.setText(tip)
         self.resize(self.sizeHint())
 
@@ -273,7 +294,7 @@ class CallTipWidget(QLabel):
         """ Hides the tooltip after some time has passed (assuming the cursor is
             not over the tooltip).
         """
-        if (not self._hide_timer.isActive() and
+        if (self.hide_timer_on and not self._hide_timer.isActive() and
             # If Enter events always came after Leave events, we wouldn't need
             # this check. But on Mac OS, it sometimes happens the other way
             # around when the tooltip is created.
@@ -286,10 +307,12 @@ class CallTipWidget(QLabel):
         """ Updates the tip based on user cursor movement.
         """
         cursor = self._text_edit.textCursor()
-        if cursor.position() <= self._start_position:
+        position = cursor.position()
+        document = self._text_edit.document()
+        char = to_text_string(document.characterAt(position - 1))
+        if position <= self._start_position:
             self.hide()
-        else:
-            if not self.hide_timer_on:
-                position, commas = self._find_parenthesis(self._start_position + 1)
-                if position != -1:
-                    self.hide()
+        elif char == ')':
+            pos, _ = self._find_parenthesis(position - 1, forward=False)
+            if pos == -1:
+                self.hide()

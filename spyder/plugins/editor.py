@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _, get_conf_path
+from spyder.config.base import _, get_conf_path, PYTEST
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -426,7 +426,8 @@ class Editor(SpyderPluginWidget):
         self.toolbar_list = None
         self.menu_list = None
 
-        self.introspector = IntrospectionManager()
+        self.introspector = IntrospectionManager(
+                extra_path=self.main.get_spyder_pythonpath())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -542,19 +543,17 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
-        filename = self.get_current_filename()
-        if filename:
-            title += ' - '+to_text_string(filename)
         return title
-    
+
     def get_plugin_icon(self):
-        """Return widget icon"""
+        """Return widget icon."""
         return ima.icon('edit')
     
     def get_focus_widget(self):
         """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        Return the widget to give focus to.
+
+        This happens when plugin's dockwidget is raised on top-level.
         """
         return self.get_current_editor()
 
@@ -1464,6 +1463,9 @@ class Editor(SpyderPluginWidget):
     def set_path(self):
         for finfo in self.editorstacks[0].data:
             finfo.path = self.main.get_spyder_pythonpath()
+        if self.introspector:
+            self.introspector.change_extra_path(
+                    self.main.get_spyder_pythonpath())
     
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -1477,9 +1479,10 @@ class Editor(SpyderPluginWidget):
     def refresh_save_all_action(self):
         """Enable 'Save All' if there are files to be saved"""
         editorstack = self.get_current_editorstack()
-        state = any(finfo.editor.document().isModified()
-                    for finfo in editorstack.data)
-        self.save_all_action.setEnabled(state)
+        if editorstack:
+            state = any(finfo.editor.document().isModified()
+                        for finfo in editorstack.data)
+            self.save_all_action.setEnabled(state)
             
     def update_warning_menu(self):
         """Update warning list menu"""
@@ -1814,11 +1817,19 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            filenames, _sf = getopenfilenames(parent_widget,
-                                     _("Open file"), basedir,
-                                     self.edit_filters,
-                                     selectedfilter=selectedfilter,
-                                     options=QFileDialog.HideNameFilterDetails)
+            if not PYTEST:
+                filenames, _sf = getopenfilenames(
+                                    parent_widget,
+                                    _("Open file"), basedir,
+                                    self.edit_filters,
+                                    selectedfilter=selectedfilter,
+                                    options=QFileDialog.HideNameFilterDetails)
+            else:
+                # Use a Qt (i.e. scriptable) dialog for pytest
+                dialog = QFileDialog(parent_widget, _("Open file"),
+                                     options=QFileDialog.DontUseNativeDialog)
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
             self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
@@ -2312,7 +2323,7 @@ class Editor(SpyderPluginWidget):
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
-                if CONF.get('run', 'open_at_least_once', True):
+                if CONF.get('run', 'open_at_least_once', not PYTEST):
                     # Open Run Config dialog at least once: the first time 
                     # a script is ever run in Spyder, so that the user may 
                     # see it at least once and be conscious that it exists
