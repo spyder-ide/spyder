@@ -5,7 +5,7 @@ pygments>=2.0
 qtconsole>=4.2.0
 nbconvert
 sphinx
-pep8
+pycodestyle
 pylint
 psutil
 qtawesome>=0.4.1
