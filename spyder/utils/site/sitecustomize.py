@@ -9,14 +9,15 @@
 # Spyder consoles sitecustomize
 #
 
-import sys
+import bdb
+import io
 import os
 import os.path as osp
 import pdb
-import bdb
+import shlex
+import sys
 import time
 import traceback
-import shlex
 
 
 PY2 = sys.version[0] == '2'
@@ -197,6 +198,36 @@ if sys.platform == 'darwin':
             site._Printer = osx_app_site._Printer
             site.USER_BASE = osx_app_site.getuserbase()
             site.USER_SITE = osx_app_site.getusersitepackages()
+
+
+#==============================================================================
+# Add Cython files import and runfile support
+#==============================================================================
+try:
+    # Import pyximport for enable Cython files support for import statement
+    import pyximport
+    HAS_PYXIMPORT = True
+    pyx_setup_args = {}
+except ImportError:
+    HAS_PYXIMPORT = False
+
+if HAS_PYXIMPORT:
+    # Add Numpy include dir to pyximport/distutils
+    try:
+        import numpy
+        pyx_setup_args['include_dirs'] = numpy.get_include()
+    except ImportError:
+        pass
+
+    # Setup pyximport and enable Cython files reload
+    pyximport.install(setup_args=pyx_setup_args, reload_support=True)
+    
+try:
+    # Import cython_inline for runfile function
+    from Cython.Build.Inline import cython_inline
+    HAS_CYTHON = True
+except ImportError:
+    HAS_CYTHON = False
 
 
 #==============================================================================
@@ -511,6 +542,7 @@ except (ImportError, AttributeError):
 # Pdb adjustments
 #==============================================================================
 class SpyderPdb(pdb.Pdb):
+
     send_initial_notification = True
 
     def set_spyder_breakpoints(self):
@@ -569,6 +601,7 @@ class SpyderPdb(pdb.Pdb):
 
 pdb.Pdb = SpyderPdb
 
+
 #XXX: I know, this function is now also implemented as is in utils/misc.py but
 #     I'm kind of reluctant to import spyder in sitecustomize, even if this
 #     import is very clean.
@@ -591,7 +624,7 @@ def monkeypatch_method(cls, patch_name):
         if old_func is not None:
             # Add the old func to a list of old funcs.
             old_ref = "_old_%s_%s" % (patch_name, fname)
-            #print(old_ref, old_func)
+
             old_attr = getattr(cls, old_ref, None)
             if old_attr is None:
                 setattr(cls, old_ref, old_func)
@@ -601,6 +634,13 @@ def monkeypatch_method(cls, patch_name):
         setattr(cls, fname, func)
         return func
     return decorator
+
+
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def __init__(self, completekey='tab', stdin=None, stdout=None,
+             skip=None, nosigint=False):
+    self._old_Pdb___init__()
+
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def user_return(self, frame, return_value):
@@ -613,6 +653,7 @@ def user_return(self, frame, return_value):
             return
         self._wait_for_mainpyfile = 0
     self._old_Pdb_user_return(frame, return_value)
+
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
@@ -637,6 +678,7 @@ def _cmdloop(self):
             self.message("--KeyboardInterrupt--\n"
                          "For copying text while debugging, use Ctrl+Shift+C")
 
+
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def reset(self):
     self._old_Pdb_reset()
@@ -649,12 +691,14 @@ def reset(self):
         monitor.register_pdb_session(self)
     self.set_spyder_breakpoints()
 
+
 #XXX: notify spyder on any pdb command (is that good or too lazy? i.e. is more
 #     specific behaviour desired?)
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def postcmd(self, stop, line):
     self.notify_spyder(self.curframe)
     return self._old_Pdb_postcmd(stop, line)
+
 
 # Breakpoints don't work for files with non-ascii chars in Python 2
 # Fixes Issue 1484
@@ -726,6 +770,9 @@ class UserModuleReloader(object):
         self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
+        if modname.startswith('_cython_inline'):
+            # Don't return cached inline compiled .PYX files
+            return True
         for path in [sys.prefix]+self.pathlist:
             if modpath.startswith(path):
                 return True
@@ -888,7 +935,16 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         os.chdir(wdir)
     if post_mortem:
         set_post_mortem()
-    execfile(filename, namespace)
+    if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
+        # Cython files
+        with io.open(filename, encoding='utf-8') as f:
+            if IS_IPYKERNEL:
+                from IPython.core.getipython import get_ipython
+                ipython_shell = get_ipython()
+                ipython_shell.run_cell_magic('cython', '', f.read())
+    else:
+        execfile(filename, namespace)
+
     clear_post_mortem()
     sys.argv = ['']
     namespace.pop('__file__')

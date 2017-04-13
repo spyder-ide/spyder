@@ -89,7 +89,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
         # Default banner
-        from IPython.core.usage import quick_guide
+        try:
+            from IPython.core.usage import quick_guide
+        except Exception:
+            quick_guide = ''
         banner_parts = [
             'Python %s\n' % self.interpreter_versions['python_version'],
             'Type "copyright", "credits" or "license" for more information.\n\n',
@@ -267,6 +270,35 @@ the sympy module (e.g. plot)
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
+
+    def set_backend_for_mayavi(self, command):
+        """
+        Mayavi plots require the Qt backend, so we try to detect if one is
+        generated to change backends
+        """
+        calling_mayavi = False
+        lines = command.splitlines()
+        for l in lines:
+            if not l.startswith('#'):
+                if 'import mayavi' in l or 'from mayavi' in l:
+                    calling_mayavi = True
+                    break
+        if calling_mayavi:
+            message = _("Changing backend to Qt for Mayavi")
+            self._append_plain_text(message + '\n')
+            self.silent_execute("%gui inline\n%gui qt")
+
+    def change_mpl_backend(self, command):
+        """
+        If the user is trying to change Matplotlib backends with
+        %matplotlib, send the same command again to the kernel to
+        correctly change it.
+
+        Fixes issue 4002
+        """
+        if command.startswith('%matplotlib') and \
+          len(command.splitlines()) == 1:
+            self.silent_execute(command)
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):

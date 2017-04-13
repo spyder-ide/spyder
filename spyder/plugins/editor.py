@@ -237,8 +237,8 @@ class EditorConfigPage(PluginConfigPage):
                                     codeanalysis.PYFLAKES_REQVER)
         pep8_box = newcb(_("Real-time code style analysis"),
                       'code_analysis/pep8', default=False,
-                      tip=_("<p>If enabled, Python source code will be analyzed"
-                            "using pep8, lines that are not following PEP8 "
+                      tip=_("<p>If enabled, Python source code will be analyzed "
+                            "using pycodestyle, lines that are not following PEP8 "
                             "style guide will be highlighted.</p>"
                             "<p><u>Note</u>: add <b>analysis:ignore</b> in "
                             "a comment to ignore style analysis "
@@ -423,7 +423,8 @@ class Editor(SpyderPluginWidget):
         self.toolbar_list = None
         self.menu_list = None
 
-        self.introspector = IntrospectionManager()
+        self.introspector = IntrospectionManager(
+                extra_path=self.main.get_spyder_pythonpath())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -456,6 +457,7 @@ class Editor(SpyderPluginWidget):
         self.splitter.setStretchFactor(1, 1)
         layout.addWidget(self.splitter)
         self.setLayout(layout)
+        self.setFocusPolicy(Qt.ClickFocus)
         
         # Editor's splitter state
         state = self.get_option('splitter_state', None)
@@ -834,6 +836,16 @@ class Editor(SpyderPluginWidget):
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
+        re_run_last_cell_action = create_action(self,
+                   _("Re-run last cell"),
+                   tip=_("Re run last cell "),
+                   triggered=self.re_run_last_cell,
+                   context=Qt.WidgetShortcut)
+        self.register_shortcut(re_run_last_cell_action,
+                               context="Editor",
+                               name='re-run last cell',
+                               add_sc_to_tip=True)
+
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
@@ -1041,7 +1053,8 @@ class Editor(SpyderPluginWidget):
           
         # ---- Run menu/toolbar construction ----
         run_menu_actions = [run_action, run_cell_action,
-                            run_cell_advance_action, MENU_SEPARATOR,
+                            run_cell_advance_action,
+                            re_run_last_cell_action, MENU_SEPARATOR,
                             run_selected_action, re_run_action,
                             configure_action, MENU_SEPARATOR]
         self.main.run_menu_actions += run_menu_actions
@@ -1115,9 +1128,11 @@ class Editor(SpyderPluginWidget):
                                              debug_action, run_selected_action,
                                              run_cell_action,
                                              run_cell_advance_action,
+                                             re_run_last_cell_action,
                                              blockcomment_action,
                                              unblockcomment_action,
                                              self.winpdb_action]
+        self.cythonfile_compatible_actions = [run_action, configure_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
                  self.print_action, self.save_all_action, gotoline_action,
@@ -1460,6 +1475,9 @@ class Editor(SpyderPluginWidget):
     def set_path(self):
         for finfo in self.editorstacks[0].data:
             finfo.path = self.main.get_spyder_pythonpath()
+        if self.introspector:
+            self.introspector.change_extra_path(
+                    self.main.get_spyder_pythonpath())
     
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -1564,8 +1582,14 @@ class Editor(SpyderPluginWidget):
         # Refresh Python file dependent actions:
         editor = self.get_current_editor()
         if editor:
-            enable = editor.is_python()
+            python_enable = editor.is_python()
+            cython_enable = python_enable or (
+                programs.is_module_installed('Cython') and editor.is_cython())
             for action in self.pythonfile_dependent_actions:
+                if action in self.cythonfile_compatible_actions:
+                    enable = cython_enable
+                else:
+                    enable = python_enable
                 if action is self.winpdb_action:
                     action.setEnabled(enable and WINPDB_PATH is not None)
                 else:
@@ -2412,6 +2436,12 @@ class Editor(SpyderPluginWidget):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
+
+    @Slot()
+    def re_run_last_cell(self):
+        """Run last executed cell."""
+        editorstack = self.get_current_editorstack()
+        editorstack.re_run_last_cell()
 
     #------ Zoom in/out/reset
     def zoom(self, factor):

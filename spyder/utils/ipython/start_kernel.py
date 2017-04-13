@@ -133,6 +133,11 @@ def kernel_config():
            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
            spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
 
+
+    # Enable Cython magic
+    if is_module_installed('Cython'):
+        spy_cfg.IPKernelApp.exec_lines.append('%load_ext Cython')
+
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')

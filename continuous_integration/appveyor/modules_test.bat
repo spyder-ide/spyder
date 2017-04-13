@@ -45,9 +45,6 @@ for /r "%SPYDER%" %%f in (*.py) do (
     ) else if "%%f"=="%SPYDER%\utils\qthelpers.py" (
         echo --- NOT testing %%f ---
         echo.
-    ) else if "%%f"=="%SPYDER%\widgets\formlayout.py" (
-        echo --- NOT testing %%f ---
-        echo.
     ) else if not "!file:external\=!"=="!file!" (
         echo --- NOT testing %%f ---
         echo.

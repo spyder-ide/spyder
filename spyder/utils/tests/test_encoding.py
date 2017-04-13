@@ -31,7 +31,7 @@ def test_is_text_file(tmpdir):
 def test_files_encodings(expected_encoding, text_file):
     with open(os.path.join(__location__, text_file), 'rb') as f:
         text = f.read()
-        assert get_coding(text) == expected_encoding
+        assert get_coding(text).lower() == expected_encoding.lower()
 
 
 if __name__ == '__main__':

@@ -15,7 +15,9 @@
 from ast import literal_eval
 import re
 
-from jedi._compatibility import is_py3
+from spyder.utils.programs import is_module_installed
+
+from jedi._compatibility import u, is_py3
 from jedi.evaluate.cache import memoize_default
 from jedi.evaluate.docstrings import (_evaluate_for_statement_string,
                                       _strip_rst_role,
@@ -105,9 +107,9 @@ def _search_return_in_numpydocstr(docstr):
         found.extend(_expand_typestr(p_type))
     return found
 
-
-@memoize_default(None, evaluator_is_first_arg=True)
-def find_return_types(evaluator, func):
+# Caching disabled because jedi_patch breaks it
+# @memoize_default(None, evaluator_is_first_arg=True)
+def find_return_types(module_context, func):
     """
     Determines a set of potential return types for `func` using docstring hints
     :type evaluator: jedi.evaluate.Evaluator
@@ -140,11 +142,17 @@ def find_return_types(evaluator, func):
             # Check for numpy style return hint
             found = _search_return_in_numpydocstr(docstr)
         return found
-
-    docstr = func.raw_doc
-    module = func.get_parent_until()
+    try:
+        docstr = u(func.raw_doc)
+    except AttributeError:
+        docstr = u(func.doc)
     types = []
     for type_str in search_return_in_docstr(docstr):
-        type_ = _evaluate_for_statement_string(evaluator, type_str, module)
+        if is_module_installed('jedi', '>=0.10.0;<0.11'):
+            type_ = _evaluate_for_statement_string(module_context, type_str)
+        else:
+            module = func.get_parent_until()
+            type_ = _evaluate_for_statement_string(module_context,
+                                                   type_str, module)
         types.extend(type_)
     return types

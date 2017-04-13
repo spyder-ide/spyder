@@ -354,7 +354,7 @@ def get_translation(modname, dirname=None):
                 return to_text_string(y, "utf-8")
         return translate_gettext
     except IOError as _e:  # analysis:ignore
-        #print "Not using translations (%s)" % _e
+        # Not using translations
         def translate_dumb(x):
             if not is_unicode(x):
                 return to_text_string(x, "utf-8")
