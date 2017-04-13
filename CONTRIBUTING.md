@@ -1,11 +1,13 @@
 # Contributing to Spyder-IDE
 
-:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
+:+1::tada: First off, thanks for taking the time to contribute to Spyder! :tada::+1:
 
 ## General Guidelines
 
 This page documents at a very high level how to contribute to Spyder.
-Please Check the [Spyder-IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder) for a more to developing and contributing to the Spyder.
+Please Check the
+[Spyder IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
+for a more detailed guide on how to contribute to the Spyder.
 
 
 ## Setting Up a Development Environment
@@ -17,72 +19,78 @@ Please Check the [Spyder-IDE Contributor Documentation](https://github.com/spyde
   $ git clone https://github.com/spyder-ide/spyder.git
 ```
 
-### Creating a conda environment (or virtualenv)
+### Creating a conda environment or virtualenv
+
+If you use Anaconda you can create a conda environment with
+these instructions
 
 ```bash
-  $ conda create -n spyder spyder python=3
-  $ source activate spyder
-```
-This will also install spyder latest version and dependencies into the environment, if you want only to create the environment and install them manually, run:
-
-```bash
-  $ conda create -n spyder python=3
-  $ source activate spyder
+  $ conda create -n spyder-dev python=3
+  $ source activate spyder-dev
 ```
 
-You could also use `virtualenv`, but `conda` is prefered:
+You can also use `virtualenv` on Linux, but `conda` is preferred:
 
 ```bash
-  $ mkvirtualenv spyder -a spyder
-  $ workon spyder
-```
-
-### Installing spyder
-
-This will also install required dependencies:
-
-```bash
-  $ python setup.py install
-```
-
-You can also run spyder from source code without installing it, (but you will need to [install dependencies](#installing-dependencies)):
-
-```bash
-  $ ./bootstrap.py
+  $ mkvirtualenv spyder-dev
+  $ workon spyder-dev
 ```
 
 ### Installing dependencies
 
+After you have created your development environment, you need to install
+Spyder necessary dependencies. For that you need to go to the directory
+where your git clone is placed and run:
+
 ```bash
-  $ conda install --file requirements/requirements.txt -c spyder-ide
+  $ conda install --file requirements/requirements.txt
 ```
-or using pip:
+
+or using pip and virtualenv:
 
 ```bash
   $ pip install -r requirements/requirements.txt
 ```
 
-> If you are using pip you also need to install a Qt binding (pyqt4, pyqt5)
+*Note*: If you are using pip, you also need to install a Qt binding
+package. This can be achieved by running
 
 ```bash
-  $ apt-get install python3-pyqt5
+  $ pip install pyqt5
+```
+
+### Running Spyder
+
+To start Spyder directly from your clone, i.e. without installing it to your
+environment, you need to run
+
+```bash
+  $ python bootstrap.py
 ```
 
 ## Spyder Branches
 
-When start working in a new pull request, be sure your branch is child of the correct branch and your PR is against it.
+When you start to work on a new pull request (PR), you need to be sure that your
+feature branch is a child of the right Spyder branch, and also that you make
+your PR on Github against it.
 
-Normally issues are marked with a milestone, that indicate the correct branch:
+Besides, issues are marked with a milestone that indicates the correct branch
+to use, like this:
 
-* Use `3.1.x` branch for Bugfixes (Milestones `v3.1.1`, `v3.1.2`, `v3.1.3`...)
+* Use the `3.1.x` branch for bugfixes only (milestones `v3.1.1`, `v3.1.2`, `v3.1.3`,
+  etc)
 
-* Use `3.x` branch for introducing new features (Milestones `v3.1`, `v3.2`, `v3.3`...)
+* Use the `3.x` branch to introduce new features that don't require major internal
+  changes (milestones `v3.1`, `v3.2`, `v3.3`, etc).
 
-* Use `master` for break compatibility changes (Milestone `v4.0beta1`)
+* Use `master` to introduce new features that break compatibility with previous
+  Spyder versions (Milestone `v4.0beta1`, `v4.0beta2`, etc).
 
-You can also submit bugfixes to `3.x` and `master` for errors that are only present in that branches.
 
-You could start working in a new PR in this way:
+You can also submit bugfixes to `3.x` or `master` for errors that are only present in
+those branches.
+
+So to start working on a new PR, you need to follow these commands:
 
 ```bash
   $ git checkout <branch>
@@ -92,7 +100,8 @@ You could start working in a new PR in this way:
 
 ##  Running Tests
 
-Install test dependencies:
+Install our test dependencies:
+
 ```bash
   $ conda install --file requirements/test_requirements.txt -c spyder-ide
 ```
@@ -107,7 +116,7 @@ or using setup.py:
   $ pip install -e .[test]
 ```
 
-To run Spyder tests suite, use:
+To run Spyder test suite, please use:
 ```bash
   $ python runtests.py
 ```
