@@ -102,10 +102,6 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Set inline backend
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%matplotlib inline')
-
     # Import Matplotlib
     with qtbot.waitSignal(shell.executed):
         shell.execute('import matplotlib.pyplot as plt')
