@@ -163,8 +163,9 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     control.setFocus()
 
     # Generate a traceback and enter debugging mode
-    shell.execute('1/0')
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+
     shell.execute('%debug')
     qtbot.wait(500)
 
@@ -179,7 +180,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.wait(500)
     assert shell.get_value('bb') == 10
 
-    QTimer.singleShot(1000, lambda: pass_qmessagebox(qtbot))
+    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
     qtbot.keyClick(control, Qt.Key_R, modifier=(Qt.ControlModifier | Qt.AltModifier))
     qtbot.wait(500)
 
