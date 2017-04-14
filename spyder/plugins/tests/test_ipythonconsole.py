@@ -11,6 +11,7 @@ import tempfile
 from textwrap import dedent
 
 from flaky import flaky
+from ipykernel.serialize import serialize_object
 import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt, QTimer
@@ -57,6 +58,51 @@ def ipyconsole(request):
 #==============================================================================
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_values_dbg(ipyconsole, qtbot):
+    """
+    Test that getting, setting, copying and removing values is working while
+    debugging.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a traceback and enter debugging mode
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+    shell.execute('%debug')
+    qtbot.wait(500)
+
+    # Get value
+    qtbot.keyClicks(control, '!aa = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+    assert shell.get_value('aa') == 10
+
+    # Set value
+    shell.set_value('aa', serialize_object(20))
+    qtbot.wait(500)
+    assert shell.get_value('aa') == 20
+
+    # Copy value
+    shell.copy_value('aa', 'bb')
+    qtbot.wait(500)
+    assert shell.get_value('bb') == 20
+
+    # Rmoeve value
+    shell.remove_value('aa')
+    qtbot.wait(500)
+    qtbot.keyClicks(control, '!aa')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+    assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_plot_magic_dbg(ipyconsole, qtbot):
     """Test our plot magic while debugging"""
     shell = ipyconsole.get_current_shellwidget()
@@ -73,7 +119,6 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
-
     shell.execute('%debug')
     qtbot.wait(500)
 
