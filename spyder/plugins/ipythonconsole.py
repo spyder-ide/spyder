@@ -15,6 +15,7 @@ IPython Console plugin based on QtConsole
 
 # Standard library imports
 import atexit
+import codecs
 import os
 import os.path as osp
 import uuid
@@ -26,7 +27,6 @@ from jupyter_client.kernelspec import KernelSpec
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
@@ -46,8 +46,8 @@ from spyder import dependencies
 from spyder.config.base import (_, DEV, get_home_dir, get_module_path,
                                 get_module_source_path)
 from spyder.config.main import CONF
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
@@ -63,6 +63,11 @@ from spyder.widgets.tabs import Tabs
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
+
+
+CYTHON_REQVER = '>=0.21'
+dependencies.add("cython", _("Run Cython files in the IPython Console"),
+                 required_version=CYTHON_REQVER, optional=True)
 
 
 #------------------------------------------------------------------------------
@@ -205,12 +210,12 @@ class KernelConnectionDialog(QDialog):
         ssh_form.addRow(_('Password'), self.pw)
         
         # Ok and Cancel buttons
-        accept_btns = QDialogButtonBox(
+        self.accept_btns = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
-        accept_btns.accepted.connect(self.accept)
-        accept_btns.rejected.connect(self.reject)
+        self.accept_btns.accepted.connect(self.accept)
+        self.accept_btns.rejected.connect(self.reject)
 
         # Dialog layout
         layout = QVBoxLayout(self)
@@ -218,7 +223,7 @@ class KernelConnectionDialog(QDialog):
         layout.addLayout(cf_layout)
         layout.addWidget(self.rm_cb)
         layout.addLayout(ssh_form)
-        layout.addWidget(accept_btns)
+        layout.addWidget(self.accept_btns)
                 
         # remote kernel checkbox enables the ssh_connection_form
         def ssh_set_enabled(state):
@@ -241,8 +246,9 @@ class KernelConnectionDialog(QDialog):
         self.kf.setText(kf)
 
     @staticmethod
-    def get_connection_parameters(parent=None):
-        dialog = KernelConnectionDialog(parent)
+    def get_connection_parameters(parent=None, dialog=None):
+        if not dialog:
+            dialog = KernelConnectionDialog(parent)
         result = dialog.exec_()
         is_remote = bool(dialog.rm_cb.checkState())
         accepted = result == QDialog.Accepted
@@ -254,7 +260,11 @@ class KernelConnectionDialog(QDialog):
                 falsy_to_none(dialog.pw.text()), # ssh password
                 accepted)                        # ok
         else:
-            return (dialog.cf.text(), None, None, None, accepted)
+            path = dialog.cf.text()
+            _dir, filename = osp.dirname(path), osp.basename(path)
+            if _dir == '' and not filename.endswith('.json'):
+                path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
+            return (path, None, None, None, accepted)
 
 
 #------------------------------------------------------------------------------
@@ -585,11 +595,9 @@ class IPythonConsole(SpyderPluginWidget):
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
-    def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+    def __init__(self, parent, testing=False):
+        """Ipython Console constructor."""
+        SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
         self.menu_actions = None
@@ -604,9 +612,16 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
+        self.testing = testing
 
         # Initialize plugin
-        self.initialize_plugin()
+        if not self.testing:
+            self.initialize_plugin()
+
+        # Create temp dir on testing to save kernel errors
+        if self.testing:
+            if not osp.isdir(programs.TEMPDIR):
+                os.mkdir(programs.TEMPDIR)
 
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
@@ -618,7 +633,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
-                     
+
         self.tabwidget.set_close_function(self.close_client)
 
         if sys.platform == 'darwin':
@@ -634,7 +649,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_widget_shortcuts(self.find_widget)
+        if not self.testing:
+            self.register_widget_shortcuts(self.find_widget)
         layout.addWidget(self.find_widget)
 
         self.setLayout(layout)
@@ -720,28 +736,31 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = []
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
-        if client:
+        if client and not self.testing:
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
-        self.main.last_console_plugin_focus_was_python = False
-        self.update_plugin_title.emit()
+        if not self.testing:
+            self.main.last_console_plugin_focus_was_python = False
+        self.sig_update_plugin_title.emit()
 
     def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        ctrl = "Cmd" if sys.platform == "darwin" else "Ctrl"
-        main_create_client_action = create_action(self,
-                                _("Open an &IPython console"),
-                                None, ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                tip=_("Use %s+T when the console is selected "
-                                      "to open a new one") % ctrl)
-        create_client_action = create_action(self,
-                                _("Open a new console"),
-                                QKeySequence("Ctrl+T"),
-                                ima.icon('ipython_console'),
-                                triggered=self.create_new_client,
-                                context=Qt.WidgetWithChildrenShortcut)
+        """Return a list of actions related to plugin."""
+        create_client_action = create_action(
+                                   self,
+                                   _("Open an &IPython console"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_new_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(create_client_action, context="ipython_console",
+                               name="New tab")
+
+        restart_action = create_action(self, _("Restart kernel"),
+                                       icon=ima.icon('restart'),
+                                       triggered=self.restart_kernel,
+                                       context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(restart_action, context="ipython_console",
+                               name="Restart kernel")
 
         connect_to_kernel_action = create_action(self,
                _("Connect to an existing kernel"), None, None,
@@ -750,11 +769,13 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
-        main_consoles_menu.insert(0, main_create_client_action)
-        main_consoles_menu += [MENU_SEPARATOR, connect_to_kernel_action]
+        main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu += [MENU_SEPARATOR, restart_action,
+                               connect_to_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [create_client_action, connect_to_kernel_action]
+        self.menu_actions = [restart_action, MENU_SEPARATOR,
+                             create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
 
@@ -774,6 +795,7 @@ class IPythonConsole(SpyderPluginWidget):
                          lambda fname, lineno, word, processevents:
                              self.editor.load(fname, lineno, word,
                                               processevents=processevents))
+        self.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.editor.run_in_current_ipyclient.connect(
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
@@ -804,7 +826,7 @@ class IPythonConsole(SpyderPluginWidget):
             return client.shellwidget
 
     def run_script_in_current_client(self, filename, wdir, args, debug,
-            post_mortem):
+                                     post_mortem, clear_variables):
         """Run script in current client, if any"""
         norm = lambda text: remove_backslashes(to_text_string(text))
         client = self.get_current_client()
@@ -827,7 +849,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
-            self.execute_code(line)
+            self.execute_code(line, clear_variables)
             self.visibility_changed(True)
             self.raise_()
         else:
@@ -844,9 +866,12 @@ class IPythonConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
-    def execute_code(self, lines):
+    def execute_code(self, lines, clear_variables=False):
+        """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
+            if clear_variables:
+                sw.reset_namespace(force=True)
             sw.execute(to_text_string(lines))
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
@@ -915,7 +940,9 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        km, kc = self.create_kernel_manager_and_kernel_client(connection_file)
+        stderr_file = client.stderr_file
+        km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
+                                                              stderr_file)
 
         kc.started_channels.connect(lambda c=client: self.process_started(c))
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
@@ -1129,7 +1156,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.remove(client)
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1170,7 +1197,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client_if_empty = False
         for i in range(len(self.clients)):
             client = self.clients[-1]
-            client.shutdown()
+            try:
+                client.shutdown()
+            except Exception as e:
+                QMessageBox.warning(self, _('Warning'),
+                    _("It was not possible to restart the IPython console "
+                      "when switching to this project. "
+                      "The error was {0}").format(e), QMessageBox.Ok)
             self.close_client(client=client, force=True)
         self.create_new_client(give_focus=False)
         self.create_new_client_if_empty = True
@@ -1183,6 +1216,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.edit_goto[str, int, str, bool].emit(fname, lineno, '', False)
         self.activateWindow()
         shellwidget._control.setFocus()
+
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_spyder_breakpoints()
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
@@ -1217,7 +1255,9 @@ class IPythonConsole(SpyderPluginWidget):
         #    manager
         spy_path = get_module_source_path('spyder')
         sc_path = osp.join(spy_path, 'utils', 'site')
-        spy_pythonpath = self.main.get_spyder_pythonpath()
+        spy_pythonpath = []
+        if not self.testing:
+            spy_pythonpath = self.main.get_spyder_pythonpath()
 
         default_interpreter = CONF.get('main_interpreter', 'default')
         if default_interpreter:
@@ -1294,13 +1334,17 @@ class IPythonConsole(SpyderPluginWidget):
 
         return KernelSpec(resource_dir='', **kernel_dict)
 
-    def create_kernel_manager_and_kernel_client(self, connection_file):
-        """Create kernel manager and client"""
+    def create_kernel_manager_and_kernel_client(self, connection_file,
+                                                stderr_file):
+        """Create kernel manager and client."""
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
         kernel_manager._kernel_spec = self.create_kernel_spec()
-        kernel_manager.start_kernel()
+
+        # Save stderr in a file to read it later in case of errors
+        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
         kernel_client = kernel_manager.client()
@@ -1310,6 +1354,12 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client.hb_channel.time_to_dead = 6.0
 
         return kernel_manager, kernel_client
+
+    def restart_kernel(self):
+        """Restart kernel of current client."""
+        client = self.get_current_client()
+        if client is not None:
+            client.restart_kernel()
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name):
@@ -1329,7 +1379,7 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):

@@ -8,13 +8,12 @@
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins import SpyderPluginMixin
-from spyder.plugins.configdialog import PluginConfigPage
-from spyder.utils import programs
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
@@ -22,13 +21,6 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 class VariableExplorerConfigPage(PluginConfigPage):
     def setup_page(self):
-        ar_group = QGroupBox(_("Autorefresh"))
-        ar_box = self.create_checkbox(_("Enable autorefresh"),
-                                      'autorefresh')
-        ar_spin = self.create_spinbox(_("Refresh interval: "),
-                                      _(" ms"), 'autorefresh/timeout',
-                                      min_=100, max_=1000000, step=100)
-        
         filter_group = QGroupBox(_("Filter"))
         filter_data = [
             ('exclude_private', _("Exclude private references")),
@@ -40,24 +32,10 @@ class VariableExplorerConfigPage(PluginConfigPage):
                         for option, text in filter_data]
 
         display_group = QGroupBox(_("Display"))
-        display_data = []
-        if programs.is_module_installed('numpy'):
-            display_data.append(('minmax', _("Show arrays min/max"), ''))
-        display_data.append(
-            ('remote_editing', _("Edit data in the remote process"),
-             _("Editors are opened in the remote process for NumPy "
-               "arrays, PIL images, lists, tuples and dictionaries.\n"
-               "This avoids transfering large amount of data between "
-               "the remote process and Spyder (through the socket)."))
-                            )
+        display_data = [('minmax', _("Show arrays min/max"), '')]
         display_boxes = [self.create_checkbox(text, option, tip=tip)
                          for option, text, tip in display_data]
-        
-        ar_layout = QVBoxLayout()
-        ar_layout.addWidget(ar_box)
-        ar_layout.addWidget(ar_spin)
-        ar_group.setLayout(ar_layout)
-        
+
         filter_layout = QVBoxLayout()
         for box in filter_boxes:
             filter_layout.addWidget(box)
@@ -69,24 +47,21 @@ class VariableExplorerConfigPage(PluginConfigPage):
         display_group.setLayout(display_layout)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(ar_group)
         vlayout.addWidget(filter_group)
         vlayout.addWidget(display_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
 
-class VariableExplorer(QWidget, SpyderPluginMixin):
-    """
-    Variable Explorer Plugin
-    """
+class VariableExplorer(SpyderPluginWidget):
+    """Variable Explorer plugin."""
+
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        SpyderPluginMixin.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         # Widgets
         self.stack = QStackedWidget(self)
@@ -161,11 +136,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         in the shell.
         """
         shellwidget_id = id(shellwidget)
-        # Add shell only once: this method may be called two times in a row
-        # by the External console plugin (dev. convenience)
-        from spyder.widgets.externalshell import systemshell
-        if isinstance(shellwidget, systemshell.ExternalSystemShell):
-            return
         if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)
@@ -188,8 +158,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets[shellwidget_id]
             self.set_current_widget(nsb)
-            if self.isvisible:
-                nsb.visibility_changed(True)
 
     def import_data(self, fname):
         """Import data in current namespace"""
@@ -201,13 +169,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
                 self.dockwidget.setVisible(True)
                 self.dockwidget.raise_()
 
-    #------ SpyderPluginMixin API ---------------------------------------------
-    def visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
-        SpyderPluginMixin.visibility_changed(self, enable)
-        for nsb in list(self.shellwidgets.values()):
-            nsb.visibility_changed(enable and nsb is self.current_widget())
-    
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -245,6 +206,3 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):
             nsb.setup(**self.get_settings())
-        ar_timeout = self.get_option('autorefresh/timeout')
-        for shellwidget in self.main.extconsole.shellwidgets:
-            shellwidget.set_autorefresh_timeout(ar_timeout)

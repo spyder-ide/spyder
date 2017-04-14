@@ -59,7 +59,9 @@ if sys.platform == 'darwin':
     RUN_CELL_SHORTCUT = 'Meta+Return'
 else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
+RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Return'
 RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
+
 
 # =============================================================================
 #  Defaults
@@ -182,8 +184,6 @@ DEFAULTS = [
               }),
             ('variable_explorer',
              {
-              'autorefresh': False,
-              'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
               'dataframe_format': '.3g', # no percent sign to avoid problems
                                          # with ConfigParser's interpolation
@@ -193,9 +193,8 @@ DEFAULTS = [
               'exclude_capitalized': False,
               'exclude_unsupported': True,
               'truncate': True,
-              'minmax': False,
-              'remote_editing': False,
-              }),
+              'minmax': False
+             }),
             ('editor',
              {
               'printer_header/font/family': SANS_SERIF,
@@ -213,7 +212,7 @@ DEFAULTS = [
               'line_numbers': True,
               'blank_spaces': False,
               'edge_line': True,
-              'edge_line_column': 79,
+              'edge_line_columns': '79',
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
@@ -234,7 +233,6 @@ DEFAULTS = [
               'occurrence_highlighting': True,
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
-              'fullpath_sorting': True,
               'show_tab_bar': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
@@ -332,6 +330,7 @@ DEFAULTS = [
               '_/quit': "Ctrl+Q",
               # -- In plugins/editor
               '_/file switcher': 'Ctrl+P',
+              '_/symbol finder': 'Ctrl+Alt+P',
               '_/debug': "Ctrl+F5",
               '_/debug step over': "Ctrl+F10",
               '_/debug continue': "Ctrl+F12",
@@ -424,9 +423,9 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': RUN_CELL_SHORTCUT,
               'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
-              'editor/show/hide project explorer': "Ctrl+Alt+P",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -440,6 +439,7 @@ DEFAULTS = [
               # ---- In widgets/ipythonconsole/shell.py ----
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
+              'ipython_console/restart kernel': "Ctrl+.",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
@@ -656,7 +656,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '30.0.0'
+CONF_VERSION = '35.0.0'
 
 # Main configuration instance
 try:

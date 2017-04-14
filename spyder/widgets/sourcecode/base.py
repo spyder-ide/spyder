@@ -15,6 +15,7 @@
 import os
 import re
 import sys
+from collections import OrderedDict
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -181,7 +182,7 @@ class CompletionWidget(QListWidget):
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.case_sensitive:
-                    print(completion_text)
+                    print(completion_text)  # spyder: test-skip
                     completion = completion.lower()
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
@@ -229,7 +230,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         BaseEditMixin.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
-        self.extra_selections_dict = {}
+        self.extra_selections_dict = OrderedDict()
         
         self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
@@ -254,7 +255,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_text = ""
         self.setup_completion()
 
-        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
+        self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.calltips = True
         self.calltip_position = None
 
@@ -270,6 +271,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.bracepos = None
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
+
+        self.last_cursor_cell = None
 
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
@@ -305,28 +308,40 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Extra selections
+    def extra_selection_length(self, key):
+        selection = self.get_extra_selections(key)
+        if selection:
+            cursor = self.extra_selections_dict[key][0].cursor
+            selection_length = cursor.selectionEnd() - cursor.selectionStart()
+            return selection_length
+        else:
+            return 0
+
     def get_extra_selections(self, key):
         return self.extra_selections_dict.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
         self.extra_selections_dict[key] = extra_selections
-        
+        self.extra_selections_dict = \
+            OrderedDict(sorted(self.extra_selections_dict.items(),
+                               key=lambda s: self.extra_selection_length(s[0]),
+                               reverse=True))
+
     def update_extra_selections(self):
         extra_selections = []
         for key, extra in list(self.extra_selections_dict.items()):
             if key == 'current_line' or key == 'current_cell':
-                # Python 3 compatibility (weird): current line has to be 
+                # Python 3 compatibility (weird): current line has to be
                 # highlighted first
                 extra_selections = extra + extra_selections
             else:
                 extra_selections += extra
         self.setExtraSelections(extra_selections)
-        
+
     def clear_extra_selections(self, key):
         self.extra_selections_dict[key] = []
         self.update_extra_selections()
-        
-        
+
     def changed(self):
         """Emit changed signal"""
         self.modificationChanged.emit(self.document().isModified())
@@ -608,14 +623,29 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         return ls.join(lines)
 
-    def get_cell_as_executable_code(self):
-        """Return cell contents as executable code"""
+    def __exec_cell(self):
+        init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
         if not whole_file_selected:
             self.setTextCursor(cursor)
         text = self.get_selection_as_executable_code()
+        self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
+        if text is not None:
+            text = text.rstrip()
+        return text
+
+    def get_cell_as_executable_code(self):
+        """Return cell contents as executable code"""
+        return self.__exec_cell()
+
+    def get_last_cell_as_executable_code(self):
+        text = None
+        if self.last_cursor_cell:
+            self.setTextCursor(self.last_cursor_cell)
+            self.highlight_current_cell()
+            text = self.__exec_cell()
         return text
 
     def is_cell_separator(self, cursor=None, block=None):
@@ -676,7 +706,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             prev_pos = cur_pos
         cell_at_file_end = cursor.atEnd()
         return cursor, cell_at_file_start and cell_at_file_end
-    
+
     def select_current_cell_in_visible_portion(self):
         """Select cell under cursor in the visible portion of the file
         cell = group of lines separated by CELL_SEPARATORS

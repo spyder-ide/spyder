@@ -50,6 +50,11 @@ else:
 ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
+# Excluded variables from the Variable Explorer (i.e. they are not
+# shown at all there)
+EXCLUDED_NAMES = ['In', 'Out', 'exit', 'get_ipython', 'quit']
+
+
 class SpyderKernel(IPythonKernel):
     """Spyder kernel for Jupyter"""
 
@@ -78,7 +83,7 @@ class SpyderKernel(IPythonKernel):
             return {}
 
     # -- Public API ---------------------------------------------------
-    # For the Variable Explorer
+    # --- For the Variable Explorer
     def get_namespace_view(self):
         """
         Return the namespace view
@@ -96,8 +101,7 @@ class SpyderKernel(IPythonKernel):
         settings = self.namespace_view_settings
         if settings:
             ns = self._get_current_namespace()
-            more_excluded_names = ['In', 'Out']
-            view = make_remote_view(ns, settings, more_excluded_names)
+            view = make_remote_view(ns, settings, EXCLUDED_NAMES)
             return view
 
     def get_var_properties(self):
@@ -109,7 +113,7 @@ class SpyderKernel(IPythonKernel):
         if settings:
             ns = self._get_current_namespace()
             data = get_remote_data(ns, settings, mode='editable',
-                                   more_excluded_names=['In', 'Out'])
+                                   more_excluded_names=EXCLUDED_NAMES)
 
             properties = {}
             for name, value in list(data.items()):
@@ -180,7 +184,7 @@ class SpyderKernel(IPythonKernel):
         ns = self._get_current_namespace()
         settings = self.namespace_view_settings
         data = get_remote_data(ns, settings, mode='picklable',
-                               more_excluded_names=['In', 'Out']).copy()
+                               more_excluded_names=EXCLUDED_NAMES).copy()
         return iofunctions.save(data, filename)
 
     # --- For Pdb
@@ -324,6 +328,12 @@ class SpyderKernel(IPythonKernel):
     def _register_pdb_session(self, pdb_obj):
         """Register Pdb session to use it later"""
         self._pdb_obj = pdb_obj
+
+    def _set_spyder_breakpoints(self):
+        """Set all Spyder breakpoints in an active pdb session"""
+        if not self._pdb_obj:
+            return
+        self._pdb_obj.set_spyder_breakpoints()
 
     # --- For the Help plugin
     def _eval(self, text):

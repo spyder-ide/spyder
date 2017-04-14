@@ -91,6 +91,9 @@ from qtpy import QtSvg  # analysis:ignore
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
 
+# To catch font errors in QtAwesome
+from qtawesome.iconic_font import FontError
+
 
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
@@ -116,15 +119,18 @@ MAIN_APP = qapplication()
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV
-SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg'), 'svg'))
-SPLASH_FONT = SPLASH.font()
-SPLASH_FONT.setPixelSize(10)
-SPLASH.setFont(SPLASH_FONT)
-SPLASH.show()
-SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
-                   Qt.AlignAbsolute, QColor(Qt.white))
-QApplication.processEvents()
+from spyder.config.base import _, get_image_path, DEV, PYTEST
+if not PYTEST:
+    SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
+    SPLASH_FONT = SPLASH.font()
+    SPLASH_FONT.setPixelSize(10)
+    SPLASH.setFont(SPLASH_FONT)
+    SPLASH.show()
+    SPLASH.showMessage(_("Initializing..."), Qt.AlignBottom | Qt.AlignCenter |
+                    Qt.AlignAbsolute, QColor(Qt.white))
+    QApplication.processEvents()
+else:
+    SPLASH = None
 
 
 #==============================================================================
@@ -213,22 +219,6 @@ def get_focus_python_shell():
         return widget.shell
 
 
-def get_focus_widget_properties():
-    """Get properties of focus widget
-    Returns tuple (widget, properties) where properties is a tuple of
-    booleans: (is_console, not_readonly, readwrite_editor)"""
-    widget = QApplication.focusWidget()
-    from spyder.widgets.shell import ShellBaseWidget
-    from spyder.widgets.editor import TextEditBaseWidget
-    textedit_properties = None
-    if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-        console = isinstance(widget, ShellBaseWidget)
-        not_readonly = not widget.isReadOnly()
-        readwrite_editor = not_readonly and not console
-        textedit_properties = (console, not_readonly, readwrite_editor)
-    return widget, textedit_properties
-
-
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -300,6 +290,10 @@ class MainWindow(QMainWindow):
             mac_style = open(osp.join(spy_path, 'app', 'mac_stylesheet.qss')).read()
             mac_style = mac_style.replace('$IMAGE_PATH', img_path)
             self.setStyleSheet(mac_style)
+
+        # Create our TEMPDIR
+        if not osp.isdir(programs.TEMPDIR):
+            os.mkdir(programs.TEMPDIR)
 
         # Shortcut management data
         self.shortcut_data = []
@@ -493,6 +487,7 @@ class MainWindow(QMainWindow):
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
+        self.previous_focused_widget = None
 
         # Server to open external files on a single instance
         self.open_files_server = socket.socket(socket.AF_INET,
@@ -781,7 +776,7 @@ class MainWindow(QMainWindow):
         from spyder.plugins.workingdirectory import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
-        self.toolbarslist.append(self.workingdirectory)
+        self.toolbarslist.append(self.workingdirectory.toolbar)
 
         # Help plugin
         if CONF.get('help', 'enable'):
@@ -829,6 +824,12 @@ class MainWindow(QMainWindow):
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
 
+        # External console
+        self.set_splash(_("Loading external console..."))
+        from spyder.plugins.externalconsole import ExternalConsole
+        self.extconsole = ExternalConsole(self)
+        self.extconsole.register_plugin()
+
         # Explorer
         if CONF.get('explorer', 'enable'):
             self.set_splash(_("Loading file explorer..."))
@@ -860,12 +861,6 @@ class MainWindow(QMainWindow):
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
 
-        # External console
-        self.set_splash(_("Loading external console..."))
-        from spyder.plugins.externalconsole import ExternalConsole
-        self.extconsole = ExternalConsole(self)
-        self.extconsole.register_plugin()
-
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
         from spyder.plugins.variableexplorer import VariableExplorer
@@ -878,6 +873,17 @@ class MainWindow(QMainWindow):
             from spyder.plugins.ipythonconsole import IPythonConsole
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
+
+        # Third-party plugins
+        self.set_splash(_("Loading third-party plugins..."))
+        for mod in get_spyderplugins_mods():
+            try:
+                plugin = mod.PLUGIN_CLASS(self)
+                self.thirdparty_plugins.append(plugin)
+                plugin.register_plugin()
+            except Exception as error:
+                print("%s: %s" % (mod, str(error)), file=STDERR)
+                traceback.print_exc(file=STDERR)
 
         self.set_splash(_("Setting up main window..."))
 
@@ -1030,18 +1036,7 @@ class MainWindow(QMainWindow):
         self.cpu_status = CPUStatus(self, status)
         self.apply_statusbar_settings()
 
-        # Third-party plugins
-        for mod in get_spyderplugins_mods():
-            try:
-                plugin = mod.PLUGIN_CLASS(self)
-                self.thirdparty_plugins.append(plugin)
-                plugin.register_plugin()
-            except Exception as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
-                traceback.print_exc(file=STDERR)
-
-
-        #----- View
+        # ----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
 
@@ -1126,7 +1121,8 @@ class MainWindow(QMainWindow):
                 menu_object.aboutToHide.connect(
                     lambda name=name: self.hide_shortcuts(name))
 
-        self.splash.hide()
+        if self.splash is not None:
+            self.splash.hide()
 
         # Enabling tear off for all menus except help menu
         if CONF.get('main', 'tear_off_menus'):
@@ -1137,7 +1133,10 @@ class MainWindow(QMainWindow):
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
-                child.aboutToShow.connect(self.update_edit_menu)
+                try:
+                    child.aboutToShow.connect(self.update_edit_menu)
+                except TypeError:
+                    pass
 
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
@@ -1231,11 +1230,14 @@ class MainWindow(QMainWindow):
         # Check for spyder updates
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
-            self.check_updates()
+            self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
         self.report_missing_dependencies()
 
+        # Raise the menuBar to the top of the main window widget's stack
+        # (Fixes issue 3887)
+        self.menuBar().raise_()
         self.is_setting_up = False
 
     def update_window_title(self):
@@ -1621,7 +1623,6 @@ class MainWindow(QMainWindow):
 #            widget.setMinimumWidth(new_width)
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
-#            print(c, widgets_layout[c][0][0], new_width)
         
         # fix column height
         for c, column in enumerate(widgets_layout):
@@ -1947,15 +1948,32 @@ class MainWindow(QMainWindow):
                 if element._shown_shortcut is not None:
                     element.setShortcut(QKeySequence())
 
+    def get_focus_widget_properties(self):
+        """Get properties of focus widget
+        Returns tuple (widget, properties) where properties is a tuple of
+        booleans: (is_console, not_readonly, readwrite_editor)"""
+        widget = QApplication.focusWidget()
+        from spyder.widgets.shell import ShellBaseWidget
+        from spyder.widgets.editor import TextEditBaseWidget
+        from spyder.widgets.ipythonconsole import ControlWidget
+
+        # if focused widget isn't valid try the last focused
+        if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                                   ControlWidget)):
+            widget = self.previous_focused_widget
+
+        textedit_properties = None
+        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,
+                               ControlWidget)):
+            console = isinstance(widget, (ShellBaseWidget, ControlWidget))
+            not_readonly = not widget.isReadOnly()
+            readwrite_editor = not_readonly and not console
+            textedit_properties = (console, not_readonly, readwrite_editor)
+        return widget, textedit_properties
+
     def update_edit_menu(self):
         """Update edit menu"""
-        if self.menuBar().hasFocus():
-            return
-        # Disabling all actions to begin with
-        for child in self.edit_menu.actions():
-            child.setEnabled(False)
-
-        widget, textedit_properties = get_focus_widget_properties()
+        widget, textedit_properties = self.get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -1964,6 +1982,10 @@ class MainWindow(QMainWindow):
         # Editor has focus and there is no file opened in it
         if not console and not_readonly and not self.editor.is_file_opened():
             return
+
+        # Disabling all actions to begin with
+        for child in self.edit_menu.actions():
+            child.setEnabled(False)
 
         self.selectall_action.setEnabled(True)
 
@@ -1990,9 +2012,12 @@ class MainWindow(QMainWindow):
         if self.menuBar().hasFocus():
             return
 
-        widget, textedit_properties = get_focus_widget_properties()
+        widget, textedit_properties = self.get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
-            action.setEnabled(self.editor.isAncestorOf(widget))
+            try:
+                action.setEnabled(self.editor.isAncestorOf(widget))
+            except RuntimeError:
+                pass
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -2051,6 +2076,8 @@ class MainWindow(QMainWindow):
 
     def set_splash(self, message):
         """Set splash message"""
+        if self.splash is None:
+            return
         if message:
             self.debug_print(message)
         self.splash.show()
@@ -2101,6 +2128,8 @@ class MainWindow(QMainWindow):
             self.last_focused_widget = QApplication.focusWidget()
         elif now is not None:
             self.last_focused_widget = now
+
+        self.previous_focused_widget =  old
 
     def closing(self, cancelable=False):
         """Exit tasks"""
@@ -2165,6 +2194,7 @@ class MainWindow(QMainWindow):
         self.maximize_action.setToolTip(tip)
 
     @Slot()
+    @Slot(bool)
     def maximize_dockwidget(self, restore=False):
         """Shortcut: Ctrl+Alt+Shift+M
         First call: maximize current dockwidget
@@ -2351,6 +2381,11 @@ class MainWindow(QMainWindow):
         action = self.sender()
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.widgets.editor import TextEditBaseWidget
+
+        # if focused widget isn't valid try the last focused^M
+        if not isinstance(widget, TextEditBaseWidget):
+            widget = self.previous_focused_widget
+
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
 
@@ -2692,8 +2727,8 @@ class MainWindow(QMainWindow):
         except Exception as error:
             # If there is an error with subprocess, Spyder should not quit and
             # the error can be inspected in the internal console
-            print(error)
-            print(command)
+            print(error)  # spyder: test-skip
+            print(command)  # spyder: test-skip
 
     # ---- Interactive Tours
     def show_tour(self, index):
@@ -2726,9 +2761,9 @@ class MainWindow(QMainWindow):
         box.set_checkbox_text(_("Check for updates on startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
-        #The next line is commented because it freezes the dialog.
-        #For now there is then no info icon. This solves issue #3609.
-        #box.setIcon(QMessageBox.Information)
+        # The next line is commented because it freezes the dialog.
+        # For now there is then no info icon. This solves issue #3609.
+        # box.setIcon(QMessageBox.Information)
 
         # Adjust the checkbox depending on the stored configuration
         section, option = 'main', 'check_updates_on_startup'
@@ -2743,6 +2778,18 @@ class MainWindow(QMainWindow):
             check_updates = box.is_checked()
         else:
             if update_available:
+                anaconda_msg = ''
+                if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
+                    anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
+                                     "that you are using Spyder with "
+                                     "<b>Anaconda/Miniconda</b>. Please "
+                                     "<<b>don't</b> use code>pip</code> to "
+                                     "update it as that will probably break "
+                                     "your installation.<br><br>"
+                                     "Instead, please wait until new conda "
+                                     "packages are available and use "
+                                     "<code>conda</code> to perform the "
+                                     "update.<hr>")
                 msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
                         "your package manager to update Spyder or go to our "
                         "<a href=\"%s\">Releases</a> page to download this "
@@ -2750,6 +2797,7 @@ class MainWindow(QMainWindow):
                         "proceed to update Spyder please refer to our "
                         " <a href=\"%s\">Installation</a> instructions."
                         "") % (latest_release, url_r, url_i)
+                msg += '<br>' + anaconda_msg
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
@@ -2766,12 +2814,12 @@ class MainWindow(QMainWindow):
 
         # Enable check_updates_action after the thread has finished
         self.check_updates_action.setDisabled(False)
-        
+
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
 
     @Slot()
-    def check_updates(self):
+    def check_updates(self, startup=False):
         """
         Check for spyder updates on github releases using a QThread.
         """
@@ -2784,7 +2832,7 @@ class MainWindow(QMainWindow):
             self.thread_updates.terminate()
 
         self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self)
+        self.worker_updates = WorkerUpdates(self, startup=startup)
         self.worker_updates.sig_ready.connect(self._check_updates_ready)
         self.worker_updates.sig_ready.connect(self.thread_updates.quit)
         self.worker_updates.moveToThread(self.thread_updates)
@@ -2898,7 +2946,8 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    app.exec_()
+    if not PYTEST:
+        app.exec_()
     return main
 
 
@@ -2939,7 +2988,8 @@ def main():
     # Show crash dialog
     if CONF.get('main', 'crash', False) and not DEV:
         CONF.set('main', 'crash', False)
-        SPLASH.hide()
+        if SPLASH is not None:
+            SPLASH.hide()
         QMessageBox.information(None, "Spyder",
             "Spyder crashed during last session.<br><br>"
             "If Spyder does not start at all and <u>before submitting a "
@@ -2962,6 +3012,13 @@ def main():
     mainwindow = None
     try:
         mainwindow = run_spyder(app, options, args)
+    except FontError as fontError:
+        QMessageBox.information(None, "Spyder",
+                "Spyder was unable to load the <i>Spyder 3</i> "
+                "icon theme. That's why it's going to fallback to the "
+                "theme used in Spyder 2.<br><br>"
+                "For that, please close this window and start Spyder again.")
+        CONF.set('main', 'icon_theme', 'spyder 2')
     except BaseException:
         CONF.set('main', 'crash', True)
         import traceback
@@ -2969,7 +3026,8 @@ def main():
         traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
         # An exception occured
-        SPLASH.hide()
+        if SPLASH is not None:
+            SPLASH.hide()
         return
 
     ORIGINAL_SYS_EXIT()

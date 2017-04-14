@@ -11,7 +11,6 @@ from sphinx import __version__ as sphinx_version
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.py3compat import u
 
 #==============================================================================
 # General configuration
@@ -53,8 +52,8 @@ source_suffix = '.rst'
 master_doc = 'docstring'
 
 # General information about the project.
-project = u("Spyder Help plugin")
-copyright = u('The Spyder Project Contributors')
+project = u"Spyder Help plugin"
+copyright = u'The Spyder Project Contributors'
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.

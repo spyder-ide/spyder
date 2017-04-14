@@ -40,26 +40,27 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_input_reply = Signal()
     sig_pdb_step = Signal(str, int)
     sig_prompt_ready = Signal()
+    sig_dbg_kernel_restart = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
     sig_got_reply = Signal()
+    sig_kernel_restarted = Signal(str)
 
-    def __init__(self, additional_options, interpreter_versions,
+    def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         super(ShellWidget, self).__init__(*args, **kw)
+
+        self.ipyclient = ipyclient
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
+        self.external_kernel = external_kernel
 
         self.set_background_color()
-
-        # Additional variables
-        self.ipyclient = None
-        self.external_kernel = external_kernel
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -68,10 +69,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self._kernel_reply = None
 
     #---- Public API ----------------------------------------------------------
-    def set_ipyclient(self, ipyclient):
-        """Bind this shell widget to an IPython client one"""
-        self.ipyclient = ipyclient
-        self.exit_requested.connect(ipyclient.exit_callback)
+    def set_exit_callback(self):
+        """Set exit callback for this shell."""
+        self.exit_requested.connect(self.ipyclient.exit_callback)
 
     def is_running(self):
         if self.kernel_client is not None and \
@@ -89,7 +89,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
         # Default banner
-        from IPython.core.usage import quick_guide
+        try:
+            from IPython.core.usage import quick_guide
+        except Exception:
+            quick_guide = ''
         banner_parts = [
             'Python %s\n' % self.interpreter_versions['python_version'],
             'Type "copyright", "credits" or "license" for more information.\n\n',
@@ -140,19 +143,21 @@ the sympy module (e.g. plot)
     def clear_console(self):
         self.execute("%clear")
 
-    def reset_namespace(self):
-        """Resets the namespace by removing all names defined by the user"""
-
-        reply = QMessageBox.question(
-            self,
-            _("Reset IPython namespace"),
-            _("All user-defined variables will be removed."
-            "<br>Are you sure you want to reset the namespace?"),
-            QMessageBox.Yes | QMessageBox.No,
+    def reset_namespace(self, force=False):
+        """Reset the namespace by removing all names defined by the user."""
+        reset_str = _("Reset IPython namespace")
+        warn_str = _("All user-defined variables will be removed."
+                     "<br>Are you sure you want to reset the namespace?")
+        if not force:
+            reply = QMessageBox.question(self, reset_str,
+                                         warn_str,
+                                         QMessageBox.Yes | QMessageBox.No
             )
 
-        if reply == QMessageBox.Yes:
-            self.execute("%reset -f")
+            if reply == QMessageBox.Yes:
+                self.execute("%reset -f")
+        else:
+            self.silent_execute("%reset -f")
 
     def set_background_color(self):
         light_color_o = self.additional_options['light_color']
@@ -165,6 +170,9 @@ the sympy module (e.g. plot)
                                   parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
+        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
+                                         context='ipython_console',
+                                         name='Restart kernel', parent=self)
         new_tab = config_shortcut(lambda: self.new_client.emit(),
                                   context='ipython_console', name='new tab', parent=self)
         reset_namespace = config_shortcut(lambda: self.reset_namespace(),
@@ -177,8 +185,8 @@ the sympy module (e.g. plot)
                                       context='array_builder',
                                       name='enter array table', parent=self)
 
-        return [inspect, clear_console, new_tab, reset_namespace,
-                array_inline, array_table]
+        return [inspect, clear_console, restart_kernel, new_tab,
+                reset_namespace, array_inline, array_table]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
@@ -238,14 +246,17 @@ the sympy module (e.g. plot)
                 if 'get_namespace_view' in method:
                     if data is not None and 'text/plain' in data:
                         view = ast.literal_eval(data['text/plain'])
-                        self.sig_namespace_view.emit(view)
                     else:
                         view = None
+                    self.sig_namespace_view.emit(view)
                 elif 'get_var_properties' in method:
-                    properties = ast.literal_eval(data['text/plain'])
+                    if data is not None and 'text/plain' in data:
+                        properties = ast.literal_eval(data['text/plain'])
+                    else:
+                        properties = None
                     self.sig_var_properties.emit(properties)
                 else:
-                    if data is not None:
+                    if data is not None and 'text/plain' in data:
                         self._kernel_reply = ast.literal_eval(data['text/plain'])
                     else:
                         self._kernel_reply = None
@@ -253,6 +264,36 @@ the sympy module (e.g. plot)
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
+
+    def set_backend_for_mayavi(self, command):
+        """
+        Mayavi plots require the Qt backend, so we try to detect if one is
+        generated to change backends
+        """
+        calling_mayavi = False
+        lines = command.splitlines()
+        for l in lines:
+            if not l.startswith('#'):
+                if 'import mayavi' in l or 'from mayavi' in l:
+                    calling_mayavi = True
+                    break
+        if calling_mayavi:
+            message = _("Changing backend to Qt for Mayavi")
+            self._append_plain_text(message + '\n')
+            self.silent_execute("%gui inline\n%gui qt")
+
+    def change_mpl_backend(self, command):
+        """
+        If the user is trying to change Matplotlib backends with
+        %matplotlib, send the same command again to the kernel to
+        correctly change it.
+
+        Fixes issue 4002
+        """
+        if command.startswith('%matplotlib') and \
+          len(command.splitlines()) == 1:
+            if not 'inline' in command:
+                self.silent_execute(command)
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
@@ -273,6 +314,10 @@ the sympy module (e.g. plot)
             return self.long_banner()
         else:
             return self.short_banner()
+
+    def _kernel_restarted_message(self, died=True):
+        msg = _("Kernel died, restarting") if died else _("Kernel restarting")
+        self.sig_kernel_restarted.emit(msg)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):

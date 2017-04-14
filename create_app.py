@@ -91,7 +91,7 @@ APP_MAIN_SCRIPT = MAC_APP_NAME[:-4] + '.py'
 shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 
 APP = [APP_MAIN_SCRIPT]
-DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
+DEPS = ['pylint', 'logilab', 'astroid', 'pycodestyle', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
 PACKAGES = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm', 'spyder_io_hdf5',
             'spyder_profiler', 'spyder_pylint', 'sphinx', 'jinja2', 'docutils',
@@ -157,7 +157,7 @@ for p in minlib_pkgs:
     shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
 
 # Add necessary Python programs to the app
-PROGRAMS = ['pylint', 'pep8']
+PROGRAMS = ['pylint', 'pycodestyle']
 system_progs = [find_program(p) for p in PROGRAMS]
 progs_dest = [resources + osp.sep + p for p in PROGRAMS]
 for i in range(len(PROGRAMS)):

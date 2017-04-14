@@ -82,7 +82,7 @@ class DefaultsConfig(cp.ConfigParser):
         if not is_text_string(value):
             value = repr( value )
         if verbose:
-            print('%s[ %s ] = %s' % (section, option, value))
+            print('%s[ %s ] = %s' % (section, option, value))  # spyder: test-skip
         cp.ConfigParser.set(self, section, option, value)
 
     def _save(self):
@@ -116,8 +116,8 @@ class DefaultsConfig(cp.ConfigParser):
                 time.sleep(0.05)
                 _write_file(fname)
             except Exception as e:
-                print("Failed to write user configuration file.")
-                print("Please submit a bug report.")
+                print("Failed to write user configuration file.")  # spyder: test-skip
+                print("Please submit a bug report.")  # spyder: test-skip
                 raise(e)
 
     def filename(self):
@@ -246,12 +246,12 @@ class UserConfig(DefaultsConfig):
                         with codecs.open(fname, encoding='utf-8') as configfile:
                             self.readfp(configfile)
                     except IOError:
-                        print("Failed reading file", fname)
+                        print("Failed reading file", fname)  # spyder: test-skip
             else:
                 # Python 3
                 self.read(self.filename(), encoding='utf-8')
         except cp.MissingSectionHeaderError:
-            print("Warning: File contains no section headers.")
+            print("Warning: File contains no section headers.")  # spyder: test-skip
     
     def _load_old_defaults(self, old_version):
         """Read old defaults"""
@@ -386,12 +386,20 @@ class UserConfig(DefaultsConfig):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        else:
-            if PY2 and is_text_string(default_value):
+        elif is_text_string(default_value):
+            if PY2:
                 try:
                     value = value.decode('utf-8')
+                    try:
+                        # Some str config values expect to be eval after decoding
+                        new_value = ast.literal_eval(value)
+                        if is_text_string(new_value):
+                            value = new_value
+                    except (SyntaxError, ValueError):
+                        pass
                 except (UnicodeEncodeError, UnicodeDecodeError):
                     pass
+        else:
             try:
                 # lists, tuples, ...
                 value = ast.literal_eval(value)

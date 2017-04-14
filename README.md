@@ -9,7 +9,7 @@ Copyright © Spyder Project Contributors.
 
 ## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
-[![AppVeyor status](https://ci.appveyor.com/api/projects/status/awb92if4tl555fuy/branch/master?svg=true)](https://ci.appveyor.com/project/ccordoba12/spyder/branch/master)
+[![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
 [![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=svg)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 
@@ -149,10 +149,10 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Sphinx**: Rich text mode for the Help pane.
 * **Pygments** 2.0+: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
-* **Pep8**: Style analysis.
+* **Pycodestyle**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome**: To have an icon theme based on FontAwesome.
+* **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Run introspection services asynchronously.
 * **QtPy** 1.1.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
@@ -167,6 +167,14 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
+* **Cython**: Run Cython files in the IPython console.
+
+
+## Contributing
+
+Everyone is welcome to contribute. Please read our
+[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md),
+then get started!
 
 
 ## More information

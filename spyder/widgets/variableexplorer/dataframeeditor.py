@@ -14,8 +14,8 @@ Pandas DataFrame Editor Dialog
 """
 import time
 # Third party imports
-from pandas import DataFrame, Series
-from qtpy import API, PYQT5
+from pandas import DataFrame, DatetimeIndex, Series
+from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
                          QItemSelectionModel, QEvent)
@@ -31,7 +31,8 @@ import numpy as np
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
-from spyder.py3compat import io, is_text_string, PY2, to_text_string
+from spyder.py3compat import (io, is_text_string, PY2, to_text_string,
+                              TEXT_TYPES)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -43,6 +44,9 @@ REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', '0']
+
+# Default format for data frames with floats
+DEFAULT_FORMAT = '%.3g'
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
@@ -94,7 +98,7 @@ class DataFrameModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, dataFrame, format="%.3g", parent=None):
+    def __init__(self, dataFrame, format=DEFAULT_FORMAT, parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
@@ -276,7 +280,12 @@ class DataFrameModel(QAbstractTableModel):
             row = index.row()
             value = self.get_value(row, column)
             if isinstance(value, float):
-                return to_qvariant(self._format % value)
+                try:
+                    return to_qvariant(self._format % value)
+                except (ValueError, TypeError):
+                    # may happen if format = '%d' and value = NaN;
+                    # see issue 4139
+                    return to_qvariant(DEFAULT_FORMAT % value)
             else:
                 try:
                     return to_qvariant(to_text_string(value))
@@ -427,9 +436,9 @@ class FrozenTableView(QTableView):
         self.setModel(parent.model())
         self.setFocusPolicy(Qt.NoFocus)
         self.verticalHeader().hide()
-        if PYQT5:
+        try:
             self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
-        else:
+        except:  # support for qtpy<1.2.0
             self.horizontalHeader().setResizeMode(QHeaderView.Fixed)
 
         parent.viewport().stackUnder(self)
@@ -766,7 +775,8 @@ class DataFrameEditor(QDialog):
     def setup_and_check(self, data, title=''):
         """
         Setup DataFrameEditor:
-        return False if data is not supported, True otherwise
+        return False if data is not supported, True otherwise.
+        Supported types for data are DataFrame, Series and DatetimeIndex.
         """
         self._selection_rec = False
         self._model = None
@@ -783,6 +793,8 @@ class DataFrameEditor(QDialog):
         if isinstance(data, Series):
             self.is_series = True
             data = data.to_frame()
+        elif isinstance(data, DatetimeIndex):
+            data = DataFrame(data)
 
         self.setWindowTitle(title)
         self.resize(600, 500)

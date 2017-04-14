@@ -32,7 +32,7 @@ from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import config_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyder.py3compat import qbytearray_to_str, to_text_string, u
+from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
                           syntaxhighlighters)
@@ -199,12 +199,12 @@ class FileInfo(QObject):
         """Run code analysis"""
         run_pyflakes = run_pyflakes and codeanalysis.is_pyflakes_installed()
         run_pep8 = run_pep8 and\
-                   codeanalysis.get_checker_executable('pep8') is not None
+                   codeanalysis.get_checker_executable('pycodestyle') is not None
         self.pyflakes_results = []
         self.pep8_results = []
         if self.editor.is_python():
             enc = self.encoding.replace('-guessed', '').replace('-bom', '')
-            source_code = self.get_source_code().encode(enc)
+            source_code, enc = encoding.encode(self.get_source_code(), enc)
             if run_pyflakes:
                 self.pyflakes_results = None
             if run_pep8:
@@ -346,6 +346,10 @@ class EditorStack(QWidget):
         fileswitcher_action = create_action(self, _("File switcher..."),
                 icon=ima.icon('filelist'),
                 triggered=self.open_fileswitcher_dlg)
+        symbolfinder_action = create_action(self,
+                _("Find symbols in file..."),
+                icon=ima.icon('symbol_find'),
+                triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
@@ -356,6 +360,7 @@ class EditorStack(QWidget):
                                            triggered=self.close_all_but_this)
 
         self.menu_actions = actions + [None, fileswitcher_action,
+                                       symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this]
         self.outlineexplorer = None
@@ -376,7 +381,7 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.blanks_enabled = False
         self.edgeline_enabled = True
-        self.edgeline_column = 79
+        self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
@@ -505,13 +510,18 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="run cell and advance",
                                       parent=self)
+        re_run_last_cell = config_shortcut(self.re_run_last_cell,
+                                      context="Editor",
+                                      name="re-run last cell",
+                                      parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
                 tabshift, run_selection, new_file, open_file, save_file,
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
-                close_file_1, close_file_2, run_cell, run_cell_and_advance]
+                close_file_1, close_file_2, run_cell, run_cell_and_advance,
+                re_run_last_cell]
 
     def get_shortcut_data(self):
         """
@@ -555,6 +565,7 @@ class EditorStack(QWidget):
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
+        self.tabs.setMovable(True)
 
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
@@ -562,7 +573,7 @@ class EditorStack(QWidget):
             # a crash when the editor is detached from the main window
             # Fixes Issue 561
             self.tabs.setDocumentMode(True)
-        self.tabs.currentChanged.connect(self.current_changed)
+        self.tabs.currentChanged.connect(self.current_changed_tabs)
 
         if sys.platform == 'darwin':
             tab_container = QWidget()
@@ -617,6 +628,11 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
 
+    @Slot()
+    def open_symbolfinder_dlg(self): 
+        self.open_fileswitcher_dlg()
+        self.fileswitcher_dlg.set_search_text('@')
+        
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg:
@@ -668,8 +684,7 @@ class EditorStack(QWidget):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer.outlineexplorer_is_visible.connect(
-                                                 self._refresh_outlineexplorer)
+        self.outlineexplorer.is_visible.connect(self._refresh_outlineexplorer)
 
     def initialize_outlineexplorer(self):
         """This method is called separately from 'set_oulineexplorer' to avoid
@@ -693,7 +708,7 @@ class EditorStack(QWidget):
         self.title = text
 
     def __update_editor_margins(self, editor):
-        editor.setup_margins(linenumbers=self.linenumbers_enabled,
+        editor.linenumberarea.setup_margins(linenumbers=self.linenumbers_enabled,
                              markers=self.has_markers())
 
     def __codeanalysis_settings_changed(self, current_finfo):
@@ -757,14 +772,14 @@ class EditorStack(QWidget):
         self.edgeline_enabled = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_enabled(state)
+                finfo.editor.edge_line.set_enabled(state)
 
-    def set_edgeline_column(self, column):
+    def set_edgeline_columns(self, columns):
         # CONF.get(self.CONF_SECTION, 'edge_line_column')
-        self.edgeline_column = column
+        self.edgeline_columns = columns
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_column(column)
+                finfo.editor.edge_line.set_columns(columns)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
@@ -916,7 +931,6 @@ class EditorStack(QWidget):
         self.fullpath_sorting_enabled = state
         if self.data:
             finfo = self.data[self.get_stack_index()]
-            self.data.sort(key=self.__get_sorting_func())
             new_index = self.data.index(finfo)
             self.__repopulate_stack()
             self.set_stack_index(new_index)
@@ -979,7 +993,7 @@ class EditorStack(QWidget):
         if self.fullpath_sorting_enabled:
             text = filename
         else:
-            text = u("%s — %s")
+            text = u"%s — %s"
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
         if self.tempfile_path is not None\
@@ -995,16 +1009,8 @@ class EditorStack(QWidget):
             else:
                 return text % (osp.basename(filename), osp.dirname(filename))
 
-    def __get_sorting_func(self):
-        if self.fullpath_sorting_enabled:
-            return lambda item: osp.join(osp.dirname(item.filename),
-                                         '_'+osp.basename(item.filename))
-        else:
-            return lambda item: osp.basename(item.filename)
-
     def add_to_data(self, finfo, set_current):
         self.data.append(finfo)
-        self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         editor = finfo.editor
         self.tabs.insertTab(index, editor, self.get_tab_text(index))
@@ -1041,7 +1047,6 @@ class EditorStack(QWidget):
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
         finfo.filename = new_filename
-        self.data.sort(key=self.__get_sorting_func())
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -1122,13 +1127,15 @@ class EditorStack(QWidget):
             if fixpath(filename) == fixpath(finfo.filename):
                 return index
 
-    def set_current_filename(self, filename):
-        """Set current filename and return the associated editor instance"""
+    def set_current_filename(self, filename, focus=True):
+        """Set current filename and return the associated editor instance."""
         index = self.has_filename(filename)
         if index is not None:
-            self.set_stack_index(index)
+            if focus:
+                self.set_stack_index(index)
             editor = self.data[index].editor
-            editor.setFocus()
+            if focus:
+                editor.setFocus()
             return editor
 
     def is_file_opened(self, filename=None):
@@ -1291,7 +1298,8 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
 
         finfo = self.data[index]
-        if not finfo.editor.document().isModified() and not force:
+        if not (finfo.editor.document().isModified() or
+                finfo.newly_created) and not force:
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
@@ -1438,14 +1446,17 @@ class EditorStack(QWidget):
         if self.data:
             return self.data[self.get_stack_index()].todo_results
 
-    def current_changed(self, index):
+    def  current_changed_tabs(self, index):
+        self.current_changed(index, set_focus=False)
+
+    def current_changed(self, index, set_focus=True):
         """Stack index has changed"""
 #        count = self.get_stack_count()
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
 
         editor = self.get_current_editor()
-        if index != -1:
+        if index != -1 and set_focus:
             editor.setFocus()
             if DEBUG_EDITOR:
                 print("setfocusto:", editor, file=STDOUT)
@@ -1652,7 +1663,7 @@ class EditorStack(QWidget):
             return
         finfo = self.data[index]
         if state is None:
-            state = finfo.editor.document().isModified()
+            state = finfo.editor.document().isModified() or finfo.newly_created
         self.set_stack_title(index, state)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
@@ -1730,13 +1741,14 @@ class EditorStack(QWidget):
         editor.run_selection.connect(self.run_selection)
         editor.run_cell.connect(self.run_cell)
         editor.run_cell_and_advance.connect(self.run_cell_and_advance)
+        editor.re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
                 show_blanks=self.blanks_enabled,
                 edge_line=self.edgeline_enabled,
-                edge_line_column=self.edgeline_column, language=language,
+                edge_line_columns=self.edgeline_columns, language=language,
                 markers=self.has_markers(), font=self.default_font,
                 color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
@@ -1921,6 +1933,12 @@ class EditorStack(QWidget):
             self.get_current_editor().go_to_next_cell()
             term.setFocus()
 
+    def re_run_last_cell(self):
+        text = self.get_current_editor().get_last_cell_as_executable_code()
+        finfo = self.get_current_finfo()
+        if finfo.editor.is_python() and text:
+            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+
     #------ Drag and drop
     def dragEnterEvent(self, event):
         """Reimplement Qt method
@@ -2075,8 +2093,8 @@ class EditorSplitter(QSplitter):
         return dict(hexstate=qbytearray_to_str(self.saveState()),
                     sizes=self.sizes(), splitsettings=splitsettings)
 
-    def set_layout_settings(self, settings):
-        """Restore layout state"""
+    def set_layout_settings(self, settings, dont_goto=None):
+        """Restore layout state."""
         splitsettings = settings.get('splitsettings')
         if splitsettings is None:
             return
@@ -2089,12 +2107,17 @@ class EditorSplitter(QSplitter):
             editorstack = splitter.widget(0)
             for index, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
-                # FIXME: Temporal fix
-                try:
-                    editor.go_to_line(clines[index])
-                except IndexError:
+                # TODO: go_to_line is not working properly (the line it jumps
+                # to is not the corresponding to that file). This will be fixed
+                # in a future PR (which will fix issue #3857)
+                if dont_goto is not None:
+                    # skip go to line for first file because is already there
                     pass
-            editorstack.set_current_filename(cfname)
+                else:
+                    try:
+                        editor.go_to_line(clines[index])
+                    except IndexError:
+                        pass
         hexstate = settings.get('hexstate')
         if hexstate is not None:
             self.restoreState( QByteArray().fromHex(
@@ -2494,7 +2517,7 @@ def test():
     test.load(osp.join(cur_dir, "explorer.py"))
     test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
     test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
-    print("Elapsed time: %.3f s" % (time.time()-t0))
+    print("Elapsed time: %.3f s" % (time.time()-t0))  # spyder: test-skip
 
     sys.exit(app.exec_())
 
