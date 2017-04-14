@@ -11,7 +11,6 @@ Spyder kernel for Jupyter
 # Standard library imports
 import os
 import os.path as osp
-import pickle
 
 # Third-party imports
 from ipykernel.datapub import publish_data
