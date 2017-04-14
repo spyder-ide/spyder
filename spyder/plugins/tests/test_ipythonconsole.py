@@ -129,7 +129,6 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     Test that Ctrl+C works while debugging
     """
     shell = ipyconsole.get_current_shellwidget()
-    client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
@@ -170,7 +169,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.wait(500)
 
     # Test clear magic
-    qtbot.keyClick(control, Qt.Key_L, modifier=Qt.ControlModifier)
+    shell.clear_console()
     qtbot.wait(500)
     assert '\nipdb> ' == control.toPlainText()
 
@@ -180,9 +179,8 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.wait(500)
     assert shell.get_value('bb') == 10
 
-    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
-    qtbot.keyClick(control, Qt.Key_R, modifier=(Qt.ControlModifier | Qt.AltModifier))
-    qtbot.wait(500)
+    shell.reset_namespace(force=True)
+    qtbot.wait(1000)
 
     qtbot.keyClicks(control, '!bb')
     qtbot.keyClick(control, Qt.Key_Enter)

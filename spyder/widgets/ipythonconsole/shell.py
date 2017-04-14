@@ -163,7 +163,10 @@ the sympy module (e.g. plot)
                 else:
                     self.execute("%reset -f")
         else:
-            self.silent_execute("%reset -f")
+            if self._reading:
+                self.dbg_exec_magic('reset', '-f')
+            else:
+                self.silent_execute("%reset -f")
 
     def set_background_color(self):
         light_color_o = self.additional_options['light_color']
