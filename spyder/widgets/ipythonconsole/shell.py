@@ -292,7 +292,8 @@ the sympy module (e.g. plot)
         """
         if command.startswith('%matplotlib') and \
           len(command.splitlines()) == 1:
-            self.silent_execute(command)
+            if not 'inline' in command:
+                self.silent_execute(command)
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
