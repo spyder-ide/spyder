@@ -106,7 +106,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import matplotlib.pyplot as plt')
 
-    # Generate an inline plot
+    # Generate a plot
     with qtbot.waitSignal(shell.executed):
         shell.execute('plt.plot(range(10))')
 
