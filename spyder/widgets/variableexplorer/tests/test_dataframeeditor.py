@@ -159,8 +159,8 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     np_array[1] = numpy.nan
     dataframe = DataFrame(np_array)
     dfm = DataFrameModel(dataframe, format='%d')
-    assert data(dfm, 0, 1) == '0'
-    assert data(dfm, 1, 1) == 'nan'
+    assert data(dfm, 0, 0) == '0'
+    assert data(dfm, 1, 0) == 'nan'
 
 def test_change_format_emits_signal(qtbot, monkeypatch):
     mockQInputDialog = Mock()
@@ -186,38 +186,16 @@ def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch)
     with qtbot.assertNotEmitted(editor.sig_option_changed):
         editor.change_format()
 
-def test_header_bom():
-    df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
-    editor = DataFrameEditor(None)
-    editor.setup_and_check(df)
-    model = editor.dataModel
-    assert model.headerData(1, orientation=Qt.Horizontal) == "Date (MMM-YY)"
-
-@pytest.mark.skipif(is_module_installed('pandas', '<0.19'),
-                    reason="It doesn't work for Pandas 0.19-")
-def test_header_encoding():
-    df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
-    editor = DataFrameEditor(None)
-    editor.setup_and_check(df)
-    model = editor.dataModel
-    assert model.headerData(0, orientation=Qt.Horizontal) == "Index"
-    assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
-    assert model.headerData(2, orientation=Qt.Horizontal) == "Unieke_Idcode"
-    assert model.headerData(3, orientation=Qt.Horizontal) == "a"
-    assert model.headerData(4, orientation=Qt.Horizontal) == "b"
-    assert model.headerData(5, orientation=Qt.Horizontal) == "c"
-    assert model.headerData(6, orientation=Qt.Horizontal) == "d"
-
 def test_dataframeeditor_with_datetimeindex():
     rng = date_range('20150101', periods=3)
     editor = DataFrameEditor(None)
     editor.setup_and_check(rng)
     dfm = editor.dataModel
     assert dfm.rowCount() == 3
-    assert dfm.columnCount() == 2
-    assert data(dfm, 0, 1) == '2015-01-01 00:00:00'
-    assert data(dfm, 1, 1) == '2015-01-02 00:00:00'
-    assert data(dfm, 2, 1) == '2015-01-03 00:00:00'
+    assert dfm.columnCount() == 1
+    assert data(dfm, 0, 0) == '2015-01-01 00:00:00'
+    assert data(dfm, 1, 0) == '2015-01-02 00:00:00'
+    assert data(dfm, 2, 0) == '2015-01-03 00:00:00'
 
 
 if __name__ == "__main__":
