@@ -39,6 +39,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QTextEdit, QToolTip, QVBoxLayout)
+from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
 
@@ -286,7 +287,13 @@ class CodeEditor(TextEditBaseWidget):
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
         self.updateRequest.connect(self.linenumberarea.update_)
-
+        
+        # Class and Method/Function Dropdowns
+        self.classfuncdropdown = self.panels.register(
+            ClassFunctionDropdown(self),
+            Panel.Position.TOP,
+        )
+        
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
         self.occurrence_color = None
@@ -1352,6 +1359,7 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
+        self.classfuncdropdown.update()
 
     def show_code_analysis_results(self, line_number, code_analysis):
         """Show warning/error messages"""
