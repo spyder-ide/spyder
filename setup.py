@@ -23,6 +23,10 @@ from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install import install
 from distutils.command.install_data import install_data
+try:
+    import setuptools  # allows python setup.py develop
+except ImportError:
+    pass
 
 
 #==============================================================================
