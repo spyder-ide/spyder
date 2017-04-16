@@ -19,6 +19,7 @@ import subprocess
 import sys
 import shutil
 
+import setuptools
 from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install import install
@@ -252,6 +253,11 @@ editor, Python console, etc.""",
                     'spyder_io_hdf5': get_package_data('spyder_io_hdf5', EXTLIST),
                     },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
+      entry_points={
+          'console_scripts': [
+              'spyder = spyderlib.start_app:main'
+          ]
+      },    
       data_files=get_data_files(),
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: MacOS',
