@@ -141,6 +141,33 @@ def _adjust_parent_stack(fsh, prev, parents):
         pass
 
 
+def _split_classes_and_methods(folds):
+    """
+    Split out classes and methods into two separate lists.
+
+    Parameters
+    ----------
+    folds : list of :class:`FoldScopeHelper`
+        The result of :func:`_get_fold_levels`.
+
+    Returns
+    -------
+    classes, functions: list of :class:`FoldScopeHelper`
+        Two separate lists of :class:`FoldScopeHelper` objects. The former
+        contains only class definitions while the latter contains only
+        function/method definitions.
+    """
+    classes = []
+    functions = []
+    for fold in folds:
+        if fold.def_type == OED.FUNCTION_TOKEN:
+            functions.append(fold)
+        elif fold.def_type == OED.CLASS_TOKEN:
+            classes.append(fold)
+
+    return classes, functions
+
+
 class FoldScopeHelper(object):
     """
 
