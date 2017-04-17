@@ -10,6 +10,14 @@ Editor widget based on QtGui.QPlainTextEdit
 import operator
 import copy
 
+from qtpy.QtWidgets import (QComboBox,
+                            QHBoxLayout,
+                            )
+
+from qtpy.QtCore import Slot
+from qtpy.QtCore import QSize
+
+from spyder.api.panel import Panel
 from spyder.widgets.sourcecode.folding import FoldScope
 from spyder.utils.editor import TextBlockHelper
 from spyder.utils.syntaxhighlighters import OutlineExplorerData as OED
@@ -300,3 +308,92 @@ class FoldScopeHelper(object):
             return OED.CLASS_TOKEN
         else:
             return "Unknown"
+
+
+class ClassFunctionDropdown(Panel):
+    """
+    Class and Function/Method Dropdowns Widget.
+
+    Parameters
+    ----------
+    editor :
+        The editor to act on.
+    """
+
+    def __init__(self, editor):
+        Panel.__init__(self, editor)
+        self._editor = editor
+        self._editor.sig_cursor_position_changed.connect(
+            self._handle_cursor_position_change_event
+        )
+
+        # The layout
+        hbox = QHBoxLayout()
+        self.class_cb = QComboBox()
+        self.method_cb = QComboBox()
+        hbox.addWidget(self.class_cb)
+        hbox.addWidget(self.method_cb)
+        hbox.setSpacing(0)
+        hbox.setContentsMargins(0, 0, 0, 0)
+
+        self.setLayout(hbox)
+
+        # Internal data
+        self.folds = None
+        self.parents = None
+        self.classes = None
+        self.funcs = None
+
+        # Initial data for the dropdowns.
+        self.class_cb.addItem("<None>", 0)
+        self.method_cb.addItem("<None>", 0)
+
+        # Attach some events.
+        self.class_cb.activated.connect(self.combobox_activated)
+        self.method_cb.activated.connect(self.combobox_activated)
+
+    def sizeHint(self):
+        """Override Qt method."""
+        return QSize(0, self._getVerticalSize())
+
+    def _getVerticalSize(self):
+        """Get the default height of a QComboBox."""
+        return self.class_cb.height()
+
+    def _update_data(self):
+        """Update the internal data values."""
+        _old = self.folds
+        self.folds = _get_fold_levels(self.editor)
+
+        # only update our dropdown lists if the folds have changed.
+        if self.folds != _old:
+            self.classes, self.funcs = _split_classes_and_methods(self.folds)
+            self.populate_dropdowns()
+
+    def populate_dropdowns(self):
+        self.class_cb.clear()
+        self.method_cb.clear()
+
+        populate(self.class_cb, self.classes)
+        populate(self.method_cb, self.funcs)
+
+    def combobox_activated(self):
+        """Move the cursor to the selected definition."""
+        sender = self.sender()
+        data = sender.itemData(sender.currentIndex())
+
+        # TODO: don't trigger a _handle_cursor_position_change_event
+        self.editor.go_to_line(data.line + 1)
+
+    def update_selected(self, linenum):
+        """Updates the dropdowns to reflect the current class and function."""
+        self.parents = _get_parents(self.funcs, linenum)
+        update_selected_cb(self.parents, self.method_cb)
+
+        self.parents = _get_parents(self.classes, linenum)
+        update_selected_cb(self.parents, self.class_cb)
+
+    @Slot(int, int)
+    def _handle_cursor_position_change_event(self, linenum, column):
+        self._update_data()
+        self.update_selected(linenum)
