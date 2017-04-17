@@ -2,17 +2,12 @@
 
 set -ex
 
-# Tell Spyder we're testing our widgets in Travis
 export TEST_CI_WIDGETS=True
+export PYTHONPATH=.
+export PATH="$HOME/miniconda/bin:$PATH"
+source activate test
 
-# Checkout the right branch
-cd $FULL_SPYDER_CLONE
-
-if [ $TRAVIS_PULL_REQUEST != "false" ] ; then
-    git checkout travis_pr_$TRAVIS_PULL_REQUEST
-else
-    git checkout $TRAVIS_BRANCH
-fi
+conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
 
 # Depth 1
 for f in spyder/*.py; do
@@ -47,10 +42,6 @@ for f in spyder/*/*.py; do
         continue
     fi
     if [[ $f == spyder/utils/windows.py ]]; then
-        continue
-    fi
-    # TODO: Understand why formlayout is failing in Travis!!
-    if [[ $f == spyder/widgets/formlayout.py ]]; then
         continue
     fi
     python "$f"

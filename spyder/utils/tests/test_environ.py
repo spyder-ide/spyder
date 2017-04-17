@@ -18,7 +18,7 @@ import pytest
 from qtpy.QtCore import QTimer
 
 # Local imports
-from spyder.utils.tests import close_message_box
+from spyder.utils.test import close_message_box
 
 @pytest.fixture
 def setup_environ(qtbot):

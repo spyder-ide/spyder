@@ -12,12 +12,14 @@ from textwrap import dedent
 
 from flaky import flaky
 import pytest
+from qtpy import PYQT5
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
 
+from spyder.py3compat import PY2
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
-from spyder.utils.tests import close_message_box
+from spyder.utils.test import close_message_box
 
 #==============================================================================
 # Constants
@@ -90,7 +92,8 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
+                    reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
     Test that Matplotlib backend is changed correctly when
@@ -103,7 +106,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import matplotlib.pyplot as plt')
 
-    # Generate an inline plot
+    # Generate a plot
     with qtbot.waitSignal(shell.executed):
         shell.execute('plt.plot(range(10))')
 
