@@ -10,10 +10,10 @@ Tests for the main window
 
 import os
 import os.path as osp
+import shutil
 import tempfile
 
 from flaky import flaky
-import nbformat
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -25,7 +25,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
 from spyder.utils.programs import is_module_installed
-
+from spyder.utils.test import close_save_message_box
 
 #==============================================================================
 # Constants
@@ -87,6 +87,37 @@ def main_window(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name != 'nt' and PYQT5,
+                    reason="It times out sometimes on Linux with PyQt5")
+def test_calltip(main_window, qtbot):
+    """Hide the calltip in the editor when a matching ')' is found."""
+    # Load test file
+    text = 'a = [1,2,3]\n(max'
+    main_window.editor.new(fname="test.py", text=text)
+    code_editor = main_window.editor.get_focus_widget()
+    
+    # Set text to start
+    code_editor.set_text(text)
+    code_editor.go_to_line(2)
+    code_editor.move_cursor(5)
+    calltip = code_editor.calltip_widget
+    assert not calltip.isVisible()
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Space)
+    assert not calltip.isVisible()
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+        
+    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
+    main_window.editor.close_file()
+
+
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
                     reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
@@ -147,8 +178,8 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
     project_dir = tempfile.mkdtemp()
 
     # Create an empty notebook in the project dir
-    nb_contents = nbformat.v4.new_notebook()
-    nbformat.write(nb_contents, osp.join(project_dir, 'notebook.ipynb'))
+    nb = osp.join(LOCATION, 'notebook.ipynb')
+    shutil.copy(nb, osp.join(project_dir, 'notebook.ipynb'))
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
@@ -163,6 +194,19 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
+
+    # Convert notebook to a Python file
+    projects.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
+
+    # Assert notebook was open
+    assert 'untitled0.py' in editorstack.get_current_filename()
+
+    # Assert its contents are the expected ones
+    file_text = editorstack.get_current_editor().toPlainText()
+    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n'
+
+    # Close last file (else tests hang here)
+    editorstack.close_file(force=True)
 
     # Close project
     projects.close_project()
