@@ -66,6 +66,35 @@ def populate(combobox, data):
             combobox.addItem(fqn, item)
 
 
+def _adjust_parent_stack(fsh, prev, parents):
+    """
+    Adjust the parent stack in-place as the trigger level changes.
+
+    Parameters
+    ----------
+    fsh : :class:`FoldScopeHelper`
+        The :class:`FoldScopeHelper` object to act on.
+    prev : :class:`FoldScopeHelper`
+        The previous :class:`FoldScopeHelper` object.
+    parents : list of :class:`FoldScopeHelper`
+        The current list of parent objects.
+
+    Returns
+    -------
+    None
+    """
+    if prev is None:
+        return
+
+    if fsh.fold_scope.trigger_level < prev.fold_scope.trigger_level:
+        diff = prev.fold_scope.trigger_level - fsh.fold_scope.trigger_level
+        del parents[-diff:]
+    elif fsh.fold_scope.trigger_level > prev.fold_scope.trigger_level:
+        parents.append(prev)
+    elif fsh.fold_scope.trigger_level == prev.fold_scope.trigger_level:
+        pass
+
+
 class FoldScopeHelper(object):
     """
 
