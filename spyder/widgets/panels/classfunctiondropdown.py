@@ -168,6 +168,40 @@ def _split_classes_and_methods(folds):
     return classes, functions
 
 
+def _get_parents(folds, linenum):
+    """
+    Get the parents at a given linenum.
+
+    If parents is empty, then the linenum belongs to the module.
+
+    Parameters
+    ----------
+    folds : list of :class:`FoldScopeHelper`
+    linenum : int
+        The line number to get parents for. Typically this would be the
+        cursor position.
+
+    Returns
+    -------
+    parents : list of :class:`FoldScopeHelper`
+        A list of :class:`FoldScopeHelper` objects that describe the defintion
+        heirarcy for the given ``linenum``. The 1st index will be the
+        top-level parent defined at the module level while the last index
+        will be the class or funtion that contains ``linenum``.
+    """
+    # Note: this might be able to be sped up by finding some kind of
+    # abort-early condition.
+    parents = []
+    for fold in folds:
+        start, end = fold.range
+        if linenum >= start and linenum <= end:
+            parents.append(fold)
+        else:
+            continue
+
+    return parents
+
+
 class FoldScopeHelper(object):
     """
 
