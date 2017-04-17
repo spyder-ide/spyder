@@ -276,7 +276,11 @@ class FileInfo(QObject):
 
 
 class StackHistory(MutableSequence):
-    """Handles editor stack history"""
+    """Handles editor stack history.
+
+    Works as a list of numbers corresponding to tab indexes.
+    Internally elements are saved using objects id's.
+    """
 
     def __init__(self, editor):
         self.history = list()
@@ -295,12 +299,14 @@ class StackHistory(MutableSequence):
             if _id not in self.id_list:
                 self.history.remove(_id)
 
-    def __len__(self): return len(self.history)
+    def __len__(self):
+        return len(self.history)
 
     def __getitem__(self, i):
         return self.id_list.index(self.history[i])
 
-    def __delitem__(self, i): del self.history[i]
+    def __delitem__(self, i):
+        del self.history[i]
 
     def __setitem__(self, i, v):
         _id = id(self.editor.tabs.widget(v))
@@ -309,12 +315,14 @@ class StackHistory(MutableSequence):
     def __str__(self):
         return str(list(self))
 
-    def insert(self, i, v):
-        _id = id(self.editor.tabs.widget(v))
+    def insert(self, i, tab_index):
+        """Insert the widget (at tab index) in the position i (index)."""
+        _id = id(self.editor.tabs.widget(tab_index))
         self.history.insert(i, _id)
 
-    def remove(self, index):
-        _id = id(self.editor.tabs.widget(index))
+    def remove(self, tab_index):
+        """Remove the widget at the corresponding tab_index."""
+        _id = id(self.editor.tabs.widget(tab_index))
         if _id in self.history:
             self.history.remove(_id)
 
@@ -372,7 +380,7 @@ class TabSwitcherWidget(QListWidget):
         self.setCurrentRow(row)
 
     def set_dialog_position(self):
-        """Positions the tab switcher in the center of the editor."""
+        """Positions the tab switcher in the top-center of the editor."""
         parent = self.parent()
         left = parent.geometry().width()/2 - self.width()/2
         top = 0
