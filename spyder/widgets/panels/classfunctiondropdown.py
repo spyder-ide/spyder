@@ -202,6 +202,30 @@ def _get_parents(folds, linenum):
     return parents
 
 
+def update_selected_cb(parents, combobox):
+    """
+    Update the combobox with the selected item based on the parents.
+
+    Parameters
+    ----------
+    parents : list of :class:`FoldScopeHelper`
+    combobox : :class:`qtpy.QtWidets.QComboBox`
+        The combobox to populate
+
+    Returns
+    -------
+    None
+    """
+    if parents is not None and len(parents) == 0:
+        combobox.setCurrentIndex(0)
+    else:
+        item = parents[-1]
+        for i in range(combobox.count()):
+            if combobox.itemData(i) == item:
+                combobox.setCurrentIndex(i)
+                break
+
+
 class FoldScopeHelper(object):
     """
 
