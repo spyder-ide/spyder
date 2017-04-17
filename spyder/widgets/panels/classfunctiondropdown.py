@@ -7,12 +7,63 @@
 """
 Editor widget based on QtGui.QPlainTextEdit
 """
+import operator
+
 from spyder.utils.syntaxhighlighters import OutlineExplorerData as OED
+from spyder.utils import icon_manager as ima
 
 
 DUMMY_OED = OED()
 DUMMY_OED.fold_level = 0
 DUMMY_OED.text = "<None>"
+
+
+def populate(combobox, data):
+    """
+    Populate the given ``combobox`` with the class or function names.
+
+    Parameters
+    ----------
+    combobox : :class:`qtpy.QtWidets.QComboBox`
+        The combobox to populate
+    data : list of :class:`FoldScopeHelper`
+        The data to populate with. There should be one list element per
+        class or function defintion in the file.
+
+    Returns
+    -------
+    None
+    """
+    combobox.clear()
+    combobox.addItem("<None>", 0)
+
+    # First create a list of fully-qualified names.
+    cb_data = []
+    for item in data:
+        fqn = item.name
+        for parent in reversed(item.parents):
+            fqn = parent.name + "." + fqn
+
+        cb_data.append((fqn, item))
+
+    for fqn, item in sorted(cb_data, key=operator.itemgetter(0)):
+        # Set the icon. Just threw this in here, streight from editortools.py
+        icon = None
+        if item.def_type == OED.FUNCTION_TOKEN:
+            if item.name.startswith('__'):
+                icon = ima.icon('private2')
+            elif item.name.startswith('_'):
+                icon = ima.icon('private1')
+            else:
+                icon = ima.icon('method')
+        else:
+            icon = ima.icon('class')
+
+        # Add the combobox item
+        if icon is not None:
+            combobox.addItem(icon, fqn, item)
+        else:
+            combobox.addItem(fqn, item)
 
 
 class FoldScopeHelper(object):
