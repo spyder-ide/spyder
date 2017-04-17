@@ -8,7 +8,10 @@
 Editor widget based on QtGui.QPlainTextEdit
 """
 import operator
+import copy
 
+from spyder.widgets.sourcecode.folding import FoldScope
+from spyder.utils.editor import TextBlockHelper
 from spyder.utils.syntaxhighlighters import OutlineExplorerData as OED
 from spyder.utils import icon_manager as ima
 
@@ -64,6 +67,49 @@ def populate(combobox, data):
             combobox.addItem(icon, fqn, item)
         else:
             combobox.addItem(fqn, item)
+
+
+def _get_fold_levels(editor):
+    """
+    Return a list of all the class/function definition ranges.
+
+    Parameters
+    ----------
+    editor :
+
+    Returns
+    -------
+    folds : list of :class:`FoldScopeHelper`
+        A list of all the class or function defintion fold points.
+    """
+    block = editor.document().firstBlock()
+    oed = editor.get_outlineexplorer_data()
+
+    folds = []
+    parents = []
+    prev = None
+
+    while block.isValid():
+        if TextBlockHelper.is_fold_trigger(block):
+            try:
+                data = oed[block.firstLineNumber()]
+
+                if data.def_type in (OED.CLASS, OED.FUNCTION):
+                    fsh = FoldScopeHelper(FoldScope(block), data)
+
+                    # Determine the parents of the item using a stack.
+                    _adjust_parent_stack(fsh, prev, parents)
+
+                    # Update the parents of this FoldScopeHelper item
+                    fsh.parents = copy.copy(parents)
+                    folds.append(fsh)
+                    prev = fsh
+            except KeyError:
+                pass
+
+        block = block.next()
+
+    return folds
 
 
 def _adjust_parent_stack(fsh, prev, parents):
