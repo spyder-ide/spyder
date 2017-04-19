@@ -397,8 +397,8 @@ class ClassFunctionDropdown(Panel):
         sender = self.sender()
         data = sender.itemData(sender.currentIndex())
 
-        # TODO: don't trigger a _handle_cursor_position_change_event
-        self.editor.go_to_line(data.line + 1)
+        if isinstance(data, FoldScopeHelper):
+            self.editor.go_to_line(data.line + 1)
 
     def update_selected(self, linenum):
         """Updates the dropdowns to reflect the current class and function."""
