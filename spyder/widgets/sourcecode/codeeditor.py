@@ -567,7 +567,7 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500):
+                     occurrence_timeout=1500, show_class_func_dropdown=True):
         
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -625,10 +625,10 @@ class CodeEditor(TextEditBaseWidget):
             self.set_color_scheme(color_scheme)
 
         self.toggle_wrap_mode(wrap)
-        
-        # Disable the Class/Function dropdown if we're not in a Python file.
-        if not self.is_python_like():
-            self.classfuncdropdown.setVisible(False)
+
+        # Class/Function dropdown will be disabled if we're not in a Python file.
+        self.classfuncdropdown.setVisible(show_class_func_dropdown
+                                          and self.is_python_like())
 
     def set_tab_mode(self, enable):
         """

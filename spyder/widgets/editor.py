@@ -515,6 +515,7 @@ class EditorStack(QWidget):
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width_spaces = 4
+        self.show_class_func_dropdown = True
         self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -841,6 +842,7 @@ class EditorStack(QWidget):
         self.title = text
 
     def set_classfunc_dropdown_visible(self, state):
+        self.show_class_func_dropdown = state
         if self.data:
             for finfo in self.data:
                 if finfo.editor.is_python_like():
@@ -1899,7 +1901,8 @@ class EditorStack(QWidget):
                 indent_chars=self.indent_chars,
                 tab_stop_width_spaces=self.tab_stop_width_spaces,
                 cloned_from=cloned_from,
-                filename=fname)
+                filename=fname,
+                show_class_func_dropdown=self.show_class_func_dropdown)
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
