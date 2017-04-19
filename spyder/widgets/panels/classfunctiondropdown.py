@@ -236,11 +236,26 @@ def update_selected_cb(parents, combobox):
 
 class FoldScopeHelper(object):
     """
+    This is a helper class to make using FoldScope easier.
+
+    It is a wrapper around a FoldScope object and an OutlineExplorerData
+    object, raises certain attributes to this level, and gives them more
+    descriptive names.
+
+    It defines some nicely-formatted ``str`` and ``repr`` and allows
+    for easy tracking of the parents of a given FoldScope.
 
     Parameters
     ----------
     fold_scope : :class:`spyder.widgets.sourcecode.folding.FoldScope`
     oed : :class:`spyder.utils.syntaxhighlighters.OutlineExplorerData`
+
+    Properties
+    ----------
+    parents : list of :class:`FoldScopeHelper`
+        The parents of this ``FoldScopeHelper`` object. The 1st index will
+        be the top-level parent defined at the module level while the
+        last index will be the class or funtion that contains this object.
     """
 
     def __init__(self, fold_scope, oed):
