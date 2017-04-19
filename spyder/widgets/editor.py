@@ -840,6 +840,12 @@ class EditorStack(QWidget):
     def set_title(self, text):
         self.title = text
 
+    def set_classfunc_dropdown_visible(self, state):
+        if self.data:
+            for finfo in self.data:
+                if finfo.editor.is_python_like():
+                    finfo.editor.classfuncdropdown.setVisible(state)
+
     def __update_editor_margins(self, editor):
         editor.linenumberarea.setup_margins(linenumbers=self.linenumbers_enabled,
                              markers=self.has_markers())

@@ -106,9 +106,13 @@ class EditorConfigPage(PluginConfigPage):
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
+        showclassfuncdropdown_box = newcb(_("Show Class/Function Dropdown"),
+                                          'show_class_func_dropdown')
+        
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(showtabbar_box)
+        interface_layout.addWidget(showclassfuncdropdown_box)
         interface_group.setLayout(interface_layout)
         
         display_group = QGroupBox(_("Source code"))
@@ -1262,6 +1266,7 @@ class Editor(SpyderPluginWidget):
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
             ('set_tabbar_visible',                  'show_tab_bar'),
+            ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
                     )
         for method, setting in settings:
@@ -2507,6 +2512,8 @@ class Editor(SpyderPluginWidget):
             fpsorting_o = self.get_option(fpsorting_n)
             tabbar_n = 'show_tab_bar'
             tabbar_o = self.get_option(tabbar_n)
+            classfuncdropdown_n = 'show_class_func_dropdown'
+            classfuncdropdown_o = self.get_option(classfuncdropdown_n)
             linenb_n = 'line_numbers'
             linenb_o = self.get_option(linenb_n)
             blanks_n = 'blank_spaces'
@@ -2570,6 +2577,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_fullpath_sorting_enabled(fpsorting_o)
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
+                if classfuncdropdown_n in options:
+                    editorstack.set_classfunc_dropdown_visible(classfuncdropdown_o)
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
