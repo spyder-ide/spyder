@@ -71,13 +71,6 @@ def background(f):
 
 
 #-----------------------------------------------------------------------------
-# Encoding Exception
-#-----------------------------------------------------------------------------
-class EncodingError(Exception):
-    """Exception when stderr file can't be opened."""
-
-
-#-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
 class ClientWidget(QWidget, SaveHistoryMixin):
@@ -391,15 +384,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             stderr = codecs.open(self.stderr_file, 'r',
                                  encoding='utf-8').read()
         except UnicodeDecodeError:
-            # This handling is needed since the stderr file could be encoded
-            # in something different to utf-8. In case of fail at least
-            # we raise an informative exception.
+            # This is needed since the stderr file could be encoded
+            # in something different to utf-8.
             # See issue 4191
             try:
-                stderr_text = open(self.stderr_file, 'rb').read()
-                encoding = get_coding(stderr_text)
-                stderr = to_text_string(stderr_text, encoding)
-            except UnicodeDecodeError:
+                stderr = self._read_stderr()
+            except:
                 stderr = None
 
         if stderr:
@@ -460,3 +450,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         document = self.get_control().document()
         document.contentsChange.disconnect(self._hide_loading_page)
+
+    def _read_stderr(self):
+        """Read the stderr file of the kernel."""
+        stderr_text = open(self.stderr_file, 'rb').read()
+        encoding = get_coding(stderr_text)
+        stderr = to_text_string(stderr_text, encoding)
+        return stderr
