@@ -334,6 +334,7 @@ class CodeEditor(TextEditBaseWidget):
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
                  'Enaml': (sh.EnamlSH, '#', PythonCFM),
+                 'Markdown': (sh.MarkdownSH, '#', None),
                 }
 
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
