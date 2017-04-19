@@ -45,6 +45,7 @@ EDIT_FILETYPES = [
     (_("Enaml files"), ('.enaml',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
+    (_("Markdown files"), ('.md', )),
 ]
 
 # Filter for all files

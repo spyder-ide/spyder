@@ -9,7 +9,7 @@ import pytest
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QTextDocument
 
-from spyder.utils.syntaxhighlighters import HtmlSH, PythonSH
+from spyder.utils.syntaxhighlighters import HtmlSH, PythonSH, MarkdownSH
 
 def compare_formats(actualFormats, expectedFormats, sh):
     assert len(actualFormats) == len(expectedFormats)
@@ -45,6 +45,30 @@ def test_HtmlSH_unclosed_commend():
     sh.rehighlightBlock(doc.firstBlock())
     res = [(0, 3, 'normal')]
     compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+
+
+def test_Markdown_basic():
+    txt = "Some __random__ **text** with ~~different~~ [styles](link_url)"
+
+    doc = QTextDocument(txt)
+    sh = MarkdownSH(doc, color_scheme='Spyder')
+    sh.rehighlightBlock(doc.firstBlock())
+
+    res = [(0, 5, 'normal'),  # |Some|
+           (5, 10, 'italic'),  # |__random__|
+           (15, 1, 'normal'),  # | |
+           (16, 8, 'strong'),  # |**text**|
+           (24, 6, 'normal'),  # |with|
+           (30, 13, 'italic'),  # |~~diferents~~|
+           (43, 1, 'normal'),  # | |
+           (44, 8, 'string'),  # |[styles]|
+           (52, 1, 'normal'),  # |(|
+           (53, 8, 'string'),  # |(link_url)|
+           (61, 1, 'normal'),  # ||
+           ]
+
+    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+
 
 @pytest.mark.parametrize('line', ['# --- First variant',
                                   '#------ 2nd variant',
