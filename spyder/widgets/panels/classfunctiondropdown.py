@@ -5,7 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """
-Editor widget based on QtGui.QPlainTextEdit
+A Class and Function Dropdown Panel for Spyder.
+
+To demo this panel, run spyder/widgets/sourcecode/codeeditor.py
 """
 import operator
 import copy
@@ -412,10 +414,3 @@ class ClassFunctionDropdown(Panel):
     def _handle_cursor_position_change_event(self, linenum, column):
         self._update_data()
         self.update_selected(linenum)
-
-
-# ##########################################################################
-# Classes and Functions for Testing.
-# ##########################################################################
-if __name__ == "__main__":
-    print("To demo this panel, run spyder/widgets/sourcecode/codeeditor.py")
