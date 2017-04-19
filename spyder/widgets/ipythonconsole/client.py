@@ -32,7 +32,7 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
-from spyder.utils.encoding import getfilesystemencoding
+from spyder.utils.encoding import get_coding
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
@@ -389,19 +389,20 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         try:
             stderr = codecs.open(self.stderr_file, 'r',
                                  encoding='utf-8').read()
-        except(UnicodeDecodeError):
+        except UnicodeDecodeError:
             # This handling is needed since the stderr file could be encoded
-            # in something different to utf-8. In case of fail at we least
-            # raise a comprenhensive exception.
+            # in something different to utf-8. In case of fail at least
+            # we raise an informative exception.
             # See issue 4191
             try:
+                encoding = get_coding(open(self.stderr_file, 'rb').read())
                 stderr = codecs.open(self.stderr_file, 'r',
-                                     encoding=getfilesystemencoding()).read()
-            except(UnicodeDecodeError):
+                                     encoding=encoding).read()
+            except UnicodeDecodeError:
                 try:
                     stderr = codecs.open(self.stderr_file, 'r',
                                          encoding='cp437').read()
-                except(UnicodeDecodeError):
+                except UnicodeDecodeError:
                     raise EncodingError("Could not read the stderr "
                                         "file of the kernel while restarting.")
 
