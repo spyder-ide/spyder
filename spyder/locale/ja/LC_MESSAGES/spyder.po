@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-16 11:48+COT\n"
+"POT-Creation-Date: 2017-04-19 18:02+COT\n"
 "PO-Revision-Date: 2016-07-12 09:04+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
@@ -20,231 +20,231 @@ msgstr ""
 "X-Generator: Poedit 1.6.10\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: spyder/app/mainwindow.py:128
+#: spyder/app/mainwindow.py:129
 msgid "Initializing..."
 msgstr "初期化中..."
 
-#: spyder/app/mainwindow.py:244
+#: spyder/app/mainwindow.py:231
 msgid "Numpy and Scipy documentation"
 msgstr "NumpyとScipyのドキュメント"
 
-#: spyder/app/mainwindow.py:246
+#: spyder/app/mainwindow.py:233
 msgid "Matplotlib documentation"
 msgstr "Matplotlibドキュメント"
 
-#: spyder/app/mainwindow.py:249
+#: spyder/app/mainwindow.py:236
 msgid "PyQt4 Reference Guide"
 msgstr "PyQt4リファレンスガイド"
 
-#: spyder/app/mainwindow.py:252
+#: spyder/app/mainwindow.py:239
 msgid "PyQt4 API Reference"
 msgstr "PyQt4 APIリファレンス"
 
-#: spyder/app/mainwindow.py:254
+#: spyder/app/mainwindow.py:241
 msgid "WinPython"
 msgstr "WinPython"
 
-#: spyder/app/mainwindow.py:533
+#: spyder/app/mainwindow.py:519
 msgid "Close current pane"
 msgstr "現在のペインを閉じる"
 
-#: spyder/app/mainwindow.py:538
+#: spyder/app/mainwindow.py:524
 msgid "Lock panes"
 msgstr "ペインをロック"
 
-#: spyder/app/mainwindow.py:545
+#: spyder/app/mainwindow.py:531
 msgid "Use next layout"
 msgstr "次のレイアウトを使用"
 
-#: spyder/app/mainwindow.py:549
+#: spyder/app/mainwindow.py:535
 msgid "Use previous layout"
 msgstr "前のレイアウトを使用"
 
-#: spyder/app/mainwindow.py:568 spyder/widgets/sourcecode/codeeditor.py:2565
+#: spyder/app/mainwindow.py:554 spyder/widgets/sourcecode/codeeditor.py:2604
 msgid "Undo"
 msgstr "元に戻す"
 
-#: spyder/app/mainwindow.py:570 spyder/widgets/sourcecode/codeeditor.py:2568
+#: spyder/app/mainwindow.py:556 spyder/widgets/sourcecode/codeeditor.py:2607
 msgid "Redo"
 msgstr "やり直す"
 
-#: spyder/app/mainwindow.py:572 spyder/widgets/shell.py:120
-#: spyder/widgets/sourcecode/codeeditor.py:2574
+#: spyder/app/mainwindow.py:558 spyder/widgets/shell.py:124
+#: spyder/widgets/sourcecode/codeeditor.py:2613
 #: spyder/widgets/variableexplorer/arrayeditor.py:454
 #: spyder/widgets/variableexplorer/collectionseditor.py:674
-#: spyder/widgets/variableexplorer/dataframeeditor.py:569
+#: spyder/widgets/variableexplorer/dataframeeditor.py:577
 msgid "Copy"
 msgstr "コピー"
 
-#: spyder/app/mainwindow.py:574 spyder/widgets/shell.py:116
-#: spyder/widgets/sourcecode/codeeditor.py:2571
+#: spyder/app/mainwindow.py:560 spyder/widgets/shell.py:120
+#: spyder/widgets/sourcecode/codeeditor.py:2610
 msgid "Cut"
 msgstr "切り取り"
 
-#: spyder/app/mainwindow.py:576 spyder/widgets/shell.py:124
-#: spyder/widgets/sourcecode/codeeditor.py:2577
+#: spyder/app/mainwindow.py:562 spyder/widgets/shell.py:128
+#: spyder/widgets/sourcecode/codeeditor.py:2616
 #: spyder/widgets/variableexplorer/collectionseditor.py:671
 msgid "Paste"
 msgstr "貼り付け"
 
-#: spyder/app/mainwindow.py:579 spyder/widgets/shell.py:137
-#: spyder/widgets/sourcecode/codeeditor.py:2580
+#: spyder/app/mainwindow.py:565 spyder/widgets/shell.py:141
+#: spyder/widgets/sourcecode/codeeditor.py:2619
 msgid "Select All"
 msgstr "全て選択"
 
-#: spyder/app/mainwindow.py:589 spyder/plugins/editor.py:1386
+#: spyder/app/mainwindow.py:575 spyder/plugins/editor.py:1385
 msgid "&File"
 msgstr "ファイル(&A)"
 
-#: spyder/app/mainwindow.py:590 spyder/plugins/editor.py:1374
+#: spyder/app/mainwindow.py:576 spyder/plugins/editor.py:1373
 msgid "File toolbar"
 msgstr "ファイルツールバー"
 
-#: spyder/app/mainwindow.py:594 spyder/plugins/editor.py:1387
+#: spyder/app/mainwindow.py:580 spyder/plugins/editor.py:1386
 msgid "&Edit"
 msgstr "編集(&E)"
 
-#: spyder/app/mainwindow.py:595 spyder/plugins/editor.py:1384
+#: spyder/app/mainwindow.py:581 spyder/plugins/editor.py:1383
 msgid "Edit toolbar"
 msgstr "編集ツールバー"
 
-#: spyder/app/mainwindow.py:599 spyder/plugins/editor.py:1388
+#: spyder/app/mainwindow.py:585 spyder/plugins/editor.py:1387
 msgid "&Search"
 msgstr "検索(&S)"
 
-#: spyder/app/mainwindow.py:600 spyder/plugins/editor.py:1376
+#: spyder/app/mainwindow.py:586 spyder/plugins/editor.py:1375
 msgid "Search toolbar"
 msgstr "検索ツールバー"
 
-#: spyder/app/mainwindow.py:604 spyder/plugins/editor.py:1389
+#: spyder/app/mainwindow.py:590 spyder/plugins/editor.py:1388
 msgid "Sour&ce"
 msgstr "ソース(&C)"
 
-#: spyder/app/mainwindow.py:605 spyder/plugins/editor.py:1378
+#: spyder/app/mainwindow.py:591 spyder/plugins/editor.py:1377
 msgid "Source toolbar"
 msgstr "ソースツールバー"
 
-#: spyder/app/mainwindow.py:609 spyder/plugins/editor.py:792
-#: spyder/plugins/editor.py:1390
+#: spyder/app/mainwindow.py:595 spyder/plugins/editor.py:791
+#: spyder/plugins/editor.py:1389
 msgid "&Run"
 msgstr "実行(&R)"
 
-#: spyder/app/mainwindow.py:610 spyder/plugins/editor.py:1380
+#: spyder/app/mainwindow.py:596 spyder/plugins/editor.py:1379
 msgid "Run toolbar"
 msgstr "実行ツールバー"
 
-#: spyder/app/mainwindow.py:614 spyder/plugins/editor.py:751
+#: spyder/app/mainwindow.py:600 spyder/plugins/editor.py:750
 msgid "&Debug"
 msgstr "デバッグ(&D)"
 
-#: spyder/app/mainwindow.py:615 spyder/plugins/editor.py:1382
+#: spyder/app/mainwindow.py:601 spyder/plugins/editor.py:1381
 msgid "Debug toolbar"
 msgstr "デバッグツールバー"
 
-#: spyder/app/mainwindow.py:619
+#: spyder/app/mainwindow.py:605
 msgid "C&onsoles"
 msgstr "コンソール(&O)"
 
-#: spyder/app/mainwindow.py:622
+#: spyder/app/mainwindow.py:608
 #, fuzzy
 msgid "&Projects"
 msgstr "プロジェクト..."
 
-#: spyder/app/mainwindow.py:625 spyder/plugins/editor.py:1391
+#: spyder/app/mainwindow.py:611 spyder/plugins/editor.py:1390
 msgid "&Tools"
 msgstr "ツール(&T)"
 
-#: spyder/app/mainwindow.py:628 spyder/plugins/editor.py:1392
+#: spyder/app/mainwindow.py:614 spyder/plugins/editor.py:1391
 msgid "&View"
 msgstr "表示(&V)"
 
-#: spyder/app/mainwindow.py:631 spyder/plugins/editor.py:1393
+#: spyder/app/mainwindow.py:617 spyder/plugins/editor.py:1392
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
-#: spyder/app/mainwindow.py:636
+#: spyder/app/mainwindow.py:622
 msgid "Welcome to Spyder!"
 msgstr "Spyderへようこそ！"
 
-#: spyder/app/mainwindow.py:641
+#: spyder/app/mainwindow.py:627
 msgid "Pre&ferences"
 msgstr "設定(&F)"
 
-#: spyder/app/mainwindow.py:648 spyder/widgets/pathmanager.py:49
+#: spyder/app/mainwindow.py:634 spyder/widgets/pathmanager.py:49
 msgid "PYTHONPATH manager"
 msgstr "PYTHONPATHマネージャ"
 
-#: spyder/app/mainwindow.py:651
+#: spyder/app/mainwindow.py:637
 msgid "Python Path Manager"
 msgstr "Pythonパスマネージャ"
 
-#: spyder/app/mainwindow.py:654
+#: spyder/app/mainwindow.py:640
 msgid "Update module names list"
 msgstr "モジュール名リストの更新"
 
-#: spyder/app/mainwindow.py:657
+#: spyder/app/mainwindow.py:643
 msgid "Refresh list of module names available in PYTHONPATH"
 msgstr "PYTHONPATH上で利用可能なモジュールリストの更新"
 
-#: spyder/app/mainwindow.py:660
+#: spyder/app/mainwindow.py:646
 msgid "Reset Spyder to factory defaults"
 msgstr "Spyderをデフォルト設定へ戻す"
 
-#: spyder/app/mainwindow.py:665
+#: spyder/app/mainwindow.py:651
 msgid "Current user environment variables..."
 msgstr "現在のユーザー環境変数..."
 
-#: spyder/app/mainwindow.py:667
+#: spyder/app/mainwindow.py:653
 msgid ""
 "Show and edit current user environment variables in Windows registry (i.e. "
 "for all sessions)"
 msgstr "レジストリ内のユーザー環境変数を表示・編集する"
 
-#: spyder/app/mainwindow.py:676 spyder/app/mainwindow.py:1089
+#: spyder/app/mainwindow.py:662 spyder/app/mainwindow.py:1075
 msgid "External Tools"
 msgstr "外部ツール"
 
-#: spyder/app/mainwindow.py:679
+#: spyder/app/mainwindow.py:665
 msgid "WinPython control panel"
 msgstr "WinPythonコントロールパネル"
 
-#: spyder/app/mainwindow.py:688
+#: spyder/app/mainwindow.py:674
 msgid "Qt Designer"
 msgstr "Qt Designer"
 
-#: spyder/app/mainwindow.py:693
+#: spyder/app/mainwindow.py:679
 msgid "Qt Linguist"
 msgstr "Qt Linguist"
 
-#: spyder/app/mainwindow.py:699
+#: spyder/app/mainwindow.py:685
 msgid "Qt examples"
 msgstr "Qt examples"
 
-#: spyder/app/mainwindow.py:719
+#: spyder/app/mainwindow.py:705
 msgid "guidata examples"
 msgstr "guidata examples"
 
-#: spyder/app/mainwindow.py:730
+#: spyder/app/mainwindow.py:716
 msgid "guiqwt examples"
 msgstr "guiqwt examples"
 
-#: spyder/app/mainwindow.py:735
+#: spyder/app/mainwindow.py:721
 msgid "Sift"
 msgstr "選別する"
 
-#: spyder/app/mainwindow.py:745
+#: spyder/app/mainwindow.py:731
 msgid "ViTables"
 msgstr "Viテーブル"
 
-#: spyder/app/mainwindow.py:759
+#: spyder/app/mainwindow.py:745
 msgid "Fullscreen mode"
 msgstr "フルスクリーンモード"
 
-#: spyder/app/mainwindow.py:771
+#: spyder/app/mainwindow.py:757
 msgid "Main toolbar"
 msgstr "メインツールバー"
 
-#: spyder/app/mainwindow.py:780
+#: spyder/app/mainwindow.py:766
 msgid ""
 "Spyder Internal Console\n"
 "\n"
@@ -266,164 +266,164 @@ msgstr ""
 "ユーザーのpythonコードを実行するために使わないでください。\n"
 "\n"
 
-#: spyder/app/mainwindow.py:797
+#: spyder/app/mainwindow.py:783
 msgid "Loading help..."
 msgstr "ヘルプをロードしています..."
 
-#: spyder/app/mainwindow.py:804
+#: spyder/app/mainwindow.py:790
 msgid "Loading outline explorer..."
 msgstr "アウトラインエクスプローラーをロードしています..."
 
-#: spyder/app/mainwindow.py:812
+#: spyder/app/mainwindow.py:798
 msgid "Loading editor..."
 msgstr "エディタをロードしています..."
 
-#: spyder/app/mainwindow.py:818 spyder/plugins/console.py:134
-#: spyder/widgets/ipythonconsole/client.py:290
+#: spyder/app/mainwindow.py:804 spyder/plugins/console.py:134
+#: spyder/widgets/ipythonconsole/client.py:302
 msgid "&Quit"
 msgstr "終了(&Q)"
 
-#: spyder/app/mainwindow.py:820 spyder/plugins/console.py:136
+#: spyder/app/mainwindow.py:806 spyder/plugins/console.py:136
 msgid "Quit"
 msgstr "終了"
 
-#: spyder/app/mainwindow.py:824
+#: spyder/app/mainwindow.py:810
 msgid "&Restart"
 msgstr "再起動(&R)"
 
-#: spyder/app/mainwindow.py:826
+#: spyder/app/mainwindow.py:812
 msgid "Restart"
 msgstr "再起動"
 
-#: spyder/app/mainwindow.py:843
+#: spyder/app/mainwindow.py:829
 msgid "Loading file explorer..."
 msgstr "ファイルエクスプローラーをロードしています..."
 
-#: spyder/app/mainwindow.py:850
+#: spyder/app/mainwindow.py:836
 msgid "Loading history plugin..."
 msgstr "ヒストリプラグインをロードしています..."
 
-#: spyder/app/mainwindow.py:861
+#: spyder/app/mainwindow.py:847
 msgid "Loading online help..."
 msgstr "オンラインヘルプをロードしています..."
 
-#: spyder/app/mainwindow.py:866
+#: spyder/app/mainwindow.py:852
 msgid "Loading project explorer..."
 msgstr "プロジェクトエクスプローラーをロード中..."
 
-#: spyder/app/mainwindow.py:873
+#: spyder/app/mainwindow.py:859
 msgid "Loading external console..."
 msgstr "外部コンソールをロード中..."
 
-#: spyder/app/mainwindow.py:879
+#: spyder/app/mainwindow.py:865
 msgid "Loading namespace browser..."
 msgstr "名前空間ブラウザをロード中..."
 
-#: spyder/app/mainwindow.py:886
+#: spyder/app/mainwindow.py:872
 msgid "Loading IPython console..."
 msgstr "IPythonコンソールをロード中..."
 
-#: spyder/app/mainwindow.py:891
+#: spyder/app/mainwindow.py:877
 msgid "Setting up main window..."
 msgstr "メインウインドウを設定中..."
 
-#: spyder/app/mainwindow.py:894
+#: spyder/app/mainwindow.py:880
 msgid "Dependencies..."
 msgstr "依存性..."
 
-#: spyder/app/mainwindow.py:898
+#: spyder/app/mainwindow.py:884
 msgid "Report issue..."
 msgstr "問題をレポート..."
 
-#: spyder/app/mainwindow.py:902
+#: spyder/app/mainwindow.py:888
 msgid "Spyder support..."
 msgstr "Spyderサポート..."
 
-#: spyder/app/mainwindow.py:905
+#: spyder/app/mainwindow.py:891
 msgid "Check for updates..."
 msgstr "更新をチェック..."
 
-#: spyder/app/mainwindow.py:928
+#: spyder/app/mainwindow.py:914
 msgid "Spyder documentation"
 msgstr "spyderドキュメント"
 
-#: spyder/app/mainwindow.py:936
+#: spyder/app/mainwindow.py:922
 msgid "Spyder tutorial"
 msgstr "Spyderチュートリアル"
 
-#: spyder/app/mainwindow.py:943
+#: spyder/app/mainwindow.py:929
 msgid "Interactive tours"
 msgstr "インタラクティブツアー"
 
-#: spyder/app/mainwindow.py:968
+#: spyder/app/mainwindow.py:954
 msgid "Python documentation"
 msgstr "Pythonドキュメント"
 
-#: spyder/app/mainwindow.py:974
+#: spyder/app/mainwindow.py:960
 msgid "IPython documentation"
 msgstr "IPythonドキュメント"
 
-#: spyder/app/mainwindow.py:975
+#: spyder/app/mainwindow.py:961
 msgid "Intro to IPython"
 msgstr "IPythonの紹介"
 
-#: spyder/app/mainwindow.py:977
+#: spyder/app/mainwindow.py:963
 msgid "Quick reference"
 msgstr "クイックリファレンス"
 
-#: spyder/app/mainwindow.py:979
+#: spyder/app/mainwindow.py:965
 msgid "Console help"
 msgstr "コンソールヘルプ"
 
-#: spyder/app/mainwindow.py:1009
+#: spyder/app/mainwindow.py:995
 msgid "Installed Python modules"
 msgstr "インストールされたPythonモジュール"
 
-#: spyder/app/mainwindow.py:1013
+#: spyder/app/mainwindow.py:999
 msgid "Online documentation"
 msgstr "オンラインドキュメント"
 
-#: spyder/app/mainwindow.py:1025
+#: spyder/app/mainwindow.py:1011
 msgid "Qt documentation"
 msgstr "Qtドキュメント"
 
-#: spyder/app/mainwindow.py:1031
+#: spyder/app/mainwindow.py:1017
 msgid "About %s..."
 msgstr "%s について..."
 
-#: spyder/app/mainwindow.py:1055
+#: spyder/app/mainwindow.py:1041
 msgid "Panes"
 msgstr "ペイン"
 
-#: spyder/app/mainwindow.py:1057
+#: spyder/app/mainwindow.py:1043
 msgid "Toolbars"
 msgstr "ツールバー"
 
-#: spyder/app/mainwindow.py:1058
+#: spyder/app/mainwindow.py:1044
 msgid "Window layouts"
 msgstr "ウインドウレイアウト"
 
-#: spyder/app/mainwindow.py:1067 spyder/app/mainwindow.py:1874
-#: spyder/app/mainwindow.py:1875
+#: spyder/app/mainwindow.py:1053 spyder/app/mainwindow.py:1863
+#: spyder/app/mainwindow.py:1864
 msgid "Show toolbars"
 msgstr "ツールバーを表示"
 
-#: spyder/app/mainwindow.py:1082
+#: spyder/app/mainwindow.py:1068
 msgid "Attached console window (debugging)"
 msgstr "接続されたコンソールウインドウ(デバッグ)"
 
-#: spyder/app/mainwindow.py:1264 spyder/plugins/projects.py:244
+#: spyder/app/mainwindow.py:1254 spyder/plugins/projects.py:247
 #: spyder/widgets/explorer.py:639 spyder/widgets/explorer.py:744
-#: spyder/widgets/externalshell/pythonshell.py:533
+#: spyder/widgets/externalshell/pythonshell.py:538
 #: spyder/widgets/externalshell/systemshell.py:105
 #: spyder/widgets/variableexplorer/arrayeditor.py:574
 #: spyder/widgets/variableexplorer/collectionseditor.py:433
-#: spyder/widgets/variableexplorer/dataframeeditor.py:735
-#: spyder/widgets/variableexplorer/dataframeeditor.py:739
+#: spyder/widgets/variableexplorer/dataframeeditor.py:743
+#: spyder/widgets/variableexplorer/dataframeeditor.py:747
 msgid "Error"
 msgstr "エラー"
 
-#: spyder/app/mainwindow.py:1265
+#: spyder/app/mainwindow.py:1255
 msgid ""
 "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><br><b>Please "
 "install them to avoid this message.</b><br><br><i>Note</i>: Spyder could "
@@ -441,27 +441,27 @@ msgstr ""
 "可能性があります。新しい問題を報告する前には、 発生した不具合が依存性欠如の直"
 "接の結果ではないことを確認してください。"
 
-#: spyder/app/mainwindow.py:1721
+#: spyder/app/mainwindow.py:1710
 msgid "Spyder Default Layout"
 msgstr "Spyderデフォルトレイアウト"
 
-#: spyder/app/mainwindow.py:1739
+#: spyder/app/mainwindow.py:1728
 msgid "Save current layout"
 msgstr "現在のレイアウトを保存"
 
-#: spyder/app/mainwindow.py:1743
+#: spyder/app/mainwindow.py:1732
 msgid "Layout preferences"
 msgstr "レイアウト設定"
 
-#: spyder/app/mainwindow.py:1747
+#: spyder/app/mainwindow.py:1736
 msgid "Reset to spyder default"
 msgstr "Spyderのデフォルト値に戻す"
 
-#: spyder/app/mainwindow.py:1767 spyder/app/mainwindow.py:1789
-#: spyder/app/mainwindow.py:1852 spyder/app/mainwindow.py:2642
+#: spyder/app/mainwindow.py:1756 spyder/app/mainwindow.py:1778
+#: spyder/app/mainwindow.py:1841 spyder/app/mainwindow.py:2659
 #: spyder/plugins/configdialog.py:1254 spyder/plugins/externalconsole.py:447
-#: spyder/plugins/ipythonconsole.py:120 spyder/plugins/ipythonconsole.py:840
-#: spyder/plugins/ipythonconsole.py:1186 spyder/plugins/maininterpreter.py:147
+#: spyder/plugins/ipythonconsole.py:120 spyder/plugins/ipythonconsole.py:856
+#: spyder/plugins/ipythonconsole.py:1202 spyder/plugins/maininterpreter.py:147
 #: spyder/plugins/maininterpreter.py:175 spyder/plugins/maininterpreter.py:203
 #: spyder/utils/environ.py:100 spyder/utils/environ.py:113
 #: spyder/widgets/variableexplorer/arrayeditor.py:497
@@ -470,7 +470,7 @@ msgstr "Spyderのデフォルト値に戻す"
 msgid "Warning"
 msgstr "警告"
 
-#: spyder/app/mainwindow.py:1768
+#: spyder/app/mainwindow.py:1757
 msgid ""
 "Window layout will be reset to default settings: this affects window "
 "position, size and dockwidgets.\n"
@@ -480,7 +480,7 @@ msgstr ""
 "ズ及びドックウィジェットが影響されます。\n"
 "続行しますか？"
 
-#: spyder/app/mainwindow.py:1790
+#: spyder/app/mainwindow.py:1779
 msgid ""
 "Layout <b>%s</b> will be                                                "
 "overwritten. Do you want to                                                "
@@ -489,58 +489,67 @@ msgstr ""
 "レイアウト <b>%s</b>は                                                上書き"
 "されます。                                                続行しますか?"
 
-#: spyder/app/mainwindow.py:1853
+#: spyder/app/mainwindow.py:1842
 msgid "Quick switch layout #%s has not yet been defined."
 msgstr "クイックスイッチレイアウト #%s は未定義です。"
 
-#: spyder/app/mainwindow.py:1871 spyder/app/mainwindow.py:1872
+#: spyder/app/mainwindow.py:1860 spyder/app/mainwindow.py:1861
 msgid "Hide toolbars"
 msgstr "ツールバーを隠す"
 
-#: spyder/app/mainwindow.py:2171 spyder/app/mainwindow.py:2172
+#: spyder/app/mainwindow.py:2182 spyder/app/mainwindow.py:2183
 msgid "Maximize current pane"
 msgstr "現在のペインを最大化"
 
-#: spyder/app/mainwindow.py:2175
+#: spyder/app/mainwindow.py:2186
 msgid "Restore current pane"
 msgstr "現在のペインを復元"
 
-#: spyder/app/mainwindow.py:2176
+#: spyder/app/mainwindow.py:2187
 msgid "Restore pane to its original size"
 msgstr "ペインをオリジナルサイズに復元"
 
-#: spyder/app/mainwindow.py:2260
+#: spyder/app/mainwindow.py:2272
 msgid "About %s"
 msgstr "%s について"
 
-#: spyder/app/mainwindow.py:2387 spyder/plugins/editor.py:157
+#: spyder/app/mainwindow.py:2404 spyder/plugins/editor.py:157
 #: spyder/plugins/runconfig.py:334 spyder/plugins/runconfig.py:456
-#: spyder/plugins/runconfig.py:461 spyder/utils/programs.py:285
+#: spyder/plugins/runconfig.py:461 spyder/utils/programs.py:286
 #: spyder/widgets/explorer.py:271 spyder/widgets/externalshell/baseshell.py:127
 msgid "Run"
 msgstr "実行"
 
-#: spyder/app/mainwindow.py:2388
+#: spyder/app/mainwindow.py:2405
 msgid "Running an external system terminal is not supported on platform %s."
 msgstr ""
 "プラットフォーム %s では外部システムターミナルの実行はサポートされていませ"
 "ん。"
 
-#: spyder/app/mainwindow.py:2643
+#: spyder/app/mainwindow.py:2660
 msgid ""
 "Spyder will restart and reset to default settings: <br><br>Do you want to "
 "continue?"
 msgstr "Spyderを再起動して設定をデフォルトに戻します: <br><br>続行しますか?"
 
-#: spyder/app/mainwindow.py:2740 spyder/widgets/helperwidgets.py:250
+#: spyder/app/mainwindow.py:2757 spyder/widgets/helperwidgets.py:250
 msgid "Spyder updates"
 msgstr "Spyderアップデート"
 
-#: spyder/app/mainwindow.py:2741 spyder/plugins/configdialog.py:819
+#: spyder/app/mainwindow.py:2758 spyder/plugins/configdialog.py:819
 msgid "Check for updates on startup"
 msgstr "起動時に更新をチェック"
 
-#: spyder/app/mainwindow.py:2761
+#: spyder/app/mainwindow.py:2780
+msgid ""
+"<hr><b>IMPORTANT NOTE:</b> It seems that you are using Spyder with "
+"<b>Anaconda/Miniconda</b>. Please <<b>don't</b> use code>pip</code> to "
+"update it as that will probably break your installation.<br><br>Instead, "
+"please wait until new conda packages are available and use <code>conda</"
+"code> to perform the update.<hr>"
+msgstr ""
+
+#: spyder/app/mainwindow.py:2790
 msgid ""
 "<b>Spyder %s is available!</b> <br><br>Please use your package manager to "
 "update Spyder or go to our <a href=\"%s\">Releases</a> page to download this "
@@ -552,7 +561,7 @@ msgstr ""
 "new version. <br><br>If you are not sure how to proceed to update Spyder "
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 
-#: spyder/app/mainwindow.py:2773
+#: spyder/app/mainwindow.py:2803
 msgid "Spyder is up to date."
 msgstr "Spyderは最新の状態です。"
 
@@ -770,7 +779,7 @@ msgstr "紹介ツアー"
 msgid "New features in version 3.0"
 msgstr "バージョン3.0の新機能"
 
-#: spyder/app/tour.py:571 spyder/plugins/ipythonconsole.py:432
+#: spyder/app/tour.py:571 spyder/plugins/ipythonconsole.py:437
 msgid "Run code"
 msgstr "コードを実行"
 
@@ -778,7 +787,7 @@ msgstr "コードを実行"
 msgid "Go to step: "
 msgstr "ステップへ移動"
 
-#: spyder/config/base.py:254
+#: spyder/config/base.py:260
 msgid ""
 "Update LANGUAGE_CODES (inside config/base.py) if a new translation has been "
 "added to Spyder"
@@ -842,7 +851,7 @@ msgstr "Patch and diffファイル"
 msgid "Batch files"
 msgstr "Batchファイル"
 
-#: spyder/config/utils.py:36 spyder/utils/iofuncs.py:426
+#: spyder/config/utils.py:36 spyder/utils/iofuncs.py:431
 msgid "Text files"
 msgstr "テキストファイル"
 
@@ -895,10 +904,10 @@ msgid "Supported text files"
 msgstr "サポートされたテキストファイル"
 
 #: spyder/plugins/__init__.py:508 spyder/plugins/editor.py:97
-#: spyder/plugins/editor.py:544 spyder/plugins/editor.py:1769
+#: spyder/plugins/editor.py:545 spyder/plugins/editor.py:1772
 #: spyder/plugins/help.py:118 spyder/plugins/help.py:385
 #: spyder/widgets/editor.py:375 spyder/widgets/sourcecode/codeeditor.py:96
-#: spyder/widgets/sourcecode/codeeditor.py:3058
+#: spyder/widgets/sourcecode/codeeditor.py:3110
 msgid "Editor"
 msgstr "エディタ"
 
@@ -917,8 +926,8 @@ msgstr "不正なディレクトリパス"
 #: spyder/plugins/configdialog.py:494 spyder/plugins/configdialog.py:509
 #: spyder/plugins/runconfig.py:185 spyder/plugins/runconfig.py:251
 #: spyder/plugins/workingdirectory.py:291 spyder/widgets/explorer.py:626
-#: spyder/widgets/externalshell/pythonshell.py:616
-#: spyder/widgets/findinfiles.py:504 spyder/widgets/pathmanager.py:224
+#: spyder/widgets/externalshell/pythonshell.py:621
+#: spyder/widgets/findinfiles.py:501 spyder/widgets/pathmanager.py:224
 #: spyder/widgets/projects/projectdialog.py:155
 msgid "Select directory"
 msgstr "ディレクトリを選択"
@@ -1001,7 +1010,7 @@ msgid "Pop up internal console when internal errors appear"
 msgstr "内部エラー発生時に内部コンソールをポップアップさせる"
 
 #: spyder/plugins/configdialog.py:836 spyder/plugins/editor.py:106
-#: spyder/plugins/externalconsole.py:57 spyder/plugins/ipythonconsole.py:274
+#: spyder/plugins/externalconsole.py:57 spyder/plugins/ipythonconsole.py:279
 #: spyder/widgets/projects/configdialog.py:81
 msgid "Interface"
 msgstr "インターフェイス"
@@ -1088,7 +1097,7 @@ msgstr "フォント"
 msgid "Appearance"
 msgstr "外見"
 
-#: spyder/plugins/configdialog.py:969 spyder/plugins/ipythonconsole.py:565
+#: spyder/plugins/configdialog.py:969 spyder/plugins/ipythonconsole.py:570
 msgid "Advanced Settings"
 msgstr "詳細設定"
 
@@ -1115,7 +1124,7 @@ msgid "Create new scheme"
 msgstr "新しいスキームを作成"
 
 #: spyder/plugins/configdialog.py:1025 spyder/widgets/explorer.py:512
-#: spyder/widgets/projects/explorer.py:242 spyder/widgets/shell.py:133
+#: spyder/widgets/projects/explorer.py:242 spyder/widgets/shell.py:137
 msgid "Delete"
 msgstr "削除"
 
@@ -1159,11 +1168,11 @@ msgstr "色スキームエディタ"
 msgid "Internal console"
 msgstr "内部コンソール"
 
-#: spyder/plugins/console.py:139 spyder/plugins/externalconsole.py:751
+#: spyder/plugins/console.py:139 spyder/plugins/externalconsole.py:759
 msgid "&Run..."
 msgstr "実行(&R)"
 
-#: spyder/plugins/console.py:141 spyder/plugins/externalconsole.py:752
+#: spyder/plugins/console.py:141 spyder/plugins/externalconsole.py:760
 msgid "Run a Python script"
 msgstr "Pythonスクリプトを実行"
 
@@ -1208,7 +1217,7 @@ msgid "Wrap lines"
 msgstr "行の折り返し"
 
 #: spyder/plugins/console.py:166 spyder/plugins/editor.py:174
-#: spyder/plugins/externalconsole.py:121 spyder/plugins/ipythonconsole.py:284
+#: spyder/plugins/externalconsole.py:121 spyder/plugins/ipythonconsole.py:289
 msgid "Display balloon tips"
 msgstr "バルーンチップを表示"
 
@@ -1226,12 +1235,12 @@ msgstr "Enterキーで補完候補を選択"
 msgid "Internal console settings"
 msgstr "内部コンソール設定"
 
-#: spyder/plugins/console.py:232 spyder/plugins/externalconsole.py:926
+#: spyder/plugins/console.py:232 spyder/plugins/externalconsole.py:934
 msgid "Run Python script"
 msgstr "Pythonスクリプトを実行"
 
 #: spyder/plugins/console.py:233 spyder/plugins/externalconsole.py:146
-#: spyder/plugins/externalconsole.py:927 spyder/widgets/explorer.py:727
+#: spyder/plugins/externalconsole.py:935 spyder/widgets/explorer.py:727
 msgid "Python scripts"
 msgstr "Pythonスクリプト"
 
@@ -1266,7 +1275,7 @@ msgstr "タブバーを表示"
 #: spyder/plugins/editor.py:117 spyder/plugins/editor.py:188
 #: spyder/plugins/externalconsole.py:71 spyder/plugins/externalconsole.py:114
 #: spyder/plugins/help.py:156 spyder/plugins/history.py:45
-#: spyder/plugins/ipythonconsole.py:318
+#: spyder/plugins/ipythonconsole.py:323
 msgid "Source code"
 msgstr "ソースコード"
 
@@ -1274,7 +1283,7 @@ msgstr "ソースコード"
 msgid "Show line numbers"
 msgstr "行番号を表示"
 
-#: spyder/plugins/editor.py:119 spyder/plugins/editor.py:963
+#: spyder/plugins/editor.py:119 spyder/plugins/editor.py:962
 msgid "Show blank spaces"
 msgstr "空白スペースを表示"
 
@@ -1499,7 +1508,7 @@ msgid "Fix automatically and show warning message box"
 msgstr "自動的に修正し、警告をメッセージボックスで表示する"
 
 #: spyder/plugins/editor.py:334 spyder/plugins/externalconsole.py:250
-#: spyder/plugins/ipythonconsole.py:559 spyder/plugins/variableexplorer.py:41
+#: spyder/plugins/ipythonconsole.py:564 spyder/plugins/variableexplorer.py:41
 msgid "Display"
 msgstr "表示"
 
@@ -1511,225 +1520,225 @@ msgstr "コード イントロスペクション/分析"
 msgid "Advanced settings"
 msgstr "詳細設定"
 
-#: spyder/plugins/editor.py:612 spyder/widgets/editortools.py:510
+#: spyder/plugins/editor.py:611 spyder/widgets/editortools.py:510
 msgid "Show/hide outline explorer"
 msgstr "アウトラインエクスプローラーの表示/隠す"
 
-#: spyder/plugins/editor.py:621
+#: spyder/plugins/editor.py:620
 msgid "&New file..."
 msgstr "新規ファイル(&N)..."
 
-#: spyder/plugins/editor.py:622 spyder/plugins/workingdirectory.py:83
+#: spyder/plugins/editor.py:621 spyder/plugins/workingdirectory.py:83
 #: spyder/widgets/explorer.py:704 spyder/widgets/explorer.py:711
 msgid "New file"
 msgstr "新規ファイル"
 
-#: spyder/plugins/editor.py:631
+#: spyder/plugins/editor.py:630
 #, fuzzy
 msgid "O&pen last closed"
 msgstr "新規コンソールを開く"
 
-#: spyder/plugins/editor.py:632
+#: spyder/plugins/editor.py:631
 #, fuzzy
 msgid "Open last closed"
 msgstr "新規コンソールを開く"
 
-#: spyder/plugins/editor.py:638
+#: spyder/plugins/editor.py:637
 msgid "&Open..."
 msgstr "開く(&O)..."
 
-#: spyder/plugins/editor.py:639 spyder/plugins/editor.py:1818
-#: spyder/plugins/workingdirectory.py:70
+#: spyder/plugins/editor.py:638 spyder/plugins/editor.py:1823
+#: spyder/plugins/editor.py:1829 spyder/plugins/workingdirectory.py:70
 msgid "Open file"
 msgstr "ファイルを開く"
 
-#: spyder/plugins/editor.py:645 spyder/widgets/editor.py:346
+#: spyder/plugins/editor.py:644 spyder/widgets/editor.py:346
 msgid "File switcher..."
 msgstr "ファイル切り替え..."
 
-#: spyder/plugins/editor.py:647
+#: spyder/plugins/editor.py:646
 msgid "Fast switch between files"
 msgstr "フィルを高速で切り替え"
 
-#: spyder/plugins/editor.py:653
+#: spyder/plugins/editor.py:652
 #, fuzzy
 msgid "Symbol finder..."
 msgstr "フォルダー..."
 
-#: spyder/plugins/editor.py:655
+#: spyder/plugins/editor.py:654
 msgid "Fast symbol search in file"
 msgstr ""
 
-#: spyder/plugins/editor.py:661
+#: spyder/plugins/editor.py:660
 msgid "&Revert"
 msgstr "復帰(&R)"
 
-#: spyder/plugins/editor.py:662
+#: spyder/plugins/editor.py:661
 msgid "Revert file from disk"
 msgstr "ディスクからファイルを復帰"
 
-#: spyder/plugins/editor.py:665
+#: spyder/plugins/editor.py:664
 msgid "&Save"
 msgstr "保存(&S)"
 
-#: spyder/plugins/editor.py:666 spyder/widgets/editor.py:1361
+#: spyder/plugins/editor.py:665 spyder/widgets/editor.py:1361
 msgid "Save file"
 msgstr "ファイルを保存"
 
-#: spyder/plugins/editor.py:672
+#: spyder/plugins/editor.py:671
 msgid "Sav&e all"
 msgstr "全て保存(&E)"
 
-#: spyder/plugins/editor.py:673
+#: spyder/plugins/editor.py:672
 msgid "Save all files"
 msgstr "すべてのファイルを保存"
 
-#: spyder/plugins/editor.py:679
+#: spyder/plugins/editor.py:678
 msgid "Save &as..."
 msgstr "形式を指定して保存(&A)"
 
-#: spyder/plugins/editor.py:680
+#: spyder/plugins/editor.py:679
 msgid "Save current file as..."
 msgstr "現在のファイルを形式を指定して保存..."
 
-#: spyder/plugins/editor.py:685 spyder/plugins/editor.py:686
+#: spyder/plugins/editor.py:684 spyder/plugins/editor.py:685
 msgid "Print preview..."
 msgstr "プレビューを表示..."
 
-#: spyder/plugins/editor.py:687
+#: spyder/plugins/editor.py:686
 msgid "&Print..."
 msgstr "印刷(&P)"
 
-#: spyder/plugins/editor.py:688
+#: spyder/plugins/editor.py:687
 msgid "Print current file..."
 msgstr "現在のファイルを印刷..."
 
-#: spyder/plugins/editor.py:691
+#: spyder/plugins/editor.py:690
 msgid "&Close"
 msgstr "閉じる(&C)"
 
-#: spyder/plugins/editor.py:692
+#: spyder/plugins/editor.py:691
 msgid "Close current file"
 msgstr "現在のファイルを閉じる"
 
-#: spyder/plugins/editor.py:695
+#: spyder/plugins/editor.py:694
 msgid "C&lose all"
 msgstr "すべて閉じる(&C)"
 
-#: spyder/plugins/editor.py:696
+#: spyder/plugins/editor.py:695
 msgid "Close all opened files"
 msgstr "開いているファイルを全て閉じる"
 
-#: spyder/plugins/editor.py:703
+#: spyder/plugins/editor.py:702
 msgid "&Find text"
 msgstr "テキストを検索(&F)"
 
-#: spyder/plugins/editor.py:709
+#: spyder/plugins/editor.py:708
 msgid "Find &next"
 msgstr "次を検索(&N)"
 
-#: spyder/plugins/editor.py:715
+#: spyder/plugins/editor.py:714
 msgid "Find &previous"
 msgstr "前を検索(&F)"
 
-#: spyder/plugins/editor.py:721
+#: spyder/plugins/editor.py:720
 msgid "&Replace text"
 msgstr "テキストを置換(&R)"
 
-#: spyder/plugins/editor.py:730
+#: spyder/plugins/editor.py:729
 msgid "Set/Clear breakpoint"
 msgstr "ブレークポイントのセット/クリア"
 
-#: spyder/plugins/editor.py:737
+#: spyder/plugins/editor.py:736
 msgid "Set/Edit conditional breakpoint"
 msgstr "条件付きブレークポイントをセット/編集"
 
-#: spyder/plugins/editor.py:744
+#: spyder/plugins/editor.py:743
 msgid "Clear breakpoints in all files"
 msgstr "全てのファイルのブレークポイントをクリア"
 
-#: spyder/plugins/editor.py:746
+#: spyder/plugins/editor.py:745
 msgid "Debug with winpdb"
 msgstr "winpdbでデバッグ"
 
-#: spyder/plugins/editor.py:753
+#: spyder/plugins/editor.py:752
 msgid "Debug file"
 msgstr "ファイルをデバッグ開始"
 
-#: spyder/plugins/editor.py:758
+#: spyder/plugins/editor.py:757
 msgid "Step"
 msgstr "Step"
 
-#: spyder/plugins/editor.py:759
+#: spyder/plugins/editor.py:758
 msgid "Run current line"
 msgstr "現在行を実行"
 
-#: spyder/plugins/editor.py:764
+#: spyder/plugins/editor.py:763
 msgid "Continue"
 msgstr "Continue"
 
-#: spyder/plugins/editor.py:766
+#: spyder/plugins/editor.py:765
 msgid "Continue execution until next breakpoint"
 msgstr "次のブレークポイントまで実行を続ける"
 
-#: spyder/plugins/editor.py:771
+#: spyder/plugins/editor.py:770
 msgid "Step Into"
 msgstr "Step Into"
 
-#: spyder/plugins/editor.py:773
+#: spyder/plugins/editor.py:772
 msgid "Step into function or method of current line"
 msgstr "現在行のメソッド/関数までStep inする"
 
-#: spyder/plugins/editor.py:778
+#: spyder/plugins/editor.py:777
 msgid "Step Return"
 msgstr "Step Return"
 
-#: spyder/plugins/editor.py:780
+#: spyder/plugins/editor.py:779
 msgid "Run until current function or method returns"
 msgstr "現在行のメソッド/関数までRunする"
 
-#: spyder/plugins/editor.py:785 spyder/widgets/findinfiles.py:333
-#: spyder/widgets/ipythonconsole/client.py:248
+#: spyder/plugins/editor.py:784 spyder/widgets/findinfiles.py:333
+#: spyder/widgets/ipythonconsole/client.py:260
 msgid "Stop"
 msgstr "停止"
 
-#: spyder/plugins/editor.py:786
+#: spyder/plugins/editor.py:785
 msgid "Stop debugging"
 msgstr ""
 
-#: spyder/plugins/editor.py:793
+#: spyder/plugins/editor.py:792
 msgid "Run file"
 msgstr "ファイルを実行"
 
-#: spyder/plugins/editor.py:798
+#: spyder/plugins/editor.py:797
 msgid "&Configure..."
 msgstr "設定(&C)..."
 
-#: spyder/plugins/editor.py:800 spyder/widgets/externalshell/pythonshell.py:304
+#: spyder/plugins/editor.py:799 spyder/widgets/externalshell/pythonshell.py:309
 msgid "Run settings"
 msgstr "設定の実行"
 
-#: spyder/plugins/editor.py:806
+#: spyder/plugins/editor.py:805
 msgid "Re-run &last script"
 msgstr "最後のスクリプトを再度実行する(&L)"
 
-#: spyder/plugins/editor.py:808
+#: spyder/plugins/editor.py:807
 msgid "Run again last file"
 msgstr "最後のファイルを再度実行する"
 
-#: spyder/plugins/editor.py:814 spyder/widgets/sourcecode/codeeditor.py:2608
+#: spyder/plugins/editor.py:813 spyder/widgets/sourcecode/codeeditor.py:2647
 msgid "Run &selection or current line"
 msgstr "選択範囲あるいは現在のカーソル行を実行(&S)"
 
-#: spyder/plugins/editor.py:817
+#: spyder/plugins/editor.py:816
 msgid "Run selection or current line"
 msgstr "選択範囲あるいは現在行を実行"
 
-#: spyder/plugins/editor.py:825 spyder/widgets/sourcecode/codeeditor.py:2600
+#: spyder/plugins/editor.py:824 spyder/widgets/sourcecode/codeeditor.py:2639
 msgid "Run cell"
 msgstr "cellを実行"
 
-#: spyder/plugins/editor.py:828
+#: spyder/plugins/editor.py:827
 msgid ""
 "Run current cell (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
@@ -1737,169 +1746,169 @@ msgstr ""
 "現在のセルを実行する (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
 
-#: spyder/plugins/editor.py:834 spyder/widgets/sourcecode/codeeditor.py:2604
+#: spyder/plugins/editor.py:833 spyder/widgets/sourcecode/codeeditor.py:2643
 msgid "Run cell and advance"
 msgstr "cellを実行し進む"
 
-#: spyder/plugins/editor.py:837
+#: spyder/plugins/editor.py:836
 msgid "Run current cell and go to the next one (Shift+Enter)"
 msgstr "現在のセルを実行し次のセルへ(Shift+Enter)"
 
-#: spyder/plugins/editor.py:844
+#: spyder/plugins/editor.py:843
 msgid "Show todo list"
 msgstr "TODOリストを表示"
 
-#: spyder/plugins/editor.py:845
+#: spyder/plugins/editor.py:844
 msgid "Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"
 msgstr "TODO/FIXME/XXX/HINT/TIP/@todo リストを表示"
 
-#: spyder/plugins/editor.py:852
+#: spyder/plugins/editor.py:851
 msgid "Show warning/error list"
 msgstr "警告/エラー リストを表示"
 
-#: spyder/plugins/editor.py:853
+#: spyder/plugins/editor.py:852
 msgid "Show code analysis warnings/errors"
 msgstr "コード分析の 警告/エラー を表示"
 
-#: spyder/plugins/editor.py:859
+#: spyder/plugins/editor.py:858
 msgid "Previous warning/error"
 msgstr "前の 警告/表示"
 
-#: spyder/plugins/editor.py:860
+#: spyder/plugins/editor.py:859
 msgid "Go to previous code analysis warning/error"
 msgstr "前のコード分析 警告/エラー へ移動"
 
-#: spyder/plugins/editor.py:863
+#: spyder/plugins/editor.py:862
 msgid "Next warning/error"
 msgstr "次の 警告/エラー"
 
-#: spyder/plugins/editor.py:864
+#: spyder/plugins/editor.py:863
 msgid "Go to next code analysis warning/error"
 msgstr "次のコード分析 警告/エラー へ移動"
 
-#: spyder/plugins/editor.py:868
+#: spyder/plugins/editor.py:867
 msgid "Last edit location"
 msgstr "最後に編集した箇所"
 
-#: spyder/plugins/editor.py:869
+#: spyder/plugins/editor.py:868
 msgid "Go to last edit location"
 msgstr "最後に編集した箇所へ移動"
 
-#: spyder/plugins/editor.py:877
+#: spyder/plugins/editor.py:876
 msgid "Previous cursor position"
 msgstr "前のカーソル位置"
 
-#: spyder/plugins/editor.py:878
+#: spyder/plugins/editor.py:877
 msgid "Go to previous cursor position"
 msgstr "前のカーソル位置へ移動"
 
-#: spyder/plugins/editor.py:886
+#: spyder/plugins/editor.py:885
 msgid "Next cursor position"
 msgstr "次のカーソル位置"
 
-#: spyder/plugins/editor.py:887
+#: spyder/plugins/editor.py:886
 msgid "Go to next cursor position"
 msgstr "次のカーソル位置へ移動"
 
-#: spyder/plugins/editor.py:897 spyder/widgets/sourcecode/codeeditor.py:2584
+#: spyder/plugins/editor.py:896 spyder/widgets/sourcecode/codeeditor.py:2623
 msgid "Comment"
 msgstr "コメント"
 
-#: spyder/plugins/editor.py:897 spyder/widgets/sourcecode/codeeditor.py:2584
+#: spyder/plugins/editor.py:896 spyder/widgets/sourcecode/codeeditor.py:2623
 msgid "Uncomment"
 msgstr "コメント解除"
 
-#: spyder/plugins/editor.py:898
+#: spyder/plugins/editor.py:897
 msgid "Comment current line or selection"
 msgstr "現在行あるいは選択範囲をコメントアウト"
 
-#: spyder/plugins/editor.py:902
+#: spyder/plugins/editor.py:901
 msgid "Add &block comment"
 msgstr "ブロックコメントを追加(&B)"
 
-#: spyder/plugins/editor.py:903
+#: spyder/plugins/editor.py:902
 msgid "Add block comment around current line or selection"
 msgstr "ブロックコメントを現在行あるいは選択範囲の周りに追加"
 
-#: spyder/plugins/editor.py:909
+#: spyder/plugins/editor.py:908
 msgid "R&emove block comment"
 msgstr "ブロックコメントを削除(&R)"
 
-#: spyder/plugins/editor.py:910
+#: spyder/plugins/editor.py:909
 msgid "Remove comment block around current line or selection"
 msgstr "現在行あるいは選択範囲の周りのブロックコメントを削除"
 
-#: spyder/plugins/editor.py:921
+#: spyder/plugins/editor.py:920
 msgid "Indent"
 msgstr "インデント"
 
-#: spyder/plugins/editor.py:922
+#: spyder/plugins/editor.py:921
 msgid "Indent current line or selection"
 msgstr "現在行あるいは選択範囲をインデント"
 
-#: spyder/plugins/editor.py:925
+#: spyder/plugins/editor.py:924
 msgid "Unindent"
 msgstr "インデント解除"
 
-#: spyder/plugins/editor.py:926
+#: spyder/plugins/editor.py:925
 msgid "Unindent current line or selection"
 msgstr "現在行あるいは選択範囲をインデント解除"
 
-#: spyder/plugins/editor.py:930
+#: spyder/plugins/editor.py:929
 msgid "Toggle Uppercase"
 msgstr ""
 
-#: spyder/plugins/editor.py:931
+#: spyder/plugins/editor.py:930
 #, fuzzy
 msgid "Change to uppercase current line or selection"
 msgstr "現在行あるいは選択範囲をインデント"
 
-#: spyder/plugins/editor.py:937
+#: spyder/plugins/editor.py:936
 msgid "Toggle Lowercase"
 msgstr ""
 
-#: spyder/plugins/editor.py:938
+#: spyder/plugins/editor.py:937
 #, fuzzy
 msgid "Change to lowercase current line or selection"
 msgstr "現在行あるいは選択範囲をインデント"
 
-#: spyder/plugins/editor.py:945
+#: spyder/plugins/editor.py:944
 msgid "Carriage return and line feed (Windows)"
 msgstr "CR+LF (Windows)"
 
-#: spyder/plugins/editor.py:948
+#: spyder/plugins/editor.py:947
 msgid "Line feed (UNIX)"
 msgstr "LF (UNIX)"
 
-#: spyder/plugins/editor.py:951
+#: spyder/plugins/editor.py:950
 msgid "Carriage return (Mac)"
 msgstr "CR (Mac)"
 
-#: spyder/plugins/editor.py:957
+#: spyder/plugins/editor.py:956
 msgid "Convert end-of-line characters"
 msgstr "改行コードを変換する"
 
-#: spyder/plugins/editor.py:961
+#: spyder/plugins/editor.py:960
 msgid "Remove trailing spaces"
 msgstr "無駄な後続スペースを削除"
 
-#: spyder/plugins/editor.py:965
+#: spyder/plugins/editor.py:964
 msgid "Fix indentation"
 msgstr "インデントを修正"
 
-#: spyder/plugins/editor.py:966
+#: spyder/plugins/editor.py:965
 msgid "Replace tab characters by space characters"
 msgstr "タブ文字を空白に置換"
 
-#: spyder/plugins/editor.py:969
+#: spyder/plugins/editor.py:968
 msgid "Go to line..."
 msgstr "行へ移動..."
 
-#: spyder/plugins/editor.py:977
+#: spyder/plugins/editor.py:976
 msgid "Set console working directory"
 msgstr "コンソールの作業ディレクトリをセット"
 
-#: spyder/plugins/editor.py:979
+#: spyder/plugins/editor.py:978
 msgid ""
 "Set current console (and file explorer) working directory to current script "
 "directory"
@@ -1907,39 +1916,39 @@ msgstr ""
 "コンソール(とファイルエクスプローラー)の作業ディレクトリを現在のスクリプトの"
 "ディレクトリにセット"
 
-#: spyder/plugins/editor.py:984
+#: spyder/plugins/editor.py:983
 msgid "Maximum number of recent files..."
 msgstr "「最近使用したファイル」の最大履歴数..."
 
-#: spyder/plugins/editor.py:987
+#: spyder/plugins/editor.py:986
 msgid "Clear recent files list"
 msgstr "最近使用したファイルのリストをクリア"
 
-#: spyder/plugins/editor.py:987 spyder/plugins/projects.py:100
+#: spyder/plugins/editor.py:986 spyder/plugins/projects.py:101
 msgid "Clear this list"
 msgstr "このリストをクリア"
 
-#: spyder/plugins/editor.py:991
+#: spyder/plugins/editor.py:990
 msgid "Open &recent"
 msgstr "最近使用したファイル(&R)"
 
-#: spyder/plugins/editor.py:1621
+#: spyder/plugins/editor.py:1624
 msgid "Spyder Editor"
 msgstr "Spyderエディタ"
 
-#: spyder/plugins/editor.py:1622
+#: spyder/plugins/editor.py:1625
 msgid "This is a temporary script file."
 msgstr "これは一時的なスクリプトファイルです"
 
-#: spyder/plugins/editor.py:1691
+#: spyder/plugins/editor.py:1694
 msgid "untitled"
 msgstr "タイトル無し"
 
-#: spyder/plugins/editor.py:1770
+#: spyder/plugins/editor.py:1773
 msgid "Maximum number of recent files"
 msgstr "「最近使用したファイル」の最大履歴数"
 
-#: spyder/plugins/editor.py:1903
+#: spyder/plugins/editor.py:1914
 msgid "Printing..."
 msgstr "印刷中..."
 
@@ -1951,7 +1960,7 @@ msgstr "ファイルエクスプローラー"
 msgid "Interactive data plotting in the consoles"
 msgstr "コンソールでの対話的データプロット"
 
-#: spyder/plugins/externalconsole.py:54 spyder/plugins/externalconsole.py:725
+#: spyder/plugins/externalconsole.py:54 spyder/plugins/externalconsole.py:733
 #, fuzzy
 msgid "Python console"
 msgstr "IPythonコンソール"
@@ -1973,7 +1982,7 @@ msgstr "アイコンとテキストを表示"
 msgid "Buffer: "
 msgstr "バッファー:"
 
-#: spyder/plugins/externalconsole.py:73 spyder/plugins/ipythonconsole.py:320
+#: spyder/plugins/externalconsole.py:73 spyder/plugins/ipythonconsole.py:325
 msgid " lines"
 msgstr "行"
 
@@ -2003,9 +2012,9 @@ msgstr ""
 "出力チャンネルがマージされた場合、これは標準エラーチャンネルを\n"
 "色分けする唯一の方法となります。"
 
-#: spyder/plugins/externalconsole.py:102 spyder/plugins/ipythonconsole.py:307
+#: spyder/plugins/externalconsole.py:102 spyder/plugins/ipythonconsole.py:312
 #: spyder/widgets/variableexplorer/arrayeditor.py:541
-#: spyder/widgets/variableexplorer/dataframeeditor.py:688
+#: spyder/widgets/variableexplorer/dataframeeditor.py:696
 msgid "Background color"
 msgstr "背景色"
 
@@ -2075,7 +2084,7 @@ msgid ""
 "This option will act on<br> libraries such as Matplotlib, guidata or ETS"
 msgstr "このオプションは<br>Matplotlib、guidata、ETS等のライブラリで機能します"
 
-#: spyder/plugins/externalconsole.py:198 spyder/plugins/ipythonconsole.py:561
+#: spyder/plugins/externalconsole.py:198 spyder/plugins/ipythonconsole.py:566
 msgid "Graphics"
 msgstr "グラフィックス"
 
@@ -2095,15 +2104,15 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: spyder/plugins/externalconsole.py:208 spyder/plugins/ipythonconsole.py:352
+#: spyder/plugins/externalconsole.py:208 spyder/plugins/ipythonconsole.py:357
 msgid "Automatic"
 msgstr "自動"
 
-#: spyder/plugins/externalconsole.py:213 spyder/plugins/ipythonconsole.py:374
+#: spyder/plugins/externalconsole.py:213 spyder/plugins/ipythonconsole.py:379
 msgid "Backend:"
 msgstr "バックエンド:"
 
-#: spyder/plugins/externalconsole.py:215 spyder/plugins/ipythonconsole.py:376
+#: spyder/plugins/externalconsole.py:215 spyder/plugins/ipythonconsole.py:381
 msgid "This option will be applied the next time a console is opened."
 msgstr "このオプションは次にコンソールを開いた時に適用されます"
 
@@ -2134,7 +2143,7 @@ msgstr ""
 "実行対象として選ばれているPythonコンソールがありません: <b>%s</b>。<br><br>選"
 "択するか新規Pythonコンソールを開いて再試行してください。"
 
-#: spyder/plugins/externalconsole.py:519
+#: spyder/plugins/externalconsole.py:520 spyder/plugins/externalconsole.py:527
 msgid ""
 "%s is already running in a separate process.\n"
 "Do you want to kill the process before starting a new one?"
@@ -2142,35 +2151,35 @@ msgstr ""
 "%s は既に別プロセスで実行されています。\n"
 "新しいプロセスを開始する前にそのプロセスを殺しますか?"
 
-#: spyder/plugins/externalconsole.py:651
+#: spyder/plugins/externalconsole.py:659
 msgid "Command Window"
 msgstr "コマンドウインドウ"
 
-#: spyder/plugins/externalconsole.py:653 spyder/plugins/ipythonconsole.py:298
+#: spyder/plugins/externalconsole.py:661 spyder/plugins/ipythonconsole.py:303
 msgid "Terminal"
 msgstr "ターミナル"
 
-#: spyder/plugins/externalconsole.py:739
+#: spyder/plugins/externalconsole.py:747
 msgid "Open a &Python console"
 msgstr "Pythonコンソールを開く(&O)"
 
-#: spyder/plugins/externalconsole.py:743
+#: spyder/plugins/externalconsole.py:751
 msgid "Open &command prompt"
 msgstr "コマンドプロンプトを開く(&C)"
 
-#: spyder/plugins/externalconsole.py:744
+#: spyder/plugins/externalconsole.py:752
 msgid "Open a Windows command prompt"
 msgstr "Windowsコマンドプロンプトを開く"
 
-#: spyder/plugins/externalconsole.py:746
+#: spyder/plugins/externalconsole.py:754
 msgid "Open a &terminal"
 msgstr "ターミナルを開く(&T)"
 
-#: spyder/plugins/externalconsole.py:747
+#: spyder/plugins/externalconsole.py:755
 msgid "Open a terminal window"
 msgstr "ターミナルウインドウを開く"
 
-#: spyder/plugins/findinfiles.py:127 spyder/widgets/findinfiles.py:689
+#: spyder/plugins/findinfiles.py:127 spyder/widgets/findinfiles.py:686
 msgid "Find in files"
 msgstr "ファイルの検索"
 
@@ -2246,7 +2255,7 @@ msgstr "ソース"
 
 #: spyder/plugins/help.py:385 spyder/plugins/runconfig.py:196
 #: spyder/plugins/runconfig.py:468 spyder/widgets/externalshell/baseshell.py:94
-#: spyder/widgets/ipythonconsole/client.py:221
+#: spyder/widgets/ipythonconsole/client.py:233
 msgid "Console"
 msgstr "コンソール"
 
@@ -2273,7 +2282,7 @@ msgstr "自動インポート"
 #: spyder/plugins/help.py:437 spyder/plugins/history.py:106
 #: spyder/widgets/editor.py:533 spyder/widgets/explorer.py:1105
 #: spyder/widgets/externalshell/baseshell.py:140
-#: spyder/widgets/ipythonconsole/client.py:261
+#: spyder/widgets/ipythonconsole/client.py:273
 #: spyder/widgets/variableexplorer/namespacebrowser.py:171
 msgid "Options"
 msgstr "オプション"
@@ -2391,7 +2400,7 @@ msgstr "Tunnel '%s' は開始できませんでした"
 msgid "Could not connect to remote host"
 msgstr "リモートホストへ接続できませんでした"
 
-#: spyder/plugins/ipythonconsole.py:158 spyder/plugins/ipythonconsole.py:750
+#: spyder/plugins/ipythonconsole.py:158 spyder/plugins/ipythonconsole.py:765
 msgid "Connect to an existing kernel"
 msgstr "既存のカーネルに接続"
 
@@ -2455,15 +2464,15 @@ msgstr "IPython接続ファイルを開く"
 msgid "Select ssh key"
 msgstr "sshキーを選択"
 
-#: spyder/plugins/ipythonconsole.py:268 spyder/plugins/ipythonconsole.py:687
+#: spyder/plugins/ipythonconsole.py:273 spyder/plugins/ipythonconsole.py:701
 msgid "IPython console"
 msgstr "IPythonコンソール"
 
-#: spyder/plugins/ipythonconsole.py:275
+#: spyder/plugins/ipythonconsole.py:280
 msgid "Display initial banner"
 msgstr "初期バナーの表示"
 
-#: spyder/plugins/ipythonconsole.py:276
+#: spyder/plugins/ipythonconsole.py:281
 msgid ""
 "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
@@ -2471,11 +2480,11 @@ msgstr ""
 "このオプションによりコンソールを開いた時に表示される\n"
 "一番上のメッセージを隠すことができます。"
 
-#: spyder/plugins/ipythonconsole.py:278
+#: spyder/plugins/ipythonconsole.py:283
 msgid "Use a pager to display additional text inside the console"
 msgstr "コンソール内で追加テキストを表示するためにページャーを使用"
 
-#: spyder/plugins/ipythonconsole.py:280
+#: spyder/plugins/ipythonconsole.py:285
 msgid ""
 "Useful if you don't want to fill the console with long help or completion "
 "texts.\n"
@@ -2484,45 +2493,45 @@ msgstr ""
 "補完テキストや長いヘルプでコンソールを埋めたくない場合有効です。\n"
 "注: このページャーから出るには Qキーを押してください。"
 
-#: spyder/plugins/ipythonconsole.py:285
+#: spyder/plugins/ipythonconsole.py:290
 msgid "Ask for confirmation before closing"
 msgstr "閉じる前に確認するようにする"
 
-#: spyder/plugins/ipythonconsole.py:295
+#: spyder/plugins/ipythonconsole.py:300
 msgid "Completion Type"
 msgstr "補完タイプ"
 
-#: spyder/plugins/ipythonconsole.py:296
+#: spyder/plugins/ipythonconsole.py:301
 msgid "Decide what type of completion to use"
 msgstr "どのタイプの補完を使うか選択"
 
-#: spyder/plugins/ipythonconsole.py:298
+#: spyder/plugins/ipythonconsole.py:303
 #, fuzzy
 msgid "Graphical"
 msgstr "グラフィックス"
 
-#: spyder/plugins/ipythonconsole.py:298
+#: spyder/plugins/ipythonconsole.py:303
 #, fuzzy
 msgid "Plain"
 msgstr "プレーンテキスト"
 
-#: spyder/plugins/ipythonconsole.py:299
+#: spyder/plugins/ipythonconsole.py:304
 msgid "Completion:"
 msgstr "補完:"
 
-#: spyder/plugins/ipythonconsole.py:308
+#: spyder/plugins/ipythonconsole.py:313
 msgid "Light background"
 msgstr "明るい背景"
 
-#: spyder/plugins/ipythonconsole.py:310
+#: spyder/plugins/ipythonconsole.py:315
 msgid "Dark background"
 msgstr "暗い背景"
 
-#: spyder/plugins/ipythonconsole.py:320
+#: spyder/plugins/ipythonconsole.py:325
 msgid "Buffer:  "
 msgstr "バッファー:"
 
-#: spyder/plugins/ipythonconsole.py:322
+#: spyder/plugins/ipythonconsole.py:327
 msgid ""
 "Set the maximum number of lines of text shown in the\n"
 "console before truncation. Specifying -1 disables it\n"
@@ -2532,19 +2541,19 @@ msgstr ""
 "-1 を設定すると無効になります\n"
 "(非推奨です!)"
 
-#: spyder/plugins/ipythonconsole.py:331
+#: spyder/plugins/ipythonconsole.py:336
 msgid "Support for graphics (Matplotlib)"
 msgstr "画像のサポート(Matplotlib)"
 
-#: spyder/plugins/ipythonconsole.py:332
+#: spyder/plugins/ipythonconsole.py:337
 msgid "Activate support"
 msgstr "サポートを有効化"
 
-#: spyder/plugins/ipythonconsole.py:333
+#: spyder/plugins/ipythonconsole.py:338
 msgid "Automatically load Pylab and NumPy modules"
 msgstr "Pylab, NumPyモジュールを自動的にロード"
 
-#: spyder/plugins/ipythonconsole.py:336
+#: spyder/plugins/ipythonconsole.py:341
 msgid ""
 "This lets you load graphics support without importing \n"
 "the commands to do plots. Useful to work with other\n"
@@ -2556,15 +2565,15 @@ msgstr ""
 "している場合や、SpyderでGUIを開発している場合、\n"
 "有用です。"
 
-#: spyder/plugins/ipythonconsole.py:351
+#: spyder/plugins/ipythonconsole.py:356
 msgid "Inline"
 msgstr "インライン"
 
-#: spyder/plugins/ipythonconsole.py:353
+#: spyder/plugins/ipythonconsole.py:358
 msgid "Graphics backend"
 msgstr "グラフィックスのバックエンド"
 
-#: spyder/plugins/ipythonconsole.py:354
+#: spyder/plugins/ipythonconsole.py:359
 msgid ""
 "Decide how graphics are going to be displayed in the console. If unsure, "
 "please select <b>%s</b> to put graphics inside the console or <b>%s</b> to "
@@ -2574,51 +2583,51 @@ msgstr ""
 "コンソール内で画像を表示したい場合 <b>%s</b> を選び、別ウィンドウで(ズーム、"
 "パン等)操作したい場合は <b>%s</b> を選んでください。"
 
-#: spyder/plugins/ipythonconsole.py:387
+#: spyder/plugins/ipythonconsole.py:392
 msgid "Inline backend"
 msgstr "インラインのバックエンド"
 
-#: spyder/plugins/ipythonconsole.py:388
+#: spyder/plugins/ipythonconsole.py:393
 msgid "Decide how to render the figures created by this backend"
 msgstr "このバックエンドで生成された画像をどのように描画するか選択"
 
-#: spyder/plugins/ipythonconsole.py:392
+#: spyder/plugins/ipythonconsole.py:397
 msgid "Format:"
 msgstr "フォーマット:"
 
-#: spyder/plugins/ipythonconsole.py:395
+#: spyder/plugins/ipythonconsole.py:400
 msgid "Resolution:"
 msgstr "解像度:"
 
-#: spyder/plugins/ipythonconsole.py:395
+#: spyder/plugins/ipythonconsole.py:400
 msgid "dpi"
 msgstr "dpi"
 
-#: spyder/plugins/ipythonconsole.py:397
+#: spyder/plugins/ipythonconsole.py:402
 msgid "Only used when the format is PNG. Default is 72"
 msgstr "PNGフォーマットの場合のみ使われます。デフォルトは72"
 
-#: spyder/plugins/ipythonconsole.py:400
+#: spyder/plugins/ipythonconsole.py:405
 msgid "Width:"
 msgstr "幅:"
 
-#: spyder/plugins/ipythonconsole.py:400 spyder/plugins/ipythonconsole.py:404
+#: spyder/plugins/ipythonconsole.py:405 spyder/plugins/ipythonconsole.py:409
 msgid "inches"
 msgstr "インチ"
 
-#: spyder/plugins/ipythonconsole.py:402
+#: spyder/plugins/ipythonconsole.py:407
 msgid "Default is 6"
 msgstr "デフォルトは6です"
 
-#: spyder/plugins/ipythonconsole.py:404
+#: spyder/plugins/ipythonconsole.py:409
 msgid "Height:"
 msgstr "高さ:"
 
-#: spyder/plugins/ipythonconsole.py:406
+#: spyder/plugins/ipythonconsole.py:411
 msgid "Default is 4"
 msgstr "デフォルトは4です"
 
-#: spyder/plugins/ipythonconsole.py:433
+#: spyder/plugins/ipythonconsole.py:438
 msgid ""
 "You can run several lines of code when a console is started. Please "
 "introduce each one separated by commas, for example:<br><i>import os, import "
@@ -2627,15 +2636,15 @@ msgstr ""
 "コンソールを開始した時にコードを実行できます。それぞれをコンマで区切ってくだ"
 "さい。例:<br><i>import os, import sys</i>"
 
-#: spyder/plugins/ipythonconsole.py:439
+#: spyder/plugins/ipythonconsole.py:444
 msgid "Lines:"
 msgstr "行:"
 
-#: spyder/plugins/ipythonconsole.py:448
+#: spyder/plugins/ipythonconsole.py:453
 msgid "Run a file"
 msgstr "ファイルを実行"
 
-#: spyder/plugins/ipythonconsole.py:449
+#: spyder/plugins/ipythonconsole.py:454
 msgid ""
 "You can also run a whole file at startup instead of just some lines (This is "
 "similar to have a PYTHONSTARTUP file)."
@@ -2643,15 +2652,15 @@ msgstr ""
 "行の一部だけではなくファイル全体をスタート時に実行できます(PYTHONSTARTUPファ"
 "イルと類似)"
 
-#: spyder/plugins/ipythonconsole.py:453
+#: spyder/plugins/ipythonconsole.py:458
 msgid "Use the following file:"
 msgstr "以下のファイルを使う:"
 
-#: spyder/plugins/ipythonconsole.py:467
+#: spyder/plugins/ipythonconsole.py:472
 msgid "Greedy completion"
 msgstr "Greedy completion"
 
-#: spyder/plugins/ipythonconsole.py:468
+#: spyder/plugins/ipythonconsole.py:473
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable.<br>For example, you "
@@ -2662,15 +2671,15 @@ msgstr ""
 "を有効にする。<br>例えば <tt>li[0].&lt;Tab&gt;</tt> や <tt>ins.meth().&lt;"
 "Tab&gt;</tt> のように補完できる"
 
-#: spyder/plugins/ipythonconsole.py:476
+#: spyder/plugins/ipythonconsole.py:481
 msgid "Use the greedy completer"
 msgstr "greedy completerを利用する"
 
-#: spyder/plugins/ipythonconsole.py:487
+#: spyder/plugins/ipythonconsole.py:492
 msgid "Autocall"
 msgstr "Autocall"
 
-#: spyder/plugins/ipythonconsole.py:488
+#: spyder/plugins/ipythonconsole.py:493
 msgid ""
 "Autocall makes IPython automatically call any callable object even if you "
 "didn't type explicit parentheses.<br>For example, if you type <i>str 43</i> "
@@ -2680,23 +2689,23 @@ msgstr ""
 "Autocallによって自動的に呼ぶ。 <br>例えば、<i>str 43</i> と入力すると自動的"
 "に <i>str(43)</i> となる。"
 
-#: spyder/plugins/ipythonconsole.py:495
+#: spyder/plugins/ipythonconsole.py:500
 msgid "Smart"
 msgstr "Smart"
 
-#: spyder/plugins/ipythonconsole.py:496
+#: spyder/plugins/ipythonconsole.py:501
 msgid "Full"
 msgstr "Full"
 
-#: spyder/plugins/ipythonconsole.py:497
+#: spyder/plugins/ipythonconsole.py:502
 msgid "Off"
 msgstr "オフPff"
 
-#: spyder/plugins/ipythonconsole.py:499
+#: spyder/plugins/ipythonconsole.py:504
 msgid "Autocall:  "
 msgstr "Autocall:"
 
-#: spyder/plugins/ipythonconsole.py:500
+#: spyder/plugins/ipythonconsole.py:505
 msgid ""
 "On <b>%s</b> mode, Autocall is not applied if there are no arguments after "
 "the callable. On <b>%s</b> mode, all callable objects are automatically "
@@ -2706,11 +2715,11 @@ msgstr ""
 "されません。 <b>%s</b> モードでは、(引数がない場合でも)全ての呼び出し可能オブ"
 "ジェクトが自動的に呼ばれます。"
 
-#: spyder/plugins/ipythonconsole.py:512
+#: spyder/plugins/ipythonconsole.py:517
 msgid "Symbolic Mathematics"
 msgstr "記号数学"
 
-#: spyder/plugins/ipythonconsole.py:513
+#: spyder/plugins/ipythonconsole.py:518
 #, fuzzy
 msgid ""
 "Perfom symbolic operations in the console (e.g. integrals, derivatives, "
@@ -2720,11 +2729,11 @@ msgstr ""
 "記号演算をコンソール内で実行し(例:積分、微分、ベクトル演算等)、整えられた印刷"
 "可能スタイルで出力する。"
 
-#: spyder/plugins/ipythonconsole.py:518
+#: spyder/plugins/ipythonconsole.py:523
 msgid "Use symbolic math"
 msgstr "記号演算を使う"
 
-#: spyder/plugins/ipythonconsole.py:519
+#: spyder/plugins/ipythonconsole.py:524
 msgid ""
 "This option loads the Sympy library to work with.<br>Please refer to its "
 "documentation to learn how to use it."
@@ -2732,51 +2741,51 @@ msgstr ""
 "このオプションはSympyライブラリをロードします。<br>Sympyドキュメントを参照"
 "し、使用方法を学んでください。"
 
-#: spyder/plugins/ipythonconsole.py:529
+#: spyder/plugins/ipythonconsole.py:534
 msgid "Prompts"
 msgstr "プロンプト"
 
-#: spyder/plugins/ipythonconsole.py:530
+#: spyder/plugins/ipythonconsole.py:535
 msgid "Modify how Input and Output prompts are shown in the console."
 msgstr "プロンプトの入力と出力のコンソール内での表示を変更する。"
 
-#: spyder/plugins/ipythonconsole.py:533
+#: spyder/plugins/ipythonconsole.py:538
 msgid "Input prompt:"
 msgstr "入力プロンプト:"
 
-#: spyder/plugins/ipythonconsole.py:535
+#: spyder/plugins/ipythonconsole.py:540
 msgid ""
 "Default is<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr ""
 "デフォルトは<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
-#: spyder/plugins/ipythonconsole.py:539
+#: spyder/plugins/ipythonconsole.py:544
 msgid "Output prompt:"
 msgstr "出力プロンプト:"
 
-#: spyder/plugins/ipythonconsole.py:541
+#: spyder/plugins/ipythonconsole.py:546
 msgid ""
 "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr ""
 "デフォルトは<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
-#: spyder/plugins/ipythonconsole.py:563 spyder/plugins/workingdirectory.py:45
+#: spyder/plugins/ipythonconsole.py:568 spyder/plugins/workingdirectory.py:45
 msgid "Startup"
 msgstr "スタートアップ"
 
-#: spyder/plugins/ipythonconsole.py:735
+#: spyder/plugins/ipythonconsole.py:750
 msgid "Open an &IPython console"
 msgstr "IPythonコンソールを開く(&I)"
 
-#: spyder/plugins/ipythonconsole.py:742
+#: spyder/plugins/ipythonconsole.py:757
 msgid "Restart kernel"
 msgstr "カーネルの再起動"
 
-#: spyder/plugins/ipythonconsole.py:751
+#: spyder/plugins/ipythonconsole.py:766
 msgid "Open a new IPython console connected to an existing kernel"
 msgstr "既存カーネルに接続された新規IPythonコンソールを開く"
 
-#: spyder/plugins/ipythonconsole.py:841
+#: spyder/plugins/ipythonconsole.py:857
 msgid ""
 "No IPython console is currently available to run <b>%s</b>.<br><br>Please "
 "open a new one and try again."
@@ -2784,13 +2793,13 @@ msgstr ""
 "現在<b>%s</b>実行可能なIPythonコンソールがありません。.<br><br>新規に開いて再"
 "試行してください。"
 
-#: spyder/plugins/ipythonconsole.py:883
+#: spyder/plugins/ipythonconsole.py:899
 msgid ""
 "The directory {} is not writable and it is required to create IPython "
 "consoles. Please make it writable."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole.py:896
+#: spyder/plugins/ipythonconsole.py:912
 msgid ""
 "Your Python environment or installation doesn't have the <tt>ipykernel</tt> "
 "module installed on it. Without this module is not possible for Spyder to "
@@ -2799,18 +2808,18 @@ msgid ""
 "tt><br><br>or<br><br><tt>conda install ipykernel</tt>"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole.py:1123
+#: spyder/plugins/ipythonconsole.py:1139
 #, fuzzy
 msgid "Do you want to close this console?"
 msgstr "本当にこのスキームを削除しますか？"
 
-#: spyder/plugins/ipythonconsole.py:1129
+#: spyder/plugins/ipythonconsole.py:1145
 msgid ""
 "Do you want to close all other consoles connected to the same kernel as this "
 "one?"
 msgstr "同じカーネルに接続している他の全てのコンソールを閉じますか？"
 
-#: spyder/plugins/ipythonconsole.py:1187
+#: spyder/plugins/ipythonconsole.py:1203
 #, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
@@ -2819,20 +2828,20 @@ msgstr ""
 "notebookが変換できませんでした。エラー:\n"
 "\n"
 
-#: spyder/plugins/ipythonconsole.py:1426
+#: spyder/plugins/ipythonconsole.py:1449
 msgid "IPython"
 msgstr "IPython"
 
-#: spyder/plugins/ipythonconsole.py:1427
+#: spyder/plugins/ipythonconsole.py:1450
 #, fuzzy
 msgid "Unable to connect to <b>%s</b>"
 msgstr "IPythonに接続できませんでした。 <b>%s"
 
-#: spyder/plugins/ipythonconsole.py:1487
+#: spyder/plugins/ipythonconsole.py:1510
 msgid "Connection error"
 msgstr "接続エラー"
 
-#: spyder/plugins/ipythonconsole.py:1488
+#: spyder/plugins/ipythonconsole.py:1511
 msgid ""
 "Could not open ssh tunnel. The error was:\n"
 "\n"
@@ -2989,46 +2998,46 @@ msgstr "オンラインヘルプ"
 msgid "Outline"
 msgstr "アウトライン"
 
-#: spyder/plugins/projects.py:76 spyder/widgets/projects/explorer.py:112
+#: spyder/plugins/projects.py:77 spyder/widgets/projects/explorer.py:112
 #: spyder/widgets/projects/explorer.py:126
 msgid "Project explorer"
 msgstr "プロジェクトエクスプローラー"
 
-#: spyder/plugins/projects.py:88
+#: spyder/plugins/projects.py:89
 #, fuzzy
 msgid "New Project..."
 msgstr "新規プロジェクト..."
 
-#: spyder/plugins/projects.py:91
+#: spyder/plugins/projects.py:92
 #, fuzzy
 msgid "Open Project..."
 msgstr "プロジェクトを開く"
 
-#: spyder/plugins/projects.py:94
+#: spyder/plugins/projects.py:95
 #, fuzzy
 msgid "Close Project"
 msgstr "プロジェクトを閉じる"
 
-#: spyder/plugins/projects.py:97
+#: spyder/plugins/projects.py:98
 #, fuzzy
 msgid "Delete Project"
 msgstr "関係するプロジェクト"
 
-#: spyder/plugins/projects.py:103
+#: spyder/plugins/projects.py:104
 #, fuzzy
 msgid "Project Preferences"
 msgstr "設定"
 
-#: spyder/plugins/projects.py:105
+#: spyder/plugins/projects.py:106
 #, fuzzy
 msgid "Recent Projects"
 msgstr "関係するプロジェクト"
 
-#: spyder/plugins/projects.py:240
+#: spyder/plugins/projects.py:243
 msgid "Open project"
 msgstr "プロジェクトを開く"
 
-#: spyder/plugins/projects.py:245
+#: spyder/plugins/projects.py:248
 #, fuzzy
 msgid "<b>%s</b> is not a Spyder project!"
 msgstr "存在するSpyderプロジェクト"
@@ -3397,64 +3406,64 @@ msgstr ""
 msgid "Editor's code completion, go-to-definition and help"
 msgstr "エディタのコード補完、go-to-definition及びヘルプ"
 
-#: spyder/utils/iofuncs.py:408
+#: spyder/utils/iofuncs.py:413
 msgid "Supported files"
 msgstr "サポートされているファイル"
 
-#: spyder/utils/iofuncs.py:410
+#: spyder/utils/iofuncs.py:415
 msgid "All files (*.*)"
 msgstr "すべてのファイル (*.*)"
 
-#: spyder/utils/iofuncs.py:420
+#: spyder/utils/iofuncs.py:425
 msgid "Spyder data files"
 msgstr "Spyderデータファイル"
 
-#: spyder/utils/iofuncs.py:422
+#: spyder/utils/iofuncs.py:427
 #: spyder/widgets/variableexplorer/collectionseditor.py:1057
 msgid "NumPy arrays"
 msgstr "NumPy配列"
 
-#: spyder/utils/iofuncs.py:423
+#: spyder/utils/iofuncs.py:428
 msgid "NumPy zip arrays"
 msgstr "NumPy zip配列"
 
-#: spyder/utils/iofuncs.py:424
+#: spyder/utils/iofuncs.py:429
 msgid "Matlab files"
 msgstr "Matlabファイル"
 
-#: spyder/utils/iofuncs.py:425
+#: spyder/utils/iofuncs.py:430
 msgid "CSV text files"
 msgstr "CSVテキストファイル"
 
-#: spyder/utils/iofuncs.py:427
+#: spyder/utils/iofuncs.py:432
 msgid "JPEG images"
 msgstr "JPEG画像"
 
-#: spyder/utils/iofuncs.py:428
+#: spyder/utils/iofuncs.py:433
 msgid "PNG images"
 msgstr "PNG画像"
 
-#: spyder/utils/iofuncs.py:429
+#: spyder/utils/iofuncs.py:434
 msgid "GIF images"
 msgstr "GIF画像"
 
-#: spyder/utils/iofuncs.py:430
+#: spyder/utils/iofuncs.py:435
 msgid "TIFF images"
 msgstr "TIFF画像"
 
-#: spyder/utils/iofuncs.py:431 spyder/utils/iofuncs.py:432
+#: spyder/utils/iofuncs.py:436 spyder/utils/iofuncs.py:437
 msgid "Pickle files"
 msgstr "Pickleファイル"
 
-#: spyder/utils/iofuncs.py:433
+#: spyder/utils/iofuncs.py:438
 msgid "JSON files"
 msgstr "JSONファイル"
 
-#: spyder/utils/iofuncs.py:452 spyder/utils/iofuncs.py:459
+#: spyder/utils/iofuncs.py:457 spyder/utils/iofuncs.py:464
 msgid "<b>Unsupported file type '%s'</b>"
 msgstr "<b>非サポートファイルタイプ '%s'</b>"
 
-#: spyder/utils/programs.py:286
+#: spyder/utils/programs.py:287
 msgid "It was not possible to run this file in an external terminal"
 msgstr "このファイルを外部ターミナルで実行できませんでした"
 
@@ -3579,11 +3588,11 @@ msgstr ""
 msgid "Array dimensions not valid"
 msgstr "配列の次元が不正"
 
-#: spyder/widgets/browser.py:54 spyder/widgets/sourcecode/codeeditor.py:2619
+#: spyder/widgets/browser.py:54 spyder/widgets/sourcecode/codeeditor.py:2658
 msgid "Zoom out"
 msgstr "ズームアウト"
 
-#: spyder/widgets/browser.py:57 spyder/widgets/sourcecode/codeeditor.py:2615
+#: spyder/widgets/browser.py:57 spyder/widgets/sourcecode/codeeditor.py:2654
 msgid "Zoom in"
 msgstr "ズームイン"
 
@@ -3843,7 +3852,7 @@ msgstr "リネーム..."
 msgid "Open"
 msgstr "開く"
 
-#: spyder/widgets/explorer.py:285 spyder/widgets/sourcecode/codeeditor.py:2591
+#: spyder/widgets/explorer.py:285 spyder/widgets/sourcecode/codeeditor.py:2630
 msgid "Convert to Python script"
 msgstr "Pythonスクリプトへ変換"
 
@@ -3905,11 +3914,11 @@ msgid ""
 "project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
 msgstr ""
 
-#: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2078
+#: spyder/widgets/explorer.py:566 spyder/widgets/sourcecode/codeeditor.py:2109
 msgid "Conversion error"
 msgstr "変換エラー"
 
-#: spyder/widgets/explorer.py:567 spyder/widgets/sourcecode/codeeditor.py:2079
+#: spyder/widgets/explorer.py:567 spyder/widgets/sourcecode/codeeditor.py:2110
 msgid ""
 "It was not possible to convert this notebook. The error is:\n"
 "\n"
@@ -4023,7 +4032,7 @@ msgid "Terminated."
 msgstr "終了。"
 
 #: spyder/widgets/externalshell/baseshell.py:238
-#: spyder/widgets/ipythonconsole/help.py:125 spyder/widgets/mixins.py:679
+#: spyder/widgets/ipythonconsole/help.py:125 spyder/widgets/mixins.py:682
 msgid "Arguments"
 msgstr "引数"
 
@@ -4031,19 +4040,26 @@ msgstr "引数"
 msgid "Command line arguments:"
 msgstr "コマンドライン引数:"
 
-#: spyder/widgets/externalshell/pythonshell.py:277
+#: spyder/widgets/externalshell/pythonshell.py:45
+msgid ""
+"NOTE: The Python console is going to be REMOVED in Spyder 3.2. Please start "
+"to migrate your work to the IPython console instead.\n"
+"\n"
+msgstr ""
+
+#: spyder/widgets/externalshell/pythonshell.py:282
 msgid "Variables"
 msgstr "変数"
 
-#: spyder/widgets/externalshell/pythonshell.py:278
+#: spyder/widgets/externalshell/pythonshell.py:283
 msgid "Show/hide global variables explorer"
 msgstr "変数エクスプローラの表示/隠す"
 
-#: spyder/widgets/externalshell/pythonshell.py:282
+#: spyder/widgets/externalshell/pythonshell.py:287
 msgid "Terminate"
 msgstr "終了"
 
-#: spyder/widgets/externalshell/pythonshell.py:283
+#: spyder/widgets/externalshell/pythonshell.py:288
 msgid ""
 "Attempts to stop the process. The process\n"
 "may not exit as a result of clicking this\n"
@@ -4055,48 +4071,48 @@ msgstr ""
 "しません。(未保存のファイルの扱いを\n"
 "尋ねる,etc)"
 
-#: spyder/widgets/externalshell/pythonshell.py:296
+#: spyder/widgets/externalshell/pythonshell.py:301
 msgid "Interact"
 msgstr "相互作用"
 
-#: spyder/widgets/externalshell/pythonshell.py:298
+#: spyder/widgets/externalshell/pythonshell.py:303
 msgid "Debug"
 msgstr "デバッグ"
 
-#: spyder/widgets/externalshell/pythonshell.py:300
-#: spyder/widgets/externalshell/pythonshell.py:366
+#: spyder/widgets/externalshell/pythonshell.py:305
+#: spyder/widgets/externalshell/pythonshell.py:371
 msgid "Arguments..."
 msgstr "引数..."
 
-#: spyder/widgets/externalshell/pythonshell.py:302
+#: spyder/widgets/externalshell/pythonshell.py:307
 msgid "Post Mortem Debug"
 msgstr "事後デバッグ"
 
-#: spyder/widgets/externalshell/pythonshell.py:308
+#: spyder/widgets/externalshell/pythonshell.py:313
 msgid "Working directory"
 msgstr "作業ディレクトリ"
 
-#: spyder/widgets/externalshell/pythonshell.py:310
+#: spyder/widgets/externalshell/pythonshell.py:315
 msgid "Set current working directory"
 msgstr "現在のワーキングディレクトリを設定"
 
-#: spyder/widgets/externalshell/pythonshell.py:312
+#: spyder/widgets/externalshell/pythonshell.py:317
 msgid "Environment variables"
 msgstr "環境変数"
 
-#: spyder/widgets/externalshell/pythonshell.py:316
+#: spyder/widgets/externalshell/pythonshell.py:321
 msgid "Show sys.path contents"
 msgstr "sys.pathの中身を表示"
 
-#: spyder/widgets/externalshell/pythonshell.py:362
+#: spyder/widgets/externalshell/pythonshell.py:367
 msgid "Arguments: %s"
 msgstr "引数: %s"
 
-#: spyder/widgets/externalshell/pythonshell.py:364
+#: spyder/widgets/externalshell/pythonshell.py:369
 msgid "No argument"
 msgstr "引数なし"
 
-#: spyder/widgets/externalshell/pythonshell.py:534
+#: spyder/widgets/externalshell/pythonshell.py:539
 msgid "A Python console failed to start!"
 msgstr "Pythonコンソールを開始できませんでした！"
 
@@ -4108,7 +4124,7 @@ msgstr "プロセスを開始できませんでした"
 msgid "unsaved file"
 msgstr "保存されていないファイル"
 
-#: spyder/widgets/fileswitcher.py:230
+#: spyder/widgets/fileswitcher.py:245
 msgid ""
 "Press <b>Enter</b> to switch files or <b>Esc</b> to cancel.<br><br>Type to "
 "filter filenames.<br><br>Use <b>:number</b> to go to a line, e.g. "
@@ -4122,7 +4138,7 @@ msgstr ""
 "ンボルへの移動は<b>@symbol_text</b> を使ってください。例： <b><code>@init</"
 "code></b><br><br> 現在のタブを閉じるには <b>Ctrl+W</b> を押してください。<br>"
 
-#: spyder/widgets/fileswitcher.py:512
+#: spyder/widgets/fileswitcher.py:533
 msgid "lines"
 msgstr "行"
 
@@ -4208,31 +4224,31 @@ msgstr "ディレクトリ内を再帰的に検索"
 msgid "Browse a search directory"
 msgstr "検索ディレクトリを表示"
 
-#: spyder/widgets/findinfiles.py:425
+#: spyder/widgets/findinfiles.py:422
 msgid "Hide advanced options"
 msgstr "詳細オプションを隠す"
 
-#: spyder/widgets/findinfiles.py:428
+#: spyder/widgets/findinfiles.py:425
 msgid "Show advanced options"
 msgstr "詳細オプションを表示"
 
-#: spyder/widgets/findinfiles.py:569
+#: spyder/widgets/findinfiles.py:566
 msgid "Search canceled"
 msgstr "検索をキャンセル"
 
-#: spyder/widgets/findinfiles.py:573
+#: spyder/widgets/findinfiles.py:570
 msgid "String not found"
 msgstr "文字列が見つかりませんでした"
 
-#: spyder/widgets/findinfiles.py:575
+#: spyder/widgets/findinfiles.py:572
 msgid "matches in"
 msgstr "一致"
 
-#: spyder/widgets/findinfiles.py:576
+#: spyder/widgets/findinfiles.py:573
 msgid "file"
 msgstr "ファイル"
 
-#: spyder/widgets/findinfiles.py:584
+#: spyder/widgets/findinfiles.py:581
 msgid "interrupted"
 msgstr "中断"
 
@@ -4304,58 +4320,60 @@ msgstr "Pythonヘルプ:"
 msgid "GUI-based editor:"
 msgstr "GUIエディタ:"
 
-#: spyder/widgets/ipythonconsole/client.py:208
+#: spyder/widgets/ipythonconsole/client.py:220
 msgid "An error ocurred while starting the kernel"
 msgstr "カーネルを開始中にエラーが発生しました"
 
-#: spyder/widgets/ipythonconsole/client.py:250
+#: spyder/widgets/ipythonconsole/client.py:262
 msgid "Stop the current command"
 msgstr "現在のコマンドを停止する"
 
-#: spyder/widgets/ipythonconsole/client.py:273
+#: spyder/widgets/ipythonconsole/client.py:285
 msgid "Inspect current object"
 msgstr "現在のオブジェクトを調査する"
 
-#: spyder/widgets/ipythonconsole/client.py:278
+#: spyder/widgets/ipythonconsole/client.py:290
 msgid "Clear line or block"
 msgstr "ラインやブロックをクリアする"
 
-#: spyder/widgets/ipythonconsole/client.py:282
+#: spyder/widgets/ipythonconsole/client.py:294
 msgid "Reset namespace"
 msgstr "名前空間をリセットする"
 
-#: spyder/widgets/ipythonconsole/client.py:285
+#: spyder/widgets/ipythonconsole/client.py:297
 msgid "Clear console"
 msgstr "コンソールをクリアする"
 
-#: spyder/widgets/ipythonconsole/client.py:326
+#: spyder/widgets/ipythonconsole/client.py:344
 msgid "Are you sure you want to restart the kernel?"
 msgstr "本当にカーネルを再起動しますか？"
 
-#: spyder/widgets/ipythonconsole/client.py:328
+#: spyder/widgets/ipythonconsole/client.py:346
 msgid "Restart kernel?"
 msgstr "カーネルを再起動しますか？"
 
-#: spyder/widgets/ipythonconsole/client.py:340
+#: spyder/widgets/ipythonconsole/client.py:360
 #, fuzzy
 msgid "Error restarting kernel: %s\n"
 msgstr "カーネルを開始中にエラーが発生しました"
 
-#: spyder/widgets/ipythonconsole/client.py:345
+#: spyder/widgets/ipythonconsole/client.py:366
+msgid ""
+"<br>Restarting kernel because an error occurred while debugging\n"
+"<hr><br>"
+msgstr ""
+
+#: spyder/widgets/ipythonconsole/client.py:372
 msgid ""
 "<br>Restarting kernel...\n"
 "<hr><br>"
 msgstr ""
 
-#: spyder/widgets/ipythonconsole/client.py:350
+#: spyder/widgets/ipythonconsole/client.py:376
 msgid "Cannot restart a kernel not started by Spyder\n"
 msgstr ""
 
-#: spyder/widgets/ipythonconsole/client.py:402
-msgid "Changing backend to Qt for Mayavi"
-msgstr "MayaviのバックエンドをQtに変更中"
-
-#: spyder/widgets/ipythonconsole/client.py:413
+#: spyder/widgets/ipythonconsole/client.py:432
 msgid "Connecting to kernel..."
 msgstr "カーネルへ接続中..."
 
@@ -4365,22 +4383,26 @@ msgid ""
 "supported yet by Spyder."
 msgstr ""
 
-#: spyder/widgets/ipythonconsole/shell.py:144
+#: spyder/widgets/ipythonconsole/shell.py:148
 msgid "Reset IPython namespace"
 msgstr "IPythonの名前空間をリセット"
 
-#: spyder/widgets/ipythonconsole/shell.py:145
+#: spyder/widgets/ipythonconsole/shell.py:149
 msgid ""
 "All user-defined variables will be removed.<br>Are you sure you want to "
 "reset the namespace?"
 msgstr ""
 "全てのユーザー定義変数は削除されます。<br>本当に名前空間をリセットしますか？"
 
-#: spyder/widgets/ipythonconsole/shell.py:285
+#: spyder/widgets/ipythonconsole/shell.py:281
+msgid "Changing backend to Qt for Mayavi"
+msgstr "MayaviのバックエンドをQtに変更中"
+
+#: spyder/widgets/ipythonconsole/shell.py:319
 msgid "Kernel died, restarting"
 msgstr ""
 
-#: spyder/widgets/ipythonconsole/shell.py:285
+#: spyder/widgets/ipythonconsole/shell.py:319
 #, fuzzy
 msgid "Kernel restarting"
 msgstr "再起動中。"
@@ -4618,39 +4640,39 @@ msgstr "Pythonパスマネージャ"
 msgid "Module or package:"
 msgstr "モジュールあるいはパッケージ:"
 
-#: spyder/widgets/shell.py:128
+#: spyder/widgets/shell.py:132
 msgid "Save history log..."
 msgstr "ヒストリログを保存..."
 
-#: spyder/widgets/shell.py:130
+#: spyder/widgets/shell.py:134
 msgid "Save current history log (i.e. all inputs and outputs) in a text file"
 msgstr "現在のヒストリログ(全ての入出力)をテキストファイルに保存"
 
-#: spyder/widgets/shell.py:256
+#: spyder/widgets/shell.py:260
 msgid "Save history log"
 msgstr "ヒストリログを保存"
 
-#: spyder/widgets/shell.py:259
+#: spyder/widgets/shell.py:263
 msgid "History logs"
 msgstr "ヒストリログ"
 
-#: spyder/widgets/shell.py:270
+#: spyder/widgets/shell.py:274
 msgid "<b>Unable to save file '%s'</b><br><br>Error message:<br>%s"
 msgstr "<b>ファイル '%s' を保存できません</b><br><br>エラーメッセージ:<br>%s"
 
-#: spyder/widgets/shell.py:716
+#: spyder/widgets/shell.py:721
 msgid "Copy without prompts"
 msgstr "プロンプトなしでコピー"
 
-#: spyder/widgets/shell.py:719 spyder/widgets/shell.py:723
+#: spyder/widgets/shell.py:724 spyder/widgets/shell.py:728
 msgid "Clear line"
 msgstr "行をクリア"
 
-#: spyder/widgets/shell.py:725
+#: spyder/widgets/shell.py:730
 msgid "Clear shell"
 msgstr "シェルをクリア"
 
-#: spyder/widgets/shell.py:729
+#: spyder/widgets/shell.py:734
 msgid "Clear shell contents ('cls' command)"
 msgstr "シェルの中身をクリア(clsコマンド)"
 
@@ -4678,11 +4700,11 @@ msgstr "コード分析"
 msgid "To do"
 msgstr "To do"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2065
+#: spyder/widgets/sourcecode/codeeditor.py:2096
 msgid "Removal error"
 msgstr "削除エラー"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2066
+#: spyder/widgets/sourcecode/codeeditor.py:2097
 msgid ""
 "It was not possible to remove outputs from this notebook. The error is:\n"
 "\n"
@@ -4690,15 +4712,15 @@ msgstr ""
 "notebookからoutputを削除できませんでした。エラー:\n"
 "\n"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2588
+#: spyder/widgets/sourcecode/codeeditor.py:2627
 msgid "Clear all ouput"
 msgstr "全ての出力をクリア"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2594
+#: spyder/widgets/sourcecode/codeeditor.py:2633
 msgid "Go to definition"
 msgstr "定義へ移動"
 
-#: spyder/widgets/sourcecode/codeeditor.py:2623
+#: spyder/widgets/sourcecode/codeeditor.py:2662
 msgid "Zoom reset"
 msgstr "ズームリセット"
 
@@ -4760,18 +4782,18 @@ msgstr "配列の値をコピーできませんでした"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:533
 #: spyder/widgets/variableexplorer/arrayeditor.py:566
-#: spyder/widgets/variableexplorer/dataframeeditor.py:680
-#: spyder/widgets/variableexplorer/dataframeeditor.py:725
+#: spyder/widgets/variableexplorer/dataframeeditor.py:688
+#: spyder/widgets/variableexplorer/dataframeeditor.py:733
 msgid "Format"
 msgstr "フォーマット"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:538
-#: spyder/widgets/variableexplorer/dataframeeditor.py:684
+#: spyder/widgets/variableexplorer/dataframeeditor.py:692
 msgid "Resize"
 msgstr "リサイズ"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:567
-#: spyder/widgets/variableexplorer/dataframeeditor.py:726
+#: spyder/widgets/variableexplorer/dataframeeditor.py:734
 msgid "Float formatting"
 msgstr "浮動小数点フォーマット"
 
@@ -5019,40 +5041,40 @@ msgstr "クリップボードを空にする"
 msgid "Nothing to be imported from clipboard."
 msgstr "クリップボードからインポートするものはありません。"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:574
+#: spyder/widgets/variableexplorer/dataframeeditor.py:582
 msgid "To bool"
 msgstr "真偽値へ"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:574
+#: spyder/widgets/variableexplorer/dataframeeditor.py:582
 msgid "To complex"
 msgstr "複素数へ"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:575
+#: spyder/widgets/variableexplorer/dataframeeditor.py:583
 msgid "To float"
 msgstr "浮動小数点数へ"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:575
+#: spyder/widgets/variableexplorer/dataframeeditor.py:583
 msgid "To int"
 msgstr "整数へ"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:576
+#: spyder/widgets/variableexplorer/dataframeeditor.py:584
 msgid "To str"
 msgstr "文字列へ"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:660
+#: spyder/widgets/variableexplorer/dataframeeditor.py:668
 msgid "%s editor"
 msgstr "%s エディタ"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:694
+#: spyder/widgets/variableexplorer/dataframeeditor.py:702
 msgid "Column min/max"
 msgstr "列の 最小/最大"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:734
+#: spyder/widgets/variableexplorer/dataframeeditor.py:742
 #, fuzzy
 msgid "Format ({}) is incorrect"
 msgstr "フォーマット (%s) が不正です"
 
-#: spyder/widgets/variableexplorer/dataframeeditor.py:738
+#: spyder/widgets/variableexplorer/dataframeeditor.py:746
 msgid "Format ({}) should start with '%'"
 msgstr ""
 
@@ -5234,11 +5256,11 @@ msgstr "変数エクスプローラーでのDataFrameとSeriesの表示・編集
 msgid "View and edit two and three dimensional arrays in the Variable Explorer"
 msgstr "変数エクスプローラーでの2, 3次元配列の表示・編集"
 
-#: spyder/workers/updates.py:89 spyder/workers/updates.py:91
+#: spyder/workers/updates.py:90 spyder/workers/updates.py:92
 msgid "Unable to retrieve information."
 msgstr "情報が取得できません"
 
-#: spyder/workers/updates.py:93
+#: spyder/workers/updates.py:94
 msgid ""
 "Unable to connect to the internet. <br><br>Make sure the connection is "
 "working properly."
@@ -5246,7 +5268,7 @@ msgstr ""
 "インターネットに接続できません。 <br><br>接続が正しく動作しているか確認してく"
 "ださい。"
 
-#: spyder/workers/updates.py:96
+#: spyder/workers/updates.py:97
 msgid "Unable to check for updates."
 msgstr "更新をチェックできません"
 

@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-01-16 11:48+COT\n"
+"POT-Creation-Date: 2017-04-19 18:02+COT\n"
 "PO-Revision-Date: 2017-01-17 14:51-0300\n"
 "Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
 "Language-Team: \n"
