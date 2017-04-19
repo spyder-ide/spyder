@@ -36,6 +36,7 @@ from spyder.utils.encoding import get_coding
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.widgets.ipythonconsole import ShellWidget
@@ -395,16 +396,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # we raise an informative exception.
             # See issue 4191
             try:
-                encoding = get_coding(open(self.stderr_file, 'rb').read())
-                stderr = codecs.open(self.stderr_file, 'r',
-                                     encoding=encoding).read()
+                stderr_text = open(self.stderr_file, 'rb').read()
+                encoding = get_coding(stderr_text)
+                stderr = to_text_string(stderr_text, encoding)
             except UnicodeDecodeError:
-                try:
-                    stderr = codecs.open(self.stderr_file, 'r',
-                                         encoding='cp437').read()
-                except UnicodeDecodeError:
-                    raise EncodingError("Could not read the stderr "
-                                        "file of the kernel while restarting.")
+                stderr = None
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
