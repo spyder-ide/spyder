@@ -573,6 +573,8 @@ class SpyderPdb(pdb.Pdb):
         if IS_IPYKERNEL:
             from IPython.core.getipython import get_ipython
             ipython_shell = get_ipython()
+        else:
+            ipython_shell = None
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
