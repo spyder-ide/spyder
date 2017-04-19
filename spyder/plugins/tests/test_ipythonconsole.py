@@ -4,6 +4,7 @@
 # Licensed under the terms of the MIT License
 #
 
+import codecs
 import os
 import os.path as osp
 import shutil
@@ -55,6 +56,23 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+def test_read_stderr(ipyconsole, qtbot):
+    """
+    Test the read operation of the stderr file of the kernel
+    """
+
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Set contents of the stderr file of the kernel
+    content = 'Test text'
+    stderr_file = client.stderr_file
+    codecs.open(stderr_file, 'w', 'cp437').write(content)
+    # Assert that content is correct
+    assert content == client._read_stderr()
+
+
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_run_doctest(ipyconsole, qtbot):
