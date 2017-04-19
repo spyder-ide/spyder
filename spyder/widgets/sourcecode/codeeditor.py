@@ -625,6 +625,10 @@ class CodeEditor(TextEditBaseWidget):
             self.set_color_scheme(color_scheme)
 
         self.toggle_wrap_mode(wrap)
+        
+        # Disable the Class/Function dropdown if we're not in a Python file.
+        if not self.is_python_like():
+            self.classfuncdropdown.setVisible(False)
 
     def set_tab_mode(self, enable):
         """
