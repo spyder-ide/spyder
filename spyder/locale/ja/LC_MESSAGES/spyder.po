@@ -543,7 +543,7 @@ msgstr "起動時に更新をチェック"
 #: spyder/app/mainwindow.py:2780
 msgid ""
 "<hr><b>IMPORTANT NOTE:</b> It seems that you are using Spyder with "
-"<b>Anaconda/Miniconda</b>. Please <<b>don't</b> use code>pip</code> to "
+"<b>Anaconda/Miniconda</b>. Please <b>don't</b> use <code>pip</code> to "
 "update it as that will probably break your installation.<br><br>Instead, "
 "please wait until new conda packages are available and use <code>conda</"
 "code> to perform the update.<hr>"

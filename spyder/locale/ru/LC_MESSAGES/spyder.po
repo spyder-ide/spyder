@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: 3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-04-19 18:02+COT\n"
-"PO-Revision-Date: 2016-11-11 18:43+0300\n"
+"PO-Revision-Date: 2017-04-20 21:08+0300\n"
 "Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
 "Language-Team: русский <LL@li.org>\n"
 "Language: ru_RU\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.8.7\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
@@ -546,11 +546,16 @@ msgstr "Проверять обновления при старте"
 #: spyder/app/mainwindow.py:2780
 msgid ""
 "<hr><b>IMPORTANT NOTE:</b> It seems that you are using Spyder with "
-"<b>Anaconda/Miniconda</b>. Please <<b>don't</b> use code>pip</code> to "
+"<b>Anaconda/Miniconda</b>. Please <b>don't</b> use <code>pip</code> to "
 "update it as that will probably break your installation.<br><br>Instead, "
 "please wait until new conda packages are available and use <code>conda</"
 "code> to perform the update.<hr>"
 msgstr ""
+"<hr><b>ОЧЕНЬ ВАЖНО:</b> Похоже, что вы используете Spyder вместе с "
+"<b>Anaconda/Miniconda</b>. Пожалуйста, <b>не</b> используйте <code>pip</"
+"code> для обновления, т.к. это может сломать вашу сборку.<br><br>Вместо "
+"этого, пожалуйста, дождитесь выхода новых пакетов и используйте <code>conda</"
+"code> для установки обновлений.<hr>"
 
 #: spyder/app/mainwindow.py:2790
 msgid ""
@@ -1412,9 +1417,8 @@ msgid "Tab stop width:"
 msgstr "Ширина табуляции:"
 
 #: spyder/plugins/editor.py:208
-#, fuzzy
 msgid "spaces"
-msgstr "2 пробела"
+msgstr "пробелы"
 
 #: spyder/plugins/editor.py:210
 msgid "Tab always indent"
@@ -1542,14 +1546,12 @@ msgid "New file"
 msgstr "Новый файл"
 
 #: spyder/plugins/editor.py:630
-#, fuzzy
 msgid "O&pen last closed"
-msgstr "Открыть новую консоль"
+msgstr "О&ткрыть последний закрытый"
 
 #: spyder/plugins/editor.py:631
-#, fuzzy
 msgid "Open last closed"
-msgstr "Открыть новую консоль"
+msgstr "Открыть последний закрытый"
 
 #: spyder/plugins/editor.py:637
 msgid "&Open..."
@@ -1569,13 +1571,12 @@ msgid "Fast switch between files"
 msgstr "Быстрое переключение между файлами"
 
 #: spyder/plugins/editor.py:652
-#, fuzzy
 msgid "Symbol finder..."
-msgstr "Каталог..."
+msgstr "Поиск символов..."
 
 #: spyder/plugins/editor.py:654
 msgid "Fast symbol search in file"
-msgstr ""
+msgstr "Быстрый поиск в файле"
 
 #: spyder/plugins/editor.py:660
 msgid "&Revert"
@@ -2816,6 +2817,8 @@ msgid ""
 "The directory {} is not writable and it is required to create IPython "
 "consoles. Please make it writable."
 msgstr ""
+"Каталог {} защищен от записи. Для запуска консоли IPython, пожалуйста, "
+"откройте доступ на запись."
 
 #: spyder/plugins/ipythonconsole.py:912
 msgid ""
@@ -2842,13 +2845,12 @@ msgid ""
 msgstr "Хотите закрыть все другие консоли, подключённые к тому же ядру?"
 
 #: spyder/plugins/ipythonconsole.py:1203
-#, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was {0}"
 msgstr ""
-"Не удалось сконвертировать этот блокнот. Ошибка:\n"
-"\n"
+"Не удалось перезапустить консоль IPython при переключении в этот проект. "
+"Ошибка: {0}"
 
 #: spyder/plugins/ipythonconsole.py:1449
 msgid "IPython"
@@ -2965,6 +2967,8 @@ msgid ""
 "You selected an invalid Python interpreter for the console so the previous "
 "interpreter will stay. Please make sure to select a valid one."
 msgstr ""
+"Вы выбрали некорректный интерпретатор Python для консоли, поэтому был "
+"оставлен предыдущий интерпретатор. Пожалуйста, выберите правильный."
 
 #: spyder/plugins/maininterpreter.py:176
 msgid ""
@@ -3076,7 +3080,7 @@ msgstr "Всегда показывать %s при первом запуске 
 
 #: spyder/plugins/runconfig.py:44
 msgid "Clear all variables before execution (IPython consoles)"
-msgstr ""
+msgstr "Очистить все переменные перед выполнением (консоли IPython)"
 
 #: spyder/plugins/runconfig.py:166 spyder/plugins/runconfig.py:486
 msgid "General settings"
@@ -3681,9 +3685,8 @@ msgid "Copy to clipboard"
 msgstr "Копировать в буфер обмена"
 
 #: spyder/widgets/editor.py:350
-#, fuzzy
 msgid "Find symbols in file..."
-msgstr "Найти в файлах"
+msgstr "Найти в файлe..."
 
 #: spyder/widgets/editor.py:353
 msgid "Copy path to clipboard"
@@ -4072,6 +4075,9 @@ msgid ""
 "to migrate your work to the IPython console instead.\n"
 "\n"
 msgstr ""
+"ВНИМАНИЕ: Консоль Python будет УДАЛЕНА в Spyder 3.2. Пожалуйста, начните "
+"переход на использование консоли IPython.\n"
+"\n"
 
 #: spyder/widgets/externalshell/pythonshell.py:282
 msgid "Variables"
@@ -4388,6 +4394,8 @@ msgid ""
 "<br>Restarting kernel because an error occurred while debugging\n"
 "<hr><br>"
 msgstr ""
+"<br>Перезапуск ядра из-за ошибки в процессе отладки\n"
+"<hr><br>"
 
 #: spyder/widgets/ipythonconsole/client.py:372
 msgid ""
@@ -4431,12 +4439,11 @@ msgstr "Изменить бэкенд для Mayavi на Qt"
 
 #: spyder/widgets/ipythonconsole/shell.py:319
 msgid "Kernel died, restarting"
-msgstr ""
+msgstr "Ядро остановилось, перезапуск"
 
 #: spyder/widgets/ipythonconsole/shell.py:319
-#, fuzzy
 msgid "Kernel restarting"
-msgstr "Перезапуск"
+msgstr "Перезапуск ядра"
 
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
@@ -5093,13 +5100,12 @@ msgid "Column min/max"
 msgstr "Min/max столбца"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:742
-#, fuzzy
 msgid "Format ({}) is incorrect"
-msgstr "Формат (%s) неверный"
+msgstr "Формат ({}) неверный"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:746
 msgid "Format ({}) should start with '%'"
-msgstr ""
+msgstr "Формат ({}) должен начинаться с '%'"
 
 #: spyder/widgets/variableexplorer/importwizard.py:116
 #: spyder/widgets/variableexplorer/importwizard.py:431
