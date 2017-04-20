@@ -83,7 +83,7 @@ def get_versions(reporev=True):
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': qtpy.QtCore.__version__,
         'qt_api': qtpy.API_NAME,      # PyQt5 or PyQt4
-        'qt_api_ver': qtpy.PYQT_VERSION,
+        'qt_api_ver': qtpy.__version__,
         'system': system,   # Linux, Windows, ...
         'revision': revision,  # '9fdf926eccce'
     }
