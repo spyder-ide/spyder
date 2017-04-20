@@ -16,6 +16,7 @@ from __future__ import print_function
 import os
 import os.path as osp
 import sys
+from collections import MutableSequence
 
 # Third party imports
 from qtpy import is_pyqt46
@@ -25,11 +26,11 @@ from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
                             QMessageBox, QMenu, QSplitter, QVBoxLayout,
-                            QWidget)
+                            QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
 from spyder.config.base import _, DEBUG, STDERR, STDOUT
-from spyder.config.gui import config_shortcut
+from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
 from spyder.py3compat import qbytearray_to_str, to_text_string
@@ -274,6 +275,120 @@ class FileInfo(QObject):
             self.save_breakpoints.emit(self.filename, repr(breakpoints))
 
 
+class StackHistory(MutableSequence):
+    """Handles editor stack history.
+
+    Works as a list of numbers corresponding to tab indexes.
+    Internally elements are saved using objects id's.
+    """
+
+    def __init__(self, editor):
+        self.history = list()
+        self.id_list = list()
+        self.editor = editor
+
+    def _update_id_list(self):
+        """Update list of corresponpding ids and tabs."""
+        self.id_list = [id(self.editor.tabs.widget(_i))
+                        for _i in range(self.editor.tabs.count())]
+
+    def refresh(self):
+        """Remove editors that are not longer open."""
+        self._update_id_list()
+        for _id in self.history[:]:
+            if _id not in self.id_list:
+                self.history.remove(_id)
+
+    def __len__(self):
+        return len(self.history)
+
+    def __getitem__(self, i):
+        return self.id_list.index(self.history[i])
+
+    def __delitem__(self, i):
+        del self.history[i]
+
+    def __setitem__(self, i, v):
+        _id = id(self.editor.tabs.widget(v))
+        self.history[i] = _id
+
+    def __str__(self):
+        return str(list(self))
+
+    def insert(self, i, tab_index):
+        """Insert the widget (at tab index) in the position i (index)."""
+        _id = id(self.editor.tabs.widget(tab_index))
+        self.history.insert(i, _id)
+
+    def remove(self, tab_index):
+        """Remove the widget at the corresponding tab_index."""
+        _id = id(self.editor.tabs.widget(tab_index))
+        if _id in self.history:
+            self.history.remove(_id)
+
+
+class TabSwitcherWidget(QListWidget):
+    """Show tabs in mru order and change between them."""
+
+    def __init__(self, parent, stack_history, tabs):
+        QListWidget.__init__(self, parent)
+        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
+
+        self.editor = parent
+        self.stack_history = stack_history
+        self.tabs = tabs
+
+        self.setSelectionMode(QListWidget.SingleSelection)
+        self.itemActivated.connect(self.item_selected)
+
+        self.id_list = []
+        self.load_data()
+        size = CONF.get('main', 'completion/size')
+        self.resize(*size)
+        self.set_dialog_position()
+        self.setCurrentRow(0)
+
+    def load_data(self):
+        """Fill ListWidget with the tabs texts.
+
+        Add elements in inverse order of stack_history.
+        """
+
+        for index in reversed(self.stack_history):
+            text = self.tabs.tabText(index)
+            text = text.replace('&', '')
+            item = QListWidgetItem(ima.icon('FileIcon'), text)
+            self.addItem(item)
+
+    def item_selected(self, item=None):
+        """Change to the selected document and hide this widget."""
+        if item is None:
+            item = self.currentItem()
+
+        # stack history is in inverse order
+        index = self.stack_history[-(self.currentRow()+1)]
+
+        self.editor.set_stack_index(index)
+        self.editor.current_changed(index)
+        self.hide()
+
+    def select_row(self, steps):
+        """Move selected row a number of steps.
+
+        Iterates in a cyclic behaviour.
+        """
+        row = (self.currentRow() + steps) % self.count()
+        self.setCurrentRow(row)
+
+    def set_dialog_position(self):
+        """Positions the tab switcher in the top-center of the editor."""
+        parent = self.parent()
+        left = parent.geometry().width()/2 - self.width()/2
+        top = 0
+
+        self.move(left, top + self.tabs.tabBar().geometry().height())
+
+
 class EditorStack(QWidget):
     reset_statusbar = Signal()
     readonly_changed = Signal(bool)
@@ -335,8 +450,9 @@ class EditorStack(QWidget):
 #        self.previous_btn = None
 #        self.next_btn = None
         self.tabs = None
+        self.tabs_switcher = None
 
-        self.stack_history = []
+        self.stack_history = StackHistory(self)
 
         self.setup_editorstack(parent, layout)
 
@@ -445,9 +561,10 @@ class EditorStack(QWidget):
                                     parent=self)
         gotoline = config_shortcut(self.go_to_line, context='Editor',
                                    name='Go to line', parent=self)
-        tab = config_shortcut(self.go_to_previous_file, context='Editor',
+        tab = config_shortcut(lambda: self.tab_navigation_mru(forward=False),
+                              context='Editor',
                               name='Go to previous file', parent=self)
-        tabshift = config_shortcut(self.go_to_next_file, context='Editor',
+        tabshift = config_shortcut(self.tab_navigation_mru, context='Editor',
                                    name='Go to next file', parent=self)
         run_selection = config_shortcut(self.run_selection, context='Editor',
                                         name='Run selection', parent=self)
@@ -566,6 +683,8 @@ class EditorStack(QWidget):
         self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
         self.tabs.setMovable(True)
+
+        self.stack_history.refresh()
 
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
@@ -1464,16 +1583,11 @@ class EditorStack(QWidget):
             self.reset_statusbar.emit()
         self.opened_files_list_changed.emit()
 
-        # Index history management
-        id_list = [id(self.tabs.widget(_i))
-                   for _i in range(self.tabs.count())]
-        for _id in self.stack_history[:]:
-            if _id not in id_list:
-                self.stack_history.pop(self.stack_history.index(_id))
-        current_id = id(self.tabs.widget(index))
-        while current_id in self.stack_history:
-            self.stack_history.pop(self.stack_history.index(current_id))
-        self.stack_history.append(current_id)
+        self.stack_history.refresh()
+
+        while index in self.stack_history:
+            self.stack_history.remove(index)
+        self.stack_history.append(index)
         if DEBUG_EDITOR:
             print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
             print(self.data[index].editor.get_document_id(), file=STDOUT)
@@ -1488,32 +1602,26 @@ class EditorStack(QWidget):
             last = len(self.stack_history)-1
             w_id = self.stack_history.pop(last)
             self.stack_history.insert(0, w_id)
-            last_id = self.stack_history[last]
-            for _i in range(self.tabs.count()):
-                if id(self.tabs.widget(_i)) == last_id:
-                    return _i
 
-    def go_to_previous_file(self):
-        """Ctrl+Tab"""
-        prev_index = self._get_previous_file_index()
-        if prev_index is not None:
-            self.set_stack_index(prev_index)
-        elif len(self.stack_history) == 0 and self.get_stack_count():
-            self.stack_history = [id(self.tabs.currentWidget())]
+            return self.stack_history[last]
 
-    def go_to_next_file(self):
-        """Ctrl+Shift+Tab"""
-        if len(self.stack_history) > 1:
-            last = len(self.stack_history)-1
-            w_id = self.stack_history.pop(0)
-            self.stack_history.append(w_id)
-            last_id = self.stack_history[last]
-            for _i in range(self.tabs.count()):
-                if id(self.tabs.widget(_i)) == last_id:
-                    self.set_stack_index(_i)
-                    break
-        elif len(self.stack_history) == 0 and self.get_stack_count():
-            self.stack_history = [id(self.tabs.currentWidget())]
+    def tab_navigation_mru(self, forward=True):
+        """
+        Tab navigation with "most recently used" behaviour.
+
+        It's fired when pressing 'go to previous file' or 'go to next file'
+        shortcuts.
+
+        forward:
+            True: move to next file
+            False: move to previous file
+        """
+        if self.tabs_switcher is None or not self.tabs_switcher.isVisible():
+            self.tabs_switcher = TabSwitcherWidget(self, self.stack_history,
+                                                   self.tabs)
+            self.tabs_switcher.show()
+
+        self.tabs_switcher.select_row(1 if forward else -1)
 
     def focus_changed(self):
         """Editor focus has changed"""
@@ -1671,6 +1779,7 @@ class EditorStack(QWidget):
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
         self.refresh_eol_chars(eol_chars)
+        self.stack_history.refresh()
 
     def refresh_eol_chars(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
@@ -1979,6 +2088,25 @@ class EditorStack(QWidget):
             if editor is not None:
                 editor.insert_text( source.text() )
         event.acceptProposedAction()
+
+    def keyReleaseEvent(self, event):
+        """Reimplement Qt method.
+
+        Handle "most recent used" tab behavior,
+        When ctrl is released and tab_switcher is visible, tab will be changed.
+        """
+        if self.tabs_switcher is not None and self.tabs_switcher.isVisible():
+            qsc = get_shortcut(context='Editor', name='Go to next file')
+
+            for key in qsc.split('+'):
+                key = key.lower()
+                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
+                   (key == 'alt' and event.key() == Qt.Key_Alt)):
+                        self.tabs_switcher.item_selected()
+                        self.tabs_switcher = None
+                        return
+
+        super(EditorStack, self).keyPressEvent(event)
 
 
 class EditorSplitter(QSplitter):
