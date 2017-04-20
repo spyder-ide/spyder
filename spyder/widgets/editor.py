@@ -356,6 +356,7 @@ class TabSwitcherWidget(QListWidget):
 
         for index in reversed(self.stack_history):
             text = self.tabs.tabText(index)
+            text = text.replace('&', '')
             item = QListWidgetItem(ima.icon('FileIcon'), text)
             self.addItem(item)
 
