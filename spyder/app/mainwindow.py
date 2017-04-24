@@ -2783,7 +2783,7 @@ class MainWindow(QMainWindow):
                     anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
                                      "that you are using Spyder with "
                                      "<b>Anaconda/Miniconda</b>. Please "
-                                     "<<b>don't</b> use code>pip</code> to "
+                                     "<b>don't</b> use <code>pip</code> to "
                                      "update it as that will probably break "
                                      "your installation.<br><br>"
                                      "Instead, please wait until new conda "
