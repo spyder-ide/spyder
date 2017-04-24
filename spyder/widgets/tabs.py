@@ -50,10 +50,11 @@ class TabBar(QTabBar):
 
         # Tab name editor
         self.rename_tabs = rename_tabs
-        self.tab_name_editor = None
         if self.rename_tabs:
             # Creates tab name editor
             self.tab_name_editor = EditTabNamePopup(self)
+        else:
+            self.tab_name_editor = None
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
