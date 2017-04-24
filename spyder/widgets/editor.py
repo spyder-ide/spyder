@@ -326,6 +326,12 @@ class StackHistory(MutableSequence):
         if _id in self.history:
             self.history.remove(_id)
 
+    def remove_and_append(self, index):
+        """Remove previous entrances of a tab, and add it as the latest."""
+        while index in self:
+            self.remove(index)
+        self.append(index)
+
 
 class TabSwitcherWidget(QListWidget):
     """Show tabs in mru order and change between them."""
@@ -1255,7 +1261,10 @@ class EditorStack(QWidget):
             editor = self.data[index].editor
             if focus:
                 editor.setFocus()
-            return editor
+            else:
+                self.stack_history.remove_and_append(index)
+
+            return editor  
 
     def is_file_opened(self, filename=None):
         if filename is None:
@@ -1584,10 +1593,8 @@ class EditorStack(QWidget):
         self.opened_files_list_changed.emit()
 
         self.stack_history.refresh()
+        self.stack_history.remove_and_append(index)
 
-        while index in self.stack_history:
-            self.stack_history.remove(index)
-        self.stack_history.append(index)
         if DEBUG_EDITOR:
             print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
             print(self.data[index].editor.get_document_id(), file=STDOUT)
