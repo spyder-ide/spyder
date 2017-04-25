@@ -82,7 +82,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     append_to_history = Signal(str, str)
 
-    def __init__(self, plugin, name, history_filename, config_options,
+    def __init__(self, plugin, id_, history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
@@ -91,7 +91,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         SaveHistoryMixin.__init__(self)
 
         # --- Init attrs
-        self.name = name
+        self.id_ = id_
         self.history_filename = get_conf_path(history_filename)
         self.connection_file = connection_file
         self.hostname = hostname
@@ -103,6 +103,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_button = None
         self.stop_icon = ima.icon('stop')
         self.history = []
+        self.given_name = None
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -218,8 +219,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_name(self):
         """Return client name"""
-        return ((_("Console") if self.hostname is None else self.hostname)
-                + " " + self.name)
+        if self.given_name is None:
+            # Name according to host
+            if self.hostname is None:
+                name = _("Console")
+            else:
+                name = self.hostname
+            # Adding id to name
+            client_id = self.id_[0] + u'/' + self.id_[1]
+            name = name + u' ' + client_id
+        else:
+            name = self.given_name + u' /' + self.id_[1]
+        return name
 
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""

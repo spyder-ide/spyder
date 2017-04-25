@@ -890,9 +890,9 @@ class IPythonConsole(SpyderPluginWidget):
     def create_new_client(self, give_focus=True):
         """Create a new client"""
         self.master_clients += 1
-        name = "%d/A" % self.master_clients
+        client_id = (to_text_string(self.master_clients), 'A')
         cf = self._new_connection_file()
-        client = ClientWidget(self, name=name,
+        client = ClientWidget(self, id_=client_id,
                               history_filename='history.py',
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
