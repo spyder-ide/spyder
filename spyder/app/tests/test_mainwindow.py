@@ -63,7 +63,8 @@ def open_file_in_editor(main_window, fname, directory=None):
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
     """Reset state after a run code test"""
-    shell.execute('%reset -f')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%reset -f')
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
     code_editor.setFocus()
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
@@ -340,7 +341,8 @@ def test_run_code(main_window, qtbot):
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 2, timeout=EVAL_TIMEOUT)
 
     # Clean namespace
-    shell.execute('%reset -f')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%reset -f')
 
     # Wait until there are no objects in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
@@ -417,7 +419,8 @@ def test_issue_4066(main_window, qtbot):
     # Create the object
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-    shell.execute('myobj = [1, 2, 3]')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('myobj = [1, 2, 3]')
 
     # Open editor associated with that object and get a reference to it
     nsb = main_window.variableexplorer.get_focus_widget()
@@ -429,7 +432,8 @@ def test_issue_4066(main_window, qtbot):
 
     # Move to the IPython console and delete that object
     main_window.ipyconsole.get_focus_widget().setFocus()
-    shell.execute('del myobj')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('del myobj')
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
 
     # Close editor
@@ -454,7 +458,8 @@ def test_varexp_edit_inline(main_window, qtbot):
     # Create object
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-    shell.execute('a = 10')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
 
     # Edit object
     main_window.variableexplorer.visibility_changed(True)

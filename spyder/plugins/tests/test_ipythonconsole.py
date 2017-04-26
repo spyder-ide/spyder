@@ -367,8 +367,10 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    shell.execute('import sys; A = sys.argv')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import sys; A = sys.argv')
     argv = shell.get_value("A")
+
     assert argv == ['']
 
 
