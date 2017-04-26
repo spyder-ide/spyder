@@ -720,3 +720,58 @@ class SaveHistoryMixin(object):
         encoding.write(text, self.history_filename, mode='ab')
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)
+
+
+class BrowseHistoryMixin(object):
+
+    def __init__(self):
+        self.history = []
+        self.histidx = None
+        self.hist_wholeline = False
+
+    def clear_line(self):
+        """Clear current line (without clearing console prompt)"""
+        self.remove_text(self.current_prompt_pos, 'eof')
+
+    def browse_history(self, backward):
+        """Browse history"""
+        if self.is_cursor_before('eol') and self.hist_wholeline:
+            self.hist_wholeline = False
+        tocursor = self.get_current_line_to_cursor()
+        text, self.histidx = self.find_in_history(tocursor, self.histidx,
+                                                  backward)
+        if text is not None:
+            if self.hist_wholeline:
+                self.clear_line()
+                self.insert_text(text)
+            else:
+                cursor_position = self.get_position('cursor')
+                # Removing text from cursor to the end of the line
+                self.remove_text('cursor', 'eol')
+                # Inserting history text
+                self.insert_text(text)
+                self.set_cursor_position(cursor_position)
+
+    def find_in_history(self, tocursor, start_idx, backward):
+        """Find text 'tocursor' in history, from index 'start_idx'"""
+        if start_idx is None:
+            start_idx = len(self.history)
+        # Finding text in history
+        step = -1 if backward else 1
+        idx = start_idx
+        if len(tocursor) == 0 or self.hist_wholeline:
+            idx += step
+            if idx >= len(self.history) or len(self.history) == 0:
+                return "", len(self.history)
+            elif idx < 0:
+                idx = 0
+            self.hist_wholeline = True
+            return self.history[idx], idx
+        else:
+            for index in range(len(self.history)):
+                idx = (start_idx+step*(index+1)) % len(self.history)
+                entry = self.history[idx]
+                if entry.startswith(tocursor):
+                    return entry[len(tocursor):], idx
+            else:
+                return None, start_idx
