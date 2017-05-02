@@ -627,6 +627,14 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="run cell and advance",
                                       parent=self)
+        go_to_next_cell = config_shortcut(self.advance_cell,
+                                          context="Editor",
+                                          name="go to next cell",
+                                          parent=self)
+        go_to_previous_cell = config_shortcut(lambda: self.advance_cell(reverse=True),
+                                              context="Editor",
+                                              name="go to previous cell",
+                                              parent=self)
         re_run_last_cell = config_shortcut(self.re_run_last_cell,
                                       context="Editor",
                                       name="re-run last cell",
@@ -638,7 +646,7 @@ class EditorStack(QWidget):
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
-                re_run_last_cell]
+                go_to_next_cell, go_to_previous_cell, re_run_last_cell]
 
     def get_shortcut_data(self):
         """
@@ -2031,14 +2039,26 @@ class EditorStack(QWidget):
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
         self.run_cell()
+        self.advance_cell()
+
+    def advance_cell(self, reverse=False):
+        """Advance to the next cell.
+
+        reverse = True --> go to previous cell.
+        """
+        if not reverse:
+            move_func = self.get_current_editor().go_to_next_cell
+        else:
+            move_func = self.get_current_editor().go_to_previous_cell
+
         if self.focus_to_editor:
-            self.get_current_editor().go_to_next_cell()
+            move_func()
         else:
             term = QApplication.focusWidget()
-            self.get_current_editor().go_to_next_cell()
+            move_func()
             term.setFocus()
             term = QApplication.focusWidget()
-            self.get_current_editor().go_to_next_cell()
+            move_func()
             term.setFocus()
 
     def re_run_last_cell(self):
