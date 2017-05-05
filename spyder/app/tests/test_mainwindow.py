@@ -400,7 +400,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
     # Verify that the action minimizes the plugin too
     qtbot.mouseClick(max_button, Qt.LeftButton)
-    assert not main_window.editor.ismaximized
+    assert main_window.editor.ismaximized
 
 
 @flaky(max_runs=10)
