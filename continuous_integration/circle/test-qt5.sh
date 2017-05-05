@@ -10,7 +10,7 @@ else
     pip install -q pyqt5
 fi
 
-python runtests.py
+pytest spyder
 
 # Force quitting if exit status of runtests.py was not 0
 if [ $? -ne 0 ]; then
