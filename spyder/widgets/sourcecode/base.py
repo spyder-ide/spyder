@@ -784,6 +784,32 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 return
         self.setTextCursor(cursor)
 
+    def go_to_previous_cell(self):
+        """Go to the previous cell of lines"""
+        cursor = self.textCursor()
+        cur_pos = prev_pos = cursor.position()
+
+        # Move to the begining of the cell
+        while not self.is_cell_separator(cursor):
+            # Moving to the previous code cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+
+        # Move to the previous cell
+        cursor.movePosition(QTextCursor.PreviousBlock)
+        cur_pos = prev_pos = cursor.position()
+        while not self.is_cell_separator(cursor):
+            # Moving to the previous code cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+        self.setTextCursor(cursor)
+
     def get_line_count(self):
         """Return document total line number"""
         return self.blockCount()
