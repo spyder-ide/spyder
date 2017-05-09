@@ -15,7 +15,8 @@ from itertools import groupby
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
-                            QVBoxLayout, QHBoxLayout, QDesktopWidget)
+                            QVBoxLayout, QHBoxLayout, QDesktopWidget, 
+                            QScrollArea, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -119,6 +120,12 @@ class ShortcutsSummaryDialog(QDialog):
         column_layout.addStretch()  # avoid lasts sections to appear too big
         columns_layout.addLayout(column_layout)
 
+        # Scroll widget
+        self.scroll_widget = QWidget()
+        self.scroll_widget.setLayout(columns_layout)
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidget(self.scroll_widget)
+
         # widget setup
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
@@ -126,8 +133,11 @@ class ShortcutsSummaryDialog(QDialog):
         # layout
         self._layout = QVBoxLayout()
         self._layout.addWidget(title_label)
-        self._layout.addLayout(columns_layout)
+
+        self._layout.addWidget(self.scroll_area)
         self.setLayout(self._layout)
+
+        self.setGeometry(0, 0, width, height)
 
     def get_screen_resolution(self):
         """Return the screen resolution of the primary screen."""
