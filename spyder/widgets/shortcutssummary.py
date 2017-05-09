@@ -75,6 +75,7 @@ class ShortcutsSummaryDialog(QDialog):
 
         columns_layout = QHBoxLayout()
         added_shortcuts = 0
+        group = None
         # group shortcuts by context
         shortcuts = groupby(sorted(iter_shortcuts()), key=itemgetter(0))
 
