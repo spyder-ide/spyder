@@ -94,7 +94,7 @@ msgstr "&Fichier"
 
 #: spyder/app/mainwindow.py:576 spyder/plugins/editor.py:1373
 msgid "File toolbar"
-msgstr "Barre d'outil fichiers"
+msgstr "Barre d'outils fichiers"
 
 #: spyder/app/mainwindow.py:580 spyder/plugins/editor.py:1386
 msgid "&Edit"
@@ -102,7 +102,7 @@ msgstr "&Édition"
 
 #: spyder/app/mainwindow.py:581 spyder/plugins/editor.py:1383
 msgid "Edit toolbar"
-msgstr "Barre d'outil édition"
+msgstr "Barre d'outils édition"
 
 #: spyder/app/mainwindow.py:585 spyder/plugins/editor.py:1387
 msgid "&Search"
@@ -110,7 +110,7 @@ msgstr "&Recherche"
 
 #: spyder/app/mainwindow.py:586 spyder/plugins/editor.py:1375
 msgid "Search toolbar"
-msgstr "Barre d'outil de recherche"
+msgstr "Barre d'outils de recherche"
 
 #: spyder/app/mainwindow.py:590 spyder/plugins/editor.py:1388
 msgid "Sour&ce"
@@ -127,7 +127,7 @@ msgstr "E&xécution"
 
 #: spyder/app/mainwindow.py:596 spyder/plugins/editor.py:1379
 msgid "Run toolbar"
-msgstr "Barre d'outil exécution"
+msgstr "Barre d'outils exécution"
 
 #: spyder/app/mainwindow.py:600 spyder/plugins/editor.py:750
 msgid "&Debug"
@@ -135,7 +135,7 @@ msgstr "&Déboguer"
 
 #: spyder/app/mainwindow.py:601 spyder/plugins/editor.py:1381
 msgid "Debug toolbar"
-msgstr "Barre d'outil de débogage"
+msgstr "Barre d'outils de débogage"
 
 #: spyder/app/mainwindow.py:605
 msgid "C&onsoles"
@@ -241,7 +241,7 @@ msgstr "Mode plein écran"
 
 #: spyder/app/mainwindow.py:757
 msgid "Main toolbar"
-msgstr "Barre d'outil principale"
+msgstr "Barre d'outils principale"
 
 #: spyder/app/mainwindow.py:766
 msgid ""
@@ -410,7 +410,7 @@ msgstr "Afficher les barres d'outils"
 
 #: spyder/app/mainwindow.py:1068
 msgid "Attached console window (debugging)"
-msgstr "Invite de commandes attaché (débogage)"
+msgstr "Invite de commandes attachée (débogage)"
 
 #: spyder/app/mainwindow.py:1254 spyder/plugins/projects.py:247
 #: spyder/widgets/explorer.py:639 spyder/widgets/explorer.py:744
@@ -433,7 +433,7 @@ msgid ""
 "result in bugs. Please be sure that any found bugs are not the direct result "
 "of missing dependencies, prior to reporting a new issue."
 msgstr ""
-"<b>Spyder manque certaines dépendances</b><br><br><tt>%s</tt><br><b>Veuillez "
+"<b>Il manque certaines dépendances</b><br><br><tt>%s</tt><br><b>Veuillez "
 "les installer pour éviter ce message </b><br><br></i>Remarque</i>: Spyder "
 "pourrait fonctionner sans certaines de ces dépendances, mais pour avoir une "
 "bonne expérience lors de l'utilisation de Spyder nous <i>fortement</i> vous "
@@ -542,7 +542,7 @@ msgstr "Mises à jour de Spyder"
 
 #: spyder/app/mainwindow.py:2758 spyder/plugins/configdialog.py:819
 msgid "Check for updates on startup"
-msgstr "Vérifier le mises à jour au démarrage"
+msgstr "Vérifier les mises à jour au démarrage"
 
 #: spyder/app/mainwindow.py:2780
 msgid ""
@@ -552,6 +552,12 @@ msgid ""
 "please wait until new conda packages are available and use <code>conda</"
 "code> to perform the update.<hr>"
 msgstr ""
+"<hr><b>IMPORTANT:</b> il semble que vous utilisiez Spyder avec "
+"<b>Anaconda/Miniconda</b>. Il est <b>fortement</b> conseillé de ne pas "
+"recourir à <code>pip</code> pour le mettre à jour, puisqu'il est probable "
+"que cela casse votre installation.<br><br>À la place, il est suggéré de "
+"simplement attendre la disponibilité de nouveaux paquets conda avant "
+"d'utiliser <code>conda</code> pour effectuer la mise à jour.<hr>"
 
 #: spyder/app/mainwindow.py:2790
 msgid ""
@@ -561,7 +567,7 @@ msgid ""
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 msgstr ""
 "<b>Spyder %s est disponible!</b> <br><br>Utiliser le gestionnaire de paquets "
-"pour mettre Spyder à ou consultez le <a href=\"%s\">site</a> pour "
+"pour mettre à jour Spyder, consultez le <a href=\"%s\">site</a> pour "
 "télécharger le programme directement. <br><br>Si vous ne savez pas comment "
 "procéder pour mettre Spyder à jour, veuillez consulter notre  <a href=\"%s"
 "\">documentation</a>."
@@ -649,9 +655,9 @@ msgid ""
 "the code.<br><br>You can also set debug breakpoints in the line number area, "
 "by doing a double click next to a non-empty line."
 msgstr ""
-"Dans ce volet, vous pouvez écrire le code Python avant de l'évaluer. Vous "
+"Dans ce volet, vous pouvez écrire du code Python avant de l'évaluer. Vous "
 "pouvez obtenir des suggestions et des complétions de code automatiques "
-"pendant l'écriture, en appuyant sur la touche <b>Tab</ b> située à côté d'un "
+"pendant l'écriture, en appuyant sur la touche <b>Tab</ b> à la suite d'un "
 "texte donné. Spyder affiche des avertissements et des erreurs de syntaxe. "
 "Ils peuvent vous aider à détecter les problèmes potentiels avant d'exécuter "
 "le code. <br> <br> Vous pouvez également définir des points d'arrêt de "
@@ -697,7 +703,7 @@ msgid ""
 msgstr ""
 "Dans ce volet, vous pouvez visualiser et éditer les variables générées lors "
 "de l'exécution d'un programme, ou celles entrées directement dans une des "
-"consoles Spyder. Comme vous pouvez le voir, l'Explorateur de variables "
+"consoles Spyder. Comme vous pouvez le voir, l'explorateur de variables "
 "affiche les variables générées au cours de la dernière étape de la visite "
 "interactive. En faisant un double-clic sur l'une d'elles, une nouvelle "
 "fenêtre s'ouvre, où vous pouvez inspecter et modifier leur contenu."
@@ -715,13 +721,13 @@ msgid ""
 "consoles are also connected to that pane, and that the Variable Explorer "
 "only shows the variables of the currently focused console."
 msgstr ""
-"Vous pouvez également exécuter votre code sur une console Python. Ces "
+"Vous pouvez également exécuter votre code dans une console Python. Ces "
 "consoles sont utiles car elles vous permettent d'exécuter un fichier dans "
 "une console dédiée uniquement à celui-ci. Pour sélectionner ce comportement, "
 "appuyez sur la touche <b>F6</b>. <br><br>En appuyant sur le bouton ci-"
-"dessous, puis En se concentrant sur l'Explorateur de variables, vous "
+"dessous, puis en retournant sur l'explorateur de variables, vous "
 "remarquerez que les consoles Python sont également connectées à ce volet et "
-"que l'Explorateur de variables ne montre que les variables de la console "
+"que l'explorateur de variables ne montre que les variables de la console "
 "actuellement sélectionnée."
 
 #: spyder/app/tour.py:195 spyder/plugins/help.py:485 spyder/plugins/help.py:929
@@ -737,9 +743,10 @@ msgid ""
 "has some documentation associated with it, it will be displayed here."
 msgstr ""
 "Ce volet affiche la documentation des fonctions, classes, méthodes ou "
-"modules que vous utilisez actuellement dans l'Editeur ou dans les Consoles. "
-"<br><br>Pour l'utiliser, vous devez appuyer sur <b>Ctrl + I</ b> D'un objet. "
-"Si cet objet possède une documentation associée, il sera affiché ici."
+"modules que vous utilisez actuellement dans l'éditeur ou dans les consoles. "
+"<br><br>Pour l'utiliser, vous devez appuyer sur <b>Ctrl + I</ b> devant un "
+"objet. Si cet objet possède une documentation associée, cette dernière sera "
+"affichée ici."
 
 #: spyder/app/tour.py:206
 msgid "The File Explorer"
@@ -756,7 +763,7 @@ msgstr ""
 "Ce volet vous permet de naviguer dans les répertoires et les fichiers "
 "présents dans votre ordinateur. <br><br> Vous pouvez également ouvrir l'un "
 "de ces fichiers avec l'application correspondante, en double-cliquant "
-"dessus. Une exception à cette règle: les fichiers texte sont toujours "
+"dessus. Une exception à cette règle : les fichiers texte sont toujours "
 "ouverts dans l'éditeur Spyder."
 
 #: spyder/app/tour.py:217
@@ -804,7 +811,7 @@ msgid ""
 "Update LANGUAGE_CODES (inside config/base.py) if a new translation has been "
 "added to Spyder"
 msgstr ""
-"Mettre à jour LANGUAGE_CODES (à l'intérieur de config/ base.py) si une "
+"Mettre à jour LANGUAGE_CODES (à l'intérieur de config/base.py) si une "
 "nouvelle traduction a été ajoutée à Spyder"
 
 #: spyder/config/ipython.py:23
@@ -1058,7 +1065,7 @@ msgstr ""
 
 #: spyder/plugins/configdialog.py:863
 msgid "Enable high DPI scaling"
-msgstr "Activer la mise à l'échèle pour les écrans à haute résolution"
+msgstr "Activer la mise à l'échelle pour les écrans à haute résolution"
 
 #: spyder/plugins/configdialog.py:865
 msgid "Set this for high DPI displays"
@@ -3105,7 +3112,7 @@ msgstr "Toujours afficher %s lors de la première exécution d'un script"
 
 #: spyder/plugins/runconfig.py:44
 msgid "Clear all variables before execution (IPython consoles)"
-msgstr ""
+msgstr "Effacer toutes les variables avant l'exécution (consoles IPython)"
 
 #: spyder/plugins/runconfig.py:166 spyder/plugins/runconfig.py:486
 msgid "General settings"
@@ -3200,14 +3207,14 @@ msgid ""
 "(Press 'Tab' once to switch focus between the shortcut entry \n"
 "and the buttons below it)"
 msgstr ""
-"Ecrivez le nouveau raccourci et sélectionnez 'OK':\n"
+"Écrivez le nouveau raccourci et sélectionnez 'OK':\n"
 "(Appuyez sur la touche 'Tab' une fois pour changer de focus entre l'entrée "
 "de raccourci\n"
 "et les boutons ci-dessous)"
 
 #: spyder/plugins/shortcuts.py:140
 msgid "Current shortcut:"
-msgstr "Raccourci actuelle :"
+msgstr "Raccourci actuel :"
 
 #: spyder/plugins/shortcuts.py:142
 msgid "New shortcut:"
@@ -3219,7 +3226,7 @@ msgstr "Raccourci clavier: {0}"
 
 #: spyder/plugins/shortcuts.py:276
 msgid "Please introduce a different shortcut"
-msgstr "Merci de utiliser un raccourci clavier différent"
+msgstr "Merci d'utiliser un raccourci clavier différent"
 
 #: spyder/plugins/shortcuts.py:313
 msgid "The new shorcut conflicts with:"
@@ -3229,7 +3236,7 @@ msgstr "Le nouveau raccourci "
 msgid ""
 "A compound sequence can have {break} a maximum of 4 subsequences.{break}"
 msgstr ""
-"A compound sequence can have {break} a maximum of 4 subsequences.{break}"
+"Une séquence composée peut avoir {break} au plus 4 sous-séquences.{break}"
 
 #: spyder/plugins/shortcuts.py:329
 msgid "Invalid key entered"
@@ -3266,7 +3273,7 @@ msgstr "Raccourcis clavier"
 
 #: spyder/plugins/shortcuts.py:791
 msgid "Search: "
-msgstr "Rechercher:"
+msgstr "Rechercher :"
 
 #: spyder/plugins/shortcuts.py:792
 msgid "Reset to default values"
