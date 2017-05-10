@@ -27,6 +27,7 @@ else:
     INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
 
 
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
                     reason='gets stuck on Windows and fails sometimes locally') # FIXME
 def test_run_python_script_in_terminal(tmpdir, qtbot):
