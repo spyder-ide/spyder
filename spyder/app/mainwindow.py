@@ -935,6 +935,10 @@ class MainWindow(QMainWindow):
         else:
             tut_action = None
 
+        shortcuts_action = create_action(self, _("Shortcuts Summary"),
+                                         shortcut="Meta+F1",
+                                         triggered=self.show_shortcuts_dialog)
+
         #----- Tours
         self.tour = tour.AnimatedTour(self)
         self.tours_menu = QMenu(_("Interactive tours"))
@@ -956,7 +960,8 @@ class MainWindow(QMainWindow):
 
         self.tours_menu.addActions(self.tour_menu_actions)
 
-        self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
+        self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
+                                  self.tours_menu,
                                   MENU_SEPARATOR, report_action, dep_action,
                                   self.check_updates_action, support_action,
                                   MENU_SEPARATOR]
@@ -2623,6 +2628,12 @@ class MainWindow(QMainWindow):
                 toberemoved.append(index)
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
+
+    @Slot()
+    def show_shortcuts_dialog(self):
+        from spyder.widgets.shortcutssummary import ShortcutsSummaryDialog
+        dlg = ShortcutsSummaryDialog(None)
+        dlg.exec_()
 
     # -- Open files server
     def start_open_files_server(self):
