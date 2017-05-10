@@ -100,6 +100,9 @@ class ShortcutsSummaryDialog(QDialog):
                     group_layout = QGridLayout()
                     group.setLayout(group_layout)
 
+                    # Count space for titles
+                    added_shortcuts += 1
+
                 # Widgets
                 label_name = QLabel(name.capitalize().replace('_', ' '))
                 label_name.setFont(font_names)
