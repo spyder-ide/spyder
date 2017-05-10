@@ -938,6 +938,49 @@ class MainConfigPage(GeneralConfigPage):
         sbar_layout.addLayout(cpu_memory_layout)
         sbar_group.setLayout(sbar_layout)
 
+        # --- Screen resolution Group (hidpi)
+        screen_resolution_group = QGroupBox(_("Screen resolution"))
+        screen_resolution_bg = QButtonGroup(screen_resolution_group)
+
+        normal_radio = self.create_radiobutton(
+                                _("Normal"),
+                                'normal_screen_resolution',
+                                button_group=screen_resolution_bg)
+        auto_scale_radio = self.create_radiobutton(
+                                _("Enable auto high DPI scaling"),
+                                'high_dpi_scaling',
+                                button_group=screen_resolution_bg,
+                                tip=_("Set this for high DPI displays"))
+
+        custom_scaling_radio = self.create_radiobutton(
+                                _("Set a custom high DPI scaling"),
+                                'high_dpi_custom_scale_factor',
+                                button_group=screen_resolution_bg,
+                                tip=_("Set this for high DPI displays when"
+                                      "auto scaling does not work"))
+
+        custom_scaling_edit = self.create_lineedit("",
+                                'high_dpi_custom_scale_factors',
+                                tip="Enter values separated by semicolons ';'",
+                                alignment=Qt.Horizontal,
+                                regex="[0-9]+(;[0-9]+)*")
+
+        normal_radio.toggled.connect(custom_scaling_edit.setDisabled)
+        auto_scale_radio.toggled.connect(custom_scaling_edit.setDisabled)
+        custom_scaling_radio.toggled.connect(custom_scaling_edit.setEnabled)
+
+        # Layout Screen resolution
+        screen_resolution_layout = QVBoxLayout()
+        screen_resolution_layout.addWidget(normal_radio)
+        screen_resolution_layout.addWidget(auto_scale_radio)
+
+        custom_scaling_layout = QHBoxLayout()
+        custom_scaling_layout.addWidget(custom_scaling_radio)
+        custom_scaling_layout.addWidget(custom_scaling_edit)
+
+        screen_resolution_layout.addLayout(custom_scaling_layout)
+        screen_resolution_group.setLayout(screen_resolution_layout)
+
         # --- Theme and fonts
         plain_text_font = self.create_fontgroup(
             option='font',
@@ -963,8 +1006,8 @@ class MainConfigPage(GeneralConfigPage):
         fonts_group.setLayout(fonts_layout)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(fonts_group, interface_group),
-                    _("Appearance"))
+        tabs.addTab(self.create_tab(fonts_group, screen_resolution_group,
+                    interface_group), _("Appearance"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
                     _("Advanced Settings"))
 
