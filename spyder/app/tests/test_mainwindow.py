@@ -186,17 +186,17 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
         projects._create_project(project_dir)
 
     # Select notebook in the project explorer
-    idx = projects.treewidget.get_index('notebook.ipynb')
-    projects.treewidget.setCurrentIndex(idx)
+    idx = projects.explorer.treewidget.get_index('notebook.ipynb')
+    projects.explorer.treewidget.setCurrentIndex(idx)
 
     # Prese Enter there
-    qtbot.keyClick(projects.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
 
     # Convert notebook to a Python file
-    projects.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
+    projects.explorer.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
 
     # Assert notebook was open
     assert 'untitled0.py' in editorstack.get_current_filename()

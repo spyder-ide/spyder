@@ -15,37 +15,37 @@
 import sys
 
 # Third party imports
-from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QApplication, QVBoxLayout
 
 # Local imports
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.config.base import _
 from spyder.config.utils import get_edit_extensions
 from spyder.py3compat import getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.widgets.findinfiles import FindInFilesWidget
-from spyder.plugins import SpyderPluginMixin
 
 
-class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
-    """Find in files DockWidget"""
+class FindInFiles(SpyderPluginWidget):
+    """Find in files DockWidget."""
+
     CONF_SECTION = 'find_in_files'
     sig_option_changed = Signal(str, object)
     toggle_visibility = Signal(bool)
-    edit_goto = Signal(str, int, str)
-    redirect_stdio = Signal(bool)
-    
+
     def __init__(self, parent=None):
+        """Initialization."""
+        SpyderPluginWidget.__init__(self, parent)
+
         supported_encodings = self.get_option('supported_encodings')
-        
-        search_path = self.get_option('search_path', None)        
+        search_path = self.get_option('search_path', None)
         self.search_text_samples = self.get_option('search_text_samples')
         search_text = self.get_option('search_text')
         search_text = [txt for txt in search_text \
                        if txt not in self.search_text_samples]
         search_text += self.search_text_samples
-
         search_text_regexp = self.get_option('search_text_regexp')
         include = self.get_option('include')
         if not include:
@@ -57,17 +57,22 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         exclude_regexp = self.get_option('exclude_regexp')
         in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
-        FindInFilesWidget.__init__(self, parent,
+
+        self.findinfiles = FindInFilesWidget(
+                                   self,
                                    search_text, search_text_regexp, search_path,
                                    include, include_idx, include_regexp,
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
                                    in_python_path, more_options)
-        SpyderPluginMixin.__init__(self, parent)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.findinfiles)
+        self.setLayout(layout)
         
         # Initialize plugin
         self.initialize_plugin()
-        
+
         self.toggle_visibility.connect(self.toggle)
         
     def toggle(self, state):
@@ -77,7 +82,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def refreshdir(self):
         """Refresh search directory"""
-        self.find_options.set_directory(getcwd())
+        self.findinfiles.find_options.set_directory(getcwd())
 
     @Slot()
     def findinfiles_callback(self):
@@ -93,9 +98,9 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         except AttributeError:
             # This is not a text widget deriving from TextEditBaseWidget
             pass
-        self.set_search_text(text)
+        self.findinfiles.set_search_text(text)
         if text:
-            self.find()
+            self.findinfiles.find()
 
     @staticmethod
     def include_patterns():
@@ -119,7 +124,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Switch to plugin
         This method is called when pressing plugin's shortcut key"""
         self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
-        SpyderPluginMixin.switch_to_plugin(self)
+        super(SpyderPluginWidget, self).switch_to_plugin()
 
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -131,7 +136,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.find_options.search_text
+        return self.findinfiles.find_options.search_text
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -139,10 +144,13 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.get_pythonpath_callback = self.main.get_spyder_pythonpath
+        self.findinfiles.get_pythonpath_callback = \
+            self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
-        self.edit_goto.connect(self.main.editor.load)
-        self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        self.findinfiles.result_browser.sig_edit_goto.connect(
+                                                         self.main.editor.load)
+        self.findinfiles.find_options.redirect_stdio.connect(
+                                        self.main.redirect_internalshell_stdio)
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
         
         findinfiles_action = create_action(self, _("&Find in files"),
@@ -161,8 +169,8 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.closing_widget()  # stop search thread and clean-up
-        options = self.find_options.get_options(all=True)
+        self.findinfiles.closing_widget()  # stop search thread and clean-up
+        options = self.findinfiles.find_options.get_options(all=True)
         if options is not None:
             search_text, text_re, search_path, \
             include, include_idx, include_re, \
