@@ -234,6 +234,7 @@ DEFAULTS = [
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'show_tab_bar': True,
+              'show_class_func_dropdown': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
               'focus_to_editor': True,

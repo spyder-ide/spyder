@@ -39,6 +39,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QTextEdit, QToolTip, QVBoxLayout)
+from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
 
@@ -286,7 +287,13 @@ class CodeEditor(TextEditBaseWidget):
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
         self.updateRequest.connect(self.linenumberarea.update_)
-
+        
+        # Class and Method/Function Dropdowns
+        self.classfuncdropdown = self.panels.register(
+            ClassFunctionDropdown(self),
+            Panel.Position.TOP,
+        )
+        
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
         self.occurrence_color = None
@@ -560,7 +567,7 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500):
+                     occurrence_timeout=1500, show_class_func_dropdown=True):
         
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -618,6 +625,10 @@ class CodeEditor(TextEditBaseWidget):
             self.set_color_scheme(color_scheme)
 
         self.toggle_wrap_mode(wrap)
+
+        # Class/Function dropdown will be disabled if we're not in a Python file.
+        self.classfuncdropdown.setVisible(show_class_func_dropdown
+                                          and self.is_python_like())
 
     def set_tab_mode(self, enable):
         """
@@ -1352,6 +1363,7 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
+        self.classfuncdropdown.update()
 
     def show_code_analysis_results(self, line_number, code_analysis):
         """Show warning/error messages"""
