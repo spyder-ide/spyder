@@ -12,9 +12,7 @@ To demo this panel, run spyder/widgets/sourcecode/codeeditor.py
 import operator
 import copy
 
-from qtpy.QtWidgets import (QComboBox,
-                            QHBoxLayout,
-                            )
+from qtpy.QtWidgets import QComboBox, QHBoxLayout
 
 from qtpy.QtCore import Slot
 from qtpy.QtCore import QSize
@@ -85,7 +83,7 @@ def _get_fold_levels(editor):
 
     Parameters
     ----------
-    editor :
+    editor : :class:`spyder.widgets.sourcecode.codeeditor.CodeEditor`
 
     Returns
     -------
@@ -333,7 +331,7 @@ class ClassFunctionDropdown(Panel):
 
     Parameters
     ----------
-    editor :
+    editor : :class:`spyder.widgets.sourcecode.codeeditor.CodeEditor`
         The editor to act on.
     """
 
