@@ -244,7 +244,8 @@ class EditorConfigPage(PluginConfigPage):
                             "a comment to ignore style analysis "
                             "warnings.</p>"))
         pep8_box.setEnabled(is_pep8)
-        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP, @todo)"),
+        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
+                               " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
                                             _("Perform analysis when "
@@ -850,7 +851,8 @@ class Editor(SpyderPluginWidget):
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
-                tip=_("Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"),
+                tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
+                      "HACK/BUG/OPTIMIZE/!!!/???)"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)

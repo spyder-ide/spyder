@@ -217,7 +217,8 @@ else:
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
-           '.txt', '.rst', '.qss', '.ttf', '.json']
+           '.txt', '.rst', '.qss', '.ttf', '.json', '.c', '.cpp', '.java',
+           '.md', '.R', '.csv', '.pyx', '.ipynb']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']

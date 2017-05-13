@@ -148,7 +148,7 @@ def find_return_types(module_context, func):
         docstr = u(func.doc)
     types = []
     for type_str in search_return_in_docstr(docstr):
-        if is_module_installed('jedi', '=0.10.0'):
+        if is_module_installed('jedi', '>=0.10.0;<0.11'):
             type_ = _evaluate_for_statement_string(module_context, type_str)
         else:
             module = func.get_parent_until()

@@ -1,0 +1,188 @@
+# Japanese translations for Spyder package
+# Spyder-ide パッケージに対する英訳.
+# Copyright (C) 2016 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Spyder package.
+# Ohnishi Seiki <s.ohnishi77+github@gmail.com>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Spyder\n"
+"POT-Creation-Date: 2017-04-19 18:02+COT\n"
+"PO-Revision-Date: 2017-04-23 17:25+0900\n"
+"Last-Translator: sohnishi <s.ohnishi77+github@gmail.com>\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.8.11\n"
+
+#: spyder_profiler/profiler.py:33
+msgid "Results"
+msgstr "結果"
+
+#: spyder_profiler/profiler.py:34
+msgid ""
+"Profiler plugin results (the output of python's profile/cProfile)\n"
+"are stored here:"
+msgstr ""
+"プロファイラプラグインの結果(Python profile/cProfile出力)\n"
+"はこちらに保存されます:"
+
+#: spyder_profiler/profiler.py:75
+msgid "Profiler"
+msgstr "プロファイラ"
+
+#: spyder_profiler/profiler.py:104 spyder_profiler/widgets/profilergui.py:81
+msgid "Profile"
+msgstr "プロファイル"
+
+#: spyder_profiler/widgets/profilergui.py:82
+msgid "Run profiler"
+msgstr "プロファイラの実行"
+
+#: spyder_profiler/widgets/profilergui.py:87
+msgid "Stop"
+msgstr "停止"
+
+#: spyder_profiler/widgets/profilergui.py:88
+msgid "Stop current profiling"
+msgstr "現在のプロファイリングを停止"
+
+#: spyder_profiler/widgets/profilergui.py:96
+#: spyder_profiler/widgets/profilergui.py:219
+msgid "Select Python script"
+msgstr "Pythonスクリプトを選択"
+
+#: spyder_profiler/widgets/profilergui.py:102
+msgid "Output"
+msgstr "出力"
+
+#: spyder_profiler/widgets/profilergui.py:104
+msgid "Show program's output"
+msgstr "プログラムの出力を表示"
+
+#: spyder_profiler/widgets/profilergui.py:113
+msgid "Collapse one level up"
+msgstr "1つ上のレベルに折りたたむ"
+
+#: spyder_profiler/widgets/profilergui.py:118
+msgid "Expand one level down"
+msgstr "１つ下のレベルに展開"
+
+#: spyder_profiler/widgets/profilergui.py:121
+msgid "Save data"
+msgstr "データを保存"
+
+#: spyder_profiler/widgets/profilergui.py:124
+msgid "Save profiling data"
+msgstr "プロファイリングデータを保存"
+
+#: spyder_profiler/widgets/profilergui.py:126
+msgid "Load data"
+msgstr "データをロード"
+
+#: spyder_profiler/widgets/profilergui.py:129
+msgid "Load profiling data for comparison"
+msgstr "比較のためのプロファイリングデータをロード"
+
+#: spyder_profiler/widgets/profilergui.py:131
+msgid "Clear comparison"
+msgstr "比較をクリア"
+
+#: spyder_profiler/widgets/profilergui.py:171
+msgid "Please install"
+msgstr "インストールしてください"
+
+#: spyder_profiler/widgets/profilergui.py:172
+msgid "the Python profiler modules"
+msgstr "Pythonプロファイラモジュール"
+
+#: spyder_profiler/widgets/profilergui.py:179
+msgid "Save profiler result"
+msgstr "プロファイラの結果を保存"
+
+#: spyder_profiler/widgets/profilergui.py:182
+#: spyder_profiler/widgets/profilergui.py:188
+msgid "Profiler result"
+msgstr "プロファイラ結果"
+
+#: spyder_profiler/widgets/profilergui.py:187
+msgid "Select script to compare"
+msgstr "比較するスクリプトを選択"
+
+#: spyder_profiler/widgets/profilergui.py:220
+msgid "Python scripts"
+msgstr "Pythonスクリプト"
+
+#: spyder_profiler/widgets/profilergui.py:227
+#: spyder_profiler/widgets/profilergui.py:232
+msgid "Profiler output"
+msgstr "プロファイラ出力"
+
+#: spyder_profiler/widgets/profilergui.py:251
+msgid "Profiling, please wait..."
+msgstr "プロファイリング中、暫くお待ち下さい..."
+
+#: spyder_profiler/widgets/profilergui.py:295
+msgid "Error"
+msgstr "エラー"
+
+#: spyder_profiler/widgets/profilergui.py:296
+msgid "Process failed to start"
+msgstr "プロセスの開始に失敗しました"
+
+#: spyder_profiler/widgets/profilergui.py:343
+msgid "Sorting data, please wait..."
+msgstr "データをソートしています、お待ち下さい..."
+
+#: spyder_profiler/widgets/profilergui.py:389
+msgid "Function/Module"
+msgstr "関数/モジュール"
+
+#: spyder_profiler/widgets/profilergui.py:389
+msgid "Total Time"
+msgstr "合計時間"
+
+#: spyder_profiler/widgets/profilergui.py:389
+#: spyder_profiler/widgets/profilergui.py:390
+msgid "Diff"
+msgstr "Diff"
+
+#: spyder_profiler/widgets/profilergui.py:390
+msgid "Calls"
+msgstr "コール"
+
+#: spyder_profiler/widgets/profilergui.py:390
+msgid "Local Time"
+msgstr "ローカル時間"
+
+#: spyder_profiler/widgets/profilergui.py:391
+msgid "File:line"
+msgstr "ファイル：行"
+
+#: spyder_profiler/widgets/profilergui.py:565
+msgid "Function or module name"
+msgstr "関数あるいはモジュール名"
+
+#: spyder_profiler/widgets/profilergui.py:569
+msgid "Time in function (including sub-functions)"
+msgstr "関数内での時間(サブ関数を含む)"
+
+#: spyder_profiler/widgets/profilergui.py:578
+msgid "Local time in function (not in sub-functions)"
+msgstr "関数内でのローカル時間(サブ関数を含まない)"
+
+#: spyder_profiler/widgets/profilergui.py:588
+msgid "Total number of calls (including recursion)"
+msgstr "合計コール回数(再帰呼出しを含む)"
+
+#: spyder_profiler/widgets/profilergui.py:598
+msgid "File:line where function is defined"
+msgstr "関数の定義されている  ファイル:行"
+
+#: spyder_profiler/widgets/profilergui.py:603
+msgid "recursion"
+msgstr "再帰"

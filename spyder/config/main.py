@@ -389,8 +389,8 @@ DEFAULTS = [
               'editor/rotate kill ring': 'Shift+Meta+Y',
               'editor/kill previous word': 'Meta+Backspace',
               'editor/kill next word': 'Meta+D',
-              'editor/start of document': 'Ctrl+Up',
-              'editor/end of document': 'Ctrl+Down',
+              'editor/start of document': 'Ctrl+Home',
+              'editor/end of document': 'Ctrl+End',
               'editor/undo': 'Ctrl+Z',
               'editor/redo': 'Ctrl+Shift+Z',
               'editor/cut': 'Ctrl+X',
@@ -404,8 +404,8 @@ DEFAULTS = [
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
               'editor/go to line': 'Ctrl+L',
-              'editor/go to previous file': 'Ctrl+Tab',
-              'editor/go to next file': 'Ctrl+Shift+Tab',
+              'editor/go to previous file': 'Ctrl+Shift+Tab',
+              'editor/go to next file': 'Ctrl+Tab',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
@@ -424,6 +424,8 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': RUN_CELL_SHORTCUT,
               'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/go to next cell': 'Ctrl+Down',
+              'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
@@ -657,7 +659,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '33.0.0'
+CONF_VERSION = '33.2.0'
 
 # Main configuration instance
 try:
