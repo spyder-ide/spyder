@@ -47,11 +47,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         search_text += self.search_text_samples
 
         search_text_regexp = self.get_option('search_text_regexp')
-        include = self.get_option('include')
-        if not include:
-            include = self.include_patterns()
-        include_idx = self.get_option('include_idx', None)
-        include_regexp = self.get_option('include_regexp')
         exclude = self.get_option('exclude')
         exclude_idx = self.get_option('exclude_idx', None)
         exclude_regexp = self.get_option('exclude_regexp')
@@ -59,7 +54,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         more_options = self.get_option('more_options')
         FindInFilesWidget.__init__(self, parent,
                                    search_text, search_text_regexp, search_path,
-                                   include, include_idx, include_regexp,
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
                                    in_python_path, more_options)
@@ -163,20 +157,15 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         options = self.find_options.get_options(all=True)
         if options is not None:
             search_text, text_re, search_path, \
-            include, include_idx, include_re, \
             exclude, exclude_idx, exclude_re, \
             in_python_path, more_options = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
             search_path = search_path[:hist_limit]
-            include = include[:hist_limit]
             exclude = exclude[:hist_limit]
             self.set_option('search_text', search_text)
             self.set_option('search_text_regexp', text_re)
             self.set_option('search_path', search_path)
-            self.set_option('include', include)
-            self.set_option('include_idx', include_idx)
-            self.set_option('include_regexp', include_re)
             self.set_option('exclude', exclude)
             self.set_option('exclude_idx', exclude_idx)
             self.set_option('exclude_regexp', exclude_re)
