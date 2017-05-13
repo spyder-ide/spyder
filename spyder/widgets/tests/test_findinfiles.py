@@ -46,7 +46,6 @@ def setup_findinfiles(qtbot, *args, **kwargs):
     return widget
 
 
-@pytest.fixture
 def expected_results():
     results = {'spam.txt': [(1, 0), (1, 5), (3, 22)],
                'spam.py': [(2, 7), (5, 1), (7, 12)],
@@ -64,7 +63,7 @@ def test_findinfiles(qtbot):
     assert find_in_files
 
 
-def test_find_in_files(qtbot, expected_results):
+def test_find_in_files_search(qtbot):
     """
     Test the find in files utility by searching a string located on a set of
     known files.
@@ -72,7 +71,7 @@ def test_find_in_files(qtbot, expected_results):
     The results of the test should be equal to the expected search result
     values.
     """
-    find_in_files = setup_findinfiles(qtbot, include=["\.py$|\.txt$|\.cpp"])
+    find_in_files = setup_findinfiles(qtbot)
     find_in_files.set_search_text("spam")
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
     find_in_files.find()
@@ -80,24 +79,7 @@ def test_find_in_files(qtbot, expected_results):
     blocker.wait()
     matches = process_search_results(find_in_files.result_browser.data)
     print(matches)
-    assert expected_results == matches
-
-
-def test_include_extension(qtbot):
-    find_in_files = setup_findinfiles(qtbot, include=["\.py$"])
-    find_in_files.set_search_text("spam")
-    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
-    find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
-    blocker.wait()
-    matches = process_search_results(find_in_files.result_browser.data)
-    files_filtered = True
-    for file in matches:
-        filename, ext = osp.splitext(file)
-        if ext != '.py':
-            files_filtered = False
-            break
-    assert files_filtered
+    assert expected_results() == matches
 
 
 def test_exclude_extension(qtbot):

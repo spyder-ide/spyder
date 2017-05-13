@@ -116,6 +116,8 @@ class SearchThread(QThread):
                     filename = os.path.join(path, f)
                     if re.search(self.exclude, filename):
                         continue
+                    if is_text_file(filename):
+                        self.find_string_in_file(filename)
             except re.error:
                 self.error_flag = _("invalid regular expression")
                 return False
