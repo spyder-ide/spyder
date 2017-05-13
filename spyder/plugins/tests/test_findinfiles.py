@@ -31,14 +31,6 @@ class TestFindInFilesPlugin:
             checks.append(is_valid)
         return checks
 
-    def test_include_patterns_are_valid_regex(self, qtbot):
-        # qtawesome requires a QApplication to exist, so widgets import must
-        # happen inside the test (or with fixtures)
-        from spyder.plugins.findinfiles import FindInFiles
-        patterns = FindInFiles.include_patterns()
-        checks = self.check_regex(patterns)
-        assert all(checks)
-
     def test_exclude_patterns_are_valid_regex(self):
         checks = self.check_regex(EXCLUDE_PATTERNS)
         assert all(checks)

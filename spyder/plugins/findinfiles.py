@@ -109,24 +109,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         if text:
             self.find()
 
-    @staticmethod
-    def include_patterns():
-        """Generate regex common usage patterns to include section."""
-        # Change special characters, like + and . to convert into valid re
-        clean_exts = []
-        for ext in get_edit_extensions():
-            ext = ext.replace('.', r'\.')
-            ext = ext.replace('+', r'\+')
-            clean_exts.append(ext)
-
-        patterns = [r'|'.join([ext + r'$' for ext in clean_exts if ext]) +
-                    r'|README|INSTALL',
-                    r'\.ipy$|\.pyw?$|\.rst$|\.txt$',
-                    '.',
-                    ]
-        # return patterns
-        return []
-
     #------ SpyderPluginMixin API ---------------------------------------------
     def switch_to_plugin(self):
         """Switch to plugin

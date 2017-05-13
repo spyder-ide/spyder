@@ -12,9 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import with_statement
-from __future__ import unicode_literals
-from __future__ import print_function
+from __future__ import with_statement, print_function
 import fnmatch
 import os
 import os.path as osp
@@ -56,7 +54,7 @@ class SearchThread(QThread):
         self.stopped = None
         self.results = None
         self.pathlist = None
-        self.nb = None
+        self.total_matches = None
         self.error_flag = None
         self.rootpath = None
         self.python_path = None
@@ -68,7 +66,7 @@ class SearchThread(QThread):
         self.completed = None
         self.get_pythonpath_callback = None
         self.results = {}
-        self.nb = 0
+        self.total_matches = 0
         self.is_file = False
 
     def initialize(self, path, is_file, include, exclude, texts, text_re):
@@ -167,7 +165,7 @@ class SearchThread(QThread):
                                                           match.end())
                         res.append((lineno + 1, match.start(), displ_line))
                         results[osp.abspath(fname)] = res
-                        self.nb += 1
+                        self.total_matches += 1
                 else:
                     while found > -1:
                         res = results.get(osp.abspath(fname), [])
@@ -180,16 +178,16 @@ class SearchThread(QThread):
                             found = line.find(text, found + 1)
                             if found > -1:
                                 break
-                        self.nb += 1
+                        self.total_matches += 1
             if len(results) > 0:
-                self.sig_file_match.emit(results, self.nb)
+                self.sig_file_match.emit(results, self.total_matches)
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
         self.completed = True
 
     def get_results(self):
-        return self.results, self.pathlist, self.nb, self.error_flag
+        return self.results, self.pathlist, self.total_matches, self.error_flag
 
 
 class FindOptions(QWidget):
@@ -479,7 +477,7 @@ class ResultsBrowser(OneColumnTree):
         OneColumnTree.__init__(self, parent)
         self.search_text = None
         self.results = None
-        self.nb = None
+        self.total_matches = None
         self.error_flag = None
         self.completed = None
         self.data = None
@@ -500,7 +498,7 @@ class ResultsBrowser(OneColumnTree):
         """Click event"""
         self.activated(item)
 
-    def init(self, search_text):
+    def clear_title(self, search_text):
         self.clear()
         self.num_files = 0
         self.data = {}
@@ -528,16 +526,16 @@ class ResultsBrowser(OneColumnTree):
         self.set_title(title + text)
         for filename in sorted(results.keys()):
             file_item = QTreeWidgetItem(self, [osp.basename(filename) +
-                                        " - " + osp.dirname(filename)],
+                                        u" - " + osp.dirname(filename)],
                                         QTreeWidgetItem.Type)
             file_item.setToolTip(0, filename)
             file_item.setIcon(0, get_filetype_icon(filename))
             for lineno, colno, line in results[filename]:
                 item = QTreeWidgetItem(file_item,
-                                       ["{0} ({1}): {2}".format(lineno,
-                                                                colno,
-                                                                line.rstrip()
-                                                                )],
+                                       [u"{0} ({1}): {2}".format(lineno,
+                                                                 colno,
+                                                                 line.rstrip()
+                                                                 )],
                                        QTreeWidgetItem.Type)
                 item.setIcon(0, ima.icon('arrow'))
                 self.data[id(item)] = (filename, lineno, colno)
@@ -571,9 +569,9 @@ class FileProgressBar(QWidget):
     def set_label_path(self, path, folder=False):
         text = self.__truncate(path)
         if not folder:
-            status_str = _('  Scanning: {0}'.format(text))
+            status_str = _(u' Scanning: {0}'.format(text))
         else:
-            status_str = _('  Searching for files in folder: {0}'.format(text))
+            status_str = _(u' Searching for files in folder: {0}'.format(text))
         self.status_text.setText(status_str)
 
     def reset(self):
@@ -666,7 +664,8 @@ class FindInFilesWidget(QWidget):
             lambda x: sys.stdout.write(str(x) + "\n")
         )
         self.status_bar.reset()
-        self.result_browser.init(self.find_options.search_text.currentText())
+        self.result_browser.clear_title(
+            self.find_options.search_text.currentText())
         self.search_thread.initialize(*options)
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
