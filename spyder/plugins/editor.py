@@ -365,7 +365,8 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
-    
+    open_file_update = Signal(str)
+
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
 
@@ -1605,7 +1606,8 @@ class Editor(SpyderPluginWidget):
                     action.setEnabled(enable and WINPDB_PATH is not None)
                 else:
                     action.setEnabled(enable)
-                
+            self.open_file_update.emit(self.get_current_filename())
+
     def update_code_analysis_actions(self):
         editorstack = self.get_current_editorstack()
         results = editorstack.get_analysis_results()

@@ -818,11 +818,6 @@ class MainWindow(QMainWindow):
         self.set_splash("")
 
         self.debug_print("  ..widgets")
-        # Find in files
-        if CONF.get('find_in_files', 'enable'):
-            from spyder.plugins.findinfiles import FindInFiles
-            self.findinfiles = FindInFiles(self)
-            self.findinfiles.register_plugin()
 
         # External console
         self.set_splash(_("Loading external console..."))
@@ -860,6 +855,12 @@ class MainWindow(QMainWindow):
         self.projects = Projects(self)
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
+
+        # Find in files
+        if CONF.get('find_in_files', 'enable'):
+            from spyder.plugins.findinfiles import FindInFiles
+            self.findinfiles = FindInFiles(self)
+            self.findinfiles.register_plugin()
 
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))

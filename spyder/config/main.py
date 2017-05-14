@@ -28,8 +28,7 @@ from spyder.utils import codeanalysis
 # Main constants
 #==============================================================================
 # Find in files exclude patterns
-EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
-                    r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
+EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
@@ -290,8 +289,6 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': '',
-              'include_regexp': True,
               'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': True,
               'search_text_regexp': True,
@@ -659,7 +656,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '35.2.0'
+CONF_VERSION = '36.0.0'
 
 # Main configuration instance
 try:
