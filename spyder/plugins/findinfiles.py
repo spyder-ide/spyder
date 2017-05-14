@@ -80,15 +80,15 @@ class FindInFiles(SpyderPluginWidget):
 
     def set_project_path(self, path):
         """Refresh current project path"""
-        self.find_options.set_project_path(path)
+        self.findinfiles.find_options.set_project_path(path)
 
     def set_current_opened_file(self, path):
         """Get path of current opened file in editor"""
-        self.find_options.set_file_path(path)
+        self.findinfiles.find_options.set_file_path(path)
 
     def unset_project_path(self):
         """Refresh current project path"""
-        self.find_options.disable_project_search()
+        self.findinfiles.find_options.disable_project_search()
 
     @Slot()
     def findinfiles_callback(self):
