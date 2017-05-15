@@ -964,7 +964,8 @@ class MainConfigPage(GeneralConfigPage):
         custom_scaling_edit = self.create_lineedit("",
                                 'high_dpi_custom_scale_factors',
                                 tip="Enter values separated by semicolons ';'",
-                                alignment=Qt.Horizontal)
+                                alignment=Qt.Horizontal,
+                                regex="[0-9]+(;[0-9]+)*")
 
         normal_radio.toggled.connect(custom_scaling_edit.setDisabled)
         auto_scale_radio.toggled.connect(custom_scaling_edit.setDisabled)
