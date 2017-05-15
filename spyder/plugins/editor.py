@@ -204,6 +204,16 @@ class EditorConfigPage(PluginConfigPage):
                                          (_("Tabulations"), '*\t*')), 'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("spaces"),
                                             'tab_stop_width_spaces', 4, 1, 8, 1)
+        def enable_tabwidth_spin(index):
+            if index == 7:  # Tabulations
+                tabwidth_spin.plabel.setEnabled(True)
+                tabwidth_spin.spinbox.setEnabled(True)
+            else:
+                tabwidth_spin.plabel.setEnabled(False)
+                tabwidth_spin.spinbox.setEnabled(False)
+
+        indent_chars_box.combobox.currentIndexChanged.connect(enable_tabwidth_spin)
+
         tab_mode_box = newcb(_("Tab always indent"),
                       'tab_always_indent', default=False,
                       tip=_("If enabled, pressing Tab will always indent,\n"
