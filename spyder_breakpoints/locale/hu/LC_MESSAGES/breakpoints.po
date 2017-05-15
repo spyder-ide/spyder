@@ -13,7 +13,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 1.8.12\n"
-"Last-Translator: Barcza Károly <kbarcza@blackpanther.hu>\n"
+"Last-Translator: Martin Durant <martin.durant@utoronto.ca>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: hu_HU\n"
 
@@ -39,7 +39,7 @@ msgstr "Vonal"
 
 #: spyder_breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
-msgstr "A töréspontok törlése minden fájlban"
+msgstr "Töröl töréspontot minden fájlban"
 
 #: spyder_breakpoints/widgets/breakpointsgui.py:201
 msgid "Clear this breakpoint"

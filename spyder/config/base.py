@@ -229,7 +229,7 @@ DEFAULT_LANGUAGE = 'en'
 LANGUAGE_CODES = {'en': u'English',
                   'fr': u'Français',
                   'es': u'Español',
-                  'hu': u'Hungarian',
+                  'hu': u'Magyar',
                   'pt_BR': u'Português',
                   'ru': u'Русский',
                   'ja': u'日本語'

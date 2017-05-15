@@ -179,7 +179,7 @@ msgstr "Modulnevek frissítése"
 
 #: spyder/app/mainwindow.py:657
 msgid "Refresh list of module names available in PYTHONPATH"
-msgstr ""
+msgstr "felfrissíti a PYTHONPATH-on levő modul neveket"
 
 #: spyder/app/mainwindow.py:660
 msgid "Reset Spyder to factory defaults"
@@ -194,6 +194,8 @@ msgid ""
 "Show and edit current user environment variables in Windows registry (i.e. "
 "for all sessions)"
 msgstr ""
+"Mutatni és szerkeszteni jelenlegi használó Windows kornyezetet"
+"(minden szakaszra)"
 
 #: spyder/app/mainwindow.py:676 spyder/app/mainwindow.py:1089
 msgid "External Tools"
@@ -225,11 +227,11 @@ msgstr "guiqwt példák"
 
 #: spyder/app/mainwindow.py:735
 msgid "Sift"
-msgstr ""
+msgstr "Sift"
 
 #: spyder/app/mainwindow.py:745
 msgid "ViTables"
-msgstr ""
+msgstr "ViTables"
 
 #: spyder/app/mainwindow.py:759
 msgid "Fullscreen mode"
@@ -251,6 +253,15 @@ msgid ""
 "Please don't use it to run your code\n"
 "\n"
 msgstr ""
+"Spyder belső konzol"
+"\n"
+"Ez a konzol belső applikaciói hibák"
+"jegyzésére és Syder belső vizsgálására"
+"használ. Parancsok:"
+"  spy.app, spy.window, dir(spy)\n"
+"\n"
+"Kérjük ne futtassa saját kódját\n"
+"\n"
 
 #: spyder/app/mainwindow.py:797
 msgid "Loading help..."
@@ -259,7 +270,7 @@ msgstr "Segítség betöltése..."
 #: spyder/app/mainwindow.py:804
 #, fuzzy
 msgid "Loading outline explorer..."
-msgstr "&Outline"
+msgstr "Outline felfedező betöltése..."
 
 #: spyder/app/mainwindow.py:812
 msgid "Loading editor..."
@@ -285,12 +296,12 @@ msgstr "Újraindítás"
 #: spyder/app/mainwindow.py:843
 #, fuzzy
 msgid "Loading file explorer..."
-msgstr "X fájlböngésző"
+msgstr "Fájlböngésző betöltése..."
 
 #: spyder/app/mainwindow.py:850
 #, fuzzy
 msgid "Loading history plugin..."
-msgstr "Netscape-bővítmény betöltése: %1"
+msgstr "Előzmény alkatrész betöltése..."
 
 #: spyder/app/mainwindow.py:861
 #, fuzzy
@@ -300,27 +311,27 @@ msgstr "Segítség betöltése..."
 #: spyder/app/mainwindow.py:866
 #, fuzzy
 msgid "Loading project explorer..."
-msgstr "Betöltés…"
+msgstr "Projectböngésző betöltése..."
 
 #: spyder/app/mainwindow.py:873
 #, fuzzy
 msgid "Loading external console..."
-msgstr "Külső"
+msgstr "Külső konsozl betöltése..."
 
 #: spyder/app/mainwindow.py:879
 #, fuzzy
 msgid "Loading namespace browser..."
-msgstr "Névtér"
+msgstr "Névtérböngésző betöltése..."
 
 #: spyder/app/mainwindow.py:886
 #, fuzzy
 msgid "Loading IPython console..."
-msgstr "Betöltés…"
+msgstr "IPYthon konzol betöltése..."
 
 #: spyder/app/mainwindow.py:891
 #, fuzzy
 msgid "Setting up main window..."
-msgstr "(a főablakban)"
+msgstr "Főablak indít"
 
 #: spyder/app/mainwindow.py:894
 msgid "Dependencies..."
@@ -342,17 +353,17 @@ msgstr "Frissítések ellenőrzése"
 #: spyder/app/mainwindow.py:928
 #, fuzzy
 msgid "Spyder documentation"
-msgstr "Üdv a Spyderben!"
+msgstr "Spyder dokumentáció"
 
 #: spyder/app/mainwindow.py:936
 #, fuzzy
 msgid "Spyder tutorial"
-msgstr "Üdv a Spyderben!"
+msgstr "Spyderben oktató"
 
 #: spyder/app/mainwindow.py:943
 #, fuzzy
 msgid "Interactive tours"
-msgstr "Tours"
+msgstr "Párbeszédes túra"
 
 #: spyder/app/mainwindow.py:968
 msgid "Python documentation"
@@ -361,39 +372,37 @@ msgstr "Python-dokumentáció"
 #: spyder/app/mainwindow.py:974
 #, fuzzy
 msgid "IPython documentation"
-msgstr "_Dokumentáció..."
+msgstr "IPython Dokumentáció"
 
 #: spyder/app/mainwindow.py:975
 #, fuzzy
 msgid "Intro to IPython"
-msgstr "A bevezető animáció kihagyása"
+msgstr "IPython bevezető"
 
 #: spyder/app/mainwindow.py:977
 #, fuzzy
 msgid "Quick reference"
-msgstr "Gyors"
+msgstr "Gyors referencia"
 
 #: spyder/app/mainwindow.py:979
 #, fuzzy
 msgid "Console help"
-msgstr "Terminálban:"
+msgstr "Terminál segítség"
 
 #: spyder/app/mainwindow.py:1009
 #, fuzzy
 msgid "Installed Python modules"
-msgstr "MODULOK"
+msgstr "Telepített modulok"
 
 #: spyder/app/mainwindow.py:1013
 #, fuzzy
 msgid "Online documentation"
-msgstr ""
-"<a href='http://usersultra.com/doc.html' target='_blank'>KATTINTS IDE  </"
-"a>az online dokumentáció megtekintéséhez"
+msgstr "online dokumentáció"
 
 #: spyder/app/mainwindow.py:1025
 #, fuzzy
 msgid "Qt documentation"
-msgstr "Dokumentáció..."
+msgstr "Qt Dokumentáció..."
 
 #: spyder/app/mainwindow.py:1031
 #, fuzzy
@@ -403,7 +412,7 @@ msgstr "%sról"
 #: spyder/app/mainwindow.py:1055
 #, fuzzy
 msgid "Panes"
-msgstr "A nézet felosztása két panelre"
+msgstr "Lapok"
 
 #: spyder/app/mainwindow.py:1057
 msgid "Toolbars"
@@ -412,13 +421,13 @@ msgstr "Eszköztárak"
 #: spyder/app/mainwindow.py:1058
 #, fuzzy
 msgid "Window layouts"
-msgstr "Kiosztások"
+msgstr "Ablak kirendezés"
 
 #: spyder/app/mainwindow.py:1067 spyder/app/mainwindow.py:1874
 #: spyder/app/mainwindow.py:1875
 #, fuzzy
 msgid "Show toolbars"
-msgstr "&Eszköztárak"
+msgstr "Eszköztárak mutatni"
 
 #: spyder/app/mainwindow.py:1082
 #, fuzzy
@@ -450,22 +459,22 @@ msgstr ""
 #: spyder/app/mainwindow.py:1721
 #, fuzzy
 msgid "Spyder Default Layout"
-msgstr "Üdv a Spyderben!"
+msgstr "Spyder alap kirendezés"
 
 #: spyder/app/mainwindow.py:1739
 #, fuzzy
 msgid "Save current layout"
-msgstr "A jelenlegi elmentése…"
+msgstr "A jelenlegi kirendezés mentése…"
 
 #: spyder/app/mainwindow.py:1743
 #, fuzzy
 msgid "Layout preferences"
-msgstr "Mint a _beállításokban"
+msgstr "Kirendezás beállítása"
 
 #: spyder/app/mainwindow.py:1747
 #, fuzzy
 msgid "Reset to spyder default"
-msgstr "Alapértelmezett beállítások visszaállítása"
+msgstr "Vissza a spyder alapra"
 
 #: spyder/app/mainwindow.py:1767 spyder/app/mainwindow.py:1789
 #: spyder/app/mainwindow.py:1852 spyder/app/mainwindow.py:2642
