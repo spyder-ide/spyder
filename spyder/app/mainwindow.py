@@ -2296,7 +2296,7 @@ class MainWindow(QMainWindow):
         dlg.exec_()
 
     @Slot()
-    def report_issue(self):
+    def report_issue(self, traceback=""):
         if PY3:
             from urllib.parse import quote
         else:
@@ -2320,6 +2320,7 @@ class MainWindow(QMainWindow):
 
 **Please provide any additional information below**
 
+%s
 
 ## Version and main components
 
@@ -2331,7 +2332,8 @@ class MainWindow(QMainWindow):
 ```
 %s
 ```
-""" % (versions['spyder'],
+""" % (traceback,
+       versions['spyder'],
        revision,
        versions['python'],
        versions['qt'],

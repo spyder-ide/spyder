@@ -218,8 +218,12 @@ class Console(SpyderPluginWidget):
                       "<b>Please tell us about this problem.</b>"
                       "<br><br>"
                       "You can submit this error to the github issue tracker"),
-                    QMessageBox.Cancel | QMessageBox.Ok,
+                      QMessageBox.Ok,
                     parent=self)
+
+                self.submit_btn = self.msgbox_traceback.addButton(
+                        _('Submit to github'), QMessageBox.YesRole)
+                self.submit_btn.pressed.connect(self.press_submit_btn)
 
                 self.msgbox_traceback.setWindowModality(Qt.NonModal)
                 self.error_traceback = ""
@@ -228,6 +232,9 @@ class Console(SpyderPluginWidget):
             self.error_traceback += text
             self.msgbox_traceback.setDetailedText(self.error_traceback)
 
+    def press_submit_btn(self):
+        self.main.report_issue(self.error_traceback)
+        self.msgbox_traceback = None
 
     #------ Public API ---------------------------------------------------------
     @Slot()
