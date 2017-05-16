@@ -971,7 +971,7 @@ class MainConfigPage(GeneralConfigPage):
                                       "separated by semicolons ';', "
                                       "float values are supported"),
                                 alignment=Qt.Horizontal,
-                                regex="[0-9]+(;[0-9]+)*")
+                                regex="[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*")
 
         normal_radio.toggled.connect(custom_scaling_edit.setDisabled)
         auto_scale_radio.toggled.connect(custom_scaling_edit.setDisabled)
