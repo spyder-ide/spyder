@@ -228,9 +228,13 @@ class Console(SpyderPluginWidget):
                 self.msgbox_traceback.setWindowModality(Qt.NonModal)
                 self.error_traceback = ""
                 self.msgbox_traceback.show()
+                self.msgbox_traceback.finished.connect(self.close_msg)
 
             self.error_traceback += text
             self.msgbox_traceback.setDetailedText(self.error_traceback)
+
+    def close_msg(self):
+        self.msgbox_traceback = None
 
     def press_submit_btn(self):
         self.main.report_issue(self.error_traceback)
