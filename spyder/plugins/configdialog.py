@@ -943,6 +943,10 @@ class MainConfigPage(GeneralConfigPage):
         # --- Screen resolution Group (hidpi)
         screen_resolution_group = QGroupBox(_("Screen resolution"))
         screen_resolution_bg = QButtonGroup(screen_resolution_group)
+        screen_resolution_label = QLabel(_("Configurations for highdpi screens, "
+                                "See: <a href=\"http://doc.qt.io/qt-5/highdpi.html\">http://doc.qt.io/qt-5/highdpi.html</a><> "
+                                "for more information"))
+        screen_resolution_label.setWordWrap(True)
 
         normal_radio = self.create_radiobutton(
                                 _("Normal"),
@@ -958,12 +962,14 @@ class MainConfigPage(GeneralConfigPage):
                                 _("Set a custom high DPI scaling"),
                                 'high_dpi_custom_scale_factor',
                                 button_group=screen_resolution_bg,
-                                tip=_("Set this for high DPI displays when"
+                                tip=_("Set this for high DPI displays when "
                                       "auto scaling does not work"))
 
         custom_scaling_edit = self.create_lineedit("",
                                 'high_dpi_custom_scale_factors',
-                                tip="Enter values separated by semicolons ';'",
+                                tip=_("Enter values for different screens "
+                                      "separated by semicolons ';', "
+                                      "float values are supported"),
                                 alignment=Qt.Horizontal,
                                 regex="[0-9]+(;[0-9]+)*")
 
@@ -973,6 +979,7 @@ class MainConfigPage(GeneralConfigPage):
 
         # Layout Screen resolution
         screen_resolution_layout = QVBoxLayout()
+        screen_resolution_layout.addWidget(screen_resolution_label)
         screen_resolution_layout.addWidget(normal_radio)
         screen_resolution_layout.addWidget(auto_scale_radio)
 
