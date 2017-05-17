@@ -218,6 +218,26 @@ def test_indentation_with_tabs(text_input, expected, test_text,
     assert text == expected, test_text
 
 
+@pytest.mark.parametrize(
+    "text_input, expected, tab_stop_width_spaces",
+    [
+        ("print(\n)", "print(\n\t\t)", 1),
+        ("print(\n)", "print(\n\t\t)", 2),
+        ("print(\n)", "print(\n\t\t)", 3),
+        ("print(\n)", "print(\n\t  )", 4),
+        ("print(\n)", "print(\n\t )", 5),
+        ("print(\n)", "print(\n\t)", 6),
+        ("print(\n)", "print(\n      )", 7),
+        ("print(\n)", "print(\n      )", 8),
+    ])
+def test_indentation_with_tabs_parenthesis(text_input, expected,
+                                           tab_stop_width_spaces):
+    """Simple parenthesis indentation test with different tab stop widths."""
+    text = get_indent_fix(text_input, indent_chars="\t",
+                          tab_stop_width_spaces=tab_stop_width_spaces)
+    assert text == expected, tab_stop_width_spaces
+
+
 @pytest.mark.parametrize("tab_stop_width_spaces", [1,2,3,4,5,6,7,8])
 @pytest.mark.parametrize(
     "text_input, expected, test_text",
