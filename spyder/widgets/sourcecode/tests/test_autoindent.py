@@ -160,19 +160,14 @@ def test_first_line():
          "test_return"),
         ("def some_func():\n    returns = 10\n", "def some_func():\n    returns = 10\n    ",
          "test_return_not_keyword"),
-
-        pytest.mark.xfail(
-            ("foo = 1  # Comment open parenthesis (\n",
+        ("foo = 1  # Comment open parenthesis (\n",
              "foo = 1  # Comment open parenthesis (\n",
-             "test_comment_with parenthesis")),
+             "test_comment_with parenthesis"),
     ])
 def test_indentation_with_spaces(text_input, expected, test_text):
     text = get_indent_fix(text_input)
     assert text == expected, test_text
 
-# --- Failing tests
-# -----------------------------------------------------------------------------
-@pytest.mark.xfail
 def test_def_with_unindented_comment():
     text = get_indent_fix("def function():\n# Comment\n")
     assert text == "def function():\n# Comment\n    ", repr(text)
@@ -202,14 +197,8 @@ def test_def_with_unindented_comment():
          "test_return"),
         ("def some_func():\n\treturns = 10\n", "def some_func():\n\treturns = 10\n\t",
          "test_return_not_keyword"),
-
-        # Failing test
-        pytest.mark.xfail(
-            ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
-             "test_def_with_unindented_comment")),
-        pytest.mark.xfail(
-            ("a = (a  #  some comment\n", "a = (a  #  some comment\n\t ",
-             "test_inline_comment")),
+        ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
+             "test_def_with_unindented_comment"),
     ])
 def test_indentation_with_tabs(text_input, expected, test_text,
                                tab_stop_width_spaces):
@@ -229,6 +218,7 @@ def test_indentation_with_tabs(text_input, expected, test_text,
         ("print(\n)", "print(\n\t)", 6),
         ("print(\n)", "print(\n      )", 7),
         ("print(\n)", "print(\n      )", 8),
+        ("a = (a  #  some comment\n", "a = (a  #  some comment\n\t ", 4),
     ])
 def test_indentation_with_tabs_parenthesis(text_input, expected,
                                            tab_stop_width_spaces):
