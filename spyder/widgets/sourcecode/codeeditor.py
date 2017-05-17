@@ -1929,7 +1929,7 @@ class CodeEditor(TextEditBaseWidget):
                not prevtext.strip().startswith('#') and prevtext) or
                prevtext):
 
-                if not prevtext.strip().startswith('return') and \
+                if not "return" in prevtext.strip().split()[:1] and \
                     (prevtext.strip().endswith(')') or
                      prevtext.strip().endswith(']') or
                      prevtext.strip().endswith('}')):
@@ -1978,7 +1978,7 @@ class CodeEditor(TextEditBaseWidget):
                 (prevtext.endswith('continue') or
                  prevtext.endswith('break') or
                  prevtext.endswith('pass') or
-                 (prevtext.strip().startswith("return") and
+                 ("return" in prevtext.strip().split()[:1] and
                   len(re.split(r'\(|\{|\[', prevtext)) ==
                   len(re.split(r'\)|\}|\]', prevtext)))):
                 # Unindent
