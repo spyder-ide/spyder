@@ -156,6 +156,10 @@ def test_first_line():
         ("a = (a  #  some comment\n", "a = (a  #  some comment\n     ", "test_inline_comment"),
         ("len(a) == 1\n", "len(a) == 1\n", "test_balanced_brackets_not_ending_in_bracket"),
         ("x = f(\n", "x = f(\n      ", "test_short_open_bracket_not_hanging_indent"),
+        ("def some_func():\n    return 10\n", "def some_func():\n    return 10\n",
+         "test_return"),
+        ("def some_func():\n    returns = 10\n", "def some_func():\n    returns = 10\n    ",
+         "test_return_not_keyword"),
 
         pytest.mark.xfail(
             ("foo = 1  # Comment open parenthesis (\n",
@@ -194,6 +198,10 @@ def test_def_with_unindented_comment():
          "test_commented_brackets"),
         ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
          "test_balanced_brackets"),
+        ("def some_func():\n\treturn 10\n", "def some_func():\n\treturn 10\n",
+         "test_return"),
+        ("def some_func():\n\treturns = 10\n", "def some_func():\n\treturns = 10\n\t",
+         "test_return_not_keyword"),
 
         # Failing test
         pytest.mark.xfail(
