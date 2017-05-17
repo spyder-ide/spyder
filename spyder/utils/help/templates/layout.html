@@ -1,0 +1,85 @@
+{#
+    layout.html
+    ~~~~~~~~~~~
+
+    Layout template for the Help plugin
+
+    :copyright: Copyright (c) Spyder Project Contributors.
+    :copyright: Copyright 2009 by Tim Dumol <tim@timdumol.com>
+    :license: BSD license
+#}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="file:///{{css_path}}/default.css" type="text/css" />
+    <link rel="stylesheet" href="file:///{{css_path}}/pygments.css" type="text/css" />
+    <script type="text/javascript" src="file:///{{jquery_path}}/jquery.js"></script>
+    
+    {% if right_sphinx_version and math_on %}
+    {# DON'T try to load MathJax from the net. It's slow and sometimes gives
+       errors. See this thread for more info:
+       http://tex.stackexchange.com/questions/2692/comparing-mathjax-and-mathml
+    #}
+    <script type="text/javascript" 
+    src="file:///{{mathjax_path}}/MathJax.js?config=TeX-AMS-MML_SVG-full">
+    </script>
+    {% endif %}
+</head>
+
+
+<script type="text/javascript" charset="utf-8">
+{% include js_path + "/math_config.js" %}
+</script>
+
+<script src="file:///{{js_path}}/utils.js" type="text/javascript" charset="utf-8"></script>
+<script src="file:///{{js_path}}/copy_button.js" type="text/javascript" charset="utf-8"></script>
+
+{% if collapse %}
+<script src="file:///{{js_path}}/collapse_sections.js" type="text/javascript" charset="utf-8"></script>
+<script src="file:///{{js_path}}/move_outline.js" type="text/javascript" charset="utf-8"></script>
+{% endif %}
+
+{% if img_path %}
+<script type="text/javascript" charset="utf-8">
+{% include js_path + "/fix_image_paths.js" %}
+</script>
+{% endif %}
+
+
+<body>
+    {# Docstring header #}
+    {% if name %}
+    <div class="title"> <h1> {{name}} </h1> </div>
+
+    {% if argspec or note %}
+    <div class="metadata">
+        {% if argspec %}
+        <p> <b>Definition :</b> <span class="def"> {{name}}{{argspec}} </span> </p>
+        {% endif %}
+
+        {% if note %}
+        <p> <b>Type :</b> {{note}} </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+    
+    {# Docstring text #}
+    <div class="docstring">
+        {% block body %}{% endblock %}
+        {% if collapse %}
+        <div class="section" id="outline">
+            <h2> Outline </h2>
+            {{ toc }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

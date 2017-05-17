@@ -1,0 +1,124 @@
+/*
+* Qt Stylesheet for MacOS X
+* Copyright (c) Spyder Project Contributors
+*/
+
+
+/* ---------------- Dock widget and QSplitter separators --------------- */
+
+QMainWindow::separator {
+    width: 3px;
+    height: 3px;
+    border: 1px solid lightgrey;
+    border-radius: 1px;
+}
+
+QMainWindow::separator:hover {
+    background: darkgrey;
+}
+
+QToolButton {
+    border: none;
+}
+
+QSplitter::handle:horizontal {
+    border: 1px solid darkgrey;
+    width: 2px;
+}
+
+QSplitter::handle:vertical {
+    border: 1px solid darkgrey;
+    height: 2px;
+}
+
+QSplitter::handle:pressed {
+    background: darkgrey;
+}
+
+
+/* ----------------- Tabs ------------------ */
+
+QWidget#tab-container {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+}
+
+QTabWidget::pane#plugin-tab {
+    border-top: 1px solid qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+    border-bottom: 0px;
+    border-left: 0px;
+    border-right: 0px;
+}
+
+QTabWidget::tab-bar#plugin-tab {
+    left: 5px;
+}
+
+QTabBar::tab#plugin-tab {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #b1b1b1, stop: 0.07 #b3b3b3,
+                                stop: 0.33 #b3b3b3, stop: 0.4 #b0b0b0,
+                                stop: 0.47 #b3b3b3, stop: 1.0 #b2b2b2);
+    border: 1px solid #787878;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    margin-left: -1px;
+    margin-right: -1px;
+    min-width: 15ex;
+    padding: 3px;
+}
+
+QTabBar::tab:selected#plugin-tab {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #dfdfdf, stop: 0.1 #dddddd,
+                                stop: 0.12 #dfdfdf, stop: 0.22 #e0e0e0,
+                                stop: 0.33 #dedede, stop: 0.47 #dedede,
+                                stop: 0.49 #e0e0e0, stop: 0.59 #dddddd,
+                                stop: 0.61 #dfdfdf, stop: 0.73 #dedede,
+                                stop: 0.80 #e0e0e0, stop: 1.0 #dedede);
+    border: 1px solid #787878;
+    border-top: 0px;
+    border-top-color: transparent;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+QTabBar::tab:first#plugin-tab {
+    margin-left: 0;
+}
+
+QTabBar::tab:last#plugin-tab {
+    margin-right: 0;
+}
+
+QTabBar::tab:only-one#plugin-tab {
+    margin: 0;
+}
+
+QTabBar::scroller#plugin-tab {
+    width: 22px;
+}
+
+QTabBar#plugin-tab QToolButton::left-arrow {
+    background: lightgrey;
+    border-right: 1px solid darkgrey;
+    image: url($IMAGE_PATH/chevron-left.png);
+}
+
+QTabBar#plugin-tab QToolButton::right-arrow {
+    background: lightgrey;
+    image: url($IMAGE_PATH/chevron-right.png);
+}
+
+
+/* ------------------ Dock widgets ------------------- */
+
+QDockWidget::close-button, QDockWidget::float-button {
+    padding: 0px;
+    margin: 2px;
+}

@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
-try:
-    from guidata.gettext_helpers import do_rescan, do_rescan_files
-except ImportError:
-    raise ImportError("This script requires guidata >= v1.3.0.")
+from gettext_helpers import do_rescan, do_rescan_files
 
 if __name__ == "__main__":
-    do_rescan("spyderlib")
-    do_rescan_files(["spyderplugins/p_pylint.py",
-                     "spyderplugins/widgets/pylintgui.py"],
-                     "p_pylint", "spyderplugins")
-    do_rescan_files(["spyderplugins/p_profiler.py",
-                     "spyderplugins/widgets/profilergui.py"],
-                     "p_profiler", "spyderplugins")
-    do_rescan_files(["spyderplugins/p_breakpoints.py",
-                     "spyderplugins/widgets/breakpointsgui.py"],
-                     "p_breakpoints", "spyderplugins")
+    do_rescan("spyder")
+    do_rescan_files(["spyder_pylint/pylint.py",
+                     "spyder_pylint/widgets/pylintgui.py"],
+                     "pylint", "spyder_pylint")
+    do_rescan_files(["spyder_profiler/profiler.py",
+                     "spyder_profiler/widgets/profilergui.py"],
+                     "profiler", "spyder_profiler")
+    do_rescan_files(["spyder_breakpoints/breakpoints.py",
+                     "spyder_breakpoints/widgets/breakpointsgui.py"],
+                     "breakpoints", "spyder_breakpoints")

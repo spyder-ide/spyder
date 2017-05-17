@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Spyder
@@ -17,31 +17,42 @@ import os
 import os.path as osp
 import subprocess
 import sys
-import re
 import shutil
 
 from distutils.core import setup
 from distutils.command.build import build
+from distutils.command.install import install
 from distutils.command.install_data import install_data
 
+
+#==============================================================================
 # Check for Python 3
+#==============================================================================
 PY3 = sys.version_info[0] == 3
 
-# This is necessary to prevent an error while installing Spyder with pip
-# See http://stackoverflow.com/a/18961843/438386
-with_setuptools = False
-if 'USE_SETUPTOOLS' in os.environ or 'pip' in __file__ or \
-  'VIRTUAL_ENV' in os.environ:
-    try:
-        from setuptools.command.install import install
-        with_setuptools = True
-    except:
-        with_setuptools = False
 
-if not with_setuptools:
-    from distutils.command.install import install  # analysis:ignore
+#==============================================================================
+# Minimal Python version sanity check
+# Taken from the notebook setup.py -- Modified BSD License
+#==============================================================================
+v = sys.version_info
+if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
+    error = "ERROR: Spyder requires Python version 2.7 or 3.3 or above."
+    print(error, file=sys.stderr)
+    sys.exit(1)
 
 
+#==============================================================================
+# Constants
+#==============================================================================
+NAME = 'spyder'
+LIBNAME = 'spyder'
+from spyder import __version__, __project_url__
+
+
+#==============================================================================
+# Auxiliary functions
+#==============================================================================
 def get_package_data(name, extlist):
     """Return data files for package *name* with extensions in *extlist*"""
     flist = []
@@ -68,18 +79,35 @@ def get_data_files():
     if sys.platform.startswith('linux'):
         if PY3:
             data_files = [('share/applications', ['scripts/spyder3.desktop']),
-                          ('share/pixmaps', ['img_src/spyder3.png'])]
+                          ('share/pixmaps', ['img_src/spyder3.png']),
+                          ('share/metainfo', ['scripts/spyder3.appdata.xml'])]
         else:
             data_files = [('share/applications', ['scripts/spyder.desktop']),
                           ('share/pixmaps', ['img_src/spyder.png'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
-                                   'img_src/spyder_light.ico'])]
+                                   'img_src/spyder_reset.ico'])]
     else:
         data_files = []
     return data_files
 
 
+def get_packages():
+    """Return package list"""
+    packages = (
+        get_subpackages(LIBNAME)
+        + get_subpackages('spyder_breakpoints')
+        + get_subpackages('spyder_profiler')
+        + get_subpackages('spyder_pylint')
+        + get_subpackages('spyder_io_dcm')
+        + get_subpackages('spyder_io_hdf5')
+        )
+    return packages
+
+
+#==============================================================================
+# Make Linux detect Spyder desktop file
+#==============================================================================
 class MyInstallData(install_data):
     def run(self):
         install_data.run(self)
@@ -92,7 +120,9 @@ class MyInstallData(install_data):
 CMDCLASS = {'install_data': MyInstallData}
 
 
+#==============================================================================
 # Sphinx build (documentation)
+#==============================================================================
 def get_html_help_exe():
     """Return HTML Help Workshop executable path (Windows only)"""
     if os.name == 'nt':
@@ -135,8 +165,8 @@ try:
             build = self.get_finalized_command('build')
             sys.path.insert(0, os.path.abspath(build.build_lib))
             dirname = self.distribution.get_command_obj('build').build_purelib
-            self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
-            
+            self.builder_target_dir = osp.join(dirname, 'spyder', 'doc')
+
             if not osp.exists(self.builder_target_dir):
                 os.mkdir(self.builder_target_dir)
 
@@ -152,13 +182,13 @@ try:
                       "location (path with *only* ASCII characters).",
                       file=sys.stderr)
             sys.path.pop(0)
-            
+
             # Building chm doc, if HTML Help Workshop is installed
             if hhc_exe is not None:
                 fname = osp.join(self.builder_target_dir, 'Spyderdoc.chm')
                 subprocess.call('"%s" %s' % (hhc_exe, fname), shell=True)
                 if osp.isfile(fname):
-                    dest = osp.join(dirname, 'spyderlib')
+                    dest = osp.join(dirname, 'spyder')
                     try:
                         shutil.move(fname, dest)
                     except shutil.Error:
@@ -171,39 +201,9 @@ except ImportError:
           'is not installed', file=sys.stderr)
 
 
-NAME = 'spyder'
-LIBNAME = 'spyderlib'
-from spyderlib import __version__, __project_url__
-
-
-JOINEDARGS = ''.join(sys.argv)
-WINDOWS_INSTALLER = 'bdist_wininst' in JOINEDARGS or 'bdist_msi' in JOINEDARGS
-TARGET_MATCH = re.search(r'--target-version=([0-9]*)\.([0-9]*)', JOINEDARGS)
-if TARGET_MATCH:
-    TARGET_VERSION = TARGET_MATCH.groups()
-else:
-    TARGET_VERSION = (str(sys.version_info[0]), str(sys.version_info[1]))
-
-
-def get_packages():
-    """Return package list"""
-    if WINDOWS_INSTALLER:
-        # Adding pyflakes and rope to the package if available in the 
-        # repository (this is not conventional but Spyder really need 
-        # those tools and there is not decent package manager on 
-        # Windows platforms, so...)
-        import shutil
-        import atexit
-        extdir = 'external-py' + TARGET_VERSION[0]
-        for name in ('rope', 'pyflakes'):
-            srcdir = osp.join(extdir, name)
-            if osp.isdir(srcdir):
-                dstdir = osp.join(LIBNAME, 'utils', 'external', name)
-                shutil.copytree(srcdir, dstdir)
-                atexit.register(shutil.rmtree, osp.abspath(dstdir))
-    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
-    return packages
-
+#==============================================================================
+# Main scripts
+#==============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
 SCRIPTS = ['%s_win_post_install.py' % NAME]
@@ -211,61 +211,116 @@ if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
 else:
     SCRIPTS.append('spyder')
+
+
+#==============================================================================
+# Files added to the package
+#==============================================================================
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
-           '.txt', '.rst']
+           '.txt', '.rst', '.qss', '.ttf', '.json', '.c', '.cpp', '.java',
+           '.md', '.R', '.csv', '.pyx', '.ipynb']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
 
-# Adding a message for the Windows installers
-WININST_MSG = ""
-if WINDOWS_INSTALLER:
-    WININST_MSG = \
-"""Please uninstall any previous version of Spyder before continue.
 
-"""
-
-
-setup(name=NAME,
+#==============================================================================
+# Setup arguments
+#==============================================================================
+setup_args = dict(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
-      long_description=WININST_MSG + \
-"""Spyder is an interactive Python development environment providing 
+      long_description=
+"""Spyder is an interactive Python development environment providing
 MATLAB-like features in a simple and light-weighted software.
-It also provides ready-to-use pure-Python widgets to your PyQt4 or 
-PySide application: source code editor with syntax highlighting and 
-code introspection/analysis features, NumPy array editor, dictionary 
+It also provides ready-to-use pure-Python widgets to your PyQt5 or
+PyQt4 application: source code editor with syntax highlighting and
+code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
-      author="Pierre Raybaut",
+      author="The Spyder Project Contributors",
       url=__project_url__,
       license='MIT',
-      keywords='PyQt4 PySide editor shell console widgets IDE',
+      keywords='PyQt5 PyQt4 editor shell console widgets IDE',
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyderplugins':
-                    get_package_data('spyderplugins', EXTLIST)},
-      requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
+                    'spyder_breakpoints': get_package_data('spyder_breakpoints', EXTLIST),
+                    'spyder_profiler': get_package_data('spyder_profiler', EXTLIST),
+                    'spyder_pylint': get_package_data('spyder_pylint', EXTLIST),
+                    'spyder_io_dcm': get_package_data('spyder_io_dcm', EXTLIST),
+                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5', EXTLIST),
+                    },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
-      options={"bdist_wininst":
-               {"install_script": "%s_win_post_install.py" % NAME,
-                "title": "%s %s" % (NAME.capitalize(), __version__),
-                "bitmap": osp.join('img_src', 'spyder-bdist_wininst.bmp'),
-                "target_version": '%s.%s' % TARGET_VERSION,
-                "user_access_control": "auto"},
-               "bdist_msi":
-               {"install_script": "%s_win_post_install.py" % NAME}},
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: MacOS',
                    'Operating System :: Microsoft :: Windows',
-                   'Operating System :: OS Independent',
-                   'Operating System :: POSIX',
-                   'Operating System :: Unix',
+                   'Operating System :: POSIX :: Linux',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
                    'Development Status :: 5 - Production/Stable',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Software Development :: Widget Sets'],
       cmdclass=CMDCLASS)
+
+
+#==============================================================================
+# Setuptools deps
+#==============================================================================
+if any(arg == 'bdist_wheel' for arg in sys.argv):
+    import setuptools     # analysis:ignore
+
+install_requires = [
+    'rope_py3k' if PY3 else 'rope>=0.9.4',
+    'jedi>=0.9.0',
+    'pyflakes',
+    'pygments>=2.0',
+    'qtconsole>=4.2.0',
+    'nbconvert',
+    'sphinx',
+    'pycodestyle',
+    'pylint',
+    'psutil',
+    'qtawesome>=0.4.1',
+    'qtpy>=1.1.0',
+    'pickleshare',
+    'pyzmq',
+    'chardet>=2.0.0',
+    'numpydoc',
+]
+
+extras_require = {
+    'test:python_version == "2.7"': ['mock'],
+    'test': ['pytest',
+             'pytest-qt',
+             'pytest-cov',
+             'pytest-xvfb',
+             'mock',
+             'flaky',
+             'pandas',
+             'scipy',
+             'sympy',
+             'pillow',
+             'matplotlib',
+             'cython'],
+}
+
+if 'setuptools' in sys.modules:
+    setup_args['install_requires'] = install_requires
+    setup_args['extras_require'] = extras_require
+
+    setup_args['entry_points'] = {
+        'gui_scripts': [
+            '{} = spyder.app.start:main'.format(
+                'spyder3' if PY3 else 'spyder')
+        ]
+    }
+
+    setup_args.pop('scripts', None)
+
+
+#==============================================================================
+# Main setup
+#==============================================================================
+setup(**setup_args)

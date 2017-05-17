@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Bootstrapping Spyder
@@ -33,7 +33,7 @@ Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
 parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
-                       "pyside (for PySide)")
+                       "pyside (for PySide, deprecated)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
 parser.add_option('--test', dest="test", action='store_true', default=False,
@@ -42,7 +42,11 @@ parser.add_option('--no-apport', action='store_true',
                   default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
+
 options, args = parser.parse_args()
+
+# Store variable to be used in self.restart (restart spyder instance)
+os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(sys.argv[1:])
 
 assert options.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
@@ -93,16 +97,11 @@ if sys.excepthook != sys.__excepthook__:
 
 # --- Continue
 
-from spyderlib.utils.vcs import get_hg_revision
-print("Revision %s:%s, Branch: %s" % get_hg_revision(DEVPATH))
+from spyder.utils.vcs import get_git_revision
+print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
-
-EXTPATH = osp.join(DEVPATH, 'external-py' + sys.version[0])
-if osp.isdir(EXTPATH):
-    sys.path.insert(0, EXTPATH)
-    print("                      and %s" % EXTPATH)
 
 
 # Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
@@ -110,15 +109,16 @@ if osp.isdir(EXTPATH):
 if options.gui is None:
     try:
         import PyQt5  # analysis:ignore
-        print("02. PyQt5 is detected, selecting (experimental)")
+        print("02. PyQt5 is detected, selecting")
         os.environ['QT_API'] = 'pyqt5'
     except ImportError:
         try:
-            import PySide  # analysis:ignore
-            print("02. PySide is detected, selecting")
-            os.environ['QT_API'] = 'pyside'
+            import PyQt4  # analysis:ignore
+            print("02. PyQt4 is detected, selecting")
+            os.environ['QT_API'] = 'pyqt'
         except ImportError:
-            print("02. No PyQt5 or PySide detected, using PyQt4 if available")
+            print("02. No PyQt5 or PyQt4 detected, using PySide if available "
+                  "(deprecated)")
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
@@ -126,7 +126,7 @@ else:
 
 if options.debug:
     # safety check - Spyder config should not be imported at this point
-    if "spyderlib.baseconfig" in sys.modules:
+    if "spyder.config.base" in sys.modules:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
     print("0x. Switching debug mode on")
     os.environ["SPYDER_DEBUG"] = "True"
@@ -136,12 +136,20 @@ if options.debug:
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
-from spyderlib import get_versions
+from spyder import get_versions
 versions = get_versions(reporev=False)
 print("03. Imported Spyder %s" % versions['spyder'])
 print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
+
+
+# Check that we have the right qtpy version
+from spyder.utils import programs
+if not programs.is_module_installed('qtpy', '>=1.1.0'):
+    print("")
+    sys.exit("ERROR: Your qtpy version is outdated. Please install qtpy "
+             "1.1.0 or higher to be able to work with Spyder!")
 
 
 # --- Executing Spyder
@@ -150,8 +158,8 @@ if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--show-console")  # Windows only: show parent console
 
-print("04. Executing spyder.main()")
-from spyderlib import start_app
+print("04. Running Spyder")
+from spyder.app import start
 
 time_lapse = time.time()-time_start
 print("Bootstrap completed in " +
@@ -159,4 +167,4 @@ print("Bootstrap completed in " +
     # gmtime() converts float into tuple, but loses milliseconds
     ("%.4f" % time_lapse).split('.')[1])
 
-start_app.main()
+start.main()

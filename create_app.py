@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2012 The Spyder development team
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
 """
 Create a stand-alone Mac OS X app using py2app
 
 To be used like this:
-$ python setup.py build_doc     (to update the docs)
+$ python setup.py build         (to update the docs)
 $ python create_app.py py2app   (to build the app)
 """
 
@@ -26,18 +26,21 @@ import sys
 
 from IPython.core.completerlib import module_list
 
-from spyderlib import __version__ as spy_version
-from spyderlib.config import EDIT_EXT
-from spyderlib.baseconfig import MAC_APP_NAME
-from spyderlib.utils.programs import find_program
+from spyder import __version__ as spy_version
+from spyder.config.utils import EDIT_FILETYPES, _get_extensions
+from spyder.config.base import MAC_APP_NAME
+from spyder.utils.programs import find_program
 
 
 PY2 = sys.version[0] == '2'
 
+
+# To deal with a bug in py2app 0.9
+sys.setrecursionlimit(1500)
+
 #==============================================================================
 # Auxiliary functions
 #==============================================================================
-
 def get_stdlib_modules():
     """
     Returns a list containing the names of all the modules available in the
@@ -60,23 +63,48 @@ def get_stdlib_modules():
     modules = list(modules)
     return modules
 
+
+#==============================================================================
+# Main message
+#==============================================================================
+main_message = """
+IMPORTANT NOTE
+==============
+
+Before running this script, please be sure of following the instructions
+present in
+
+https://github.com/spyder-ide/mac-application/blob/master/How to build the app.md
+
+This script only runs succesfully with those instructions!
+
+------
+"""
+
+print(main_message)
+
+
 #==============================================================================
 # App creation
 #==============================================================================
-
 APP_MAIN_SCRIPT = MAC_APP_NAME[:-4] + '.py'
 shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 
 APP = [APP_MAIN_SCRIPT]
-DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
+DEPS = ['pylint', 'logilab', 'astroid', 'pycodestyle', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
-PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
-            'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
+PACKAGES = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm', 'spyder_io_hdf5',
+            'spyder_profiler', 'spyder_pylint', 'sphinx', 'jinja2', 'docutils',
+            'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
+            'IPython', 'ipykernel', 'ipython_genutils', 'jupyter_client',
+            'jupyter_core', 'traitlets', 'qtconsole', 'pexpect', 'jedi',
+            'jsonschema', 'nbconvert', 'nbformat', 'qtpy', 'qtawesome',
+            'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt5',
             'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
-            'mpl_toolkits', 'nose', 'patsy','statsmodels']
+            'nose', 'patsy','statsmodels', 'seaborn', 'networkx']
 
 INCLUDES = get_stdlib_modules()
-EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
+EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
 OPTIONS = {
     'argv_emulation': True,
@@ -101,10 +129,10 @@ setup(
 # Remove script for app
 os.remove(APP_MAIN_SCRIPT)
 
+
 #==============================================================================
 # Post-app creation
 #==============================================================================
-
 py_ver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 # Main paths
@@ -113,8 +141,8 @@ system_python_lib = get_python_lib()
 app_python_lib = osp.join(resources, 'lib', 'python%s' % py_ver)
 
 # Add our docs to the app
-docs_orig = 'build/lib/spyderlib/doc'
-docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
+docs_orig = 'build/lib/spyder/doc'
+docs_dest = osp.join(app_python_lib, 'spyder', 'doc')
 shutil.copytree(docs_orig, docs_dest)
 
 # Create a minimal library inside Resources to add it to PYTHONPATH instead of
@@ -123,12 +151,13 @@ shutil.copytree(docs_orig, docs_dest)
 # inside the app.
 minimal_lib = osp.join(app_python_lib, 'minimal-lib')
 os.mkdir(minimal_lib)
-minlib_pkgs = ['spyderlib', 'spyderplugins']
+minlib_pkgs = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm',
+               'spyder_io_hdf5', 'spyder_profiler', 'spyder_pylint']
 for p in minlib_pkgs:
     shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
 
 # Add necessary Python programs to the app
-PROGRAMS = ['pylint', 'pep8']
+PROGRAMS = ['pylint', 'pycodestyle']
 system_progs = [find_program(p) for p in PROGRAMS]
 progs_dest = [resources + osp.sep + p for p in PROGRAMS]
 for i in range(len(PROGRAMS)):
@@ -149,6 +178,14 @@ for i in deps:
         shutil.copy2(osp.join(system_python_lib, i),
                      osp.join(app_python_lib, i))
 
+# Single file dependencies
+SINGLE_DEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
+               'mistune.so', 'pickleshare.py', 'sip.so']
+for dep in SINGLE_DEPS:
+    if osp.isfile(osp.join(system_python_lib, dep)):
+        shutil.copyfile(osp.join(system_python_lib, dep),
+                        osp.join(app_python_lib, dep))
+
 # Function to adjust the interpreter used by PROGRAMS
 # (to be added to __boot.py__)
 change_interpreter = \
@@ -161,9 +198,9 @@ def _change_interpreter(program):
     try:
         for line in fileinput.input(program, inplace=True):
             if line.startswith('#!'):
-                print('#!' + sys.executable)
+                print('#!' + sys.executable, end='')
             else:
-                print(line)
+                print(line, end='')
     except:
         pass
 
@@ -206,7 +243,11 @@ def _get_env():
     else:
         envstr = sp.Popen('printenv', shell=True,
                           stdout=sp.PIPE).communicate()[0]
-    env = [a.split('=') for a in envstr.decode().strip().split('\n')]
+    try:
+        env_vars = envstr.decode().strip().split('\n')
+    except UnicodeDecodeError:
+        env_vars = envstr.decode(encoding='utf-8').strip().split('\n')
+    env = [a.split('=') for a in env_vars if '=' in a]
     os.environ.update(env)
 try:
     _get_env()
@@ -230,9 +271,6 @@ for line in fileinput.input(boot_file, inplace=True):
         print(run_line)
     else:
         print(line, end='')
-
-# To use the app's own Qt framework
-subprocess.call(['macdeployqt', 'dist/%s' % MAC_APP_NAME])
 
 # Workaround for what appears to be a bug with py2app and Homebrew
 # See https://bitbucket.org/ronaldoussoren/py2app/issue/26#comment-2092445

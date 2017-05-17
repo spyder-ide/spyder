@@ -30,19 +30,18 @@ Contents:
     overview
     installation
     options
-    lightmode
-    console
+    editor
     ipythonconsole
     debugging
+    console
     variableexplorer
-    inspector
-    onlinehelp
-    historylog
-    explorer
-    projectexplorer
-    editor
-    findinfiles
+    help
+    projects
     pylint
+    fileexplorer
+    historylog
+    findinfiles
+    onlinehelp
     internalconsole
 
 Indices and tables:

@@ -1,0 +1,11 @@
+mock
+pytest
+pytest-qt
+pytest-cov
+pandas
+scipy
+sympy
+pillow
+matplotlib
+cython
+flaky

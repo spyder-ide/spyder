@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see spyder/__init__.py for details)
 
-from guidata.gettext_helpers import do_compile
+from gettext_helpers import do_compile
 
 if __name__ == "__main__":
-    do_compile("spyderlib")
-    do_compile("p_pylint", "spyderplugins")
-    do_compile("p_profiler", "spyderplugins")
-    do_compile("p_breakpoints", "spyderplugins")
+    do_compile("spyder")
+    do_compile("pylint", "spyder_pylint")
+    do_compile("profiler", "spyder_profiler")
+    do_compile("breakpoints", "spyder_breakpoints")

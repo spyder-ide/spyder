@@ -1,40 +1,51 @@
 Variable Explorer
 =================
 
-The variable explorer shows the `globals()` namespace contents (i.e. all global 
-object references) of the current console: it supports both the :doc:`console` 
-(Python interpreter running in a remote process) 
-and the :doc:`internalconsole`.
+The variable explorer shows the namespace contents (i.e. all global object
+references) of the current console
+
+|
 
 .. image:: images/variableexplorer1.png
+   :align: center
+
+|
 
 The following screenshots show some interesting features such as editing 
 lists, strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays
 data.
 
+|
+
 .. image:: images/listeditor.png
+   :align: center
+
+|
 
 .. image:: images/texteditor.png
+   :align: center
+
+|
 
 .. image:: images/dicteditor.png
+   :align: center
+
+|
 
 .. image:: images/arrayeditor.png
+   :align: center
+
+|
 
 .. image:: images/variableexplorer-plot.png
+   :align: center
+
+|
 
 .. image:: images/variableexplorer-imshow.png
+   :align: center
 
-The default variable explorer configuration allows to browse global variables 
-without slowing the console even with very large NumPy arrays, lists or 
-dictionaries. The trick is to truncate values, to hide collection contents 
-(i.e. showing '<list @ address>' instead of list contents) and to *not* show 
-mininum and maximum values for NumPy arrays (see context menu options on the 
-screenshot at the top of this page).
-
-However, most of the time, choosing the opposite options won't have too much 
-effect on console's performance:
-
-.. image:: images/variableexplorer2.png
+|
 
 
 Supported types
@@ -43,7 +54,7 @@ Supported types
 The variable explorer can't show all types of objects. The ones currently
 supported are:
 
-#. `Pandas` DataFrames and TimeSeries
+#. `Pandas` DataFrame, TimeSeries and DatetimeIndex objects
 #. `NumPy` arrays and matrices
 #. `PIL/Pillow` images
 #. `datetime` dates
@@ -57,5 +68,4 @@ supported are:
 
 Related plugins:
 
-* :doc:`console`
-* :doc:`internalconsole`
+* :doc:`ipythonconsole`

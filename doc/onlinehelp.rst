@@ -9,4 +9,4 @@ generated Python documentation on installed module, including your own modules
 
 Related plugins:
 
-* :doc:`inspector`
+* :doc:`help`
