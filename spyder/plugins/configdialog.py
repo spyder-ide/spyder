@@ -316,10 +316,14 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             radiobutton.setChecked(self.get_option(option, default))
             radiobutton.toggled.connect(lambda _foo, opt=option:
                                         self.has_been_modified(opt))
+            if radiobutton.restart_required:
+                self.restart_options[option] = radiobutton.label_text
         for lineedit, (option, default) in list(self.lineedits.items()):
             lineedit.setText(self.get_option(option, default))
             lineedit.textChanged.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
+            if lineedit.restart_required:
+                self.restart_options[option] = lineedit.label_text
         for spinbox, (option, default) in list(self.spinboxes.items()):
             spinbox.setValue(self.get_option(option, default))
             spinbox.valueChanged.connect(lambda _foo, opt=option:
@@ -442,7 +446,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
-                           msg_if_enabled=False, button_group=None):
+                           msg_if_enabled=False, button_group=None,
+                           restart=False):
         radiobutton = QRadioButton(text)
         if button_group is None:
             if self.default_button_group is None:
@@ -462,10 +467,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         QMessageBox.information(self, self.get_name(),
                                                 msg_info, QMessageBox.Ok)
             radiobutton.toggled.connect(show_message)
+        radiobutton.restart_required = restart
+        radiobutton.label_text = text
         return radiobutton
     
     def create_lineedit(self, text, option, default=NoDefault,
-                        tip=None, alignment=Qt.Vertical, regex=None):
+                        tip=None, alignment=Qt.Vertical, regex=None, 
+                        restart=False):
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QLineEdit()
@@ -482,6 +490,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget.label = label
         widget.textbox = edit 
         widget.setLayout(layout)
+        edit.restart_required = restart
+        edit.label_text = text
         return widget
     
     def create_browsedir(self, text, option, default=NoDefault, tip=None):
@@ -956,14 +966,16 @@ class MainConfigPage(GeneralConfigPage):
                                 _("Enable auto high DPI scaling"),
                                 'high_dpi_scaling',
                                 button_group=screen_resolution_bg,
-                                tip=_("Set this for high DPI displays"))
+                                tip=_("Set this for high DPI displays"),
+                                restart=True)
 
         custom_scaling_radio = self.create_radiobutton(
                                 _("Set a custom high DPI scaling"),
                                 'high_dpi_custom_scale_factor',
                                 button_group=screen_resolution_bg,
                                 tip=_("Set this for high DPI displays when "
-                                      "auto scaling does not work"))
+                                      "auto scaling does not work"),
+                                restart=True)
 
         custom_scaling_edit = self.create_lineedit("",
                                 'high_dpi_custom_scale_factors',
@@ -971,7 +983,8 @@ class MainConfigPage(GeneralConfigPage):
                                       "separated by semicolons ';', "
                                       "float values are supported"),
                                 alignment=Qt.Horizontal,
-                                regex="[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*")
+                                regex="[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
+                                restart=True)
 
         normal_radio.toggled.connect(custom_scaling_edit.setDisabled)
         auto_scale_radio.toggled.connect(custom_scaling_edit.setDisabled)
