@@ -1925,6 +1925,11 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
+            # Remove inline comment
+            inline_comment = prevtext.find('#')
+            if inline_comment != -1:
+                prevtext = prevtext[:inline_comment]
+
             if ((self.is_python_like() and
                not prevtext.strip().startswith('#') and prevtext) or
                prevtext):
@@ -2067,8 +2072,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
             if self.indent_chars == '\t':
-                indent = indent // self.tab_stop_width_spaces \
-                + correct_indent % self.tab_stop_width_spaces
+                indent = indent // self.tab_stop_width_spaces
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
