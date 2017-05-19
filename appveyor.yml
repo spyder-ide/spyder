@@ -40,4 +40,4 @@ install:
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% python runtests.py"
+  - "%CMD_IN_ENV% pytest spyder"
