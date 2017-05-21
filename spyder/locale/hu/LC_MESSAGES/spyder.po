@@ -1421,62 +1421,62 @@ msgstr "Automatikus kettőspont beillesztés"
 
 #: spyder/plugins/editor.py:197
 msgid "Automatic indentation after 'else', 'elif', etc."
-msgstr "Autometikus bemetszés"
+msgstr "Automatikus behúzás"
 
 #: spyder/plugins/editor.py:199
 #, fuzzy
 msgid "Indentation characters: "
-msgstr "Nincs behúzás"
+msgstr "behúzási betü"
 
 #: spyder/plugins/editor.py:200
 #, fuzzy
 msgid "2 spaces"
-msgstr ">= 2 szóköz"
+msgstr "2 space"
 
 #: spyder/plugins/editor.py:201
 #, fuzzy
 msgid "3 spaces"
-msgstr "&Spaces"
+msgstr "3 space"
 
 #: spyder/plugins/editor.py:202
 #, fuzzy
 msgid "4 spaces"
-msgstr "&Spaces"
+msgstr "4 space"
 
 #: spyder/plugins/editor.py:203
 #, fuzzy
 msgid "5 spaces"
-msgstr "&Spaces"
+msgstr "5 space"
 
 #: spyder/plugins/editor.py:204
 #, fuzzy
 msgid "6 spaces"
-msgstr "6"
+msgstr "6 space"
 
 #: spyder/plugins/editor.py:205
 #, fuzzy
 msgid "7 spaces"
-msgstr "&Spaces"
+msgstr "7 space"
 
 #: spyder/plugins/editor.py:206
 #, fuzzy
 msgid "8 spaces"
-msgstr "8:"
+msgstr "8 space"
 
 #: spyder/plugins/editor.py:207
 #, fuzzy
 msgid "Tabulations"
-msgstr "Tabulátorok engedélyezése"
+msgstr "Tab"
 
 #: spyder/plugins/editor.py:208
 #, fuzzy
 msgid "Tab stop width:"
-msgstr "&Tab stop position:"
+msgstr "Tab méret"
 
 #: spyder/plugins/editor.py:208
 #, fuzzy
 msgid "spaces"
-msgstr "&Spaces"
+msgstr "space"
 
 #: spyder/plugins/editor.py:210
 #, fuzzy
@@ -1491,15 +1491,17 @@ msgid ""
 "completion may be triggered using the alternate\n"
 "shortcut: Ctrl+Space)"
 msgstr ""
+"Hogy TAB mindig behúzást okoz (ebben a esetben,
+kódüegészítés a CTR+Space-el"
 
 #: spyder/plugins/editor.py:217
 #, fuzzy
 msgid "Intelligent backspace"
-msgstr "Intelligens vezérlő"
+msgstr "Intelligens backspace"
 
 #: spyder/plugins/editor.py:219
 msgid "Automatically remove trailing spaces when saving files"
-msgstr ""
+msgstr "Automatikus üres betük törlése"
 
 #: spyder/plugins/editor.py:223
 msgid "Analysis"
@@ -1508,12 +1510,12 @@ msgstr "Elemzés"
 #: spyder/plugins/editor.py:225
 #, fuzzy
 msgid "<i>(Refer to the {} page)</i>"
-msgstr " (%i:%i:%i -t használ)\n"
+msgstr "<i>(Nézze a {} oldalt)</i>"
 
 #: spyder/plugins/editor.py:229
 #, fuzzy
 msgid "Real-time code analysis"
-msgstr "Valós idejű gitáreffektek"
+msgstr "Valós idejű kód elemzés"
 
 #: spyder/plugins/editor.py:231
 msgid ""
@@ -1521,14 +1523,17 @@ msgid ""
 "containing errors or warnings will be highlighted.</p><p><u>Note</u>: add "
 "<b>analysis:ignore</b> in a comment to ignore code analysis warnings.</p>"
 msgstr ""
+"<p>Python forráskód elemzés pyflakes használatával. Figyelmeztetéses és hibás "
+"vonalok kiemelve.</p><p><u>Jegyzet</u>: addjon"
+"<b>analysis:ignore</b> mint megjegyzés, a jelölést kihagyni bizonyos vonalban.</p>""
 
 #: spyder/plugins/editor.py:239
 msgid "Code analysis requires pyflakes %s+"
-msgstr ""
+msgstr "Kód elemzéshez kell pyflakes %s+"
 
 #: spyder/plugins/editor.py:241
 msgid "Real-time code style analysis"
-msgstr ""
+msgstr "Élő kód stílus elemzés"
 
 #: spyder/plugins/editor.py:243
 msgid ""
@@ -1536,18 +1541,21 @@ msgid ""
 "not following PEP8 style guide will be highlighted.</p><p><u>Note</u>: add "
 "<b>analysis:ignore</b> in a comment to ignore style analysis warnings.</p>"
 msgstr ""
+"<p>Python forráskód elemzés pep8 használatával. Kiemel vonalakat "
+"amik nem tartanak a PEP8 stílus előírásokkal</p><p><u>Jegyzet</u>: addjon "
+"<b>analysis:ignore</b> mint megjegyzés, a jelölést kihagyni bizonyos vonalban.</p>"
 
 #: spyder/plugins/editor.py:250
 msgid "Code annotations (TODO, FIXME, XXX, HINT, TIP, @todo)"
-msgstr ""
+msgstr "Kód jelölés (TODO, FIXME, XXX, HINT, TIP, @todo)"
 
 #: spyder/plugins/editor.py:253
 msgid "Perform analysis when saving file and every"
-msgstr ""
+msgstr "Elemzés mentéskor és minden"
 
 #: spyder/plugins/editor.py:257
 msgid "Perform analysis only when saving file"
-msgstr ""
+msgstr "Elemzés csak mentéskor"
 
 #: spyder/plugins/editor.py:316
 #, fuzzy
@@ -1560,20 +1568,22 @@ msgid ""
 "raise syntax errors in the consoles on Windows platforms), Spyder may fix "
 "the file automatically."
 msgstr ""
+"Ha szövegfájlban többféle sorvég van (ami szintax hibát okozhat)"
+"spyder automatikusan rendbe hozhatja."
 
 #: spyder/plugins/editor.py:323
 msgid "Fix automatically and show warning message box"
-msgstr ""
+msgstr "Automatikus rendbe hozás, és figyelmetetés mutatása"
 
 #: spyder/plugins/editor.py:334 spyder/plugins/externalconsole.py:250
 #: spyder/plugins/ipythonconsole.py:559 spyder/plugins/variableexplorer.py:41
 msgid "Display"
-msgstr "Megjelenítési mód"
+msgstr "Kijelző"
 
 #: spyder/plugins/editor.py:336
 #, fuzzy
 msgid "Code Introspection/Analysis"
-msgstr "Elemzés"
+msgstr "Kód Elemzés"
 
 #: spyder/plugins/editor.py:339 spyder/plugins/externalconsole.py:253
 #, fuzzy
@@ -1583,7 +1593,7 @@ msgstr "Haladó beállítások"
 #: spyder/plugins/editor.py:612 spyder/widgets/editortools.py:510
 #, fuzzy
 msgid "Show/hide outline explorer"
-msgstr "Show the Outline dialog box."
+msgstr "Mutatni a vázlat böngészőt"
 
 #: spyder/plugins/editor.py:621
 msgid "&New file..."
@@ -1597,12 +1607,12 @@ msgstr "Új fájl"
 #: spyder/plugins/editor.py:631
 #, fuzzy
 msgid "O&pen last closed"
-msgstr "Me&gnyitva:"
+msgstr "Utosó zártat nyítni"
 
 #: spyder/plugins/editor.py:632
 #, fuzzy
 msgid "Open last closed"
-msgstr "Nyílt és zárt alakzatok"
+msgstr "Utosó zártat nyítni"
 
 #: spyder/plugins/editor.py:638
 msgid "&Open..."
@@ -1616,33 +1626,31 @@ msgstr "Fájl megnyitása"
 #: spyder/plugins/editor.py:645 spyder/widgets/editor.py:346
 #, fuzzy
 msgid "File switcher..."
-msgstr "Ablakváltó"
+msgstr "Fájlváltó..."
 
 #: spyder/plugins/editor.py:647
 #, fuzzy
 msgid "Fast switch between files"
-msgstr ""
-"Switch between\n"
-"Header and Footer"
+msgstr "Fájl gyorsváltó"
 
 #: spyder/plugins/editor.py:653
 #, fuzzy
 msgid "Symbol finder..."
-msgstr "MIME-típus keresése"
+msgstr "Szimbólum keresés"
 
 #: spyder/plugins/editor.py:655
 #, fuzzy
 msgid "Fast symbol search in file"
-msgstr "Csatolásjelző"
+msgstr "Szimbólim gyorskeresés fájlban"
 
 #: spyder/plugins/editor.py:661
 msgid "&Revert"
-msgstr "&Eldobás"
+msgstr "&Visszatérés"
 
 #: spyder/plugins/editor.py:662
 #, fuzzy
 msgid "Revert file from disk"
-msgstr "Visszatérés a fájl egy korábban mentett változatához"
+msgstr "Visszatérés a lemezenlevő fájlhoz"
 
 #: spyder/plugins/editor.py:665
 msgid "&Save"
@@ -1672,7 +1680,7 @@ msgstr "A jelenlegi fájl mentése"
 #: spyder/plugins/editor.py:685 spyder/plugins/editor.py:686
 #, fuzzy
 msgid "Print preview..."
-msgstr "(Nyomtatási előnézet)"
+msgstr "Nyomtatási előnézet"
 
 #: spyder/plugins/editor.py:687
 msgid "&Print..."
@@ -1698,17 +1706,17 @@ msgstr "&Minden bezárása"
 #: spyder/plugins/editor.py:696
 #, fuzzy
 msgid "Close all opened files"
-msgstr "Az összes megnyitott kép bezárása"
+msgstr "Az összes megnyitott fájl bezárása"
 
 #: spyder/plugins/editor.py:703
 #, fuzzy
 msgid "&Find text"
-msgstr "find text"
+msgstr "Szöveg keresés"
 
 #: spyder/plugins/editor.py:709
 #, fuzzy
 msgid "Find &next"
-msgstr "&Find Next"
+msgstr "&Következőt"
 
 #: spyder/plugins/editor.py:715
 #, fuzzy
@@ -1718,19 +1726,17 @@ msgstr "Előző"
 #: spyder/plugins/editor.py:721
 #, fuzzy
 msgid "&Replace text"
-msgstr "is the text you want to replace Old_text."
+msgstr "Szöveget kicserélni"
 
 #: spyder/plugins/editor.py:730
 #, fuzzy
 msgid "Set/Clear breakpoint"
-msgstr "Töréspont"
+msgstr "Töréspont állítás"
 
 #: spyder/plugins/editor.py:737
 #, fuzzy
 msgid "Set/Edit conditional breakpoint"
-msgstr ""
-"másodlagos kiszolgáló szerkesztése a $EDITOR változóban beállított "
-"szerkesztővel"
+msgstr "Feltételes töréspont állítás"
 
 #: spyder/plugins/editor.py:744
 #, fuzzy
@@ -1745,7 +1751,7 @@ msgstr "winpdb"
 #: spyder/plugins/editor.py:753
 #, fuzzy
 msgid "Debug file"
-msgstr "DEBUG    "
+msgstr "Fájlban hibakeresés"
 
 #: spyder/plugins/editor.py:758
 msgid "Step"
@@ -1754,7 +1760,7 @@ msgstr "Léptet"
 #: spyder/plugins/editor.py:759
 #, fuzzy
 msgid "Run current line"
-msgstr "Az aktuális sor:"
+msgstr "aktuális sor futtatás"
 
 #: spyder/plugins/editor.py:764
 msgid "Continue"
@@ -1762,25 +1768,25 @@ msgstr "Folytatás"
 
 #: spyder/plugins/editor.py:766
 msgid "Continue execution until next breakpoint"
-msgstr ""
+msgstr "Fojtatás következő töréspontig"
 
 #: spyder/plugins/editor.py:771
 #, fuzzy
 msgid "Step Into"
-msgstr "Step &In"
+msgstr "Belépés"
 
 #: spyder/plugins/editor.py:773
 msgid "Step into function or method of current line"
-msgstr ""
+msgstr "Belépés jelenlegi sor funciójába"
 
 #: spyder/plugins/editor.py:778
 #, fuzzy
 msgid "Step Return"
-msgstr "Kilép az aktuális szintről és a ciklus elejére ugrik"
+msgstr "Kilép az aktuális szintről"
 
 #: spyder/plugins/editor.py:780
 msgid "Run until current function or method returns"
-msgstr ""
+msgstr "Futtatni amig a jelenlegi funció visszatér"
 
 #: spyder/plugins/editor.py:785 spyder/widgets/findinfiles.py:333
 #: spyder/widgets/ipythonconsole/client.py:248
@@ -1790,7 +1796,7 @@ msgstr "Állj"
 #: spyder/plugins/editor.py:786
 #, fuzzy
 msgid "Stop debugging"
-msgstr "Nyomkövetés"
+msgstr "Nyomkövetés vége"
 
 #: spyder/plugins/editor.py:793
 #, fuzzy
@@ -1804,47 +1810,48 @@ msgstr "B&eállítások..."
 #: spyder/plugins/editor.py:800 spyder/widgets/externalshell/pythonshell.py:304
 #, fuzzy
 msgid "Run settings"
-msgstr "&Futtatás"
+msgstr "Futtatás beállítások"
 
 #: spyder/plugins/editor.py:806
 #, fuzzy
 msgid "Re-run &last script"
-msgstr "Leg_utóbbi művelet megismétlése"
+msgstr "Legutóbbi script megismétlése"
 
 #: spyder/plugins/editor.py:808
 #, fuzzy
 msgid "Run again last file"
-msgstr "Fájl futtatása"
+msgstr "Fájl újra futtatása"
 
 #: spyder/plugins/editor.py:814 spyder/widgets/sourcecode/codeeditor.py:2608
 #, fuzzy
 msgid "Run &selection or current line"
-msgstr "Current &Selection"
+msgstr "Vállasztás vagy vonal futtatása"
 
 #: spyder/plugins/editor.py:817
 #, fuzzy
 msgid "Run selection or current line"
-msgstr "Current &Selection"
+msgstr "Vállasztás vagy vonal futtatása"
 
 #: spyder/plugins/editor.py:825 spyder/widgets/sourcecode/codeeditor.py:2600
 #, fuzzy
 msgid "Run cell"
-msgstr "Cella"
+msgstr "Cella futtatása"
 
 #: spyder/plugins/editor.py:828
 msgid ""
 "Run current cell (Ctrl+Enter)\n"
 "[Use #%% to create cells]"
-msgstr ""
+msgstr "Jelenlegi cellát futtatni (CTR+ENTER)\n"
+"[Új cella: #%%]""
 
 #: spyder/plugins/editor.py:834 spyder/widgets/sourcecode/codeeditor.py:2604
 #, fuzzy
 msgid "Run cell and advance"
-msgstr "ennyivel korábban"
+msgstr "Cellát futtatni, tovább lépni"
 
 #: spyder/plugins/editor.py:837
 msgid "Run current cell and go to the next one (Shift+Enter)"
-msgstr ""
+msgstr "Jelenlegi cellét futtatni, következőhöz lépni (Shift+Enter)"
 
 #: spyder/plugins/editor.py:844
 #, fuzzy
