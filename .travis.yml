@@ -18,8 +18,7 @@ matrix:
     - python: "3.5"
       env: TEST_MODULES=true USE_PYQT=pyqt4
       os: linux
-    # This slot test runs our tests only with pip
-    # packages
+    # This slot runs our tests only with pip packages
     - python: "3.5"
       env: TEST_MODULES=false USE_PYQT=pyqt5
       os: linux
@@ -42,3 +41,6 @@ script:
             ./continuous_integration/travis/test-qt4.sh
         fi
     fi
+
+after_success:
+  - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls
