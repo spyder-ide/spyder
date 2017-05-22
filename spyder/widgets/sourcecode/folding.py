@@ -241,3 +241,23 @@ class CharBasedFoldDetector(FoldDetector):
         if self.close_chars in prev_text:
             return TextBlockHelper.get_fold_lvl(prev_block) - 1
         return TextBlockHelper.get_fold_lvl(prev_block)
+
+
+if __name__ == '__main__':
+    """Print folding blocks of this file for debugging"""
+    from spyder.widgets.sourcecode.api.folding import print_tree
+    from spyder.utils.qthelpers import qapplication
+    from spyder.widgets.sourcecode.codeeditor import CodeEditor
+
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
+    else:
+        fname = __file__
+
+    app = qapplication()
+    editor = CodeEditor(parent=None)
+    editor.setup_editor(language='Python')
+
+    editor.set_text_from_file(fname)
+
+    print_tree(editor)
