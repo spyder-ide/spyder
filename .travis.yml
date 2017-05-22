@@ -6,10 +6,9 @@ sudo: false
 
 matrix:
   include:
-    # This never ends!
-    #- python: "2.7"
-    #  env: TEST_MODULES=false
-    #  os: linux
+    - python: "2.7"
+      env: TEST_MODULES=false USE_PYQT=pyqt5
+      os: linux
     - python: "2.7"
       env: TEST_MODULES=true USE_PYQT=pyqt4
       os: linux
@@ -19,6 +18,8 @@ matrix:
     - python: "3.5"
       env: TEST_MODULES=true USE_PYQT=pyqt4
       os: linux
+    # This slot test runs our tests only with pip
+    # packages
     - python: "3.5"
       env: TEST_MODULES=false USE_PYQT=pyqt5
       os: linux
