@@ -130,11 +130,11 @@ might need.
 
    * `Archlinux <https://aur.archlinux.org/packages/?K=spyder>`_
 
-   * `Fedora <https://admin.fedoraproject.org/pkgdb/acls/name/spyder?_csrf_token=ab2ac812ed6df3abdf42981038a56d3d87b34128>`_
+   * `Fedora <https://apps.fedoraproject.org/packages/spyder>`_
 
    * `Gentoo <http://packages.gentoo.org/package/dev-python/spyder>`_
 
-   * `openSUSE <https://build.opensuse.org/package/show?package=python-spyder&project=home%3Aocefpaf>`_
+   * `openSUSE <https://build.opensuse.org/package/show/devel:languages:python/spyder>`_
 
    * `Mageia <http://mageia.madb.org/package/show/name/spyder>`_
 
