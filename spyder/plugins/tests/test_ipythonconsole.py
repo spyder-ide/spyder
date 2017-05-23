@@ -14,7 +14,7 @@ from textwrap import dedent
 from flaky import flaky
 from ipykernel.serialize import serialize_object
 import pytest
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
 
@@ -27,6 +27,7 @@ from spyder.utils.test import close_message_box
 # Constants
 #==============================================================================
 SHELL_TIMEOUT = 20000
+PYQT_WHEEL = PYQT_VERSION > '5.6'
 
 
 #==============================================================================
@@ -80,7 +81,8 @@ def test_read_stderr(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PYQT_WHEEL,
+                    reason="It doesn't work on Windows and times out using PyQt wheels")
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
