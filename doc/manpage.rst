@@ -53,6 +53,9 @@ Options
 --window-title=WINDOW_TITLE
                         show this string in the main window title
 
+-p OPEN_PROJECT, --project=OPEN_PROJECT
+                        open a Spyder project (directory with a .spyproject
+                        folder)
 
 Bugs
 ----
