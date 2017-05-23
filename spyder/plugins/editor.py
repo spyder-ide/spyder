@@ -204,6 +204,16 @@ class EditorConfigPage(PluginConfigPage):
                                          (_("Tabulations"), '*\t*')), 'indent_chars')
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("spaces"),
                                             'tab_stop_width_spaces', 4, 1, 8, 1)
+        def enable_tabwidth_spin(index):
+            if index == 7:  # Tabulations
+                tabwidth_spin.plabel.setEnabled(True)
+                tabwidth_spin.spinbox.setEnabled(True)
+            else:
+                tabwidth_spin.plabel.setEnabled(False)
+                tabwidth_spin.spinbox.setEnabled(False)
+
+        indent_chars_box.combobox.currentIndexChanged.connect(enable_tabwidth_spin)
+
         tab_mode_box = newcb(_("Tab always indent"),
                       'tab_always_indent', default=False,
                       tip=_("If enabled, pressing Tab will always indent,\n"
@@ -244,7 +254,8 @@ class EditorConfigPage(PluginConfigPage):
                             "a comment to ignore style analysis "
                             "warnings.</p>"))
         pep8_box.setEnabled(is_pep8)
-        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP, @todo)"),
+        todolist_box = newcb(_("Code annotations (TODO, FIXME, XXX, HINT, TIP,"
+                               " @todo, HACK, BUG, OPTIMIZE, !!!, ???)"),
                              'todo_list', default=True)
         realtime_radio = self.create_radiobutton(
                                             _("Perform analysis when "
@@ -357,7 +368,8 @@ class Editor(SpyderPluginWidget):
     open_dir = Signal(str)
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
-    
+    open_file_update = Signal(str)
+
     def __init__(self, parent, ignore_last_opened_files=False):
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main=parent)
@@ -849,7 +861,8 @@ class Editor(SpyderPluginWidget):
         # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon=ima.icon('todo_list'),
-                tip=_("Show TODO/FIXME/XXX/HINT/TIP/@todo comments list"),
+                tip=_("Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/"
+                      "HACK/BUG/OPTIMIZE/!!!/???)"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
@@ -1594,7 +1607,8 @@ class Editor(SpyderPluginWidget):
                     action.setEnabled(enable and WINPDB_PATH is not None)
                 else:
                     action.setEnabled(enable)
-                
+            self.open_file_update.emit(self.get_current_filename())
+
     def update_code_analysis_actions(self):
         editorstack = self.get_current_editorstack()
         results = editorstack.get_analysis_results()

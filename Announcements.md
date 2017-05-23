@@ -1,20 +1,19 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.1.3 is released!
+**Subject**: [ANN] Spyder 3.1.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.1.3** has been released and is available for
+I'm pleased to announce that Spyder **3.1.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes almost one month after version 3.1.2 and fixes several
-crashes and segfaults introduced in the 3.1 series, so everyone is encouraged
-to update to this version.
+This release comes almost two months after version 3.1.3 and adds compatibility
+with IPython 6 and Jedi 0.10, so everyone is encouraged to update to this version.
 
-In this release we also fixed 25 issues and merged 29 pull requests that amount
-to almost 150 commits. For a full list of fixes, please see our
+In this release we also fixed 19 issues and merged 37 pull requests that amount
+to almost 200 commits. For a full list of fixes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md)
 
 Don't forget to follow Spyder updates/news on the project

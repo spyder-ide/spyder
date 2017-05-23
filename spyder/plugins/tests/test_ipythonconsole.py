@@ -4,6 +4,7 @@
 # Licensed under the terms of the MIT License
 #
 
+import codecs
 import os
 import os.path as osp
 import shutil
@@ -53,9 +54,31 @@ def ipyconsole(request):
     return widget
 
 
+# Skip in Python 2 because it times out on Travis and CircleCI
+if PY2:
+    pytestmark = pytest.mark.skip('skipping all tests')
+
+
 #==============================================================================
 # Tests
 #==============================================================================
+def test_read_stderr(ipyconsole, qtbot):
+    """
+    Test the read operation of the stderr file of the kernel
+    """
+
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Set contents of the stderr file of the kernel
+    content = 'Test text'
+    stderr_file = client.stderr_file
+    codecs.open(stderr_file, 'w', 'cp437').write(content)
+    # Assert that content is correct
+    assert content == client._read_stderr()
+
+
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_values_dbg(ipyconsole, qtbot):
@@ -182,7 +205,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import matplotlib.pyplot as plt')
 
-    # Generate an inline plot
+    # Generate a plot
     with qtbot.waitSignal(shell.executed):
         shell.execute('plt.plot(range(10))')
 

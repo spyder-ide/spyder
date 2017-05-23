@@ -32,9 +32,11 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
+from spyder.utils.encoding import get_coding
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.widgets.ipythonconsole import ShellWidget
@@ -367,7 +369,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        stderr = codecs.open(self.stderr_file, 'r', encoding='utf-8').read()
+        try:
+            stderr = codecs.open(self.stderr_file, 'r',
+                                 encoding='utf-8').read()
+        except UnicodeDecodeError:
+            # This is needed since the stderr file could be encoded
+            # in something different to utf-8.
+            # See issue 4191
+            try:
+                stderr = self._read_stderr()
+            except:
+                stderr = None
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
@@ -427,3 +439,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         document = self.get_control().document()
         document.contentsChange.disconnect(self._hide_loading_page)
+
+    def _read_stderr(self):
+        """Read the stderr file of the kernel."""
+        stderr_text = open(self.stderr_file, 'rb').read()
+        encoding = get_coding(stderr_text)
+        stderr = to_text_string(stderr_text, encoding)
+        return stderr

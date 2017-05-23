@@ -818,11 +818,6 @@ class MainWindow(QMainWindow):
         self.set_splash("")
 
         self.debug_print("  ..widgets")
-        # Find in files
-        if CONF.get('find_in_files', 'enable'):
-            from spyder.plugins.findinfiles import FindInFiles
-            self.findinfiles = FindInFiles(self)
-            self.findinfiles.register_plugin()
 
         # Explorer
         if CONF.get('explorer', 'enable'):
@@ -854,6 +849,12 @@ class MainWindow(QMainWindow):
         self.projects = Projects(self)
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
+
+        # Find in files
+        if CONF.get('find_in_files', 'enable'):
+            from spyder.plugins.findinfiles import FindInFiles
+            self.findinfiles = FindInFiles(self)
+            self.findinfiles.register_plugin()
 
         # External console
         self.set_splash(_("Loading external console..."))
@@ -924,6 +925,10 @@ class MainWindow(QMainWindow):
         else:
             tut_action = None
 
+        shortcuts_action = create_action(self, _("Shortcuts Summary"),
+                                         shortcut="Meta+F1",
+                                         triggered=self.show_shortcuts_dialog)
+
         #----- Tours
         self.tour = tour.AnimatedTour(self)
         self.tours_menu = QMenu(_("Interactive tours"))
@@ -945,7 +950,8 @@ class MainWindow(QMainWindow):
 
         self.tours_menu.addActions(self.tour_menu_actions)
 
-        self.help_menu_actions = [doc_action, tut_action, self.tours_menu,
+        self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
+                                  self.tours_menu,
                                   MENU_SEPARATOR, report_action, dep_action,
                                   self.check_updates_action, support_action,
                                   MENU_SEPARATOR]
@@ -2621,6 +2627,12 @@ class MainWindow(QMainWindow):
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
 
+    @Slot()
+    def show_shortcuts_dialog(self):
+        from spyder.widgets.shortcutssummary import ShortcutsSummaryDialog
+        dlg = ShortcutsSummaryDialog(None)
+        dlg.exec_()
+
     # -- Open files server
     def start_open_files_server(self):
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
@@ -2780,7 +2792,7 @@ class MainWindow(QMainWindow):
                     anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
                                      "that you are using Spyder with "
                                      "<b>Anaconda/Miniconda</b>. Please "
-                                     "<<b>don't</b> use code>pip</code> to "
+                                     "<b>don't</b> use <code>pip</code> to "
                                      "update it as that will probably break "
                                      "your installation.<br><br>"
                                      "Instead, please wait until new conda "

@@ -334,6 +334,7 @@ class CodeEditor(TextEditBaseWidget):
                  'Cpp': (sh.CppSH, '//', None),
                  'OpenCL': (sh.OpenCLSH, '//', None),
                  'Enaml': (sh.EnamlSH, '#', PythonCFM),
+                 'Markdown': (sh.MarkdownSH, '#', None),
                 }
 
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
@@ -1924,11 +1925,16 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
+            # Remove inline comment
+            inline_comment = prevtext.find('#')
+            if inline_comment != -1:
+                prevtext = prevtext[:inline_comment]
+
             if ((self.is_python_like() and
                not prevtext.strip().startswith('#') and prevtext) or
                prevtext):
 
-                if not prevtext.strip().startswith('return') and \
+                if not "return" in prevtext.strip().split()[:1] and \
                     (prevtext.strip().endswith(')') or
                      prevtext.strip().endswith(']') or
                      prevtext.strip().endswith('}')):
@@ -1977,7 +1983,7 @@ class CodeEditor(TextEditBaseWidget):
                 (prevtext.endswith('continue') or
                  prevtext.endswith('break') or
                  prevtext.endswith('pass') or
-                 (prevtext.strip().startswith("return") and
+                 ("return" in prevtext.strip().split()[:1] and
                   len(re.split(r'\(|\{|\[', prevtext)) ==
                   len(re.split(r'\)|\}|\]', prevtext)))):
                 # Unindent
@@ -2066,8 +2072,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
             if self.indent_chars == '\t':
-                indent = indent // self.tab_stop_width_spaces \
-                + correct_indent % self.tab_stop_width_spaces
+                indent = indent // self.tab_stop_width_spaces
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
