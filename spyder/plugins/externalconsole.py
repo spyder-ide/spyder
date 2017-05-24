@@ -17,7 +17,6 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
@@ -32,8 +31,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import (get_error_match, get_python_executable,
                                is_python_script, remove_backslashes)
 from spyder.utils.qthelpers import create_action, mimedata2url
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.plugins.runconfig import get_run_configuration
 from spyder.py3compat import to_text_string, is_text_string, getcwd
 from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
@@ -272,10 +271,8 @@ class ExternalConsole(SpyderPluginWidget):
     redirect_stdio = Signal(bool)
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
+
         self.tabwidget = None
         self.menu_actions = None
 
@@ -348,7 +345,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.shellwidgets.insert(index_to, shell)
         self.icons.insert(index_to, icons)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_shell_index_from_id(self, shell_id):
         """Return shellwidget index from id"""
@@ -370,7 +367,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.pop(index)
         self.shellwidgets.pop(index)
         self.icons.pop(index)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
         self.update_tabs_text()
 
     def set_variableexplorer(self, variableexplorer):
@@ -566,8 +563,6 @@ class ExternalConsole(SpyderPluginWidget):
             umr_enabled = CONF.get('main_interpreter', 'umr/enabled')
             umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
             umr_verbose = CONF.get('main_interpreter', 'umr/verbose')
-            ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
-            ar_state = CONF.get('variable_explorer', 'autorefresh')
 
             sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
@@ -584,8 +579,6 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
-                           autorefresh_timeout=ar_timeout,
-                           autorefresh_state=ar_state,
                            light_background=light_background,
                            menu_actions=self.menu_actions,
                            show_buttons_inside=False,
@@ -713,8 +706,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.setTabIcon(index, icon)
         if self.help is not None:
             self.help.set_shell(shell.shell)
-        if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(shell)
 
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
@@ -791,24 +782,16 @@ class ExternalConsole(SpyderPluginWidget):
                         self.main.plugin_focus_changed)
         self.redirect_stdio.connect(
                         self.main.redirect_internalshell_stdio)
-        expl = self.main.explorer
-        if expl is not None:
-            expl.open_terminal.connect(self.open_terminal)
-            expl.open_interpreter.connect(self.open_interpreter)
-        pexpl = self.main.projects
-        if pexpl is not None:
-            pexpl.open_terminal.connect(self.open_terminal)
-            pexpl.open_interpreter.connect(self.open_interpreter)
 
     def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
+        """Perform actions before parent main window is closed."""
         for shellwidget in self.shellwidgets:
             shellwidget.close()
         return True
 
     def restart(self):
         """
-        Restart the console
+        Restart the console.
 
         This is needed when we switch project to update PYTHONPATH
         and the selected interpreter
@@ -837,7 +820,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
             self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def update_font(self):
         """Update font from Preferences"""
