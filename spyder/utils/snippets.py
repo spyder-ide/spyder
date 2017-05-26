@@ -11,8 +11,36 @@ import os
 import errno
 import codecs
 import toml
+import re
 
 from spyder.config.base import debug_print, get_conf_path
+
+
+regex_variables = re.compile(r'\$\{(\d+)\:(\w*)\}')
+
+
+class Snippet():
+    def __init__(self, content):
+        self.content = content
+
+    def text(self):
+        return re.sub(regex_variables, r'\2', self.content)
+
+    def variables(self):
+        """
+        Return the position and lenght of the next variable.
+
+        Return:
+            position: position of the variable relative to the
+                end of last match.
+            lenght: lenght of current variable.
+        """
+        position = 0
+        lenght = 0
+        for match in re.finditer(regex_variables, self.content):
+            position = match.start() - (position + lenght)
+            lenght = len(match.group())
+            yield position, len(match.group(2))
 
 
 class SnippetManager():
