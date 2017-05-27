@@ -88,6 +88,45 @@ def main_window(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_change_cwd_dbg(main_window, qtbot):
+    """
+    Test that using the Working directory toolbar is working while debugging.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = main_window.ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Import os to get cwd
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import os')
+
+    # Generate a traceback and enter debugging mode
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+    shell.execute('%debug')
+    qtbot.wait(500)
+
+    # Set LOCATION as cwd
+    main_window.workingdirectory.chdir(osp.dirname(LOCATION),
+                                       browsing_history=False,
+                                       refresh_explorer=False)
+    qtbot.wait(500)
+
+    # Get cwd in console
+    qtbot.keyClicks(control, 'os.getcwd()')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Assert cwd is the right one
+    assert osp.dirname(LOCATION) in control.toPlainText()
+
+
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name != 'nt' and PYQT5,
                     reason="It times out sometimes on Linux with PyQt5")
 def test_calltip(main_window, qtbot):

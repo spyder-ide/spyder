@@ -67,7 +67,6 @@ def test_read_stderr(ipyconsole, qtbot):
     """
     Test the read operation of the stderr file of the kernel
     """
-
     shell = ipyconsole.get_current_shellwidget()
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
