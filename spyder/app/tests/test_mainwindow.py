@@ -24,6 +24,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
+from spyder.py3compat import PY2
 from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_save_message_box
 
@@ -543,11 +544,11 @@ def test_change_cwd_dbg(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('import os')
 
-    # Generate a traceback and enter debugging mode
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('1/0')
-    shell.execute('%debug')
-    qtbot.wait(500)
+    # Click the debug button
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
 
     # Set LOCATION as cwd
     main_window.workingdirectory.chdir(osp.dirname(LOCATION),
@@ -562,6 +563,38 @@ def test_change_cwd_dbg(main_window, qtbot):
 
     # Assert cwd is the right one
     assert osp.dirname(LOCATION) in control.toPlainText()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It times out sometimes")
+def test_varexp_magic_dbg(main_window, qtbot):
+    """Test that %varexp is working while debugging."""
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = main_window.ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Create an object that can be plotted
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('li = [1, 2, 3]')
+
+    # Click the debug button
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Generate the plot from the Variable Explorer
+    nsb.plot('li', 'plot')
+    qtbot.wait(1000)
+
+    # Assert that there's a plot in the console
+    assert shell._control.toHtml().count('img src') == 1
 
 
 if __name__ == "__main__":
