@@ -553,12 +553,12 @@ def test_change_cwd_dbg(main_window, qtbot):
     main_window.workingdirectory.chdir(osp.dirname(LOCATION),
                                        browsing_history=False,
                                        refresh_explorer=False)
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Get cwd in console
     qtbot.keyClicks(control, 'os.getcwd()')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Assert cwd is the right one
     assert osp.dirname(LOCATION) in control.toPlainText()
