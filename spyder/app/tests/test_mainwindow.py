@@ -528,6 +528,48 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_stop_dbg(main_window, qtbot):
+    """Test that we correctly stop a debugging session."""
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+
+    # Click the debug button
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Move to the next line
+    shell.kernel_client.input("n")
+    qtbot.wait(1000)
+
+    # Stop debugging
+    stop_debug_action = main_window.debug_toolbar_actions[5]
+    stop_debug_button = main_window.debug_toolbar.widgetForAction(stop_debug_action)
+    qtbot.mouseClick(stop_debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Assert that there is only one entry in the Variable Explorer
+    assert nsb.editor.model.rowCount() == 1
+
+    # Remove breakpoint and close test file
+    main_window.editor.clear_all_breakpoints()
+    main_window.editor.close_file()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_change_cwd_dbg(main_window, qtbot):
     """
     Test that using the Working directory toolbar is working while debugging.
