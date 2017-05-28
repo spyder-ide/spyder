@@ -65,6 +65,30 @@ if PY2 or CIRCLECI:
 #==============================================================================
 # Tests
 #==============================================================================
+#@flaky(max_runs=10)
+@pytest.mark.skipif(os.name == 'nt' or PY2,
+                    reason="It times out sometimes on Windows and doesn't work on PY2")
+def test_unicode_vars(ipyconsole, qtbot):
+    """
+    Test that the Variable Explorer Works with unicode variables.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Set value for a Unicode variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('д = 10')
+
+    # Assert we get its value correctly
+    assert shell.get_value('д') == 10
+
+    # Change its value and verify
+    shell.set_value('д', serialize_object(20))
+    qtbot.wait(1000)
+    assert shell.get_value('д') == 20
+
+
 def test_read_stderr(ipyconsole, qtbot):
     """
     Test the read operation of the stderr file of the kernel
@@ -105,25 +129,25 @@ def test_values_dbg(ipyconsole, qtbot):
     # Get value
     qtbot.keyClicks(control, '!aa = 10')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+    qtbot.wait(1000)
     assert shell.get_value('aa') == 10
 
     # Set value
     shell.set_value('aa', serialize_object(20))
-    qtbot.wait(500)
+    qtbot.wait(1000)
     assert shell.get_value('aa') == 20
 
     # Copy value
     shell.copy_value('aa', 'bb')
-    qtbot.wait(500)
+    qtbot.wait(1000)
     assert shell.get_value('bb') == 20
 
     # Rmoeve value
     shell.remove_value('aa')
-    qtbot.wait(500)
+    qtbot.wait(1000)
     qtbot.keyClicks(control, '!aa')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+    qtbot.wait(1000)
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
