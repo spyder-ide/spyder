@@ -17,7 +17,7 @@ from flaky import flaky
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
-from qtpy import PYQT5
+from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
@@ -44,6 +44,9 @@ COMPILE_AND_EVAL_TIMEOUT=30000
 # Time to wait for the IPython console to evaluate something (in
 # miliseconds)
 EVAL_TIMEOUT = 3000
+
+# Test for PyQt 5 wheels
+PYQT_WHEEL = PYQT_VERSION > '5.6'
 
 
 #==============================================================================
@@ -169,7 +172,8 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PYQT_WHEEL,
+                    reason="It times out sometimes on Windows and using PyQt wheels")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
