@@ -66,6 +66,39 @@ if PY2 or CIRCLECI:
 # Tests
 #==============================================================================
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_browse_history_dbg(ipyconsole, qtbot):
+    """Test that browsing command history is working while debugging."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a traceback and enter debugging mode
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+
+    shell.execute('%debug')
+    qtbot.wait(1000)
+
+    # Enter an expression
+    qtbot.keyClicks(control, '!aa = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Clear console (for some reason using shell.clear_console
+    # doesn't work here)
+    shell.reset(clear=True)
+    qtbot.wait(1000)
+
+    # Press Up arrow button and assert we get the last
+    # introduced command
+    qtbot.keyClick(control, Qt.Key_Up)
+    assert '!aa = 10' in control.toPlainText()
+
+
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2,
                     reason="It times out sometimes on Windows and doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):
