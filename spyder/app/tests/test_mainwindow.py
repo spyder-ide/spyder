@@ -91,7 +91,7 @@ def main_window(request):
 #==============================================================================
 # Tests
 #==============================================================================
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name != 'nt' and PYQT5,
                     reason="It times out sometimes on Linux with PyQt5")
 def test_calltip(main_window, qtbot):
@@ -122,7 +122,7 @@ def test_calltip(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
                     reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
@@ -172,7 +172,7 @@ def test_run_cython_code(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PYQT_WHEEL,
                     reason="It times out sometimes on Windows and using PyQt wheels")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
@@ -218,7 +218,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
     projects.close_project()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_set_new_breakpoints(main_window, qtbot):
     """Test that new breakpoints are set in the IPython console."""
@@ -255,7 +255,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
@@ -363,7 +363,7 @@ def test_run_code(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None or PYQT5,
                     reason="It times out sometimes on Windows, it's not "
                            "meant to be run outside of a CI and it segfaults "
@@ -391,7 +391,7 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     assert editorstack.get_stack_count() == 2
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working correctly."""
     # Set focus to the Editor
@@ -410,7 +410,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     assert not main_window.editor.ismaximized
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_issue_4066(main_window, qtbot):
     """
@@ -449,7 +449,7 @@ def test_issue_4066(main_window, qtbot):
     qtbot.wait(3000)
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_varexp_edit_inline(main_window, qtbot):
     """
@@ -480,7 +480,7 @@ def test_varexp_edit_inline(main_window, qtbot):
     qtbot.wait(3000)
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_c_and_n_pdb_commands(main_window, qtbot):
     """Test that c and n Pdb commands update the Variable Explorer."""
@@ -526,7 +526,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_stop_dbg(main_window, qtbot):
     """Test that we correctly stop a debugging session."""
@@ -568,7 +568,7 @@ def test_stop_dbg(main_window, qtbot):
     main_window.editor.close_file()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_change_cwd_dbg(main_window, qtbot):
     """
@@ -607,7 +607,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     assert osp.dirname(LOCATION) in control.toPlainText()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2, reason="It times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
     """Test that %varexp is working while debugging."""

@@ -65,7 +65,7 @@ if PY2 or CIRCLECI:
 #==============================================================================
 # Tests
 #==============================================================================
-#@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2,
                     reason="It times out sometimes on Windows and doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):
@@ -89,6 +89,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 20
 
 
+@flaky(max_runs=3)
 def test_read_stderr(ipyconsole, qtbot):
     """
     Test the read operation of the stderr file of the kernel
@@ -105,7 +106,7 @@ def test_read_stderr(ipyconsole, qtbot):
     assert content == client._read_stderr()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PYQT_WHEEL,
                     reason="It doesn't work on Windows and times out using PyQt wheels")
 def test_values_dbg(ipyconsole, qtbot):
@@ -151,7 +152,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_plot_magic_dbg(ipyconsole, qtbot):
     """Test our plot magic while debugging"""
@@ -181,7 +182,7 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_run_doctest(ipyconsole, qtbot):
     """
@@ -217,7 +218,7 @@ def test_run_doctest(ipyconsole, qtbot):
     assert "TestResults(failed=0, attempted=2)" in shell._control.toPlainText()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
                     reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
@@ -248,7 +249,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
@@ -274,7 +275,7 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
@@ -315,7 +316,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'bb' is not defined" in control.toPlainText()
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_restart_kernel(ipyconsole, qtbot):
     """
@@ -338,7 +339,7 @@ def test_restart_kernel(ipyconsole, qtbot):
     assert not shell.is_defined('a')
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
@@ -360,7 +361,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     assert new_client.name == '1/B'
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
@@ -384,7 +385,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
     assert len(ipyconsole.get_clients()) == 2
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
@@ -410,7 +411,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     assert shell.get_value('a') == new_shell.get_value('a')
 
 
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
