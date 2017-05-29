@@ -619,9 +619,9 @@ def test_change_cwd_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Set LOCATION as cwd
-    main_window.workingdirectory.chdir(osp.dirname(LOCATION),
+    main_window.workingdirectory.chdir(tempfile.gettempdir(),
                                        browsing_history=False,
-                                       refresh_explorer=False)
+                                       refresh_explorer=True)
     qtbot.wait(1000)
 
     # Get cwd in console
@@ -630,7 +630,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Assert cwd is the right one
-    assert osp.dirname(LOCATION) in control.toPlainText()
+    assert tempfile.gettempdir() in control.toPlainText()
 
 
 @flaky(max_runs=3)
