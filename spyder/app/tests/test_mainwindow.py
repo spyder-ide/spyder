@@ -111,6 +111,7 @@ def test_change_types_in_varexp(main_window, qtbot):
     # Try to change types
     qtbot.keyClicks(QApplication.focusWidget(), "'s'")
     qtbot.keyClick(QApplication.focusWidget(), Qt.Key_Enter)
+    qtbot.wait(1000)
 
     # Assert object remains the same
     assert shell.get_value('a') == 10
