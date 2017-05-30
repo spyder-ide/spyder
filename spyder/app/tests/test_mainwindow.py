@@ -79,13 +79,26 @@ def reset_run_code(qtbot, shell, code_editor, nsb):
 #==============================================================================
 @pytest.fixture
 def main_window(request):
+    """Main Window fixture"""
+    # Check if we need to use introspection in a given test
+    # (it's faster and less memory consuming not to use it!)
+    marker = request.node.get_marker('use_introspection')
+    if marker:
+        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
+    else:
+        try:
+            os.environ.pop('SPY_TEST_USE_INTROSPECTION')
+        except KeyError:
+            pass
+
+    # Start the window
     app = initialize()
     options, args = get_options()
-    widget = run_spyder(app, options, args)
-    def close_widget():
-        widget.close()
-    request.addfinalizer(close_widget)
-    return widget
+    window = run_spyder(app, options, args)
+    def close_window():
+        window.close()
+    request.addfinalizer(close_window)
+    return window
 
 
 #==============================================================================
@@ -120,6 +133,7 @@ def test_change_types_in_varexp(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name != 'nt' and PYQT5,
                     reason="It times out sometimes on Linux with PyQt5")
+@pytest.mark.use_introspection
 def test_calltip(main_window, qtbot):
     """Hide the calltip in the editor when a matching ')' is found."""
     # Load test file

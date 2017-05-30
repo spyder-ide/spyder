@@ -435,8 +435,17 @@ class Editor(SpyderPluginWidget):
         self.toolbar_list = None
         self.menu_list = None
 
-        self.introspector = IntrospectionManager(
-                extra_path=self.main.get_spyder_pythonpath())
+        # Don't start IntrospectionManager when running tests because
+        # it consumes a lot of memory
+        if PYTEST and not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+            try:
+                from unittest.mock import Mock
+            except ImportError:
+                from mock import Mock # Python 2
+            self.introspector = Mock()
+        else:
+            self.introspector = IntrospectionManager(
+                    extra_path=self.main.get_spyder_pythonpath())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
