@@ -37,10 +37,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
 
     # For DebuggingWidget
-    sig_input_reply = Signal()
     sig_pdb_step = Signal(str, int)
-    sig_prompt_ready = Signal()
-    sig_dbg_kernel_restart = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
@@ -82,8 +79,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        return self.silent_execute(
-            u"get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+        code = u"get_ipython().kernel.set_cwd(r'{}')".format(dirname)
+        if self._reading:
+            self.kernel_client.input(u'!' + code)
+        else:
+            self.silent_execute(code)
 
     # --- To handle the banner
     def long_banner(self):
@@ -141,7 +141,10 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        self.execute("%clear")
+        if self._reading:
+            self.dbg_exec_magic('clear')
+        else:
+            self.execute("%clear")
 
     def reset_namespace(self, force=False):
         """Reset the namespace by removing all names defined by the user."""
@@ -155,9 +158,15 @@ the sympy module (e.g. plot)
             )
 
             if reply == QMessageBox.Yes:
-                self.execute("%reset -f")
+                if self._reading:
+                    self.dbg_exec_magic('reset', '-f')
+                else:
+                    self.execute("%reset -f")
         else:
-            self.silent_execute("%reset -f")
+            if self._reading:
+                self.dbg_exec_magic('reset', '-f')
+            else:
+                self.silent_execute("%reset -f")
 
     def set_background_color(self):
         light_color_o = self.additional_options['light_color']

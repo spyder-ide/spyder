@@ -224,9 +224,14 @@ def main():
         pass
     kernel.initialize()
 
-    # NOTE: Leave this and other magic modifications *after* setting
-    # __ipythonkernel__ to not have problems while starting kernels
+    # Set our own magics
     kernel.shell.register_magic_function(varexp)
+
+    # Set Pdb class to be used by %debug and %pdb.
+    # This makes IPython consoles to use the class defined in our
+    # sitecustomize instead of their default one.
+    import pdb
+    kernel.shell.InteractiveTB.debugger_cls = pdb.Pdb
 
     # Start the (infinite) kernel event loop.
     kernel.start()
