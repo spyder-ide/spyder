@@ -267,7 +267,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def get_index_from_key(self, key):
         try:
             return self.createIndex(self.keys.index(key), 0)
-        except ValueError:
+        except (RuntimeError, ValueError):
             return QModelIndex()
     
     def get_key(self, index):
@@ -1459,16 +1459,28 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     def plot(self, name, funcname):
         """Plot item"""
-        self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
+        sw = self.shellwidget
+        if sw._reading:
+            sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
+        else:
+            sw.execute("%%varexp --%s %s" % (funcname, name))
 
     def imshow(self, name):
         """Show item's image"""
-        self.shellwidget.execute("%%varexp --imshow %s" % name)
+        sw = self.shellwidget
+        if sw._reading:
+            sw.dbg_exec_magic('varexp', '--imshow %s' % name)
+        else:
+            sw.execute("%%varexp --imshow %s" % name)
 
     def show_image(self, name):
         """Show image (item is a PIL image)"""
         command = "%s.show()" % name
-        self.shellwidget.execute(command)
+        sw = self.shellwidget
+        if sw._reading:
+            sw.kernel_client.input(command)
+        else:
+            sw.execute(command)
 
     # -------------------------------------------------------------------------
 
