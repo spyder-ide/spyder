@@ -131,8 +131,7 @@ def test_change_types_in_varexp(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name != 'nt' and PYQT5,
-                    reason="It times out sometimes on Linux with PyQt5")
+@pytest.mark.skipif(os.name != 'nt', reason="It times out on Linux")
 @pytest.mark.use_introspection
 def test_calltip(main_window, qtbot):
     """Hide the calltip in the editor when a matching ')' is found."""
