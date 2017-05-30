@@ -48,13 +48,14 @@ def open_client_from_connection_info(connection_info, qtbot):
 #==============================================================================
 @pytest.fixture
 def ipyconsole(request):
-    widget = IPythonConsole(None, testing=True)
-    widget.create_new_client()
-    def close_widget():
-        widget.close()
-    request.addfinalizer(close_widget)
-    widget.show()
-    return widget
+    console = IPythonConsole(None, testing=True)
+    console.create_new_client()
+    def close_console():
+        console.closing_plugin()
+        console.close()
+    request.addfinalizer(close_console)
+    console.show()
+    return console
 
 
 # Skip in Python 2 because it times out on Travis and CircleCI
