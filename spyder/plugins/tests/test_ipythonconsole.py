@@ -29,7 +29,6 @@ from spyder.utils.test import close_message_box
 #==============================================================================
 SHELL_TIMEOUT = 20000
 PYQT_WHEEL = PYQT_VERSION > '5.6'
-CIRCLECI = os.getenv('CIRCLECI')
 
 
 #==============================================================================
@@ -59,7 +58,7 @@ def ipyconsole(request):
 
 
 # Skip in Python 2 because it times out on Travis and CircleCI
-if PY2 or CIRCLECI:
+if PY2:
     pytestmark = pytest.mark.skip('skipping all tests')
 
 
