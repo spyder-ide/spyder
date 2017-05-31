@@ -490,10 +490,19 @@ class MainWindow(QMainWindow):
         self.previous_focused_widget = None
 
         # Server to open external files on a single instance
-        self.open_files_server = socket.socket(socket.AF_INET,
-                                               socket.SOCK_STREAM,
-                                               socket.IPPROTO_TCP)
-
+        try:
+            self.open_files_server = socket.socket(socket.AF_INET,
+                                                   socket.SOCK_STREAM,
+                                                   socket.IPPROTO_TCP)
+        except OSError as e:
+            QMessageBox.warning(None, "Spyder",
+                     _("An error ocurred while creating the socket for the "
+                       "server to open external files: <br><br> {0} <br><br>"
+                       "Please, if you are using Windows, try to run as an "
+                       "administrator from cmd.exe the following command "
+                       "and restart your computer: <br><br>"
+                       "<span style=\'color: #555555\'><b>netsh winsock reset"
+                       "</b></span><br>").format(e.message))
         self.apply_settings()
         self.debug_print("End of MainWindow constructor")
 
