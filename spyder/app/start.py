@@ -65,6 +65,8 @@ def main():
     if CONF.get('main', 'high_dpi_custom_scale_factor'):
         factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
         os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+    else:
+        os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():
