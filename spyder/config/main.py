@@ -75,7 +75,7 @@ DEFAULTS = [
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
-              'high_dpi_custom_scale_factors': '2.5',
+              'high_dpi_custom_scale_factors': '1.5',
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
