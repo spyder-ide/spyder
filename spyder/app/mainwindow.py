@@ -498,6 +498,7 @@ class MainWindow(QMainWindow):
                                                        socket.SOCK_STREAM,
                                                        socket.IPPROTO_TCP)
             except OSError as e:
+                self.open_files_server = None
                 QMessageBox.warning(None, "Spyder",
                          _("An error occurred while creating a socket needed "
                            "by Spyder. Please, try to run as an Administrator "
