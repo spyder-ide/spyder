@@ -101,15 +101,8 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder.config.main import CONF
 
-high_dpi_scaling = False
-if CONF.get('main', 'high_dpi_scaling'):
-    high_dpi_scaling = True
-elif CONF.get('main', 'high_dpi_custom_scale_factor'):
-    factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
-    os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
-
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, high_dpi_scaling)
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, CONF.get('main', 'high_dpi_scaling'))
 
 
 #==============================================================================

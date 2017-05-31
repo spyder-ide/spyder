@@ -30,6 +30,7 @@ from spyder.config.base import _, get_image_path
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import qapplication
+from spyder.config.main import CONF
 
 
 PY2 = sys.version[0] == '2'
@@ -153,6 +154,14 @@ class Restarter(QWidget):
 
 
 def main():
+    #==========================================================================
+    # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+    # be set before creating the application.
+    #==========================================================================
+    if CONF.get('main', 'high_dpi_custom_scale_factor'):
+        factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
+        os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+
     # Splash screen
     # -------------------------------------------------------------------------
     # Start Qt Splash to inform the user of the current status

@@ -58,6 +58,14 @@ def main():
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
 
+    #==========================================================================
+    # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+    # be set before creating the application.
+    #==========================================================================
+    if CONF.get('main', 'high_dpi_custom_scale_factor'):
+        factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
+        os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():
         # Minimal delay (0.1-0.2 secs) to avoid that several
