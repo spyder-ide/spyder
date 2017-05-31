@@ -228,7 +228,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.extconsole.set_variableexplorer(self)
         self.main.add_dockwidget(self)
         
     def apply_plugin_settings(self, options):
