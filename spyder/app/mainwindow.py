@@ -1182,7 +1182,8 @@ class MainWindow(QMainWindow):
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
-        if CONF.get('main', 'single_instance') and not self.new_instance:
+        if (CONF.get('main', 'single_instance') and not self.new_instance
+                and self.open_files_server):
             t = threading.Thread(target=self.start_open_files_server)
             t.setDaemon(True)
             t.start()
@@ -2155,7 +2156,7 @@ class MainWindow(QMainWindow):
                 return False
         prefix = 'window' + '/'
         self.save_current_window_settings(prefix)
-        if CONF.get('main', 'single_instance'):
+        if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
         for plugin in self.thirdparty_plugins:
             if not plugin.closing_plugin(cancelable):
