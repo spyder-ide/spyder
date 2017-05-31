@@ -50,6 +50,7 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
+from spyder.widgets.explorer import show_in_external_file_explorer
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -480,7 +481,16 @@ class EditorStack(QWidget):
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
-
+        
+        if sys.platform == 'darwin':
+           text=_("Show in Finder")
+        else:
+           text= _("Show in external file explorer")
+        external_fileexp_action = create_action(self, text,
+                                triggered=self.show_in_external_file_explorer)
+                
+        actions.append(external_fileexp_action)
+        
         self.menu_actions = actions + [None, fileswitcher_action,
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
@@ -552,6 +562,13 @@ class EditorStack(QWidget):
 
         #For opening last closed tabs
         self.last_closed_files = []
+
+    @Slot()
+    def show_in_external_file_explorer(self, fnames=None):
+        """Show file in external file explorer"""
+        if fnames is None:
+            fnames = self.get_current_filename()
+        show_in_external_file_explorer(fnames)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
