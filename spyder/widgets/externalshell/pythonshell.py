@@ -259,15 +259,7 @@ class ExternalPythonShell(ExternalShellBase):
             settings = self.namespacebrowser.get_view_settings()
             communicate(introspection_socket,
                         'set_remote_view_settings()', settings=[settings])
-        
-    def set_autorefresh_timeout(self, interval):
-        if self.introspection_socket is not None:
-            try:
-                communicate(self.introspection_socket,
-                            "set_monitor_timeout(%d)" % interval)
-            except socket.error:
-                pass
-        
+
     def closeEvent(self, event):
         self.quit_monitor()
         ExternalShellBase.closeEvent(self, event)

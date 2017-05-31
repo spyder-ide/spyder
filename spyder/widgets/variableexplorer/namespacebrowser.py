@@ -80,7 +80,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = None
         self.excluded_names = None
         self.minmax = None
-        self.autorefresh = None
         
         # Other setting
         self.dataframe_format = None
@@ -100,8 +99,7 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, dataframe_format=None,
-              autorefresh=None):
+              minmax=None, dataframe_format=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -118,7 +116,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported = exclude_unsupported
         self.excluded_names = excluded_names
         self.minmax = minmax
-        self.autorefresh = autorefresh
         self.dataframe_format = dataframe_format
         
         if self.editor is not None:
@@ -128,8 +125,6 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
-            if self.auto_refresh_button is not None:
-                self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
 
@@ -162,8 +157,7 @@ class NamespaceBrowser(QWidget):
         layout = QVBoxLayout()
         blayout = QHBoxLayout()
         toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
-                                     exclude_capitalized, exclude_unsupported,
-                                     autorefresh)
+                                     exclude_capitalized, exclude_unsupported)
         for widget in toolbar:
             blayout.addWidget(widget)
 
@@ -196,24 +190,14 @@ class NamespaceBrowser(QWidget):
         shellwidget.set_namespacebrowser(self)
 
     def setup_toolbar(self, exclude_private, exclude_uppercase,
-                      exclude_capitalized, exclude_unsupported, autorefresh):
+                      exclude_capitalized, exclude_unsupported):
         """Setup toolbar"""
         self.setup_in_progress = True                          
                           
         toolbar = []
 
         # There is no need of refreshes for ipyclients
-        if not self.is_ipyclient:
-            refresh_button = create_toolbutton(self, text=_('Refresh'),
-                                               icon=ima.icon('reload'),
-                                               triggered=self.refresh_table)
-            self.auto_refresh_button = create_toolbutton(self,
-                                              text=_('Refresh periodically'),
-                                              icon=ima.icon('auto_reload'),
-                                              toggled=self.toggle_auto_refresh)
-            self.auto_refresh_button.setChecked(autorefresh)
-        else:
-            refresh_button = self.auto_refresh_button = None
+        refresh_button = self.auto_refresh_button = None
 
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
@@ -294,14 +278,6 @@ class NamespaceBrowser(QWidget):
         # if enable:
         #     self.refresh_table()
         pass
-
-    @Slot(bool)
-    def toggle_auto_refresh(self, state):
-        """Toggle auto refresh state"""
-        self.autorefresh = state
-        if not self.setup_in_progress and not self.is_ipyclient:
-            communicate(self._get_sock(),
-                        "set_monitor_auto_refresh(%r)" % state)
 
     def _get_sock(self):
         """Return socket connection"""
