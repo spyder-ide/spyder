@@ -561,8 +561,6 @@ class ExternalConsole(SpyderPluginWidget):
             umr_enabled = CONF.get('main_interpreter', 'umr/enabled')
             umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
             umr_verbose = CONF.get('main_interpreter', 'umr/verbose')
-            ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
-            ar_state = CONF.get('variable_explorer', 'autorefresh')
 
             sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
@@ -579,8 +577,6 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
-                           autorefresh_timeout=ar_timeout,
-                           autorefresh_state=ar_state,
                            light_background=light_background,
                            menu_actions=self.menu_actions,
                            show_buttons_inside=False,

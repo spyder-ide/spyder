@@ -182,8 +182,8 @@ class ExternalPythonShell(ExternalShellBase):
                  external_interpreter=False,
                  monitor_enabled=True, mpl_backend=None, ets_backend='qt4',
                  qt_api=None, merge_output_channels=False,
-                 colorize_sys_stderr=False, autorefresh_timeout=3000,
-                 autorefresh_state=True, light_background=True,
+                 colorize_sys_stderr=False,
+                 light_background=True,
                  menu_actions=None, show_buttons_inside=True,
                  show_elapsed_time=True):
 
@@ -206,9 +206,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.umr_enabled = umr_enabled
         self.umr_namelist = umr_namelist
         self.umr_verbose = umr_verbose
-        self.autorefresh_timeout = autorefresh_timeout
-        self.autorefresh_state = autorefresh_state
-                
+
         self.namespacebrowser_button = None
         self.cwd_button = None
         self.env_button = None
@@ -438,8 +436,6 @@ class ExternalPythonShell(ExternalShellBase):
         # Monitor
         if self.monitor_enabled:
             env.append('SPYDER_SHELL_ID=%s' % id(self))
-            env.append('SPYDER_AR_TIMEOUT=%d' % self.autorefresh_timeout)
-            env.append('SPYDER_AR_STATE=%r' % self.autorefresh_state)
             from spyder.widgets.externalshell import introspection
             introspection_server = introspection.start_introspection_server()
             introspection_server.register(self)

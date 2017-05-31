@@ -73,7 +73,7 @@ def _getcdlistdir():
 class Monitor(threading.Thread):
     """Monitor server"""
     def __init__(self, host, introspection_port, notification_port,
-                 shell_id, timeout, auto_refresh):
+                 shell_id, timeout=2000, auto_refresh=False):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         
