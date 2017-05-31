@@ -62,6 +62,23 @@ def editor_find_replace_bot(base_editor_bot):
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor, find_replace, qtbot
 
+@pytest.fixture
+def editor_cells_bot(base_editor_bot):
+    editor_stack, qtbot = base_editor_bot
+    text = ('# %%\n'
+            '# 1 cell\n'
+            '# print(1)\n'
+            '# %%\n'
+            '# 2 cell\n'
+            '# print(2)\n'
+            '# %%\n'
+            '# 3 cell\n'
+            '# print(3)\n')
+    finfo = editor_stack.new('cells.py', 'utf-8', text)
+    find_replace = FindReplace(None, enable_replace=True)
+    qtbot.addWidget(editor_stack)
+    return editor_stack, finfo.editor, qtbot
+
 # Tests
 #-------------------------------
 def test_run_top_line(editor_bot):
@@ -137,6 +154,26 @@ def test_replace_current_selected_line(editor_find_replace_bot):
     qtbot.keyClicks(finder.replace_text, 'ham')
     qtbot.keyPress(finder.replace_text, Qt.Key_Return)
     assert editor.toPlainText()[0:-1] == expected_new_text
+
+def test_advance_cell(editor_cells_bot):
+    editor_stack, editor, qtbot = editor_cells_bot
+
+    # cursor at the end of the file
+    assert editor.get_cursor_line_column() == (10, 0)
+
+    # advance backwards to 2nd cell
+    editor_stack.advance_cell(reverse=True)
+    assert editor.get_cursor_line_column() == (3, 0)
+    # advance backwards to 1st cell
+    editor_stack.advance_cell(reverse=True)
+    assert editor.get_cursor_line_column() == (0, 0)
+
+    # advance to 2nd cell
+    editor_stack.advance_cell()
+    assert editor.get_cursor_line_column() == (3, 0)
+    # advance to 3rd cell
+    editor_stack.advance_cell()
+    assert editor.get_cursor_line_column() == (6, 0)
 
 
 if __name__ == "__main__":

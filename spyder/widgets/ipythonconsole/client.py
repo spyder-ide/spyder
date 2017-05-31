@@ -32,9 +32,11 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
+from spyder.utils.encoding import get_coding
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.widgets.ipythonconsole import ShellWidget
@@ -139,12 +141,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     #------ Public API --------------------------------------------------------
     @property
+    def kernel_id(self):
+        """Get kernel id"""
+        if self.connection_file is not None:
+            json_file = osp.basename(self.connection_file)
+            return json_file.split('.json')[0]
+
+    @property
     def stderr_file(self):
         """Filename to save kernel stderr output."""
-        json_file = osp.basename(self.connection_file)
-        stderr_file = json_file.split('json')[0] + 'stderr'
-        stderr_file = osp.join(TEMPDIR, stderr_file)
-        return stderr_file
+        if self.connection_file is not None:
+            stderr_file = self.kernel_id + '.stderr'
+            stderr_file = osp.join(TEMPDIR, stderr_file)
+            return stderr_file
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
@@ -177,11 +186,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted.connect(
             self.kernel_restarted_message)
-
-        # To restart the kernel when errors happened while debugging
-        # See issue 4003
-        self.shellwidget.sig_dbg_kernel_restart.connect(
-                self.restart_kernel)
 
         # To correctly change Matplotlib backend interactively
         self.shellwidget.executing.connect(
@@ -335,18 +339,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         sw = self.shellwidget
 
-        # This is needed to restart the kernel without a prompt
-        # when an error in stdout corrupts the debugging process.
-        # See issue 4003
-        if not sw._input_reply_failed:
-            message = _('Are you sure you want to restart the kernel?')
-            buttons = QMessageBox.Yes | QMessageBox.No
-            result = QMessageBox.question(self, _('Restart kernel?'),
-                                          message, buttons)
-        else:
-            result = None
+        message = _('Are you sure you want to restart the kernel?')
+        buttons = QMessageBox.Yes | QMessageBox.No
+        result = QMessageBox.question(self, _('Restart kernel?'),
+                                      message, buttons)
 
-        if result == QMessageBox.Yes or sw._input_reply_failed:
+        if result == QMessageBox.Yes:
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
@@ -359,16 +357,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         before_prompt=True
                     )
                 else:
-                    sw.reset(clear=not sw._input_reply_failed)
-                    if sw._input_reply_failed:
-                        sw._append_html(_("<br>Restarting kernel because "
-                                        "an error occurred while "
-                                        "debugging\n<hr><br>"),
-                                        before_prompt=False)
-                        sw._input_reply_failed = False
-                    else:
-                        sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
-                                before_prompt=False)
+                    sw.reset(clear=True)
+                    sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
+                                    before_prompt=False)
             else:
                 sw._append_plain_text(
                     _('Cannot restart a kernel not started by Spyder\n'),
@@ -378,7 +369,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        stderr = codecs.open(self.stderr_file, 'r', encoding='utf-8').read()
+        try:
+            stderr = codecs.open(self.stderr_file, 'r',
+                                 encoding='utf-8').read()
+        except UnicodeDecodeError:
+            # This is needed since the stderr file could be encoded
+            # in something different to utf-8.
+            # See issue 4191
+            try:
+                stderr = self._read_stderr()
+            except:
+                stderr = None
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
@@ -438,3 +439,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         document = self.get_control().document()
         document.contentsChange.disconnect(self._hide_loading_page)
+
+    def _read_stderr(self):
+        """Read the stderr file of the kernel."""
+        stderr_text = open(self.stderr_file, 'rb').read()
+        encoding = get_coding(stderr_text)
+        stderr = to_text_string(stderr_text, encoding)
+        return stderr
