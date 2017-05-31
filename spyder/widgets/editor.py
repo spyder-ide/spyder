@@ -1462,7 +1462,7 @@ class EditorStack(QWidget):
             return True
         except EnvironmentError as error:
             QMessageBox.critical(self, _("Save"),
-                                 _("<b>Unable to save script '%s'</b>"
+                                 _("<b>Unable to save file '%s'</b>"
                                    "<br><br>Error message:<br>%s"
                                    ) % (osp.basename(finfo.filename),
                                         str(error)))
@@ -1523,6 +1523,38 @@ class EditorStack(QWidget):
             self.refresh(new_index)
             self.set_stack_index(new_index)
             return ok
+        else:
+            return False
+
+    def save_copy_as(self, index=None):
+        """Save copy of file as..."""
+        if index is None:
+            # Save the currently edited file
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        filename = self.select_savename(finfo.filename)
+        if filename:
+            ao_index = self.has_filename(filename)
+            # Note: ao_index == index --> saving an untitled file
+            if ao_index and ao_index != index:
+                if not self.close_file(ao_index):
+                    return
+                if ao_index < index:
+                    index -= 1
+            txt = to_text_string(finfo.editor.get_text_with_eol())
+            try:
+                finfo.encoding = encoding.write(txt, filename, finfo.encoding)
+                self.file_saved.emit(str(id(self)), index, filename)
+
+                # open created copy file
+                self.plugin_load.emit(filename)
+                return True
+            except EnvironmentError as error:
+                QMessageBox.critical(self, _("Save"),
+                                     _("<b>Unable to save file '%s'</b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (osp.basename(finfo.filename),
+                                            str(error)))
         else:
             return False
 
