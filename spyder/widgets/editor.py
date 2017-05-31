@@ -1541,17 +1541,17 @@ class EditorStack(QWidget):
                     return
                 if ao_index < index:
                     index -= 1
-        txt = to_text_string(finfo.editor.get_text_with_eol())
-        try:
-            finfo.encoding = encoding.write(txt, filename, finfo.encoding)
-            self.file_saved.emit(str(id(self)), index, filename)
-            return True
-        except EnvironmentError as error:
-            QMessageBox.critical(self, _("Save"),
-                                 _("<b>Unable to save file '%s'</b>"
-                                   "<br><br>Error message:<br>%s"
-                                   ) % (osp.basename(finfo.filename),
-                                        str(error)))
+            txt = to_text_string(finfo.editor.get_text_with_eol())
+            try:
+                finfo.encoding = encoding.write(txt, filename, finfo.encoding)
+                self.file_saved.emit(str(id(self)), index, filename)
+                return True
+            except EnvironmentError as error:
+                QMessageBox.critical(self, _("Save"),
+                                     _("<b>Unable to save file '%s'</b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (osp.basename(finfo.filename),
+                                            str(error)))
         else:
             return False
 
