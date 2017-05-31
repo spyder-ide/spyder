@@ -316,7 +316,7 @@ class DirView(QTreeView):
         else:
             actions.append(open_action)
         if sys.platform == 'darwin':
-            text=_("Show in finder")
+            text=_("Show in Finder")
         else:
             text=_("Show in external file explorer")
         external_fileexp_action = create_action(self, text, 

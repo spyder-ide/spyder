@@ -477,7 +477,7 @@ class EditorStack(QWidget):
                                            triggered=self.close_all_but_this)
         
         if sys.platform == 'darwin':
-           text=_("Show in finder")
+           text=_("Show in Finder")
         else:
            text= _("Show in external file explorer")
         external_fileexp_action = create_action(self, text,
