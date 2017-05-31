@@ -49,7 +49,7 @@ def open_file_in_external_explorer(filename):
         subprocess.call(["open", "-R", filename])
     else:
         filename=os.path.dirname(filename)
-        if sys.platform == "win32":
+        if os.name == 'nt':
             os.startfile(filename)
         else:
             subprocess.call(["xdg-open", filename])
