@@ -49,7 +49,7 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
-from spyder.widgets.explorer import open_file__in_external_explorer
+from spyder.widgets.explorer import show_in_external_file_explorer
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -445,10 +445,7 @@ class EditorStack(QWidget):
         """Show file in external file explorer"""
         if fnames is None:
             fnames = self.get_current_filename()
-        if not isinstance(fnames, (tuple, list)):
-            fnames = [fnames]
-        for fname in fnames:
-            open_file__in_external_explorer(fname)
+        show_in_external_file_explorer(fnames)
 
     def create_shortcuts(self):
         """Create local shortcuts"""

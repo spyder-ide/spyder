@@ -44,7 +44,7 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
-def open_file__in_external_explorer(filename):
+def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
     else:
@@ -53,7 +53,18 @@ def open_file__in_external_explorer(filename):
             os.startfile(filename)
         else:
             subprocess.call(["xdg-open", filename])
-        
+
+def show_in_external_file_explorer(fnames=None):
+    """Show files in external file explorer
+
+    Args:
+        fnames (list): Names of files to show.
+    """
+    if not isinstance(fnames, (tuple, list)):
+        fnames = [fnames]
+    for fname in fnames:
+        open_file_in_external_explorer(fname)
+
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
     norm = osp.normcase if os.name == 'nt' else osp.normpath
@@ -628,10 +639,7 @@ class DirView(QTreeView):
         """Show file in external file explorer"""
         if fnames is None:
             fnames = self.get_selected_filenames()
-        if not isinstance(fnames, (tuple, list)):
-            fnames = [fnames]
-        for fname in fnames:
-            open_file__in_external_explorer(fname)
+        show_in_external_file_explorer(fnames)
 
     @Slot()
     def rename(self, fnames=None):
