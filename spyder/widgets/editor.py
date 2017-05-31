@@ -1545,6 +1545,9 @@ class EditorStack(QWidget):
             try:
                 finfo.encoding = encoding.write(txt, filename, finfo.encoding)
                 self.file_saved.emit(str(id(self)), index, filename)
+
+                # open created copy file
+                self.plugin_load.emit(filename)
                 return True
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Save"),
