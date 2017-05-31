@@ -1544,7 +1544,7 @@ class EditorStack(QWidget):
         txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, filename, finfo.encoding)
-            self.self.file_saved.emit(str(id(self)), index, filename)
+            self.file_saved.emit(str(id(self)), index, filename)
             return True
         except EnvironmentError as error:
             QMessageBox.critical(self, _("Save"),
