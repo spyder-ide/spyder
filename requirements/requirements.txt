@@ -1,0 +1,16 @@
+rope>=0.9.4
+jedi>=0.9.0
+pyflakes
+pygments>=2.0
+qtconsole>=4.2.0
+nbconvert
+sphinx
+pycodestyle
+pylint
+psutil
+qtawesome>=0.4.1
+qtpy>=1.1.0
+pickleshare
+pyzmq
+chardet>=2.0.0
+numpydoc

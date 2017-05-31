@@ -37,9 +37,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
 
     # For DebuggingWidget
-    sig_input_reply = Signal()
     sig_pdb_step = Signal(str, int)
-    sig_prompt_ready = Signal()
 
     # For ShellWidget
     focus_changed = Signal()
@@ -81,14 +79,20 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        return self.silent_execute(
-            u"get_ipython().kernel.set_cwd(r'{}')".format(dirname))
+        code = u"get_ipython().kernel.set_cwd(r'{}')".format(dirname)
+        if self._reading:
+            self.kernel_client.input(u'!' + code)
+        else:
+            self.silent_execute(code)
 
     # --- To handle the banner
     def long_banner(self):
         """Banner for IPython widgets with pylab message"""
         # Default banner
-        from IPython.core.usage import quick_guide
+        try:
+            from IPython.core.usage import quick_guide
+        except Exception:
+            quick_guide = ''
         banner_parts = [
             'Python %s\n' % self.interpreter_versions['python_version'],
             'Type "copyright", "credits" or "license" for more information.\n\n',
@@ -137,7 +141,10 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        self.execute("%clear")
+        if self._reading:
+            self.dbg_exec_magic('clear')
+        else:
+            self.execute("%clear")
 
     def reset_namespace(self, force=False):
         """Reset the namespace by removing all names defined by the user."""
@@ -151,9 +158,15 @@ the sympy module (e.g. plot)
             )
 
             if reply == QMessageBox.Yes:
-                self.execute("%reset -f")
+                if self._reading:
+                    self.dbg_exec_magic('reset', '-f')
+                else:
+                    self.execute("%reset -f")
         else:
-            self.silent_execute("%reset -f")
+            if self._reading:
+                self.dbg_exec_magic('reset', '-f')
+            else:
+                self.silent_execute("%reset -f")
 
     def set_background_color(self):
         light_color_o = self.additional_options['light_color']
@@ -260,6 +273,36 @@ the sympy module (e.g. plot)
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
+
+    def set_backend_for_mayavi(self, command):
+        """
+        Mayavi plots require the Qt backend, so we try to detect if one is
+        generated to change backends
+        """
+        calling_mayavi = False
+        lines = command.splitlines()
+        for l in lines:
+            if not l.startswith('#'):
+                if 'import mayavi' in l or 'from mayavi' in l:
+                    calling_mayavi = True
+                    break
+        if calling_mayavi:
+            message = _("Changing backend to Qt for Mayavi")
+            self._append_plain_text(message + '\n')
+            self.silent_execute("%gui inline\n%gui qt")
+
+    def change_mpl_backend(self, command):
+        """
+        If the user is trying to change Matplotlib backends with
+        %matplotlib, send the same command again to the kernel to
+        correctly change it.
+
+        Fixes issue 4002
+        """
+        if command.startswith('%matplotlib') and \
+          len(command.splitlines()) == 1:
+            if not 'inline' in command:
+                self.silent_execute(command)
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):

@@ -14,7 +14,6 @@ Pandas DataFrame Editor Dialog
 """
 
 # Third party imports
-from pandas import DataFrame, DatetimeIndex, Series
 from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
@@ -23,6 +22,8 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
                             QMenu, QMessageBox, QPushButton, QTableView,
                             QHeaderView)
+
+from pandas import DataFrame, DatetimeIndex, Series
 import numpy as np
 
 # Local imports
@@ -42,6 +43,9 @@ REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', '0']
+
+# Default format for data frames with floats
+DEFAULT_FORMAT = '%.3g'
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
@@ -83,7 +87,7 @@ class DataFrameModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
     
-    def __init__(self, dataFrame, format="%.3g", parent=None):
+    def __init__(self, dataFrame, format=DEFAULT_FORMAT, parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
@@ -274,7 +278,12 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 value = self.get_value(row, column-1)
                 if isinstance(value, float):
-                    return to_qvariant(self._format % value)
+                    try:
+                        return to_qvariant(self._format % value)
+                    except (ValueError, TypeError):
+                        # may happen if format = '%d' and value = NaN;
+                        # see issue 4139
+                        return to_qvariant(DEFAULT_FORMAT % value)
                 else:
                     try:
                         return to_qvariant(to_text_string(value))
@@ -800,9 +809,7 @@ def test():
     out = test_edit(df1.iloc[0])
     assert_series_equal(result, out)
 
-    # Sorting large DataFrame takes time
     df1 = DataFrame(np.random.rand(100100, 10))
-    df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
     assert_frame_equal(out, df1)
 

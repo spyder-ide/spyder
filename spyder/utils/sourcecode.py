@@ -33,6 +33,7 @@ ALL_LANGUAGES = {
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
                  'Yaml':('yaml','yml'),
+                 "Markdown": ('md', ),
                  }
 
 PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')

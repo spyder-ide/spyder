@@ -28,8 +28,7 @@ from spyder.utils import codeanalysis
 # Main constants
 #==============================================================================
 # Find in files exclude patterns
-EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
-                    r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
+EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
@@ -59,7 +58,9 @@ if sys.platform == 'darwin':
     RUN_CELL_SHORTCUT = 'Meta+Return'
 else:
     RUN_CELL_SHORTCUT = 'Ctrl+Return'
+RE_RUN_LAST_CELL_SHORTCUT = 'Alt+Return'
 RUN_CELL_AND_ADVANCE_SHORTCUT = 'Shift+Return'
+
 
 # =============================================================================
 #  Defaults
@@ -233,7 +234,6 @@ DEFAULTS = [
               'occurrence_highlighting': True,
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
-              'fullpath_sorting': True,
               'show_tab_bar': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
@@ -290,8 +290,6 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': '',
-              'include_regexp': True,
               'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': True,
               'search_text_regexp': True,
@@ -389,8 +387,8 @@ DEFAULTS = [
               'editor/rotate kill ring': 'Shift+Meta+Y',
               'editor/kill previous word': 'Meta+Backspace',
               'editor/kill next word': 'Meta+D',
-              'editor/start of document': 'Ctrl+Up',
-              'editor/end of document': 'Ctrl+Down',
+              'editor/start of document': 'Ctrl+Home',
+              'editor/end of document': 'Ctrl+End',
               'editor/undo': 'Ctrl+Z',
               'editor/redo': 'Ctrl+Shift+Z',
               'editor/cut': 'Ctrl+X',
@@ -404,8 +402,8 @@ DEFAULTS = [
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
               'editor/go to line': 'Ctrl+L',
-              'editor/go to previous file': 'Ctrl+Tab',
-              'editor/go to next file': 'Ctrl+Shift+Tab',
+              'editor/go to previous file': 'Ctrl+Shift+Tab',
+              'editor/go to next file': 'Ctrl+Tab',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
@@ -424,6 +422,9 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': RUN_CELL_SHORTCUT,
               'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/go to next cell': 'Ctrl+Down',
+              'editor/go to previous cell': 'Ctrl+Up',
+              'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
               # -- In plugins/editor.py
               'editor/show/hide outline': "Ctrl+Alt+O",
               # -- In Breakpoints
@@ -656,7 +657,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '32.0.0'
+CONF_VERSION = '34.0.0'
 
 # Main configuration instance
 try:
