@@ -993,14 +993,14 @@ class MainConfigPage(GeneralConfigPage):
         # Layout Screen resolution
         screen_resolution_layout = QVBoxLayout()
         screen_resolution_layout.addWidget(screen_resolution_label)
-        screen_resolution_layout.addWidget(normal_radio)
-        screen_resolution_layout.addWidget(auto_scale_radio)
 
-        custom_scaling_layout = QHBoxLayout()
-        custom_scaling_layout.addWidget(custom_scaling_radio)
-        custom_scaling_layout.addWidget(custom_scaling_edit)
+        screen_resolution_inner_layout = QGridLayout()
+        screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
+        screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
+        screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
+        screen_resolution_inner_layout.addWidget(custom_scaling_edit, 2, 1)
 
-        screen_resolution_layout.addLayout(custom_scaling_layout)
+        screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
 
         # --- Theme and fonts
