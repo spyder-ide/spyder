@@ -17,6 +17,8 @@ import os
 import os.path as osp
 import re
 import shutil
+import subprocess
+import sys
 
 # Third party imports
 from qtpy import API, is_pyqt46
@@ -42,6 +44,26 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
+def open_file_in_external_explorer(filename):
+    if sys.platform == "darwin":
+        subprocess.call(["open", "-R", filename])
+    else:
+        filename=os.path.dirname(filename)
+        if os.name == 'nt':
+            os.startfile(filename)
+        else:
+            subprocess.call(["xdg-open", filename])
+
+def show_in_external_file_explorer(fnames=None):
+    """Show files in external file explorer
+
+    Args:
+        fnames (list): Names of files to show.
+    """
+    if not isinstance(fnames, (tuple, list)):
+        fnames = [fnames]
+    for fname in fnames:
+        open_file_in_external_explorer(fname)
 
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
@@ -293,6 +315,13 @@ class DirView(QTreeView):
             actions.append(edit_action)
         else:
             actions.append(open_action)
+        if sys.platform == 'darwin':
+            text=_("Show in Finder")
+        else:
+            text=_("Show in external file explorer")
+        external_fileexp_action = create_action(self, text, 
+                                triggered=self.show_in_external_file_explorer)        
+        actions.append(external_fileexp_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
@@ -604,6 +633,13 @@ class DirView(QTreeView):
                             _("<b>Unable to rename file <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
                               ) % (osp.basename(fname), to_text_string(error)))
+
+    @Slot()
+    def show_in_external_file_explorer(self, fnames=None):
+        """Show file in external file explorer"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        show_in_external_file_explorer(fnames)
 
     @Slot()
     def rename(self, fnames=None):
