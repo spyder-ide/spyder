@@ -23,10 +23,12 @@ import traceback
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
-from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot
+from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
+from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot, QSize
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
                             QTreeWidgetItem, QVBoxLayout, QWidget,
-                            QHeaderView)
+                            QStyledItemDelegate, QStyleOptionViewItem,
+                            QApplication, QStyle)
 
 # Local imports
 from spyder.config.base import _
@@ -37,6 +39,7 @@ from spyder.utils.encoding import is_text_file
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 
+from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
 
@@ -45,7 +48,7 @@ class SearchThread(QThread):
     sig_finished = Signal(bool)
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
-    sig_file_match = Signal(dict, int)
+    sig_file_match = Signal(tuple, int)
     sig_out_print = Signal(object)
 
     def __init__(self, parent):
@@ -125,7 +128,10 @@ class SearchThread(QThread):
 
     def truncate_result(self, line, start, end):
         ellipsis = '...'
+        line = line[:start] + '<b>' + line[start:end] + '</b>' + line[end:]
         before_offset = 4
+        start = max(0, start - 3)
+        end += 3
         if len(line) > 80:
             if start <= before_offset:
                 before_offset = 0
@@ -138,7 +144,7 @@ class SearchThread(QThread):
     def find_string_in_file(self, fname):
         self.error_flag = False
         self.sig_current_file.emit(fname)
-        results = {}
+        # results = {}
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
@@ -156,28 +162,30 @@ class SearchThread(QThread):
                     line_dec = line
                 if self.text_re:
                     for match in re.finditer(text, line):
-                        res = results.get(osp.abspath(fname), [])
                         displ_line = self.truncate_result(line_dec,
                                                           match.start(),
                                                           match.end())
-                        res.append((lineno + 1, match.start(), displ_line))
-                        results[osp.abspath(fname)] = res
                         self.total_matches += 1
+                        self.sig_file_match.emit((osp.abspath(fname),
+                                                  lineno + 1,
+                                                  match.start(), displ_line),
+                                                 self.total_matches)
                 else:
+                    found = line.find(text)
                     while found > -1:
-                        res = results.get(osp.abspath(fname), [])
+                        self.total_matches += 1
                         displ_line = self.truncate_result(line_dec,
                                                           found,
                                                           found + len(text))
-                        res.append((lineno + 1, found, displ_line))
-                        results[osp.abspath(fname)] = res
+
+                        self.sig_file_match.emit((osp.abspath(fname),
+                                                  lineno + 1,
+                                                  found, displ_line),
+                                                 self.total_matches)
                         for text, enc in self.texts:
                             found = line.find(text, found + 1)
                             if found > -1:
                                 break
-                        self.total_matches += 1
-            if len(results) > 0:
-                self.sig_file_match.emit(results, self.total_matches)
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
@@ -266,27 +274,28 @@ class FindOptions(QWidget):
 
         # Layout 3
         hlayout3 = QHBoxLayout()
-        search_label = QLabel(_("Search on: "))
 
-        self.global_path_search = QRadioButton(_("Current Path"), self)
+        self.global_path_search = QRadioButton(_("Path"), self)
         self.global_path_search.setChecked(True)
         self.global_path_search.setToolTip(_("Search in all files and "
                                              "directories present on the"
                                              "current Spyder path"))
 
-        self.project_search = QRadioButton(_("Current Project"), self)
+        self.project_search = QRadioButton(_("Project"), self)
         self.project_search.setToolTip(_("Search in all files and "
                                          "directories present on the"
                                          "current project path (If opened)"))
 
         self.project_search.setEnabled(False)
 
-        self.file_search = QRadioButton(_("Current File"), self)
+        self.file_search = QRadioButton(_("File"), self)
         self.file_search.setToolTip(_("Search in current opened file"))
 
-        for wid in [search_label, self.global_path_search,
+        for wid in [self.global_path_search,
                     self.project_search, self.file_search]:
             hlayout3.addWidget(wid)
+
+        hlayout3.addStretch(1)
 
         self.search_text.valid.connect(lambda valid: self.find.emit())
         self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
@@ -429,9 +438,110 @@ class FindOptions(QWidget):
             QWidget.keyPressEvent(self, event)
 
 
-class ResultsHeader(QHeaderView):
+class LineMatchItem(QTreeWidgetItem):
+    def __init__(self, parent, lineno, colno, match):
+        self.lineno = lineno
+        self.colno = colno
+        self.match = match
+        QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
+                                 QTreeWidgetItem.Type)
+
+    def __repr__(self):
+        match = to_text_string(self.match).rstrip()
+        font = get_font()
+        _str = to_text_string("<b>{1}</b> ({2}): "
+                              "<span style='font-family:{0};"
+                              "font-size:75%;'>{3}</span>")
+        return _str.format(font.family(), self.lineno, self.colno, match)
+
+    def __unicode__(self):
+        return self.__repr__()
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __lt__(self, x):
+        return self.lineno < x.lineno
+
+    def __ge__(self, x):
+        return self.lineno >= x.lineno
+
+
+class FileMatchItem(QTreeWidgetItem):
+    def __init__(self, parent, filename):
+
+        self.filename = osp.basename(filename)
+
+        title = ('<b>{0}</b><br>'
+                 '<small><em>{1}</em>'
+                 '</small>'.format(osp.basename(filename),
+                                   osp.dirname(filename)))
+        QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
+
+        self.setToolTip(0, filename)
+        self.setIcon(0, get_filetype_icon(filename))
+
+    def __lt__(self, x):
+        return self.filename < x.filename
+
+    def __ge__(self, x):
+        return self.filename >= x.filename
+
+
+class FileMatchWidget(QWidget):
+    def __init__(self, parent, file):
+        QWidget.__init__(self, parent)
+
+        layout = QVBoxLayout(self)
+        file_label = QLabel('<strong>{}</stong>'.format(osp.basename(file)),
+                            self)
+        path_label = QLabel('<small>{}</small>'.format(osp.dirname(file)),
+                            self)
+        layout.addWidget(file_label)
+        layout.addWidget(path_label)
+        self.setLayout(layout)
+        self.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+
+class ItemDelegate(QStyledItemDelegate):
     def __init__(self, parent):
-        QHeaderView.__init__(self, parent)
+        QStyledItemDelegate.__init__(self, parent)
+
+    def paint(self, painter, option, index):
+        options = QStyleOptionViewItem(option)
+        self.initStyleOption(options, index)
+
+        style = (QApplication.style() if options.widget is None
+                 else options.widget.style())
+
+        doc = QTextDocument()
+        doc.setDocumentMargin(0)
+        doc.setHtml(options.text)
+
+        options.text = ""
+        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
+
+        ctx = QAbstractTextDocumentLayout.PaintContext()
+
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
+        painter.save()
+
+        painter.translate(textRect.topLeft())
+        painter.setClipRect(textRect.translated(-textRect.topLeft()))
+        doc.documentLayout().draw(painter, ctx)
+        painter.restore()
+
+    def sizeHint(self, option, index):
+        options = QStyleOptionViewItem(option)
+        self.initStyleOption(options, index)
+
+        doc = QTextDocument()
+        doc.setHtml(options.text)
+        doc.setTextWidth(options.rect.width())
+
+        return QSize(doc.idealWidth(), doc.size().height())
 
 
 class ResultsBrowser(OneColumnTree):
@@ -443,11 +553,14 @@ class ResultsBrowser(OneColumnTree):
         self.error_flag = None
         self.completed = None
         self.data = None
+        self.files = None
         self.set_title('')
         self.root_items = None
+        self.sortByColumn(0, Qt.AscendingOrder)
         self.setSortingEnabled(True)
         self.header().setSectionsClickable(True)
-        # self.setHeaderLabel(_("Filename"))
+        self.setItemDelegate(ItemDelegate(self))
+        self.setUniformRowHeights(False)
 
     def activated(self, item):
         """Double-click event"""
@@ -464,15 +577,22 @@ class ResultsBrowser(OneColumnTree):
         self.clear()
         self.num_files = 0
         self.data = {}
+        self.files = {}
         self.search_text = search_text
         title = "'%s' - " % search_text
         text = _('String not found')
         self.set_title(title + text)
 
-    @Slot(dict, int)
+    @Slot(tuple, int)
     def append_result(self, results, num_matches):
         """Real-time update of search results"""
-        self.num_files += 1
+        filename, lineno, colno, line = results
+
+        if filename not in self.files:
+            item = FileMatchItem(self, filename)
+            self.files[filename] = item
+            self.num_files += 1
+
         search_text = self.search_text
         title = "'%s' - " % search_text
         nb_files = self.num_files
@@ -486,21 +606,11 @@ class ResultsBrowser(OneColumnTree):
             text = "%d %s %d %s" % (num_matches, text_matches,
                                     nb_files, text_files)
         self.set_title(title + text)
-        for filename in sorted(results.keys()):
-            file_item = QTreeWidgetItem(self, [osp.basename(filename) +
-                                        u" - " + osp.dirname(filename)],
-                                        QTreeWidgetItem.Type)
-            file_item.setToolTip(0, filename)
-            file_item.setIcon(0, get_filetype_icon(filename))
-            for lineno, colno, line in results[filename]:
-                item = QTreeWidgetItem(file_item,
-                                       [u"{0} ({1}): {2}".format(lineno,
-                                                                 colno,
-                                                                 line.rstrip()
-                                                                 )],
-                                       QTreeWidgetItem.Type)
-                item.setIcon(0, ima.icon('arrow'))
-                self.data[id(item)] = (filename, lineno, colno)
+
+        file_item = self.files[filename]
+        item = LineMatchItem(file_item, lineno, colno, line)
+
+        self.data[id(item)] = (filename, lineno, colno)
 
 
 class FileProgressBar(QWidget):
@@ -573,21 +683,9 @@ class FindInFilesWidget(QWidget):
 
         self.result_browser = ResultsBrowser(self)
 
-        collapse_btn = create_toolbutton(self)
-        collapse_btn.setDefaultAction(self.result_browser.collapse_all_action)
-        expand_btn = create_toolbutton(self)
-        expand_btn.setDefaultAction(self.result_browser.expand_all_action)
-        restore_btn = create_toolbutton(self)
-        restore_btn.setDefaultAction(self.result_browser.restore_action)
-
-        btn_layout = QVBoxLayout()
-        btn_layout.setAlignment(Qt.AlignTop)
-        for widget in [collapse_btn, expand_btn, restore_btn]:
-            btn_layout.addWidget(widget)
-
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
-        hlayout.addLayout(btn_layout)
+        # hlayout.addLayout(btn_layout)
 
         layout = QVBoxLayout()
         left, _x, right, bottom = layout.getContentsMargins()
@@ -653,6 +751,7 @@ class FindInFilesWidget(QWidget):
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         self.status_bar.hide()
+        self.result_browser.expandAll()
         if self.search_thread is None:
             return
         self.sig_finished.emit()

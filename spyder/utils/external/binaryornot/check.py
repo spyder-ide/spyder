@@ -23,7 +23,7 @@ def is_binary(filename):
     logger.debug('is_binary: %(filename)r', locals())
 
     # Check if the file extension is in a list of known binary types
-    binary_extensions = ['pyc', 'iso']
+    binary_extensions = ['pyc', 'iso', 'zip', 'pdf']
     for ext in binary_extensions:
         if filename.endswith(ext):
             return True
