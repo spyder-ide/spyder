@@ -888,8 +888,9 @@ class ExternalConsole(SpyderPluginWidget):
                 if isinstance(sw, pythonshell.ExternalPythonShell):
                     consoles = True
                     break
-            if not consoles:
-                self.open_interpreter()
+            # Don't create consoles by default
+            #if not consoles:
+            #    self.open_interpreter()
         else:
             self.dockwidget.hide()
 
