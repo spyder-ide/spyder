@@ -316,10 +316,14 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             radiobutton.setChecked(self.get_option(option, default))
             radiobutton.toggled.connect(lambda _foo, opt=option:
                                         self.has_been_modified(opt))
+            if radiobutton.restart_required:
+                self.restart_options[option] = radiobutton.label_text
         for lineedit, (option, default) in list(self.lineedits.items()):
             lineedit.setText(self.get_option(option, default))
             lineedit.textChanged.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
+            if lineedit.restart_required:
+                self.restart_options[option] = lineedit.label_text
         for spinbox, (option, default) in list(self.spinboxes.items()):
             spinbox.setValue(self.get_option(option, default))
             spinbox.valueChanged.connect(lambda _foo, opt=option:
@@ -442,7 +446,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
-                           msg_if_enabled=False, button_group=None):
+                           msg_if_enabled=False, button_group=None,
+                           restart=False):
         radiobutton = QRadioButton(text)
         if button_group is None:
             if self.default_button_group is None:
@@ -462,10 +467,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         QMessageBox.information(self, self.get_name(),
                                                 msg_info, QMessageBox.Ok)
             radiobutton.toggled.connect(show_message)
+        radiobutton.restart_required = restart
+        radiobutton.label_text = text
         return radiobutton
     
     def create_lineedit(self, text, option, default=NoDefault,
-                        tip=None, alignment=Qt.Vertical, regex=None):
+                        tip=None, alignment=Qt.Vertical, regex=None, 
+                        restart=False):
         label = QLabel(text)
         label.setWordWrap(True)
         edit = QLineEdit()
@@ -482,6 +490,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget.label = label
         widget.textbox = edit 
         widget.setLayout(layout)
+        edit.restart_required = restart
+        edit.label_text = text
         return widget
     
     def create_browsedir(self, text, option, default=NoDefault, tip=None):
@@ -923,6 +933,59 @@ class MainConfigPage(GeneralConfigPage):
         sbar_layout.addLayout(cpu_memory_layout)
         sbar_group.setLayout(sbar_layout)
 
+        # --- Screen resolution Group (hidpi)
+        screen_resolution_group = QGroupBox(_("Screen resolution"))
+        screen_resolution_bg = QButtonGroup(screen_resolution_group)
+        screen_resolution_label = QLabel(_("Configurations for highdpi screens, "
+                                "See: <a href=\"http://doc.qt.io/qt-5/highdpi.html\">http://doc.qt.io/qt-5/highdpi.html</a><> "
+                                "for more information"))
+        screen_resolution_label.setWordWrap(True)
+
+        normal_radio = self.create_radiobutton(
+                                _("Normal"),
+                                'normal_screen_resolution',
+                                button_group=screen_resolution_bg)
+        auto_scale_radio = self.create_radiobutton(
+                                _("Enable auto high DPI scaling"),
+                                'high_dpi_scaling',
+                                button_group=screen_resolution_bg,
+                                tip=_("Set this for high DPI displays"),
+                                restart=True)
+
+        custom_scaling_radio = self.create_radiobutton(
+                                _("Set a custom high DPI scaling"),
+                                'high_dpi_custom_scale_factor',
+                                button_group=screen_resolution_bg,
+                                tip=_("Set this for high DPI displays when "
+                                      "auto scaling does not work"),
+                                restart=True)
+
+        custom_scaling_edit = self.create_lineedit("",
+                                'high_dpi_custom_scale_factors',
+                                tip=_("Enter values for different screens "
+                                      "separated by semicolons ';', "
+                                      "float values are supported"),
+                                alignment=Qt.Horizontal,
+                                regex="[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
+                                restart=True)
+
+        normal_radio.toggled.connect(custom_scaling_edit.setDisabled)
+        auto_scale_radio.toggled.connect(custom_scaling_edit.setDisabled)
+        custom_scaling_radio.toggled.connect(custom_scaling_edit.setEnabled)
+
+        # Layout Screen resolution
+        screen_resolution_layout = QVBoxLayout()
+        screen_resolution_layout.addWidget(screen_resolution_label)
+
+        screen_resolution_inner_layout = QGridLayout()
+        screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
+        screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
+        screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
+        screen_resolution_inner_layout.addWidget(custom_scaling_edit, 2, 1)
+
+        screen_resolution_layout.addLayout(screen_resolution_inner_layout)
+        screen_resolution_group.setLayout(screen_resolution_layout)
+
         # --- Theme and fonts
         plain_text_font = self.create_fontgroup(
             option='font',
@@ -948,8 +1011,8 @@ class MainConfigPage(GeneralConfigPage):
         fonts_group.setLayout(fonts_layout)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(fonts_group, interface_group),
-                    _("Appearance"))
+        tabs.addTab(self.create_tab(fonts_group, screen_resolution_group,
+                    interface_group), _("Appearance"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
                     _("Advanced Settings"))
 
