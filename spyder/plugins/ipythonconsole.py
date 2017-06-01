@@ -67,6 +67,11 @@ dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
 
 
+CYTHON_REQVER = '>=0.21'
+dependencies.add("cython", _("Run Cython files in the IPython Console"),
+                 required_version=CYTHON_REQVER, optional=True)
+
+
 #------------------------------------------------------------------------------
 # Existing kernels
 #------------------------------------------------------------------------------
@@ -207,12 +212,12 @@ class KernelConnectionDialog(QDialog):
         ssh_form.addRow(_('Password'), self.pw)
         
         # Ok and Cancel buttons
-        accept_btns = QDialogButtonBox(
+        self.accept_btns = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             Qt.Horizontal, self)
 
-        accept_btns.accepted.connect(self.accept)
-        accept_btns.rejected.connect(self.reject)
+        self.accept_btns.accepted.connect(self.accept)
+        self.accept_btns.rejected.connect(self.reject)
 
         # Dialog layout
         layout = QVBoxLayout(self)
@@ -220,7 +225,7 @@ class KernelConnectionDialog(QDialog):
         layout.addLayout(cf_layout)
         layout.addWidget(self.rm_cb)
         layout.addLayout(ssh_form)
-        layout.addWidget(accept_btns)
+        layout.addWidget(self.accept_btns)
                 
         # remote kernel checkbox enables the ssh_connection_form
         def ssh_set_enabled(state):
@@ -243,8 +248,9 @@ class KernelConnectionDialog(QDialog):
         self.kf.setText(kf)
 
     @staticmethod
-    def get_connection_parameters(parent=None):
-        dialog = KernelConnectionDialog(parent)
+    def get_connection_parameters(parent=None, dialog=None):
+        if not dialog:
+            dialog = KernelConnectionDialog(parent)
         result = dialog.exec_()
         is_remote = bool(dialog.rm_cb.checkState())
         accepted = result == QDialog.Accepted
@@ -256,7 +262,11 @@ class KernelConnectionDialog(QDialog):
                 falsy_to_none(dialog.pw.text()), # ssh password
                 accepted)                        # ok
         else:
-            return (dialog.cf.text(), None, None, None, accepted)
+            path = dialog.cf.text()
+            _dir, filename = osp.dirname(path), osp.basename(path)
+            if _dir == '' and not filename.endswith('.json'):
+                path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
+            return (path, None, None, None, accepted)
 
 
 #------------------------------------------------------------------------------
@@ -602,6 +612,11 @@ class IPythonConsole(SpyderPluginWidget):
         if not self.testing:
             self.initialize_plugin()
 
+        # Create temp dir on testing to save kernel errors
+        if self.testing:
+            if not osp.isdir(programs.TEMPDIR):
+                os.mkdir(programs.TEMPDIR)
+
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
         if hasattr(self.tabwidget, 'setDocumentMode')\
@@ -774,6 +789,7 @@ class IPythonConsole(SpyderPluginWidget):
                          lambda fname, lineno, word, processevents:
                              self.editor.load(fname, lineno, word,
                                               processevents=processevents))
+        self.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.editor.run_in_current_ipyclient.connect(
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
@@ -848,9 +864,12 @@ class IPythonConsole(SpyderPluginWidget):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if clear_variables:
-                sw.reset_namespace(force=True)
-            sw.execute(to_text_string(lines))
+            if sw._reading:
+                pass
+            else:
+                if clear_variables:
+                    sw.reset_namespace(force=True)
+                sw.execute(to_text_string(to_text_string(lines)))
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
@@ -1200,6 +1219,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.activateWindow()
         shellwidget._control.setFocus()
 
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_spyder_breakpoints()
+
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
         if os.name == 'nt':
@@ -1321,11 +1345,8 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = self.create_kernel_spec()
 
         # Save stderr in a file to read it later in case of errors
-        if not self.testing:
-            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
-            kernel_manager.start_kernel(stderr=stderr)
-        else:
-            kernel_manager.start_kernel()
+        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
         kernel_client = kernel_manager.client()

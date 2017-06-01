@@ -10,6 +10,7 @@ Spyder kernel for Jupyter
 
 # Standard library imports
 import os
+import os.path as osp
 
 # Third-party imports
 from ipykernel.datapub import publish_data
@@ -65,6 +66,14 @@ class SpyderKernel(IPythonKernel):
         self._pdb_obj = None
         self._pdb_step = None
 
+        kernel_config = self.config.get('IPKernelApp', None)
+        if kernel_config is not None:
+            cf = kernel_config['connection_file']
+            json_file = osp.basename(cf)
+            self._kernel_id = json_file.split('.json')[0]
+        else:
+            self._kernel_id = None
+
     @property
     def _pdb_frame(self):
         """Return current Pdb frame if there is any"""
@@ -83,7 +92,7 @@ class SpyderKernel(IPythonKernel):
             return {}
 
     # -- Public API ---------------------------------------------------
-    # For the Variable Explorer
+    # --- For the Variable Explorer
     def get_namespace_view(self):
         """
         Return the namespace view
@@ -137,7 +146,15 @@ class SpyderKernel(IPythonKernel):
         """Get the value of a variable"""
         ns = self._get_current_namespace()
         value = ns[name]
-        publish_data({'__spy_data__': value})
+        try:
+            publish_data({'__spy_data__': value})
+        except:
+            # * There is no need to inform users about
+            #   these errors.
+            # * value = None makes Spyder to ignore
+            #   petitions to display a value
+            value = None
+            publish_data({'__spy_data__': value})
 
     def set_value(self, name, value):
         """Set the value of a variable"""
@@ -191,6 +208,17 @@ class SpyderKernel(IPythonKernel):
     def get_pdb_step(self):
         """Return info about pdb current frame"""
         return self._pdb_step
+
+    def publish_pdb_state(self):
+        """
+        Publish Variable Explorer state and Pdb step through
+        publish_data.
+        """
+        if self._pdb_obj:
+            state = dict(namespace_view = self.get_namespace_view(),
+                         var_properties = self.get_var_properties(),
+                         step = self._pdb_step)
+            publish_data({'__spy_pdb_state__': state})
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
@@ -328,6 +356,12 @@ class SpyderKernel(IPythonKernel):
     def _register_pdb_session(self, pdb_obj):
         """Register Pdb session to use it later"""
         self._pdb_obj = pdb_obj
+
+    def _set_spyder_breakpoints(self):
+        """Set all Spyder breakpoints in an active pdb session"""
+        if not self._pdb_obj:
+            return
+        self._pdb_obj.set_spyder_breakpoints()
 
     # --- For the Help plugin
     def _eval(self, text):

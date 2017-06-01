@@ -149,7 +149,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Sphinx**: Rich text mode for the Help pane.
 * **Pygments** 2.0+: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
-* **Pep8**: Style analysis.
+* **Pycodestyle**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
@@ -167,6 +167,14 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
+* **Cython**: Run Cython files in the IPython console.
+
+
+## Contributing
+
+Everyone is welcome to contribute. Please read our
+[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md),
+then get started!
 
 
 ## More information

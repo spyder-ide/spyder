@@ -281,7 +281,6 @@ class ExternalConsole(SpyderPluginWidget):
 
         self.help = None # Help plugin
         self.historylog = None # History log plugin
-        self.variableexplorer = None # Variable explorer plugin
 
         self.python_count = 0
         self.terminal_count = 0
@@ -372,10 +371,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.icons.pop(index)
         self.update_plugin_title.emit()
         self.update_tabs_text()
-
-    def set_variableexplorer(self, variableexplorer):
-        """Set variable explorer plugin"""
-        self.variableexplorer = variableexplorer
     
     def set_path(self):
         """Set consoles PYTHONPATH if changed by the user"""
@@ -515,11 +510,19 @@ class ExternalConsole(SpyderPluginWidget):
                 if old_shell.is_running():
                     runconfig = get_run_configuration(fname)
                     if runconfig is None or runconfig.show_kill_warning:
-                        answer = QMessageBox.question(self, self.get_plugin_title(),
-                            _("%s is already running in a separate process.\n"
-                              "Do you want to kill the process before starting "
-                              "a new one?") % osp.basename(fname),
-                            QMessageBox.Yes | QMessageBox.Cancel)
+                        if PYQT5:
+                            answer = QMessageBox.question(self, self.get_plugin_title(),
+                                _("%s is already running in a separate process.\n"
+                                  "Do you want to kill the process before starting "
+                                  "a new one?") % osp.basename(fname),
+                                QMessageBox.Yes | QMessageBox.Cancel)
+                        else:
+                            mb = QMessageBox(self)
+                            answer = mb.question(mb, self.get_plugin_title(),
+                                _("%s is already running in a separate process.\n"
+                                  "Do you want to kill the process before starting "
+                                  "a new one?") % osp.basename(fname),
+                                QMessageBox.Yes | QMessageBox.Cancel)
                     else:
                         answer = QMessageBox.Yes
 
@@ -558,8 +561,6 @@ class ExternalConsole(SpyderPluginWidget):
             umr_enabled = CONF.get('main_interpreter', 'umr/enabled')
             umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
             umr_verbose = CONF.get('main_interpreter', 'umr/verbose')
-            ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
-            ar_state = CONF.get('variable_explorer', 'autorefresh')
 
             sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
@@ -576,8 +577,6 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
-                           autorefresh_timeout=ar_timeout,
-                           autorefresh_state=ar_state,
                            light_background=light_background,
                            menu_actions=self.menu_actions,
                            show_buttons_inside=False,
@@ -705,8 +704,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.setTabIcon(index, icon)
         if self.help is not None:
             self.help.set_shell(shell.shell)
-        if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(shell)
 
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
@@ -716,9 +713,7 @@ class ExternalConsole(SpyderPluginWidget):
             # the tab icon...
             _icon, icon = self.icons[index]
             self.tabwidget.setTabIcon(index, icon)
-        if self.variableexplorer is not None:
-            self.variableexplorer.remove_shellwidget(shell_id)
-        
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -826,7 +821,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         if shellwidget:
             shellwidget.update_time_label_visibility()
-            self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
             self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
         self.update_plugin_title.emit()

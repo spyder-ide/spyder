@@ -89,6 +89,14 @@ class TextEditor(QDialog):
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.text
 
+    def setup_and_check(self, value):
+        """Verify if TextEditor is able to display strings passed to it."""
+        try:
+            to_text_string(value, 'utf8')
+            return True
+        except:
+            return False
+
 
 #==============================================================================
 # Tests

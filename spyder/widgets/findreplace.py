@@ -113,7 +113,8 @@ class FindReplace(QWidget):
         replace_with = QLabel(_("Replace with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
                                             tip=_('Replace string'))
-        
+        self.replace_text.valid.connect(
+                    lambda _: self.replace_find(focus_replace_text=True))
         self.replace_button = create_toolbutton(self,
                                      text=_('Replace/find'),
                                      icon=ima.icon('DialogApplyButton'),
@@ -344,7 +345,7 @@ class FindReplace(QWidget):
             return found
 
     @Slot()
-    def replace_find(self):
+    def replace_find(self, focus_replace_text=False):
         """Replace and find"""
         if (self.editor is not None):
             replace_text = to_text_string(self.replace_text.currentText())
@@ -419,3 +420,5 @@ class FindReplace(QWidget):
             self.all_check.setCheckState(Qt.Unchecked)
             if cursor is not None:
                 cursor.endEditBlock()
+            if focus_replace_text:
+                self.replace_text.setFocus()

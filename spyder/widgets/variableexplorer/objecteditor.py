@@ -167,11 +167,11 @@ def test():
             self.text = "toto"
     foobar = Foobar()
 
-    print(oedit(foobar))
-    print(oedit(example))
-    print(oedit(np.random.rand(10, 10)))
-    print(oedit(oedit.__doc__))
-    print(example)
+    print(oedit(foobar))  # spyder: test-skip
+    print(oedit(example))  # spyder: test-skip
+    print(oedit(np.random.rand(10, 10)))  # spyder: test-skip
+    print(oedit(oedit.__doc__))  # spyder: test-skip
+    print(example)  # spyder: test-skip
 
 
 if __name__ == "__main__":

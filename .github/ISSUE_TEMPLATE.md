@@ -16,6 +16,8 @@
 
 * Spyder Version:
 * Python Version:
+* Qt Version:
+* PyQt Version:
 * Operating system:
 
 

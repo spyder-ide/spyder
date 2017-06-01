@@ -261,14 +261,3 @@ def get_parent_until(path):
         except ImportError:
             break
     return '.'.join(reversed(items))
-
-
-if __name__ == '__main__':
-    code = 'import numpy'
-    test = CodeInfo('test', code, len(code) - 2)
-    assert test.obj == 'num'
-    assert test.full_obj == 'numpy'
-    test2 = CodeInfo('test', code, len(code) - 2)
-    assert test == test2
-    test3 = pickle.loads(pickle.dumps(test2.__dict__))
-    assert test3['full_obj'] == 'numpy'

@@ -32,11 +32,12 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent, startup):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
         self.latest_release = None
+        self.startup = startup
 
     def check_update_available(self, version, releases):
         """Checks if there is an update available.
@@ -95,5 +96,7 @@ class WorkerUpdates(QObject):
         except Exception:
             error_msg = _('Unable to check for updates.')
 
-        self.error = error_msg
-        self.sig_ready.emit()
+        # Don't show dialog when starting up spyder and an error occur
+        if not (self.startup and error_msg is not None):
+            self.error = error_msg
+            self.sig_ready.emit()

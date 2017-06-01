@@ -139,7 +139,7 @@ class CodeConfigPage(ProjectConfigPage):
 
     def apply_settings(self, options):
         """ """
-        print('applied')
+        print('applied')  # spyder: test-skip
         #self.main.apply_settings()
 
 
@@ -174,7 +174,7 @@ class VersionConfigPage(ProjectConfigPage):
 
     def apply_settings(self, options):
         """ """
-        print('applied')
+        print('applied')  # spyder: test-skip
         #self.main.apply_settings()
 
 

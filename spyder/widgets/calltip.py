@@ -65,12 +65,17 @@ class CallTipWidget(QLabel):
 
             if etype == QEvent.KeyPress:
                 key = event.key()
+                cursor = self._text_edit.textCursor()
+                prev_char = self._text_edit.get_character(cursor.position(),
+                                                          offset=-1)
                 if key in (Qt.Key_Enter, Qt.Key_Return,
                            Qt.Key_Down, Qt.Key_Up):
                     self.hide()
                 elif key == Qt.Key_Escape:
                     self.hide()
                     return True
+                elif prev_char == ')':
+                    self.hide()
 
             elif etype == QEvent.FocusOut:
                 self.hide()

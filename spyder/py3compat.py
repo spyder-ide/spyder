@@ -82,18 +82,6 @@ else:
 #==============================================================================
 # Strings
 #==============================================================================
-if PY2:
-    # Python 2
-    import codecs
-    def u(obj):
-        """Make unicode object"""
-        return codecs.unicode_escape_decode(obj)[0]
-else:
-    # Python 3
-    def u(obj):
-        """Return string as it is"""
-        return obj
-
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,
     like binary data (Python 3) or QString (Python 2, PyQt API #1)"""
