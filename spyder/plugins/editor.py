@@ -505,7 +505,7 @@ class Editor(SpyderPluginWidget):
             self.add_cursor_position_to_history(filename, position)
         self.update_cursorpos_actions()
         self.set_path()
-        
+
     def set_projects(self, projects):
         self.projects = projects
 
@@ -581,6 +581,7 @@ class Editor(SpyderPluginWidget):
             self.dock_toolbar.hide()
         if enable:
             self.refresh_plugin()
+        self.update_plugin_title.emit()
     
     def refresh_plugin(self):
         """Refresh editor plugin"""
@@ -1157,7 +1158,7 @@ class Editor(SpyderPluginWidget):
                  self.toggle_comment_action, self.revert_action,
                  self.indent_action, self.unindent_action]
         self.stack_menu_actions = [gotoline_action, workdir_action]
-        
+
         return self.file_dependent_actions
     
     def register_plugin(self):
