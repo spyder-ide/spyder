@@ -476,11 +476,6 @@ class MainWindow(QMainWindow):
         # the window is in fullscreen mode:
         self.maximized_flag = None
 
-        # Track which console plugin type had last focus
-        # True: Console plugin
-        # False: IPython console plugin
-        self.last_console_plugin_focus_was_python = True
-
         # To keep track of the last focused widget
         self.last_focused_widget = None
         self.previous_focused_widget = None
@@ -1936,16 +1931,6 @@ class MainWindow(QMainWindow):
         self.update_edit_menu()
         self.update_search_menu()
 
-        # Now deal with Python shell and IPython plugins
-        if self.ipyconsole is not None:
-            focus_client = self.ipyconsole.get_focus_client()
-            if focus_client is not None:
-                self.last_console_plugin_focus_was_python = False
-        else:
-            shell = get_focus_python_shell()
-            if shell is not None:
-                self.last_console_plugin_focus_was_python = True
-
     def show_shortcuts(self, menu):
         """Show action shortcuts in menu"""
         for element in getattr(self, menu + '_menu_actions'):
@@ -2434,11 +2419,7 @@ class MainWindow(QMainWindow):
         Execute lines in external or IPython console and eventually set focus
         to the editor
         """
-        console = self.extconsole
-        if self.ipyconsole is None or self.last_console_plugin_focus_was_python:
-            console = self.extconsole
-        else:
-            console = self.ipyconsole
+        console = self.ipyconsole
         console.visibility_changed(True)
         console.raise_()
         console.execute_code(lines)

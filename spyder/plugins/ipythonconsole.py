@@ -748,8 +748,6 @@ class IPythonConsole(SpyderPluginWidget):
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
-        if not self.testing:
-            self.main.last_console_plugin_focus_was_python = False
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):

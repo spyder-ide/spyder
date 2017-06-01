@@ -2331,17 +2331,11 @@ class Editor(SpyderPluginWidget):
                 
     def debug_command(self, command):
         """Debug actions"""
-        if self.main.ipyconsole is not None:
-            if self.main.last_console_plugin_focus_was_python:
-                self.main.extconsole.execute_code(command)
-            else:
-                self.main.ipyconsole.write_to_stdin(command)
-                focus_widget = self.main.ipyconsole.get_focus_widget()
-                if focus_widget:
-                    focus_widget.setFocus()
-        else:
-            self.main.extconsole.execute_code(command)
-    
+        self.main.ipyconsole.write_to_stdin(command)
+        focus_widget = self.main.ipyconsole.get_focus_widget()
+        if focus_widget:
+            focus_widget.setFocus()
+
     #------ Run Python script
     @Slot()
     def edit_run_configurations(self):
@@ -2436,17 +2430,9 @@ class Editor(SpyderPluginWidget):
          python, python_args, current, systerm,
          post_mortem, clear_namespace) = self.__last_ec_exec
         if current:
-            if self.main.ipyconsole is not None:
-                if self.main.last_console_plugin_focus_was_python:
-                    self.run_in_current_extconsole.emit(fname, wdir, args,
-                                                        debug, post_mortem)
-                else:
-                    self.run_in_current_ipyclient.emit(fname, wdir, args,
-                                                       debug, post_mortem,
-                                                       clear_namespace)
-            else:
-                self.run_in_current_extconsole.emit(fname, wdir, args, debug,
-                                                    post_mortem)
+            self.run_in_current_ipyclient.emit(fname, wdir, args,
+                                               debug, post_mortem,
+                                               clear_namespace)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,
