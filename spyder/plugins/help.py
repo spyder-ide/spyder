@@ -123,8 +123,6 @@ class HelpConfigPage(PluginConfigPage):
             editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
                            "It seems you don't have either installed.")
             editor_box.setToolTip(editor_tip)
-        python_box = self.create_checkbox(_("Python Console"),
-                                          'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
                                            'connect/ipython_console')
         ipython_box.setEnabled(QTCONSOLE_INSTALLED)
@@ -132,7 +130,6 @@ class HelpConfigPage(PluginConfigPage):
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)
         connections_layout.addWidget(editor_box)
-        connections_layout.addWidget(python_box)
         connections_layout.addWidget(ipython_box)
         connections_group.setLayout(connections_layout)
 
