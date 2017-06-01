@@ -1232,6 +1232,7 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.raise_()
 
         # Hide Python console until we remove it
+        self.extconsole.close_console()
         self.extconsole.toggle_view_action.setChecked(False)
 
         # Show history file if no console is visible
