@@ -329,13 +329,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def update_extra_selections(self):
         extra_selections = []
+
+        # Python 3 compatibility (weird): current line has to be
+        # highlighted first
+        if 'current_cell' in self.extra_selections_dict:
+            extra_selections.extend(self.extra_selections_dict['current_cell'])
+        if 'current_line' in self.extra_selections_dict:
+            extra_selections.extend(self.extra_selections_dict['current_line'])
+
         for key, extra in list(self.extra_selections_dict.items()):
-            if key == 'current_line' or key == 'current_cell':
-                # Python 3 compatibility (weird): current line has to be
-                # highlighted first
-                extra_selections = extra + extra_selections
-            else:
-                extra_selections += extra
+            if not (key == 'current_line' or key == 'current_cell'):
+                extra_selections.extend(extra)
         self.setExtraSelections(extra_selections)
 
     def clear_extra_selections(self, key):
