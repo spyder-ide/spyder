@@ -1231,6 +1231,10 @@ class MainWindow(QMainWindow):
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
 
+        # Hide Python console until we remove it
+        self.extconsole.close_console()
+        self.extconsole.toggle_view_action.setChecked(False)
+
         # Show history file if no console is visible
         ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
         if not self.extconsole.isvisible and not ipy_visible:
