@@ -212,7 +212,7 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT_WHEEL,
+@pytest.mark.skipif(True, #os.name == 'nt' or PYQT_WHEEL,
                     reason="It times out sometimes on Windows and using PyQt wheels")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""

@@ -386,7 +386,6 @@ class Projects(SpyderPluginWidget):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        self.main.extconsole.restart()
         if self.main.ipyconsole:
             self.main.ipyconsole.restart()
 
