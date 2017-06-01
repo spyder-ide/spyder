@@ -487,10 +487,26 @@ class MainWindow(QMainWindow):
         self.previous_focused_widget = None
 
         # Server to open external files on a single instance
-        self.open_files_server = socket.socket(socket.AF_INET,
-                                               socket.SOCK_STREAM,
-                                               socket.IPPROTO_TCP)
-
+        # This is needed in order to handle socket creation problems.
+        # See issue 4132
+        if os.name == 'nt':
+            try:
+                self.open_files_server = socket.socket(socket.AF_INET,
+                                                       socket.SOCK_STREAM,
+                                                       socket.IPPROTO_TCP)
+            except OSError as e:
+                self.open_files_server = None
+                QMessageBox.warning(None, "Spyder",
+                         _("An error occurred while creating a socket needed "
+                           "by Spyder. Please, try to run as an Administrator "
+                           "from cmd.exe the following command and then "
+                           "restart your computer: <br><br><span "
+                           "style=\'color: #555555\'><b>netsh winsock reset"
+                           "</b></span><br>"))
+        else:
+            self.open_files_server = socket.socket(socket.AF_INET,
+                                                   socket.SOCK_STREAM,
+                                                   socket.IPPROTO_TCP)
         self.apply_settings()
         self.debug_print("End of MainWindow constructor")
 
@@ -1170,7 +1186,8 @@ class MainWindow(QMainWindow):
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
-        if CONF.get('main', 'single_instance') and not self.new_instance:
+        if (CONF.get('main', 'single_instance') and not self.new_instance
+                and self.open_files_server):
             t = threading.Thread(target=self.start_open_files_server)
             t.setDaemon(True)
             t.start()
@@ -2146,7 +2163,7 @@ class MainWindow(QMainWindow):
                 return False
         prefix = 'window' + '/'
         self.save_current_window_settings(prefix)
-        if CONF.get('main', 'single_instance'):
+        if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
         for plugin in self.thirdparty_plugins:
             if not plugin.closing_plugin(cancelable):
