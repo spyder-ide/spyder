@@ -333,7 +333,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
-                                     r"(.[a-zA-Z_][a-zA-Z0-9_]*)*")])
+                                     r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
     number = any("number",
                  [r"\b[+-]?[0-9]+[lLjJ]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
