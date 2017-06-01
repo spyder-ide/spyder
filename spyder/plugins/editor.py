@@ -539,17 +539,6 @@ class Editor(SpyderPluginWidget):
                              lambda filenames:
                              self.load(filenames=filenames, editorwindow=self))
 
-    @Slot()
-    def show_hide_outline_explorer(self):
-        if self.outlineexplorer is not None:
-            dw = self.outlineexplorer.dockwidget
-            if dw.isVisible():
-                dw.hide()
-            else:
-                dw.show()
-                dw.raise_()
-            self.switch_to_plugin()
-
     def set_help(self, help_plugin):
         self.help = help_plugin
         for editorstack in self.editorstacks:
@@ -632,13 +621,6 @@ class Editor(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        self.toggle_outline_action = create_action(self,
-                                _("Show/hide outline explorer"),
-                                triggered=self.show_hide_outline_explorer,
-                                context=Qt.WidgetWithChildrenShortcut)
-        self.register_shortcut(self.toggle_outline_action, context="Editor",
-                               name="Show/hide outline")
-        self.addActions([self.toggle_outline_action])
         # ---- File menu and toolbar ----
         self.new_action = create_action(
                 self,
