@@ -468,7 +468,7 @@ def globalsfilter(input_dict, check_all=False, filters=None,
 #==============================================================================
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'minmax', 'autorefresh')
+                   'excluded_names', 'minmax')
 
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
