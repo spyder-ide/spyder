@@ -1215,16 +1215,9 @@ class MainWindow(QMainWindow):
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
-        plugins_to_show = []
+        plugins_to_show = [self.ipyconsole]
         if self.help is not None:
             plugins_to_show.append(self.help)
-        if self.ipyconsole is not None:
-            if self.ipyconsole.isvisible:
-                plugins_to_show += [self.extconsole, self.ipyconsole]
-            else:
-                plugins_to_show += [self.ipyconsole, self.extconsole]
-        else:
-            plugins_to_show += [self.extconsole]
         for plugin in plugins_to_show:
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
