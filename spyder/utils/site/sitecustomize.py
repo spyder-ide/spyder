@@ -284,9 +284,7 @@ else:
     monitor = Monitor("127.0.0.1",
                       int(os.environ['SPYDER_I_PORT']),
                       int(os.environ['SPYDER_N_PORT']),
-                      os.environ['SPYDER_SHELL_ID'],
-                      float(os.environ['SPYDER_AR_TIMEOUT']),
-                      os.environ["SPYDER_AR_STATE"].lower() == "true")
+                      os.environ['SPYDER_SHELL_ID'])
     monitor.start()
 
     def open_in_spyder(source, lineno=1):

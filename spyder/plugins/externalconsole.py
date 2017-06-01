@@ -278,7 +278,6 @@ class ExternalConsole(SpyderPluginWidget):
 
         self.help = None # Help plugin
         self.historylog = None # History log plugin
-        self.variableexplorer = None # Variable explorer plugin
 
         self.python_count = 0
         self.terminal_count = 0
@@ -369,10 +368,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.icons.pop(index)
         self.sig_update_plugin_title.emit()
         self.update_tabs_text()
-
-    def set_variableexplorer(self, variableexplorer):
-        """Set variable explorer plugin"""
-        self.variableexplorer = variableexplorer
     
     def set_path(self):
         """Set consoles PYTHONPATH if changed by the user"""
@@ -715,9 +710,7 @@ class ExternalConsole(SpyderPluginWidget):
             # the tab icon...
             _icon, icon = self.icons[index]
             self.tabwidget.setTabIcon(index, icon)
-        if self.variableexplorer is not None:
-            self.variableexplorer.remove_shellwidget(shell_id)
-        
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -817,7 +810,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         if shellwidget:
             shellwidget.update_time_label_visibility()
-            self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
             self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
         self.sig_update_plugin_title.emit()
