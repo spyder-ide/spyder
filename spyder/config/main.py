@@ -426,8 +426,6 @@ DEFAULTS = [
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
-              # -- In plugins/editor.py
-              'editor/show/hide outline': "Ctrl+Alt+O",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -658,7 +656,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '35.0.0'
+CONF_VERSION = '36.0.0'
 
 # Main configuration instance
 try:
