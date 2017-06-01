@@ -143,7 +143,6 @@ from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
-from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.py3compat import (getcwd, is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
@@ -882,11 +881,10 @@ class MainWindow(QMainWindow):
         self.variableexplorer.register_plugin()
 
         # IPython console
-        if QTCONSOLE_INSTALLED:
-            self.set_splash(_("Loading IPython console..."))
-            from spyder.plugins.ipythonconsole import IPythonConsole
-            self.ipyconsole = IPythonConsole(self)
-            self.ipyconsole.register_plugin()
+        self.set_splash(_("Loading IPython console..."))
+        from spyder.plugins.ipythonconsole import IPythonConsole
+        self.ipyconsole = IPythonConsole(self)
+        self.ipyconsole.register_plugin()
 
         self.set_splash(_("Setting up main window..."))
 

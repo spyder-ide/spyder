@@ -29,6 +29,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder import dependencies
 from spyder.config.base import _, get_conf_path, PYTEST
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
@@ -50,6 +51,12 @@ from spyder.plugins.configdialog import PluginConfigPage
 from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)
+
+
+# Dependencies
+NBCONVERT_REQVER = ">=4.0"
+dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
+                 required_version=NBCONVERT_REQVER)
 
 
 def _load_all_breakpoints():

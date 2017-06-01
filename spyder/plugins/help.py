@@ -24,7 +24,6 @@ from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import get_meth_class_inst, to_text_string
@@ -125,7 +124,6 @@ class HelpConfigPage(PluginConfigPage):
             editor_box.setToolTip(editor_tip)
         ipython_box = self.create_checkbox(_("IPython Console"),
                                            'connect/ipython_console')
-        ipython_box.setEnabled(QTCONSOLE_INSTALLED)
 
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)
