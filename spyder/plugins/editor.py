@@ -557,6 +557,13 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Editor')
+        if self.dockwidget:
+            filename = self.get_current_filename()
+            if self.dockwidget.dock_tabbar:
+                if filename and self.dockwidget.dock_tabbar.count() < 2:
+                    title += ' - ' + to_text_string(filename)
+            else:
+                 title += ' - ' + to_text_string(filename)
         return title
 
     def get_plugin_icon(self):
@@ -580,6 +587,7 @@ class Editor(SpyderPluginWidget):
             self.dock_toolbar.hide()
         if enable:
             self.refresh_plugin()
+        self.update_plugin_title.emit()
     
     def refresh_plugin(self):
         """Refresh editor plugin"""
