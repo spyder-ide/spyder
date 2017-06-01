@@ -46,6 +46,7 @@ from spyder import dependencies
 from spyder.config.base import (_, DEV, get_home_dir, get_module_path,
                                 get_module_source_path)
 from spyder.config.main import CONF
+from spyder.config.gui import get_color_scheme
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
@@ -312,17 +313,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_layout.addWidget(comp_box)
         comp_group.setLayout(comp_layout)
 
-        # Background Color Group
-        bg_group = QGroupBox(_("Background color"))
-        light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color')
-        dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color')
-        bg_layout = QVBoxLayout()
-        bg_layout.addWidget(light_radio)
-        bg_layout.addWidget(dark_radio)
-        bg_group.setLayout(bg_layout)
-
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
         buffer_spin = self.create_spinbox(
@@ -565,7 +555,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, comp_group,
-                                    bg_group, source_code_group), _("Display"))
+                                    source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
@@ -1025,6 +1015,12 @@ class IPythonConsole(SpyderPluginWidget):
         if out_prompt_o:
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
 
+        # Style
+        syntax_style = self.get_syntax_style()
+        style_sheet = self.get_style_sheet()
+        spy_cfg.JupyterWidget.syntax_style = syntax_style
+        spy_cfg.JupyterWidget.style_sheet = style_sheet
+
         # Editor for %edit
         if CONF.get('main', 'single_instance'):
             spy_cfg.JupyterWidget.editor = self.set_editor()
@@ -1073,11 +1069,162 @@ class IPythonConsole(SpyderPluginWidget):
             pylab = self.get_option('pylab'),
             autoload_pylab = self.get_option('pylab/autoload'),
             sympy = self.get_option('symbolic_math'),
-            light_color = self.get_option('light_color'),
             show_banner = self.get_option('show_banner')
         )
 
         return options
+
+    def get_style_sheet(self):
+        """Returns a CSS stylesheet with spyder color scheme settings.
+        
+        The stylesheet can contain classes for:
+            Qt: QPlainTextEdit, QFrame, QWidget, etc
+            Pygments: .c, .k, .o, etc. (see PygmentsHighlighter)
+            IPython: .error, .in-prompt, .out-prompt, etc
+        """
+
+        def give_font_weight(is_bold):
+            if is_bold:
+                return 'bold'
+            else:
+                return 'normal'
+
+        def give_font_style(is_italic):
+            if is_italic:
+                return 'italic'
+            else:
+                return 'normal'
+
+        color_scheme = get_color_scheme(CONF.get('color_schemes', 'selected'))
+
+        fon_c, fon_fw, fon_fs = color_scheme['normal']  # 'normal': ('#ffffff', False, False)
+        font_color =  fon_c
+        font_font_weight = give_font_weight(fon_fw)
+        font_font_style = give_font_style(fon_fs)
+        background_color = color_scheme['background']
+        selection_background_color = '#ccc'  # MISSINGGGGGGGG! (where is it?)
+        error_color = 'red'  # MISSINGGGGGGGG! (where is it?)
+        instance_color = color_scheme['instance'][0]
+        in_prompt_color = instance_color
+        in_prompt_number_font_weight = 'bold'
+        out_prompt_color = instance_color
+        out_prompt_number_font_weight = 'bold'
+        inverted_background_color = font_color
+        inverted_font_color = background_color
+        unmatched_parenthesis_color = color_scheme['unmatched_p']  # 'unmatched_p': '#c80000'
+        matched_parenthesis_color = color_scheme['matched_p']  # 'matched_p': '#009800'
+
+        sheet = """QPlainTextEdit, QTextEdit {{
+                                              color: {} ;
+                                              font-weight: {};
+                                              font-style: {};
+                                              background-color: {};
+                                              selection-background-color: {}
+                                             }}
+                  .error {{ color: {}; }}
+                  .in-prompt {{ color: {}; }}
+                  .in-prompt-number {{ font-weight: {}; }}
+                  .out-prompt {{ color: {}; }}
+                  .out-prompt-number {{ font-weight: {}; }}
+                  /* .inverted is used to highlight selected completion */
+                  .inverted {{ color: {}; background-color: {}; }}
+                  """
+
+        sheet_formatted = sheet.format(font_color, font_font_weight,
+                                       font_font_style, background_color,
+                                       selection_background_color,
+                                       error_color,
+                                       in_prompt_color,
+                                       in_prompt_number_font_weight,
+                                       out_prompt_color,
+                                       out_prompt_number_font_weight,
+                                       inverted_background_color,
+                                       inverted_font_color)
+
+        return sheet_formatted
+
+    def get_syntax_style(self):
+        """Create a .py with the spyder custom style as a Pygment class.
+
+        The file is stored in the pygment/styles folder. 
+        Returns the name of this file (whithout path nor entension)
+        """
+
+        def give_font_weight(is_bold):
+            if is_bold:
+                return 'bold'
+            else:
+                return ''
+
+        def give_font_style(is_italic):
+            if is_italic:
+                return 'italic'
+            else:
+                return ''
+
+        selected_color_scheme = CONF.get('color_schemes', 'selected')
+        color_scheme = get_color_scheme(selected_color_scheme)
+
+        fon_c, fon_fw, fon_fs = color_scheme['normal']  # 'normal': ('#ffffff', False, False)
+        font_color =  fon_c
+        font_font_weight = give_font_weight(fon_fw)
+        font_font_style = give_font_style(fon_fs)
+        key_c, key_fw, key_fs = color_scheme['keyword']  # 'keyword': ('#558eff', False, False)
+        keyword_color =  key_c
+        keyword_font_weight = give_font_weight(key_fw)
+        keyword_font_style = give_font_style(key_fs)
+        bui_c, bui_fw, bui_fs = color_scheme['builtin']  # 'builtin': ('#aa00aa', False, False)
+        builtin_color =  bui_c
+        builtin_font_weight = give_font_weight(bui_fw)
+        builtin_font_style = give_font_style(bui_fs)
+        str_c, str_fw, str_fs = color_scheme['string']  # 'string': ('#11a642', False, True)
+        string_color =  str_c
+        string_font_weight = give_font_weight(str_fw)
+        string_font_style = give_font_style(str_fs)
+        num_c, num_fw, num_fs = color_scheme['number']  # 'number': ('#c80000', False, False)
+        number_color =  num_c
+        number_font_weight = give_font_weight(num_fw)
+        number_font_style = give_font_style(num_fs)
+        com_c, com_fw, com_fs = color_scheme['comment']  # 'comment': ('#7f7f7f', False, False)
+        comment_color =  com_c
+        comment_font_weight = give_font_weight(com_fw)
+        comment_font_style = give_font_style(com_fs)
+        def_c, def_fw, def_fs = color_scheme['definition']  # 'definition': ('#ffffff', True, False)
+        definition_color =  def_c
+        definition_font_weight = give_font_weight(def_fw)
+        definition_font_style = give_font_style(def_fs)
+        ins_c, ins_fw, ins_fs = color_scheme['instance']  # 'instance': ('#be5f00', False, True)
+        instance_color =  ins_c
+        instance_font_weight = give_font_weight(ins_fw)
+        instance_font_style = give_font_style(ins_fs)
+        
+        import pygments
+        syntax_path = pygments.__file__.rpartition('/')[0] + '/styles/'
+        syntax_name = 'spyder'
+        syntax_filename = syntax_path + syntax_name + '.py'
+        
+        with open(syntax_filename, "w") as syntax_file:
+            syntax_file.write('# -*- coding: utf-8 -*-\n')
+            syntax_file.write("from pygments.style import Style\n")
+            syntax_file.write("from pygments.token import (Name, Keyword, Comment, String, Number,Punctuation)\n\n")
+            syntax_file.write("class SpyderStyle(Style):\n")
+            syntax_file.write("\tstyles = {\n")
+            syntax_file.write("\t\tName:'{} {} {}',\n".format(font_font_style, font_font_weight, font_color))
+            syntax_file.write("\t\tName.Class:'{} {} {}',\n".format(definition_font_style, definition_font_weight, definition_color))
+            syntax_file.write("\t\tName.Function:'{} {} {}',\n".format(definition_font_style, definition_font_weight, definition_color))
+            syntax_file.write("\t\tName.Builtin:'{} {} {}',\n".format(builtin_font_style, builtin_font_weight, builtin_color))
+            syntax_file.write("\t\tName.Builtin.Pseudo:'{} {} {}',\n".format(instance_font_style, instance_font_weight, instance_color))
+            syntax_file.write("\t\tKeyword:'{} {} {}',\n".format(keyword_font_style, keyword_font_weight, keyword_color))
+            syntax_file.write("\t\tKeyword.Type:'{} {} {}',\n".format(builtin_font_style, builtin_font_weight, builtin_color))
+            syntax_file.write("\t\tComment:'{} {} {}',\n".format(comment_font_style, comment_font_weight, comment_color))
+            syntax_file.write("\t\tString:'{} {} {}',\n".format(string_font_style, string_font_weight, string_color))
+            syntax_file.write("\t\tNumber:'{} {} {}',\n".format(number_font_style, number_font_weight, number_color))
+            syntax_file.write("\t\tPunctuation:'{} {} {}'\n".format(font_font_style, font_font_weight, font_color))
+            syntax_file.write("\t}")
+
+            syntax_file.close()
+
+        return syntax_name
 
     def register_client(self, client, give_focus=True):
         """Register new client"""
