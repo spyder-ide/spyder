@@ -547,7 +547,6 @@ class Help(SpyderPluginWidget):
 
         # To make auto-connection changes take place instantly
         self.main.editor.apply_plugin_settings(options=[connect_n])
-        self.main.extconsole.apply_plugin_settings(options=[connect_n])
         if self.main.ipyconsole is not None:
             self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
 
@@ -816,8 +815,8 @@ class Help(SpyderPluginWidget):
                and (force or text != self._last_texts[index]):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
                 if self.main.console.dockwidget not in dockwidgets and \
-                   (hasattr(self.main, 'extconsole') and \
-                    self.main.extconsole.dockwidget not in dockwidgets):
+                   (hasattr(self.main, 'ipyconsole') and \
+                    self.main.ipyconsole.dockwidget not in dockwidgets):
                     self.dockwidget.show()
                     self.dockwidget.raise_()
         self._last_texts[index] = text
@@ -901,8 +900,6 @@ class Help(SpyderPluginWidget):
                 shell = self.main.ipyconsole.get_current_shellwidget()
                 if shell is not None and shell.kernel_client is not None:
                     self.shell = shell
-            if self.shell is None and self.main.extconsole is not None:
-                self.shell = self.main.extconsole.get_running_python_shell()
             if self.shell is None:
                 self.shell = self.internal_shell
         return self.shell
