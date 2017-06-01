@@ -100,12 +100,9 @@ from qtawesome.iconic_font import FontError
 # be set before creating the application. 
 #==============================================================================
 from spyder.config.main import CONF
-if CONF.get('main', 'high_dpi_scaling'):
-    high_dpi_scaling = True
-else:
-    high_dpi_scaling = False
+
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, high_dpi_scaling)
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, CONF.get('main', 'high_dpi_scaling'))
 
 
 #==============================================================================
