@@ -61,6 +61,10 @@ VALID_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in KEYSTRINGS+SINGLE_KEYS]
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
 VALID_FINDER_CHARS = "[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
+BLACKLIST = {
+    'Shift+Del': _('Currently used to delete lines on editor')
+}
+
 
 class CustomLineEdit(QLineEdit):
     """QLineEdit that filters its key press and release events."""
@@ -112,7 +116,8 @@ class ShortcutFinder(QLineEdit):
 
 
 # Error codes for the shortcut editor dialog
-NO_WARNING, SEQUENCE_LENGTH, SEQUENCE_CONFLICT, INVALID_KEY = [0, 1, 2, 3]
+(NO_WARNING, SEQUENCE_LENGTH, SEQUENCE_CONFLICT,
+ INVALID_KEY, IN_BLACKLIST) = [0, 1, 2, 3, 4]
 
 
 class ShortcutEditor(QDialog):
@@ -317,6 +322,15 @@ class ShortcutEditor(QDialog):
             tip_body = tip_body[:-4]  # Removing last <br>
             tip = template.format(tip_title, tip_body)
             warn = True
+        elif warning_type == IN_BLACKLIST:
+            template = '<i>{0}<b>{1}</b></i>'
+            tip_title = _('Forbidden key sequence!') + '<br>'
+            tip_body = ''
+            use = BLACKLIST[self.new_sequence]
+            if use is not None:
+                tip_body = use
+            tip = template.format(tip_title, tip_body)
+            warn = True
         elif warning_type == SEQUENCE_LENGTH:
             # Sequences with 5 keysequences (i.e. Ctrl+1, Ctrl+2, Ctrl+3,
             # Ctrl+4, Ctrl+5) are invalid
@@ -365,8 +379,11 @@ class ShortcutEditor(QDialog):
         self.new_sequence = sequence
 
         conflicts = self.check_conflicts()
+        blacklist = self.new_sequence in BLACKLIST
         if conflicts and different_sequence:
             warning_type = SEQUENCE_CONFLICT
+        elif blacklist:
+            warning_type = IN_BLACKLIST
         else:
             warning_type = NO_WARNING
 
