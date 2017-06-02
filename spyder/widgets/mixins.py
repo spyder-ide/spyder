@@ -55,6 +55,15 @@ class BaseEditMixin(object):
         # Implemented in CodeEditor, but needed for calltip/completion widgets
         return 0
     
+
+    def calculate_real_position(self, point):
+        """
+        Add offset to a point, to take in account the Editor panels.
+
+        Implemented in CodeEditor, in other widgets return the same point.
+        """
+        return point
+
     
     #------Calltips
     def _format_signature(self, text):
