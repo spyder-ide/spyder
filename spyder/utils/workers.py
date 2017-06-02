@@ -318,7 +318,7 @@ class WorkerManager(QObject):
 # -----------------------------------------------------------------------------
 def ready_print(worker, output, error):  # pragma: no cover
     """Print worker output for tests."""
-    print(worker, output, error)
+    print(worker, output, error)  # spyder: test-skip
 
     
 def sleeping_func(arg, secs=10, result_queue=None):
