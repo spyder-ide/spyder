@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Help Plugin"""
+"""Help Plugin Configuration Page."""
 
 # Standard library imports
 

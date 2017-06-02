@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.help
+spyder.plugins.help
 ===========
 
 Help plugin using a WebView
