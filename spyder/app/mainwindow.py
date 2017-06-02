@@ -968,7 +968,7 @@ class MainWindow(QMainWindow):
                                 programs.start_file(get_python_doc_path()))
             self.help_menu_actions.append(pydoc_act)
         # IPython documentation
-        if self.ipyconsole is not None and self.help is not None:
+        if self.help is not None:
             ipython_menu = QMenu(_("IPython documentation"), self)
             intro_action = create_action(self, _("Intro to IPython"),
                                         triggered=self.ipyconsole.show_intro)
@@ -1222,8 +1222,7 @@ class MainWindow(QMainWindow):
         self.extconsole.toggle_view_action.setChecked(False)
 
         # Show history file if no console is visible
-        ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
-        if not self.extconsole.isvisible and not ipy_visible:
+        if not self.ipyconsole.isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
 
         if self.open_project:

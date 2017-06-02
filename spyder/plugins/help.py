@@ -542,8 +542,7 @@ class Help(SpyderPluginWidget):
 
         # To make auto-connection changes take place instantly
         self.main.editor.apply_plugin_settings(options=[connect_n])
-        if self.main.ipyconsole is not None:
-            self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
+        self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
 
     #------ Public API (related to Help's source) -------------------------
     def source_is_console(self):
@@ -891,10 +890,9 @@ class Help(SpyderPluginWidget):
         """
         if not hasattr(self.shell, 'get_doc') or not self.shell.is_running():
             self.shell = None
-            if self.main.ipyconsole is not None:
-                shell = self.main.ipyconsole.get_current_shellwidget()
-                if shell is not None and shell.kernel_client is not None:
-                    self.shell = shell
+            shell = self.main.ipyconsole.get_current_shellwidget()
+            if shell is not None and shell.kernel_client is not None:
+                self.shell = shell
             if self.shell is None:
                 self.shell = self.internal_shell
         return self.shell

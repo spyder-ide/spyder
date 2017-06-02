@@ -383,8 +383,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        if self.main.ipyconsole:
-            self.main.ipyconsole.restart()
+        self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):
         """Check if a directory is a valid Spyder project"""
