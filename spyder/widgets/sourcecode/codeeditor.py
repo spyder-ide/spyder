@@ -469,6 +469,13 @@ class CodeEditor(TextEditBaseWidget):
         # Update breakpoints if the number of lines in the file changes
         self.blockCountChanged.connect(self.update_breakpoints)
 
+        # Highlight using Pygments highlighter timer
+        self.timer_syntax_highlight = QTimer(self)
+        self.timer_syntax_highlight.setSingleShot(True)
+        self.timer_syntax_highlight.setInterval(300)
+        self.timer_syntax_highlight.timeout.connect(
+            self.run_pygments_highlighter)
+
         # Mark occurrences timer
         self.occurrence_highlighting = None
         self.occurrence_timer = QTimer(self)
@@ -1078,6 +1085,9 @@ class CodeEditor(TextEditBaseWidget):
         """Text has changed, eventually clear found results highlighting"""
         if self.found_results:
             self.clear_found_results()
+
+        # When text has changed start the timer
+        self.timer_syntax_highlight.start()
 
     #-----markers
     def get_markers_margin(self):
@@ -2717,6 +2727,11 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+
+    def run_pygments_highlighter(self):
+        """"""
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.make_charlist()
 
     def handle_close_parentheses(self, text):
         if not self.close_parentheses_enabled:
