@@ -58,9 +58,10 @@ class BaseEditMixin(object):
 
     def calculate_real_position(self, point):
         """
-        Add offset to a point, to take in account the Editor panels.
+        Add offset to a point, to take into account the Editor panels.
 
-        Implemented in CodeEditor, in other widgets return the same point.
+        This is reimplemented in CodeEditor, in other widgets it returns
+        the same point.
         """
         return point
 

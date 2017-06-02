@@ -992,7 +992,7 @@ class CodeEditor(TextEditBaseWidget):
         return self.linenumberarea.get_width()
 
     def calculate_real_position(self, point):
-        """Add offset to a point, to take in account the panels."""
+        """Add offset to a point, to take into account the panels."""
         point.setX(point.x()+self.panels.margin_size(Panel.Position.LEFT))
         point.setY(point.y()+self.panels.margin_size(Panel.Position.TOP))
         return point
