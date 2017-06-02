@@ -31,7 +31,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     DialogManager, mimedata2url)
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
+from spyder.plugins.variableexplorer.widgets.collectionseditor import CollectionsEditor
 from spyder.api.plugins  import SpyderPluginWidget
 from spyder.py3compat import getcwd, to_text_string
 

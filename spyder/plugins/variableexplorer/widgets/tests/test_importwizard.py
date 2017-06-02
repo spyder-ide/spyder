@@ -12,7 +12,7 @@ Tests for importwizard.py
 import pytest
 
 # Local imports
-from spyder.widgets.variableexplorer.importwizard import ImportWizard
+from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 
 @pytest.fixture
 def setup_importwizard(qtbot, text):

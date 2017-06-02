@@ -17,7 +17,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
+from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 
 
 def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):

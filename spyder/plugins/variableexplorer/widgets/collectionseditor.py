@@ -44,9 +44,9 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import fix_reference_name
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
-from spyder.widgets.variableexplorer.importwizard import ImportWizard
-from spyder.widgets.variableexplorer.texteditor import TextEditor
-from spyder.widgets.variableexplorer.utils import (
+from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
+from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.plugins.variableexplorer.widgets.utils import (
     array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
     get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
     is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
@@ -54,10 +54,10 @@ from spyder.widgets.variableexplorer.utils import (
     get_type_string)
 
 if ndarray is not FakeObject:
-    from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
+    from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 
 if DataFrame is not FakeObject:
-    from spyder.widgets.variableexplorer.dataframeeditor import DataFrameEditor
+    from spyder.plugins.variableexplorer.widgets.dataframeeditor import DataFrameEditor
 
 
 # XXX --- Disable canning for Numpy arrays for now ---
@@ -1225,7 +1225,7 @@ class CollectionsEditorTableView(BaseTableView):
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
-        from spyder.widgets.variableexplorer.objecteditor import oedit
+        from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
         oedit(data[key])
 
     def plot(self, key, funcname):
@@ -1561,7 +1561,7 @@ def remote_editor_test():
     app = qapplication()
 
     from spyder.config.main import CONF
-    from spyder.widgets.variableexplorer.utils import (make_remote_view,
+    from spyder.plugins.variableexplorer.widgets.utils import (make_remote_view,
                                                        REMOTE_SETTINGS)
 
     settings = {}

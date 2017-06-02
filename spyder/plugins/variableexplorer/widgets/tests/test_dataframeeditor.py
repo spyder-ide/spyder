@@ -25,8 +25,8 @@ import pytest
 
 # Local imports
 from spyder.utils.programs import is_module_installed
-from spyder.widgets.variableexplorer import dataframeeditor
-from spyder.widgets.variableexplorer.dataframeeditor import (
+from spyder.plugins.variableexplorer.widgets import dataframeeditor
+from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
 from spyder.py3compat import PY2
 
@@ -173,7 +173,7 @@ def test_dataframemodel_with_format_percent_d_and_nan():
 def test_change_format_emits_signal(qtbot, monkeypatch):
     mockQInputDialog = Mock()
     mockQInputDialog.getText = lambda parent, title, label, mode, text: ('%10.3e', True)
-    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor.QInputDialog', mockQInputDialog)
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor.QInputDialog', mockQInputDialog)
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
@@ -184,9 +184,9 @@ def test_change_format_emits_signal(qtbot, monkeypatch):
 def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch):
     mockQInputDialog = Mock()
     mockQInputDialog.getText = lambda parent, title, label, mode, text: ('xxx%f', True)
-    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor'
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                         '.QInputDialog', mockQInputDialog)
-    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor'
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.dataframeeditor'
                         '.QMessageBox.critical', Mock())
     df = DataFrame([[0]])
     editor = DataFrameEditor(None)
