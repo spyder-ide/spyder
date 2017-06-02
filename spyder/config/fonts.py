@@ -36,16 +36,14 @@ if sys.platform == 'darwin':
     MONOSPACE = ['Menlo'] + MONOSPACE
     BIG = MEDIUM = SMALL = 12
 elif os.name == 'nt':
-    BIG = 12
-    MEDIUM = 10
+    BIG = MEDIUM = 10
     SMALL = 9
 elif is_ubuntu():
     SANS_SERIF = ['Ubuntu'] + SANS_SERIF
     MONOSPACE = ['Ubuntu Mono'] + MONOSPACE
-    BIG = 13
-    MEDIUM = SMALL = 11
+    BIG = MEDIUM = SMALL = 11
 else:
-    BIG = 12
+    BIG = 10
     MEDIUM = SMALL = 9
 
 DEFAULT_SMALL_DELTA = SMALL - MEDIUM
