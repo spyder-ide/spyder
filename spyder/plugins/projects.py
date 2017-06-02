@@ -24,7 +24,7 @@ from spyder.config.base import _, get_home_dir
 from spyder.plugins import SpyderPluginMixin
 from spyder.py3compat import is_text_string, getcwd
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
 from spyder.widgets.projects.projectdialog import ProjectDialog
 from spyder.widgets.projects import EmptyProject
@@ -51,6 +51,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
+    sig_new_file = Signal(str)
 
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
@@ -93,6 +94,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.close_project_action = create_action(self,
                                     _("Close Project"),
                                     triggered=self.close_project)
+        self.delete_project_action = create_action(self,
+                                    _("Delete Project"),
+                                    triggered=self.delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -103,10 +107,11 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         explorer_action = self.toggle_view_action
 
         self.main.projects_menu_actions += [self.new_project_action,
-                                            None,
+                                            MENU_SEPARATOR,
                                             self.open_project_action,
                                             self.close_project_action,
-                                            None,
+                                            self.delete_project_action,
+                                            MENU_SEPARATOR,
                                             self.recent_project_menu,
                                             explorer_action]
 
@@ -131,6 +136,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.main.add_dockwidget(self)
 
         self.sig_open_file.connect(self.main.open_file)
+
+        self.sig_new_file.connect(lambda x: self.editor.new(text=x))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
@@ -190,6 +197,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         active = bool(self.get_active_project_path())
         self.close_project_action.setEnabled(active)
+        self.delete_project_action.setEnabled(active)
         self.edit_project_preferences_action.setEnabled(active)
 
     def edit_project_preferences(self):
@@ -226,7 +234,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.setup_menu_actions()
         self.add_to_recent(path)
 
-    def open_project(self, path=None, restart_consoles=True):
+    def open_project(self, path=None, restart_consoles=True,
+                     save_previous_files=True):
         """Open the project located in `path`"""
         if path is None:
             basedir = get_home_dir()
@@ -243,7 +252,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         # A project was not open before
         if self.current_active_project is None:
-            self.editor.save_open_files()
+            if save_previous_files:
+                self.editor.save_open_files()
             self.editor.set_option('last_working_dir', getcwd())
             self.show_explorer()
         else: # we are switching projects
@@ -295,7 +305,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         if current_project_path and \
           self.is_valid_project(current_project_path):
             self.open_project(path=current_project_path,
-                              restart_consoles=False)
+                              restart_consoles=False,
+                              save_previous_files=False)
             self.load_config()
 
     def get_project_filenames(self):
@@ -372,9 +383,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        self.main.extconsole.restart()
-        if self.main.ipyconsole:
-            self.main.ipyconsole.restart()
+        self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):
         """Check if a directory is a valid Spyder project"""

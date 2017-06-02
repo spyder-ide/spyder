@@ -23,7 +23,7 @@ from spyder.config.base import _
 from spyder.config.utils import get_edit_extensions
 from spyder.py3compat import getcwd
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.widgets.findinfiles import FindInFilesWidget
 from spyder.plugins import SpyderPluginMixin
 
@@ -47,11 +47,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         search_text += self.search_text_samples
 
         search_text_regexp = self.get_option('search_text_regexp')
-        include = self.get_option('include')
-        if not include:
-            include = self.include_patterns()
-        include_idx = self.get_option('include_idx', None)
-        include_regexp = self.get_option('include_regexp')
         exclude = self.get_option('exclude')
         exclude_idx = self.get_option('exclude_idx', None)
         exclude_regexp = self.get_option('exclude_regexp')
@@ -59,7 +54,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         more_options = self.get_option('more_options')
         FindInFilesWidget.__init__(self, parent,
                                    search_text, search_text_regexp, search_path,
-                                   include, include_idx, include_regexp,
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
                                    in_python_path, more_options)
@@ -79,6 +73,18 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Refresh search directory"""
         self.find_options.set_directory(getcwd())
 
+    def set_project_path(self, path):
+        """Refresh current project path"""
+        self.find_options.set_project_path(path)
+
+    def set_current_opened_file(self, path):
+        """Get path of current opened file in editor"""
+        self.find_options.set_file_path(path)
+
+    def unset_project_path(self):
+        """Refresh current project path"""
+        self.find_options.disable_project_search()
+
     @Slot()
     def findinfiles_callback(self):
         """Find in files callback"""
@@ -96,23 +102,6 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.set_search_text(text)
         if text:
             self.find()
-
-    @staticmethod
-    def include_patterns():
-        """Generate regex common usage patterns to include section."""
-        # Change special characters, like + and . to convert into valid re
-        clean_exts = []
-        for ext in get_edit_extensions():
-            ext = ext.replace('.', r'\.')
-            ext = ext.replace('+', r'\+')
-            clean_exts.append(ext)
-
-        patterns = [r'|'.join([ext + r'$' for ext in clean_exts if ext]) +
-                    r'|README|INSTALL',
-                    r'\.ipy$|\.pyw?$|\.rst$|\.txt$',
-                    '.',
-                    ]
-        return patterns
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def switch_to_plugin(self):
@@ -144,14 +133,19 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.edit_goto.connect(self.main.editor.load)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
-        
+        self.main.projects.sig_project_loaded.connect(self.set_project_path)
+        self.main.projects.sig_project_closed.connect(self.unset_project_path)
+        self.main.editor.open_file_update.connect(self.set_current_opened_file)
+
         findinfiles_action = create_action(self, _("&Find in files"),
                                    icon=ima.icon('findf'),
                                    triggered=self.findinfiles_callback,
                                    tip=_("Search text in multiple files"))        
         
-        self.main.search_menu_actions += [None, findinfiles_action]
-        self.main.search_toolbar_actions += [None, findinfiles_action]
+        self.main.search_menu_actions += [MENU_SEPARATOR, findinfiles_action]
+        self.main.search_toolbar_actions += [MENU_SEPARATOR,
+                                             findinfiles_action]
+        self.refreshdir()
     
     def refresh_plugin(self):
         """Refresh widget"""
@@ -163,20 +157,15 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         options = self.find_options.get_options(all=True)
         if options is not None:
             search_text, text_re, search_path, \
-            include, include_idx, include_re, \
             exclude, exclude_idx, exclude_re, \
             in_python_path, more_options = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
             search_path = search_path[:hist_limit]
-            include = include[:hist_limit]
             exclude = exclude[:hist_limit]
             self.set_option('search_text', search_text)
             self.set_option('search_text_regexp', text_re)
             self.set_option('search_path', search_path)
-            self.set_option('include', include)
-            self.set_option('include_idx', include_idx)
-            self.set_option('include_regexp', include_re)
             self.set_option('exclude', exclude)
             self.set_option('exclude_idx', exclude_idx)
             self.set_option('exclude_regexp', exclude_re)

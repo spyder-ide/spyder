@@ -4,7 +4,7 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update CHANGELOG.md
 
-* Update Announcements.txt
+* Update Announcements.md
 
 * Update version in `__init__.py` (set release version, remove 'dev0')
 
@@ -22,7 +22,15 @@ To release a new version of Spyder you need to follow these steps:
 
 * git add and git commit with `[ci skip]`
 
+* git checkout master
+
+* git merge 3.x
+
+* git commit with `[ci skip]`
+
 * git push upstream master
+
+* git push upstream 3.x
 
 * git push upstream --tags
 

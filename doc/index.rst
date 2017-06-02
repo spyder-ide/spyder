@@ -30,18 +30,18 @@ Contents:
     overview
     installation
     options
-    console
+    editor
     ipythonconsole
     debugging
+    console
     variableexplorer
     help
-    onlinehelp
-    historylog
-    explorer
-    projectexplorer
-    editor
-    findinfiles
+    projects
     pylint
+    fileexplorer
+    historylog
+    findinfiles
+    onlinehelp
     internalconsole
 
 Indices and tables:

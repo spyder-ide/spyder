@@ -17,6 +17,8 @@ import os
 import os.path as osp
 import re
 import shutil
+import subprocess
+import sys
 
 # Third party imports
 from qtpy import API, is_pyqt46
@@ -42,6 +44,26 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
+def open_file_in_external_explorer(filename):
+    if sys.platform == "darwin":
+        subprocess.call(["open", "-R", filename])
+    else:
+        filename=os.path.dirname(filename)
+        if os.name == 'nt':
+            os.startfile(filename)
+        else:
+            subprocess.call(["xdg-open", filename])
+
+def show_in_external_file_explorer(fnames=None):
+    """Show files in external file explorer
+
+    Args:
+        fnames (list): Names of files to show.
+    """
+    if not isinstance(fnames, (tuple, list)):
+        fnames = [fnames]
+    for fname in fnames:
+        open_file_in_external_explorer(fname)
 
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
@@ -142,6 +164,8 @@ class DirView(QTreeView):
         self.sortByColumn(0, Qt.AscendingOrder)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
+        # Disable the view of .spyproject. 
+        self.filter_directories()
         
     def set_name_filters(self, name_filters):
         """Set name filters"""
@@ -291,6 +315,13 @@ class DirView(QTreeView):
             actions.append(edit_action)
         else:
             actions.append(open_action)
+        if sys.platform == 'darwin':
+            text=_("Show in Finder")
+        else:
+            text=_("Show in external file explorer")
+        external_fileexp_action = create_action(self, text, 
+                                triggered=self.show_in_external_file_explorer)        
+        actions.append(external_fileexp_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
@@ -541,11 +572,21 @@ class DirView(QTreeView):
         multiple = len(fnames) > 1
         yes_to_all = None
         for fname in fnames:
-            yes_to_all = self.delete_file(fname, multiple, yes_to_all)
-            if yes_to_all is not None and not yes_to_all:
-                # Canceled
-                return
-
+            spyproject_path = osp.join(fname,'.spyproject')
+            if osp.isdir(fname) and osp.exists(spyproject_path):
+                QMessageBox.information(self, _('File Explorer'),
+                                        _("The current directory contains a "
+                                        "project.<br><br>"
+                                        "If you want to delete"
+                                        " the project, please go to "
+                                        "<b>Projects</b> &raquo; <b>Delete "
+                                        "Project</b>"))
+            else:    
+                yes_to_all = self.delete_file(fname, multiple, yes_to_all)
+                if yes_to_all is not None and not yes_to_all:
+                    # Canceled
+                    break
+                
     def convert_notebook(self, fname):
         """Convert an IPython notebook to a Python script in editor"""
         try: 
@@ -592,6 +633,13 @@ class DirView(QTreeView):
                             _("<b>Unable to rename file <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
                               ) % (osp.basename(fname), to_text_string(error)))
+
+    @Slot()
+    def show_in_external_file_explorer(self, fnames=None):
+        """Show file in external file explorer"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        show_in_external_file_explorer(fnames)
 
     @Slot()
     def rename(self, fnames=None):
@@ -814,7 +862,12 @@ class DirView(QTreeView):
                                                   self.restore_directory_state)
                 self.fsmodel.directoryLoaded.connect(
                                                 self.follow_directories_loaded)
-
+                
+    def filter_directories(self):
+        """Filter the directories to show"""
+        index = self.get_index('.spyproject')
+        if index is not None:
+            self.setRowHidden(index.row(), index.parent(), True)
 
 class ProxyModel(QSortFilterProxyModel):
     """Proxy model: filters tree view"""
@@ -908,8 +961,9 @@ class FilteredDirView(DirView):
         for i in [1, 2, 3]:
             self.hideColumn(i)
         self.setHeaderHidden(True)
-
-
+        # Disable the view of .spyproject. 
+        self.filter_directories()
+      
 class ExplorerTreeWidget(DirView):
     """File/directory explorer tree widget
     show_cd_only: Show current directory only
@@ -987,6 +1041,8 @@ class ExplorerTreeWidget(DirView):
                              self.histindex is not None and self.histindex > 0)
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
+        # Disable the view of .spyproject. 
+        self.filter_directories()
             
     #---- Events
     def directory_clicked(self, dirname):

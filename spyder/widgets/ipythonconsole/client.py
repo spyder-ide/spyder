@@ -13,6 +13,7 @@ This is the widget used on all its tabs
 # Standard library imports
 from __future__ import absolute_import  # Fix for Issue 1356
 
+import codecs
 import os
 import os.path as osp
 from string import Template
@@ -30,8 +31,12 @@ from spyder.config.base import (_, get_conf_path, get_image_path,
                                 get_module_source_path)
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
+from spyder.utils import sourcecode
+from spyder.utils.encoding import get_coding
+from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.widgets.ipythonconsole import ShellWidget
@@ -82,7 +87,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def __init__(self, plugin, name, history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
-                 menu_actions=None, slave=False):
+                 menu_actions=None, slave=False,
+                 external_kernel=False):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self)
 
@@ -102,15 +108,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
+                                       ipyclient=self,
                                        additional_options=additional_options,
                                        interpreter_versions=interpreter_versions,
+                                       external_kernel=external_kernel,
                                        local_kernel=True)
-        self.shellwidget.hide()
         self.infowidget = WebView(self)
         self.set_infowidget_font()
         self.loading_page = self._create_loading_page()
-        self.infowidget.setHtml(self.loading_page,
-                                QUrl.fromLocalFile(CSS_PATH))
+        self._show_loading_page()
 
         # --- Layout
         vlayout = QVBoxLayout()
@@ -131,22 +137,38 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # As soon as some content is printed in the console, stop
         # our loading animation
         document = self.get_control().document()
-        document.contentsChange.connect(self._stop_loading_animation)
+        document.contentsChange.connect(self._hide_loading_page)
 
     #------ Public API --------------------------------------------------------
+    @property
+    def kernel_id(self):
+        """Get kernel id"""
+        if self.connection_file is not None:
+            json_file = osp.basename(self.connection_file)
+            return json_file.split('.json')[0]
+
+    @property
+    def stderr_file(self):
+        """Filename to save kernel stderr output."""
+        if self.connection_file is not None:
+            stderr_file = self.kernel_id + '.stderr'
+            stderr_file = osp.join(TEMPDIR, stderr_file)
+            return stderr_file
+
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
         if give_focus:
             self.get_control().setFocus()
 
-        # Connect shellwidget to the client
-        self.shellwidget.set_ipyclient(self)
+        # Set exit callback
+        self.shellwidget.set_exit_callback()
 
         # To save history
         self.shellwidget.executing.connect(self.add_to_history)
 
         # For Mayavi to run correctly
-        self.shellwidget.executing.connect(self.set_backend_for_mayavi)
+        self.shellwidget.executing.connect(
+            self.shellwidget.set_backend_for_mayavi)
 
         # To update history after execution
         self.shellwidget.executed.connect(self.update_history)
@@ -160,6 +182,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # To disable the stop button after execution stopped
         self.shellwidget.executed.connect(self.disable_stop_button)
+
+        # To show kernel restarted/died messages
+        self.shellwidget.sig_kernel_restarted.connect(
+            self.kernel_restarted_message)
+
+        # To correctly change Matplotlib backend interactively
+        self.shellwidget.executing.connect(
+            self.shellwidget.change_mpl_backend)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -178,7 +208,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.shellwidget.write_to_stdin('exit')
 
     def show_kernel_error(self, error):
-        """Show kernel initialization errors in infowidget"""
+        """Show kernel initialization errors in infowidget."""
+        # Replace end of line chars with <br>
+        eol = sourcecode.get_eol_chars(error)
+        if eol:
+            error = error.replace(eol, '<br>')
+
         # Don't break lines in hyphens
         # From http://stackoverflow.com/q/7691569/438386
         error = error.replace('-', '&#8209')
@@ -215,27 +250,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        restart_action = create_action(self, _("Restart kernel"),
-                                       shortcut=QKeySequence("Ctrl+."),
-                                       icon=ima.icon('restart'),
-                                       triggered=self.restart_kernel,
-                                       context=Qt.WidgetWithChildrenShortcut)
-
-        # Main menu
-        if self.menu_actions is not None:
-            actions = [restart_action, None] + self.menu_actions
-        else:
-            actions = [restart_action]
-        return actions
+        return self.menu_actions
 
     def get_toolbar_buttons(self):
-        """Return toolbar buttons list"""
+        """Return toolbar buttons list."""
         buttons = []
         # Code to add the stop button
         if self.stop_button is None:
-            self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                             icon=self.stop_icon,
-                                             tip=_("Stop the current command"))
+            self.stop_button = create_toolbutton(
+                                   self,
+                                   text=_("Stop"),
+                                   icon=self.stop_icon,
+                                   tip=_("Stop the current command"))
             self.disable_stop_button()
             # set click event handler
             self.stop_button.clicked.connect(self.stop_button_click_handler)
@@ -311,13 +337,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         Took this code from the qtconsole project
         Licensed under the BSD license
         """
+        sw = self.shellwidget
+
         message = _('Are you sure you want to restart the kernel?')
         buttons = QMessageBox.Yes | QMessageBox.No
         result = QMessageBox.question(self, _('Restart kernel?'),
                                       message, buttons)
+
         if result == QMessageBox.Yes:
-            sw = self.shellwidget
             if sw.kernel_manager:
+                if self.infowidget.isVisible():
+                    self.infowidget.hide()
+                    sw.show()
                 try:
                     sw.kernel_manager.restart_kernel()
                 except RuntimeError as e:
@@ -326,14 +357,36 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         before_prompt=True
                     )
                 else:
+                    sw.reset(clear=True)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
-                        before_prompt=True,
-                    )
+                                    before_prompt=False)
             else:
                 sw._append_plain_text(
                     _('Cannot restart a kernel not started by Spyder\n'),
                     before_prompt=True
                 )
+
+    @Slot(str)
+    def kernel_restarted_message(self, msg):
+        """Show kernel restarted/died messages."""
+        try:
+            stderr = codecs.open(self.stderr_file, 'r',
+                                 encoding='utf-8').read()
+        except UnicodeDecodeError:
+            # This is needed since the stderr file could be encoded
+            # in something different to utf-8.
+            # See issue 4191
+            try:
+                stderr = self._read_stderr()
+            except:
+                stderr = None
+
+        if stderr:
+            self.show_kernel_error('<tt>%s</tt>' % stderr)
+        else:
+            self.shellwidget._append_html("<br>%s<hr><br>" % msg,
+                                          before_prompt=False)
+
 
     @Slot()
     def inspect_object(self):
@@ -358,23 +411,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def update_history(self):
         self.history = self.shellwidget._history
 
-    def set_backend_for_mayavi(self, command):
-        """
-        Mayavi plots require the Qt backend, so we try to detect if one is
-        generated to change backends
-        """
-        calling_mayavi = False
-        lines = command.splitlines()
-        for l in lines:
-            if not l.startswith('#'):
-                if 'import mayavi' in l or 'from mayavi' in l:
-                    calling_mayavi = True
-                    break
-        if calling_mayavi:
-            message = _("Changing backend to Qt for Mayavi")
-            self.shellwidget._append_plain_text(message + '\n')
-            self.shellwidget.execute("%gui inline\n%gui qt")
-
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
         """Create html page to show while the kernel is starting"""
@@ -388,11 +424,25 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                            message=message)
         return page
 
-    def _stop_loading_animation(self):
-        """Stop animation shown while the kernel is starting"""
+    def _show_loading_page(self):
+        """Show animation while the kernel is loading."""
+        self.shellwidget.hide()
+        self.infowidget.show()
+        self.infowidget.setHtml(self.loading_page,
+                                QUrl.fromLocalFile(CSS_PATH))
+
+    def _hide_loading_page(self):
+        """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
         self.shellwidget.show()
         self.infowidget.setHtml(BLANK)
 
         document = self.get_control().document()
-        document.contentsChange.disconnect(self._stop_loading_animation)
+        document.contentsChange.disconnect(self._hide_loading_page)
+
+    def _read_stderr(self):
+        """Read the stderr file of the kernel."""
+        stderr_text = open(self.stderr_file, 'rb').read()
+        encoding = get_coding(stderr_text)
+        stderr = to_text_string(stderr_text, encoding)
+        return stderr

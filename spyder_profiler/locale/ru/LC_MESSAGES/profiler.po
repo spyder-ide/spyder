@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2016-09-24 04:45+COT\n"
+"POT-Creation-Date: 2017-04-19 18:02+COT\n"
 "PO-Revision-Date: 2016-09-21 14:46+0300\n"
 "Last-Translator: Roman Kulagin <Roman.Qlogin@gmail.com>\n"
 "Language-Team: \n"
@@ -162,26 +162,26 @@ msgstr "Локальное время"
 msgid "File:line"
 msgstr "Файл:строка"
 
-#: spyder_profiler/widgets/profilergui.py:537
+#: spyder_profiler/widgets/profilergui.py:565
 msgid "Function or module name"
 msgstr "Функция/Модуль"
 
-#: spyder_profiler/widgets/profilergui.py:541
+#: spyder_profiler/widgets/profilergui.py:569
 msgid "Time in function (including sub-functions)"
 msgstr "Время в функции (включая подфункции)"
 
-#: spyder_profiler/widgets/profilergui.py:550
+#: spyder_profiler/widgets/profilergui.py:578
 msgid "Local time in function (not in sub-functions)"
 msgstr "Локальное время в функции (исключая подфункции)"
 
-#: spyder_profiler/widgets/profilergui.py:560
+#: spyder_profiler/widgets/profilergui.py:588
 msgid "Total number of calls (including recursion)"
 msgstr "Общее число вызовов (включая рекурсию)"
 
-#: spyder_profiler/widgets/profilergui.py:570
+#: spyder_profiler/widgets/profilergui.py:598
 msgid "File:line where function is defined"
 msgstr "Файл:строка, где функция определена"
 
-#: spyder_profiler/widgets/profilergui.py:575
+#: spyder_profiler/widgets/profilergui.py:603
 msgid "recursion"
 msgstr "рекурсия"

@@ -379,7 +379,7 @@ Selected Preferences
 Where are the preferences?
 --------------------------
 
-A lot of Spyder's behaviour can be configured through it's
+A lot of Spyder's behaviour can be configured through its
 Preferences. Where this is located in the menu depends on your
 operating system:
 

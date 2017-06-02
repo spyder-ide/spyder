@@ -15,6 +15,7 @@
 import os
 import re
 import sys
+from collections import OrderedDict
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -174,12 +175,14 @@ class CompletionWidget(QListWidget):
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
-            
+
     def update_current(self):
         completion_text = to_text_string(self.textedit.completion_text)
+
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.case_sensitive:
+                    print(completion_text)  # spyder: test-skip
                     completion = completion.lower()
                     completion_text = completion_text.lower()
                 if completion.startswith(completion_text):
@@ -191,7 +194,8 @@ class CompletionWidget(QListWidget):
                 self.hide()
         else:
             self.hide()
-    
+
+
     def focusOutEvent(self, event):
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
@@ -219,18 +223,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     zoom_out = Signal()
     zoom_reset = Signal()
     focus_changed = Signal()
+    sig_eol_chars_changed = Signal(str)
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
-        self.extra_selections_dict = {}
+        self.extra_selections_dict = OrderedDict()
         
         self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
         
         self.indent_chars = " "*4
+        self.tab_stop_width_spaces = 4
         
         # Code completion / calltips
         if parent is not None:
@@ -249,7 +255,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_text = ""
         self.setup_completion()
 
-        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
+        self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.calltips = True
         self.calltip_position = None
 
@@ -266,6 +272,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
 
+        self.last_cursor_cell = None
+
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()
@@ -273,6 +281,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def set_indent_chars(self, indent_chars):
         self.indent_chars = indent_chars
+
+    def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
+        self.tab_stop_width_spaces = tab_stop_width_spaces
+        self.setTabStopWidth(tab_stop_width_spaces
+                             * self.fontMetrics().width('9'))
 
     def set_palette(self, background, foreground):
         """
@@ -295,28 +308,44 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Extra selections
+    def extra_selection_length(self, key):
+        selection = self.get_extra_selections(key)
+        if selection:
+            cursor = self.extra_selections_dict[key][0].cursor
+            selection_length = cursor.selectionEnd() - cursor.selectionStart()
+            return selection_length
+        else:
+            return 0
+
     def get_extra_selections(self, key):
         return self.extra_selections_dict.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
         self.extra_selections_dict[key] = extra_selections
-        
+        self.extra_selections_dict = \
+            OrderedDict(sorted(self.extra_selections_dict.items(),
+                               key=lambda s: self.extra_selection_length(s[0]),
+                               reverse=True))
+
     def update_extra_selections(self):
         extra_selections = []
+
+        # Python 3 compatibility (weird): current line has to be
+        # highlighted first
+        if 'current_cell' in self.extra_selections_dict:
+            extra_selections.extend(self.extra_selections_dict['current_cell'])
+        if 'current_line' in self.extra_selections_dict:
+            extra_selections.extend(self.extra_selections_dict['current_line'])
+
         for key, extra in list(self.extra_selections_dict.items()):
-            if key == 'current_line' or key == 'current_cell':
-                # Python 3 compatibility (weird): current line has to be 
-                # highlighted first
-                extra_selections = extra + extra_selections
-            else:
-                extra_selections += extra
+            if not (key == 'current_line' or key == 'current_cell'):
+                extra_selections.extend(extra)
         self.setExtraSelections(extra_selections)
-        
+
     def clear_extra_selections(self, key):
         self.extra_selections_dict[key] = []
         self.update_extra_selections()
-        
-        
+
     def changed(self):
         """Emit changed signal"""
         self.modificationChanged.emit(self.document().isModified())
@@ -598,14 +627,29 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         return ls.join(lines)
 
-    def get_cell_as_executable_code(self):
-        """Return cell contents as executable code"""
+    def __exec_cell(self):
+        init_cursor = QTextCursor(self.textCursor())
         start_pos, end_pos = self.__save_selection()
         cursor, whole_file_selected = self.select_current_cell()
         if not whole_file_selected:
             self.setTextCursor(cursor)
         text = self.get_selection_as_executable_code()
+        self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
+        if text is not None:
+            text = text.rstrip()
+        return text
+
+    def get_cell_as_executable_code(self):
+        """Return cell contents as executable code"""
+        return self.__exec_cell()
+
+    def get_last_cell_as_executable_code(self):
+        text = None
+        if self.last_cursor_cell:
+            self.setTextCursor(self.last_cursor_cell)
+            self.highlight_current_cell()
+            text = self.__exec_cell()
         return text
 
     def is_cell_separator(self, cursor=None, block=None):
@@ -666,7 +710,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             prev_pos = cur_pos
         cell_at_file_end = cursor.atEnd()
         return cursor, cell_at_file_start and cell_at_file_end
-    
+
     def select_current_cell_in_visible_portion(self):
         """Select cell under cursor in the visible portion of the file
         cell = group of lines separated by CELL_SEPARATORS
@@ -738,6 +782,32 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         while not self.is_cell_separator(cursor):
             # Moving to the next code cell
             cursor.movePosition(QTextCursor.NextBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+        self.setTextCursor(cursor)
+
+    def go_to_previous_cell(self):
+        """Go to the previous cell of lines"""
+        cursor = self.textCursor()
+        cur_pos = prev_pos = cursor.position()
+
+        # Move to the begining of the cell
+        while not self.is_cell_separator(cursor):
+            # Moving to the previous code cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+
+        # Move to the previous cell
+        cursor.movePosition(QTextCursor.PreviousBlock)
+        cur_pos = prev_pos = cursor.position()
+        while not self.is_cell_separator(cursor):
+            # Moving to the previous code cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
@@ -857,6 +927,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         if after_current_line:
             text = to_text_string(cursor.block().text())
+            if len(text) == 0:
+                #If the next line is blank
+                sel_text = sel_text[0:-1]
+                sel_text = os.linesep + sel_text
             if not text:
                 cursor.insertText(sel_text)
                 cursor.endEditBlock()

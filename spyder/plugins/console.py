@@ -275,7 +275,7 @@ class Console(SpyderPluginWidget):
     @Slot()
     def change_max_line_count(self):
         "Change maximum line count"""
-        mlc, valid = QInputDialog.getInteger(self, _('Buffer'),
+        mlc, valid = QInputDialog.getInt(self, _('Buffer'),
                                            _('Maximum line count'),
                                            self.get_option('max_line_count'),
                                            0, 1000000)

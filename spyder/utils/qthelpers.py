@@ -16,10 +16,10 @@ import sys
 from qtpy.compat import to_qvariant, from_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
-from qtpy.QtGui import QKeyEvent, QKeySequence, QPixmap
+from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QStyle, QToolButton, QVBoxLayout,
-                            QWidget)
+                            QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
@@ -237,7 +237,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None, menurole=None,
                   context=Qt.WindowShortcut):
     """Create a QAction"""
-    action = QAction(text, parent)
+    action = SpyderAction(text, parent)
     if triggered is not None:
         action.triggered.connect(triggered)
     if toggled is not None:
@@ -285,7 +285,7 @@ def add_shortcut_to_tooltip(action, context, name):
 
 
 def add_actions(target, actions, insert_before=None):
-    """Add actions to a menu"""
+    """Add actions to a QMenu or a QToolBar."""
     previous_action = None
     target_actions = list(target.actions())
     if target_actions:
@@ -304,6 +304,9 @@ def add_actions(target, actions, insert_before=None):
             else:
                 target.insertMenu(insert_before, action)
         elif isinstance(action, QAction):
+            if isinstance(action, SpyderAction):
+                if isinstance(target, QMenu) or not isinstance(target, QToolBar):
+                    action = action.no_icon_action
             if insert_before is None:
                 target.addAction(action)
             else:
@@ -342,7 +345,7 @@ def create_module_bookmark_actions(parent, bookmarks):
         # Create actions for scientific distros only if Spyder is installed
         # under them
         create_act = True
-        if key == 'xy' or key == 'winpython':
+        if key == 'winpython':
             if not programs.is_module_installed(key):
                 create_act = False
         if create_act:
@@ -416,6 +419,48 @@ def get_filetype_icon(fname):
         ext = ext[1:]
     return get_icon( "%s.png" % ext, ima.icon('FileIcon') )
 
+    
+class SpyderAction(QAction):
+    """Spyder QAction class wrapper to handle cross platform patches."""
+
+    def __init__(self, *args, **kwargs):
+        """Spyder QAction class wrapper to handle cross platform patches."""
+        super(SpyderAction, self).__init__(*args, **kwargs)
+        self._action_no_icon = None
+
+        if sys.platform == 'darwin':
+            self._action_no_icon = QAction(*args, **kwargs)
+            self._action_no_icon.setIcon(QIcon())
+            self._action_no_icon.triggered.connect(self.triggered)
+            self._action_no_icon.toggled.connect(self.toggled)
+            self._action_no_icon.changed.connect(self.changed)
+            self._action_no_icon.hovered.connect(self.hovered)
+        else:
+            self._action_no_icon = self
+
+    def __getattribute__(self, name):
+        """Intercept method calls and apply to both actions, except signals."""
+        attr = super(SpyderAction, self).__getattribute__(name)
+
+        if hasattr(attr, '__call__') and name not in ['triggered', 'toggled',
+                                                      'changed', 'hovered']:
+            def newfunc(*args, **kwargs):
+                result = attr(*args, **kwargs)
+                if name not in ['setIcon']:
+                    action_no_icon = self.__dict__['_action_no_icon']
+                    attr_no_icon = super(QAction,
+                                         action_no_icon).__getattribute__(name)
+                    attr_no_icon(*args, **kwargs)
+                return result
+            return newfunc
+        else:
+            return attr
+
+    @property
+    def no_icon_action(self):
+        """Return the action without an Icon."""
+        return self._action_no_icon
+
 
 class ShowStdIcons(QWidget):
     """
@@ -453,6 +498,9 @@ def show_std_icons():
     dialog = ShowStdIcons(None)
     dialog.show()
     sys.exit(app.exec_())
+
+    
+MENU_SEPARATOR = None
 
 
 if __name__ == "__main__":

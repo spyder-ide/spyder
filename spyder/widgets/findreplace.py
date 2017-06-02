@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut, fixed_shortcut
+from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton, get_icon
@@ -113,7 +113,8 @@ class FindReplace(QWidget):
         replace_with = QLabel(_("Replace with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
                                             tip=_('Replace string'))
-        
+        self.replace_text.valid.connect(
+                    lambda _: self.replace_find(focus_replace_text=True))
         self.replace_button = create_toolbutton(self,
                                      text=_('Replace/find'),
                                      icon=ima.icon('DialogApplyButton'),
@@ -157,10 +158,10 @@ class FindReplace(QWidget):
         togglereplace = config_shortcut(self.toggle_replace_widgets,
                                         context='_', name='Replace text',
                                         parent=parent)
-        # Fixed
-        fixed_shortcut("Escape", self, self.hide)
+        hide = config_shortcut(self.hide, context='_', name='hide find and replace',
+                               parent=self)
 
-        return [findnext, findprev, togglefind, togglereplace]
+        return [findnext, findprev, togglefind, togglereplace, hide]
 
     def get_shortcut_data(self):
         """
@@ -202,10 +203,11 @@ class FindReplace(QWidget):
         self.visibility_changed.emit(True)
         if self.editor is not None:
             text = self.editor.get_selected_text()
-
+            highlighted = True
             # If no text is highlighted for search, use whatever word is under
             # the cursor
             if not text:
+                highlighted = False
                 try:
                     cursor = self.editor.textCursor()
                     cursor.select(QTextCursor.WordUnderCursor)
@@ -215,7 +217,7 @@ class FindReplace(QWidget):
                     pass
 
             # Now that text value is sorted out, use it for the search
-            if text:
+            if text and not self.search_text.currentText() or highlighted:
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
                 self.refresh()
@@ -343,7 +345,7 @@ class FindReplace(QWidget):
             return found
 
     @Slot()
-    def replace_find(self):
+    def replace_find(self, focus_replace_text=False):
         """Replace and find"""
         if (self.editor is not None):
             replace_text = to_text_string(self.replace_text.currentText())
@@ -358,13 +360,22 @@ class FindReplace(QWidget):
                     seltxt = to_text_string(self.editor.get_selected_text())
                     cmptxt1 = search_text if case else search_text.lower()
                     cmptxt2 = seltxt if case else seltxt.lower()
-                    if self.editor.has_selected_text() and cmptxt1 == cmptxt2:
-                        # Text was already found, do nothing
-                        pass
+                    if not pattern:
+                        has_selected = self.editor.has_selected_text()
+                        if has_selected and cmptxt1 == cmptxt2:
+                            # Text was already found, do nothing
+                            pass
+                        else:
+                            if not self.find(changed=False, forward=True,
+                                             rehighlight=False):
+                                break
                     else:
-                        if not self.find(changed=False, forward=True,
-                                         rehighlight=False):
-                            break
+                        if len(re.findall(pattern, cmptxt2)) > 0:
+                            pass
+                        else:
+                            if not self.find(changed=False, forward=True,
+                                             rehighlight=False):
+                                break   
                     first = False
                     wrapped = False
                     position = self.editor.get_position('cursor')
@@ -409,3 +420,5 @@ class FindReplace(QWidget):
             self.all_check.setCheckState(Qt.Unchecked)
             if cursor is not None:
                 cursor.endEditBlock()
+            if focus_replace_text:
+                self.replace_text.setFocus()

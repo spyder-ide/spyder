@@ -14,21 +14,24 @@ Pandas DataFrame Editor Dialog
 """
 
 # Third party imports
-from pandas import DataFrame, Series
 from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot
-from qtpy.QtGui import QColor, QCursor, QKeySequence
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
+from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
-                            QMenu, QMessageBox, QPushButton, QTableView)
+                            QMenu, QMessageBox, QPushButton, QTableView,
+                            QHeaderView)
+
+from pandas import DataFrame, DatetimeIndex, Series
 import numpy as np
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, fixed_shortcut
-from spyder.py3compat import io, is_text_string, PY2, to_text_string
+from spyder.config.gui import get_font, config_shortcut
+from spyder.py3compat import (io, is_text_string, PY2, to_text_string,
+                              TEXT_TYPES)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -40,6 +43,9 @@ REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
 _bool_false = ['false', '0']
+
+# Default format for data frames with floats
+DEFAULT_FORMAT = '%.3g'
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
@@ -81,7 +87,7 @@ class DataFrameModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
     
-    def __init__(self, dataFrame, format="%.3g", parent=None):
+    def __init__(self, dataFrame, format=DEFAULT_FORMAT, parent=None):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
@@ -196,6 +202,20 @@ class DataFrameModel(QAbstractTableModel):
                 except:
                     header = to_text_string(self.df_header[0])
                 return to_qvariant(header)
+            elif isinstance(self.df_header[section-1], TEXT_TYPES):
+                # Get the proper encoding of the text in the header.
+                # Fixes Issue 3896
+                if not PY2:
+                    try:
+                        header = self.df_header[section-1].encode('utf-8')
+                        coding = 'utf-8-sig'
+                    except:
+                        header = self.df_header[section-1].encode('utf-8')
+                        coding = encoding.get_coding(header)
+                else:
+                    header = self.df_header[section-1]
+                    coding = encoding.get_coding(header)
+                return to_qvariant(to_text_string(header, encoding=coding))
             else:
                 return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
@@ -258,7 +278,12 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 value = self.get_value(row, column-1)
                 if isinstance(value, float):
-                    return to_qvariant(self._format % value)
+                    try:
+                        return to_qvariant(self._format % value)
+                    except (ValueError, TypeError):
+                        # may happen if format = '%d' and value = NaN;
+                        # see issue 4139
+                        return to_qvariant(DEFAULT_FORMAT % value)
                 else:
                     try:
                         return to_qvariant(to_text_string(value))
@@ -399,22 +424,130 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
+class FrozenTableView(QTableView):
+    """This class implements a table with its first column frozen
+    For more information please see:
+    http://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html"""
+    def __init__(self, parent):
+        """Constructor."""
+        QTableView.__init__(self, parent)
+        self.parent = parent
+        self.setModel(parent.model())
+        self.setFocusPolicy(Qt.NoFocus)
+        self.verticalHeader().hide()
+        try:
+            self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        except:  # support for qtpy<1.2.0
+            self.horizontalHeader().setResizeMode(QHeaderView.Fixed)
+
+        parent.viewport().stackUnder(self)
+
+        self.setSelectionModel(parent.selectionModel())
+        for col in range(1, parent.model().columnCount()):
+            self.setColumnHidden(col, True)
+
+        self.setColumnWidth(0, parent.columnWidth(0))
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.show()
+
+        self.setVerticalScrollMode(1)
+
+    def update_geometry(self):
+        """Update the frozen column size when an update occurs
+        in its parent table"""
+        self.setGeometry(self.parent.verticalHeader().width() +
+                         self.parent.frameWidth(),
+                         self.parent.frameWidth(),
+                         self.parent.columnWidth(0),
+                         self.parent.viewport().height() +
+                         self.parent.horizontalHeader().height())
+
+
 class DataFrameView(QTableView):
     """Data Frame view class"""
     def __init__(self, parent, model):
         QTableView.__init__(self, parent)
         self.setModel(model)
 
+        self.frozen_table_view = FrozenTableView(self)
+        self.frozen_table_view.update_geometry()
+
+        self.setHorizontalScrollMode(1)
+        self.setVerticalScrollMode(1)
+
+        self.horizontalHeader().sectionResized.connect(self.update_section_width)
+        self.verticalHeader().sectionResized.connect(self.update_section_height)
+
+        self.frozen_table_view.verticalScrollBar().valueChanged.connect(
+            self.verticalScrollBar().setValue)
+
         self.sort_old = [None]
         self.header_class = self.horizontalHeader()
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        fixed_shortcut(QKeySequence.Copy, self, self.copy)
+        config_shortcut(self.copy, context='variable_explorer', name='copy',
+                        parent=self)
         self.horizontalScrollBar().valueChanged.connect(
-                            lambda val: self.load_more_data(val, columns=True))
+                        lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
-                               lambda val: self.load_more_data(val, rows=True))
+                        lambda val: self.load_more_data(val, rows=True))
+        self.verticalScrollBar().valueChanged.connect(
+            self.frozen_table_view.verticalScrollBar().setValue)
     
+    def update_section_width(self, logical_index, old_size, new_size):
+        """Update the horizontal width of the frozen column when a
+        change takes place in the first column of the table"""
+        if logical_index == 0:
+            self.frozen_table_view.setColumnWidth(0, new_size)
+            self.frozen_table_view.update_geometry()
+
+    def update_section_height(self, logical_index, old_size, new_size):
+        """Update the vertical width of the frozen column when a
+        change takes place on any of the rows"""
+        self.frozen_table_view.setRowHeight(logical_index, new_size)
+
+    def resizeEvent(self, event):
+        """Update the frozen column dimensions.
+
+        Updates takes place when the enclosing window of this 
+        table reports a dimension change
+        """
+        QTableView.resizeEvent(self, event)
+        self.frozen_table_view.update_geometry()
+
+    def moveCursor(self, cursor_action, modifiers):
+        """Update the table position.
+
+        Updates the position along with the frozen column
+        when the cursor (selector) changes its position
+        """
+        current = QTableView.moveCursor(self, cursor_action, modifiers)
+        
+        col_width = (self.frozen_table_view.columnWidth(0) + 
+                     self.frozen_table_view.columnWidth(1))
+        topleft_x = self.visualRect(current).topLeft().x()
+
+        overflow = self.MoveLeft and current.column() > 1
+        overflow = overflow and topleft_x < col_width
+
+        if cursor_action == overflow:
+            new_value = (self.horizontalScrollBar().value() + 
+                         topleft_x - col_width)
+            self.horizontalScrollBar().setValue(new_value)
+        return current
+
+    def scrollTo(self, index, hint):
+        """Scroll the table.
+
+        It is necessary to ensure that the item at index is visible.
+        The view will try to position the item according to the
+        given hint. This method does not takes effect only if
+        the frozen column is scrolled.
+        """
+        if index.column() > 1:
+            QTableView.scrollTo(self, index, hint)
+
     def load_more_data(self, value, rows=False, columns=False):
         if rows and value == self.verticalScrollBar().maximum():
             self.model().fetch_more(rows=rows)
@@ -501,7 +634,16 @@ class DataFrameView(QTableView):
 
 
 class DataFrameEditor(QDialog):
-    """ Data Frame Editor Dialog """
+    """
+    Dialog for displaying and editing DataFrame and related objects.
+
+    Signals
+    -------
+    sig_option_changed(str, object): Raised if an option is changed.
+       Arguments are name of option and its new value.
+    """
+    sig_option_changed = Signal(str, object)
+
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         # Destroying the C++ object right after closing the dialog box,
@@ -515,7 +657,8 @@ class DataFrameEditor(QDialog):
     def setup_and_check(self, data, title=''):
         """
         Setup DataFrameEditor:
-        return False if data is not supported, True otherwise
+        return False if data is not supported, True otherwise.
+        Supported types for data are DataFrame, Series and DatetimeIndex.
         """
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -527,6 +670,8 @@ class DataFrameEditor(QDialog):
         if isinstance(data, Series):
             self.is_series = True
             data = data.to_frame()
+        elif isinstance(data, DatetimeIndex):
+            data = DataFrame(data)
 
         self.setWindowTitle(title)
         self.resize(600, 500)
@@ -580,7 +725,12 @@ class DataFrameEditor(QDialog):
         self.bgcolor_global.setEnabled(not self.is_series and state > 0)
 
     def change_format(self):
-        """Change display format"""
+        """
+        Ask user for display format for floats and use it.
+
+        This function also checks whether the format is valid and emits
+        `sig_option_changed`.
+        """
         format, valid = QInputDialog.getText(self, _('Format'),
                                              _("Float formatting"),
                                              QLineEdit.Normal,
@@ -590,10 +740,15 @@ class DataFrameEditor(QDialog):
             try:
                 format % 1.1
             except:
-                QMessageBox.critical(self, _("Error"),
-                                     _("Format (%s) is incorrect") % format)
+                msg = _("Format ({}) is incorrect").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
+                return
+            if not format.startswith('%'):
+                msg = _("Format ({}) should start with '%'").format(format)
+                QMessageBox.critical(self, _("Error"), msg)
                 return
             self.dataModel.set_format(format)
+            self.sig_option_changed.emit('dataframe_format', format)
 
     def get_value(self):
         """Return modified Dataframe -- this is *not* a copy"""
@@ -654,9 +809,7 @@ def test():
     out = test_edit(df1.iloc[0])
     assert_series_equal(result, out)
 
-    # Sorting large DataFrame takes time
     df1 = DataFrame(np.random.rand(100100, 10))
-    df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
     assert_frame_equal(out, df1)
 

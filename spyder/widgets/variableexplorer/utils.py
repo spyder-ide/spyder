@@ -44,15 +44,19 @@ class FakeObject(object):
 
 
 #==============================================================================
-# Numpy arrays support
+# Numpy arrays and numeric types support
 #==============================================================================
 try:
-    from numpy import ndarray, array, matrix, recarray
+    from numpy import (ndarray, array, matrix, recarray,
+                      int64, int32, float64, float32,
+                      complex64, complex128)
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
+    from numpy import set_printoptions as np_set_printoptions
 except ImportError:
-    ndarray = array = matrix = recarray = MaskedArray = np_savetxt = FakeObject  # analysis:ignore
-
+    ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
+    np_set_printoptions = int64 = int32 = float64 = float32 = \
+    complex64 = complex128 = FakeObject
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -78,9 +82,9 @@ def get_numpy_dtype(obj):
 # Pandas support
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, Series
+    from pandas import DataFrame, DatetimeIndex, Series
 else:
-    DataFrame = Series = FakeObject      # analysis:ignore
+    DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
 
 
 #==============================================================================
@@ -128,21 +132,36 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
-    if isinstance(item, (DataFrame, Series)):
+    if isinstance(item, (DataFrame, DatetimeIndex, Series)):
         return item.shape
     else:
         return 1
 
 
-#==============================================================================
+def get_object_attrs(obj):
+    """
+    Get the attributes of an object using dir.
+
+    This filters protected attributes
+    """
+    attrs = [k for k in dir(obj) if not k.startswith('__')]
+    if not attrs:
+        attrs = dir(obj)
+    return attrs
+
+
+# =============================================================================
 # Set limits for the amount of elements in the repr of collections (lists,
-# dicts, tuples and sets)
-#==============================================================================
+# dicts, tuples and sets) and Numpy arrays
+# =============================================================================
 CollectionsRepr = reprlib.Repr()
 CollectionsRepr.maxlist = 10
 CollectionsRepr.maxdict = 10
 CollectionsRepr.maxtuple = 10
 CollectionsRepr.maxset = 10
+
+if np_set_printoptions is not FakeObject:
+    np_set_printoptions(threshold=10)
 
 
 #==============================================================================
@@ -162,7 +181,7 @@ except ImportError:
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
     v = dateparse(value[rp:-1])
-    print(value, "-->", v)
+    print(value, "-->", v)  # spyder: test-skip
     return v
 
 
@@ -182,7 +201,8 @@ COLORS = {
            MaskedArray,
            matrix,
            DataFrame,
-           Series):           ARRAY_COLOR,
+           Series,
+           DatetimeIndex):    ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -237,9 +257,11 @@ def unsorted_unique(lista):
 #==============================================================================
 # Display <--> Value
 #==============================================================================
-def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
+def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
     try:
+        numeric_numpy_types = (int64, int32, float64, float32,
+                               complex128, complex64)
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
@@ -253,8 +275,6 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
                     display = repr(value)
             else:
                 display = repr(value)
-        elif isinstance(value, ndarray):
-            display = repr(value)
         elif isinstance(value, (list, tuple, dict, set)):
             display = CollectionsRepr.repr(value)
         elif isinstance(value, Image):
@@ -278,6 +298,8 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         elif isinstance(value, NavigableString):
             # Fixes Issue 2448
             display = to_text_string(value)
+        elif isinstance(value, DatetimeIndex):
+            display = value.summary()
         elif is_binary_string(value):
             try:
                 display = to_text_string(value, 'utf8')
@@ -286,7 +308,8 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         elif is_text_string(value):
             display = value
         elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
-          isinstance(value, datetime.date):
+          isinstance(value, datetime.date) or \
+          isinstance(value, numeric_numpy_types):
             display = repr(value)
         else:
             # Note: Don't trust on repr's. They can be inefficient and
@@ -294,11 +317,14 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
             # display = repr(value)
             type_str = to_text_string(type(value))
             display = type_str[1:-1]
-            if truncate and len(display) > trunc_len:
-                display = display[:trunc_len].rstrip() + ' ...'
     except:
         type_str = to_text_string(type(value))
         display = type_str[1:-1]
+
+    # Truncate display at 80 chars to avoid freezing Spyder
+    # because of large displays
+    if len(display) > 80:
+        display = display[:80].rstrip() + ' ...'
 
     return display
 
@@ -351,16 +377,19 @@ def display_to_value(value, default_value, ignore_errors=True):
     return value
 
 
-#==============================================================================
+# =============================================================================
 # Types
-#==============================================================================
+# =============================================================================
 def get_type_string(item):
-    """Return type string of an object"""
+    """Return type string of an object."""
     if isinstance(item, DataFrame):
         return "DataFrame"
+    if isinstance(item, DatetimeIndex):
+        return "DatetimeIndex"
     if isinstance(item, Series):
         return "Series"
-    found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
+    found = re.findall(r"<(?:type|class) '(\S*)'>",
+                       to_text_string(type(item)))
     if found:
         return found[0]
     
@@ -439,8 +468,7 @@ def globalsfilter(input_dict, check_all=False, filters=None,
 #==============================================================================
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'truncate', 'minmax',
-                   'remote_editing', 'autorefresh')
+                   'excluded_names', 'minmax')
 
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
@@ -470,13 +498,11 @@ def make_remote_view(data, settings, more_excluded_names=None):
     Make a remote view of dictionary *data*
     -> globals explorer
     """
-    assert all([name in REMOTE_SETTINGS for name in settings])
     data = get_remote_data(data, settings, mode='editable',
                            more_excluded_names=more_excluded_names)
     remote = {}
     for key, value in list(data.items()):
-        view = value_to_display(value, truncate=settings['truncate'],
-                                minmax=settings['minmax'])
+        view = value_to_display(value, minmax=settings['minmax'])
         remote[key] = {'type':  get_human_readable_type(value),
                        'size':  get_size(value),
                        'color': get_color_name(value),

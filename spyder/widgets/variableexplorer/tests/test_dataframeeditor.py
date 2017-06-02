@@ -9,14 +9,28 @@ Tests for dataframeeditor.py
 
 from __future__ import division
 
+# Standard library imports
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock # Python 2
+import os
+
 # Third party imports
-from pandas import DataFrame, date_range
+from pandas import DataFrame, date_range, read_csv
 from qtpy.QtGui import QColor
+from qtpy.QtCore import Qt
+import numpy
 import pytest
 
 # Local imports
+from spyder.utils.programs import is_module_installed
 from spyder.widgets.variableexplorer import dataframeeditor
-from spyder.widgets.variableexplorer.dataframeeditor import DataFrameModel
+from spyder.widgets.variableexplorer.dataframeeditor import (
+    DataFrameEditor, DataFrameModel)
+from spyder.py3compat import PY2
+
+FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 
 # Helper functions
 def colorclose(color, hsva_expected):
@@ -46,7 +60,7 @@ def test_dataframemodel_basic():
     assert data(dfm, 1, 0) == '1'
     assert data(dfm, 1, 1) == '3'
     assert data(dfm, 1, 2) == 'a'
-    
+
 def test_dataframemodel_sort():
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
@@ -142,6 +156,76 @@ def test_dataframemodel_get_bgcolor_with_object():
     h, s, v, dummy = QColor(dataframeeditor.BACKGROUND_NONNUMBER_COLOR).getHsvF()
     a = dataframeeditor.BACKGROUND_MISC_ALPHA
     assert colorclose(bgcolor(dfm, 0, 1), (h, s, v, a))
+
+def test_dataframemodel_with_format_percent_d_and_nan():
+    """
+    Test DataFrameModel with format `%d` and dataframe containing NaN
+
+    Regression test for issue 4139.
+    """
+    np_array = numpy.zeros(2)
+    np_array[1] = numpy.nan
+    dataframe = DataFrame(np_array)
+    dfm = DataFrameModel(dataframe, format='%d')
+    assert data(dfm, 0, 1) == '0'
+    assert data(dfm, 1, 1) == 'nan'
+
+def test_change_format_emits_signal(qtbot, monkeypatch):
+    mockQInputDialog = Mock()
+    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('%10.3e', True)
+    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor.QInputDialog', mockQInputDialog)
+    df = DataFrame([[0]])
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    with qtbot.waitSignal(editor.sig_option_changed) as blocker:
+        editor.change_format()
+    assert blocker.args == ['dataframe_format', '%10.3e']
+
+def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch):
+    mockQInputDialog = Mock()
+    mockQInputDialog.getText = lambda parent, title, label, mode, text: ('xxx%f', True)
+    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor'
+                        '.QInputDialog', mockQInputDialog)
+    monkeypatch.setattr('spyder.widgets.variableexplorer.dataframeeditor'
+                        '.QMessageBox.critical', Mock())
+    df = DataFrame([[0]])
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    with qtbot.assertNotEmitted(editor.sig_option_changed):
+        editor.change_format()
+
+def test_header_bom():
+    df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    assert model.headerData(1, orientation=Qt.Horizontal) == "Date (MMM-YY)"
+
+@pytest.mark.skipif(is_module_installed('pandas', '<0.19'),
+                    reason="It doesn't work for Pandas 0.19-")
+def test_header_encoding():
+    df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    assert model.headerData(0, orientation=Qt.Horizontal) == "Index"
+    assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
+    assert model.headerData(2, orientation=Qt.Horizontal) == "Unieke_Idcode"
+    assert model.headerData(3, orientation=Qt.Horizontal) == "a"
+    assert model.headerData(4, orientation=Qt.Horizontal) == "b"
+    assert model.headerData(5, orientation=Qt.Horizontal) == "c"
+    assert model.headerData(6, orientation=Qt.Horizontal) == "d"
+
+def test_dataframeeditor_with_datetimeindex():
+    rng = date_range('20150101', periods=3)
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(rng)
+    dfm = editor.dataModel
+    assert dfm.rowCount() == 3
+    assert dfm.columnCount() == 2
+    assert data(dfm, 0, 1) == '2015-01-01 00:00:00'
+    assert data(dfm, 1, 1) == '2015-01-02 00:00:00'
+    assert data(dfm, 2, 1) == '2015-01-03 00:00:00'
 
 
 if __name__ == "__main__":

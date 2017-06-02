@@ -17,9 +17,12 @@ import locale
 import sys
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32, getincrementaldecoder
 
+from chardet.universaldetector import UniversalDetector
+
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
                               is_unicode)
+from spyder.utils.external.binaryornot.check import is_binary
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -104,12 +107,29 @@ def get_coding(text):
     @return coding string
     """
     for line in text.splitlines()[:2]:
-        result = CODING_RE.search(to_text_string(line))
-        if result:
-            codec = result.group(1)
-            # sometimes we find a false encoding that can result in errors
-            if codec in CODECS:
-                return codec
+        try:
+            result = CODING_RE.search(to_text_string(line))
+        except UnicodeDecodeError:
+            # This could fail because to_text_string assume the text is utf8-like
+            # and we don't know the encoding to give it to to_text_string
+            pass
+        else:
+            if result:
+                codec = result.group(1)
+                # sometimes we find a false encoding that can result in errors
+                if codec in CODECS:
+                    return codec
+
+    # Fallback using chardet
+    if is_binary_string(text):
+        detector = UniversalDetector()
+        for line in text.splitlines()[:2]:
+            detector.feed(line)
+            if detector.done: break
+
+        detector.close()
+        return detector.result['encoding']
+
     return None
 
 def decode(text):
@@ -151,6 +171,13 @@ def encode(text, orig_coding):
     if orig_coding == 'utf-8-bom':
         return BOM_UTF8 + text.encode("utf-8"), 'utf-8-bom'
     
+    # Try saving with original encoding
+    if orig_coding:
+        try:
+            return text.encode(orig_coding), orig_coding
+        except (UnicodeError, LookupError):
+            pass
+
     # Try declared coding spec
     coding = get_coding(text)
     if coding:
@@ -228,36 +255,8 @@ def readlines(filename, encoding='utf-8'):
 def is_text_file(filename):
     """
     Test if the given path is a text-like file.
-    
-    Adapted from: http://stackoverflow.com/a/3002505
-    
-    Original Authors: Trent Mick <TrentM@ActiveState.com>
-                      Jorge Orpinel <jorge@orpinel.com>
     """
     try:
-        open(filename)
-    except Exception:
+        return not is_binary(filename)
+    except (OSError, IOError):
         return False
-    with open(filename, 'rb') as fid:
-        try:
-            CHUNKSIZE = 1024
-            chunk = fid.read(CHUNKSIZE)
-            # check for a UTF BOM
-            for bom in [BOM_UTF8, BOM_UTF16, BOM_UTF32]:
-                if chunk.startswith(bom):
-                    return True
-
-            decoder = getincrementaldecoder('utf-8')()
-            while 1:
-                is_final = len(chunk) < CHUNKSIZE
-                chunk = decoder.decode(chunk, final=is_final)
-                if '\0' in chunk: # found null byte
-                    return False
-                if is_final:
-                    break # done
-                chunk = fid.read(CHUNKSIZE)
-        except UnicodeDecodeError:
-            return False
-        except Exception:
-            pass
-    return True

@@ -12,11 +12,12 @@ from qtpy.QtWidgets import QTextEdit
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
-                                   TracebackLinksMixin)
+                                   TracebackLinksMixin,
+                                   BrowseHistoryMixin)
 
 
-class ControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
-                    BaseEditMixin):
+class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
+                    QTextEdit, BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
     control widget for IPython widgets
@@ -31,8 +32,9 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
+        BrowseHistoryMixin.__init__(self)
 
-        self.calltip_widget = CallTipWidget(self, hide_timer_on=True)
+        self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.found_results = []
 
         # To not use Spyder calltips obtained through the monitor
@@ -55,7 +57,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, QTextEdit,
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         if key == Qt.Key_ParenLeft and not self.has_selected_text() \
-          and self.help_enabled:
+          and self.help_enabled and not self.parent()._reading:
             self._key_paren_left(text)
         else:
             # Let the parent widget handle the key press event

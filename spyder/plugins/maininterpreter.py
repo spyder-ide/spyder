@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 # Local imports
 from spyder.config.base import _
 from spyder.plugins.configdialog import GeneralConfigPage
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_python_executable
 from spyder.utils import programs
@@ -141,7 +141,15 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             return
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        self.warn_python_compatibility(pyexec)
+        if programs.is_python_interpreter(pyexec):
+            self.warn_python_compatibility(pyexec)
+        else:
+            QMessageBox.warning(self, _('Warning'),
+                    _("You selected an invalid Python interpreter for the "
+                      "console so the previous interpreter will stay. Please "
+                      "make sure to select a valid one."), QMessageBox.Ok)
+            self.pyexec_edit.setText(get_python_executable())
+            return
 
     def python_executable_switched(self, custom):
         """Python executable default/custom radio button has been toggled"""
@@ -184,9 +192,23 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             arguments = to_text_string(arguments)
             if arguments:
                 namelist = arguments.replace(' ', '').split(',')
-                fixed_namelist = [module_name for module_name in namelist
-                                  if programs.is_module_installed(module_name)]
-                invalid = ", ".join(set(namelist)-set(fixed_namelist))
+                fixed_namelist = []
+                non_ascii_namelist = []
+                for module_name in namelist:
+                    if PY2:
+                        if all(ord(c) < 128 for c in module_name):
+                            if programs.is_module_installed(module_name):
+                                fixed_namelist.append(module_name)
+                        else:
+                            QMessageBox.warning(self, _('Warning'),
+                            _("You are working with Python 2, this means that "
+                              "you can not import a module that contains non-"
+                              "ascii characters."), QMessageBox.Ok)
+                            non_ascii_namelist.append(module_name)
+                    elif programs.is_module_installed(module_name):
+                        fixed_namelist.append(module_name)
+                invalid = ", ".join(set(namelist)-set(fixed_namelist)-
+                                    set(non_ascii_namelist))
                 if invalid:
                     QMessageBox.warning(self, _('UMR'),
                                         _("The following modules are not "

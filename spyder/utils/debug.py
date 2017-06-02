@@ -17,6 +17,8 @@ import inspect
 import traceback
 import time
 
+from spyder.py3compat import PY2 
+
 
 def log_time(fd):
     timestr = "Logging time: %s" % time.ctime(time.time())
@@ -33,7 +35,10 @@ def log_last_error(fname, context=None):
         print("Context", file=fd)
         print("-------", file=fd)
         print("", file=fd)
-        print(context, file=fd)
+        if PY2:
+            print(u' '.join(context).encode('utf-8').strip(), file=fd)
+        else:
+            print(context, file=fd)
         print("", file=fd)
         print("Traceback", file=fd)
         print("---------", file=fd)

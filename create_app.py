@@ -27,7 +27,7 @@ import sys
 from IPython.core.completerlib import module_list
 
 from spyder import __version__ as spy_version
-from spyder.config.main import EDIT_EXT
+from spyder.config.utils import EDIT_FILETYPES, _get_extensions
 from spyder.config.base import MAC_APP_NAME
 from spyder.utils.programs import find_program
 
@@ -65,25 +65,46 @@ def get_stdlib_modules():
 
 
 #==============================================================================
+# Main message
+#==============================================================================
+main_message = """
+IMPORTANT NOTE
+==============
+
+Before running this script, please be sure of following the instructions
+present in
+
+https://github.com/spyder-ide/mac-application/blob/master/How to build the app.md
+
+This script only runs succesfully with those instructions!
+
+------
+"""
+
+print(main_message)
+
+
+#==============================================================================
 # App creation
 #==============================================================================
 APP_MAIN_SCRIPT = MAC_APP_NAME[:-4] + '.py'
 shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 
 APP = [APP_MAIN_SCRIPT]
-DEPS = ['pylint', 'logilab', 'astroid', 'pep8', 'setuptools']
+DEPS = ['pylint', 'logilab', 'astroid', 'pycodestyle', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
-PACKAGES = ['spyder', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
+PACKAGES = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm', 'spyder_io_hdf5',
+            'spyder_profiler', 'spyder_pylint', 'sphinx', 'jinja2', 'docutils',
             'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
             'IPython', 'ipykernel', 'ipython_genutils', 'jupyter_client',
-            'jupyter_core', 'traitlets', 'qtconsole', 'pexpect',
-            'jsonschema', 'nbconvert', 'nbformat',
-            'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
+            'jupyter_core', 'traitlets', 'qtconsole', 'pexpect', 'jedi',
+            'jsonschema', 'nbconvert', 'nbformat', 'qtpy', 'qtawesome',
+            'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt5',
             'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
             'nose', 'patsy','statsmodels', 'seaborn', 'networkx']
 
 INCLUDES = get_stdlib_modules()
-EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
+EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
 OPTIONS = {
     'argv_emulation': True,
@@ -130,12 +151,13 @@ shutil.copytree(docs_orig, docs_dest)
 # inside the app.
 minimal_lib = osp.join(app_python_lib, 'minimal-lib')
 os.mkdir(minimal_lib)
-minlib_pkgs = ['spyder', 'spyderplugins']
+minlib_pkgs = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm',
+               'spyder_io_hdf5', 'spyder_profiler', 'spyder_pylint']
 for p in minlib_pkgs:
     shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
 
 # Add necessary Python programs to the app
-PROGRAMS = ['pylint', 'pep8']
+PROGRAMS = ['pylint', 'pycodestyle']
 system_progs = [find_program(p) for p in PROGRAMS]
 progs_dest = [resources + osp.sep + p for p in PROGRAMS]
 for i in range(len(PROGRAMS)):
@@ -156,10 +178,10 @@ for i in deps:
         shutil.copy2(osp.join(system_python_lib, i),
                      osp.join(app_python_lib, i))
 
-# Copy dependencies for IPython/Jupyter
-IPYDEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
-           'mistune.so', 'pickleshare.py']
-for dep in IPYDEPS:
+# Single file dependencies
+SINGLE_DEPS = ['path.py', 'simplegeneric.py', 'decorator.py', 'mistune.py',
+               'mistune.so', 'pickleshare.py', 'sip.so']
+for dep in SINGLE_DEPS:
     if osp.isfile(osp.join(system_python_lib, dep)):
         shutil.copyfile(osp.join(system_python_lib, dep),
                         osp.join(app_python_lib, dep))
@@ -176,9 +198,9 @@ def _change_interpreter(program):
     try:
         for line in fileinput.input(program, inplace=True):
             if line.startswith('#!'):
-                print('#!' + sys.executable)
+                print('#!' + sys.executable, end='')
             else:
-                print(line)
+                print(line, end='')
     except:
         pass
 
@@ -249,9 +271,6 @@ for line in fileinput.input(boot_file, inplace=True):
         print(run_line)
     else:
         print(line, end='')
-
-# To use the app's own Qt framework
-subprocess.call(['macdeployqt', 'dist/%s' % MAC_APP_NAME])
 
 # Workaround for what appears to be a bug with py2app and Homebrew
 # See https://bitbucket.org/ronaldoussoren/py2app/issue/26#comment-2092445

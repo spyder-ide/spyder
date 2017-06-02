@@ -203,6 +203,7 @@ _qtaargs = {
     'spyder.autopep8':         [('fa.eye',), {}],
     'spyder.memory_profiler':  [('fa.eye',), {}],
     'spyder.line_profiler':    [('fa.eye',), {}],
+    'symbol_find':             [('fa.at',), {}]
 }
 
 

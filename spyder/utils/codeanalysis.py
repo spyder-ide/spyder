@@ -24,7 +24,8 @@ DEBUG_EDITOR = DEBUG >= 3
 #==============================================================================
 # Pyflakes/pep8 code analysis
 #==============================================================================
-TASKS_PATTERN = r"(^|#)[ ]*(TODO|FIXME|XXX|HINT|TIP|@todo)([^#]*)"
+TASKS_PATTERN = r"(^|#)[ ]*(TODO|FIXME|XXX|HINT|TIP|@todo|" \
+                r"HACK|BUG|OPTIMIZE|!!!|\?\?\?)([^#]*)"
 
 #TODO: this is a test for the following function
 def find_tasks(source_code):
@@ -91,9 +92,9 @@ PYFLAKES_REQVER = '>=0.6.0' if PY3 else '>=0.5.0'
 dependencies.add("pyflakes", _("Real-time code analysis on the Editor"),
                  required_version=PYFLAKES_REQVER)
 
-PEP8_REQVER = '>=0.6'
-dependencies.add("pep8", _("Real-time code style analysis on the Editor"),
-                 required_version=PEP8_REQVER)
+PYCODESTYLE_REQVER = '>=2.3'
+dependencies.add("pycodestyle", _("Real-time code style analysis on the Editor"),
+                 required_version=PYCODESTYLE_REQVER)
 
 
 def is_pyflakes_installed():
@@ -117,7 +118,7 @@ def get_checker_executable(name):
             return [sys.executable, path1]
         elif path2 is not None:  # checker.py is available
             # Checker package is available but its script has not been
-            # installed (this works with pep8 but not with pyflakes)
+            # installed (this works with pycodestyle but not with pyflakes)
             return [sys.executable, path2]
 
 
@@ -129,7 +130,7 @@ def check(args, source_code, filename=None, options=None):
     if options is not None:
         args += options
     if any(['pyflakes' in arg for arg in args]):
-        #  Pyflakes requires an ending new line (pep8 don't! -- see Issue 1123)
+        #  Pyflakes requires an ending new line (pycodestyle don't! -- see Issue 1123)
         #  Note: this code is not used right now as it is faster to invoke 
         #  pyflakes in current Python interpreter (see `check_with_pyflakes` 
         #  function above) than calling it through a subprocess
@@ -165,9 +166,9 @@ def check(args, source_code, filename=None, options=None):
 
 
 def check_with_pep8(source_code, filename=None):
-    """Check source code with pep8"""
+    """Check source code with pycodestyle"""
     try:
-        args = get_checker_executable('pep8')
+        args = get_checker_executable('pycodestyle')
         results = check(args, source_code, filename=filename, options=['-r'])
     except Exception:
         # Never return None to avoid lock in spyder/widgets/editor.py

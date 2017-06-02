@@ -281,12 +281,18 @@ def any(name, alternates):
 
 def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
-    kw = r"\b" + any("keyword", keyword.kwlist+additional_keywords) + r"\b"
+    kwlist = keyword.kwlist + additional_keywords
     builtinlist = [str(name) for name in dir(builtins)
-                   if not name.startswith('_')]+additional_builtins
+                   if not name.startswith('_')] + additional_builtins
+    repeated = set(kwlist) & set(builtinlist)
+    for repeated_element in repeated:
+        kwlist.remove(repeated_element)
+    kw = r"\b" + any("keyword", kwlist) + r"\b"
     builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
-    instance = any("instance", [r"\bself\b"])
+    instance = any("instance", [r"\bself\b",
+                                (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
+                                     r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
     number = any("number",
                  [r"\b[+-]?[0-9]+[lLjJ]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
@@ -350,7 +356,8 @@ class OutlineExplorerData(object):
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
-    PROG = re.compile(make_python_patterns(), re.S)
+    add_kw = ['async', 'await']
+    PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
@@ -506,9 +513,13 @@ C_TYPES = 'bool char double enum float int long mutable short signed struct unsi
 
 class CythonSH(PythonSH):
     """Cython Syntax Highlighter"""
-    ADDITIONAL_KEYWORDS = ["cdef", "ctypedef", "cpdef", "inline", "cimport",
-                           "DEF"]
-    ADDITIONAL_BUILTINS = C_TYPES.split()
+    ADDITIONAL_KEYWORDS = [
+        "cdef", "ctypedef", "cpdef", "inline", "cimport", "extern",
+        "include", "begin", "end", "by", "gil", "nogil", "const", "public",
+        "readonly", "fused", "static", "api", "DEF", "IF", "ELIF", "ELSE"]
+
+    ADDITIONAL_BUILTINS = C_TYPES.split() + [
+        "array", "bint", "Py_ssize_t", "intern", "reload", "sizeof", "NULL"]
     PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
                                            ADDITIONAL_BUILTINS), re.S)
     IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
@@ -897,6 +908,130 @@ def make_html_patterns():
 class HtmlSH(BaseWebSH):
     """HTML Syntax Highlighter"""
     PROG = re.compile(make_html_patterns(), re.S)
+
+
+# =============================================================================
+# Markdown highlighter
+# =============================================================================
+
+def make_md_patterns():
+    h1 = '^#[^#]+'
+    h2 = '^##[^#]+'
+    h3 = '^###[^#]+'
+    h4 = '^####[^#]+'
+    h5 = '^#####[^#]+'
+    h6 = '^######[^#]+'
+
+    titles = any('title', [h1, h2, h3, h4, h5, h6])
+
+    html_tags = any("builtin", [r"<", r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
+    html_symbols = '&[^; ].+;'
+    html_comment = '<!--.+-->'
+
+    strikethrough = any('strikethrough', [r'(~~)(.*?)~~'])
+    strong = any('strong', [r'(\*\*)(.*?)\*\*'])
+
+    italic = r'(__)(.*?)__'
+    emphasis = r'(//)(.*?)//'
+    italic = any('italic', [italic, emphasis])
+
+    # links - (links) after [] or links after []:
+    link_html = (r'(?<=(\]\())[^\(\)]*(?=\))|'
+                 '(<https?://[^>]+>)|'
+                 '(<[^ >]+@[^ >]+>)')
+    # link/image references - [] or ![]
+    link = r'!?\[[^\[\]]*\]'
+    links = any('link', [link_html, link])
+
+    # blockquotes and lists -  > or - or * or 0.
+    blockquotes = (r'(^>+.*)'
+                   r'|(^(?:    |\t)*[0-9]+\. )'
+                   r'|(^(?:    |\t)*- )'
+                   r'|(^(?:    |\t)*\* )')
+    # code
+    code = any('code', ['^`{3,}.*$'])
+    inline_code = any('inline_code', ['`[^`]*`'])
+
+    # math - $$
+    math = any('number', [r'^(?:\${2}).*$', html_symbols])
+
+    comment = any('comment', [blockquotes, html_comment])
+
+    return '|'.join([titles, comment, html_tags, math, links, italic, strong,
+                     strikethrough, code, inline_code])
+
+
+class MarkdownSH(BaseSH):
+    """Markdown Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_md_patterns(), re.S)
+    NORMAL = 0
+    CODE = 1
+
+    def highlightBlock(self, text):
+        text = to_text_string(text)
+        previous_state = self.previousBlockState()
+
+        if previous_state == self.CODE:
+            self.setFormat(0, len(text), self.formats["code"])
+        else:
+            previous_state = self.NORMAL
+            self.setFormat(0, len(text), self.formats["normal"])
+
+        self.setCurrentBlockState(previous_state)
+
+        match = self.PROG.search(text)
+        while match:
+            for key, value in list(match.groupdict().items()):
+                start, end = match.span(key)
+
+                if value:
+                    previous_state = self.previousBlockState()
+
+                    if previous_state == self.CODE:
+                        if key == "code":
+                            # Change to normal
+                            self.setFormat(0, len(text),
+                                           self.formats["normal"])
+                            self.setCurrentBlockState(self.NORMAL)
+                        else:
+                            continue
+                    else:
+                        if key == "code":
+                            # Change to code
+                            self.setFormat(0, len(text), self.formats["code"])
+                            self.setCurrentBlockState(self.CODE)
+                            continue
+
+                    self.setFormat(start, end - start, self.formats[key])
+
+            match = self.PROG.search(text, match.end())
+
+        self.highlight_spaces(text)
+
+    def setup_formats(self, font=None):
+        super(MarkdownSH, self).setup_formats(font)
+
+        font = QTextCharFormat(self.formats['normal'])
+        font.setFontItalic(True)
+        self.formats['italic'] = font
+
+        self.formats['strong'] = self.formats['definition']
+
+        font = QTextCharFormat(self.formats['normal'])
+        font.setFontStrikeOut(True)
+        self.formats['strikethrough'] = font
+
+        font = QTextCharFormat(self.formats['string'])
+        font.setUnderlineStyle(True)
+        self.formats['link'] = font
+
+        self.formats['code'] = self.formats['string']
+        self.formats['inline_code'] = self.formats['string']
+
+        font = QTextCharFormat(self.formats['keyword'])
+        font.setFontWeight(QFont.Bold)
+        self.formats['title'] = font
 
 
 #==============================================================================

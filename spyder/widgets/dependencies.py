@@ -137,7 +137,7 @@ class DependenciesDialog(QDialog):
 
         self.view = DependenciesTableView(self, [])
 
-        opt_mods = ['NumPy', 'Matplotlib', 'Pandas', 'SymPy']
+        opt_mods = ['NumPy', 'Matplotlib', 'Pandas', 'SymPy', 'Cython']
         self.label = QLabel(_("Spyder depends on several Python modules to "
                               "provide the right functionality for all its "
                               "panes. The table below shows the required "
@@ -145,7 +145,10 @@ class DependenciesDialog(QDialog):
                               "them.<br><br>"
                               "<b>Note</b>: You can safely use Spyder "
                               "without the following modules installed: "
-                              "<b>%s</b> and <b>%s</b>")
+                              "<b>%s</b> and <b>%s</b>.<br><br>"
+                              "Please also note that new "
+                              "dependencies or changed ones will be correctly "
+                              "detected only after Spyder is restarted.")
                               % (', '.join(opt_mods[:-1]), opt_mods[-1]))
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignJustify)

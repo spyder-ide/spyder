@@ -186,9 +186,7 @@ def shorten_paths(path_list, is_unsaved):
 
 
 class KeyPressFilter(QObject):
-    """
-    Use with `installEventFilter` to get up/down arrow key press signal.
-    """
+    """Use with `installEventFilter` to get up/down arrow key press signal."""
     UP, DOWN = [-1, 1]  # Step constants
 
     sig_up_key_pressed = Signal()
@@ -202,6 +200,23 @@ class KeyPressFilter(QObject):
                 self.sig_down_key_pressed.emit()
 
         return super(KeyPressFilter, self).eventFilter(src, e)
+
+
+class FilesFilterLine(QLineEdit):
+    """QLineEdit used to filter files by name."""
+
+    # User has not clicked outside this widget
+    clicked_outside = False
+
+    def focusOutEvent(self, event):
+        """
+        Detect when the focus goes out of this widget.
+
+        This is used to make the file switcher leave focus on the
+        last selected file by the user.
+        """
+        self.clicked_outside = True
+        return super(QLineEdit, self).focusOutEvent(event)
 
 
 class FileSwitcher(QDialog):
@@ -237,10 +252,10 @@ class FileSwitcher(QDialog):
 
         # Either allow searching for a line number or a symbol but not both
         regex = QRegExp("([A-Za-z0-9_]{0,100}@[A-Za-z0-9_]{0,100})|" +
-                        "([A-Za-z]{0,100}:{0,1}[0-9]{0,100})")
+                        "([A-Za-z0-9_]{0,100}:{0,1}[0-9]{0,100})")
 
         # Widgets
-        self.edit = QLineEdit(self)
+        self.edit = FilesFilterLine(self)
         self.help = HelperToolButton()
         self.list = QListWidget(self)
         self.filter = KeyPressFilter()
@@ -296,7 +311,8 @@ class FileSwitcher(QDialog):
 
     @property
     def filenames(self):
-        return [self.tabs.tabText(index) for index in range(self.tabs.count())]
+        return [os.path.basename(getattr(td, 'filename',
+                                         None)) for td in self.data]
 
     @property
     def current_path(self):
@@ -315,6 +331,9 @@ class FileSwitcher(QDialog):
         """Get the normalized (lowecase) content of the filter text."""
         return to_text_string(self.edit.text()).lower()
 
+    def set_search_text(self, _str):
+        self.edit.setText(_str)
+
     def save_initial_state(self):
         """Saves initial cursors and initial active editor."""
         paths = self.paths
@@ -324,7 +343,12 @@ class FileSwitcher(QDialog):
         for i, editor in enumerate(self.editors):
             if editor is self.initial_editor:
                 self.initial_path = paths[i]
-            self.initial_cursors[paths[i]] = editor.textCursor()
+            # This try is needed to make the fileswitcher work with 
+            # plugins that does not have a textCursor.
+            try:
+                self.initial_cursors[paths[i]] = editor.textCursor()
+            except AttributeError:
+                pass
 
     def accept(self):
         self.is_visible = False
@@ -337,14 +361,15 @@ class FileSwitcher(QDialog):
         self.is_visible = False
         editors = self.editors_by_path
 
-        for path in self.initial_cursors:
-            cursor = self.initial_cursors[path]
-            if path in editors:
-                self.set_editor_cursor(editors[path], cursor)
+        if not self.edit.clicked_outside:
+            for path in self.initial_cursors:
+                cursor = self.initial_cursors[path]
+                if path in editors:
+                    self.set_editor_cursor(editors[path], cursor)
 
-        if self.initial_editor in self.paths_by_editor:
-            index = self.paths.index(self.initial_path)
-            self.sig_goto_file.emit(index)
+            if self.initial_editor in self.paths_by_editor:
+                index = self.paths.index(self.initial_path)
+                self.sig_goto_file.emit(index)
 
     def set_dialog_position(self):
         """Positions the file switcher dialog in the center of the editor."""
@@ -433,7 +458,7 @@ class FileSwitcher(QDialog):
         elif path:
             return self.tabs.widget(index)
         else:
-            return self.parent().get_current_editor()
+            return self.tabs.currentWidget()
 
     def set_editor_cursor(self, editor, cursor):
         """Set the cursor of an editor."""
@@ -506,7 +531,7 @@ class FileSwitcher(QDialog):
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
-                text_item += "<br><i>{0:}</i>".format(short_paths[index])
+                text_item += u"<br><i>{0:}</i>".format(short_paths[index])
                 results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget

@@ -15,6 +15,7 @@ from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
                             QVBoxLayout, QWidget)
 from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
                                      QWebEngineView, WEBENGINE)
+from qtpy.QtGui import QFontInfo
 
 # Local imports
 from spyder.config.base import _, DEV
@@ -82,6 +83,7 @@ class WebView(QWebEngineView):
         return self.selectedText()
         
     def set_font(self, font, fixed_font=None):
+        font = QFontInfo(font)
         settings = self.page().settings()
         for fontfamily in (settings.StandardFont, settings.SerifFont,
                            settings.SansSerifFont, settings.CursiveFont,
@@ -89,7 +91,7 @@ class WebView(QWebEngineView):
             settings.setFontFamily(fontfamily, font.family())
         if fixed_font is not None:
             settings.setFontFamily(settings.FixedFont, fixed_font.family())
-        size = font.pointSize()
+        size = font.pixelSize()
         settings.setFontSize(settings.DefaultFontSize, size)
         settings.setFontSize(settings.DefaultFixedFontSize, size)
         
@@ -142,7 +144,22 @@ class WebView(QWebEngineView):
         add_actions(menu, actions)
         menu.popup(event.globalPos())
         event.accept()
-                
+
+    def setHtml(self, html, baseUrl=QUrl()):
+        """
+        Reimplement Qt method to prevent WebEngine to steal focus
+        when setting html on the page
+
+        Solution taken from
+        https://bugreports.qt.io/browse/QTBUG-52999
+        """
+        if WEBENGINE:
+            self.setEnabled(False)
+            super(WebView, self).setHtml(html, baseUrl)
+            self.setEnabled(True)
+        else:
+            super(WebView, self).setHtml(html, baseUrl)
+
 
 class WebBrowser(QWidget):
     """

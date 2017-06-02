@@ -22,7 +22,11 @@ from spyder.utils.introspection.utils import get_parent_until
 from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
-    import jedi
+    try:
+        from spyder.utils.introspection import jedi_patch
+        jedi = jedi_patch.apply()
+    except ImportError:
+        import jedi
 except ImportError:
     jedi = None
 
@@ -48,6 +52,8 @@ class JediPlugin(IntrospectionPlugin):
     def get_completions(self, info):
         """Return a list of (completion, type) tuples"""
         completions = self.get_jedi_object('completions', info)
+        if DEBUG_EDITOR:
+            log_last_error(LOG_FILENAME, str("comp: " + str(completions)[:100]))
         completions = [(c.name, c.type) for c in completions]
         debug_print(str(completions)[:100])
         return completions
@@ -232,42 +238,3 @@ class JediPlugin(IntrospectionPlugin):
         if not ext in self.all_editable_exts():
             line_nr = None
         return module_path, line_nr
-
-if __name__ == '__main__':
-
-    from spyder.utils.introspection.manager import CodeInfo
-
-    p = JediPlugin()
-    p.load_plugin()
-
-    source_code = "import numpy; numpy.ones("
-    docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
-
-    assert docs['calltip'].startswith('ones(') and docs['name'] == 'ones'
-
-    source_code = "import n"
-    completions = p.get_completions(CodeInfo('completions', source_code,
-        len(source_code)))
-    assert ('numpy', 'module') in completions
-
-    source_code = "import pandas as pd; pd.DataFrame"
-    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
-        len(source_code)))
-    assert 'frame.py' in path
-
-    source_code = 'from .utils import CodeInfo'
-    path, line_nr = p.get_definition(CodeInfo('definition', source_code,
-        len(source_code), __file__))
-    assert 'utils.py' in path and 'introspection' in path
-
-    code = '''
-def test(a, b):
-    """Test docstring"""
-    pass
-test(1,'''
-    path, line = p.get_definition(CodeInfo('definition', code, len(code),
-        'dummy.txt', is_python_like=True))
-    assert line == 2
-
-    docs = p.get_info(CodeInfo('info', code, len(code), __file__))
-    assert 'Test docstring' in docs['docstring']

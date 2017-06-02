@@ -9,7 +9,8 @@ Copyright © Spyder Project Contributors.
 
 ## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
-[![AppVeyor status](https://ci.appveyor.com/api/projects/status/awb92if4tl555fuy/branch/master?svg=true)](https://ci.appveyor.com/project/ccordoba12/spyder/branch/master)
+[![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
+[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=svg)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 
 ## Overview
@@ -71,12 +72,11 @@ The easiest way to install Spyder is:
 
 ### On Windows:
 
-- Or using one of these scientific Python distributions:
-  1. [Anaconda](http://continuum.io/downloads)
-  2. [WinPython](https://winpython.github.io/)
-  3. [Python(x,y)](http://python-xy.github.io)
-- Using one of our executable installers, which can be found
-  [here](https://github.com/spyder-ide/spyder/releases).
+Using one (and only one) of these scientific Python distributions:
+
+1. [Anaconda](http://continuum.io/downloads)
+2. [WinPython](https://winpython.github.io/)
+3. [Python(x,y)](http://python-xy.github.io)
 
 ### On Mac OSX:
 
@@ -109,7 +109,7 @@ For more details on supported platforms, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
 
 **Important note**: This does not install the graphical Python libraries (i.e.
-PyQt5 or PyQt4) that Spyder depend on. Those have to be installed separately
+PyQt5 or PyQt4) that Spyder depends on. Those have to be installed separately
 after installing Python.
 
 
@@ -149,14 +149,16 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Sphinx**: Rich text mode for the Help pane.
 * **Pygments** 2.0+: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
-* **Pep8**: Style analysis.
+* **Pycodestyle**: Style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome**: To have an icon theme based on FontAwesome.
+* **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Run introspection services asynchronously.
 * **QtPy** 1.1.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
   and PyQt5.
+* **Chardet**: Character encoding auto-detection in Python.
+* **Numpydoc**: Used by Jedi to get return types for functions with Numpydoc docstrings.
 
 ### Optional dependencies
 
@@ -165,6 +167,14 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
+* **Cython**: Run Cython files in the IPython console.
+
+
+## Contributing
+
+Everyone is welcome to contribute. Please read our
+[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md),
+then get started!
 
 
 ## More information

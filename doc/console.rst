@@ -33,29 +33,4 @@ Related plugins:
 * :doc:`help`
 * :doc:`historylog`
 * :doc:`editor`
-* :doc:`explorer`
-
-
-Reloading modules: the User Module Deleter (UMD)
-------------------------------------------------
-
-When working with Python scripts interactively, one must keep in mind that 
-Python import a module from its source code (on disk) only when parsing the
-first corresponding import statement. During this first import, the byte code 
-is generated (.pyc file) if necessary and the imported module code object is 
-cached in `sys.modules`. Then, when re-importing the same module, this cached 
-code object will be directly used even if the source code file (.py[w] file) 
-has changed meanwhile.
-
-This behavior is sometimes unexpected when working with the Python interpreter 
-in interactive mode, because one must either always restart the interpreter 
-or remove manually the .pyc files to be sure that changes made in imported 
-modules were taken into account.
-
-The User Module Deleter (UMD) is a Spyder console's exclusive feature that 
-forces the Python interpreter to reload modules completely when executing 
-a Python script.
-
-For example, when UMD is turned on, one may test complex applications 
-within the same Python interpreter without having to restart it every time 
-(restart time may be relatively long when testing GUI-based applications).
+* :doc:`fileexplorer`

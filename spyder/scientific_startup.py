@@ -12,22 +12,20 @@ Requires NumPy, SciPy and Matplotlib
 
 # Need a temporary print function that is Python version agnostic.
 import sys
+import os
 
 def exec_print(string="", end_space=False):
     if sys.version[0] == '2':
         if end_space:
-            exec("print '" + string + "',")
+            exec("print '" + string + "',")  # spyder: test-skip
         else:
-            exec("print '" + string + "'")
+            exec("print '" + string + "'")  # spyder: test-skip
     else:
         if end_space:
-            exec("print('" + string + "', end=' ')")
+            exec("print('" + string + "', end=' ')")  # spyder: test-skip
         else:
-            exec("print('" + string + "')")
+            exec("print('" + string + "')")  # spyder: test-skip
 
-__has_numpy = True
-__has_scipy = True
-__has_matplotlib = True
 
 #==============================================================================
 # Pollute the namespace but also provide MATLAB-like experience
@@ -42,46 +40,52 @@ except ImportError:
 # Import modules following official guidelines:
 try:
     import numpy as np
+    __has_numpy = True
 except ImportError:
     __has_numpy = False
 
 try:
     import scipy as sp
+    __has_scipy = True
 except ImportError:
     __has_scipy = False
 
 try:
     import matplotlib as mpl
     import matplotlib.pyplot as plt  #analysis:ignore
+    __has_matplotlib = True
 except ImportError:
     __has_matplotlib = False
 
-#==============================================================================
-# Print what modules have been imported
-#==============================================================================
-__imports = ""
-if __has_numpy:
-    __imports += "Imported NumPy %s" % np.__version__
-if __has_scipy:
-    __imports += ", SciPy %s" % sp.__version__
-if __has_matplotlib:
-    __imports += ", Matplotlib %s" % mpl.__version__
-
-exec_print("")
-if __imports:
-    exec_print(__imports)
-
-import os
+__has_guiqwt = False
 if os.environ.get('QT_API') != 'pyside':
     try:
         import guiqwt
         import guiqwt.pyplot as plt_
         import guidata
         plt_.ion()
-        exec_print("+ guidata %s, guiqwt %s" % (guidata.__version__,
-                                           guiqwt.__version__))
+        __has_guiqwt = True
     except (ImportError, AssertionError):
-        exec_print()
+        pass
+
+#==============================================================================
+# Print what modules have been imported
+#==============================================================================
+__imports = []
+if __has_numpy:
+    __imports.append("NumPy {}".format(np.__version__))
+if __has_scipy:
+    __imports.append("SciPy {}".format(sp.__version__))
+if __has_matplotlib:
+    __imports.append("Matplotlib {}".format(mpl.__version__))
+if __has_guiqwt:
+    __imports.append("guidata {}".format(guidata.__version__))
+    __imports.append("guiqwt {}".format(guiqwt.__version__))
+
+exec_print()
+if __imports:
+    exec_print("Imported " + ", ".join(__imports))
+exec_print()
 
 #==============================================================================
 # Add help about the "scientific" command
@@ -108,18 +112,15 @@ computing and visualization. It tries to import the following modules:
 >>> from pylab import *              # Matplotlib's pylab interface
 >>> ion()                            # Turned on Matplotlib's interactive mode"""
     
-    try:
-        import guiqwt  #analysis:ignore
+    if __has_guiqwt:
         infos += """
 >>> import guidata  # GUI generation for easy dataset editing and display
 
 >>> import guiqwt                 # Efficient 2D data-plotting features
 >>> import guiqwt.pyplot as plt_  # guiqwt's pyplot: MATLAB-like syntax
 >>> plt_.ion()                    # Turned on guiqwt's interactive mode"""
-    except ImportError:
-        pass
     
-    if __has_numpy:
+    if __imports:
         infos += "\n"
 
     infos += """
@@ -150,4 +151,4 @@ exec_print('Type "scientific" for more details.')
 #==============================================================================
 # Delete temp vars
 #==============================================================================
-del setscientific, __has_numpy, __has_scipy, __has_matplotlib, __imports, exec_print
+del setscientific, __has_numpy, __has_scipy, __has_matplotlib, __has_guiqwt, __imports, exec_print

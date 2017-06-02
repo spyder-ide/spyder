@@ -6,16 +6,20 @@
 """
 Filesystem-based interprocess mutex.
 
-Changes by the Spyder Team to the original Twisted file:
--. Rewrite kill Windows function to make it more reliable
+Taken from the Twisted project.
+Distributed under the MIT license.
+
+Changes by the Spyder Team to the original module:
+  * Rewrite kill Windows function to make it more reliable.
+  * Detect if the process that owns the lock is an Spyder one.
 """
 
 __metaclass__ = type
 
 import errno, os
-
 from time import time as _uniquefloat
 
+import psutil
 from spyder.py3compat import PY2, to_binary_string
 
 def unique():
@@ -171,10 +175,23 @@ class FilesystemLock:
                     try:
                         if kill is not None:
                             kill(int(pid), 0)
+                        # Verify that the running process corresponds to
+                        # a Spyder one
+                        p = psutil.Process(int(pid))
+                        if os.name == 'nt':
+                            conditions = ['spyder' in c.lower()
+                                          for c in p.cmdline()]
+                        else:
+                            conditions = [p.name() == 'spyder',
+                                          p.name() == 'spyder3']
+                        # For DEV
+                        conditions += ['bootstrap.py' in p.cmdline()]
+                        if not any(conditions):
+                            raise(OSError(errno.ESRCH, 'No such process'))
                     except OSError as e:
                         if e.errno == errno.ESRCH:
-                            # The owner has vanished, try to claim it in the next
-                            # iteration through the loop.
+                            # The owner has vanished, try to claim it in the
+                            # next iteration through the loop.
                             try:
                                 rmlink(self.name)
                             except OSError as e:

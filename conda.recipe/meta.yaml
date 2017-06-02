@@ -26,12 +26,14 @@ requirements:
     - nbconvert
     - pygments >=2.0
     - sphinx
-    - pep8
+    - pycodestyle
     - psutil
     - pylint
-    - qtawesome
+    - qtawesome >=0.4.1
     - qtpy >=1.1.0
     - pyzmq
+    - chardet >=2.0.0
+    - numpydoc
 
 about:
   home: https://github.com/spyder-ide/spyder

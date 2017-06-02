@@ -32,7 +32,7 @@ import numpy as np
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, fixed_shortcut
+from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import (io, is_binary_string, is_string,
                               is_text_string, PY3, to_binary_string,
                               to_text_string)
@@ -158,7 +158,7 @@ class ArrayModel(QAbstractTableModel):
             self.hue0 = huerange[0]
             self.dhue = huerange[1]-huerange[0]
             self.bgcolor_enabled = True
-        except TypeError:
+        except (TypeError, ValueError):
             self.vmin = None
             self.vmax = None
             self.hue0 = None
@@ -306,7 +306,7 @@ class ArrayModel(QAbstractTableModel):
         try:
             self.test_array[0] = val # will raise an Exception eventually
         except OverflowError as e:
-            print(type(e.message))
+            print(type(e.message))  # spyder: test-skip
             QMessageBox.critical(self.dialog, "Error",
                                  "Overflow error: %s" % e.message)
             return False
@@ -399,7 +399,8 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        fixed_shortcut(QKeySequence.Copy, self, self.copy)
+        config_shortcut(self.copy, context='variable_explorer', name='copy',
+                        parent=self)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
@@ -491,7 +492,7 @@ class ArrayView(QTableView):
             output = io.StringIO()
         try:
             np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t')
+                       delimiter='\t', fmt=self.model().get_format())
         except:
             QMessageBox.warning(self, _("Warning"),
                                 _("It was not possible to copy values for "
@@ -605,11 +606,10 @@ class ArrayEditor(QDialog):
         self.data.flags.writeable = True
         is_record_array = data.dtype.names is not None
         is_masked_array = isinstance(data, np.ma.MaskedArray)
-        if data.size == 0:
-            self.error(_("Array is empty"))
-            return False
+
         if data.ndim > 3:
-            self.error(_("Arrays with more than 3 dimensions are not supported"))
+            self.error(_("Arrays with more than 3 dimensions are not "
+                         "supported"))
             return False
         if xlabels is not None and len(xlabels) != self.data.shape[1]:
             self.error(_("The 'xlabels' argument length do no match array "

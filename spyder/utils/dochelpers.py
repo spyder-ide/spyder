@@ -15,7 +15,7 @@ import re
 from spyder.utils import encoding
 from spyder.py3compat import (is_text_string, builtins, get_meth_func,
                               get_meth_class_inst, get_meth_class,
-                              get_func_defaults, to_text_string)
+                              get_func_defaults, to_text_string, PY2)
 
 
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
@@ -112,10 +112,17 @@ def getdoc(obj):
             doc['note'] = 'Function'
         doc['name'] = obj.__name__
         if inspect.isfunction(obj):
-            args, varargs, varkw, defaults = inspect.getargspec(obj)
-            doc['argspec'] = inspect.formatargspec(args, varargs, varkw,
-                                              defaults,
-                                              formatvalue=lambda o:'='+repr(o))
+            if PY2:
+                args, varargs, varkw, defaults = inspect.getargspec(obj)
+                doc['argspec'] = inspect.formatargspec(
+                    args, varargs, varkw, defaults,
+                    formatvalue=lambda o:'='+repr(o))
+            else:
+                (args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
+                 annotations) = inspect.getfullargspec(obj)
+                doc['argspec'] = inspect.formatargspec(
+                    args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults,
+                    annotations, formatvalue=lambda o:'='+repr(o))
             if name == '<lambda>':
                 doc['name'] = name + ' lambda '
                 doc['argspec'] = doc['argspec'][1:-1] # remove parentheses
@@ -324,14 +331,14 @@ if __name__ == "__main__":
     class Test(object):
         def method(self, x, y=2):
             pass
-    print(getargtxt(Test.__init__))
-    print(getargtxt(Test.method))
-    print(isdefined('numpy.take', force_import=True))
-    print(isdefined('__import__'))
-    print(isdefined('.keys', force_import=True))
-    print(getobj('globals'))
-    print(getobj('globals().keys'))
-    print(getobj('+scipy.signal.'))
-    print(getobj('4.'))
-    print(getdoc(sorted))
-    print(getargtxt(sorted))
+    print(getargtxt(Test.__init__))  # spyder: test-skip
+    print(getargtxt(Test.method))  # spyder: test-skip
+    print(isdefined('numpy.take', force_import=True))  # spyder: test-skip
+    print(isdefined('__import__'))  # spyder: test-skip
+    print(isdefined('.keys', force_import=True))  # spyder: test-skip
+    print(getobj('globals'))  # spyder: test-skip
+    print(getobj('globals().keys'))  # spyder: test-skip
+    print(getobj('+scipy.signal.'))  # spyder: test-skip
+    print(getobj('4.'))  # spyder: test-skip
+    print(getdoc(sorted))  # spyder: test-skip
+    print(getargtxt(sorted))  # spyder: test-skip

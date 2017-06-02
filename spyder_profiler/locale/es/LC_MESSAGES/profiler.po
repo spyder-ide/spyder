@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2016-09-24 04:45+COT\n"
+"POT-Creation-Date: 2017-04-19 18:02+COT\n"
 "PO-Revision-Date: 2012-06-25 21:59-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
@@ -163,26 +163,26 @@ msgstr ""
 msgid "File:line"
 msgstr ""
 
-#: spyder_profiler/widgets/profilergui.py:537
+#: spyder_profiler/widgets/profilergui.py:565
 msgid "Function or module name"
 msgstr ""
 
-#: spyder_profiler/widgets/profilergui.py:541
+#: spyder_profiler/widgets/profilergui.py:569
 msgid "Time in function (including sub-functions)"
 msgstr ""
 
-#: spyder_profiler/widgets/profilergui.py:550
+#: spyder_profiler/widgets/profilergui.py:578
 msgid "Local time in function (not in sub-functions)"
 msgstr ""
 
-#: spyder_profiler/widgets/profilergui.py:560
+#: spyder_profiler/widgets/profilergui.py:588
 msgid "Total number of calls (including recursion)"
 msgstr ""
 
-#: spyder_profiler/widgets/profilergui.py:570
+#: spyder_profiler/widgets/profilergui.py:598
 msgid "File:line where function is defined"
 msgstr ""
 
-#: spyder_profiler/widgets/profilergui.py:575
+#: spyder_profiler/widgets/profilergui.py:603
 msgid "recursion"
 msgstr ""

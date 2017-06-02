@@ -39,6 +39,11 @@ DEV = os.environ.get('SPYDER_DEV')
 TEST = os.environ.get('SPYDER_TEST')
 
 
+# To do some adjustments for pytest
+# This env var is defined in runtests.py
+PYTEST = os.environ.get('SPYDER_PYTEST')
+
+
 #==============================================================================
 # Debug helpers
 #==============================================================================
@@ -209,6 +214,7 @@ def get_image_path(name, default="not_found.png"):
         if osp.isfile(full_path):
             return osp.abspath(full_path)
     if default is not None:
+        img_path = osp.join(get_module_path('spyder'), 'images')
         return osp.abspath(osp.join(img_path, default))
 
 
@@ -228,6 +234,8 @@ LANGUAGE_CODES = {'en': u'English',
                   'ja': u'日本語'
                   }
 
+# Disabled languages (because their translations are outdated)
+DISABLED_LANGUAGES = []
 
 def get_available_translations():
     """
@@ -241,6 +249,9 @@ def get_available_translations():
     listdir = os.listdir(locale_path)
     langs = [d for d in listdir if osp.isdir(osp.join(locale_path, d))]
     langs = [DEFAULT_LANGUAGE] + langs
+
+    # Remove disabled languages
+    langs = list( set(langs) - set(DISABLED_LANGUAGES) )
 
     # Check that there is a language code available in case a new translation
     # is added, to ensure LANGUAGE_CODES is updated.
@@ -265,7 +276,12 @@ def get_interface_language():
     2.) Spyder provides ('en',  'fr', 'es' and 'pt_BR'), if the locale is
     either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
-    locale_language = locale.getdefaultlocale()[0]
+
+    # Solves issue #3627
+    try:
+        locale_language = locale.getdefaultlocale()[0]
+    except ValueError:
+        locale_language = DEFAULT_LANGUAGE
 
     language = DEFAULT_LANGUAGE
 
@@ -301,6 +317,12 @@ def load_lang_conf():
     else:
         lang = get_interface_language()
         save_lang_conf(lang)
+
+    # Save language again if it's been disabled
+    if lang.strip('\n') in DISABLED_LANGUAGES:
+        lang = DEFAULT_LANGUAGE
+        save_lang_conf(lang)
+
     return lang
 
 
@@ -332,7 +354,7 @@ def get_translation(modname, dirname=None):
                 return to_text_string(y, "utf-8")
         return translate_gettext
     except IOError as _e:  # analysis:ignore
-        #print "Not using translations (%s)" % _e
+        # Not using translations
         def translate_dumb(x):
             if not is_unicode(x):
                 return to_text_string(x, "utf-8")
@@ -367,8 +389,8 @@ def get_supported_types():
     except ImportError:
         pass
     try:
-        from pandas import DataFrame, Series
-        editable_types += [DataFrame, Series]
+        from pandas import DataFrame, Series, DatetimeIndex
+        editable_types += [DataFrame, Series, DatetimeIndex]
     except ImportError:
         pass
     picklable_types = editable_types[:]

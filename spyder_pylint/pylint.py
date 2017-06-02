@@ -23,7 +23,7 @@ from spyder.config.base import get_translation
 from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
 
 
@@ -136,7 +136,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis")
         
-        self.main.source_menu_actions += [None, pylint_act]
+        self.main.source_menu_actions += [MENU_SEPARATOR, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
 
     def refresh_plugin(self):
@@ -157,7 +157,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     @Slot()
     def change_history_depth(self):
         "Change history max entries"""
-        depth, valid = QInputDialog.getInteger(self, _('History'),
+        depth, valid = QInputDialog.getInt(self, _('History'),
                                        _('Maximum entries'),
                                        self.get_option('max_entries'),
                                        10, 10000)

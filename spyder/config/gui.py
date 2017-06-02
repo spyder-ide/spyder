@@ -16,7 +16,6 @@ Important note regarding shortcuts:
 
 # Standard library imports
 from collections import namedtuple
-import sys
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -28,14 +27,6 @@ from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils import syntaxhighlighters as sh
-
-
-# Run cell shortcuts
-if sys.platform == 'darwin':
-    RUN_CELL_SHORTCUT = Qt.META + Qt.Key_Return
-else:
-    RUN_CELL_SHORTCUT = Qt.CTRL + Qt.Key_Return
-RUN_CELL_AND_ADVANCE_SHORTCUT = Qt.SHIFT + Qt.Key_Return
 
 
 # To save metadata about widget shortcuts (needed to build our
@@ -57,7 +48,7 @@ def get_family(families):
         if font_is_installed(family):
             return family
     else:
-        print("Warning: None of the following fonts is installed: %r" % families)
+        print("Warning: None of the following fonts is installed: %r" % families)  # spyder: test-skip
         return QFont().family()
 
 
@@ -110,7 +101,11 @@ def set_shortcut(context, name, keystr):
 
 
 def fixed_shortcut(keystr, parent, action):
-    """Define a fixed shortcut according to a keysequence string"""
+    """
+    DEPRECATED: This function will be removed in Spyder 4.0
+
+    Define a fixed shortcut according to a keysequence string
+    """
     sc = QShortcut(QKeySequence(keystr), parent, action)
     sc.setContext(Qt.WidgetWithChildrenShortcut)
     return sc
@@ -124,7 +119,8 @@ def config_shortcut(action, context, name, parent):
     our shortcuts preferences page
     """
     keystr = get_shortcut(context, name)
-    qsc = fixed_shortcut(keystr, parent, action)
+    qsc = QShortcut(QKeySequence(keystr), parent, action)
+    qsc.setContext(Qt.WidgetWithChildrenShortcut)
     sc = Shortcut(data=(qsc, context, name))
     return sc
 
