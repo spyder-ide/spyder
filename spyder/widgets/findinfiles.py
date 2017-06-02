@@ -488,23 +488,6 @@ class FileMatchItem(QTreeWidgetItem):
         return self.filename >= x.filename
 
 
-class FileMatchWidget(QWidget):
-    def __init__(self, parent, file):
-        QWidget.__init__(self, parent)
-
-        layout = QVBoxLayout(self)
-        file_label = QLabel('<strong>{}</stong>'.format(osp.basename(file)),
-                            self)
-        path_label = QLabel('<small>{}</small>'.format(osp.dirname(file)),
-                            self)
-        layout.addWidget(file_label)
-        layout.addWidget(path_label)
-        self.setLayout(layout)
-        self.setContentsMargins(0, 0, 0, 0)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-
 class ItemDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         QStyledItemDelegate.__init__(self, parent)
