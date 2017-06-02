@@ -27,8 +27,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QToolButton,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import (_, get_conf_path, get_image_path,
-                                get_module_source_path)
+from spyder.config.base import _, get_image_path, get_module_source_path
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
@@ -81,7 +80,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     to print different messages there.
     """
 
-    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
+    INITHISTORY = ['# -*- coding: utf-8 -*-',
+                   '# *** Spyder Python Console History Log ***',]
+
     append_to_history = Signal(str, str)
 
     def __init__(self, plugin, name, history_filename, config_options,
@@ -90,11 +92,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  menu_actions=None, slave=False,
                  external_kernel=False):
         super(ClientWidget, self).__init__(plugin)
-        SaveHistoryMixin.__init__(self)
+        SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
         self.name = name
-        self.history_filename = get_conf_path(history_filename)
         self.connection_file = connection_file
         self.hostname = hostname
         self.menu_actions = menu_actions

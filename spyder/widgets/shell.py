@@ -58,7 +58,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         parent : specifies the parent widget
         """
         ConsoleBaseWidget.__init__(self, parent)
-        SaveHistoryMixin.__init__(self)
+        SaveHistoryMixin.__init__(self, history_filename)
         BrowseHistoryMixin.__init__(self)
                 
         # Prompt position: tuple (line, index)
@@ -67,7 +67,6 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
         
         # History
         assert is_text_string(history_filename)
-        self.history_filename = history_filename
         self.history = self.load_history()
         
         # Session
