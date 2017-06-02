@@ -157,6 +157,11 @@ class FindReplace(QWidget):
 
 
     def eventFilter(self, widget, event):
+        """Event filter for search_text widget.
+
+        Emits signals when presing Enter and Shift+Enter.
+        This signals are used for search forward and backward.
+        """
         if (event.type() == QEvent.KeyPress):
             key = event.key()
             shift = event.modifiers() & Qt.ShiftModifier
