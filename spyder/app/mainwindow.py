@@ -143,7 +143,6 @@ from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
-from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.py3compat import (getcwd, is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
@@ -476,11 +475,6 @@ class MainWindow(QMainWindow):
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
         self.maximized_flag = None
-
-        # Track which console plugin type had last focus
-        # True: Console plugin
-        # False: IPython console plugin
-        self.last_console_plugin_focus_was_python = True
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
@@ -882,11 +876,10 @@ class MainWindow(QMainWindow):
         self.variableexplorer.register_plugin()
 
         # IPython console
-        if QTCONSOLE_INSTALLED:
-            self.set_splash(_("Loading IPython console..."))
-            from spyder.plugins.ipythonconsole import IPythonConsole
-            self.ipyconsole = IPythonConsole(self)
-            self.ipyconsole.register_plugin()
+        self.set_splash(_("Loading IPython console..."))
+        from spyder.plugins.ipythonconsole import IPythonConsole
+        self.ipyconsole = IPythonConsole(self)
+        self.ipyconsole.register_plugin()
 
         # Third-party plugins
         self.set_splash(_("Loading third-party plugins..."))
@@ -986,7 +979,7 @@ class MainWindow(QMainWindow):
                                 programs.start_file(get_python_doc_path()))
             self.help_menu_actions.append(pydoc_act)
         # IPython documentation
-        if self.ipyconsole is not None and self.help is not None:
+        if self.help is not None:
             ipython_menu = QMenu(_("IPython documentation"), self)
             intro_action = create_action(self, _("Intro to IPython"),
                                         triggered=self.ipyconsole.show_intro)
@@ -1217,16 +1210,9 @@ class MainWindow(QMainWindow):
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
-        plugins_to_show = []
+        plugins_to_show = [self.ipyconsole]
         if self.help is not None:
             plugins_to_show.append(self.help)
-        if self.ipyconsole is not None:
-            if self.ipyconsole.isvisible:
-                plugins_to_show += [self.extconsole, self.ipyconsole]
-            else:
-                plugins_to_show += [self.ipyconsole, self.extconsole]
-        else:
-            plugins_to_show += [self.extconsole]
         for plugin in plugins_to_show:
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
@@ -1236,8 +1222,7 @@ class MainWindow(QMainWindow):
         self.extconsole.toggle_view_action.setChecked(False)
 
         # Show history file if no console is visible
-        ipy_visible = self.ipyconsole is not None and self.ipyconsole.isvisible
-        if not self.extconsole.isvisible and not ipy_visible:
+        if not self.ipyconsole.isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
 
         if self.open_project:
@@ -1948,16 +1933,6 @@ class MainWindow(QMainWindow):
         self.update_edit_menu()
         self.update_search_menu()
 
-        # Now deal with Python shell and IPython plugins
-        if self.ipyconsole is not None:
-            focus_client = self.ipyconsole.get_focus_client()
-            if focus_client is not None:
-                self.last_console_plugin_focus_was_python = False
-        else:
-            shell = get_focus_python_shell()
-            if shell is not None:
-                self.last_console_plugin_focus_was_python = True
-
     def show_shortcuts(self, menu):
         """Show action shortcuts in menu"""
         for element in getattr(self, menu + '_menu_actions'):
@@ -2446,11 +2421,7 @@ class MainWindow(QMainWindow):
         Execute lines in external or IPython console and eventually set focus
         to the editor
         """
-        console = self.extconsole
-        if self.ipyconsole is None or self.last_console_plugin_focus_was_python:
-            console = self.extconsole
-        else:
-            console = self.ipyconsole
+        console = self.ipyconsole
         console.visibility_changed(True)
         console.raise_()
         console.execute_code(lines)

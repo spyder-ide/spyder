@@ -60,14 +60,18 @@ from spyder.widgets.ipythonconsole import ClientWidget
 from spyder.widgets.tabs import Tabs
 
 
+# Dependencies
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
 
-
 CYTHON_REQVER = '>=0.21'
 dependencies.add("cython", _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
+
+QTCONSOLE_REQVER = ">=4.2.0"
+dependencies.add("qtconsole", _("Integrate the IPython console"),
+                 required_version=QTCONSOLE_REQVER)
 
 
 #------------------------------------------------------------------------------
@@ -740,8 +744,6 @@ class IPythonConsole(SpyderPluginWidget):
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
-        if not self.testing:
-            self.main.last_console_plugin_focus_was_python = False
         self.sig_update_plugin_title.emit()
 
     def get_plugin_actions(self):
