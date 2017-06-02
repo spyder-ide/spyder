@@ -14,7 +14,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QThread, QUrl, Signal, Slot
-from qtpy.QtWidgets import (QActionGroup, QComboBox, QGroupBox, QHBoxLayout,
+from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QMessageBox, QSizePolicy,
                             QToolButton, QVBoxLayout, QWidget)
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
@@ -24,7 +24,6 @@ from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
@@ -36,7 +35,7 @@ from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.sourcecode import codeeditor
-
+from spyder.plugins.help.confpage import HelpConfigPage
 
 # Sphinx dependency
 dependencies.add("sphinx", _("Show help for objects in the Editor and "
@@ -100,67 +99,6 @@ class ObjectComboBox(EditableComboBox):
                     self.selected()
                 else:
                     self.valid.emit(False, False)
-
-
-class HelpConfigPage(PluginConfigPage):
-    def setup_page(self):
-        # Connections group
-        connections_group = QGroupBox(_("Automatic connections"))
-        connections_label = QLabel(_("This pane can automatically "
-                                     "show an object's help information after "
-                                     "a left parenthesis is written next to it. "
-                                     "Below you can decide to which plugin "
-                                     "you want to connect it to turn on this "
-                                     "feature."))
-        connections_label.setWordWrap(True)
-        editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
-        rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.8.1')
-        editor_box.setEnabled(rope_installed or jedi_installed)
-        if not rope_installed and not jedi_installed:
-            editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
-                           "It seems you don't have either installed.")
-            editor_box.setToolTip(editor_tip)
-        ipython_box = self.create_checkbox(_("IPython Console"),
-                                           'connect/ipython_console')
-
-        connections_layout = QVBoxLayout()
-        connections_layout.addWidget(connections_label)
-        connections_layout.addWidget(editor_box)
-        connections_layout.addWidget(ipython_box)
-        connections_group.setLayout(connections_layout)
-
-        # Features group
-        features_group = QGroupBox(_("Additional features"))
-        math_box = self.create_checkbox(_("Render mathematical equations"),
-                                        'math')
-        req_sphinx = programs.is_module_installed('sphinx', '>=1.1')
-        math_box.setEnabled(req_sphinx)
-        if not req_sphinx:
-            sphinx_ver = programs.get_module_version('sphinx')
-            sphinx_tip = _("This feature requires Sphinx 1.1 or superior.")
-            sphinx_tip += "\n" + _("Sphinx %s is currently installed.") % sphinx_ver
-            math_box.setToolTip(sphinx_tip)
-
-        features_layout = QVBoxLayout()
-        features_layout.addWidget(math_box)
-        features_group.setLayout(features_layout)
-
-        # Source code group
-        sourcecode_group = QGroupBox(_("Source code"))
-        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
-
-        sourcecode_layout = QVBoxLayout()
-        sourcecode_layout.addWidget(wrap_mode_box)
-        sourcecode_group.setLayout(sourcecode_layout)
-
-        # Final layout
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(connections_group)
-        vlayout.addWidget(features_group)
-        vlayout.addWidget(sourcecode_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
 
 
 class RichText(QWidget):
