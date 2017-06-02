@@ -362,12 +362,8 @@ class DirView(QTreeView):
             _title = _("Open command prompt here")
         else:
             _title = _("Open terminal here")
-        action = create_action(self, _title, icon=ima.icon('cmdprompt'),
-                               triggered=lambda:
-                               self.open_terminal(fnames))
-        actions.append(action)
-        _title = _("Open Python console here")
-        action = create_action(self, _title, icon=ima.icon('python'),
+        _title = _("Open IPython console here")
+        action = create_action(self, _title,
                                triggered=lambda:
                                self.open_interpreter(fnames))
         actions.append(action)
@@ -506,12 +502,7 @@ class DirView(QTreeView):
             ok = programs.start_file(path)
             if not ok:
                 self.parent_widget.edit.emit(path)
-                
-    def open_terminal(self, fnames):
-        """Open terminal"""
-        for path in sorted(fnames):
-            self.parent_widget.open_terminal.emit(path)
-            
+
     def open_interpreter(self, fnames):
         """Open interpreter"""
         for path in sorted(fnames):

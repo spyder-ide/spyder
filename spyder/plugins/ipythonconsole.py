@@ -788,7 +788,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
         self.editor = self.main.editor
-        
+        self.explorer = self.main.explorer
+        self.projects = self.main.projects
+
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.edit_goto.connect(self.editor.load)
         self.edit_goto[str, int, str, bool].connect(
@@ -800,6 +802,8 @@ class IPythonConsole(SpyderPluginWidget):
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
+        self.explorer.open_interpreter.connect(self.create_client_from_path)
+        self.projects.open_interpreter.connect(self.create_client_from_path)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -885,7 +889,10 @@ class IPythonConsole(SpyderPluginWidget):
             sw.write_to_stdin(line)
 
     @Slot()
-    def create_new_client(self, give_focus=True):
+    @Slot(bool)
+    @Slot(str)
+    @Slot(bool, str)
+    def create_new_client(self, give_focus=True, path=''):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
@@ -926,7 +933,7 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
-        self.connect_client_to_kernel(client)
+        self.connect_client_to_kernel(client, path)
         self.register_client(client)
 
     @Slot()
@@ -940,7 +947,7 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client):
+    def connect_client_to_kernel(self, client, path):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
         stderr_file = client.stderr_file
@@ -954,6 +961,9 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
+
+        if path:
+            shellwidget.set_cwd(path)
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
@@ -1224,6 +1234,11 @@ class IPythonConsole(SpyderPluginWidget):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
+
+    @Slot(str)
+    def create_client_from_path(self, path):
+        """Create a client with its cwd pointing to path"""
+        self.create_new_client(path=path)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
