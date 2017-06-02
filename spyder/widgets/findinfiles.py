@@ -128,17 +128,42 @@ class SearchThread(QThread):
 
     def truncate_result(self, line, start, end):
         ellipsis = '...'
-        line = line[:start] + '<b>' + line[start:end] + '</b>' + line[end:]
-        before_offset = 4
-        start = max(0, start - 3)
-        end += 3
-        if len(line) > 80:
-            if start <= before_offset:
-                before_offset = 0
-                ellipsis = ''
-            trunc_line = ellipsis + line[start - before_offset:end + 4]
-        else:
-            trunc_line = line
+
+        left, match, right = line[:start], line[start:end], line[end:]
+        max_line_length = 40
+        offset = (len(line) - len(match)) // 2
+
+        left = left.split(' ')
+        num_left_words = len(left)
+
+        if num_left_words == 1:
+            left = left[0]
+            if len(left) > max_line_length:
+                left = ellipsis + left[-offset:]
+            left = [left]
+
+        right = right.split(' ')
+        num_right_words = len(right)
+
+        if num_right_words == 1:
+            right = right[0]
+            if len(right) > max_line_length:
+                right = right[:offset] + ellipsis
+            right = [right]
+
+        left = left[-3:]
+        right = right[:3]
+
+        if len(left) < num_left_words:
+            left = [ellipsis] + left
+
+        if len(right) < num_right_words:
+            right = right + [ellipsis]
+
+        left = ' '.join(left)
+        right = ' '.join(right)
+
+        trunc_line = '{0}<b>{1}</b>{2}'.format(left, match, right)
         return trunc_line
 
     def find_string_in_file(self, fname):
