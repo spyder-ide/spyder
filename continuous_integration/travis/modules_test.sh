@@ -68,7 +68,7 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/external/*.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/help/*.py ]]; then
+    if [[ $f == spyder/plugins/help/utils/*.py ]]; then
         continue
     fi
     if [[ $f == spyder/utils/ipython/start_kernel.py ]]; then

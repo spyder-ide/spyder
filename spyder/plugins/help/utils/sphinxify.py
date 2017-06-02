@@ -43,7 +43,7 @@ from spyder.utils import encoding
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
-CONFDIR_PATH = get_module_source_path('spyder.utils.help')
+CONFDIR_PATH = get_module_source_path('spyder.plugins.help.utils')
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
@@ -202,7 +202,7 @@ def sphinxify(docstring, context, buildername='html'):
         confdir = encoding.to_unicode_from_fs(confdir)
         generate_configuration(confdir)
     else:
-        confdir = osp.join(get_module_source_path('spyder.utils.help'))
+        confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
 
     confoverrides = {'html_context': context}
 
@@ -247,7 +247,7 @@ def generate_configuration(directory):
     """
     
     # conf.py file for Sphinx
-    conf = osp.join(get_module_source_path('spyder.utils.help'),
+    conf = osp.join(get_module_source_path('spyder.plugins.help.utils'),
                     'conf.py')
 
     # Docstring layout page (in Jinja):

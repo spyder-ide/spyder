@@ -28,7 +28,7 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.help.sphinxify import (CSS_PATH, generate_context,
+from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                          sphinxify, usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
@@ -727,7 +727,7 @@ class Help(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
-        tutorial_path = get_module_source_path('spyder.utils.help')
+        tutorial_path = get_module_source_path('spyder.plugins.help.utils')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
         self.show_rich_text(text, collapse=True)
