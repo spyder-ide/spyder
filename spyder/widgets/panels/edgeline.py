@@ -9,11 +9,10 @@ This module contains the edge line panel
 """
 
 from qtpy.QtWidgets import QWidget
-from qtpy.QtCore import Qt, QRect
+from qtpy.QtCore import Qt, QRect, QPoint
 from qtpy.QtGui import QPainter, QColor
 
 from spyder.py3compat import is_text_string
-from spyder.api.panel import Panel
 
 class EdgeLine(QWidget):
     """Source code editor's edge line (default: 79 columns, PEP8)"""
@@ -75,6 +74,10 @@ class EdgeLine(QWidget):
         offset = self.editor.contentOffset()
         x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
-            +self.editor.panels.margin_size(Panel.Position.LEFT) \
             +self.editor.fontMetrics().width('9'*min(self.columns))+5
-        self.setGeometry(QRect(x, cr.top(), width, cr.bottom()))
+
+        top_left = QPoint(x, cr.top())
+        top_left = self.editor.calculate_real_position(top_left)
+        bottom_right = QPoint(top_left.x() + width, cr.bottom())
+
+        self.setGeometry(QRect(top_left, bottom_right))
