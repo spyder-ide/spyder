@@ -610,7 +610,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget = None
         self.menu_actions = None
 
-        self.extconsole = None         # External console plugin
         self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
@@ -667,10 +666,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.setAcceptDrops(True)
 
     #------ SpyderPluginMixin API ---------------------------------------------
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.extconsole, self)
-
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_plugin_font()
@@ -789,7 +784,6 @@ class IPythonConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
 
-        self.extconsole = self.main.extconsole
         self.help = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
