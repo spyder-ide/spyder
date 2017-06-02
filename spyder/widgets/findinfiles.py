@@ -263,13 +263,13 @@ class FindOptions(QWidget):
         self.more_options.setChecked(more_options)
 
         self.ok_button = create_toolbutton(self, text=_("Search"),
-                                           icon=ima.icon('DialogApplyButton'),
+                                           icon=ima.icon('find'),
                                            triggered=lambda: self.find.emit(),
                                            tip=_("Start search"),
                                            text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                             icon=ima.icon('stop'),
+                                             icon=ima.icon('editclear'),
                                              triggered=lambda:
                                              self.stop.emit(),
                                              tip=_("Stop search"),
@@ -504,7 +504,6 @@ class FileMatchItem(QTreeWidgetItem):
         QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
-        self.setIcon(0, get_filetype_icon(filename))
 
     def __lt__(self, x):
         return self.filename < x.filename
