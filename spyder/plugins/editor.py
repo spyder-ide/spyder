@@ -587,7 +587,7 @@ class Editor(SpyderPluginWidget):
             self.dock_toolbar.hide()
         if enable:
             self.refresh_plugin()
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
     
     def refresh_plugin(self):
         """Refresh editor plugin"""
