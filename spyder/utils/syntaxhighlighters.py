@@ -27,6 +27,7 @@ from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.py3compat import builtins, is_text_string, to_text_string
 from spyder.utils.sourcecode import CELL_LANGUAGES
+from spyder.utils.workers import WorkerManager
 
 
 PYGMENTS_REQVER = '>=2.0'
@@ -939,22 +940,38 @@ class PygmentsSH(BaseSH):
         # Load Pygments' Lexer
         if self._lang_name is not None:
             self._lexer = get_lexer_by_name(self._lang_name)
+
+            
+
         # Connect document updates to a re-lexing of the document.
-        parent.contentsChange.connect(self._make_charlist)
+        # parent.contentsChange.connect(self._make_charlist)
         BaseSH.__init__(self, parent, font, color_scheme)
+        self._worker_manager = WorkerManager()
+        self._charlist = []
+        self._allow_highlight = True
 
-    def _get_fmt(self, typ):
-        """Get the Spyder format code for the given Pygments token type."""
-        # Exact matches first
-        if typ in self._tokmap:
-            return self._tokmap[typ]
-        # Partial (parent-> child) matches
-        for key, val in self._tokmap.items():
-            if typ in key: # Checks if typ is a subtype of key.
-                return val
-        return 'normal'
+    def make_charlist(self):
+        """"""
+        def test_output(worker, output, error):
+            self._charlist = output
+            if error is None and output:
+                self._allow_highlight = True
+                self.rehighlight()
+            self._allow_highlight = False
 
-    def _make_charlist(self, *args):
+        text = to_text_string(self.document().toPlainText())
+        tokens = self._lexer.get_tokens(text)
+        self._worker_manager.terminate_all()
+        worker = self._worker_manager.create_python_worker(
+            self._make_charlist,
+            tokens,
+            self._tokmap,
+            self.formats,
+        )
+        worker.sig_finished.connect(test_output)
+        worker.start()
+
+    def _make_charlist(self, tokens, tokmap, formats):
         """
         Parses the complete text and stores format for each character.
 
@@ -966,26 +983,37 @@ class PygmentsSH(BaseSH):
         so that the charlist is updated whenever the document changes.
         """
 
-        text = to_text_string(self.document().toPlainText())
-        tokens = self._lexer.get_tokens(text)
+        def _get_fmt(typ):
+            """Get the Spyder format code for the given Pygments token type."""
+            # Exact matches first
+            if typ in tokmap:
+                return tokmap[typ]
+            # Partial (parent-> child) matches
+            for key, val in tokmap.items():
+                if typ in key: # Checks if typ is a subtype of key.
+                    return val
+
+            return 'normal'
+
         charlist = []
         for typ, token in tokens:
-            fmt = self.formats[self._get_fmt(typ)]
+            fmt = formats[_get_fmt(typ)]
             for letter in token:
                 charlist.append((fmt, letter))
-        self._charlist = charlist
+
+        return charlist
 
     def highlightBlock(self, text):
         """ Actually highlight the block"""
         # Note that an undefined blockstate is equal to -1, so the first block
         # will have the correct behaviour of starting at 0.
-        start = self.previousBlockState() + 1
-        end = start + len(text)
-        for i, (fmt, letter) in enumerate(self._charlist[start:end]):
-            self.setFormat(i, 1, fmt)
-        self.setCurrentBlockState(end)
-        
-        self.highlight_spaces(text)
+        if self._allow_highlight:
+            start = self.previousBlockState() + 1
+            end = start + len(text)
+            for i, (fmt, letter) in enumerate(self._charlist[start:end]):
+                self.setFormat(i, 1, fmt)
+            self.setCurrentBlockState(end)
+            self.highlight_spaces(text)
 
 
 def guess_pygments_highlighter(filename):
