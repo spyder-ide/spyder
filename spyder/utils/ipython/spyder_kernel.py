@@ -37,7 +37,7 @@ else:
     from utils.dochelpers import isdefined, getdoc, getsource
     from utils.iofuncs import iofunctions
     from utils.misc import fix_reference_name
-    from widgets.variableexplorer.utils import (get_remote_data,
+    from plugins.variableexplorer.widgets.utils import (get_remote_data,
                                                 make_remote_view)
 
 
