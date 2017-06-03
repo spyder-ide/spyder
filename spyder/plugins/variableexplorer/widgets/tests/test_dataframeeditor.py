@@ -25,7 +25,7 @@ import pytest
 
 # Local imports
 from spyder.utils.programs import is_module_installed
-from spyder.plugins.variableexplorer.widgets import dataframeeditor
+from spyder.plugins.variableexplorer.widgets.viewers import dataframe as dataframeeditor
 from spyder.plugins.variableexplorer.widgets.viewers.dataframe import (
     DataFrameEditor, DataFrameModel)
 from spyder.py3compat import PY2
