@@ -35,7 +35,6 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     CONF_SECTION = 'project_explorer'
 
-    open_terminal = Signal(str)
     open_interpreter = Signal(str)
     pythonpath_changed = Signal()
 

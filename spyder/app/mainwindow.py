@@ -863,12 +863,6 @@ class MainWindow(QMainWindow):
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
 
-        # External console
-        self.set_splash(_("Loading external console..."))
-        from spyder.plugins.externalconsole import ExternalConsole
-        self.extconsole = ExternalConsole(self)
-        self.extconsole.register_plugin()
-
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
         from spyder.plugins.variableexplorer import VariableExplorer
@@ -1193,8 +1187,6 @@ class MainWindow(QMainWindow):
         self.create_plugins_menu()
         self.create_toolbars_menu()
 
-        self.extconsole.setMinimumHeight(0)
-
         # Update toolbar visibility status
         self.toolbars_visible = CONF.get('main', 'toolbars_visible')
         self.load_last_visible_toolbars()
@@ -1216,10 +1208,6 @@ class MainWindow(QMainWindow):
         for plugin in plugins_to_show:
             if plugin.dockwidget.isVisible():
                 plugin.dockwidget.raise_()
-
-        # Hide Python console until we remove it
-        self.extconsole.close_console()
-        self.extconsole.toggle_view_action.setChecked(False)
 
         # Show history file if no console is visible
         if not self.ipyconsole.isvisible:
@@ -1392,7 +1380,6 @@ class MainWindow(QMainWindow):
             self.setWindowState(Qt.WindowMaximized)
             self.first_spyder_run = True
             self.setup_default_layouts('default', settings)
-            self.extconsole.setMinimumHeight(250)
 
             # Now that the initial setup is done, copy the window settings,
             # except for the hexstate in the quick layouts sections for the
@@ -1442,7 +1429,6 @@ class MainWindow(QMainWindow):
         # define widgets locally
         editor = self.editor
         console_ipy = self.ipyconsole
-        console_ext = self.extconsole
         console_int = self.console
         outline = self.outlineexplorer
         explorer_project = self.projects
@@ -1472,7 +1458,7 @@ class MainWindow(QMainWindow):
                     # column 3
                     [[help_plugin, explorer_variable, helper, explorer_file,
                       finder] + plugins,
-                     [console_int, console_ext, console_ipy, history]]
+                     [console_int, console_ipy, history]]
                     ],
                     'width fraction': [0.0,             # column 0 width
                                        0.55,            # column 1 width
@@ -1488,7 +1474,7 @@ class MainWindow(QMainWindow):
         r_layout = {'widgets': [
                     # column 0
                     [[editor],
-                     [console_ipy, console_ext, console_int]],
+                     [console_ipy, console_int]],
                     # column 1
                     [[explorer_variable, history, outline, finder] + plugins,
                      [explorer_file, explorer_project, help_plugin, helper]]
@@ -1507,7 +1493,7 @@ class MainWindow(QMainWindow):
                      [outline]],
                     # column 1
                     [[editor],
-                     [console_ipy, console_ext, console_int]],
+                     [console_ipy, console_int]],
                     # column 2
                     [[explorer_variable, finder] + plugins,
                      [history, help_plugin, helper]]
@@ -1525,7 +1511,7 @@ class MainWindow(QMainWindow):
         v_layout = {'widgets': [
                     # column 0
                     [[editor],
-                     [console_ipy, console_ext, console_int, explorer_file,
+                     [console_ipy, console_int, explorer_file,
                       explorer_project, help_plugin, explorer_variable,
                       history, outline, finder, helper] + plugins]
                     ],
@@ -1539,7 +1525,7 @@ class MainWindow(QMainWindow):
                     # column 0
                     [[editor]],
                     # column 1
-                    [[console_ipy, console_ext, console_int, explorer_file,
+                    [[console_ipy, console_int, explorer_file,
                       explorer_project, help_plugin, explorer_variable,
                       history, outline, finder, helper] + plugins]
                     ],
@@ -2404,14 +2390,6 @@ class MainWindow(QMainWindow):
                                      _("Running an external system terminal "
                                        "is not supported on platform %s."
                                        ) % os.name)
-        else:
-            self.extconsole.visibility_changed(True)
-            self.extconsole.raise_()
-            self.extconsole.start(
-                fname=to_text_string(fname), wdir=to_text_string(wdir),
-                args=to_text_string(args), interact=interact,
-                debug=debug, python=python, post_mortem=post_mortem,
-                python_args=to_text_string(python_args) )
 
     def execute_in_external_console(self, lines, focus_to_editor):
         """
@@ -2557,7 +2535,7 @@ class MainWindow(QMainWindow):
             widget.initialize()
             dlg.add_page(widget)
         for plugin in [self.workingdirectory, self.editor,
-                       self.projects, self.extconsole, self.ipyconsole,
+                       self.projects, self.ipyconsole,
                        self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles
                        ]+self.thirdparty_plugins:
