@@ -16,7 +16,7 @@ from qtpy.QtWidgets import QVBoxLayout
 from spyder.config.base import _, get_conf_path
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
-from spyder.widgets.pydocgui import PydocBrowser
+from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 
 class OnlineHelp(SpyderPluginWidget):
