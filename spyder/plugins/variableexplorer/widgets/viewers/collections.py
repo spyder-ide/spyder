@@ -46,7 +46,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.viewers.text import TextEditor
-from spyder.plugins.variableexplorer.widgets.utils import (
+from spyder.plugins.variableexplorer.utils import (
     array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
     get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
     is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
@@ -1561,7 +1561,7 @@ def remote_editor_test():
     app = qapplication()
 
     from spyder.config.main import CONF
-    from spyder.plugins.variableexplorer.widgets.utils import (make_remote_view,
+    from spyder.plugins.variableexplorer.utils import (make_remote_view,
                                                        REMOTE_SETTINGS)
 
     settings = {}

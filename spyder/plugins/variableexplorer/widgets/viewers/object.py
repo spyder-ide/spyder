@@ -59,7 +59,7 @@ def create_dialog(obj, obj_name):
     """
     # Local import
     from spyder.plugins.variableexplorer.widgets.viewers.text import TextEditor
-    from spyder.plugins.variableexplorer.widgets.utils import (ndarray, FakeObject,
+    from spyder.plugins.variableexplorer.utils import (ndarray, FakeObject,
                                                Image, is_known_type, DataFrame,
                                                Series)
     from spyder.plugins.variableexplorer.widgets.viewers.collections import CollectionsEditor

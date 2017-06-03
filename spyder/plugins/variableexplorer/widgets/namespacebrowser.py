@@ -33,7 +33,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.viewers.collections import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.plugins.variableexplorer.widgets.utils import REMOTE_SETTINGS
+from spyder.plugins.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
