@@ -10,7 +10,7 @@ Tests for variableexplorer.py
 import pytest
 
 from spyder.utils.qthelpers import qapplication
-from spyder.plugins.variableexplorer import VariableExplorer
+from spyder.plugins.variableexplorer.plugin import VariableExplorer
 
 def test_get_settings(monkeypatch):
     def mock_get_option(self, option):

@@ -631,7 +631,7 @@ def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyder.plugins.variableexplorer import VariableExplorer
+    from spyder.plugins.variableexplorer.plugin import VariableExplorer
     
     settings = VariableExplorer(None).get_settings()
 
