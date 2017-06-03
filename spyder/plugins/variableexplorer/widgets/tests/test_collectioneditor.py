@@ -18,7 +18,7 @@ import pandas
 import pytest
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
+from spyder.plugins.variableexplorer.widgets.viewers.collections import (
     CollectionsEditorTableView, CollectionsModel)
 
 # Helper functions
@@ -31,7 +31,7 @@ def data(cm, i, j):
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.viewers.collections.DataFrameEditor',
                         MockDataFrameEditor)
     df = pandas.DataFrame(['foo', 'bar'])
     editor = CollectionsEditorTableView(None, {'df': df})
@@ -86,7 +86,7 @@ def test_collectionsmodel_with_datetimeindex():
 def test_shows_dataframeeditor_when_editing_datetimeindex(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.viewers.collections.DataFrameEditor',
                         MockDataFrameEditor)
     rng = pandas.date_range('10/1/2016', periods=25, freq='bq')
     coll = {'rng': rng}

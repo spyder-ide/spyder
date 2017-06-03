@@ -45,7 +45,7 @@ from spyder.utils.misc import fix_reference_name
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.plugins.variableexplorer.widgets.viewers.text import TextEditor
 from spyder.plugins.variableexplorer.widgets.utils import (
     array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
     get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
@@ -54,10 +54,10 @@ from spyder.plugins.variableexplorer.widgets.utils import (
     get_type_string)
 
 if ndarray is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
+    from spyder.plugins.variableexplorer.widgets.viewers.array import ArrayEditor
 
 if DataFrame is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.dataframeeditor import DataFrameEditor
+    from spyder.plugins.variableexplorer.widgets.viewers.dataframe import DataFrameEditor
 
 
 # XXX --- Disable canning for Numpy arrays for now ---
@@ -1225,7 +1225,7 @@ class CollectionsEditorTableView(BaseTableView):
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
-        from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
+        from spyder.plugins.variableexplorer.widgets.viewers.object import oedit
         oedit(data[key])
 
     def plot(self, key, funcname):

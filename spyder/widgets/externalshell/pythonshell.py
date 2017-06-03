@@ -32,7 +32,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.externalshell.baseshell import ExternalShellBase
 from spyder.widgets.shell import PythonShellWidget
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import NamespaceBrowser
-from spyder.plugins.variableexplorer.widgets.collectionseditor import CollectionsEditor
+from spyder.plugins.variableexplorer.widgets.viewers.collections import CollectionsEditor
 
 
 class ExtPythonShellWidget(PythonShellWidget):

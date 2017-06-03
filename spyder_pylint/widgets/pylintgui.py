@@ -36,7 +36,7 @@ from spyder.utils.qthelpers import create_toolbutton
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
-from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.plugins.variableexplorer.widgets.viewers.text import TextEditor
 
 
 # This is needed for testing this module as a stand alone script
