@@ -10,5 +10,3 @@ spyder.plugins.help
 
 Help plugin using a WebView
 """
-
-from spyder.plugins.help.plugin import Help
