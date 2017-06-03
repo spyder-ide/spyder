@@ -2427,6 +2427,10 @@ class CodeEditor(TextEditBaseWidget):
                 self.run_cell_and_advance.emit()
             elif ctrl:
                 self.run_cell.emit()
+        elif shift and key == Qt.Key_Delete:
+            # Shift + Del is a Key sequence reserved by most OSes
+            # https://github.com/spyder-ide/spyder/issues/3405
+            self.delete_line()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
