@@ -159,7 +159,7 @@ class HistoryLog(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.extconsole, self)
+        self.main.tabify_plugins(self.main.ipyconsole, self)
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -236,7 +236,8 @@ class HistoryLog(SpyderPluginWidget):
         self.find_widget.set_editor(editor)
         self.tabwidget.setTabToolTip(index, filename)
         self.tabwidget.setCurrentIndex(index)
-        
+
+    @Slot(str, str)
     def append_to_history(self, filename, command):
         """
         Append an entry to history filename

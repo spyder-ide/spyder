@@ -886,9 +886,10 @@ class Help(SpyderPluginWidget):
         """
         if not hasattr(self.shell, 'get_doc') or not self.shell.is_running():
             self.shell = None
-            shell = self.main.ipyconsole.get_current_shellwidget()
-            if shell is not None and shell.kernel_client is not None:
-                self.shell = shell
+            if self.main.ipyconsole is not None:
+                shell = self.main.ipyconsole.get_current_shellwidget()
+                if shell is not None and shell.kernel_client is not None:
+                    self.shell = shell
             if self.shell is None:
                 self.shell = self.internal_shell
         return self.shell

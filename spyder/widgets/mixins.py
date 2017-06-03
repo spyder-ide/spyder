@@ -14,6 +14,7 @@ IPython console plugin.
 # Standard library imports
 from xml.sax.saxutils import escape
 import os
+import os.path as osp
 import re
 import sre_constants
 import textwrap
@@ -39,8 +40,6 @@ if QT55_VERSION:
     from qtpy.QtCore import QRegularExpression
 else:
     from qtpy.QtCore import QRegExp
-
-HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
@@ -704,11 +703,19 @@ class SaveHistoryMixin(object):
     
     INITHISTORY = None
     SEPARATOR = None
+    HISTORY_FILENAMES = []
+
     append_to_history = None
     
-    def __init__(self):
-        pass
-    
+    def __init__(self, history_filename=''):
+        self.history_filename = history_filename
+        self.create_history_filename()
+
+    def create_history_filename(self):
+        """Create history_filename with INITHISTORY if it doesn't exist."""
+        if self.history_filename and not osp.isfile(self.history_filename):
+            encoding.writelines(self.INITHISTORY, self.history_filename)
+
     def add_to_history(self, command):
         """Add command to history"""
         command = to_text_string(command)
@@ -717,15 +724,15 @@ class SaveHistoryMixin(object):
         if command.endswith('\n'):
             command = command[:-1]
         self.histidx = None
-        if len(self.history)>0 and self.history[-1] == command:
+        if len(self.history) > 0 and self.history[-1] == command:
             return
         self.history.append(command)
         text = os.linesep + command
         
         # When the first entry will be written in history file,
         # the separator will be append first:
-        if self.history_filename not in HISTORY_FILENAMES:
-            HISTORY_FILENAMES.append(self.history_filename)
+        if self.history_filename not in self.HISTORY_FILENAMES:
+            self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
         
         encoding.write(text, self.history_filename, mode='ab')
