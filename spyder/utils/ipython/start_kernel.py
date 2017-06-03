@@ -110,28 +110,37 @@ def kernel_config():
 
         # Inline backend configuration
         if mpl_backend == 'inline':
-           # Figure format
-           format_o = CONF.get('ipython_console',
-                               'pylab/inline/figure_format', 0)
-           formats = {0: 'png', 1: 'svg'}
-           spy_cfg.InlineBackend.figure_format = formats[format_o]
+            # Figure format
+            format_o = CONF.get('ipython_console',
+                                'pylab/inline/figure_format', 0)
+            formats = {0: 'png', 1: 'svg'}
+            spy_cfg.InlineBackend.figure_format = formats[format_o]
 
-           # Resolution
-           spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
-                                   'savefig.dpi': 72,
-                                   'font.size': 10,
-                                   'figure.subplot.bottom': .125,
-                                   'figure.facecolor': 'white',
-                                   'figure.edgecolor': 'white'
-                                   }
-           resolution_o = CONF.get('ipython_console',
-                                   'pylab/inline/resolution')
-           spy_cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
+            # Resolution
+            if is_module_installed('ipykernel', '<4.5'):
+                dpi_option = 'savefig.dpi'
+            else:
+                dpi_option = 'figure.dpi'
 
-           # Figure size
-           width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
-           height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
-           spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
+            spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
+                                        dpi_option: 72,
+                                        'font.size': 10,
+                                        'figure.subplot.bottom': .125,
+                                        'figure.facecolor': 'white',
+                                        'figure.edgecolor': 'white'}
+            resolution_o = CONF.get('ipython_console',
+                                    'pylab/inline/resolution')
+            spy_cfg.InlineBackend.rc[dpi_option] = resolution_o
+
+            # Figure size
+            width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
+            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
+            spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
+
+
+    # Enable Cython magic
+    if is_module_installed('Cython'):
+        spy_cfg.IPKernelApp.exec_lines.append('%load_ext Cython')
 
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
@@ -215,9 +224,14 @@ def main():
         pass
     kernel.initialize()
 
-    # NOTE: Leave this and other magic modifications *after* setting
-    # __ipythonkernel__ to not have problems while starting kernels
+    # Set our own magics
     kernel.shell.register_magic_function(varexp)
+
+    # Set Pdb class to be used by %debug and %pdb.
+    # This makes IPython consoles to use the class defined in our
+    # sitecustomize instead of their default one.
+    import pdb
+    kernel.shell.InteractiveTB.debugger_cls = pdb.Pdb
 
     # Start the (infinite) kernel event loop.
     kernel.start()

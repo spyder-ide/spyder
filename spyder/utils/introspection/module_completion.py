@@ -132,7 +132,7 @@ def get_root_modules(paths):
     for path in sys.path:
         modules += module_list(path)        
         if time() - t > TIMEOUT_GIVEUP:
-            print("Module list generation is taking too long, we give up.\n")
+            print("Module list generation is taking too long, we give up.\n")  # spyder: test-skip
             modules_db['rootmodules'] = []
             return []
     
@@ -293,42 +293,3 @@ def get_preferred_submodules():
     
     modules_db['submodules'] = submodules
     return submodules
-
-#-----------------------------------------------------------------------------
-# Tests
-#-----------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    # Some simple tests.
-    # Sort operations are done by the completion widget, so we have to
-    # replicate them here.
-    # We've chosen to use xml on most tests because it's on the standard
-    # library. This way we can ensure they work on all plataforms.
-    
-    assert sorted(module_completion('import xml.')) == \
-        ['xml.dom', 'xml.etree', 'xml.parsers', 'xml.sax']
-
-    assert sorted(module_completion('import xml.d')) ==  ['xml.dom']
-
-    assert module_completion('from xml.etree ') == ['import ']
-
-    assert sorted(module_completion('from xml.etree import '), key=str.lower) ==\
-        ['cElementTree', 'ElementInclude', 'ElementPath', 'ElementTree']
-
-    assert module_completion('import sys, zl') == ['zlib']
-
-    s = 'from xml.etree.ElementTree import '
-    assert module_completion(s + 'V') == ['VERSION']
-
-    if PY3:
-        assert sorted(module_completion(s + 'VERSION, XM')) == \
-            ['XML', 'XMLID', 'XMLParser', 'XMLPullParser']
-    else:
-        assert sorted(module_completion(s + 'VERSION, XM')) == \
-            ['XML', 'XMLID', 'XMLParser', 'XMLTreeBuilder']
-
-    assert module_completion(s + '(dum') == ['dump']
-
-    assert module_completion(s + '(dump, Su') == ['SubElement']
-
-    assert 'os.path' in get_preferred_submodules()

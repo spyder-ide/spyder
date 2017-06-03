@@ -107,7 +107,6 @@ def get_hg_revision(repopath):
         # Split 2 times max to allow spaces in branch names.
         return tuple(output.decode().strip().split(None, 2))
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
-        # print("Error: Failed to get revision number from Mercurial - %s" % exc)
         return (None, None, None)
 
 
@@ -146,8 +145,8 @@ def get_git_revision(repopath):
 
 
 if __name__ == '__main__':
-    print(get_vcs_root(osp.dirname(__file__)))
-    print(get_vcs_root(r'D:\Python\ipython\IPython\kernel'))
+    print(get_vcs_root(osp.dirname(__file__)))  # spyder: test-skip
+    print(get_vcs_root(r'D:\Python\ipython\IPython\kernel'))  # spyder: test-skip
     #run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
-    print(get_git_revision(osp.dirname(__file__)+"/../.."))
-    print(get_git_revision('/'))
+    print(get_git_revision(osp.dirname(__file__)+"/../.."))  # spyder: test-skip
+    print(get_git_revision('/'))  # spyder: test-skip

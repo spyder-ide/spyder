@@ -20,7 +20,7 @@ from __future__ import print_function
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
-from qtpy.QtGui import QColor, QCursor, QDoubleValidator
+from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGridLayout,
                             QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
@@ -306,7 +306,7 @@ class ArrayModel(QAbstractTableModel):
         try:
             self.test_array[0] = val # will raise an Exception eventually
         except OverflowError as e:
-            print(type(e.message))
+            print(type(e.message))  # spyder: test-skip
             QMessageBox.critical(self.dialog, "Error",
                                  "Overflow error: %s" % e.message)
             return False
@@ -492,7 +492,7 @@ class ArrayView(QTableView):
             output = io.StringIO()
         try:
             np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t')
+                       delimiter='\t', fmt=self.model().get_format())
         except:
             QMessageBox.warning(self, _("Warning"),
                                 _("It was not possible to copy values for "

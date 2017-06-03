@@ -137,7 +137,7 @@ class DependenciesDialog(QDialog):
 
         self.view = DependenciesTableView(self, [])
 
-        opt_mods = ['NumPy', 'Matplotlib', 'Pandas', 'SymPy']
+        opt_mods = ['NumPy', 'Matplotlib', 'Pandas', 'SymPy', 'Cython']
         self.label = QLabel(_("Spyder depends on several Python modules to "
                               "provide the right functionality for all its "
                               "panes. The table below shows the required "

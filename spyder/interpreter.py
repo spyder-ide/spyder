@@ -144,7 +144,7 @@ such as "spam", type "modules spam".
             try:
                 eval("pydoc.help(%s)" % text)
             except (NameError, SyntaxError):
-                print("no Python documentation found for '%r'" % text)
+                print("no Python documentation found for '%r'" % text) # spyder: test-skip
         self.write(os.linesep)
         self.widget_proxy.new_prompt("help> ")
         inp = self.raw_input_replacement()

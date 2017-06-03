@@ -15,7 +15,7 @@
 import re
 
 # Third party imports
-from qtpy.QtCore import Qt, QTimer, Signal, Slot
+from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
                             QSizePolicy, QWidget)
@@ -44,6 +44,8 @@ class FindReplace(QWidget):
              True: "",
              None: ""}
     visibility_changed = Signal(bool)
+    return_shift_pressed = Signal()
+    return_pressed = Signal()
 
     def __init__(self, parent, enable_replace=False):
         QWidget.__init__(self, parent)
@@ -62,9 +64,15 @@ class FindReplace(QWidget):
         # Find layout
         self.search_text = PatternComboBox(self, tip=_("Search string"),
                                            adjust_to_minimum=False)
-        self.search_text.valid.connect(
-                     lambda state:
+
+        self.return_shift_pressed.connect(
+                lambda:
+                self.find(changed=False, forward=False, rehighlight=False))
+
+        self.return_pressed.connect(
+                     lambda:
                      self.find(changed=False, forward=True, rehighlight=False))
+
         self.search_text.lineEdit().textEdited.connect(
                                                      self.text_has_been_edited)
         
@@ -113,7 +121,8 @@ class FindReplace(QWidget):
         replace_with = QLabel(_("Replace with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
                                             tip=_('Replace string'))
-        
+        self.replace_text.valid.connect(
+                    lambda _: self.replace_find(focus_replace_text=True))
         self.replace_button = create_toolbutton(self,
                                      text=_('Replace/find'),
                                      icon=ima.icon('DialogApplyButton'),
@@ -144,7 +153,28 @@ class FindReplace(QWidget):
         self.highlight_timer.setSingleShot(True)
         self.highlight_timer.setInterval(1000)
         self.highlight_timer.timeout.connect(self.highlight_matches)
-        
+        self.search_text.installEventFilter(self)
+
+
+    def eventFilter(self, widget, event):
+        """Event filter for search_text widget.
+
+        Emits signals when presing Enter and Shift+Enter.
+        This signals are used for search forward and backward.
+        """
+        if (event.type() == QEvent.KeyPress):
+            key = event.key()
+            shift = event.modifiers() & Qt.ShiftModifier
+
+            if key == Qt.Key_Return:
+                if shift:
+                    self.return_shift_pressed.emit()
+                else:
+                    self.return_pressed.emit()
+
+        return super(FindReplace, self).eventFilter(widget, event)
+
+
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
         # Configurable
@@ -344,7 +374,7 @@ class FindReplace(QWidget):
             return found
 
     @Slot()
-    def replace_find(self):
+    def replace_find(self, focus_replace_text=False):
         """Replace and find"""
         if (self.editor is not None):
             replace_text = to_text_string(self.replace_text.currentText())
@@ -419,3 +449,5 @@ class FindReplace(QWidget):
             self.all_check.setCheckState(Qt.Unchecked)
             if cursor is not None:
                 cursor.endEditBlock()
+            if focus_replace_text:
+                self.replace_text.setFocus()
