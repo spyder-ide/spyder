@@ -32,6 +32,7 @@ from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
+from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
@@ -197,9 +198,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executing.connect(
             self.shellwidget.change_mpl_backend)
 
-        # To show sys.path contents
-        self.shellwidget.sig_show_syspath.connect(
-            self.show_syspath)
+        # To show env and sys.path contents
+        self.shellwidget.sig_show_syspath.connect(self.show_syspath)
+        self.shellwidget.sig_show_env.connect(self.show_env)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -260,14 +261,20 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
+        env_action = create_action(
+                        self,
+                        _("Show environment variables"),
+                        icon=ima.icon('environ'),
+                        triggered=self.shellwidget.get_env
+                     )
         syspath_action = create_action(
                             self,
                             _("Show sys.path contents"),
                             icon=ima.icon('syspath'),
                             triggered=self.shellwidget.get_syspath
                          )
-        additional_actions = [MENU_SEPARATOR, syspath_action]
 
+        additional_actions = [MENU_SEPARATOR, env_action, syspath_action]
         return self.menu_actions + additional_actions
 
     def get_toolbar_buttons(self):
@@ -431,7 +438,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     @Slot(object)
     def show_syspath(self, syspath):
-        """Show sys.path contents"""
+        """Show sys.path contents."""
         if syspath is not None:
             editor = CollectionsEditor()
             editor.setup(syspath, title="sys.path contents", readonly=True,
@@ -439,6 +446,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.dialog_manager.show(editor)
         else:
             return
+
+    @Slot(object)
+    def show_env(self, env):
+        """Show environment variables."""
+        self.dialog_manager.show(RemoteEnvDialog(env))
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

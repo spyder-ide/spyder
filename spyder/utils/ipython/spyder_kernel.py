@@ -238,14 +238,19 @@ class SpyderKernel(IPythonKernel):
         if valid:
             return getsource(obj)
 
+    # --- Additional methods
     def set_cwd(self, dirname):
         """Set current working directory."""
         return os.chdir(dirname)
 
     def get_syspath(self):
-        """Return sys.path contents"""
+        """Return sys.path contents."""
         import sys
         return sys.path[:]
+
+    def get_env(self):
+        """Get environment variables."""
+        return os.environ.copy()
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
