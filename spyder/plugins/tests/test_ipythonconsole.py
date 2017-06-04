@@ -22,6 +22,7 @@ from spyder.py3compat import PY2
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
 from spyder.utils.test import close_message_box
+from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 #==============================================================================
@@ -60,6 +61,39 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_get_syspath(ipyconsole, qtbot):
+    """Test that showing sys.path contents is working as expected."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Add a new entry to sys.path
+    with qtbot.waitSignal(shell.executed):
+        tmp_dir = tempfile.mkdtemp()
+        shell.execute("import sys, tempfile; sys.path.append('%s')" % tmp_dir)
+
+    # Ask for sys.path contents
+    with qtbot.waitSignal(shell.sig_show_syspath):
+        shell.get_syspath()
+
+    # Get sys.path contents from the generated widget
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, CollectionsEditor):
+            syspath_contents = w.get_value()
+            qtbot.keyClick(w, Qt.Key_Enter)
+
+    # Assert that our added entry is part of sys.path
+    assert tmp_dir in syspath_contents
+
+    # Remove temporary directory
+    try:
+        os.rmdir(tmp_dir)
+    except:
+        pass
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_browse_history_dbg(ipyconsole, qtbot):
