@@ -275,7 +275,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                          )
 
         additional_actions = [MENU_SEPARATOR, env_action, syspath_action]
-        return self.menu_actions + additional_actions
+
+        if self.menu_actions is not None:
+            return self.menu_actions + additional_actions
+        else:
+            return additional_actions
 
     def get_toolbar_buttons(self):
         """Return toolbar buttons list."""
