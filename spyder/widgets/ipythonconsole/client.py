@@ -34,11 +34,13 @@ from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, DialogManager,
+                                    MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
-from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.widgets.ipythonconsole import ShellWidget
+from spyder.widgets.mixins import SaveHistoryMixin
+from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 #-----------------------------------------------------------------------------
@@ -140,6 +142,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         document = self.get_control().document()
         document.contentsChange.connect(self._hide_loading_page)
 
+        # --- Dialog manager
+        self.dialog_manager = DialogManager()
+
     #------ Public API --------------------------------------------------------
     @property
     def kernel_id(self):
@@ -191,6 +196,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To correctly change Matplotlib backend interactively
         self.shellwidget.executing.connect(
             self.shellwidget.change_mpl_backend)
+
+        # To show sys.path contents
+        self.shellwidget.sig_show_syspath.connect(
+            self.show_syspath)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -251,7 +260,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        return self.menu_actions
+        syspath_action = create_action(
+                            self,
+                            _("Show sys.path contents"),
+                            icon=ima.icon('syspath'),
+                            triggered=self.shellwidget.get_syspath
+                         )
+        additional_actions = [MENU_SEPARATOR, syspath_action]
+
+        return self.menu_actions + additional_actions
 
     def get_toolbar_buttons(self):
         """Return toolbar buttons list."""
@@ -411,6 +428,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def update_history(self):
         self.history = self.shellwidget._history
+
+    @Slot(object)
+    def show_syspath(self, syspath):
+        """Show sys.path contents"""
+        if syspath is not None:
+            editor = CollectionsEditor()
+            editor.setup(syspath, title="sys.path contents", readonly=True,
+                         width=600, icon=ima.icon('syspath'))
+            self.dialog_manager.show(editor)
+        else:
+            return
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

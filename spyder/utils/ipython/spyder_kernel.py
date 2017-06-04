@@ -242,6 +242,11 @@ class SpyderKernel(IPythonKernel):
         """Set current working directory."""
         return os.chdir(dirname)
 
+    def get_syspath(self):
+        """Return sys.path contents"""
+        import sys
+        return sys.path[:]
+
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
     def _get_current_namespace(self, with_magics=False):
