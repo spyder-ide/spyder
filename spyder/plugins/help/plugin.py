@@ -7,16 +7,14 @@
 """Help Plugin"""
 
 # Standard library imports
-import re
 import os.path as osp
-import socket
 import sys
 
 # Third party imports
-from qtpy.QtCore import QThread, QUrl, Signal, Slot
-from qtpy.QtWidgets import (QActionGroup, QComboBox, QGroupBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMenu, QMessageBox, QSizePolicy,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtCore import QUrl, Signal, Slot
+from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMenu, QMessageBox,
+                            QToolButton, QVBoxLayout)
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
@@ -24,295 +22,21 @@ from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.help.sphinxify import (CSS_PATH, generate_context,
-                                         sphinxify, usage, warning)
+from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
+                                                 usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
-from spyder.widgets.browser import FrameWebView
-from spyder.widgets.comboboxes import EditableComboBox
-from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.sourcecode import codeeditor
-
+from spyder.plugins.help.confpage import HelpConfigPage
+from spyder.plugins.help.utils.sphinxthread import SphinxThread
+from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
 
 # Sphinx dependency
 dependencies.add("sphinx", _("Show help for objects in the Editor and "
                              "Consoles in a dedicated pane"),
                  required_version='>=0.6.6')
-
-
-
-class ObjectComboBox(EditableComboBox):
-    """
-    QComboBox handling object names
-    """
-    # Signals
-    valid = Signal(bool, bool)
-
-    def __init__(self, parent):
-        EditableComboBox.__init__(self, parent)
-        self.help = parent
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.tips = {True: '', False: ''}
-
-    def is_valid(self, qstr=None):
-        """Return True if string is valid"""
-        if not self.help.source_is_console():
-            return True
-        if qstr is None:
-            qstr = self.currentText()
-        if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
-            return False
-        objtxt = to_text_string(qstr)
-        if self.help.get_option('automatic_import'):
-            shell = self.help.internal_shell
-            if shell is not None:
-                return shell.is_defined(objtxt, force_import=True)
-        shell = self.help.get_shell()
-        if shell is not None:
-            try:
-                return shell.is_defined(objtxt)
-            except socket.error:
-                shell = self.help.get_shell()
-                try:
-                    return shell.is_defined(objtxt)
-                except socket.error:
-                    # Well... too bad!
-                    pass
-
-    def validate_current_text(self):
-        self.validate(self.currentText())
-
-    def validate(self, qstr, editing=True):
-        """Reimplemented to avoid formatting actions"""
-        valid = self.is_valid(qstr)
-        if self.hasFocus() and valid is not None:
-            if editing:
-                # Combo box text is being modified: invalidate the entry
-                self.show_tip(self.tips[valid])
-                self.valid.emit(False, False)
-            else:
-                # A new item has just been selected
-                if valid:
-                    self.selected()
-                else:
-                    self.valid.emit(False, False)
-
-
-class HelpConfigPage(PluginConfigPage):
-    def setup_page(self):
-        # Connections group
-        connections_group = QGroupBox(_("Automatic connections"))
-        connections_label = QLabel(_("This pane can automatically "
-                                     "show an object's help information after "
-                                     "a left parenthesis is written next to it. "
-                                     "Below you can decide to which plugin "
-                                     "you want to connect it to turn on this "
-                                     "feature."))
-        connections_label.setWordWrap(True)
-        editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
-        rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.8.1')
-        editor_box.setEnabled(rope_installed or jedi_installed)
-        if not rope_installed and not jedi_installed:
-            editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
-                           "It seems you don't have either installed.")
-            editor_box.setToolTip(editor_tip)
-        ipython_box = self.create_checkbox(_("IPython Console"),
-                                           'connect/ipython_console')
-
-        connections_layout = QVBoxLayout()
-        connections_layout.addWidget(connections_label)
-        connections_layout.addWidget(editor_box)
-        connections_layout.addWidget(ipython_box)
-        connections_group.setLayout(connections_layout)
-
-        # Features group
-        features_group = QGroupBox(_("Additional features"))
-        math_box = self.create_checkbox(_("Render mathematical equations"),
-                                        'math')
-        req_sphinx = programs.is_module_installed('sphinx', '>=1.1')
-        math_box.setEnabled(req_sphinx)
-        if not req_sphinx:
-            sphinx_ver = programs.get_module_version('sphinx')
-            sphinx_tip = _("This feature requires Sphinx 1.1 or superior.")
-            sphinx_tip += "\n" + _("Sphinx %s is currently installed.") % sphinx_ver
-            math_box.setToolTip(sphinx_tip)
-
-        features_layout = QVBoxLayout()
-        features_layout.addWidget(math_box)
-        features_group.setLayout(features_layout)
-
-        # Source code group
-        sourcecode_group = QGroupBox(_("Source code"))
-        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
-
-        sourcecode_layout = QVBoxLayout()
-        sourcecode_layout.addWidget(wrap_mode_box)
-        sourcecode_group.setLayout(sourcecode_layout)
-
-        # Final layout
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(connections_group)
-        vlayout.addWidget(features_group)
-        vlayout.addWidget(sourcecode_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
-
-
-class RichText(QWidget):
-    """
-    WebView widget with find dialog
-    """
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-
-        self.webview = FrameWebView(self)
-        self.find_widget = FindReplace(self)
-        self.find_widget.set_editor(self.webview.web_widget)
-        self.find_widget.hide()
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.webview)
-        layout.addWidget(self.find_widget)
-        self.setLayout(layout)
-
-    def set_font(self, font, fixed_font=None):
-        """Set font"""
-        self.webview.set_font(font, fixed_font=fixed_font)
-
-    def set_html(self, html_text, base_url):
-        """Set html text"""
-        self.webview.setHtml(html_text, base_url)
-
-    def clear(self):
-        self.set_html('', self.webview.url())
-
-
-class PlainText(QWidget):
-    """
-    Read-only editor widget with find dialog
-    """
-    # Signals
-    focus_changed = Signal()
-
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        self.editor = None
-
-        # Read-only editor
-        self.editor = codeeditor.CodeEditor(self)
-        self.editor.setup_editor(linenumbers=False, language='py',
-                                 scrollflagarea=False, edge_line=False)
-        self.editor.focus_changed.connect(lambda: self.focus_changed.emit())
-        self.editor.setReadOnly(True)
-
-        # Find/replace widget
-        self.find_widget = FindReplace(self)
-        self.find_widget.set_editor(self.editor)
-        self.find_widget.hide()
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.editor)
-        layout.addWidget(self.find_widget)
-        self.setLayout(layout)
-
-    def set_font(self, font, color_scheme=None):
-        """Set font"""
-        self.editor.set_font(font, color_scheme=color_scheme)
-
-    def set_color_scheme(self, color_scheme):
-        """Set color scheme"""
-        self.editor.set_color_scheme(color_scheme)
-
-    def set_text(self, text, is_code):
-        self.editor.set_highlight_current_line(is_code)
-        self.editor.set_occurrence_highlighting(is_code)
-        if is_code:
-            self.editor.set_language('py')
-        else:
-            self.editor.set_language(None)
-        self.editor.set_text(text)
-        self.editor.set_cursor_position('sof')
-
-    def clear(self):
-        self.editor.clear()
-
-
-class SphinxThread(QThread):
-    """
-    A worker thread for handling rich text rendering.
-
-    Parameters
-    ----------
-    doc : str or dict
-        A string containing a raw rst text or a dict containing
-        the doc string components to be rendered.
-        See spyder.utils.dochelpers.getdoc for description.
-    context : dict
-        A dict containing the substitution variables for the
-        layout template
-    html_text_no_doc : unicode
-        Text to be rendered if doc string cannot be extracted.
-    math_option : bool
-        Use LaTeX math rendering.
-
-    """
-    # Signals
-    error_msg = Signal(str)
-    html_ready = Signal(str)
-
-    def __init__(self, html_text_no_doc=''):
-        super(SphinxThread, self).__init__()
-        self.doc = None
-        self.context = None
-        self.html_text_no_doc = html_text_no_doc
-        self.math_option = False
-
-    def render(self, doc, context=None, math_option=False, img_path=''):
-        """Start thread to render a given documentation"""
-        # If the thread is already running wait for it to finish before
-        # starting it again.
-        if self.wait():
-            self.doc = doc
-            self.context = context
-            self.math_option = math_option
-            self.img_path = img_path
-            # This causes run() to be executed in separate thread
-            self.start()
-
-    def run(self):
-        html_text = self.html_text_no_doc
-        doc = self.doc
-        if doc is not None:
-            if type(doc) is dict and 'docstring' in doc.keys():
-                try:
-                    context = generate_context(name=doc['name'],
-                                               argspec=doc['argspec'],
-                                               note=doc['note'],
-                                               math=self.math_option,
-                                               img_path=self.img_path)
-                    html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '' and \
-                      any([doc['name'], doc['argspec'], doc['note']]):
-                        msg = _("No further documentation available")
-                        html_text += '<div class="hr"></div>'
-                        html_text += '<div id="doc-warning">%s</div>' % msg
-                except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
-                    return
-            elif self.context is not None:
-                try:
-                    html_text = sphinxify(doc, self.context)
-                except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
-                    return
-        self.html_ready.emit(html_text)
 
 
 class Help(SpyderPluginWidget):
@@ -727,7 +451,7 @@ class Help(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
-        tutorial_path = get_module_source_path('spyder.utils.help')
+        tutorial_path = get_module_source_path('spyder.plugins.help.utils')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
         self.show_rich_text(text, collapse=True)

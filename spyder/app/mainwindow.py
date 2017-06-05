@@ -788,7 +788,7 @@ class MainWindow(QMainWindow):
         # Help plugin
         if CONF.get('help', 'enable'):
             self.set_splash(_("Loading help..."))
-            from spyder.plugins.help import Help
+            from spyder.plugins.help.plugin import Help
             self.help = Help(self)
             self.help.register_plugin()
 
