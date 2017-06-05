@@ -13,7 +13,7 @@ import socket
 import sys
 
 # Third party imports
-from qtpy.QtCore import QThread, QUrl, Signal, Slot
+from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QMessageBox, QSizePolicy,
                             QToolButton, QVBoxLayout, QWidget)
@@ -28,7 +28,7 @@ from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
-                                         sphinxify, usage, warning)
+                                                 usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.widgets.browser import FrameWebView
@@ -36,6 +36,7 @@ from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.sourcecode import codeeditor
 from spyder.plugins.help.confpage import HelpConfigPage
+from spyder.plugins.help.utils.sphinxthread import SphinxThread
 
 # Sphinx dependency
 dependencies.add("sphinx", _("Show help for objects in the Editor and "
@@ -180,77 +181,6 @@ class PlainText(QWidget):
 
     def clear(self):
         self.editor.clear()
-
-
-class SphinxThread(QThread):
-    """
-    A worker thread for handling rich text rendering.
-
-    Parameters
-    ----------
-    doc : str or dict
-        A string containing a raw rst text or a dict containing
-        the doc string components to be rendered.
-        See spyder.utils.dochelpers.getdoc for description.
-    context : dict
-        A dict containing the substitution variables for the
-        layout template
-    html_text_no_doc : unicode
-        Text to be rendered if doc string cannot be extracted.
-    math_option : bool
-        Use LaTeX math rendering.
-
-    """
-    # Signals
-    error_msg = Signal(str)
-    html_ready = Signal(str)
-
-    def __init__(self, html_text_no_doc=''):
-        super(SphinxThread, self).__init__()
-        self.doc = None
-        self.context = None
-        self.html_text_no_doc = html_text_no_doc
-        self.math_option = False
-
-    def render(self, doc, context=None, math_option=False, img_path=''):
-        """Start thread to render a given documentation"""
-        # If the thread is already running wait for it to finish before
-        # starting it again.
-        if self.wait():
-            self.doc = doc
-            self.context = context
-            self.math_option = math_option
-            self.img_path = img_path
-            # This causes run() to be executed in separate thread
-            self.start()
-
-    def run(self):
-        html_text = self.html_text_no_doc
-        doc = self.doc
-        if doc is not None:
-            if type(doc) is dict and 'docstring' in doc.keys():
-                try:
-                    context = generate_context(name=doc['name'],
-                                               argspec=doc['argspec'],
-                                               note=doc['note'],
-                                               math=self.math_option,
-                                               img_path=self.img_path)
-                    html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '' and \
-                      any([doc['name'], doc['argspec'], doc['note']]):
-                        msg = _("No further documentation available")
-                        html_text += '<div class="hr"></div>'
-                        html_text += '<div id="doc-warning">%s</div>' % msg
-                except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
-                    return
-            elif self.context is not None:
-                try:
-                    html_text = sphinxify(doc, self.context)
-                except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
-                    return
-        self.html_ready.emit(html_text)
 
 
 class Help(SpyderPluginWidget):
