@@ -2712,7 +2712,7 @@ def test():
     from spyder.config.base import get_module_path
     from spyder.utils.introspection.manager import IntrospectionManager
 
-    cur_dir = osp.join(get_module_path('spyder'), 'widgets')
+    spyder_dir = get_module_path('spyder')
     app = qapplication(test_time=8)
     introspector = IntrospectionManager()
 
@@ -2726,10 +2726,11 @@ def test():
 
     import time
     t0 = time.time()
-    test.load(osp.join(cur_dir, "editor.py"))
-    test.load(osp.join(cur_dir, "explorer.py"))
-    test.load(osp.join(cur_dir, "variableexplorer", "collectionseditor.py"))
-    test.load(osp.join(cur_dir, "sourcecode", "codeeditor.py"))
+    test.load(osp.join(spyder_dir, "widgets", "editor.py"))
+    test.load(osp.join(spyder_dir, "widgets", "explorer.py"))
+    test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets", 
+                       "viewers", "collections.py"))
+    test.load(osp.join(spyder_dir, "widgets", "sourcecode", "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))  # spyder: test-skip
 
     sys.exit(app.exec_())
