@@ -47,7 +47,8 @@ def print_tree(editor, file=sys.stdout, print_blocks=False, return_list=False):
                       (block.blockNumber() + 1, lvl, visible), file=file)
         block = block.next()
 
-    if return_list: return output_list
+    if return_list:
+        return output_list
 
 class FoldDetector(object):
     """
