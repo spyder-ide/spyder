@@ -1909,7 +1909,33 @@ class CodeEditor(TextEditBaseWidget):
                                     QTextCursor.KeepAnchor, len(prefix))
                 cursor.removeSelectedText()
 
-    def fix_indent(self, forward=True, comment_or_string=False):
+
+    def fix_indent(self, *args, **kwargs):
+        """Indent line according to the preferences"""
+        if self.is_python_like():
+            self.fix_indent_smart(*args, **kwargs)
+        else:
+            self.simple_indentation(*args, **kwargs)
+
+
+    def simple_indentation(self, forward=True, **kwargs):
+        """
+        Simply preserve the indentation-level of the previous line.
+        """
+        cursor = self.textCursor()
+        block_nb = cursor.blockNumber()
+        prev_block = self.document().findBlockByLineNumber(block_nb-1)
+        prevline = to_text_string(prev_block.text())
+
+        indentation = re.match(r"\s*", prevline).group()
+        # Unident
+        if not forward:
+            indentation = indentation[len(self.indent_chars):]
+
+        cursor.insertText(indentation)
+
+
+    def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
         forward=True: fix indent only if text is not enough indented
