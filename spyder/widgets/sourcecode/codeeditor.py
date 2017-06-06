@@ -549,6 +549,12 @@ class CodeEditor(TextEditBaseWidget):
                                               name='Transform to lowercase',
                                               parent=self)
 
+        indent = config_shortcut(lambda: self.indent(force=True),
+                                 context='Editor', name='Indent', parent=self)
+        unindent = config_shortcut(lambda: self.unindent(force=True),
+                                   context='Editor', name='Unindent',
+                                   parent=self)
+
         def cb_maker(attr):
             """Make a callback for cursor move event type, (e.g. "Start")
             """
@@ -632,7 +638,8 @@ class CodeEditor(TextEditBaseWidget):
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
                 kill_next_word, start_doc, end_doc, undo, redo, cut, copy,
-                paste, delete, select_all, array_inline, array_table]
+                paste, delete, select_all, array_inline, array_table, indent,
+                unindent]
 
     def get_shortcut_data(self):
         """
