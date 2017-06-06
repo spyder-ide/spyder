@@ -25,7 +25,7 @@ from spyder.config.utils import get_edit_extensions
 from spyder.py3compat import getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
-from spyder.widgets.findinfiles import FindInFilesWidget
+from spyder.plugins.findinfiles.widgets import FindInFilesWidget
 
 
 class FindInFiles(SpyderPluginWidget):

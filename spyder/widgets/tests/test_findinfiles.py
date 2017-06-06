@@ -15,8 +15,7 @@ import os.path as osp
 from pytestqt import qtbot
 
 # Local imports
-import spyder.widgets.findinfiles
-from spyder.widgets.findinfiles import FindInFilesWidget
+from spyder.plugins.findinfiles.widgets import FindInFilesWidget
 
 LOCATION = os.path.realpath(os.path.join(os.getcwd(),
                                          os.path.dirname(__file__)))
