@@ -368,6 +368,8 @@ DEFAULTS = [
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
+              'editor/indent': 'Ctrl+[',
+              'editor/unindent': 'Ctrl+]',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to definition': "Ctrl+G",
