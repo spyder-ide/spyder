@@ -23,7 +23,7 @@ class EdgeLine(Panel):
         Panel.__init__(self, editor)
         self.columns = (79,)
         self.color = Qt.darkGray
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+
         self._enabled = True
 
     def paintEvent(self, event):

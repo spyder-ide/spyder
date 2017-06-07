@@ -27,7 +27,6 @@ class IndentationGuide(Panel):
         self.color = Qt.darkGray
         self.i_width = 4
 
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self._enabled = True
 
     def paintEvent(self, event):
