@@ -12,7 +12,7 @@ Tests for pydocgui.py
 import pytest
 
 # Local imports
-from spyder.widgets.pydocgui import PydocBrowser
+from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 @pytest.fixture
 def setup_pydocbrowser(qtbot):

@@ -848,7 +848,7 @@ class MainWindow(QMainWindow):
 
         # Online help widget
         try:    # Qt >= v4.4
-            from spyder.plugins.onlinehelp import OnlineHelp
+            from spyder.plugins.onlinehelp.plugin import OnlineHelp
         except ImportError:    # Qt < v4.4
             OnlineHelp = None  # analysis:ignore
         if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
