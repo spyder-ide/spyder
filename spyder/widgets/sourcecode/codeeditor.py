@@ -293,7 +293,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
-        self.updateRequest.connect(self.linenumberarea.update_)
         
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
