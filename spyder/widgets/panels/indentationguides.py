@@ -11,6 +11,7 @@ This module contains the indentation guide panel.
 from qtpy.QtCore import Qt, QRect, QPoint
 from qtpy.QtGui import QPainter, QColor
 
+from spyder.utils.editor import TextBlockHelper
 from spyder.api.panel import Panel
 
 class IndentationGuide(Panel):
@@ -37,21 +38,13 @@ class IndentationGuide(Panel):
         color.setAlphaF(.5)
         painter.setPen(color)
 
-        prev_indentation = 0
         for top, line_number, block in self.editor.visible_blocks:
             bottom = top + int(self.editor.blockBoundingRect(block).height())
 
-            # replace tabs for spaces
-            text = block.text().replace('\t', ' ' * self.i_width)
+            indentation = TextBlockHelper.get_fold_lvl(block)
 
-            indentation = len(text) -len(text.lstrip())
-
-            if text.strip() == "":
-                indentation = max(indentation, prev_indentation)
-            prev_indentation = indentation
-
-            for i in range(self.i_width, indentation, self.i_width):
-                x = self.editor.fontMetrics().width(i * '9')
+            for i in range(1, indentation):
+                x = self.editor.fontMetrics().width(i * self.i_width * '9')
                 painter.drawLine(x, top, x, bottom)
 
     # --- Other methods
