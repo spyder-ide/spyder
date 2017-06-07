@@ -115,11 +115,13 @@ class EditorConfigPage(PluginConfigPage):
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
         showclassfuncdropdown_box = newcb(_("Show Class/Function Dropdown"),
                                           'show_class_func_dropdown')
-        
+        showindentguides_box = newcb(_("Show Indent Guides"),
+                                      'indent_guides')
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(showtabbar_box)
         interface_layout.addWidget(showclassfuncdropdown_box)
+        interface_layout.addWidget(showindentguides_box)
         interface_group.setLayout(interface_layout)
         
         display_group = QGroupBox(_("Source code"))
@@ -1269,6 +1271,7 @@ class Editor(SpyderPluginWidget):
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
+            ('set_indent_guides',                   'indent_guides'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
@@ -2543,6 +2546,8 @@ class Editor(SpyderPluginWidget):
             edgelinecols_o = self.get_option(edgelinecols_n)
             wrap_n = 'wrap'
             wrap_o = self.get_option(wrap_n)
+            indentguides_n = 'indent_guides'
+            indentguides_o = self.get_option(indentguides_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
             ibackspace_n = 'intelligent_backspace'
@@ -2608,6 +2613,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:
                     editorstack.set_edgeline_columns(edgelinecols_o)
+                if indentguides_n in options:
+                    editorstack.set_indent_guides(indentguides_o)
                 if wrap_n in options:
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:

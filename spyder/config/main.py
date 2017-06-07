@@ -215,6 +215,7 @@ DEFAULTS = [
               'blank_spaces': False,
               'edge_line': True,
               'edge_line_columns': '79',
+              'indent_guides': False,
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,

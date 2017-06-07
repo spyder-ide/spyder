@@ -541,6 +541,7 @@ class EditorStack(QWidget):
         self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
         self.create_new_file_if_empty = True
+        self.indent_guides = False
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
@@ -938,6 +939,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.edge_line.set_columns(columns)
+
+    def set_indent_guides(self, state):
+        self.indent_guides = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.indent_guides.set_enabled(state)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
@@ -1951,7 +1958,8 @@ class EditorStack(QWidget):
                 tab_stop_width_spaces=self.tab_stop_width_spaces,
                 cloned_from=cloned_from,
                 filename=fname,
-                show_class_func_dropdown=self.show_class_func_dropdown)
+                show_class_func_dropdown=self.show_class_func_dropdown,
+                indent_guides=self.indent_guides)
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)

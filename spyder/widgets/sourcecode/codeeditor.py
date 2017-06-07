@@ -579,7 +579,8 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500, show_class_func_dropdown=True):
+                     occurrence_timeout=1500, show_class_func_dropdown=True,
+                     indent_guides=False):
         
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -602,7 +603,7 @@ class CodeEditor(TextEditBaseWidget):
         self.edge_line.set_columns(edge_line_columns)
 
         # Indent guides
-        self.indent_guides.set_enabled(True)
+        self.indent_guides.set_enabled(indent_guides)
         if self.indent_chars == '\t':
             self.indent_guides.set_indentation_width(self.tab_stop_width_spaces)
         else:
