@@ -8,21 +8,20 @@
 This module contains the indentation guide panel
 """
 
-from qtpy.QtWidgets import QWidget
 from qtpy.QtCore import Qt, QRect, QPoint
 from qtpy.QtGui import QPainter, QColor
 
+from spyder.api.panel import Panel
 
-class IndentationGuide(QWidget):
+class IndentationGuide(Panel):
     """Source code editor's edge line (default: 79 columns, PEP8)"""
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor, color=Qt.darkGray, indentation_width=4):
-        QWidget.__init__(self, editor)
-        self.editor = editor
-        self.color = color
-        self.i_width = indentation_width
+    def __init__(self, editor):
+        Panel.__init__(self, editor)
+        self.color = Qt.darkGray
+        self.i_width = 4
 
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self._enabled = True

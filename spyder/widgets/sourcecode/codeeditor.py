@@ -275,10 +275,12 @@ class CodeEditor(TextEditBaseWidget):
         self._panels = PanelsManager(self)
 
         # 79-col edge line
-        self.edge_line = EdgeLine(self)
+        self.edge_line = self.panels.register(EdgeLine(self),
+                                              Panel.Position.FLOATING)
 
         # indent guides
-        self.indent_guides = IndentationGuide(self)
+        self.indent_guides = self.panels.register(IndentationGuide(self),
+                                                  Panel.Position.FLOATING)
 
         # Blanks enabled
         self.blanks_enabled = False
@@ -1180,13 +1182,6 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).showEvent(event)
         self.panels.refresh()
 
-    #-----edgeline
-    def viewportEvent(self, event):
-        """Override Qt method"""
-        cr = self.contentsRect()
-        self.edge_line.set_geometry(cr)
-        self.indent_guides.set_geometry(cr)
-        return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
     def _apply_highlighter_color_scheme(self):
