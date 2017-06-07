@@ -60,6 +60,7 @@ from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
 from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
+from spyder.widgets.panels.indentationguides import IndentationGuide
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
@@ -227,6 +228,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # To have these attrs when early viewportEvent's are triggered
     edge_line = None
+    indent_guides = None
 
     breakpoints_changed = Signal()
     get_completions = Signal(bool)
@@ -274,6 +276,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # 79-col edge line
         self.edge_line = EdgeLine(self)
+
+        # indent guides
+        self.indent_guides = IndentationGuide(self)
 
         # Blanks enabled
         self.blanks_enabled = False
@@ -595,6 +600,13 @@ class CodeEditor(TextEditBaseWidget):
         # Edge line
         self.edge_line.set_enabled(edge_line)
         self.edge_line.set_columns(edge_line_columns)
+
+        # Indent guides
+        self.indent_guides.set_enabled(True)
+        if self.indent_chars == '\t':
+            self.indent_guides.set_indentation_width(self.tab_stop_width_spaces)
+        else:
+            self.indent_guides.set_indentation_width(len(self.indent_chars))
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
@@ -1172,6 +1184,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method"""
         cr = self.contentsRect()
         self.edge_line.set_geometry(cr)
+        self.indent_guides.set_geometry(cr)
         return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
@@ -1192,6 +1205,7 @@ class CodeEditor(TextEditBaseWidget):
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
             self.edge_line.update_color()
+            self.indent_guides.update_color()
 
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
