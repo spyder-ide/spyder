@@ -367,8 +367,8 @@ DEFAULTS = [
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
-              'editor/indent': 'Ctrl+[',
-              'editor/unindent': 'Ctrl+]',
+              'editor/indent': 'Ctrl+]',
+              'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to definition': "Ctrl+G",
@@ -657,7 +657,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '37.1.0'
+CONF_VERSION = '37.2.0'
 
 # Main configuration instance
 try:
