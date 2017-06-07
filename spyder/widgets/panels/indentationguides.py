@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-This module contains the indentation guide panel
+This module contains the indentation guide panel.
 """
 
 from qtpy.QtCore import Qt, QRect, QPoint
@@ -14,11 +14,15 @@ from qtpy.QtGui import QPainter, QColor
 from spyder.api.panel import Panel
 
 class IndentationGuide(Panel):
-    """Source code editor's edge line (default: 79 columns, PEP8)"""
+    """Indentation guides to easy identify nested blocks."""
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
     def __init__(self, editor):
+        """Initialize IndentationGuide panel.
+
+        i_width(int): identation width in characters.
+        """
         Panel.__init__(self, editor)
         self.color = Qt.darkGray
         self.i_width = 4
@@ -27,7 +31,7 @@ class IndentationGuide(Panel):
         self._enabled = True
 
     def paintEvent(self, event):
-        """Override Qt method"""
+        """Override Qt method."""
         painter = QPainter(self)
 
         color = QColor(self.color)
@@ -49,14 +53,12 @@ class IndentationGuide(Panel):
     # -----------------------------------------------------------------
 
     def set_enabled(self, state):
-        """Toggle edge line visibility"""
+        """Toggle edge line visibility."""
         self._enabled = state
         self.setVisible(state)
 
     def update_color(self):
-        """
-        Set edgeline color using syntax highlighter color for comments
-        """
+        """Set color using syntax highlighter color for comments."""
         self.color = self.editor.highlighter.get_color_name('comment')
 
     def set_indentation_width(self, indentation_width):
@@ -64,10 +66,7 @@ class IndentationGuide(Panel):
         self.i_width = indentation_width
 
     def set_geometry(self, cr):
-        """Calculate and set geometry of edge line panel.
-            start --> fist line position
-            width --> max position - min position
-        """
+        """Calculate and set geometry of indentation guides panel."""
         offset = self.editor.contentOffset()
         x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() + 5
