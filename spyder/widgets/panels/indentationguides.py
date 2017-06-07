@@ -37,6 +37,7 @@ class IndentationGuide(Panel):
         color.setAlphaF(.5)
         painter.setPen(color)
 
+        prev_indentation = 0
         for top, line_number, block in self.editor.visible_blocks:
             bottom = top + int(self.editor.blockBoundingRect(block).height())
 
@@ -44,6 +45,11 @@ class IndentationGuide(Panel):
             text = block.text().replace('\t', ' ' * self.i_width)
 
             indentation = len(text) -len(text.lstrip())
+
+            if text.strip() == "":
+                indentation = max(indentation, prev_indentation)
+            prev_indentation = indentation
+
             for i in range(self.i_width, indentation, self.i_width):
                 x = self.editor.fontMetrics().width(i * '9')
                 painter.drawLine(x, top, x, bottom)
