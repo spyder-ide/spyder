@@ -35,7 +35,6 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     CONF_SECTION = 'project_explorer'
 
-    open_terminal = Signal(str)
     open_interpreter = Signal(str)
     pythonpath_changed = Signal()
 
@@ -383,9 +382,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        self.main.extconsole.restart()
-        if self.main.ipyconsole:
-            self.main.ipyconsole.restart()
+        self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):
         """Check if a directory is a valid Spyder project"""

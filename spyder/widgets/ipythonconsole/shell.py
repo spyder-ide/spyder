@@ -36,6 +36,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     # For NamepaceBrowserWidget
     sig_namespace_view = Signal(object)
     sig_var_properties = Signal(object)
+    sig_show_syspath = Signal(object)
+    sig_show_env = Signal(object)
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
@@ -91,6 +93,22 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self._style_sheet_changed()
         self._syntax_style_changed()
         self.reset(clear=True)
+
+    def get_syspath(self):
+        """Ask the kernel for sys.path contents."""
+        code = u"get_ipython().kernel.get_syspath()"
+        if self._reading:
+            return
+        else:
+            self.silent_exec_method(code)
+
+    def get_env(self):
+        """Ask the kernel for environment variables."""
+        code = u"get_ipython().kernel.get_env()"
+        if self._reading:
+            return
+        else:
+            self.silent_exec_method(code)
 
     # --- To handle the banner
     def long_banner(self):
@@ -268,6 +286,18 @@ the sympy module (e.g. plot)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)
+                elif 'get_syspath' in method:
+                    if data is not None and 'text/plain' in data:
+                        syspath = ast.literal_eval(data['text/plain'])
+                    else:
+                        syspath = None
+                    self.sig_show_syspath.emit(syspath)
+                elif 'get_env' in method:
+                    if data is not None and 'text/plain' in data:
+                        env = ast.literal_eval(data['text/plain'])
+                    else:
+                        env = None
+                    self.sig_show_env.emit(env)
                 else:
                     if data is not None and 'text/plain' in data:
                         self._kernel_reply = ast.literal_eval(data['text/plain'])

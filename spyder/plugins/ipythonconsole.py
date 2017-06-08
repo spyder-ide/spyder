@@ -44,8 +44,8 @@ except ImportError:
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import (_, DEV, get_home_dir, get_module_path,
-                                get_module_source_path)
+from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
+                                get_module_path, get_module_source_path)
 from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
@@ -62,14 +62,18 @@ from spyder.widgets.ipythonconsole import ClientWidget
 from spyder.widgets.tabs import Tabs
 
 
+# Dependencies
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
 
-
 CYTHON_REQVER = '>=0.21'
 dependencies.add("cython", _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
+
+QTCONSOLE_REQVER = ">=4.2.0"
+dependencies.add("qtconsole", _("Integrate the IPython console"),
+                 required_version=QTCONSOLE_REQVER)
 
 
 #------------------------------------------------------------------------------
@@ -596,7 +600,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget = None
         self.menu_actions = None
 
-        self.extconsole = None         # External console plugin
         self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
@@ -653,10 +656,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.setAcceptDrops(True)
 
     #------ SpyderPluginMixin API ---------------------------------------------
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.extconsole, self)
-
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_plugin_font()
@@ -738,8 +737,6 @@ class IPythonConsole(SpyderPluginWidget):
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
-        if not self.testing:
-            self.main.last_console_plugin_focus_was_python = False
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
@@ -772,8 +769,8 @@ class IPythonConsole(SpyderPluginWidget):
                                connect_to_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [restart_action, MENU_SEPARATOR,
-                             create_client_action, connect_to_kernel_action]
+        self.menu_actions = [create_client_action, MENU_SEPARATOR,
+                             restart_action, connect_to_kernel_action]
         
         return self.menu_actions
 
@@ -781,12 +778,13 @@ class IPythonConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
 
-        self.extconsole = self.main.extconsole
         self.help = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
         self.editor = self.main.editor
-        
+        self.explorer = self.main.explorer
+        self.projects = self.main.projects
+
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.edit_goto.connect(self.editor.load)
         self.edit_goto[str, int, str, bool].connect(
@@ -798,6 +796,8 @@ class IPythonConsole(SpyderPluginWidget):
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
+        self.explorer.open_interpreter.connect(self.create_client_from_path)
+        self.projects.open_interpreter.connect(self.create_client_from_path)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -883,13 +883,16 @@ class IPythonConsole(SpyderPluginWidget):
             sw.write_to_stdin(line)
 
     @Slot()
-    def create_new_client(self, give_focus=True):
+    @Slot(bool)
+    @Slot(str)
+    @Slot(bool, str)
+    def create_new_client(self, give_focus=True, path=''):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
         cf = self._new_connection_file()
         client = ClientWidget(self, name=name,
-                              history_filename='history.py',
+                              history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
@@ -924,7 +927,7 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
-        self.connect_client_to_kernel(client)
+        self.connect_client_to_kernel(client, path)
         self.register_client(client)
 
     @Slot()
@@ -938,7 +941,7 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client):
+    def connect_client_to_kernel(self, client, path):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
         stderr_file = client.stderr_file
@@ -952,6 +955,9 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
+
+        if path:
+            shellwidget.set_cwd(path)
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
@@ -1229,6 +1235,11 @@ class IPythonConsole(SpyderPluginWidget):
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
 
+    @Slot(str)
+    def create_client_from_path(self, path):
+        """Create a client with its cwd pointing to path"""
+        self.create_new_client(path=path)
+
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
         if os.name == 'nt':
@@ -1488,7 +1499,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Creating the client
         client = ClientWidget(self, name=name,
-                              history_filename='history.py',
+                              history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),

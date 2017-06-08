@@ -21,11 +21,11 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 # --- Fixtures
 # -----------------------------------------------------------------------------
 def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
-                   sol=False, forward=True):
+                   sol=False, forward=True, language='Python'):
     """Return text with last line's indentation fixed."""
     app = qapplication()
     editor = CodeEditor(parent=None)
-    editor.setup_editor(language='Python', indent_chars=indent_chars,
+    editor.setup_editor(language=language, indent_chars=indent_chars,
                         tab_stop_width_spaces=tab_stop_width_spaces)
 
     editor.set_text(text)
@@ -240,6 +240,24 @@ def test_unindentation_with_tabs(text_input, expected, test_text,
                           tab_stop_width_spaces=tab_stop_width_spaces, 
                           forward=False)
     assert text == expected, test_text
+
+
+# --- Simple indentation tests
+# -----------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "text_input, expected, test_text",
+    [
+        ("hola\n", "hola\n", "witout indentation"),
+        ("  hola\n", "  hola\n  ", "some indentation"),
+        ("\thola\n", "\thola\n\t", "tab indentation"),
+        ("  hola(\n", "  hola(\n  ", "line with parenthesis"),
+    ])
+def test_simple_indentation(text_input, expected, test_text,):
+    # language None deactivate smart indentation
+    text = get_indent_fix(text_input, language=None)
+    assert text == expected, test_text
+
 
 
 if __name__ == "__main__":

@@ -21,7 +21,9 @@ from qtpy.QtWidgets import QApplication
 from spyder.py3compat import PY2
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
+from spyder.utils.environ import listdict2envdict
 from spyder.utils.test import close_message_box
+from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 #==============================================================================
@@ -60,6 +62,66 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_get_env(ipyconsole, qtbot):
+    """Test that showing env var contents is working as expected."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Add a new entry to os.environ
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; os.environ['FOO'] = 'bar'" )
+
+    # Ask for os.environ contents
+    with qtbot.waitSignal(shell.sig_show_env):
+        shell.get_env()
+
+    # Get env contents from the generated widget
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, CollectionsEditor):
+            env_contents = w.get_value()
+            qtbot.keyClick(w, Qt.Key_Enter)
+
+    # Assert that our added entry is part of os.environ
+    env_contents = listdict2envdict(env_contents)
+    assert env_contents['FOO'] == 'bar'
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_get_syspath(ipyconsole, qtbot):
+    """Test that showing sys.path contents is working as expected."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Add a new entry to sys.path
+    with qtbot.waitSignal(shell.executed):
+        tmp_dir = tempfile.mkdtemp()
+        shell.execute("import sys, tempfile; sys.path.append('%s')" % tmp_dir)
+
+    # Ask for sys.path contents
+    with qtbot.waitSignal(shell.sig_show_syspath):
+        shell.get_syspath()
+
+    # Get sys.path contents from the generated widget
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, CollectionsEditor):
+            syspath_contents = w.get_value()
+            qtbot.keyClick(w, Qt.Key_Enter)
+
+    # Assert that our added entry is part of sys.path
+    assert tmp_dir in syspath_contents
+
+    # Remove temporary directory
+    try:
+        os.rmdir(tmp_dir)
+    except:
+        pass
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_browse_history_dbg(ipyconsole, qtbot):
