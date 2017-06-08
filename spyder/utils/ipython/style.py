@@ -169,10 +169,8 @@ def get_syntax_style(name='spyder'):
     """
 
     import pygments
-    if os.name == 'nt':
-        syntax_path = pygments.__file__.rpartition('\\')[0] + '\\styles\\'
-    else:
-        syntax_path = pygments.__file__.rpartition('/')[0] + '/styles/'
+    syntax_path = os.path.join(pygments.__file__.rpartition(os.sep)[0],
+                               'styles')
     syntax_name = name.replace('/', '').capitalize() + 'spyder'
     syntax_filename = syntax_path + syntax_name + '.py'
 
