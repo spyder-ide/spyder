@@ -513,7 +513,8 @@ def test_sys_argv_clear(ipyconsole, qtbot):
 
     assert argv == ['']
 
-def test_console_coloring(ipyconsole_bot):
+@flaky(max_runs=3)
+def test_console_coloring(ipyconsole, qtbot):
 
     def get_console_font_color(syntax_style):
         import pygments
@@ -530,7 +531,6 @@ def test_console_coloring(ipyconsole_bot):
         background_color = background_color.split(';')[0]
         return background_color
 
-    qtbot, ipyconsole = ipyconsole_bot
     config_options = ipyconsole.config_options()
     
     syntax_style = config_options.JupyterWidget.syntax_style
