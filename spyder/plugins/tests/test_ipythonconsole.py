@@ -49,7 +49,7 @@ def open_client_from_connection_info(connection_info, qtbot):
 def get_console_font_color(syntax_style):
     syntax_path = os.path.join(pygments.__file__.rpartition(os.sep)[0],
                                'styles')
-    syntax_style_filename = syntax_path + syntax_style + '.py'
+    syntax_style_filename = os.path.join(syntax_path, syntax_style + '.py')
     with open(syntax_style_filename, "r") as syntax_file:
         content = syntax_file.read()
     font_color = content.split('Name:')[1].split(',')[0]

@@ -172,7 +172,7 @@ def get_syntax_style(name='spyder'):
     syntax_path = os.path.join(pygments.__file__.rpartition(os.sep)[0],
                                'styles')
     syntax_name = name.replace('/', '').capitalize() + 'spyder'
-    syntax_filename = syntax_path + syntax_name + '.py'
+    syntax_filename = os.path.join(syntax_path, syntax_name + '.py')
 
     syntax_style_imports = ['Name', 'Keyword', 'Comment', 'String',
                             'Number', 'Punctuation']
