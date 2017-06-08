@@ -28,8 +28,6 @@ class IndentationGuide(Panel):
         self.color = Qt.darkGray
         self.i_width = 4
 
-        self._enabled = True
-
     def paintEvent(self, event):
         """Override Qt method."""
         painter = QPainter(self)

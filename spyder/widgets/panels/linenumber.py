@@ -39,7 +39,6 @@ class LineNumberArea(Panel):
 
         # Line number area management
         self._margin = True
-        self._enabled = None
         self._pressed = -1
         self._released = -1
 

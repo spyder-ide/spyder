@@ -24,8 +24,6 @@ class EdgeLine(Panel):
         self.columns = (79,)
         self.color = Qt.darkGray
 
-        self._enabled = True
-
     def paintEvent(self, event):
         """Override Qt method"""
         painter = QPainter(self)
