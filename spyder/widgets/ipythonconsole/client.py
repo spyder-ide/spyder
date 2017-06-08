@@ -202,6 +202,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
 
+        # Set color scheme for the error prompts
+        self.shellwidget.silent_execute("%colors linux")
+
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
 
