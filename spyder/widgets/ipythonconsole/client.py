@@ -318,6 +318,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
+    def set_color_scheme(self, color_scheme):
+        """Set IPython color scheme."""
+        self.shellwidget.set_color_scheme(color_scheme)
+
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:

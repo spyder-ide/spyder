@@ -18,6 +18,7 @@ from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
+from spyder.utils.ipython.style import get_style_sheet, get_syntax_style
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -82,6 +83,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             self.kernel_client.input(u'!' + code)
         else:
             self.silent_execute(code)
+
+    def set_color_scheme(self, color_scheme):
+        """Set color scheme of the shell."""
+        self.style_sheet = get_style_sheet()
+        self.syntax_style = get_syntax_style(name=color_scheme)
+        self._style_sheet_changed()
+        self._syntax_style_changed()
+        self.reset(clear=True)
 
     # --- To handle the banner
     def long_banner(self):

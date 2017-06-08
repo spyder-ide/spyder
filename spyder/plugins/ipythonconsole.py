@@ -669,12 +669,16 @@ class IPythonConsole(SpyderPluginWidget):
         font_o = self.get_plugin_font()
         help_n = 'connect_to_oi'
         help_o = CONF.get('help', 'connect/ipython_console')
+        color_scheme_n = 'color_scheme_name'
+        color_scheme_o = CONF.get('color_schemes', 'selected')
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
                 client.set_font(font_o)
             if help_n in options and control is not None:
                 control.set_help_enabled(help_o)
+            if color_scheme_n in options:
+                client.set_color_scheme(color_scheme_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -1020,10 +1024,11 @@ class IPythonConsole(SpyderPluginWidget):
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
 
         # Style
-        syntax_style = get_syntax_style()
+        color_scheme = CONF.get('color_schemes', 'selected')
+        syntax_style = get_syntax_style(name=color_scheme)
         style_sheet = get_style_sheet()
-        spy_cfg.JupyterWidget.syntax_style = syntax_style
         spy_cfg.JupyterWidget.style_sheet = style_sheet
+        spy_cfg.JupyterWidget.syntax_style = syntax_style
 
         # Editor for %edit
         if CONF.get('main', 'single_instance'):

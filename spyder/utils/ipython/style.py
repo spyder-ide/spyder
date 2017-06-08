@@ -7,10 +7,15 @@
 """
 Style for IPython Console
 """
+# Standard imports
+import os
 
 # Local imports
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
+
+# Third party imports
+from qtconsole.styles import dark_color
 
 def get_style_sheet():
     """Returns a CSS stylesheet with spyder color scheme settings.
@@ -35,46 +40,41 @@ def get_style_sheet():
 
     selected_color_scheme = CONF.get('color_schemes', 'selected')
     color_scheme = get_color_scheme(selected_color_scheme)
-
     fon_c, fon_fw, fon_fs = color_scheme['normal']
     font_color =  fon_c
-    font_font_weight = give_font_weight(fon_fw)
-    font_font_style = give_font_style(fon_fs)
+    if dark_color(font_color):
+        in_prompt_color = 'navy'
+        out_prompt_color = 'darkred'
+    else:
+        in_prompt_color = 'lime'
+        out_prompt_color = 'red'
     background_color = color_scheme['background']
     selection_background_color = '#ccc'
     error_color = 'red'
-    in_prompt_color = 'navy'
     in_prompt_number_font_weight = 'bold'
-    out_prompt_color = 'darkred'
     out_prompt_number_font_weight = 'bold'
     inverted_background_color = font_color
     inverted_font_color = background_color
-    unmatched_parenthesis_color = color_scheme['unmatched_p']
-    matched_parenthesis_color = color_scheme['matched_p']
 
-    sheet = """QPlainTextEdit, QTextEdit {{
+    sheet = """QPlainTextEdit, QTextEdit, ControlWidget {{
                                           color: {} ;
-                                          font-weight: {};
-                                          font-style: {};
                                           background-color: {};
                                           selection-background-color: {}
                                          }}
               .error {{ color: {}; }}
               .in-prompt {{ color: {}; }}
-              .in-prompt-number {{ font-weight: {}; }}
+              .in-prompt-number {{ color: {}; font-weight: {}; }}
               .out-prompt {{ color: {}; }}
-              .out-prompt-number {{ font-weight: {}; }}
-              /* .inverted is used to highlight selected completion */
+              .out-prompt-number {{ color: {}; font-weight: {}; }}
               .inverted {{ color: {}; background-color: {}; }}
               """
 
-    sheet_formatted = sheet.format(font_color, font_font_weight,
-                                   font_font_style, background_color,
+    sheet_formatted = sheet.format(font_color, background_color,
                                    selection_background_color,
                                    error_color,
-                                   in_prompt_color,
+                                   in_prompt_color, in_prompt_color,
                                    in_prompt_number_font_weight,
-                                   out_prompt_color,
+                                   out_prompt_color, out_prompt_color,
                                    out_prompt_number_font_weight,
                                    inverted_background_color,
                                    inverted_font_color)
@@ -161,7 +161,7 @@ def get_syntax_style_dictionary():
 
     return syntax_style_dic
 
-def get_syntax_style():
+def get_syntax_style(name='spyder'):
     """Create a .py with the spyder custom style as a Pygment class.
 
     The file is stored in the pygment/styles folder.
@@ -169,28 +169,45 @@ def get_syntax_style():
     """
 
     import pygments
-    syntax_path = pygments.__file__.rpartition('/')[0] + '/styles/'
-    syntax_name = 'spyder'
+    if os.name == 'nt':
+        syntax_path = pygments.__file__.rpartition('\\')[0] + '\\styles\\'
+    else:
+        syntax_path = pygments.__file__.rpartition('/')[0] + '/styles/'
+    syntax_name = name.replace('/', '').capitalize() + 'spyder'
     syntax_filename = syntax_path + syntax_name + '.py'
 
     syntax_style_imports = ['Name', 'Keyword', 'Comment', 'String',
                             'Number', 'Punctuation']
+
     imports_string = ", ".join(syntax_style_imports)
     
     syntax_style_dic = get_syntax_style_dictionary()
+    syntax_keyword =  []
+    syntax_style_subproperties = {'Keyword': syntax_keyword }
 
     syntax_file_string = "# -*- coding: utf-8 -*-\n"
     syntax_file_string += "from pygments.style import Style\n"
     syntax_file_string += "from pygments.token import {}\n\n".format(imports_string)
-    syntax_file_string += "class SpyderStyle(Style):\n"
+    syntax_file_string += "class {}Style(Style):\n".format(syntax_name)
     syntax_file_string += "\tstyles = {\n"
     for key in syntax_style_dic:
         syntax_file_string += "\t\t{}:'".format(key)
         values = syntax_style_dic[key]
+        property_values = ''
         for val in values:
             if val != '':
-                syntax_file_string += "{} ".format(val)
+                property_values += "{} ".format(val)
+        syntax_file_string += property_values.strip()
         syntax_file_string += "',\n"
+        try:
+            values_subproperties = syntax_style_subproperties[key]
+            for key_val in values_subproperties:
+                syntax_file_string += "\t\t{}:'".format(key_val)
+                property_values = ''
+                syntax_file_string += property_values.strip()
+                syntax_file_string += "',\n"
+        except:
+            pass
     syntax_file_string += "\t}"
 
     with open(syntax_filename, "w") as syntax_file:

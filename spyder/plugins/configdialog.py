@@ -1156,14 +1156,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.set_option('selected', self.current_scheme)
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
         if self.main.ipyconsole is not None:
-            msg_title = "Restart Needed"
-            msg = _("In order to color the IPython console, Spyder needs to "
-                    "be restarted. Select Yes if you want to do it now or No "
-                    "if you will do it later manually.")
-            answer = QMessageBox.information(self, msg_title, msg,
-                                             QMessageBox.No | QMessageBox.Yes)
-            if answer == QMessageBox.Yes:
-                self.main.restart()
+            self.main.ipyconsole.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:
             self.main.historylog.apply_plugin_settings(['color_scheme_name'])
         if self.main.help is not None:
