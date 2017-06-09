@@ -1000,8 +1000,11 @@ class Editor(SpyderPluginWidget):
                                       triggered=self.remove_trailing_spaces)
         self.showblanks_action = create_action(self, _("Show blank spaces"),
                                                toggled=self.toggle_show_blanks)
+        self.showblanks_action.setChecked(CONF.get('editor', 'blank_spaces'))
+
         showindentguides_action = create_action(self, _("Show indent guides."),
                                                toggled=self.toggle_show_indent_guides)
+        showindentguides_action.setChecked(CONF.get('editor', 'indent_guides'))
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
