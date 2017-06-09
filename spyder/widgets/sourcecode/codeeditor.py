@@ -1575,9 +1575,9 @@ class CodeEditor(TextEditBaseWidget):
     def fix_indent(self, *args, **kwargs):
         """Indent line according to the preferences"""
         if self.is_python_like():
-            self.fix_indent_smart(*args, **kwargs)
+            return self.fix_indent_smart(*args, **kwargs)
         else:
-            self.simple_indentation(*args, **kwargs)
+            return self.simple_indentation(*args, **kwargs)
 
 
     def simple_indentation(self, forward=True, **kwargs):
@@ -1595,6 +1595,7 @@ class CodeEditor(TextEditBaseWidget):
             indentation = indentation[len(self.indent_chars):]
 
         cursor.insertText(indentation)
+        return False  # simple indentation don't fix indentation
 
 
     def fix_indent_smart(self, forward=True, comment_or_string=False):
