@@ -51,7 +51,7 @@ from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
-from spyder.utils.ipython.style import get_style_sheet, get_syntax_style
+from spyder.utils.ipython.style import create_qss_style, get_syntax_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs
@@ -1032,7 +1032,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Style
         color_scheme = CONF.get('color_schemes', 'selected')
         syntax_style = get_syntax_style(name=color_scheme)
-        style_sheet = get_style_sheet()
+        style_sheet = create_qss_style()
         spy_cfg.JupyterWidget.style_sheet = style_sheet
         spy_cfg.JupyterWidget.syntax_style = syntax_style
 

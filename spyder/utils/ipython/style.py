@@ -17,8 +17,9 @@ from spyder.config.main import CONF
 # Third party imports
 from qtconsole.styles import dark_color
 
-def get_style_sheet():
-    """Returns a CSS stylesheet with spyder color scheme settings.
+
+def create_qss_style():
+    """Returns a QSS stylesheet with Spyder color scheme settings.
 
     The stylesheet can contain classes for:
         Qt: QPlainTextEdit, QFrame, QWidget, etc
