@@ -1000,6 +1000,8 @@ class Editor(SpyderPluginWidget):
                                       triggered=self.remove_trailing_spaces)
         self.showblanks_action = create_action(self, _("Show blank spaces"),
                                                toggled=self.toggle_show_blanks)
+        showindentguides_action = create_action(self, _("Show indent guides."),
+                                               toggled=self.toggle_show_indent_guides)
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
@@ -1121,6 +1123,7 @@ class Editor(SpyderPluginWidget):
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [eol_menu,
                                self.showblanks_action,
+                               showindentguides_action,
                                trailingspaces_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
@@ -2201,6 +2204,11 @@ class Editor(SpyderPluginWidget):
     def toggle_show_blanks(self, checked):
         editor = self.get_current_editor()
         editor.set_blanks_enabled(checked)
+
+    @Slot(bool)
+    def toggle_show_indent_guides(self, checked):
+        for editorstack in self.editorstacks:
+            editorstack.set_indent_guides(checked)
 
     @Slot()
     def remove_trailing_spaces(self):
