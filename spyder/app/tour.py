@@ -912,20 +912,22 @@ class AnimatedTour(QWidget):
 
     def _resized(self, event):
         """ """
-        size = event.size()
-        self.canvas.setFixedSize(size)
-        self.canvas.update_canvas()
+        if self.is_running:
+            size = event.size()
+            self.canvas.setFixedSize(size)
+            self.canvas.update_canvas()
 
-        if self.is_tour_set:
-            self._set_data()
+            if self.is_tour_set:
+                self._set_data()
 
     def _moved(self, event):
         """ """
-        pos = event.pos()
-        self.canvas.move(QPoint(pos.x(), pos.y()))
+        if self.is_running:
+            pos = event.pos()
+            self.canvas.move(QPoint(pos.x(), pos.y()))
 
-        if self.is_tour_set:
-            self._set_data()
+            if self.is_tour_set:
+                self._set_data()
 
     def _close_canvas(self):
         """ """
@@ -1184,7 +1186,9 @@ class AnimatedTour(QWidget):
     def close_tour(self):
         """ """
         self.tips.fade_out(self._close_canvas)
-        self.tips.show()
+        self.canvas.set_interaction(False)
+        self._set_modal(True, [self.tips])
+        self.canvas.hide()
 
         try:
             # set the last played frame by updating the available tours in 
