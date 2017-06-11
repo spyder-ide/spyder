@@ -294,7 +294,7 @@ class PylintWidget(QWidget):
         
         plver = PYLINT_VER
         if plver is not None:
-            p_args = ['-m', 'pylint']
+            p_args = ['-m', 'pylint', '--output-format=text']
             if plver.split('.')[0] == '0':
                 p_args += ['-i', 'yes']
             else:
