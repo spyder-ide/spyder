@@ -12,7 +12,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
+from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QMenu,
                             QToolButton, QVBoxLayout, QWidget)
 
 
@@ -20,7 +20,6 @@ from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
 from spyder.utils import encoding
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -28,38 +27,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.sourcecode import codeeditor
 from spyder.widgets.findreplace import FindReplace
-
-
-class HistoryConfigPage(PluginConfigPage):
-    def get_icon(self):
-        return ima.icon('history')
-    
-    def setup_page(self):
-        settings_group = QGroupBox(_("Settings"))
-        hist_spin = self.create_spinbox(
-                            _("History depth: "), _(" entries"),
-                            'max_entries', min_=10, max_=10000, step=10,
-                            tip=_("Set maximum line count"))
-
-        sourcecode_group = QGroupBox(_("Source code"))
-        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
-        go_to_eof_box = self.create_checkbox(
-                        _("Scroll automatically to last entry"), 'go_to_eof')
-
-        settings_layout = QVBoxLayout()
-        settings_layout.addWidget(hist_spin)
-        settings_group.setLayout(settings_layout)
-
-        sourcecode_layout = QVBoxLayout()
-        sourcecode_layout.addWidget(wrap_mode_box)
-        sourcecode_layout.addWidget(go_to_eof_box)
-        sourcecode_group.setLayout(sourcecode_layout)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(settings_group)
-        vlayout.addWidget(sourcecode_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
+from spyder.plugins.history.confpage import HistoryConfigPage
 
 
 class HistoryLog(SpyderPluginWidget):
