@@ -842,7 +842,7 @@ class MainWindow(QMainWindow):
         # History log widget
         if CONF.get('historylog', 'enable'):
             self.set_splash(_("Loading history plugin..."))
-            from spyder.plugins.history import HistoryLog
+            from spyder.plugins.history.plugin import HistoryLog
             self.historylog = HistoryLog(self)
             self.historylog.register_plugin()
 
