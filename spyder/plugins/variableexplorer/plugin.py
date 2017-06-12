@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Variable Explorer Plugin"""
+"""Variable Explorer Plugin."""
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot

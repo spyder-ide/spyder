@@ -5,7 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-Utilities for the Collections editor widget and dialog
+Variable explorer Utilities.
+Used mainly by the Collections viewer widget and dialog.
 """
 
 from __future__ import print_function

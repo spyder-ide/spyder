@@ -4,9 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Help Plugin"""
-
-# Standard library imports
+"""Variable Explorer Plugin Configuration Page."""
 
 # Third party imports
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout
