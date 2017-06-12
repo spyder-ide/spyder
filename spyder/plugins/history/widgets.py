@@ -4,9 +4,8 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""History Widget"""
+"""History Widget."""
 
-# Standard library imports
 # Standard library imports
 import os.path as osp
 import sys
@@ -28,11 +27,12 @@ from spyder.widgets.findreplace import FindReplace
 
 
 class History(QWidget):
-    """History widget"""
+    """History plugin main widget."""
 
     focus_changed = Signal()
 
     def __init__(self, parent):
+        """Initialize widget and create layout."""
         QWidget.__init__(self, parent)
 
         self.editors = []
@@ -74,11 +74,12 @@ class History(QWidget):
         self.setLayout(layout)
 
     def set_menu_actions(self, menu_actions):
+        """Add options to corner menu."""
         if self.menu_actions is not None:
             add_actions(self.menu, self.menu_actions)
 
     def refresh(self):
-        """Refresh history.tabwidget"""
+        """Refresh tabwidget."""
         if self.tabwidget.count():
             editor = self.tabwidget.currentWidget()
         else:
@@ -87,7 +88,9 @@ class History(QWidget):
 
     def move_tab(self, index_from, index_to):
         """
-        Move tab (tabs themselves have already been moved by the history.tabwidget)
+        Move tab.
+
+        (tabs themselves have already been moved by the history.tabwidget)
         """
         filename = self.filenames.pop(index_from)
         editor = self.editors.pop(index_from)
@@ -97,8 +100,10 @@ class History(QWidget):
 
     def add_history(self, filename, color_scheme, font, wrap):
         """
-        Add new history tab
-        Slot for add_history signal emitted by shell instance
+        Add new history tab.
+
+        Args:
+            filename (str): file to be loaded in a new tab.
         """
         filename = encoding.to_unicode_from_fs(filename)
         if filename in self.filenames:
@@ -131,8 +136,12 @@ class History(QWidget):
 
     def append_to_history(self, filename, command, go_to_eof):
         """
-        Append an entry to history filename
-        Slot for append_to_history signal emitted by shell instance
+        Append an entry to history filename.
+
+        Args:
+            filename (str): file to be updated in a new tab.
+            command (str): line to be added.
+            go_to_eof (bool): scroll to the end of file.
         """
         if not is_text_string(filename): # filename is a QString
             filename = to_text_string(filename.toUtf8(), 'utf-8')
@@ -143,9 +152,8 @@ class History(QWidget):
             self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
 
-
 def test():
-    """Run web browser"""
+    """Run history widget."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=8)
     widget = History(None)

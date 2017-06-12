@@ -3,9 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
-"""
-Tests for history widget.
-"""
+"""Tests for history widget."""
 
 # Test library imports
 import pytest

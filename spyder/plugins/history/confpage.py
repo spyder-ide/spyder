@@ -16,10 +16,14 @@ from spyder.api.preferences import PluginConfigPage
 
 
 class HistoryConfigPage(PluginConfigPage):
+    """Configuration page for History plugin."""
+
     def get_icon(self):
+        """Get icon to use in Configurations dialog."""
         return ima.icon('history')
-    
+
     def setup_page(self):
+        """Setup config page widgets and options."""
         settings_group = QGroupBox(_("Settings"))
         hist_spin = self.create_spinbox(
                             _("History depth: "), _(" entries"),

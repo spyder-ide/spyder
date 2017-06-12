@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Console History Plugin"""
+"""Console History Plugin."""
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -22,14 +22,14 @@ from spyder.plugins.history.widgets import History
 
 
 class HistoryLog(SpyderPluginWidget):
-    """
-    History log widget
-    """
+    """History log plugin."""
+
     CONF_SECTION = 'historylog'
     CONFIGWIDGET_CLASS = HistoryConfigPage
     focus_changed = Signal()
-    
+
     def __init__(self, parent):
+        """Initialize plugin and create History main widget."""
         SpyderPluginWidget.__init__(self, parent)
 
         self.menu_actions = None
@@ -52,22 +52,23 @@ class HistoryLog(SpyderPluginWidget):
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
-        """Return widget title"""
+        """Return widget title."""
         return _('History log')
     
     def get_plugin_icon(self):
-        """Return widget icon"""
+        """Return widget icon."""
         return ima.icon('history')
     
     def get_focus_widget(self):
         """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
+        Return the widget to give focus to when the plugin is activated.
+
+        (i.e.) when this plugin's dockwidget is raised on top-level.
         """
         return self.history.tabwidget.currentWidget()
         
     def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
+        """Perform actions before parent main window is closed."""
         return True
 
     def refresh_plugin(self):
@@ -75,7 +76,7 @@ class HistoryLog(SpyderPluginWidget):
         self.history.refresh()
 
     def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
+        """Return a list of actions related to plugin."""
         history_action = create_action(self, _("History..."),
                                        None, ima.icon('history'),
                                        _("Set history maximum entries"),
@@ -87,25 +88,25 @@ class HistoryLog(SpyderPluginWidget):
         return self.menu_actions
 
     def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
+        """Action to be performed on first plugin registration."""
         self.main.tabify_plugins(self.main.extconsole, self)
     
     def register_plugin(self):
-        """Register plugin in Spyder's main window"""
+        """Register plugin in Spyder's main window."""
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
 #        self.main.console.set_historylog(self)
         self.main.console.shell.refresh.connect(self.history.refresh)
 
     def update_font(self):
-        """Update font from Preferences"""
+        """Update font from Preferences."""
         color_scheme = self.get_color_scheme()
         font = self.get_plugin_font()
         for editor in self.history.editors:
             editor.set_font(font, color_scheme)
 
     def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
+        """Apply configuration file's plugin settings."""
         color_scheme_n = 'color_scheme_name'
         color_scheme_o = self.get_color_scheme()
         font_n = 'plugin_font'
@@ -125,27 +126,29 @@ class HistoryLog(SpyderPluginWidget):
     #------ Public API ---------------------------------------------------------
     def add_history(self, filename):
         """
-        Add new history tab
-        Slot for add_history signal emitted by shell instance
+        Add new history tab.
+
+        Slot for add_history signal emitted by shell instance.
         """
         color_scheme = self.get_color_scheme()
         font = self.get_plugin_font()
         wrap = self.get_option('wrap')
-        
+
         self.history.add_history(filename, color_scheme=color_scheme, font=font,
                                wrap=wrap)
 
     def append_to_history(self, filename, command):
         """
-        Append an entry to history filename
-        Slot for append_to_history signal emitted by shell instance
+        Append an entry to history filename.
+
+        Slot for append_to_history signal emitted by shell instance.
         """
         go_to_eof = self.get_option('go_to_eof')
         self.history.append_to_history(filename, command, go_to_eof)
     
     @Slot()
     def change_history_depth(self):
-        "Change history max entries"""
+        """Change history max entries."""
         depth, valid = QInputDialog.getInt(self, _('History'),
                                        _('Maximum entries'),
                                        self.get_option('max_entries'),
@@ -155,7 +158,7 @@ class HistoryLog(SpyderPluginWidget):
 
     @Slot(bool)
     def toggle_wrap_mode(self, checked):
-        """Toggle wrap mode"""
+        """Toggle wrap mode."""
         if self.history is None:
             return
         for editor in self.history.editors:
