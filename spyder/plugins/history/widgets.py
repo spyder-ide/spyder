@@ -108,8 +108,10 @@ class History(QWidget):
             language = 'py'
         else:
             language = 'bat'
-        editor.setup_editor(linenumbers=False, language=language,
-                            scrollflagarea=False)
+        editor.setup_editor(linenumbers=False,
+                            language=language,
+                            scrollflagarea=False,
+                            show_class_func_dropdown=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
 
