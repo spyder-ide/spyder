@@ -6,28 +6,19 @@
 
 """Console History Plugin"""
 
-# Standard library imports
-import os.path as osp
-import sys
-
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QInputDialog, QMenu,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import QInputDialog, QVBoxLayout
 
 
 # Local imports
-from spyder.utils import encoding
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
-from spyder.widgets.tabs import Tabs
-from spyder.widgets.sourcecode import codeeditor
-from spyder.widgets.findreplace import FindReplace
+from spyder.utils.qthelpers import create_action
+
 from spyder.plugins.history.confpage import HistoryConfigPage
+from spyder.plugins.history.widgets import History
 
 
 class HistoryLog(SpyderPluginWidget):
@@ -41,48 +32,22 @@ class HistoryLog(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
-        self.tabwidget = None
         self.menu_actions = None
+        self.history = None
+
         self.dockviewer = None
         self.wrap_action = None
-        
-        self.editors = []
-        self.filenames = []
 
         # Initialize plugin
         self.initialize_plugin()
 
+        self.history = History(self)
+        self.history.set_menu_actions(self.menu_actions)
+        self.history.focus_changed.connect(self.focus_changed)
+        self.register_widget_shortcuts(self.history.find_widget)
+
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions)
-        self.tabwidget.currentChanged.connect(self.refresh_plugin)
-        self.tabwidget.move_data.connect(self.move_tab)
-
-        if sys.platform == 'darwin':
-            tab_container = QWidget()
-            tab_container.setObjectName('tab-container')
-            tab_layout = QHBoxLayout(tab_container)
-            tab_layout.setContentsMargins(0, 0, 0, 0)
-            tab_layout.addWidget(self.tabwidget)
-            layout.addWidget(tab_container)
-        else:
-            layout.addWidget(self.tabwidget)
-
-        # Menu as corner widget
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, self.menu_actions)
-        options_button.setMenu(menu)
-        self.tabwidget.setCornerWidget(options_button)
-        
-        # Find/replace widget
-        self.find_widget = FindReplace(self)
-        self.find_widget.hide()
-        self.register_widget_shortcuts(self.find_widget)
-
-        layout.addWidget(self.find_widget)
-
+        layout.addWidget(self.history)
         self.setLayout(layout)
 
     #------ SpyderPluginWidget API ---------------------------------------------
@@ -99,20 +64,16 @@ class HistoryLog(SpyderPluginWidget):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.tabwidget.currentWidget()
+        return self.history.tabwidget.currentWidget()
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-    
+
     def refresh_plugin(self):
-        """Refresh tabwidget"""
-        if self.tabwidget.count():
-            editor = self.tabwidget.currentWidget()
-        else:
-            editor = None
-        self.find_widget.set_editor(editor)
-        
+        """Refresh widget."""
+        self.history.refresh()
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         history_action = create_action(self, _("History..."),
@@ -134,13 +95,13 @@ class HistoryLog(SpyderPluginWidget):
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
 #        self.main.console.set_historylog(self)
-        self.main.console.shell.refresh.connect(self.refresh_plugin)
+        self.main.console.shell.refresh.connect(self.history.refresh)
 
     def update_font(self):
         """Update font from Preferences"""
         color_scheme = self.get_color_scheme()
         font = self.get_plugin_font()
-        for editor in self.editors:
+        for editor in self.history.editors:
             editor.set_font(font, color_scheme)
 
     def apply_plugin_settings(self, options):
@@ -152,7 +113,7 @@ class HistoryLog(SpyderPluginWidget):
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
-        for editor in self.editors:
+        for editor in self.history.editors:
             if font_n in options:
                 scs = color_scheme_o if color_scheme_n in options else None
                 editor.set_font(font_o, scs)
@@ -160,64 +121,27 @@ class HistoryLog(SpyderPluginWidget):
                 editor.set_color_scheme(color_scheme_o)
             if wrap_n in options:
                 editor.toggle_wrap_mode(wrap_o)
-        
-    #------ Private API --------------------------------------------------------
-    def move_tab(self, index_from, index_to):
-        """
-        Move tab (tabs themselves have already been moved by the tabwidget)
-        """
-        filename = self.filenames.pop(index_from)
-        editor = self.editors.pop(index_from)
-        
-        self.filenames.insert(index_to, filename)
-        self.editors.insert(index_to, editor)
-        
+
     #------ Public API ---------------------------------------------------------
     def add_history(self, filename):
         """
         Add new history tab
         Slot for add_history signal emitted by shell instance
         """
-        filename = encoding.to_unicode_from_fs(filename)
-        if filename in self.filenames:
-            return
-        editor = codeeditor.CodeEditor(self)
-        if osp.splitext(filename)[1] == '.py':
-            language = 'py'
-        else:
-            language = 'bat'
-        editor.setup_editor(linenumbers=False, language=language,
-                            scrollflagarea=False)
-        editor.focus_changed.connect(lambda: self.focus_changed.emit())
-        editor.setReadOnly(True)
         color_scheme = self.get_color_scheme()
-        editor.set_font( self.get_plugin_font(), color_scheme )
-        editor.toggle_wrap_mode( self.get_option('wrap') )
+        font = self.get_plugin_font()
+        wrap = self.get_option('wrap')
+        
+        self.history.add_history(filename, color_scheme=color_scheme, font=font,
+                               wrap=wrap)
 
-        text, _ = encoding.read(filename)
-        editor.set_text(text)
-        editor.set_cursor_position('eof')
-        
-        self.editors.append(editor)
-        self.filenames.append(filename)
-        index = self.tabwidget.addTab(editor, osp.basename(filename))
-        self.find_widget.set_editor(editor)
-        self.tabwidget.setTabToolTip(index, filename)
-        self.tabwidget.setCurrentIndex(index)
-        
     def append_to_history(self, filename, command):
         """
         Append an entry to history filename
         Slot for append_to_history signal emitted by shell instance
         """
-        if not is_text_string(filename): # filename is a QString
-            filename = to_text_string(filename.toUtf8(), 'utf-8')
-        command = to_text_string(command)
-        index = self.filenames.index(filename)
-        self.editors[index].append(command)
-        if self.get_option('go_to_eof'):
-            self.editors[index].set_cursor_position('eof')
-        self.tabwidget.setCurrentIndex(index)
+        go_to_eof = self.get_option('go_to_eof')
+        self.history.append_to_history(filename, command, go_to_eof)
     
     @Slot()
     def change_history_depth(self):
@@ -232,8 +156,8 @@ class HistoryLog(SpyderPluginWidget):
     @Slot(bool)
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        if self.tabwidget is None:
+        if self.history is None:
             return
-        for editor in self.editors:
+        for editor in self.history.editors:
             editor.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
