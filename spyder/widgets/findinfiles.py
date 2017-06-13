@@ -128,40 +128,43 @@ class SearchThread(QThread):
 
     def truncate_result(self, line, start, end):
         ellipsis = '...'
+        max_line_length = 80
+        max_num_char_fragment = 40
 
         left, match, right = line[:start], line[start:end], line[end:]
-        max_line_length = 40
-        offset = (len(line) - len(match)) // 2
 
-        left = left.split(' ')
-        num_left_words = len(left)
+        if len(line) > max_line_length:
+            offset = (len(line) - len(match)) // 2
 
-        if num_left_words == 1:
-            left = left[0]
-            if len(left) > max_line_length:
-                left = ellipsis + left[-offset:]
-            left = [left]
+            left = left.split(' ')
+            num_left_words = len(left)
 
-        right = right.split(' ')
-        num_right_words = len(right)
+            if num_left_words == 1:
+                left = left[0]
+                if len(left) > max_num_char_fragment:
+                    left = ellipsis + left[-offset:]
+                left = [left]
 
-        if num_right_words == 1:
-            right = right[0]
-            if len(right) > max_line_length:
-                right = right[:offset] + ellipsis
-            right = [right]
+            right = right.split(' ')
+            num_right_words = len(right)
 
-        left = left[-3:]
-        right = right[:3]
+            if num_right_words == 1:
+                right = right[0]
+                if len(right) > max_num_char_fragment:
+                    right = right[:offset] + ellipsis
+                right = [right]
 
-        if len(left) < num_left_words:
-            left = [ellipsis] + left
+            left = left[-4:]
+            right = right[:4]
 
-        if len(right) < num_right_words:
-            right = right + [ellipsis]
+            if len(left) < num_left_words:
+                left = [ellipsis] + left
 
-        left = ' '.join(left)
-        right = ' '.join(right)
+            if len(right) < num_right_words:
+                right = right + [ellipsis]
+
+            left = ' '.join(left)
+            right = ' '.join(right)
 
         trunc_line = '{0}<b>{1}</b>{2}'.format(left, match, right)
         return trunc_line
@@ -597,6 +600,7 @@ class ResultsBrowser(OneColumnTree):
 
         if filename not in self.files:
             item = FileMatchItem(self, filename)
+            item.setExpanded(True)
             self.files[filename] = item
             self.num_files += 1
 
