@@ -87,11 +87,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme of the shell."""
-        self.style_sheet = create_qss_style(color_scheme)
+        self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
         self._syntax_style_changed()
         self.reset(clear=True)
+        if not dark_color:
+            self.silent_execute("%colors linux")
+        else:
+            self.silent_execute("%colors lightbg")
 
     def get_syspath(self):
         """Ask the kernel for sys.path contents."""

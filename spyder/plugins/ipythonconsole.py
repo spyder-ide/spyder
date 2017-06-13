@@ -1031,7 +1031,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Style
         color_scheme = CONF.get('color_schemes', 'selected')
-        style_sheet = create_qss_style(color_scheme)
+        style_sheet = create_qss_style(color_scheme)[0]
         spy_cfg.JupyterWidget.style_sheet = style_sheet
         spy_cfg.JupyterWidget.syntax_style = color_scheme
 

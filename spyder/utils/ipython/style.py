@@ -79,7 +79,7 @@ def create_qss_style(color_scheme):
                                    inverted_background_color,
                                    inverted_font_color)
 
-    return sheet_formatted
+    return (sheet_formatted, dark_color(font_color))
 
 
 def create_pygments_dict(color_scheme_name):

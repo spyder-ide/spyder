@@ -33,6 +33,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
+from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
@@ -202,8 +203,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
 
-        # Set color scheme for the error prompts
-        self.shellwidget.silent_execute("%colors linux")
+        if not create_qss_style(self.shellwidget.syntax_style)[1]:
+            self.shellwidget.silent_execute("%colors linux")
+        else:
+            self.shellwidget.silent_execute("%colors lightbg")
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
