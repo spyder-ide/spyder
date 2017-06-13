@@ -13,7 +13,7 @@ from textwrap import dedent
 
 from flaky import flaky
 from ipykernel.serialize import serialize_object
-import pygments
+from pygments.token import Name
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
@@ -25,6 +25,7 @@ from spyder.py3compat import PY2
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
 from spyder.utils.environ import listdict2envdict
+from spyder.utils.ipython.style import create_style_class
 from spyder.utils.test import close_message_box
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
@@ -47,12 +48,8 @@ def open_client_from_connection_info(connection_info, qtbot):
             qtbot.keyClick(w, Qt.Key_Enter)
 
 def get_console_font_color(syntax_style):
-    syntax_path = os.path.join(pygments.__file__.rpartition(os.sep)[0],
-                               'styles')
-    syntax_style_filename = os.path.join(syntax_path, syntax_style + '.py')
-    with open(syntax_style_filename, "r") as syntax_file:
-        content = syntax_file.read()
-    font_color = content.split('Name:')[1].split(',')[0]
+    styles = create_style_class(syntax_style).styles
+    font_color = styles[Name]
 
     return font_color
 
@@ -79,6 +76,29 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
+def test_console_coloring(ipyconsole, qtbot):
+
+    config_options = ipyconsole.config_options()
+
+    syntax_style = config_options.JupyterWidget.syntax_style
+    style_sheet = config_options.JupyterWidget.style_sheet
+    console_font_color = get_console_font_color(syntax_style)
+    console_background_color = get_console_background_color(style_sheet)
+
+    selected_color_scheme = CONF.get('color_schemes', 'selected')
+    color_scheme = get_color_scheme(selected_color_scheme)
+    editor_background_color = color_scheme['background']
+    editor_font_color = color_scheme['normal'][0]
+
+    console_background_color = console_background_color.replace("'", "")
+    editor_background_color = editor_background_color.replace("'", "")
+    console_font_color = console_font_color.replace("'", "")
+    editor_font_color = editor_font_color.replace("'", "")
+
+    assert console_background_color.strip() == editor_background_color.strip()
+    assert console_font_color.strip() == editor_font_color.strip()
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_get_env(ipyconsole, qtbot):
@@ -529,29 +549,6 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     argv = shell.get_value("A")
 
     assert argv == ['']
-
-@flaky(max_runs=3)
-def test_console_coloring(ipyconsole, qtbot):
-
-    config_options = ipyconsole.config_options()
-    
-    syntax_style = config_options.JupyterWidget.syntax_style
-    style_sheet = config_options.JupyterWidget.style_sheet
-    console_font_color = get_console_font_color(syntax_style)
-    console_background_color = get_console_background_color(style_sheet)
-
-    selected_color_scheme = CONF.get('color_schemes', 'selected')
-    color_scheme = get_color_scheme(selected_color_scheme)
-    editor_background_color = color_scheme['background']
-    editor_font_color = color_scheme['normal'][0]
-
-    console_background_color = console_background_color.replace("'", "")
-    editor_background_color = editor_background_color.replace("'", "")
-    console_font_color = console_font_color.replace("'", "")
-    editor_font_color = editor_font_color.replace("'", "")
-
-    assert console_background_color.strip() == editor_background_color.strip()
-    assert console_font_color.strip() == editor_font_color.strip()
 
 
 if __name__ == "__main__":
