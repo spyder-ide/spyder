@@ -288,6 +288,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
+    'pyopengl',  # This is needed only in pip installations see issue #3332
 ]
 
 extras_require = {
