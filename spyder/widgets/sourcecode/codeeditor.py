@@ -60,6 +60,7 @@ from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
 from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
+from spyder.widgets.panels.indentationguides import IndentationGuide
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
@@ -227,6 +228,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # To have these attrs when early viewportEvent's are triggered
     edge_line = None
+    indent_guides = None
 
     breakpoints_changed = Signal()
     get_completions = Signal(bool)
@@ -273,7 +275,12 @@ class CodeEditor(TextEditBaseWidget):
         self._panels = PanelsManager(self)
 
         # 79-col edge line
-        self.edge_line = EdgeLine(self)
+        self.edge_line = self.panels.register(EdgeLine(self),
+                                              Panel.Position.FLOATING)
+
+        # indent guides
+        self.indent_guides = self.panels.register(IndentationGuide(self),
+                                                  Panel.Position.FLOATING)
 
         # Blanks enabled
         self.blanks_enabled = False
@@ -286,7 +293,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
-        self.updateRequest.connect(self.linenumberarea.update_)
         
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
@@ -574,7 +580,8 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500, show_class_func_dropdown=True):
+                     occurrence_timeout=1500, show_class_func_dropdown=True,
+                     indent_guides=False):
         
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -595,6 +602,13 @@ class CodeEditor(TextEditBaseWidget):
         # Edge line
         self.edge_line.set_enabled(edge_line)
         self.edge_line.set_columns(edge_line_columns)
+
+        # Indent guides
+        self.indent_guides.set_enabled(indent_guides)
+        if self.indent_chars == '\t':
+            self.indent_guides.set_indentation_width(self.tab_stop_width_spaces)
+        else:
+            self.indent_guides.set_indentation_width(len(self.indent_chars))
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
@@ -1167,12 +1181,6 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).showEvent(event)
         self.panels.refresh()
 
-    #-----edgeline
-    def viewportEvent(self, event):
-        """Override Qt method"""
-        cr = self.contentsRect()
-        self.edge_line.set_geometry(cr)
-        return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
     def _apply_highlighter_color_scheme(self):
@@ -1192,6 +1200,7 @@ class CodeEditor(TextEditBaseWidget):
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
             self.edge_line.update_color()
+            self.indent_guides.update_color()
 
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""

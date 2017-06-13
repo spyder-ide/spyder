@@ -11,6 +11,7 @@ Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/p
 """
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
+from qtpy.QtCore import Qt
 
 from spyder.api.mode import Mode
 from spyder.config.base import debug_print
@@ -35,6 +36,8 @@ class Panel(QWidget, Mode):
         RIGHT = 2
         # Bottom margin
         BOTTOM = 3
+        # Floating panel
+        FLOATING = 4
 
         @classmethod
         def iterable(cls):
@@ -95,9 +98,12 @@ class Panel(QWidget, Mode):
         self._foreground_pen = QPen(QColor(
             self.palette().windowText().color()))
 
+        if self.position == self.Position.FLOATING:
+            self.setAttribute(Qt.WA_TransparentForMouseEvents)
+
     def paintEvent(self, event):
         """Fills the panel background using QPalette."""
-        if self.isVisible():
+        if self.isVisible() and self.position != self.Position.FLOATING:
             # fill background
             self._background_brush = QBrush(QColor(
                 self.editor.sideareas_color))
