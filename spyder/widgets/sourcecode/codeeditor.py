@@ -471,8 +471,13 @@ class CodeEditor(TextEditBaseWidget):
         self.blockCountChanged.connect(self.update_breakpoints)
 
         # Highlight using Pygments highlighter timer
+        # ---------------------------------------------------------------------
+        # For files that use the PygmentsSH we parse the full file inside
+        # the highlighter in order to generate the correct coloring.
         self.timer_syntax_highlight = QTimer(self)
         self.timer_syntax_highlight.setSingleShot(True)
+        # We wait 300 ms to trigger a new coloring as this value is a good
+        # proxy for estimating when an user has stopped typing
         self.timer_syntax_highlight.setInterval(300)
         self.timer_syntax_highlight.timeout.connect(
             self.run_pygments_highlighter)
@@ -907,7 +912,6 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
-        self.run_pygments_highlighter()
 
     def rehighlight_cells(self):
         """Rehighlight cells when moving the scrollbar"""

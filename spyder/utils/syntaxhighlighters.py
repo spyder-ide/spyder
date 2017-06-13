@@ -1076,18 +1076,24 @@ class PygmentsSH(BaseSH):
         if self._lang_name is not None:
             self._lexer = get_lexer_by_name(self._lang_name)
 
-            
-
-        # Connect document updates to a re-lexing of the document.
-        # parent.contentsChange.connect(self._make_charlist)
         BaseSH.__init__(self, parent, font, color_scheme)
+
+        # This worker runs in a thread to avoid blocking when doing full file
+        # parsing
         self._worker_manager = WorkerManager()
+
+        # Store the format for all the tokens after pygments parsing
         self._charlist = []
+
+        # Flag variable to avoid unnecessary highlights if the worker has not
+        # yet finish processing
         self._allow_highlight = True
 
     def make_charlist(self):
-        """"""
-        def test_output(worker, output, error):
+        """Parses the complete text and stores format for each character."""
+
+        def worker_output(worker, output, error):
+            """Worker finished callback."""
             self._charlist = output
             if error is None and output:
                 self._allow_highlight = True
@@ -1096,14 +1102,18 @@ class PygmentsSH(BaseSH):
 
         text = to_text_string(self.document().toPlainText())
         tokens = self._lexer.get_tokens(text)
+
+        # Before starting a new worker process make sure to end previous
+        # incarnations
         self._worker_manager.terminate_all()
+
         worker = self._worker_manager.create_python_worker(
             self._make_charlist,
             tokens,
             self._tokmap,
             self.formats,
         )
-        worker.sig_finished.connect(test_output)
+        worker.sig_finished.connect(worker_output)
         worker.start()
 
     def _make_charlist(self, tokens, tokmap, formats):

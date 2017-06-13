@@ -1962,6 +1962,10 @@ class EditorStack(QWidget):
         self.refresh_file_dependent_actions.emit()
         self.modification_changed(index=self.data.index(finfo))
 
+        # Needs to reset the highlighting on startup in case the PygmentsSH
+        # is in use
+        editor.run_pygments_highlighter()
+
         return finfo
 
     def editor_cursor_position_changed(self, line, index):
