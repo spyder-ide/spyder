@@ -177,7 +177,7 @@ _qtaargs = {
     'WordFileIcon':            [('fa.file-word-o',), {}],
     'PowerpointFileIcon':      [('fa.file-powerpoint-o',), {}],
     'PDFIcon':                 [('fa.file-pdf-o',), {}],
-    'SoundFileIcon':           [('fa.file-audio-o',), {}],
+    'AudioFileIcon':           [('fa.file-audio-o',), {}],
     'ImageFileIcon':           [('fa.file-image-o',), {}],
     'ArchiveFileIcon':         [('fa.file-archive-o',), {}],
     'VideoFileIcon':           [('fa.file-video-o',), {}],
