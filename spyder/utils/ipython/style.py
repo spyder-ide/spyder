@@ -7,18 +7,18 @@
 """
 Style for IPython Console
 """
-# Standard imports
-import os
 
 # Local imports
 from spyder.config.gui import get_color_scheme
-from spyder.config.main import CONF
 
 # Third party imports
+from pygments.style import Style
+from pygments.token import Name, Keyword, Comment, String, Number, Punctuation
+
 from qtconsole.styles import dark_color
 
 
-def create_qss_style():
+def create_qss_style(color_scheme):
     """Returns a QSS stylesheet with Spyder color scheme settings.
 
     The stylesheet can contain classes for:
@@ -39,8 +39,7 @@ def create_qss_style():
         else:
             return 'normal'
 
-    selected_color_scheme = CONF.get('color_schemes', 'selected')
-    color_scheme = get_color_scheme(selected_color_scheme)
+    color_scheme = get_color_scheme(color_scheme)
     fon_c, fon_fw, fon_fs = color_scheme['normal']
     font_color =  fon_c
     if dark_color(font_color):
@@ -82,8 +81,12 @@ def create_qss_style():
 
     return sheet_formatted
 
-def get_syntax_style_dictionary():
-    """Create a dictionary to create the syntax style."""
+
+def create_pygments_dict(color_scheme_name):
+    """
+    Create a dictionary that saves the given color scheme as a
+    Pygments style.
+    """
 
     def give_font_weight(is_bold):
         if is_bold:
@@ -97,8 +100,7 @@ def get_syntax_style_dictionary():
         else:
             return ''
 
-    selected_color_scheme = CONF.get('color_schemes', 'selected')
-    color_scheme = get_color_scheme(selected_color_scheme)
+    color_scheme = get_color_scheme(color_scheme_name)
 
     fon_c, fon_fw, fon_fs = color_scheme['normal']
     font_color =  fon_c
@@ -133,83 +135,42 @@ def get_syntax_style_dictionary():
     instance_font_weight = give_font_weight(ins_fw)
     instance_font_style = give_font_style(ins_fs)
 
-    syntax_style_dic = {}
-    syntax_style_dic['Name'] = [font_font_style, font_font_weight,
-                                font_color]
-    syntax_style_dic['Name.Class'] = [definition_font_style,
-                                      definition_font_weight,
-                                      definition_color]
-    syntax_style_dic['Name.Function'] = [definition_font_style,
-                                         definition_font_weight,
-                                         definition_color]
-    syntax_style_dic['Name.Builtin'] = [builtin_font_style,
-                                        builtin_font_weight, builtin_color]
-    syntax_style_dic['Name.Builtin.Pseudo'] = [instance_font_style,
-                                               instance_font_weight,
-                                               instance_color]
-    syntax_style_dic['Keyword'] = [keyword_font_style, keyword_font_weight,
-                                   keyword_color]
-    syntax_style_dic['Keyword.Type'] = [builtin_font_style,
-                                        builtin_font_weight, builtin_color]
-    syntax_style_dic['Comment'] = [comment_font_style, comment_font_weight,
-                                   comment_color]
-    syntax_style_dic['String'] = [string_font_style, string_font_weight,
-                                  string_color]
-    syntax_style_dic['Number'] = [number_font_style, number_font_weight,
-                                  number_color]
-    syntax_style_dic['Punctuation'] = [font_font_style, font_font_weight,
-                                       font_color]
+    font_token = font_font_style + ' ' + font_font_weight + ' ' + font_color
+    definition_token = (definition_font_style + ' ' + definition_font_weight +
+                        ' ' + definition_color)
+    builtin_token = (builtin_font_style + ' ' + builtin_font_weight + ' ' +
+                     builtin_color)
+    instance_token = (instance_font_style + ' ' + instance_font_weight + ' ' +
+                      instance_color)
+    keyword_token = (keyword_font_style + ' ' + keyword_font_weight + ' ' +
+                     keyword_color)
+    comment_token = (comment_font_style + ' ' + comment_font_weight + ' ' +
+                     comment_color)
+    string_token = (string_font_style + ' ' + string_font_weight + ' ' +
+                    string_color)
+    number_token = (number_font_style + ' ' + number_font_weight + ' ' +
+                    number_color)
+
+    syntax_style_dic = {Name: font_token.strip(),
+                        Name.Class: definition_token.strip(),
+                        Name.Function: definition_token.strip(),
+                        Name.Builtin: builtin_token.strip(),
+                        Name.Builtin.Pseudo: instance_token.strip(),
+                        Keyword: keyword_token.strip(),
+                        Keyword.Type: builtin_token.strip(),
+                        Comment: comment_token.strip(),
+                        String: string_token.strip(),
+                        Number: number_token.strip(),
+                        Punctuation: font_token.strip()}
 
     return syntax_style_dic
 
-def get_syntax_style(name='spyder'):
-    """Create a .py with the spyder custom style as a Pygment class.
 
-    The file is stored in the pygment/styles folder.
-    Returns the name of this file (whithout path nor entension)
-    """
+def create_style_class(color_scheme_name):
+    """Create a Pygments Style class with the given color scheme."""
 
-    import pygments
-    syntax_path = os.path.join(pygments.__file__.rpartition(os.sep)[0],
-                               'styles')
-    syntax_name = name.replace('/', '').capitalize() + 'spyder'
-    syntax_filename = os.path.join(syntax_path, syntax_name + '.py')
+    class StyleClass(Style):
+        default_style = ""
+        styles = create_pygments_dict(color_scheme_name)
 
-    syntax_style_imports = ['Name', 'Keyword', 'Comment', 'String',
-                            'Number', 'Punctuation']
-
-    imports_string = ", ".join(syntax_style_imports)
-    
-    syntax_style_dic = get_syntax_style_dictionary()
-    syntax_keyword =  []
-    syntax_style_subproperties = {'Keyword': syntax_keyword }
-
-    syntax_file_string = "# -*- coding: utf-8 -*-\n"
-    syntax_file_string += "from pygments.style import Style\n"
-    syntax_file_string += "from pygments.token import {}\n\n".format(imports_string)
-    syntax_file_string += "class {}Style(Style):\n".format(syntax_name)
-    syntax_file_string += "\tstyles = {\n"
-    for key in syntax_style_dic:
-        syntax_file_string += "\t\t{}:'".format(key)
-        values = syntax_style_dic[key]
-        property_values = ''
-        for val in values:
-            if val != '':
-                property_values += "{} ".format(val)
-        syntax_file_string += property_values.strip()
-        syntax_file_string += "',\n"
-        try:
-            values_subproperties = syntax_style_subproperties[key]
-            for key_val in values_subproperties:
-                syntax_file_string += "\t\t{}:'".format(key_val)
-                property_values = ''
-                syntax_file_string += property_values.strip()
-                syntax_file_string += "',\n"
-        except:
-            pass
-    syntax_file_string += "\t}"
-
-    with open(syntax_filename, "w") as syntax_file:
-        syntax_file.write(syntax_file_string)
-
-    return syntax_name
+    return StyleClass

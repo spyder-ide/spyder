@@ -13,12 +13,11 @@ import uuid
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
-
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
-from spyder.utils.ipython.style import create_qss_style, get_syntax_style
+from spyder.utils.ipython.style import create_qss_style, create_style_class
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -88,8 +87,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme of the shell."""
-        self.style_sheet = create_qss_style()
-        self.syntax_style = get_syntax_style(name=color_scheme)
+        self.style_sheet = create_qss_style(color_scheme)
+        self.syntax_style = color_scheme
         self._style_sheet_changed()
         self._syntax_style_changed()
         self.reset(clear=True)
@@ -361,6 +360,17 @@ the sympy module (e.g. plot)
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
         self.sig_kernel_restarted.emit(msg)
+
+    def _syntax_style_changed(self):
+        """Refresh the highlighting with the current syntax style by class."""
+        if self._highlighter is None:
+            # ignore premature calls
+            return
+        if self.syntax_style:
+            self._highlighter._style = create_style_class(self.syntax_style)
+            self._highlighter._clear_caches()
+        else:
+            self._highlighter.set_style_sheet(self.style_sheet)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
