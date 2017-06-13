@@ -14,7 +14,7 @@ import sys
 from spyder.utils.editor import TextBlockHelper
 
 
-def print_tree(editor, file=sys.stdout, print_blocks=False):
+def print_tree(editor, file=sys.stdout, print_blocks=False, return_list=False):
     """
     Prints the editor fold tree to stdout, for debugging purpose.
 
@@ -23,6 +23,8 @@ def print_tree(editor, file=sys.stdout, print_blocks=False):
     :param print_blocks: True to print all blocks, False to only print blocks
         that are fold triggers
     """
+    output_list = []
+
     block = editor.document().firstBlock()
     while block.isValid():
         trigger = TextBlockHelper().is_fold_trigger(block)
@@ -31,14 +33,22 @@ def print_tree(editor, file=sys.stdout, print_blocks=False):
         visible = 'V' if block.isVisible() else 'I'
         if trigger:
             trigger = '+' if trigger_state else '-'
-            print('l%d:%s%s%s' %
-                  (block.blockNumber() + 1, lvl, trigger, visible),
-                  file=file)
+            if return_list:
+                output_list.append([block.blockNumber() + 1, lvl, visible])
+            else:
+                print('l%d:%s%s%s' %
+                      (block.blockNumber() + 1, lvl, trigger, visible),
+                      file=file)
         elif print_blocks:
-            print('l%d:%s%s' %
-                  (block.blockNumber() + 1, lvl, visible), file=file)
+            if return_list:
+                output_list.append([block.blockNumber() + 1, lvl, visible])
+            else:
+                print('l%d:%s%s' %
+                      (block.blockNumber() + 1, lvl, visible), file=file)
         block = block.next()
 
+    if return_list:
+        return output_list
 
 class FoldDetector(object):
     """
