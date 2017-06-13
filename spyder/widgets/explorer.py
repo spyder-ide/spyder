@@ -119,6 +119,8 @@ class IconProvider(QFileIconProvider):
                       'vnd.openxmlformats-officedocument.'
                       'spreadsheetml.sheet': 'ExcelFileIcon',
                       'pdf': 'PDFIcon'}
+    OFFICE_FILES = {'xlsx': 'ExcelFileIcon', 'docx': 'WordFileIcon',
+                    'pptx': 'PowerpointFileIcon'}
 
     """Project tree widget icon provider"""
     def __init__(self, treeview):
@@ -141,8 +143,13 @@ class IconProvider(QFileIconProvider):
                 return ima.icon('DirOpenIcon')
             else:
                 basename = osp.basename(fname)
+                _, extension = osp.splitext(basename)
                 mime_type, _ = mime.guess_type(basename)
                 icon = ima.icon('FileIcon')
+
+                if extension in self.OFFICE_FILES:
+                    icon = self.OFFICE_FILES[extension]
+
                 if mime_type is not None:
                     file_type, bin_name = mime_type.split('/')
                     if file_type == 'text':
@@ -156,6 +163,8 @@ class IconProvider(QFileIconProvider):
                     elif file_type == 'application':
                         if bin_name in self.application_icons:
                             icon = ima.icon(self.application_icons[bin_name])
+                else:
+
                 return icon
 
 
