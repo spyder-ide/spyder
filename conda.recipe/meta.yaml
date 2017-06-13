@@ -18,8 +18,7 @@ requirements:
     - python.app  # [osx]
     - pyqt >=5.6.0  # [osx]
     - pyqt  # [not osx]
-    - rope 0.9.*  # [py34 or py35]
-    - rope  # [py27]
+    - rope >=0.10.5
     - pyflakes
     - jedi
     - qtconsole >=4.2.0
