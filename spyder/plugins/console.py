@@ -213,16 +213,17 @@ class Console(SpyderPluginWidget):
                 self.msgbox_traceback = QMessageBox(
                     QMessageBox.Critical,
                     _('Error'),
-                    _("<b>Spyder-IDE has encountered a problem.</b>"
+                    _("<b>Spyder has encountered a problem.</b><br>"
                       "Sorry for the inconvenience."
-                      "<b>Please tell us about this problem.</b>"
                       "<br><br>"
-                      "You can submit this error to the github issue tracker"),
-                      QMessageBox.Ok,
+                      "You can automatically submit this error to our Github "
+                      "issues tracker.<br><br>"
+                      "<i>Note:</i> You need a Github account for that."),
+                    QMessageBox.Ok,
                     parent=self)
 
                 self.submit_btn = self.msgbox_traceback.addButton(
-                        _('Submit to github'), QMessageBox.YesRole)
+                        _('Submit to Github'), QMessageBox.YesRole)
                 self.submit_btn.pressed.connect(self.press_submit_btn)
 
                 self.msgbox_traceback.setWindowModality(Qt.NonModal)
