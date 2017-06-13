@@ -163,8 +163,6 @@ class IconProvider(QFileIconProvider):
                     elif file_type == 'application':
                         if bin_name in self.application_icons:
                             icon = ima.icon(self.application_icons[bin_name])
-                else:
-
                 return icon
 
 
