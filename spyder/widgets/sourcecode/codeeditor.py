@@ -907,6 +907,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
+        self.run_pygments_highlighter()
 
     def rehighlight_cells(self):
         """Rehighlight cells when moving the scrollbar"""
@@ -1097,9 +1098,6 @@ class CodeEditor(TextEditBaseWidget):
         """Text has changed, eventually clear found results highlighting"""
         if self.found_results:
             self.clear_found_results()
-
-        # When text has changed start the timer
-        self.timer_syntax_highlight.start()
 
     #-----markers
     def get_markers_margin(self):
@@ -2706,6 +2704,11 @@ class CodeEditor(TextEditBaseWidget):
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
 
+    def keyReleaseEvent(self, event):
+        """Override Qt method."""
+        self.timer_syntax_highlight.start()
+        super(CodeEditor, self).keyPressEvent(event)
+
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
@@ -2890,7 +2893,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.completion_text += text
 
     def run_pygments_highlighter(self):
-        """"""
+        """Run pygments highlighter."""
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.make_charlist()
 
