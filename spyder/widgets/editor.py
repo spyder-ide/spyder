@@ -717,7 +717,7 @@ class EditorStack(QWidget):
             # a crash when the editor is detached from the main window
             # Fixes Issue 561
             self.tabs.setDocumentMode(True)
-        self.tabs.currentChanged.connect(self.current_changed_tabs)
+        self.tabs.currentChanged.connect(self.current_changed)
 
         if sys.platform == 'darwin':
             tab_container = QWidget()
@@ -1621,17 +1621,14 @@ class EditorStack(QWidget):
         if self.data:
             return self.data[self.get_stack_index()].todo_results
 
-    def  current_changed_tabs(self, index):
-        self.current_changed(index, set_focus=False)
-
-    def current_changed(self, index, set_focus=True):
+    def current_changed(self, index):
         """Stack index has changed"""
 #        count = self.get_stack_count()
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
 
         editor = self.get_current_editor()
-        if index != -1 and set_focus:
+        if index != -1:
             editor.setFocus()
             if DEBUG_EDITOR:
                 print("setfocusto:", editor, file=STDOUT)
