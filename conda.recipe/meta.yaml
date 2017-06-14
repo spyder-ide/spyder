@@ -20,7 +20,7 @@ requirements:
     - pyqt  # [not osx]
     - rope >=0.10.5
     - pyflakes
-    - jedi
+    - jedi >=0.9.0
     - qtconsole >=4.2.0
     - nbconvert
     - pygments >=2.0
