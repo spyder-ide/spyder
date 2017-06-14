@@ -150,6 +150,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
+from spyder.widgets.fileswitcher import FileSwitcher
 
 #==============================================================================
 # Local gui imports
@@ -322,6 +323,9 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
+        
+        # File switcher
+        self.fileswitcher_dlg = None
 
         # Check for updates Thread and Worker, refereces needed to prevent
         # segfaulting
@@ -546,6 +550,14 @@ class MainWindow(QMainWindow):
                                "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                "Use previous layout")
+        # File switcher shortcut
+        self.file_switcher_action = create_action(self, _('File switcher...'),
+                                            icon=ima.icon('filelist'),
+                                            tip=_('Fast switch between files'),
+                                            triggered=self.open_fileswitcher_dlg,
+                                            context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.file_switcher_action, context="_",
+                               name="File switcher")
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
@@ -821,7 +833,7 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [None, restart_action, quit_action]
+        self.file_menu_actions += [self.file_switcher_action, None, restart_action, quit_action]
         self.set_splash("")
 
         self.debug_print("  ..widgets")
@@ -2712,6 +2724,28 @@ class MainWindow(QMainWindow):
         frames = self.tours_available[index]
         self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
+
+    # ---- GLobal File Switcher
+    def open_fileswitcher_dlg(self):
+        """Open file list management dialog box"""
+        if not self.editor.get_current_editorstack().tabs.count():
+            return
+        if self.fileswitcher_dlg is not None and \
+          self.fileswitcher_dlg.is_visible:
+            self.fileswitcher_dlg.hide()
+            self.fileswitcher_dlg.is_visible = False
+            return
+        self.fileswitcher_dlg.sig_goto_file.connect(self.editor.get_current_editorstack().set_stack_index)
+        self.fileswitcher_dlg.sig_close_file.connect(self.editor.get_current_editorstack().close_file)
+        self.fileswitcher_dlg.show()
+        self.fileswitcher_dlg.is_visible = True
+
+    def add_to_fileswitcher(self, tabs, data, plugin):
+        """Add a plugin to the File Switcher."""
+        if self.fileswitcher_dlg == None:
+            self.fileswitcher_dlg = FileSwitcher(self, tabs, data, plugin)
+        else:
+            self.fileswitcher_dlg.add_plugin(tabs, data, plugin)
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):

@@ -229,10 +229,15 @@ class FileSwitcher(QDialog):
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
 
-    def __init__(self, parent, tabs, data):
+    def __init__(self, parent, tabs, data, plugin):
         QDialog.__init__(self, parent)
 
         # Variables
+        self.plugins_tabs = []
+        self.plugins_data = []
+        self.plugins_instances = []
+        self.add_plugin(tabs, data, plugin)
+        self.plugin = plugin
         self.tabs = tabs                  # Editor stack tabs
         self.data = data                  # Editor data
         self.mode = self.FILE_MODE        # By default start in this mode
@@ -286,7 +291,7 @@ class FileSwitcher(QDialog):
         self.edit.textChanged.connect(self.setup)
         self.list.itemSelectionChanged.connect(self.item_selection_changed)
         self.list.clicked.connect(self.edit.setFocus)
-
+        
         # Setup
         self.save_initial_state()
         self.set_dialog_position()
@@ -376,17 +381,17 @@ class FileSwitcher(QDialog):
         parent = self.parent()
         geo = parent.geometry()
         width = self.list.width()  # This has been set in setup
-
+        height = self.list.height()
+        print
         left = parent.geometry().width()/2 - width/2
-        top = 0
+        top = parent.geometry().height()/2 - height/2
         while parent:
             geo = parent.geometry()
             top += geo.top()
             left += geo.left()
             parent = parent.parent()
 
-        # Note: the +1 pixel on the top makes it look better
-        self.move(left, top + self.tabs.tabBar().geometry().height() + 1)
+        self.move(left, top - self.tabs.tabBar().geometry().height())
 
     def fix_size(self, content, extra=50):
         """
@@ -499,6 +504,8 @@ class FileSwitcher(QDialog):
                     stack_index = self.paths.index(self.filtered_path[row])
                     self.sig_goto_file.emit(stack_index)
                     self.goto_line(self.line_number)
+                    self.plugin.switch_to_plugin()
+                    self.raise_()
                     self.edit.setFocus()
                 except ValueError:
                     pass
@@ -527,7 +534,7 @@ class FileSwitcher(QDialog):
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
             if score_value != -1:
-                text_item = '<big>' + rich_text.replace('&', '') + '</big>'
+                text_item = '<big>' + 'TITULO_PLUGIN ' + rich_text.replace('&', '') + '</big>'
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
@@ -632,3 +639,9 @@ class FileSwitcher(QDialog):
         else:
             self.mode = self.FILE_MODE
             self.setup_file_list(filter_text, current_path)
+
+    def add_plugin(self, tabs, data, plugin):
+        """Add a plugin to display its files."""
+        self.plugins_tabs.append(tabs)
+        self.plugins_data.append(data)
+        self.plugins_instances.append(plugin)

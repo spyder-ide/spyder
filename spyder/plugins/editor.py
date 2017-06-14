@@ -657,13 +657,13 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file", add_sc_to_tip=True)
 
-        self.file_switcher_action = create_action(self, _('File switcher...'),
-                                            icon=ima.icon('filelist'),
-                                            tip=_('Fast switch between files'),
-                                            triggered=self.call_file_switcher,
-                                            context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher", add_sc_to_tip=True)
+#        self.file_switcher_action = create_action(self, _('File switcher...'),
+#                                            icon=ima.icon('filelist'),
+#                                            tip=_('Fast switch between files'),
+#                                            triggered=self.call_file_switcher,
+#                                            context=Qt.ApplicationShortcut)
+#        self.register_shortcut(self.file_switcher_action, context="_",
+#                               name="File switcher", add_sc_to_tip=True)
 
         self.symbol_finder_action = create_action(self, _('Symbol finder...'),
                                             icon=ima.icon('symbol_find'),
@@ -1032,7 +1032,7 @@ class Editor(SpyderPluginWidget):
                              self.save_all_action,
                              save_as_action,
                              save_copy_as_action,
-                             self.file_switcher_action,
+#                             self.file_switcher_action,
                              self.symbol_finder_action,
                              self.revert_action,
                              MENU_SEPARATOR,
@@ -1046,7 +1046,7 @@ class Editor(SpyderPluginWidget):
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
                                 self.save_action, self.save_all_action,
-                                self.file_switcher_action,
+#                                self.file_switcher_action,
                                 self.symbol_finder_action]
         self.main.file_toolbar_actions += file_toolbar_actions
 
@@ -1183,6 +1183,7 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.main.add_dockwidget(self)
+        self.main.add_to_fileswitcher(editorstack.tabs, editorstack.data, self)
 
     def update_font(self):
         """Update font from Preferences"""
