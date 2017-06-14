@@ -50,6 +50,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
+from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs
@@ -316,17 +317,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_layout.addWidget(comp_box)
         comp_group.setLayout(comp_layout)
 
-        # Background Color Group
-        bg_group = QGroupBox(_("Background color"))
-        light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color')
-        dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color')
-        bg_layout = QVBoxLayout()
-        bg_layout.addWidget(light_radio)
-        bg_layout.addWidget(dark_radio)
-        bg_group.setLayout(bg_layout)
-
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
         buffer_spin = self.create_spinbox(
@@ -569,7 +559,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, comp_group,
-                                    bg_group, source_code_group), _("Display"))
+                                    source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
@@ -674,12 +664,16 @@ class IPythonConsole(SpyderPluginWidget):
         font_o = self.get_plugin_font()
         help_n = 'connect_to_oi'
         help_o = CONF.get('help', 'connect/ipython_console')
+        color_scheme_n = 'color_scheme_name'
+        color_scheme_o = CONF.get('color_schemes', 'selected')
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
                 client.set_font(font_o)
             if help_n in options and control is not None:
                 control.set_help_enabled(help_o)
+            if color_scheme_n in options:
+                client.set_color_scheme(color_scheme_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -1029,6 +1023,12 @@ class IPythonConsole(SpyderPluginWidget):
         if out_prompt_o:
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
 
+        # Style
+        color_scheme = CONF.get('color_schemes', 'selected')
+        style_sheet = create_qss_style(color_scheme)[0]
+        spy_cfg.JupyterWidget.style_sheet = style_sheet
+        spy_cfg.JupyterWidget.syntax_style = color_scheme
+
         # Editor for %edit
         if CONF.get('main', 'single_instance'):
             spy_cfg.JupyterWidget.editor = self.set_editor()
@@ -1074,11 +1074,10 @@ class IPythonConsole(SpyderPluginWidget):
         in JupyterWidget config options
         """
         options = dict(
-            pylab = self.get_option('pylab'),
-            autoload_pylab = self.get_option('pylab/autoload'),
-            sympy = self.get_option('symbolic_math'),
-            light_color = self.get_option('light_color'),
-            show_banner = self.get_option('show_banner')
+            pylab=self.get_option('pylab'),
+            autoload_pylab=self.get_option('pylab/autoload'),
+            sympy=self.get_option('symbolic_math'),
+            show_banner=self.get_option('show_banner')
         )
 
         return options

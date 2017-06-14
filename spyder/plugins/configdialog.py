@@ -1138,6 +1138,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.set_option('selected', self.current_scheme)
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:
             self.main.historylog.apply_plugin_settings(['color_scheme_name'])
         if self.main.help is not None:
