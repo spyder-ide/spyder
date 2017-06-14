@@ -1210,7 +1210,11 @@ class EditorStack(QWidget):
         is_readonly = finfo.editor.isReadOnly()
         tab_text = self.get_tab_text(index, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
-        self.tabs.setTabText(index, tab_text)
+
+        # Only update tab text if have changed, otherwise an unwanted scrolling
+        # will happen when changing tabs. See Issue #1170.
+        if tab_text != self.tabs.tabText(index):
+            self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
 
 
