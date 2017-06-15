@@ -981,7 +981,10 @@ class MarkdownSH(BaseSH):
         self.setCurrentBlockState(previous_state)
 
         match = self.PROG.search(text)
-        while match:
+        match_count = 0
+        n_characters = len(text)
+
+        while match and match_count< n_characters:
             for key, value in list(match.groupdict().items()):
                 start, end = match.span(key)
 
@@ -1006,6 +1009,7 @@ class MarkdownSH(BaseSH):
                     self.setFormat(start, end - start, self.formats[key])
 
             match = self.PROG.search(text, match.end())
+            match_count += 1
 
         self.highlight_spaces(text)
 
