@@ -799,7 +799,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cur_pos = prev_pos = cursor.position()
 
         while not self.is_cell_separator(cursor):
-            # Moving to the previous code cell
+            # Move to the previous cell or the beginning of the current cell
             cursor.movePosition(QTextCursor.PreviousBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
