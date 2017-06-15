@@ -5,7 +5,10 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
-"""Worker threads for downloading files."""
+"""
+Worker manager and workers for running files long processes in non GUI
+blocking threads.
+"""
 
 # Standard library imports
 from collections import deque
@@ -41,7 +44,7 @@ class PythonWorker(QObject):
     sig_finished = Signal(object, object, object)  # worker, stdout, stderr
 
     def __init__(self, func, args, kwargs):
-        """Download Worker based on requests."""
+        """Generic python worker for running python code on threads."""
         super(PythonWorker, self).__init__()
         self.func = func
         self.args = args
@@ -86,7 +89,8 @@ class ProcessWorker(QObject):
     sig_partial = Signal(object, object, object)
 
     def __init__(self, cmd_list, environ=None):
-        """Conda worker based on a QProcess for non blocking UI.
+        """
+        Process worker based on a QProcess for non blocking UI.
 
         Parameters
         ----------

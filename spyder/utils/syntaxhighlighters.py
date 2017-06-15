@@ -1052,7 +1052,7 @@ class PygmentsSH(BaseSH):
     # Store the language name and a ref to the lexer
     _lang_name = None
     _lexer = None
-    _charlist = []
+
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
@@ -1082,11 +1082,11 @@ class PygmentsSH(BaseSH):
         # parsing
         self._worker_manager = WorkerManager()
 
-        # Store the format for all the tokens after pygments parsing
+        # Store the format for all the tokens after Pygments parsing
         self._charlist = []
 
         # Flag variable to avoid unnecessary highlights if the worker has not
-        # yet finish processing
+        # yet finished processing
         self._allow_highlight = True
 
     def make_charlist(self):
