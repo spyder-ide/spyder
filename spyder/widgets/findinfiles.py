@@ -166,6 +166,12 @@ class SearchThread(QThread):
             left = ' '.join(left)
             right = ' '.join(right)
 
+            if len(left) > max_num_char_fragment:
+                left = ellipsis + left[-20:]
+
+            if len(right) > max_num_char_fragment:
+                right = right[:20] + ellipsis
+
         trunc_line = '{0}<b>{1}</b>{2}'.format(left, match, right)
         return trunc_line
 
