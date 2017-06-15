@@ -193,11 +193,7 @@ def test_advance_cell(editor_cells_bot):
 
     # advance backwards to the begining of the 3rd cell
     editor_stack.advance_cell(reverse=True)
-    assert editor.get_cursor_line_column() == (9, 0)
-    editor_stack.advance_cell(reverse=True)
-    assert editor.get_cursor_line_column() == (8, 0)
-    editor_stack.advance_cell(reverse=True)
-    assert editor.get_cursor_line_column() == (7, 0)
+    assert editor.get_cursor_line_column() == (6, 0)
 
     # advance backwards to 2nd cell
     editor_stack.advance_cell(reverse=True)
