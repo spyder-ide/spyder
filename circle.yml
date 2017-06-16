@@ -3,9 +3,11 @@
 machine:
   environment:
     # Python versions to tests (Maximum of 4 different versions)
-    PY_VERSIONS: "3.5 3.6"
+    PY_VERSIONS: "2.7 3.5 3.6"
     # Environment variable used by astropy helpers
     TRAVIS_OS_NAME: "linux"
+    # PyQt version to test with
+    USE_PYQT: pyqt5
 
 dependencies:
   pre:
@@ -24,5 +26,5 @@ test:
     #- export PATH="$HOME/miniconda/bin:$PATH" && source activate test && ciocheck spyder: # note the colon
     #    parallel: true
     # PyQt5
-    - ./continuous_integration/circle/test-qt5.sh || ./continuous_integration/circle/test-qt5.sh: # note the colon
+    - ./continuous_integration/circle/modules_test.sh: # note the colon
         parallel: true
