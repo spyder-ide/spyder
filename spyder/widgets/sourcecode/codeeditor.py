@@ -361,6 +361,18 @@ class CodeEditor(TextEditBaseWidget):
         # Update breakpoints if the number of lines in the file changes
         self.blockCountChanged.connect(self.update_breakpoints)
 
+        # Highlight using Pygments highlighter timer
+        # ---------------------------------------------------------------------
+        # For files that use the PygmentsSH we parse the full file inside
+        # the highlighter in order to generate the correct coloring.
+        self.timer_syntax_highlight = QTimer(self)
+        self.timer_syntax_highlight.setSingleShot(True)
+        # We wait 300 ms to trigger a new coloring as this value is a good
+        # proxy for estimating when an user has stopped typing
+        self.timer_syntax_highlight.setInterval(300)
+        self.timer_syntax_highlight.timeout.connect(
+            self.run_pygments_highlighter)
+
         # Mark occurrences timer
         self.occurrence_highlighting = None
         self.occurrence_timer = QTimer(self)
@@ -2401,6 +2413,11 @@ class CodeEditor(TextEditBaseWidget):
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
 
+    def keyReleaseEvent(self, event):
+        """Override Qt method."""
+        self.timer_syntax_highlight.start()
+        super(CodeEditor, self).keyPressEvent(event)
+
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         self.key_pressed.emit(event)
@@ -2588,6 +2605,11 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+
+    def run_pygments_highlighter(self):
+        """Run pygments highlighter."""
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.make_charlist()
 
     def handle_parentheses(self, text):
         """Handle left and right parenthesis depending on editor config."""
