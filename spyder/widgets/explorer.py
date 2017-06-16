@@ -19,6 +19,7 @@ import re
 import shutil
 import subprocess
 import sys
+import mimetypes as mime
 
 # Third party imports
 from qtpy import API, is_pyqt46
@@ -106,10 +107,28 @@ def has_subdirectories(path, include, exclude, show_all):
 
 
 class IconProvider(QFileIconProvider):
+    BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
+                 'x-7z-compressed', 'rar']}
+    DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
+                      'vnd.openxmlformats-officedocument.'
+                      'presentationml.presentation': 'PowerpointFileIcon',
+                      'msword': 'WordFileIcon',
+                      'vnd.openxmlformats-officedocument.'
+                      'wordprocessingml.document': 'WordFileIcon',
+                      'vnd.ms-excel': 'ExcelFileIcon',
+                      'vnd.openxmlformats-officedocument.'
+                      'spreadsheetml.sheet': 'ExcelFileIcon',
+                      'pdf': 'PDFIcon'}
+    OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
+                    '.pptx': 'PowerpointFileIcon'}
+
     """Project tree widget icon provider"""
     def __init__(self, treeview):
         super(IconProvider, self).__init__()
         self.treeview = treeview
+        self.application_icons = {}
+        self.application_icons.update(self.BIN_FILES)
+        self.application_icons.update(self.DOCUMENT_FILES)
 
     @Slot(int)
     @Slot(QFileInfo)
@@ -123,7 +142,28 @@ class IconProvider(QFileIconProvider):
             if osp.isdir(fname):
                 return ima.icon('DirOpenIcon')
             else:
-                return ima.icon('FileIcon')
+                basename = osp.basename(fname)
+                _, extension = osp.splitext(basename)
+                mime_type, _ = mime.guess_type(basename)
+                icon = ima.icon('FileIcon')
+
+                if extension in self.OFFICE_FILES:
+                    icon = ima.icon(self.OFFICE_FILES[extension])
+
+                if mime_type is not None:
+                    file_type, bin_name = mime_type.split('/')
+                    if file_type == 'text':
+                        icon = ima.icon('TextFileIcon')
+                    elif file_type == 'audio':
+                        icon = ima.icon('AudioFileIcon')
+                    elif file_type == 'video':
+                        icon = ima.icon('VideoFileIcon')
+                    elif file_type == 'image':
+                        icon = ima.icon('ImageFileIcon')
+                    elif file_type == 'application':
+                        if bin_name in self.application_icons:
+                            icon = ima.icon(self.application_icons[bin_name])
+                return icon
 
 
 class DirView(QTreeView):
