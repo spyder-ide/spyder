@@ -33,9 +33,9 @@ install:
 script:
   - |
     if [ "$USE_PYQT" = "pyqt5" ]; then
-        ./continuous_integration/travis/test-qt5.sh
+        ./continuous_integration/travis/test-qt5.sh || ./continuous_integration/travis/test-qt5.sh
     else
-        ./continuous_integration/travis/test-qt4.sh
+        ./continuous_integration/travis/test-qt4.sh || ./continuous_integration/travis/test-qt4.sh
     fi
 
 after_success:
