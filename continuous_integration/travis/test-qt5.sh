@@ -12,5 +12,4 @@ else
     conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
 fi
 
-
 python runtests.py
