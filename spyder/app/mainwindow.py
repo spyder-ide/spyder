@@ -428,6 +428,11 @@ class MainWindow(QMainWindow):
         if options.window_title is not None:
             title += ' -- ' + options.window_title
 
+        if DEV or DEBUG or PYTEST:
+            # Show errors in internal console when developing or testing.
+            CONF.set('main', 'show_internal_console_if_traceback', True)
+
+
         self.base_title = title
         self.update_window_title()
         resample = os.name != 'nt'
@@ -2296,7 +2301,7 @@ class MainWindow(QMainWindow):
         dlg.exec_()
 
     @Slot()
-    def report_issue(self):
+    def report_issue(self, traceback=""):
         if PY3:
             from urllib.parse import quote
         else:
@@ -2320,6 +2325,7 @@ class MainWindow(QMainWindow):
 
 **Please provide any additional information below**
 
+%s
 
 ## Version and main components
 
@@ -2331,7 +2337,8 @@ class MainWindow(QMainWindow):
 ```
 %s
 ```
-""" % (versions['spyder'],
+""" % (traceback,
+       versions['spyder'],
        revision,
        versions['python'],
        versions['qt'],
