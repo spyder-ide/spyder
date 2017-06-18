@@ -793,25 +793,19 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cur_pos = prev_pos = cursor.position()
 
-        # Move to the begining of the cell
+        if self.is_cell_separator(cursor):
+            # Move to the previous cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            cur_pos = prev_pos = cursor.position()
+
         while not self.is_cell_separator(cursor):
-            # Moving to the previous code cell
+            # Move to the previous cell or the beginning of the current cell
             cursor.movePosition(QTextCursor.PreviousBlock)
             prev_pos = cur_pos
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
                 return
 
-        # Move to the previous cell
-        cursor.movePosition(QTextCursor.PreviousBlock)
-        cur_pos = prev_pos = cursor.position()
-        while not self.is_cell_separator(cursor):
-            # Moving to the previous code cell
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return
         self.setTextCursor(cursor)
 
     def get_line_count(self):
@@ -1276,7 +1270,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
-    traceback_available = Signal()
+    traceback_available = Signal(str)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
     
@@ -1398,7 +1392,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
             if is_traceback:
-                self.traceback_available.emit()
+                self.traceback_available.emit(text)
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)
