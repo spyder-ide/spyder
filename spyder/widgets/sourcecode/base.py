@@ -1270,7 +1270,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
-    traceback_available = Signal()
+    traceback_available = Signal(str)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
     
@@ -1392,7 +1392,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
             if is_traceback:
-                self.traceback_available.emit()
+                self.traceback_available.emit(text)
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)
