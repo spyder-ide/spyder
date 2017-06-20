@@ -319,7 +319,6 @@ class FileSwitcher(QDialog):
 
     @property
     def current_path(self):
-        print(self.paths_by_widget[self.get_widget()])
         return self.paths_by_widget[self.get_widget()]
 
     @property
