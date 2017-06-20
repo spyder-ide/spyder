@@ -17,7 +17,7 @@ except ImportError:
 import pytest
 
 # Local imports
-from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
+from spyder.plugins.variableexplorer.widgets.namespacebrowser import NamespaceBrowser
 
 def test_setup_sets_dataframe_format(qtbot):
     browser = NamespaceBrowser(None)

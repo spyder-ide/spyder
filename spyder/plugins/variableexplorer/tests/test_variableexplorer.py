@@ -10,7 +10,7 @@ Tests for variableexplorer.py
 import pytest
 
 from spyder.utils.qthelpers import qapplication
-from spyder.plugins.variableexplorer import VariableExplorer
+from spyder.plugins.variableexplorer.plugin import VariableExplorer
 
 def test_get_settings(monkeypatch):
     def mock_get_option(self, option):
@@ -19,7 +19,7 @@ def test_get_settings(monkeypatch):
         if option == 'dataframe_format': return '3d'
         
     monkeypatch.setattr(VariableExplorer, 'CONF_SECTION', 'sect')
-    monkeypatch.setattr('spyder.plugins.variableexplorer.REMOTE_SETTINGS', 
+    monkeypatch.setattr('spyder.plugins.variableexplorer.plugin.REMOTE_SETTINGS', 
                         ['remote1', 'remote2'])
     monkeypatch.setattr(VariableExplorer, 'get_option', mock_get_option)
 

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.widgets.variableexplorer
+spyder.plugins.variableexplorer.widgets
 ===============================
 
 Variable Explorer related widgets

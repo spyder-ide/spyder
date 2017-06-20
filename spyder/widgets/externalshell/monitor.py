@@ -26,7 +26,7 @@ from spyder.utils.dochelpers import (getargtxt, getdoc, getsource,
 from spyder.utils.bsdsocket import (communicate, read_packet, write_packet,
                                     PACKET_NOT_RECEIVED, PICKLE_HIGHEST_PROTOCOL)
 from spyder.utils.introspection.module_completion import module_completion
-from spyder.widgets.variableexplorer.utils import (get_remote_data,
+from spyder.plugins.variableexplorer.utils import (get_remote_data,
                                                    make_remote_view)
 
 

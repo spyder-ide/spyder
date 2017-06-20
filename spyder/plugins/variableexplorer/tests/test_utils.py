@@ -11,7 +11,7 @@ Tests for utils.py
 import pytest
 
 # Local imports
-from spyder.widgets.variableexplorer.utils import sort_against
+from spyder.plugins.variableexplorer.utils import sort_against
 
 
 # --- Tests

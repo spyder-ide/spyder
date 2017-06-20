@@ -13,7 +13,7 @@ import pytest
 
 # Local imports
 from spyder.py3compat import PY2
-from spyder.widgets.variableexplorer.texteditor import TextEditor
+from spyder.plugins.variableexplorer.widgets.viewers.text import TextEditor
 
 @pytest.fixture
 def setup_texteditor(qtbot, text):

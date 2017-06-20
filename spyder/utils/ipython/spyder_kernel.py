@@ -28,7 +28,7 @@ if not IS_EXT_INTERPRETER:
     from spyder.utils.dochelpers import isdefined, getdoc, getsource
     from spyder.utils.iofuncs import iofunctions
     from spyder.utils.misc import fix_reference_name
-    from spyder.widgets.variableexplorer.utils import (get_remote_data,
+    from spyder.plugins.variableexplorer.utils import (get_remote_data,
                                                        make_remote_view)
 else:
     # We add "spyder" to sys.path for external interpreters, so this works!
@@ -37,7 +37,7 @@ else:
     from utils.dochelpers import isdefined, getdoc, getsource
     from utils.iofuncs import iofunctions
     from utils.misc import fix_reference_name
-    from widgets.variableexplorer.utils import (get_remote_data,
+    from plugins.variableexplorer.widgets.utils import (get_remote_data,
                                                 make_remote_view)
 
 

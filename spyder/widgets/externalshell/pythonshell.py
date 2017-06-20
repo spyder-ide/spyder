@@ -31,8 +31,10 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager)
 from spyder.widgets.externalshell.baseshell import ExternalShellBase
 from spyder.widgets.shell import PythonShellWidget
-from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
-from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
+from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
+        NamespaceBrowser)
+from spyder.plugins.variableexplorer.widgets.viewers.collections import (
+        CollectionsEditor)
 
 
 class ExtPythonShellWidget(PythonShellWidget):
@@ -631,7 +633,7 @@ def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyder.plugins.variableexplorer import VariableExplorer
+    from spyder.plugins.variableexplorer.plugin import VariableExplorer
     
     settings = VariableExplorer(None).get_settings()
 

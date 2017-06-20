@@ -375,7 +375,7 @@ def get_supported_types():
     dict(picklable=picklable_types, editable=editables_types)
          
     See:
-    get_remote_data function in spyder/widgets/variableexplorer/utils/monitor.py
+    get_remote_data function in spyder/plugins/variableexplorer/utils.py
     
     Note:
     If you update this list, don't forget to update doc/variablexplorer.rst
