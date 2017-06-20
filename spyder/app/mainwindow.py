@@ -550,14 +550,25 @@ class MainWindow(QMainWindow):
                                "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                "Use previous layout")
-        # File switcher shortcut
-        self.file_switcher_action = create_action(self, _('File switcher...'),
-                                            icon=ima.icon('filelist'),
-                                            tip=_('Fast switch between files'),
-                                            triggered=self.open_fileswitcher_dlg,
-                                            context=Qt.ApplicationShortcut)
+        # File switcher shortcuts
+        self.file_switcher_action = create_action(
+                                    self,
+                                    _('File switcher...'),
+                                    icon=ima.icon('filelist'),
+                                    tip=_('Fast switch between files'),
+                                    triggered=self.open_fileswitcher_dlg,
+                                    context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher")
+        self.symbol_finder_action = create_action(
+                                    self, _('Symbol finder...'),
+                                    icon=ima.icon('symbol_find'),
+                                    tip=_('Fast symbol search in file'),
+                                    triggered=self.open_symbolfinder_dlg,
+                                    context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.symbol_finder_action, context="_",
+                               name="symbol finder", add_sc_to_tip=True)
+
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
@@ -833,7 +844,9 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [self.file_switcher_action, None, restart_action, quit_action]
+        self.file_menu_actions += [self.file_switcher_action,
+                                   self.symbol_finder_action, None,
+                                   restart_action, quit_action]
         self.set_splash("")
 
         self.debug_print("  ..widgets")
@@ -2725,27 +2738,35 @@ class MainWindow(QMainWindow):
         self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
 
-    # ---- GLobal File Switcher
+    # ---- Global File Switcher
     def open_fileswitcher_dlg(self):
-        """Open file list management dialog box"""
-        if not self.editor.get_current_editorstack().tabs.count():
-            return
+        """Open file list management dialog box."""
         if self.fileswitcher_dlg is not None and \
           self.fileswitcher_dlg.is_visible:
             self.fileswitcher_dlg.hide()
             self.fileswitcher_dlg.is_visible = False
             return
-        self.fileswitcher_dlg.sig_goto_file.connect(self.editor.get_current_editorstack().set_stack_index)
-        self.fileswitcher_dlg.sig_close_file.connect(self.editor.get_current_editorstack().close_file)
+        self.fileswitcher_dlg.setup()
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
+
+    def open_symbolfinder_dlg(self):
+        """Open symbol list management dialog box."""
+        self.open_fileswitcher_dlg()
+        self.fileswitcher_dlg.set_search_text('@')
 
     def add_to_fileswitcher(self, tabs, data, plugin):
         """Add a plugin to the File Switcher."""
         if self.fileswitcher_dlg == None:
             self.fileswitcher_dlg = FileSwitcher(self, tabs, data, plugin)
+            self.fileswitcher_dlg.sig_goto_file.connect(
+                    plugin.get_current_tab_manager().set_stack_index
+                )
         else:
             self.fileswitcher_dlg.add_plugin(tabs, data, plugin)
+            self.fileswitcher_dlg.sig_goto_file.connect(
+                    plugin.get_current_tab_manager().set_stack_index
+                )
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
