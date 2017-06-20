@@ -19,6 +19,7 @@ import os.path as osp
 import re
 import sys
 import math
+import html
 import traceback
 
 # Third party imports
@@ -34,7 +35,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
 from spyder.config.base import _
 from spyder.py3compat import getcwd, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_toolbutton, get_filetype_icon
+from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.encoding import is_text_file
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -173,7 +174,12 @@ class SearchThread(QThread):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        trunc_line = '{0}<b>{1}</b>{2}'.format(left, match, right)
+        line_match_format = to_text_string('{0}<b>{1}</b>{2}')
+        left = html.escape(left)
+        right = html.escape(right)
+        match = html.escape(match)
+        trunc_line = line_match_format.format(left, match, right)
+        print(trunc_line)
         return trunc_line
 
     def find_string_in_file(self, fname):
@@ -507,10 +513,11 @@ class FileMatchItem(QTreeWidgetItem):
 
         self.filename = osp.basename(filename)
 
-        title = ('<b>{0}</b><br>'
-                 '<small><em>{1}</em>'
-                 '</small>'.format(osp.basename(filename),
-                                   osp.dirname(filename)))
+        title_format = to_text_string('<b>{0}</b><br>'
+                                      '<small><em>{1}</em>'
+                                      '</small>')
+        title = (title_format.format(osp.basename(filename),
+                                     osp.dirname(filename)))
         QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
