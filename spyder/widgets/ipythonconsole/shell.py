@@ -13,11 +13,11 @@ import uuid
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
-
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
+from spyder.utils.ipython.style import create_qss_style, create_style_class
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -59,8 +59,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.interpreter_versions = interpreter_versions
         self.external_kernel = external_kernel
 
-        self.set_background_color()
-
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
@@ -86,6 +84,18 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             self.kernel_client.input(u'!' + code)
         else:
             self.silent_execute(code)
+
+    def set_color_scheme(self, color_scheme):
+        """Set color scheme of the shell."""
+        self.style_sheet, dark_color = create_qss_style(color_scheme)
+        self.syntax_style = color_scheme
+        self._style_sheet_changed()
+        self._syntax_style_changed()
+        self.reset(clear=True)
+        if not dark_color:
+            self.silent_execute("%colors linux")
+        else:
+            self.silent_execute("%colors lightbg")
 
     def get_syspath(self):
         """Ask the kernel for sys.path contents."""
@@ -186,22 +196,19 @@ the sympy module (e.g. plot)
             else:
                 self.silent_execute("%reset -f")
 
-    def set_background_color(self):
-        light_color_o = self.additional_options['light_color']
-        if not light_color_o:
-            self.set_default_style(colors='linux')
-
     def create_shortcuts(self):
+        """Create shortcuts for ipyconsole."""
         inspect = config_shortcut(self._control.inspect_current_object,
-                                  context='Console', name='Inspect current object',
-                                  parent=self)
+                                  context='Console',
+                                  name='Inspect current object', parent=self)
         clear_console = config_shortcut(self.clear_console, context='Console',
                                         name='Clear shell', parent=self)
         restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
                                          context='ipython_console',
                                          name='Restart kernel', parent=self)
         new_tab = config_shortcut(lambda: self.new_client.emit(),
-                                  context='ipython_console', name='new tab', parent=self)
+                                  context='ipython_console', name='new tab',
+                                  parent=self)
         reset_namespace = config_shortcut(lambda: self.reset_namespace(),
                                           context='ipython_console',
                                           name='reset namespace', parent=self)
@@ -357,6 +364,17 @@ the sympy module (e.g. plot)
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
         self.sig_kernel_restarted.emit(msg)
+
+    def _syntax_style_changed(self):
+        """Refresh the highlighting with the current syntax style by class."""
+        if self._highlighter is None:
+            # ignore premature calls
+            return
+        if self.syntax_style:
+            self._highlighter._style = create_style_class(self.syntax_style)
+            self._highlighter._clear_caches()
+        else:
+            self._highlighter.set_style_sheet(self.style_sheet)
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
