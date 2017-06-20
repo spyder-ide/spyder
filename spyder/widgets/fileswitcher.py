@@ -343,7 +343,7 @@ class FileSwitcher(QDialog):
     def save_initial_state(self):
         """Saves initial cursors and initial active widget."""
         paths = self.paths
-        self.initial_widget = self.get_widget(tabs='EditorTabs')
+        self.initial_widget = self.get_widget()
         self.initial_cursors = {}
 
         for i, editor in enumerate(self.widgets):
@@ -498,7 +498,7 @@ class FileSwitcher(QDialog):
         """Go to specified line number in current active editor."""
         if line_number:
             line_number = int(line_number)
-            editor = self.get_widget(tabs='EditorTabs')
+            editor = self.get_widget()
             try:
                 editor.go_to_line(min(line_number, editor.get_line_count()))
             except AttributeError:
