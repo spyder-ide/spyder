@@ -62,10 +62,13 @@ def create_dialog(obj, obj_name):
     from spyder.plugins.variableexplorer.utils import (ndarray, FakeObject,
                                                Image, is_known_type, DataFrame,
                                                Series)
-    from spyder.plugins.variableexplorer.widgets.viewers.collections import CollectionsEditor
-    from spyder.plugins.variableexplorer.widgets.viewers.array import ArrayEditor
+    from spyder.plugins.variableexplorer.widgets.viewers.collections import (
+            CollectionsEditor)
+    from spyder.plugins.variableexplorer.widgets.viewers.array import (
+            ArrayEditor)
     if DataFrame is not FakeObject:
-        from spyder.plugins.variableexplorer.widgets.viewers.dataframe import DataFrameEditor
+        from spyder.plugins.variableexplorer.widgets.viewers.dataframe import (
+                DataFrameEditor)
 
     conv_func = lambda data: data
     readonly = not is_known_type(obj)

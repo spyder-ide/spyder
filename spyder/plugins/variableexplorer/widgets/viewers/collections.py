@@ -54,10 +54,12 @@ from spyder.plugins.variableexplorer.utils import (
     get_type_string)
 
 if ndarray is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.viewers.array import ArrayEditor
+    from spyder.plugins.variableexplorer.widgets.viewers.array import (
+            ArrayEditor)
 
 if DataFrame is not FakeObject:
-    from spyder.plugins.variableexplorer.widgets.viewers.dataframe import DataFrameEditor
+    from spyder.plugins.variableexplorer.widgets.viewers.dataframe import (
+            DataFrameEditor)
 
 
 # XXX --- Disable canning for Numpy arrays for now ---
@@ -1225,7 +1227,8 @@ class CollectionsEditorTableView(BaseTableView):
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
-        from spyder.plugins.variableexplorer.widgets.viewers.object import oedit
+        from spyder.plugins.variableexplorer.widgets.viewers.object import (
+                oedit)
         oedit(data[key])
 
     def plot(self, key, funcname):
