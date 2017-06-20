@@ -28,7 +28,7 @@ class SpyderKernelSpec(KernelSpec):
 
     def __init__(self, **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
-        self.display_name = 'Spyder'
+        self.display_name = 'Python 2 (Spyder)' if PY2 else 'Python 3 (Spyder)'
         self.language = 'python2' if PY2 else 'python3'
         self.resource_dir = ''
 
