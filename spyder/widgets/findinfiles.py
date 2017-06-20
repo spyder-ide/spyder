@@ -131,6 +131,7 @@ class SearchThread(QThread):
         max_line_length = 80
         max_num_char_fragment = 40
 
+        line = to_text_string(line)
         left, match, right = line[:start], line[start:end], line[end:]
 
         if len(line) > max_line_length:
