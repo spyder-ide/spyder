@@ -1164,7 +1164,7 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.main.add_dockwidget(self)
-        self.main.add_to_fileswitcher(editorstack.tabs, editorstack.data, self)
+        self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data)
 
     def update_font(self):
         """Update font from Preferences"""

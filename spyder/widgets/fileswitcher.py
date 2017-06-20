@@ -229,14 +229,14 @@ class FileSwitcher(QDialog):
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
 
-    def __init__(self, parent, tabs, data, plugin):
+    def __init__(self, parent, plugin, tabs, data):
         QDialog.__init__(self, parent)
 
         # Variables
         self.plugins_tabs = []
         self.plugins_data = []
         self.plugins_instances = []
-        self.add_plugin(tabs, data, plugin)
+        self.add_plugin(plugin, tabs, data)
         self.plugin = None                # Last plugin with focus
         self.mode = self.FILE_MODE        # By default start in this mode
         self.initial_cursors = None       # {fullpath: QCursor}
@@ -680,7 +680,7 @@ class FileSwitcher(QDialog):
             self.mode = self.FILE_MODE
             self.setup_file_list(filter_text, current_path)
 
-    def add_plugin(self, tabs, data, plugin):
+    def add_plugin(self, plugin, tabs, data):
         """Add a plugin to display its files."""
         self.plugins_tabs.append((tabs, plugin))
         self.plugins_data.append(data)

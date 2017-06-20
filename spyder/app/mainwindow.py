@@ -2762,15 +2762,15 @@ class MainWindow(QMainWindow):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
 
-    def add_to_fileswitcher(self, tabs, data, plugin):
+    def add_to_fileswitcher(self, plugin, tabs, data):
         """Add a plugin to the File Switcher."""
         if self.fileswitcher_dlg == None:
-            self.fileswitcher_dlg = FileSwitcher(self, tabs, data, plugin)
+            self.fileswitcher_dlg = FileSwitcher(self, plugin, tabs, data)
             self.fileswitcher_dlg.sig_goto_file.connect(
                     plugin.get_current_tab_manager().set_stack_index
                 )
         else:
-            self.fileswitcher_dlg.add_plugin(tabs, data, plugin)
+            self.fileswitcher_dlg.add_plugin(plugin, tabs, data)
             self.fileswitcher_dlg.sig_goto_file.connect(
                     plugin.get_current_tab_manager().set_stack_index
                 )
