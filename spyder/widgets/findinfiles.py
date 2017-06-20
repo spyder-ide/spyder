@@ -167,10 +167,10 @@ class SearchThread(QThread):
             right = ' '.join(right)
 
             if len(left) > max_num_char_fragment:
-                left = ellipsis + left[-20:]
+                left = ellipsis + left[-30:]
 
             if len(right) > max_num_char_fragment:
-                right = right[:20] + ellipsis
+                right = right[:30] + ellipsis
 
         trunc_line = '{0}<b>{1}</b>{2}'.format(left, match, right)
         return trunc_line
@@ -515,10 +515,12 @@ class FileMatchItem(QTreeWidgetItem):
         self.setToolTip(0, filename)
 
     def __lt__(self, x):
-        return self.filename < x.filename
+        # return self.filename < x.filename
+        return False
 
     def __ge__(self, x):
-        return self.filename >= x.filename
+        # return self.filename >= x.filename
+        return False
 
 
 class ItemDelegate(QStyledItemDelegate):
