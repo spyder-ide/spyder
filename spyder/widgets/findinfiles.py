@@ -43,6 +43,10 @@ from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
 
 
+ON = 'on'
+OFF = 'off'
+
+
 class SearchThread(QThread):
     """Find in files search thread"""
     sig_finished = Signal(bool)
@@ -519,9 +523,9 @@ class LineMatchItem(QTreeWidgetItem):
 
 
 class FileMatchItem(QTreeWidgetItem):
-    def __init__(self, parent, filename, sorting_status):
+    def __init__(self, parent, filename, sorting):
 
-        self.sorting_status = sorting_status
+        self.sorting = sorting
         self.filename = osp.basename(filename)
 
         title_format = to_text_string('<b>{0}</b><br>'
@@ -534,13 +538,13 @@ class FileMatchItem(QTreeWidgetItem):
         self.setToolTip(0, filename)
 
     def __lt__(self, x):
-        if self.sorting_status['status']:
+        if self.sorting['status'] == ON:
             return self.filename < x.filename
         else:
             return False
 
     def __ge__(self, x):
-        if self.sorting_status['status']:
+        if self.sorting['status'] == ON:
             return self.filename >= x.filename
         else:
             return False
@@ -593,11 +597,11 @@ class ResultsBrowser(OneColumnTree):
         self.total_matches = None
         self.error_flag = None
         self.completed = None
-        self.sorting_status = {}
+        self.sorting = {}
         self.data = None
         self.files = None
         self.set_title('')
-        self.enable_sorting(False)
+        self.set_sorting(OFF)
         self.setSortingEnabled(True)
         self.header().setSectionsClickable(True)
         self.root_items = None
@@ -612,9 +616,9 @@ class ResultsBrowser(OneColumnTree):
             filename, lineno, colno = itemdata
             self.parent().edit_goto.emit(filename, lineno, self.search_text)
 
-    def enable_sorting(self, flag):
+    def set_sorting(self, flag):
         """Enable result sorting after search is complete."""
-        self.sorting_status['status'] = flag
+        self.sorting['status'] = flag
 
     def clicked(self, item):
         """Click event"""
@@ -625,7 +629,7 @@ class ResultsBrowser(OneColumnTree):
         self.num_files = 0
         self.data = {}
         self.files = {}
-        self.enable_sorting(False)
+        self.set_sorting(OFF)
         self.search_text = search_text
         title = "'%s' - " % search_text
         text = _('String not found')
@@ -637,7 +641,7 @@ class ResultsBrowser(OneColumnTree):
         filename, lineno, colno, line = results
 
         if filename not in self.files:
-            item = FileMatchItem(self, filename, self.sorting_status)
+            item = FileMatchItem(self, filename, self.sorting)
             item.setExpanded(True)
             self.files[filename] = item
             self.num_files += 1
@@ -797,7 +801,7 @@ class FindInFilesWidget(QWidget):
 
     def search_complete(self, completed):
         """Current search thread has finished"""
-        self.result_browser.enable_sorting(True)
+        self.result_browser.set_sorting(ON)
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         self.status_bar.hide()
