@@ -150,6 +150,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
+from spyder.widgets.fileswitcher import FileSwitcher
 
 #==============================================================================
 # Local gui imports
@@ -322,6 +323,9 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
+        
+        # File switcher
+        self.fileswitcher = None
 
         # Check for updates Thread and Worker, refereces needed to prevent
         # segfaulting
@@ -551,6 +555,26 @@ class MainWindow(QMainWindow):
                                "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                "Use previous layout")
+        # File switcher shortcuts
+        self.file_switcher_action = create_action(
+                                    self,
+                                    _('File switcher...'),
+                                    icon=ima.icon('filelist'),
+                                    tip=_('Fast switch between files'),
+                                    triggered=self.open_fileswitcher,
+                                    context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.file_switcher_action, context="_",
+                               name="File switcher")
+        self.symbol_finder_action = create_action(
+                                    self, _('Symbol finder...'),
+                                    icon=ima.icon('symbol_find'),
+                                    tip=_('Fast symbol search in file'),
+                                    triggered=self.open_symbolfinder,
+                                    context=Qt.ApplicationShortcut)
+        self.register_shortcut(self.symbol_finder_action, context="_",
+                               name="symbol finder", add_sc_to_tip=True)
+        self.file_toolbar_actions = [self.file_switcher_action,
+                                     self.symbol_finder_action]
 
         def create_edit_action(text, tr_text, icon):
             textseq = text.split(' ')
@@ -826,7 +850,9 @@ class MainWindow(QMainWindow):
                                        context=Qt.ApplicationShortcut)
         self.register_shortcut(restart_action, "_", "Restart")
 
-        self.file_menu_actions += [None, restart_action, quit_action]
+        self.file_menu_actions += [self.file_switcher_action,
+                                   self.symbol_finder_action, None,
+                                   restart_action, quit_action]
         self.set_splash("")
 
         self.debug_print("  ..widgets")
@@ -2719,6 +2745,38 @@ class MainWindow(QMainWindow):
         frames = self.tours_available[index]
         self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
+
+    # ---- Global File Switcher
+    def open_fileswitcher(self, symbol=False):
+        """Open file list management dialog box."""
+        if self.fileswitcher is not None and \
+          self.fileswitcher.is_visible:
+            self.fileswitcher.hide()
+            self.fileswitcher.is_visible = False
+            return
+        if symbol:
+            self.fileswitcher.plugin = self.editor
+        self.fileswitcher.setup()
+        self.fileswitcher.show()
+        self.fileswitcher.is_visible = True
+
+    def open_symbolfinder(self):
+        """Open symbol list management dialog box."""
+        self.open_fileswitcher(symbol=True)
+        self.fileswitcher.set_search_text('@')
+
+    def add_to_fileswitcher(self, plugin, tabs, data, icon):
+        """Add a plugin to the File Switcher."""
+        if self.fileswitcher is None:
+            self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
+            self.fileswitcher.sig_goto_file.connect(
+                    plugin.get_current_tab_manager().set_stack_index
+                )
+        else:
+            self.fileswitcher.add_plugin(plugin, tabs, data, icon)
+            self.fileswitcher.sig_goto_file.connect(
+                    plugin.get_current_tab_manager().set_stack_index
+                )
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
