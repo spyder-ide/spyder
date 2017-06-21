@@ -229,14 +229,14 @@ class FileSwitcher(QDialog):
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
 
-    def __init__(self, parent, plugin, tabs, data):
+    def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
 
         # Variables
         self.plugins_tabs = []
         self.plugins_data = []
         self.plugins_instances = []
-        self.add_plugin(plugin, tabs, data)
+        self.add_plugin(plugin, tabs, data, icon)
         self.plugin = None                # Last plugin with focus
         self.mode = self.FILE_MODE        # By default start in this mode
         self.initial_cursors = None       # {fullpath: QCursor}
@@ -293,8 +293,11 @@ class FileSwitcher(QDialog):
     # --- Properties
     @property
     def widgets(self):
-        return [(tabs.widget(index), plugin) for tabs,
-                plugin in self.plugins_tabs for index in range(tabs.count())]
+        widgets = []
+        for tabs, plugin in self.plugins_tabs:
+            widgets += [(tabs.widget(index), plugin) for
+                        index in range(tabs.count())]
+        return widgets
 
     @property
     def line_count(self):
@@ -302,20 +305,33 @@ class FileSwitcher(QDialog):
 
     @property
     def save_status(self):
-        return [getattr(td,
-                        'newly_created',
-                        False) for da in self.plugins_data for td in da]
+        save_status = []
+        for da, icon in self.plugins_data:
+            save_status += [getattr(td, 'newly_created', False) for td in da]
+        return save_status
 
     @property
     def paths(self):
-        return [getattr(td,
-                        'filename',
-                        None) for da in self.plugins_data for td in da]
+        paths = []
+        for da, icon in self.plugins_data:
+            paths += [getattr(td, 'filename', None) for td in da]
+        return paths
 
     @property
     def filenames(self):
-        return [os.path.basename(getattr(td, 'filename', None)) \
-                for da in self.plugins_data for td in da]
+        filenames = []
+        for da, icon in self.plugins_data:
+            filenames += [os.path.basename(getattr(td,
+                                                   'filename',
+                                                   None)) for td in da]
+        return filenames
+
+    @property
+    def icons(self):
+        icons = []
+        for da, icon in self.plugins_data:
+            icons += [icon for td in da]
+        return icons
 
     @property
     def current_path(self):
@@ -340,7 +356,7 @@ class FileSwitcher(QDialog):
         self.edit.setText(_str)
 
     def save_initial_state(self):
-        """Saves initial cursors and initial active widget."""
+        """Save initial cursors and initial active widget."""
         paths = self.paths
         self.initial_widget = self.get_widget()
         self.initial_cursors = {}
@@ -546,6 +562,7 @@ class FileSwitcher(QDialog):
         """Setup list widget content for file list display."""
         short_paths = shorten_paths(self.paths, self.save_status)
         paths = self.paths
+        icons = self.icons
         results = []
         trying_for_line_number = ':' in filter_text
 
@@ -576,6 +593,7 @@ class FileSwitcher(QDialog):
         for result in sorted(results):
             index = result[1]
             path = paths[index]
+            icon = icons[index]
             text = ''
             try:
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
@@ -586,7 +604,7 @@ class FileSwitcher(QDialog):
                 # The widget using the fileswitcher is not a plugin
                 pass
             text += result[-1]
-            item = QListWidgetItem(ima.icon('FileIcon'), text)
+            item = QListWidgetItem(ima.icon(icon), text)
             item.setToolTip(path)
             item.setSizeHint(QSize(0, 25))
             self.list.addItem(item)
@@ -680,8 +698,8 @@ class FileSwitcher(QDialog):
             self.mode = self.FILE_MODE
             self.setup_file_list(filter_text, current_path)
 
-    def add_plugin(self, plugin, tabs, data):
+    def add_plugin(self, plugin, tabs, data, icon):
         """Add a plugin to display its files."""
         self.plugins_tabs.append((tabs, plugin))
-        self.plugins_data.append(data)
+        self.plugins_data.append((data, icon))
         self.plugins_instances.append(plugin)
