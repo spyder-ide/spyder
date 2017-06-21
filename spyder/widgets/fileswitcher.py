@@ -604,7 +604,7 @@ class FileSwitcher(QDialog):
                 # The widget using the fileswitcher is not a plugin
                 pass
             text += result[-1]
-            item = QListWidgetItem(ima.icon(icon), text)
+            item = QListWidgetItem(icon, text)
             item.setToolTip(path)
             item.setSizeHint(QSize(0, 25))
             self.list.addItem(item)
