@@ -287,9 +287,13 @@ install_requires = [
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
-    'numpydoc',
-    'pyopengl',  # This is needed only in pip installations see issue #3332
+    'numpydoc'
 ]
+
+# This is needed only for pip installations on Linux.
+# See issue #3332
+if any([arg.startswith('manylinux1') for arg in sys.argv]):
+    install_requires = install_requires + ['pyopengl']
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
