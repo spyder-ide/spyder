@@ -314,8 +314,9 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     @Slot(str)
     @Slot(str, bool)
     @Slot(str, bool, bool)
+    @Slot(str, bool, bool, bool)
     def chdir(self, directory, browsing_history=False,
-              refresh_explorer=True):
+              refresh_explorer=True, refresh_console=True):
         """Set directory as working directory"""
         if directory:
             directory = osp.abspath(to_text_string(directory))
@@ -338,6 +339,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.refresh_plugin()
         if refresh_explorer:
             self.set_explorer_cwd.emit(directory)
+        if refresh_console:
             self.set_as_current_console_wd()
         self.refresh_findinfiles.emit()
 

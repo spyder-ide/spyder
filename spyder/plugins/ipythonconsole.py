@@ -870,7 +870,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     def set_global_working_directory(self, dirname):
         """Set global working directory."""
-        self.main.workingdirectory.chdir(dirname, refresh_explorer=True)
+        self.main.workingdirectory.chdir(dirname, refresh_explorer=True,
+                                         refresh_console=False)
 
     def update_global_working_directory(self):
         """Update global working directory to current working directory."""
