@@ -421,17 +421,21 @@ def get_human_readable_type(item):
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
+    if value is None:
+        return True
     if not is_editable_type(value):
         return False
     elif not isinstance(value, filters):
         return False
     elif iterate:
         if isinstance(value, (list, tuple, set)):
+            valid_count = 0
             for val in value:
-                if not is_supported(val, filters=filters, iterate=check_all):
-                    return False
+                if is_supported(val, filters=filters, iterate=check_all):
+                    valid_count += 1
                 if not check_all:
                     break
+            return valid_count > 0
         elif isinstance(value, dict):
             for key, val in list(value.items()):
                 if not is_supported(key, filters=filters, iterate=check_all) \
