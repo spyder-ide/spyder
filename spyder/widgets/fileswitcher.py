@@ -140,6 +140,12 @@ def shorten_paths(path_list, is_unsaved):
                 short_form = sample_toks[0]
             elif s == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
+            elif s == 3:
+                short_form = (sample_toks[0] + sep + sample_toks[1] +
+                              sep + sample_toks[2])
+            elif s == 4:
+                short_form = (sample_toks[0] + sep + sample_toks[1] +
+                              sep + sample_toks[2] + sep + sample_toks[3])
             else:
                 short_form = "..." + sep + sample_toks[s-1]
             for idx in level_idx:
@@ -174,7 +180,13 @@ def shorten_paths(path_list, is_unsaved):
                 short_form = sample_toks[0]
             elif k == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
-            else:  # k > 2
+            elif k == 3:
+                short_form = (sample_toks[0] + sep + sample_toks[1] + sep +
+                              sample_toks[2])
+            elif k == 4:
+                short_form = (sample_toks[0] + sep + sample_toks[1] + sep +
+                              sample_toks[2] + sep + sample_toks[3])
+            else:  # k > 4
                 short_form = sample_toks[0] + "..." + sep + sample_toks[k-1]
             for idx in group.keys():
                 new_path_list[idx] += short_form + (sep if k > 0 else '')
@@ -599,10 +611,16 @@ class FileSwitcher(QDialog):
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
                 if plugin != title[0]:
                     plugin = title[0]
-                    text += '<big><b>' + plugin + '</b></big><br>'
+                    text += '<br><big><b>' + plugin + '</b></big><br>'
+                    item = QListWidgetItem(text)
+                    item.setToolTip(path)
+                    item.setSizeHint(QSize(0, 25))
+                    self.list.addItem(item)
+                    self.filtered_path.append(path)
             except:
                 # The widget using the fileswitcher is not a plugin
                 pass
+            text = ''
             text += result[-1]
             item = QListWidgetItem(icon, text)
             item.setToolTip(path)
