@@ -2746,20 +2746,22 @@ class MainWindow(QMainWindow):
         self.tour.start_tour()
 
     # ---- Global File Switcher
-    def open_fileswitcher(self):
+    def open_fileswitcher(self, symbol=False):
         """Open file list management dialog box."""
         if self.fileswitcher is not None and \
           self.fileswitcher.is_visible:
             self.fileswitcher.hide()
             self.fileswitcher.is_visible = False
             return
+        if symbol:
+            self.fileswitcher.plugin = self.editor
         self.fileswitcher.setup()
         self.fileswitcher.show()
         self.fileswitcher.is_visible = True
 
     def open_symbolfinder(self):
         """Open symbol list management dialog box."""
-        self.open_fileswitcher()
+        self.open_fileswitcher(symbol=True)
         self.fileswitcher.set_search_text('@')
 
     def add_to_fileswitcher(self, plugin, tabs, data, icon):
