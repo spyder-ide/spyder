@@ -19,7 +19,6 @@ import os.path as osp
 import re
 import sys
 import math
-import html
 import traceback
 
 # Third party imports
@@ -132,6 +131,18 @@ class SearchThread(QThread):
         max_line_length = 80
         max_num_char_fragment = 40
 
+        html_escape_table = {
+            "&": "&amp;",
+            '"': "&quot;",
+            "'": "&apos;",
+            ">": "&gt;",
+            "<": "&lt;",
+        }
+
+        def html_escape(text):
+            """Produce entities within text."""
+            return "".join(html_escape_table.get(c, c) for c in text)
+
         line = to_text_string(line)
         left, match, right = line[:start], line[start:end], line[end:]
 
@@ -175,9 +186,9 @@ class SearchThread(QThread):
                 right = right[:30] + ellipsis
 
         line_match_format = to_text_string('{0}<b>{1}</b>{2}')
-        left = html.escape(left)
-        right = html.escape(right)
-        match = html.escape(match)
+        left = html_escape(left)
+        right = html_escape(right)
+        match = html_escape(match)
         trunc_line = line_match_format.format(left, match, right)
         print(trunc_line)
         return trunc_line
