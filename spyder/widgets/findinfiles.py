@@ -798,7 +798,6 @@ class FindInFilesWidget(QWidget):
     def search_complete(self, completed):
         """Current search thread has finished"""
         self.result_browser.enable_sorting(True)
-        self.result_browser.enable_sorting(True)
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         self.status_bar.hide()
