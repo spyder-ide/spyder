@@ -1263,8 +1263,9 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a kernel spec for our own kernels"""
         # Before creating our kernel spec, we always need to
         # set this value in spyder.ini
-        CONF.set('main', 'spyder_pythonpath',
-                 self.main.get_spyder_pythonpath())
+        if not self.testing:
+            CONF.set('main', 'spyder_pythonpath',
+                     self.main.get_spyder_pythonpath())
         return SpyderKernelSpec()
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
