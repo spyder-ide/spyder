@@ -47,7 +47,7 @@ from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
 from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import is_string, PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
@@ -925,6 +925,8 @@ class IPythonConsole(SpyderPluginWidget):
                 return
 
         self.connect_client_to_kernel(client, path)
+        if client.shellwidget.kernel_manager is None:
+            return
         self.register_client(client)
 
     @Slot()
@@ -944,6 +946,11 @@ class IPythonConsole(SpyderPluginWidget):
         stderr_file = client.stderr_file
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
+        # An error occurred if this is True
+        if is_string(km) and kc is None:
+            client.shellwidget.kernel_manager = None
+            client.show_kernel_error(km)
+            return
 
         kc.started_channels.connect(lambda c=client: self.process_started(c))
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
@@ -1271,10 +1278,21 @@ class IPythonConsole(SpyderPluginWidget):
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_file):
         """Create kernel manager and client."""
+        # Kernel spec
+        kernel_spec = self.create_kernel_spec()
+        if not kernel_spec.env.get('PYTHONPATH'):
+            error_msg = _("This error was most probably caused by installing "
+                          "Spyder in a directory with non-ascii characters "
+                          "(i.e. characters with tildes, apostrophes or "
+                          "non-latin symbols).<br><br>"
+                          "To fix it, please <b>reinstall</b> Spyder in a "
+                          "different location.")
+            return (error_msg, None)
+
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
-        kernel_manager._kernel_spec = self.create_kernel_spec()
+        kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
         stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
