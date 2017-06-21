@@ -37,8 +37,12 @@ def test_none_values_are_supported():
     mode = 'editable'
     none_var = None
     none_list = [2, None, 3, None]
+    none_dict = {'a': None, 'b': 4}
+    none_tuple = (None, [3, None, 4], 'eggs')
     assert is_supported(none_var, filters=tuple(supported_types[mode]))
     assert is_supported(none_list, filters=tuple(supported_types[mode]))
+    assert is_supported(none_dict, filters=tuple(supported_types[mode]))
+    assert is_supported(none_tuple, filters=tuple(supported_types[mode]))
 
 
 if __name__ == "__main__":
