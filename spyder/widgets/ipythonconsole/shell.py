@@ -47,6 +47,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_got_reply = Signal()
     sig_kernel_restarted = Signal(str)
 
+    # For global working directory
+    sig_change_cwd =  Signal(str)
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -84,6 +87,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             self.kernel_client.input(u'!' + code)
         else:
             self.silent_execute(code)
+
+    def get_cwd(self):
+        """Get shell current working directory.
+
+        This will also cause global working directory to be updated.
+        """
+        code = u"get_ipython().kernel.get_cwd()"
+        if self._reading:
+            return
+        else:
+            self.silent_exec_method(code)
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme of the shell."""
@@ -255,6 +269,9 @@ the sympy module (e.g. plot)
         # not the unique request originated from here
         local_uuid = to_text_string(uuid.uuid1())
         code = to_text_string(code)
+        if self.kernel_client is None:
+            return
+
         msg_id = self.kernel_client.execute('', silent=True,
                                             user_expressions={ local_uuid:code })
         self._kernel_methods[local_uuid] = code
@@ -289,6 +306,12 @@ the sympy module (e.g. plot)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)
+                elif 'get_cwd' in method:
+                    if data is not None and 'text/plain' in data:
+                        cwd = ast.literal_eval(data['text/plain'])
+                    else:
+                        cwd = None
+                    self.sig_change_cwd.emit(cwd)
                 elif 'get_syspath' in method:
                     if data is not None and 'text/plain' in data:
                         syspath = ast.literal_eval(data['text/plain'])

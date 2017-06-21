@@ -589,6 +589,7 @@ class IPythonConsole(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
+    change_dir = Signal(bool)
 
     def __init__(self, parent, testing=False):
         """Ipython Console constructor."""
@@ -796,6 +797,9 @@ class IPythonConsole(SpyderPluginWidget):
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
+
+        self.tabwidget.currentChanged.connect(self.update_global_working_directory)
+
         self.explorer.open_interpreter.connect(self.create_client_from_path)
         self.projects.open_interpreter.connect(self.create_client_from_path)
 
@@ -864,6 +868,16 @@ class IPythonConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
+    def set_global_working_directory(self, dirname):
+        """Set global working directory."""
+        self.main.workingdirectory.chdir(dirname, refresh_explorer=True)
+
+    def update_global_working_directory(self):
+        """Update global working directory to current working directory."""
+        shellwidget = self.get_current_shellwidget()
+        if shellwidget is not None:
+            shellwidget.get_cwd()
+
     def execute_code(self, lines, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
@@ -927,6 +941,7 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
+        client.update_cwd.connect(self.set_global_working_directory)
         self.connect_client_to_kernel(client, path)
         self.register_client(client)
 

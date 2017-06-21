@@ -89,6 +89,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                    '# *** Spyder Python Console History Log ***',]
 
     append_to_history = Signal(str, str)
+    update_cwd = Signal(str)
 
     def __init__(self, plugin, name, history_filename, config_options,
                  additional_options, interpreter_versions,
@@ -202,6 +203,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To show env and sys.path contents
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
+
+        self.shellwidget.sig_change_cwd.connect(self.update_cwd)
 
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
             self.shellwidget.silent_execute("%colors linux")
@@ -465,6 +468,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def show_env(self, env):
         """Show environment variables."""
         self.dialog_manager.show(RemoteEnvDialog(env))
+
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
