@@ -1026,10 +1026,11 @@ class Editor(SpyderPluginWidget):
                              MENU_SEPARATOR]
 
         self.main.file_menu_actions += file_menu_actions
-        file_toolbar_actions = [self.new_action, self.open_action,
-                                self.save_action, self.save_all_action]
+        file_toolbar_actions = ([self.new_action, self.open_action,
+                                self.save_action, self.save_all_action] +
+                                self.main.file_toolbar_actions)
 
-        self.main.file_toolbar_actions += file_toolbar_actions
+        self.main.file_toolbar_actions = file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
         self.main.search_menu_actions = [find_action,
