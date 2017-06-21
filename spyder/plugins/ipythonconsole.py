@@ -23,14 +23,12 @@ import sys
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
-from jupyter_client.kernelspec import KernelSpec
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
                             QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
@@ -45,18 +43,17 @@ except ImportError:
 # Local imports
 from spyder import dependencies
 from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
-                                get_module_path, get_module_source_path)
+                                get_module_path)
 from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
-from spyder.py3compat import (iteritems, PY2, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import is_string, PY2, to_text_string
+from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs
-from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
-                               get_python_executable, remove_backslashes)
+from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
 from spyder.widgets.tabs import Tabs
@@ -928,6 +925,8 @@ class IPythonConsole(SpyderPluginWidget):
                 return
 
         self.connect_client_to_kernel(client, path)
+        if client.shellwidget.kernel_manager is None:
+            return
         self.register_client(client)
 
     @Slot()
@@ -947,6 +946,11 @@ class IPythonConsole(SpyderPluginWidget):
         stderr_file = client.stderr_file
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
+        # An error occurred if this is True
+        if is_string(km) and kc is None:
+            client.shellwidget.kernel_manager = None
+            client.show_kernel_error(km)
+            return
 
         kc.started_channels.connect(lambda c=client: self.process_started(c))
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
@@ -1264,100 +1268,31 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_kernel_spec(self):
         """Create a kernel spec for our own kernels"""
-        # Paths that we need to add to PYTHONPATH:
-        # 1. sc_path: Path to our sitecustomize
-        # 2. spy_path: Path to our main module, so we can use our config
-        #    system to configure kernels started by exterrnal interpreters
-        # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
-        #    manager
-        spy_path = get_module_source_path('spyder')
-        sc_path = osp.join(spy_path, 'utils', 'site')
-        spy_pythonpath = []
+        # Before creating our kernel spec, we always need to
+        # set this value in spyder.ini
         if not self.testing:
-            spy_pythonpath = self.main.get_spyder_pythonpath()
-
-        default_interpreter = CONF.get('main_interpreter', 'default')
-        if default_interpreter:
-            pathlist = [sc_path] + spy_pythonpath
-        else:
-            pathlist = [sc_path, spy_path] + spy_pythonpath
-        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=(not default_interpreter))
-
-        # Python interpreter used to start kernels
-        if default_interpreter:
-            pyexec = get_python_executable()
-        else:
-            # Avoid IPython adding the virtualenv on which Spyder is running
-            # to the kernel sys.path
-            os.environ.pop('VIRTUAL_ENV', None)
-            pyexec = CONF.get('main_interpreter', 'executable')
-
-        # Fixes Issue #3427
-        if os.name == 'nt':
-            dir_pyexec = osp.dirname(pyexec)
-            pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
-            if osp.isfile(pyexec_w):
-                pyexec = pyexec_w
-
-        # Command used to start kernels
-        utils_path = osp.join(spy_path, 'utils', 'ipython')
-        kernel_cmd = [
-            pyexec,
-            osp.join("%s" % utils_path, "start_kernel.py"),
-            '-f',
-            '{connection_file}'
-        ]
-
-        # Environment variables that we need to pass to our sitecustomize
-        umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
-
-        if PY2:
-            original_list = umr_namelist[:]
-            for umr_n in umr_namelist:
-                try:
-                    umr_n.encode('utf-8')
-                except UnicodeDecodeError:
-                    umr_namelist.remove(umr_n)
-            if original_list != umr_namelist:
-                CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
-
-        env_vars = {
-            'IPYTHON_KERNEL': 'True',
-            'EXTERNAL_INTERPRETER': not default_interpreter,
-            'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
-            'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(umr_namelist)
-        }
-
-        # Add our PYTHONPATH to env_vars
-        env_vars.update(pypath)
-
-        # Making all env_vars strings
-        for k,v in iteritems(env_vars):
-            if PY2:
-                uv = to_text_string(v)
-                env_vars[k] = to_binary_string(uv, encoding='utf-8')
-            else:
-                env_vars[k] = to_text_string(v)
-
-        # Dict for our kernel spec
-        kernel_dict = {
-            'argv': kernel_cmd,
-            'display_name': 'Spyder',
-            'language': 'python',
-            'env': env_vars
-        }
-
-        return KernelSpec(resource_dir='', **kernel_dict)
+            CONF.set('main', 'spyder_pythonpath',
+                     self.main.get_spyder_pythonpath())
+        return SpyderKernelSpec()
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_file):
         """Create kernel manager and client."""
+        # Kernel spec
+        kernel_spec = self.create_kernel_spec()
+        if not kernel_spec.env.get('PYTHONPATH'):
+            error_msg = _("This error was most probably caused by installing "
+                          "Spyder in a directory with non-ascii characters "
+                          "(i.e. characters with tildes, apostrophes or "
+                          "non-latin symbols).<br><br>"
+                          "To fix it, please <b>reinstall</b> Spyder in a "
+                          "different location.")
+            return (error_msg, None)
+
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
-        kernel_manager._kernel_spec = self.create_kernel_spec()
+        kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
         stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
