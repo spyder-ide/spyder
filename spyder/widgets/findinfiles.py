@@ -190,7 +190,6 @@ class SearchThread(QThread):
         right = html_escape(right)
         match = html_escape(match)
         trunc_line = line_match_format.format(left, match, right)
-        print(trunc_line)
         return trunc_line
 
     def find_string_in_file(self, fname):
@@ -520,8 +519,9 @@ class LineMatchItem(QTreeWidgetItem):
 
 
 class FileMatchItem(QTreeWidgetItem):
-    def __init__(self, parent, filename):
+    def __init__(self, parent, filename, sorting_status):
 
+        self.sorting_status = sorting_status
         self.filename = osp.basename(filename)
 
         title_format = to_text_string('<b>{0}</b><br>'
@@ -534,12 +534,16 @@ class FileMatchItem(QTreeWidgetItem):
         self.setToolTip(0, filename)
 
     def __lt__(self, x):
-        # return self.filename < x.filename
-        return False
+        if self.sorting_status['status']:
+            return self.filename < x.filename
+        else:
+            return False
 
     def __ge__(self, x):
-        # return self.filename >= x.filename
-        return False
+        if self.sorting_status['status']:
+            return self.filename >= x.filename
+        else:
+            return False
 
 
 class ItemDelegate(QStyledItemDelegate):
@@ -589,13 +593,15 @@ class ResultsBrowser(OneColumnTree):
         self.total_matches = None
         self.error_flag = None
         self.completed = None
+        self.sorting_status = {}
         self.data = None
         self.files = None
         self.set_title('')
-        self.root_items = None
-        self.sortByColumn(0, Qt.AscendingOrder)
+        self.enable_sorting(False)
         self.setSortingEnabled(True)
         self.header().setSectionsClickable(True)
+        self.root_items = None
+        self.sortByColumn(0, Qt.AscendingOrder)
         self.setItemDelegate(ItemDelegate(self))
         self.setUniformRowHeights(False)
 
@@ -606,6 +612,10 @@ class ResultsBrowser(OneColumnTree):
             filename, lineno, colno = itemdata
             self.parent().edit_goto.emit(filename, lineno, self.search_text)
 
+    def enable_sorting(self, flag):
+        """Enable result sorting after search is complete."""
+        self.sorting_status['status'] = flag
+
     def clicked(self, item):
         """Click event"""
         self.activated(item)
@@ -615,6 +625,7 @@ class ResultsBrowser(OneColumnTree):
         self.num_files = 0
         self.data = {}
         self.files = {}
+        self.enable_sorting(False)
         self.search_text = search_text
         title = "'%s' - " % search_text
         text = _('String not found')
@@ -626,7 +637,7 @@ class ResultsBrowser(OneColumnTree):
         filename, lineno, colno, line = results
 
         if filename not in self.files:
-            item = FileMatchItem(self, filename)
+            item = FileMatchItem(self, filename, self.sorting_status)
             item.setExpanded(True)
             self.files[filename] = item
             self.num_files += 1
@@ -786,6 +797,8 @@ class FindInFilesWidget(QWidget):
 
     def search_complete(self, completed):
         """Current search thread has finished"""
+        self.result_browser.enable_sorting(True)
+        self.result_browser.enable_sorting(True)
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         self.status_bar.hide()
