@@ -484,10 +484,22 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.systerm_radio)
         
         general_group = QGroupBox(_("General settings"))
-        wdir_bg = QButtonGroup(general_group)
+        post_mortem = self.create_checkbox(
+             _("Enter debugging mode when errors appear during execution"),
+             'post_mortem', False)
+        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
+            'clear_namespace', False)
+
+        general_layout = QVBoxLayout()
+        general_layout.addWidget(clear_variables)
+        general_layout.addWidget(post_mortem)
+        general_group.setLayout(general_layout)
+
+        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_bg = QButtonGroup(wdir_group)
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
-        dirname_radio = self.create_radiobutton(_("the script directory"),
+        dirname_radio = self.create_radiobutton(_("the currrent file directory"),
                                 WDIR_USE_SCRIPT_DIR_OPTION, True,
                                 button_group=wdir_bg)
         thisdir_radio = self.create_radiobutton(_("the following directory:"),
@@ -500,19 +512,12 @@ class RunConfigPage(GeneralConfigPage):
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
 
-        post_mortem = self.create_checkbox(
-             _("Enter debugging mode when errors appear during execution"),
-             'post_mortem', False)
-        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
-            'clear_namespace', False)
+        wdir_layout = QVBoxLayout()
+        wdir_layout.addWidget(wdir_label)
+        wdir_layout.addWidget(dirname_radio)
+        wdir_layout.addLayout(thisdir_layout)
+        wdir_group.setLayout(wdir_layout)
 
-        general_layout = QVBoxLayout()
-        general_layout.addWidget(clear_variables)
-        general_layout.addWidget(wdir_label)
-        general_layout.addWidget(dirname_radio)
-        general_layout.addLayout(thisdir_layout)
-        general_layout.addWidget(post_mortem)
-        general_group.setLayout(general_layout)
 
         dedicated_group = QGroupBox(_("Dedicated Python console"))
         interact_after = self.create_checkbox(
@@ -536,6 +541,7 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
         vlayout.addWidget(general_group)
+        vlayout.addWidget(wdir_group)
         vlayout.addWidget(dedicated_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
