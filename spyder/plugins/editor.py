@@ -1183,6 +1183,7 @@ class Editor(SpyderPluginWidget):
         self.main.add_dockwidget(self)
         self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data,
                                       ima.icon('TextFileIcon'))
+        self.dockwidget.topLevelChanged.connect(self.undock_editor)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1433,6 +1434,18 @@ class Editor(SpyderPluginWidget):
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
             win.set_layout_settings(layout_settings)
+
+    @Slot()
+    def undock_editor(self):
+        """Open a new window instance of the Editor instead of undocking it."""
+        if self.dockwidget.isFloating() and not self.undocked:
+            self.dockwidget.setVisible(False)
+            self.create_new_window()
+            self.toggle_view_action.setChecked(False)
+            self.dockwidget.setFloating(False)
+        self.undocked = False
+        if self.get_current_editorstack():
+            self.get_current_editorstack().new_window = False
 
     def undock_window(self):
         """Undocks the Editor window."""
