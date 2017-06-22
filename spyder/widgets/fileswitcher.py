@@ -633,7 +633,6 @@ class FileSwitcher(QDialog):
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
-#                    item.setFlags(Qt.ItemIsEnabled)
                     item.setFlags(Qt.ItemIsEditable)
                     self.list.addItem(item)
                     self.filtered_path.append(path)
