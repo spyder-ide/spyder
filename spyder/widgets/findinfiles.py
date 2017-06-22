@@ -34,13 +34,17 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
 from spyder.config.base import _
 from spyder.py3compat import getcwd, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_toolbutton, get_filetype_icon
+from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.encoding import is_text_file
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
+
+
+ON = 'on'
+OFF = 'off'
 
 
 class SearchThread(QThread):
@@ -126,50 +130,9 @@ class SearchThread(QThread):
                 return False
         return True
 
-    def truncate_result(self, line, start, end):
-        ellipsis = '...'
-
-        left, match, right = line[:start], line[start:end], line[end:]
-        max_line_length = 40
-        offset = (len(line) - len(match)) // 2
-
-        left = left.split(' ')
-        num_left_words = len(left)
-
-        if num_left_words == 1:
-            left = left[0]
-            if len(left) > max_line_length:
-                left = ellipsis + left[-offset:]
-            left = [left]
-
-        right = right.split(' ')
-        num_right_words = len(right)
-
-        if num_right_words == 1:
-            right = right[0]
-            if len(right) > max_line_length:
-                right = right[:offset] + ellipsis
-            right = [right]
-
-        left = left[-3:]
-        right = right[:3]
-
-        if len(left) < num_left_words:
-            left = [ellipsis] + left
-
-        if len(right) < num_right_words:
-            right = right + [ellipsis]
-
-        left = ' '.join(left)
-        right = ' '.join(right)
-
-        trunc_line = '{0}<b>{1}</b>{2}'.format(left, match, right)
-        return trunc_line
-
     def find_string_in_file(self, fname):
         self.error_flag = False
         self.sig_current_file.emit(fname)
-        # results = {}
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
@@ -187,25 +150,20 @@ class SearchThread(QThread):
                     line_dec = line
                 if self.text_re:
                     for match in re.finditer(text, line):
-                        displ_line = self.truncate_result(line_dec,
-                                                          match.start(),
-                                                          match.end())
                         self.total_matches += 1
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
-                                                  match.start(), displ_line),
+                                                  match.start(),
+                                                  match.end(), line_dec),
                                                  self.total_matches)
                 else:
                     found = line.find(text)
                     while found > -1:
                         self.total_matches += 1
-                        displ_line = self.truncate_result(line_dec,
-                                                          found,
-                                                          found + len(text))
-
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
-                                                  found, displ_line),
+                                                  found,
+                                                  found + len(text), line_dec),
                                                  self.total_matches)
                         for text, enc in self.texts:
                             found = line.find(text, found + 1)
@@ -493,23 +451,31 @@ class LineMatchItem(QTreeWidgetItem):
 
 
 class FileMatchItem(QTreeWidgetItem):
-    def __init__(self, parent, filename):
+    def __init__(self, parent, filename, sorting):
 
+        self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title = ('<b>{0}</b><br>'
-                 '<small><em>{1}</em>'
-                 '</small>'.format(osp.basename(filename),
-                                   osp.dirname(filename)))
+        title_format = to_text_string('<b>{0}</b><br>'
+                                      '<small><em>{1}</em>'
+                                      '</small>')
+        title = (title_format.format(osp.basename(filename),
+                                     osp.dirname(filename)))
         QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
 
     def __lt__(self, x):
-        return self.filename < x.filename
+        if self.sorting['status'] == ON:
+            return self.filename < x.filename
+        else:
+            return False
 
     def __ge__(self, x):
-        return self.filename >= x.filename
+        if self.sorting['status'] == ON:
+            return self.filename >= x.filename
+        else:
+            return False
 
 
 class ItemDelegate(QStyledItemDelegate):
@@ -559,15 +525,17 @@ class ResultsBrowser(OneColumnTree):
         self.total_matches = None
         self.error_flag = None
         self.completed = None
+        self.sorting = {}
         self.data = None
         self.files = None
         self.set_title('')
+        self.set_sorting(OFF)
+        self.setSortingEnabled(False)
         self.root_items = None
         self.sortByColumn(0, Qt.AscendingOrder)
-        self.setSortingEnabled(True)
-        self.header().setSectionsClickable(True)
         self.setItemDelegate(ItemDelegate(self))
         self.setUniformRowHeights(False)
+        self.header().sectionClicked.connect(self.sort_section)
 
     def activated(self, item):
         """Double-click event"""
@@ -576,28 +544,106 @@ class ResultsBrowser(OneColumnTree):
             filename, lineno, colno = itemdata
             self.parent().edit_goto.emit(filename, lineno, self.search_text)
 
+    def set_sorting(self, flag):
+        """Enable result sorting after search is complete."""
+        self.sorting['status'] = flag
+        self.header().setSectionsClickable(flag == ON)
+
+    @Slot(int)
+    def sort_section(self, idx):
+        self.setSortingEnabled(True)
+
     def clicked(self, item):
         """Click event"""
         self.activated(item)
 
     def clear_title(self, search_text):
         self.clear()
+        self.setSortingEnabled(False)
         self.num_files = 0
         self.data = {}
         self.files = {}
+        self.set_sorting(OFF)
         self.search_text = search_text
         title = "'%s' - " % search_text
         text = _('String not found')
         self.set_title(title + text)
 
+    def truncate_result(self, line, start, end):
+        ellipsis = '...'
+        max_line_length = 80
+        max_num_char_fragment = 40
+
+        html_escape_table = {
+            "&": "&amp;",
+            '"': "&quot;",
+            "'": "&apos;",
+            ">": "&gt;",
+            "<": "&lt;",
+        }
+
+        def html_escape(text):
+            """Produce entities within text."""
+            return "".join(html_escape_table.get(c, c) for c in text)
+
+        line = to_text_string(line)
+        left, match, right = line[:start], line[start:end], line[end:]
+
+        if len(line) > max_line_length:
+            offset = (len(line) - len(match)) // 2
+
+            left = left.split(' ')
+            num_left_words = len(left)
+
+            if num_left_words == 1:
+                left = left[0]
+                if len(left) > max_num_char_fragment:
+                    left = ellipsis + left[-offset:]
+                left = [left]
+
+            right = right.split(' ')
+            num_right_words = len(right)
+
+            if num_right_words == 1:
+                right = right[0]
+                if len(right) > max_num_char_fragment:
+                    right = right[:offset] + ellipsis
+                right = [right]
+
+            left = left[-4:]
+            right = right[:4]
+
+            if len(left) < num_left_words:
+                left = [ellipsis] + left
+
+            if len(right) < num_right_words:
+                right = right + [ellipsis]
+
+            left = ' '.join(left)
+            right = ' '.join(right)
+
+            if len(left) > max_num_char_fragment:
+                left = ellipsis + left[-30:]
+
+            if len(right) > max_num_char_fragment:
+                right = right[:30] + ellipsis
+
+        line_match_format = to_text_string('{0}<b>{1}</b>{2}')
+        left = html_escape(left)
+        right = html_escape(right)
+        match = html_escape(match)
+        trunc_line = line_match_format.format(left, match, right)
+        return trunc_line
+
     @Slot(tuple, int)
     def append_result(self, results, num_matches):
         """Real-time update of search results"""
-        filename, lineno, colno, line = results
+        filename, lineno, colno, match_end, line = results
 
         if filename not in self.files:
-            item = FileMatchItem(self, filename)
-            self.files[filename] = item
+            file_item = FileMatchItem(self, filename, self.sorting)
+            file_item.setExpanded(True)
+            self.files[filename] = file_item
             self.num_files += 1
 
         search_text = self.search_text
@@ -615,8 +661,8 @@ class ResultsBrowser(OneColumnTree):
         self.set_title(title + text)
 
         file_item = self.files[filename]
+        line = self.truncate_result(line, colno, match_end)
         item = LineMatchItem(file_item, lineno, colno, line)
-
         self.data[id(item)] = (filename, lineno, colno)
 
 
@@ -692,7 +738,6 @@ class FindInFilesWidget(QWidget):
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
-        # hlayout.addLayout(btn_layout)
 
         layout = QVBoxLayout()
         left, _x, right, bottom = layout.getContentsMargins()
@@ -755,6 +800,7 @@ class FindInFilesWidget(QWidget):
 
     def search_complete(self, completed):
         """Current search thread has finished"""
+        self.result_browser.set_sorting(ON)
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         self.status_bar.hide()
