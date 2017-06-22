@@ -477,11 +477,24 @@ class FileSwitcher(QDialog):
 
     def previous_row(self):
         """Select previous row in list widget."""
-        self.select_row(-1)
+        prev_row = self.current_row() - 1
+        if prev_row == 0:
+            self.list.scrollToTop()
+        elif '</b></big><br>' in self.list.item(prev_row).text():
+            # Select the next previous row, the one following is a title
+            self.select_row(-2)
+        else:
+            self.select_row(-1)
 
     def next_row(self):
         """Select next row in list widget."""
-        self.select_row(+1)
+        next_row = self.current_row() + 1
+        if next_row < self.count():
+            if '</b></big><br>' in self.list.item(next_row).text():
+                # Select the next next row, the one following is a title
+                self.select_row(+2)
+            else:
+                self.select_row(+1)
 
     def get_stack_index(self, stack_index, plugin_index):
         """Get the real index of the selected item."""
@@ -545,6 +558,8 @@ class FileSwitcher(QDialog):
         """List widget item selection change handler."""
         row = self.current_row()
         if self.count() and row >= 0:
+            if '</b></big><br>' in self.list.currentItem().text() and row == 0:
+                self.next_row()
             if self.mode == self.FILE_MODE:
                 try:
                     stack_index = self.paths.index(self.filtered_path[row])
@@ -615,6 +630,7 @@ class FileSwitcher(QDialog):
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
+                    item.setFlags(Qt.ItemIsEditable)
                     self.list.addItem(item)
                     self.filtered_path.append(path)
             except:
