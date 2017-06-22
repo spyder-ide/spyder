@@ -626,10 +626,7 @@ class FileSwitcher(QDialog):
                 title = self.widgets[index][1].get_plugin_title().split(' - ')
                 if plugin != title[0]:
                     plugin = title[0]
-                    if os.name == 'nt':
-                        text += '<br><big><b>' + plugin + '</b></big><br>'
-                    else:
-                        text += '<big><b>' + plugin + '</b></big><br>'
+                    text += '<br><big><b>' + plugin + '</b></big><br>'
                     item = QListWidgetItem(text)
                     item.setToolTip(path)
                     item.setSizeHint(QSize(0, 25))
