@@ -133,7 +133,6 @@ class SearchThread(QThread):
     def find_string_in_file(self, fname):
         self.error_flag = False
         self.sig_current_file.emit(fname)
-        # results = []
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
