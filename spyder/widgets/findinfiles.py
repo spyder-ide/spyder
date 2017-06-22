@@ -53,7 +53,6 @@ class SearchThread(QThread):
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
     sig_file_match = Signal(tuple, int)
-    # sig_file_match = Signal(str, list, int)
     sig_out_print = Signal(object)
 
     def __init__(self, parent):
@@ -152,38 +151,25 @@ class SearchThread(QThread):
                     line_dec = line
                 if self.text_re:
                     for match in re.finditer(text, line):
-                        # displ_line = self.truncate_result(line_dec,
-                        #                                   match.start(),
-                        #                                   match.end())
                         self.total_matches += 1
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
                                                   match.start(),
                                                   match.end(), line_dec),
                                                  self.total_matches)
-                        # results.append((lineno + 1, match.start(),
-                        #                 displ_line))
                 else:
                     found = line.find(text)
                     while found > -1:
                         self.total_matches += 1
-                        # displ_line = self.truncate_result(line_dec,
-                        #                                   found,
-                        #                                   found + len(text))
-
                         self.sig_file_match.emit((osp.abspath(fname),
                                                   lineno + 1,
                                                   found,
                                                   found + len(text), line_dec),
                                                  self.total_matches)
-                        # results.append((lineno + 1, found, displ_line))
                         for text, enc in self.texts:
                             found = line.find(text, found + 1)
                             if found > -1:
                                 break
-                # if len(results) > 1:
-                #     self.sig_file_match.emit(osp.abspath(fname), results,
-                #                              self.total_matches)
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
@@ -650,8 +636,6 @@ class ResultsBrowser(OneColumnTree):
         trunc_line = line_match_format.format(left, match, right)
         return trunc_line
 
-    # @Slot(str, list, int)
-    # def append_result(self, filename, results, num_matches):
     @Slot(tuple, int)
     def append_result(self, results, num_matches):
         """Real-time update of search results"""
@@ -679,7 +663,6 @@ class ResultsBrowser(OneColumnTree):
 
         file_item = self.files[filename]
         line = self.truncate_result(line, colno, match_end)
-        # for (lineno, colno, line) in results:
         item = LineMatchItem(file_item, lineno, colno, line)
         self.data[id(item)] = (filename, lineno, colno)
 
@@ -756,7 +739,6 @@ class FindInFilesWidget(QWidget):
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
-        # hlayout.addLayout(btn_layout)
 
         layout = QVBoxLayout()
         left, _x, right, bottom = layout.getContentsMargins()
