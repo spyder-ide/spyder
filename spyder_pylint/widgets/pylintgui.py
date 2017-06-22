@@ -54,6 +54,8 @@ dependencies.add("pylint", _("Static code analysis"),
 
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
+    sig_edit_goto = Signal(str, int, str)
+
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
         self.filename = None
@@ -66,7 +68,7 @@ class ResultsTree(OneColumnTree):
         data = self.data.get(id(item))
         if data is not None:
             fname, lineno = data
-            self.parent().edit_goto.emit(fname, lineno, '')
+            self.sig_edit_goto.emit(fname, lineno, '')
 
     def clicked(self, item):
         """Click event"""

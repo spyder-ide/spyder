@@ -27,7 +27,6 @@ from jupyter_client.kernelspec import KernelSpec
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
@@ -47,8 +46,8 @@ from spyder import dependencies
 from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
                                 get_module_path, get_module_source_path)
 from spyder.config.main import CONF
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import (iteritems, PY2, to_binary_string,
                               to_text_string)
 from spyder.utils.ipython.style import create_qss_style
@@ -592,10 +591,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def __init__(self, parent, testing=False):
         """Ipython Console constructor."""
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
         self.menu_actions = None
@@ -737,7 +733,7 @@ class IPythonConsole(SpyderPluginWidget):
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin."""
@@ -796,8 +792,6 @@ class IPythonConsole(SpyderPluginWidget):
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
-        self.explorer.open_interpreter.connect(self.create_client_from_path)
-        self.projects.open_interpreter.connect(self.create_client_from_path)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -1168,7 +1162,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.remove(client)
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1396,7 +1390,7 @@ class IPythonConsole(SpyderPluginWidget):
         """
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):

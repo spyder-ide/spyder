@@ -313,7 +313,6 @@ class MainWindow(QMainWindow):
         self.projects = None
         self.outlineexplorer = None
         self.historylog = None
-        self.extconsole = None
         self.ipyconsole = None
         self.variableexplorer = None
         self.findinfiles = None
@@ -788,7 +787,7 @@ class MainWindow(QMainWindow):
         from spyder.plugins.workingdirectory import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
-        self.toolbarslist.append(self.workingdirectory)
+        self.toolbarslist.append(self.workingdirectory.toolbar)
 
         # Help plugin
         if CONF.get('help', 'enable'):
@@ -831,12 +830,11 @@ class MainWindow(QMainWindow):
 
         self.debug_print("  ..widgets")
 
-        # Explorer
-        if CONF.get('explorer', 'enable'):
-            self.set_splash(_("Loading file explorer..."))
-            from spyder.plugins.explorer import Explorer
-            self.explorer = Explorer(self)
-            self.explorer.register_plugin()
+        # Namespace browser
+        self.set_splash(_("Loading namespace browser..."))
+        from spyder.plugins.variableexplorer import VariableExplorer
+        self.variableexplorer = VariableExplorer(self)
+        self.variableexplorer.register_plugin()
 
         # History log widget
         if CONF.get('historylog', 'enable'):
@@ -844,6 +842,19 @@ class MainWindow(QMainWindow):
             from spyder.plugins.history import HistoryLog
             self.historylog = HistoryLog(self)
             self.historylog.register_plugin()
+
+        # IPython console
+        self.set_splash(_("Loading IPython console..."))
+        from spyder.plugins.ipythonconsole import IPythonConsole
+        self.ipyconsole = IPythonConsole(self)
+        self.ipyconsole.register_plugin()
+
+        # Explorer
+        if CONF.get('explorer', 'enable'):
+            self.set_splash(_("Loading file explorer..."))
+            from spyder.plugins.explorer import Explorer
+            self.explorer = Explorer(self)
+            self.explorer.register_plugin()
 
         # Online help widget
         try:    # Qt >= v4.4
@@ -868,17 +879,16 @@ class MainWindow(QMainWindow):
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
 
-        # Namespace browser
-        self.set_splash(_("Loading namespace browser..."))
-        from spyder.plugins.variableexplorer import VariableExplorer
-        self.variableexplorer = VariableExplorer(self)
-        self.variableexplorer.register_plugin()
-
-        # IPython console
-        self.set_splash(_("Loading IPython console..."))
-        from spyder.plugins.ipythonconsole import IPythonConsole
-        self.ipyconsole = IPythonConsole(self)
-        self.ipyconsole.register_plugin()
+        # Third-party plugins
+        self.set_splash(_("Loading third-party plugins..."))
+        for mod in get_spyderplugins_mods():
+            try:
+                plugin = mod.PLUGIN_CLASS(self)
+                self.thirdparty_plugins.append(plugin)
+                plugin.register_plugin()
+            except Exception as error:
+                print("%s: %s" % (mod, str(error)), file=STDERR)
+                traceback.print_exc(file=STDERR)
 
         self.set_splash(_("Setting up main window..."))
 
@@ -1036,18 +1046,7 @@ class MainWindow(QMainWindow):
         self.cpu_status = CPUStatus(self, status)
         self.apply_statusbar_settings()
 
-        # Third-party plugins
-        for mod in get_spyderplugins_mods():
-            try:
-                plugin = mod.PLUGIN_CLASS(self)
-                self.thirdparty_plugins.append(plugin)
-                plugin.register_plugin()
-            except Exception as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
-                traceback.print_exc(file=STDERR)
-
-
-        #----- View
+        # ----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
 
@@ -1237,6 +1236,9 @@ class MainWindow(QMainWindow):
         # Show dialog with missing dependencies
         self.report_missing_dependencies()
 
+        # Raise the menuBar to the top of the main window widget's stack
+        # (Fixes issue 3887)
+        self.menuBar().raise_()
         self.is_setting_up = False
 
     def update_window_title(self):

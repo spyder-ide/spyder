@@ -104,7 +104,7 @@ class CompletionWidget(QListWidget):
         screen_bottom = srect.bottom()
         
         point = self.textedit.cursorRect().bottomRight()
-        point.setX(point.x()+self.textedit.get_linenumberarea_width())
+        point = self.textedit.calculate_real_position(point)
         point = self.textedit.mapToGlobal(point)
 
         # Computing completion widget and its parent right positions
@@ -284,8 +284,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
         self.tab_stop_width_spaces = tab_stop_width_spaces
-        self.setTabStopWidth(tab_stop_width_spaces
-                             * self.fontMetrics().width('9'))
+        self.setTabStopWidth(self.fontMetrics().width(
+                '9'* tab_stop_width_spaces))
 
     def set_palette(self, background, foreground):
         """

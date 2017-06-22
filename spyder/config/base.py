@@ -231,6 +231,7 @@ LANGUAGE_CODES = {'en': u'English',
                   'es': u'Español',
                   'pt_BR': u'Português',
                   'ru': u'Русский',
+                  'zh_CN': u'简体中文',
                   'ja': u'日本語'
                   }
 

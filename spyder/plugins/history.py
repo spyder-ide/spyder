@@ -11,7 +11,6 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
                             QToolButton, QVBoxLayout, QWidget)
@@ -20,8 +19,8 @@ from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
 # Local imports
 from spyder.utils import encoding
 from spyder.config.base import _
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -72,6 +71,8 @@ class HistoryLog(SpyderPluginWidget):
     focus_changed = Signal()
     
     def __init__(self, parent):
+        SpyderPluginWidget.__init__(self, parent)
+
         self.tabwidget = None
         self.menu_actions = None
         self.dockviewer = None
@@ -79,10 +80,6 @@ class HistoryLog(SpyderPluginWidget):
         
         self.editors = []
         self.filenames = []
-        if PYQT5:        
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()
@@ -239,7 +236,8 @@ class HistoryLog(SpyderPluginWidget):
         self.find_widget.set_editor(editor)
         self.tabwidget.setTabToolTip(index, filename)
         self.tabwidget.setCurrentIndex(index)
-        
+
+    @Slot(str, str)
     def append_to_history(self, filename, command):
         """
         Append an entry to history filename
