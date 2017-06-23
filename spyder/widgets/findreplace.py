@@ -238,7 +238,7 @@ class FindReplace(QWidget):
             else:
                 self.clear_matches()
         
-    def show(self, hide_replace = True):
+    def show(self, hide_replace=True):
         """Overrides Qt Method"""
         QWidget.show(self)
         self.visibility_changed.emit(True)
@@ -247,10 +247,12 @@ class FindReplace(QWidget):
                 if self.replace_widgets[0].isVisible():
                     self.hide_replace()
             text = self.editor.get_selected_text()
+            # When selecting several lines, and replace box is activated the
+            # text won't be replaced for the selection
             if hide_replace or len(text.splitlines())<=1:
                 highlighted = True
-                # If no text is highlighted for search, use whatever word is under
-                # the cursor
+                # If no text is highlighted for search, use whatever word is
+                # under the cursor
                 if not text:
                     highlighted = False
                     try:
@@ -283,7 +285,7 @@ class FindReplace(QWidget):
         
     def show_replace(self):
         """Show replace widgets"""
-        self.show(hide_replace = False)
+        self.show(hide_replace=False)
         for widget in self.replace_widgets:
             widget.show()
             
@@ -344,10 +346,15 @@ class FindReplace(QWidget):
 
     def text_has_been_edited(self, text):
         """Find text has been edited (this slot won't be triggered when 
-        setting the search pattern combo box text programmatically"""
-        if not self.replace_widgets[0].isVisible() or len(to_text_string(self.editor.get_selected_text()).splitlines())<=1:
+        setting the search pattern combo box text programmatically)"""
+        # When selecting several lines, and replace box is activated, dynamic 
+        # search is deactivated to prevent changing the selection. Otherwise
+        # we show matching items.
+        if not self.replace_widgets[0].isVisible() or \
+                len(to_text_string(self.editor.get_selected_text())
+                    .splitlines())<=1:
             self.find(changed=True, forward=True, start_highlight_timer=True)
-        
+
     def highlight_matches(self):
         """Highlight found results"""
         if self.is_code_editor and self.highlight_button.isChecked():
@@ -356,12 +363,12 @@ class FindReplace(QWidget):
             regexp = self.re_button.isChecked()
             self.editor.highlight_found_results(text, words=words,
                                                 regexp=regexp)
-                                                
+
     def clear_matches(self):
         """Clear all highlighted matches"""
         if self.is_code_editor:
             self.editor.clear_found_results()
-        
+
     def find(self, changed=True, forward=True,
              rehighlight=True, start_highlight_timer=False):
         """Call the find function"""
@@ -488,7 +495,8 @@ class FindReplace(QWidget):
             cursor.beginEditBlock()
             seltxt = to_text_string(self.editor.get_selected_text())
             if not pattern:
-                replacement = re.sub(re.escape(search_text), re.escape(replace_text), seltxt, flags=re_flags)
+                replacement = re.sub(re.escape(search_text), re.escape(replace_text), 
+                                     seltxt, flags=re_flags)
             else:
                 replacement = re.sub(pattern, replace_text, seltxt, flags=re_flags)
             if replacement != seltxt:
