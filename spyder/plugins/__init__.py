@@ -541,26 +541,14 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
             check_compatibility, message = self.check_compatibility()
             super(SpyderPluginWidget, self).__init__(parent, **kwds)
             if not check_compatibility:
-                messageBox = QMessageBox(self)
-                messageBox.setWindowModality(Qt.NonModal)
-                messageBox.setAttribute(Qt.WA_DeleteOnClose)
-                messageBox.setWindowTitle('Compatibility Check')
-                messageBox.setText(message)
-                messageBox.setStandardButtons(QMessageBox.Ok)
-                messageBox.show()
+                self.show_compatibility_message(message)
     else:
         def __init__(self, parent):
             check_compatibility, message = self.check_compatibility()
             QWidget.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)
             if not check_compatibility:
-                messageBox = QMessageBox(self)
-                messageBox.setWindowModality(Qt.NonModal)
-                messageBox.setAttribute(Qt.WA_DeleteOnClose)
-                messageBox.setWindowTitle('Compatibility Check')
-                messageBox.setText(message)
-                messageBox.setStandardButtons(QMessageBox.Ok)
-                messageBox.show()
+                self.show_compatibility_message(message)
 
     def get_plugin_title(self):
         """
@@ -621,3 +609,13 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         message = ''
         valid = True
         return valid, message
+
+    def show_compatibility_message(self, message):
+        """Show compatibility message."""
+        messageBox = QMessageBox(self)
+        messageBox.setWindowModality(Qt.NonModal)
+        messageBox.setAttribute(Qt.WA_DeleteOnClose)
+        messageBox.setWindowTitle('Compatibility Check')
+        messageBox.setText(message)
+        messageBox.setStandardButtons(QMessageBox.Ok)
+        messageBox.show()
