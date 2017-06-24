@@ -600,8 +600,8 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
 
     def check_compatibility(self):
         """
-        This method can be implemented to check compatibility of plugin on
-        a given os.
+        This method can be implemented to check compatibility of a plugin
+        for a given condition.
 
         `message` should give information in case of non compatibility:
         For example: 'This plugin does not work with Qt4'
