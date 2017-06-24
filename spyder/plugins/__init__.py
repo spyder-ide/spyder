@@ -27,7 +27,7 @@ from qtpy import PYQT5
 from qtpy.QtCore import QEvent, QObject, QPoint, Qt, Signal
 from qtpy.QtGui import QCursor, QKeySequence
 from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow,
-                            QShortcut, QTabBar, QWidget)
+                            QShortcut, QTabBar, QWidget, QMessageBox)
 
 # Local imports
 from spyder.config.base import _
@@ -538,12 +538,30 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
 
     if PYQT5:
         def __init__(self, parent, **kwds):
+            check_compatibility, message = self.check_compatibility()
             super(SpyderPluginWidget, self).__init__(parent, **kwds)
+            if not check_compatibility:
+                messageBox = QMessageBox(self)
+                messageBox.setWindowModality(Qt.NonModal)
+                messageBox.setAttribute(Qt.WA_DeleteOnClose)
+                messageBox.setWindowTitle('Compatibility Check')
+                messageBox.setText(message)
+                messageBox.setStandardButtons(QMessageBox.Ok)
+                messageBox.show()
     else:
         def __init__(self, parent):
+            check_compatibility, message = self.check_compatibility()
             QWidget.__init__(self, parent)
             SpyderPluginMixin.__init__(self, parent)
-        
+            if not check_compatibility:
+                messageBox = QMessageBox(self)
+                messageBox.setWindowModality(Qt.NonModal)
+                messageBox.setAttribute(Qt.WA_DeleteOnClose)
+                messageBox.setWindowTitle('Compatibility Check')
+                messageBox.setText(message)
+                messageBox.setStandardButtons(QMessageBox.Ok)
+                messageBox.show()
+
     def get_plugin_title(self):
         """
         Return plugin title
@@ -591,3 +609,15 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         raise NotImplementedError
+
+    def check_compatibility(self):
+        """
+        This method can be implemented to check compatibility of plugin on
+        a given os.
+
+        `message` should give information in case of non compatibility:
+        For example: 'This plugin does not work with Qt4'
+        """
+        message = ''
+        valid = True
+        return valid, message
