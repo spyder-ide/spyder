@@ -492,7 +492,6 @@ class FindReplace(QWidget):
             """Used to replace only match objects that are whole
             words when the user has selected whole word search"""
             unchanged = match.group(0)
-            print(unchanged, match.start(0), match.end(0), len(seltxt))
             if match.start(0)>0 and re.search(r'\w', seltxt[match.start(0)-1], flags=word_flags):
                 return unchanged
             if match.end(0)<len(seltxt) and re.search(r'\w', seltxt[match.end(0)+1], flags=word_flags):
