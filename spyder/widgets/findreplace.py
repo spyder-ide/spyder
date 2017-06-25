@@ -67,11 +67,13 @@ class FindReplace(QWidget):
 
         self.return_shift_pressed.connect(
                 lambda:
-                self.find(changed=False, forward=False, rehighlight=False))
+                self.find(changed=False, forward=False, rehighlight=False, 
+                          multiline_replace_check = False))
 
         self.return_pressed.connect(
                      lambda:
-                     self.find(changed=False, forward=True, rehighlight=False))
+                     self.find(changed=False, forward=True, rehighlight=False,
+                               multiline_replace_check = False))
 
         self.search_text.lineEdit().textEdited.connect(
                                                      self.text_has_been_edited)
@@ -332,7 +334,8 @@ class FindReplace(QWidget):
     @Slot()
     def find_next(self):
         """Find next occurrence"""
-        state = self.find(changed=False, forward=True, rehighlight=False)
+        state = self.find(changed=False, forward=True, rehighlight=False,
+                          multiline_replace_check=False)
         self.editor.setFocus()
         self.search_text.add_current_text()
         return state
@@ -340,20 +343,15 @@ class FindReplace(QWidget):
     @Slot()
     def find_previous(self):
         """Find previous occurrence"""
-        state = self.find(changed=False, forward=False, rehighlight=False)
+        state = self.find(changed=False, forward=False, rehighlight=False,
+                          multiline_replace_check=False)
         self.editor.setFocus()
         return state
 
     def text_has_been_edited(self, text):
         """Find text has been edited (this slot won't be triggered when 
         setting the search pattern combo box text programmatically)"""
-        # When selecting several lines, and replace box is activated, dynamic 
-        # search is deactivated to prevent changing the selection. Otherwise
-        # we show matching items.
-        if not self.replace_widgets[0].isVisible() or \
-                len(to_text_string(self.editor.get_selected_text())
-                    .splitlines())<=1:
-            self.find(changed=True, forward=True, start_highlight_timer=True)
+        self.find(changed=True, forward=True, start_highlight_timer=True)
 
     def highlight_matches(self):
         """Highlight found results"""
@@ -370,8 +368,14 @@ class FindReplace(QWidget):
             self.editor.clear_found_results()
 
     def find(self, changed=True, forward=True,
-             rehighlight=True, start_highlight_timer=False):
+             rehighlight=True, start_highlight_timer=False, multiline_replace_check=True):
         """Call the find function"""
+        # When several lines are selected in the editor and replace box is activated, 
+        # dynamic search is deactivated to prevent changing the selection. Otherwise
+        # we show matching items.
+        if multiline_replace_check and self.replace_widgets[0].isVisible() and \
+           len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
+            return None
         text = self.search_text.currentText()
         if len(text) == 0:
             self.search_text.lineEdit().setStyleSheet("")
@@ -484,19 +488,38 @@ class FindReplace(QWidget):
     @Slot()
     def replace_find_selection(self, focus_replace_text=False):
         """Replace and find in the current selection"""
+        def _word_replacer(match):
+            """Used to replace only match objects that are whole
+            words when the user has selected whole word search"""
+            unchanged = match.group(0)
+            print(unchanged, match.start(0), match.end(0), len(seltxt))
+            if match.start(0)>0 and re.search(r'\w', seltxt[match.start(0)-1], flags=word_flags):
+                return unchanged
+            if match.end(0)<len(seltxt) and re.search(r'\w', seltxt[match.end(0)+1], flags=word_flags):
+                return unchanged
+            if re.search(r'\W', unchanged, flags=word_flags):
+                return unchanged
+            return match.expand(replace_text) 
+
         if (self.editor is not None):
             replace_text = to_text_string(self.replace_text.currentText())
             search_text = to_text_string(self.search_text.currentText())
             pattern = search_text if self.re_button.isChecked() else None
             case = self.case_button.isChecked()
-            re_flags = 0 if case else re.IGNORECASE
+            words = self.words_button.isChecked()
+            re_flags = re.MULTILINE if case else re.IGNORECASE|re.MULTILINE
 
             cursor = self.editor.textCursor()
             cursor.beginEditBlock()
             seltxt = to_text_string(self.editor.get_selected_text())
             if not pattern:
-                replacement = re.sub(re.escape(search_text), re.escape(replace_text), 
-                                     seltxt, flags=re_flags)
+                pattern = re.escape(search_text)
+                replace_text = re.escape(replace_text)
+            if words:
+                #If whole words is checked we need to check that each match
+                #is actually a whole word before replacing
+                word_flags = 0 if case else re.IGNORECASE
+                replacement = re.sub(pattern, _word_replacer, seltxt, flags=re_flags)
             else:
                 replacement = re.sub(pattern, replace_text, seltxt, flags=re_flags)
             if replacement != seltxt:
