@@ -4120,7 +4120,7 @@ msgstr "Importálás"
 #: spyder/widgets/explorer.py:513
 #, fuzzy
 msgid "Do you really want to delete <b>%s</b>?"
-msgstr "Biztosan törölni: '<b>%1</b>'?"
+msgstr "Biztosan törölni: <b>%s</b>?"
 
 #: spyder/widgets/explorer.py:531
 #, fuzzy
@@ -4140,7 +4140,7 @@ msgstr ""<b> %s nem sikerült <i>%s</i></b><br><br>Error üzenet:<br>%s"
 #: spyder/widgets/explorer.py:548
 #, fuzzy
 msgid "File Explorer"
-msgstr "X fájlböngésző"
+msgstr "fájlböngésző"
 
 #: spyder/widgets/explorer.py:549
 msgid ""
@@ -4206,7 +4206,7 @@ msgstr "Könyvtárnév:"
 #: spyder/widgets/explorer.py:685
 #, fuzzy
 msgid "New package"
-msgstr "új_csomag"
+msgstr "újcsomag"
 
 #: spyder/widgets/explorer.py:686
 msgid "Package name:"
@@ -4216,8 +4216,6 @@ msgstr "Csomagnév:"
 #, fuzzy
 msgid "New module"
 msgstr ""
-"Az aktuális modulban nem mentette el a módosításokat.\n"
-"El szeretné menteni a változásokat az új modul betöltése előtt?"
 
 #: spyder/widgets/explorer.py:741
 msgid ""
@@ -4289,7 +4287,7 @@ msgstr ""
 #: spyder/widgets/externalshell/pythonshell.py:282
 #, fuzzy
 msgid "Terminate"
-msgstr "%1 befejezése"
+msgstr ""
 
 #: spyder/widgets/externalshell/pythonshell.py:283
 msgid ""
