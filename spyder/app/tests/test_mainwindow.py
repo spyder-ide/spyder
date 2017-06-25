@@ -106,6 +106,32 @@ def main_window(request):
 #==============================================================================
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_np_threshold(main_window, qtbot):
+    """Test that setting Numpy threshold doesn't make the Variable Explorer slow."""
+    # Set Numpy threshold
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np; np.set_printoptions(threshold=np.nan)')
+
+    # Create a big Numpy array
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('x = np.random.rand(75000,5)')
+
+    # Wait a very small time to see the array in the Variable Explorer
+    main_window.variableexplorer.visibility_changed(True)
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1, timeout=500)
+
+    # Assert that NumPy threshold remains the same as the one
+    # set by the user
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("t = np.get_printoptions()['threshold']")
+    assert np.isnan(shell.get_value('t'))
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_change_types_in_varexp(main_window, qtbot):
     """Test that variable types can't be changed in the Variable Explorer."""
     # Create object
