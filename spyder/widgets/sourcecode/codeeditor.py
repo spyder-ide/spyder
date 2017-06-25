@@ -293,13 +293,13 @@ class CodeEditor(TextEditBaseWidget):
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
-
+        
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
             ClassFunctionDropdown(self),
             Panel.Position.TOP,
         )
-
+        
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
         self.occurrence_color = None
@@ -536,7 +536,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
-                unblockcomment, transform_uppercase, transform_lowercase,
+                unblockcomment, transform_uppercase, transform_lowercase, 
                 line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
@@ -594,7 +594,7 @@ class CodeEditor(TextEditBaseWidget):
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
                      occurrence_timeout=1500, show_class_func_dropdown=True,
                      indent_guides=False):
-
+        
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -1929,12 +1929,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def comment(self):
         """Comment current line or selection."""
-        self.add_prefix(self.comment_string + " ")
+        self.add_prefix(self.comment_string)
 
     def uncomment(self):
         """Uncomment current line or selection."""
         self.remove_prefix(self.comment_string)
-        self.remove_prefix(" ")
 
     def __blockcomment_bar(self):
         return self.comment_string + '='*(79-len(self.comment_string))
@@ -2861,7 +2860,7 @@ class TestWidget(QSplitter):
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
         self.setWindowIcon(ima.icon('spyder'))
-
+ 
     def load(self, filename):
         self.editor.set_text_from_file(filename)
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),
