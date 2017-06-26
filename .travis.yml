@@ -6,21 +6,21 @@ sudo: false
 
 matrix:
   include:
-    # This never ends!
-    #- python: "2.7"
-    #  env: TEST_MODULES=false
-    #  os: linux
     - python: "2.7"
-      env: TEST_MODULES=true
+      env: USE_PYQT=pyqt4
+      os: linux
+    - python: "2.7"
+      env: USE_PYQT=pyqt5
       os: linux
     - python: "3.5"
-      env: TEST_MODULES=false
+      env: USE_PYQT=pyqt4
       os: linux
+    # This slot runs our tests only with pip packages
     - python: "3.5"
-      env: TEST_MODULES=true
+      env: USE_PYQT=pyqt5
       os: linux
-    - python: "3.4"
-      env: TEST_MODULES=false
+    - python: "3.6"
+      env: USE_PYQT=pyqt5
       os: linux
 
 before_install:
@@ -28,12 +28,15 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - ./continuous_integration/install.sh;
+  - ./continuous_integration/travis/install.sh;
 
 script:
   - |
-    if [ "$TEST_MODULES" = "true" ]; then
-        ./continuous_integration/travis/modules_test.sh
+    if [ "$USE_PYQT" = "pyqt5" ]; then
+        ./continuous_integration/travis/test-qt5.sh || ./continuous_integration/travis/test-qt5.sh
     else
-        ./continuous_integration/travis/test-qt4.sh
+        ./continuous_integration/travis/test-qt4.sh || ./continuous_integration/travis/test-qt4.sh
     fi
+
+after_success:
+  - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls

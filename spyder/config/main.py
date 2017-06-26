@@ -72,7 +72,10 @@ DEFAULTS = [
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
+              'normal_screen_resolution': True,
               'high_dpi_scaling': False,
+              'high_dpi_custom_scale_factor': False,
+              'high_dpi_custom_scale_factors': '1.5',
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
@@ -90,7 +93,7 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
-              'show_internal_console_if_traceback': True,
+              'show_internal_console_if_traceback': False,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
               # Global Spyder fonts
@@ -183,8 +186,6 @@ DEFAULTS = [
               }),
             ('variable_explorer',
              {
-              'autorefresh': False,
-              'autorefresh/timeout': 2000,
               'check_all': CHECK_ALL,
               'dataframe_format': '.3g', # no percent sign to avoid problems
                                          # with ConfigParser's interpolation
@@ -253,7 +254,6 @@ DEFAULTS = [
               'max_history_entries': 20,
               'wrap': True,
               'connect/editor': False,
-              'connect/python_console': False,
               'connect/ipython_console': False,
               'math': True,
               'automatic_import': True,
@@ -367,6 +367,8 @@ DEFAULTS = [
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
+              'editor/indent': 'Ctrl+]',
+              'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to definition': "Ctrl+G",
@@ -425,8 +427,6 @@ DEFAULTS = [
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
-              # -- In plugins/editor.py
-              'editor/show/hide outline': "Ctrl+Alt+O",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -657,7 +657,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '34.0.0'
+CONF_VERSION = '37.2.0'
 
 # Main configuration instance
 try:

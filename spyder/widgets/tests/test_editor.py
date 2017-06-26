@@ -155,11 +155,45 @@ def test_replace_current_selected_line(editor_find_replace_bot):
     qtbot.keyPress(finder.replace_text, Qt.Key_Return)
     assert editor.toPlainText()[0:-1] == expected_new_text
 
+def test_replace_enter_press(editor_find_replace_bot):
+    """Test advance forward pressing Enter, and backwards with Shift+Enter."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    text = '  \nspam \nspam \nspam '
+    editor.set_text(text)
+    finder.show()
+
+    finder.search_text.add_text('spam')
+
+    # search forward
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert editor.get_cursor_line_column() == (1,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert editor.get_cursor_line_column() == (2,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert editor.get_cursor_line_column() == (3,4)
+
+    # search backwards
+    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert editor.get_cursor_line_column() == (2,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert editor.get_cursor_line_column() == (1,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert editor.get_cursor_line_column() == (3,4)
+
+
 def test_advance_cell(editor_cells_bot):
     editor_stack, editor, qtbot = editor_cells_bot
 
     # cursor at the end of the file
     assert editor.get_cursor_line_column() == (10, 0)
+
+    # advance backwards to the begining of the 3rd cell
+    editor_stack.advance_cell(reverse=True)
+    assert editor.get_cursor_line_column() == (6, 0)
 
     # advance backwards to 2nd cell
     editor_stack.advance_cell(reverse=True)

@@ -27,6 +27,7 @@ from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.py3compat import builtins, is_text_string, to_text_string
 from spyder.utils.sourcecode import CELL_LANGUAGES
+from spyder.utils.workers import WorkerManager
 
 
 PYGMENTS_REQVER = '>=2.0'
@@ -63,7 +64,6 @@ COLOR_SCHEME_NAMES = CONF.get('color_schemes', 'names')
 CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
                           '.txt': 'text',
                           '.nt': 'bat',
-                          '.scss': 'css',
                           '.m': 'matlab',
                           ('.properties', '.session', '.inf', '.reg', '.url',
                            '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
@@ -292,7 +292,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
-                                     r"(.[a-zA-Z_][a-zA-Z0-9_]*)*")])
+                                     r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
     number = any("number",
                  [r"\b[+-]?[0-9]+[lLjJ]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
@@ -981,7 +981,10 @@ class MarkdownSH(BaseSH):
         self.setCurrentBlockState(previous_state)
 
         match = self.PROG.search(text)
-        while match:
+        match_count = 0
+        n_characters = len(text)
+
+        while match and match_count< n_characters:
             for key, value in list(match.groupdict().items()):
                 start, end = match.span(key)
 
@@ -1006,6 +1009,7 @@ class MarkdownSH(BaseSH):
                     self.setFormat(start, end - start, self.formats[key])
 
             match = self.PROG.search(text, match.end())
+            match_count += 1
 
         self.highlight_spaces(text)
 
@@ -1052,6 +1056,7 @@ class PygmentsSH(BaseSH):
     # Store the language name and a ref to the lexer
     _lang_name = None
     _lexer = None
+
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
@@ -1074,33 +1079,91 @@ class PygmentsSH(BaseSH):
         # Load Pygments' Lexer
         if self._lang_name is not None:
             self._lexer = get_lexer_by_name(self._lang_name)
+
         BaseSH.__init__(self, parent, font, color_scheme)
 
-    def get_fmt(self, typ):
-        """ Get the format code for this type """
-        # Exact matches first
-        for key in self._tokmap:
-            if typ is key:
-                return self._tokmap[key]            
-        # Partial (parent-> child) matches
-        for key in self._tokmap:
-            if typ in key.subtypes:
-                return self._tokmap[key]
-        return 'normal'
+        # This worker runs in a thread to avoid blocking when doing full file
+        # parsing
+        self._worker_manager = WorkerManager()
+
+        # Store the format for all the tokens after Pygments parsing
+        self._charlist = []
+
+        # Flag variable to avoid unnecessary highlights if the worker has not
+        # yet finished processing
+        self._allow_highlight = True
+
+    def make_charlist(self):
+        """Parses the complete text and stores format for each character."""
+
+        def worker_output(worker, output, error):
+            """Worker finished callback."""
+            self._charlist = output
+            if error is None and output:
+                self._allow_highlight = True
+                self.rehighlight()
+            self._allow_highlight = False
+
+        text = to_text_string(self.document().toPlainText())
+        tokens = self._lexer.get_tokens(text)
+
+        # Before starting a new worker process make sure to end previous
+        # incarnations
+        self._worker_manager.terminate_all()
+
+        worker = self._worker_manager.create_python_worker(
+            self._make_charlist,
+            tokens,
+            self._tokmap,
+            self.formats,
+        )
+        worker.sig_finished.connect(worker_output)
+        worker.start()
+
+    def _make_charlist(self, tokens, tokmap, formats):
+        """
+        Parses the complete text and stores format for each character.
+
+        Uses the attached lexer to parse into a list of tokens and Pygments
+        token types.  Then breaks tokens into individual letters, each with a
+        Spyder token type attached.  Stores this list as self._charlist.
+
+        It's attached to the contentsChange signal of the parent QTextDocument
+        so that the charlist is updated whenever the document changes.
+        """
+
+        def _get_fmt(typ):
+            """Get the Spyder format code for the given Pygments token type."""
+            # Exact matches first
+            if typ in tokmap:
+                return tokmap[typ]
+            # Partial (parent-> child) matches
+            for key, val in tokmap.items():
+                if typ in key: # Checks if typ is a subtype of key.
+                    return val
+
+            return 'normal'
+
+        charlist = []
+        for typ, token in tokens:
+            fmt = formats[_get_fmt(typ)]
+            for letter in token:
+                charlist.append((fmt, letter))
+
+        return charlist
 
     def highlightBlock(self, text):
-        """ Actually highlight the block """        
-        text = to_text_string(text)                
-        lextree = self._lexer.get_tokens(text)        
-        ct = 0
-        for item in lextree:            
-            typ, val = item            
-            key = self.get_fmt(typ)
-            start = ct
-            ct += len(val)        
-            self.setFormat(start, ct-start, self.formats[key])
-        
-        self.highlight_spaces(text)
+        """ Actually highlight the block"""
+        # Note that an undefined blockstate is equal to -1, so the first block
+        # will have the correct behaviour of starting at 0.
+        if self._allow_highlight:
+            start = self.previousBlockState() + 1
+            end = start + len(text)
+            for i, (fmt, letter) in enumerate(self._charlist[start:end]):
+                self.setFormat(i, 1, fmt)
+            self.setCurrentBlockState(end)
+            self.highlight_spaces(text)
+
 
 def guess_pygments_highlighter(filename):
     """Factory to generate syntax highlighter for the given filename.

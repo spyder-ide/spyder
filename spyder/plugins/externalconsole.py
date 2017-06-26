@@ -279,9 +279,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget = None
         self.menu_actions = None
 
-        self.help = None # Help plugin
         self.historylog = None # History log plugin
-        self.variableexplorer = None # Variable explorer plugin
 
         self.python_count = 0
         self.terminal_count = 0
@@ -372,10 +370,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.icons.pop(index)
         self.update_plugin_title.emit()
         self.update_tabs_text()
-
-    def set_variableexplorer(self, variableexplorer):
-        """Set variable explorer plugin"""
-        self.variableexplorer = variableexplorer
     
     def set_path(self):
         """Set consoles PYTHONPATH if changed by the user"""
@@ -566,8 +560,6 @@ class ExternalConsole(SpyderPluginWidget):
             umr_enabled = CONF.get('main_interpreter', 'umr/enabled')
             umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
             umr_verbose = CONF.get('main_interpreter', 'umr/verbose')
-            ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
-            ar_state = CONF.get('variable_explorer', 'autorefresh')
 
             sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir,
@@ -584,8 +576,6 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_backend=mpl_backend, qt_api=qt_api,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,
-                           autorefresh_timeout=ar_timeout,
-                           autorefresh_state=ar_state,
                            light_background=light_background,
                            menu_actions=self.menu_actions,
                            show_buttons_inside=False,
@@ -627,10 +617,6 @@ class ExternalConsole(SpyderPluginWidget):
                             self.get_option('codecompletion/case_sensitive') )
         shellwidget.shell.set_codecompletion_enter(
                             self.get_option('codecompletion/enter_key') )
-        if python and self.help is not None:
-            shellwidget.shell.set_help(self.help)
-            shellwidget.shell.set_help_enabled(
-                               CONF.get('help', 'connect/python_console'))
         if self.historylog is not None:
             self.historylog.add_history(shellwidget.shell.history_filename)
             shellwidget.shell.append_to_history.connect(
@@ -711,10 +697,6 @@ class ExternalConsole(SpyderPluginWidget):
         shell = self.shellwidgets[index]
         icon, _icon = self.icons[index]
         self.tabwidget.setTabIcon(index, icon)
-        if self.help is not None:
-            self.help.set_shell(shell.shell)
-        if self.variableexplorer is not None:
-            self.variableexplorer.add_shellwidget(shell)
 
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
@@ -724,9 +706,7 @@ class ExternalConsole(SpyderPluginWidget):
             # the tab icon...
             _icon, icon = self.icons[index]
             self.tabwidget.setTabIcon(index, icon)
-        if self.variableexplorer is not None:
-            self.variableexplorer.remove_shellwidget(shell_id)
-        
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -772,7 +752,6 @@ class ExternalConsole(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        self.help = self.main.help
         self.historylog = self.main.historylog
         self.edit_goto.connect(self.main.editor.load)
         self.edit_goto[str, int, str, bool].connect(
@@ -834,8 +813,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         if shellwidget:
             shellwidget.update_time_label_visibility()
-            self.variableexplorer.set_shellwidget_from_id(id(shellwidget))
-            self.help.set_shell(shellwidget.shell)
         self.main.last_console_plugin_focus_was_python = True
         self.update_plugin_title.emit()
 
@@ -856,8 +833,6 @@ class ExternalConsole(SpyderPluginWidget):
         icontext_o = self.get_option(icontext_n)
         calltips_n = 'calltips'
         calltips_o = self.get_option(calltips_n)
-        help_n = 'connect_to_oi'
-        help_o = CONF.get('help', 'connect/python_console')
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         compauto_n = 'codecompletion/auto'
@@ -875,9 +850,6 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.set_icontext_visible(icontext_o)
             if calltips_n in options:
                 shellwidget.shell.set_calltips(calltips_o)
-            if help_n in options:
-                if isinstance(shellwidget, ExternalPythonShell):
-                    shellwidget.shell.set_help_enabled(help_o)
             if wrap_n in options:
                 shellwidget.shell.toggle_wrap_mode(wrap_o)
             if compauto_n in options:

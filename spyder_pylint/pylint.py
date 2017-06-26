@@ -23,8 +23,9 @@ from spyder.config.base import get_translation
 from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.utils import icon_manager as ima
+from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
-from .widgets.pylintgui import (PYLINT_PATH, PylintWidget)
+from .widgets.pylintgui import PylintWidget
 
 
 _ = get_translation("pylint", "spyder_pylint")
@@ -132,7 +133,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         
         pylint_act = create_action(self, _("Run static code analysis"),
                                    triggered=self.run_pylint)
-        pylint_act.setEnabled(PYLINT_PATH is not None)
+        pylint_act.setEnabled(is_module_installed('pylint'))
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis")
         

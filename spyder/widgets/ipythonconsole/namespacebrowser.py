@@ -10,6 +10,7 @@ the Variable Explorer
 """
 
 from qtpy.QtCore import QEventLoop
+from qtpy.QtWidgets import QMessageBox
 
 from ipykernel.pickleutil import CannedObject
 from ipykernel.serialize import deserialize_object
@@ -44,9 +45,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def configure_namespacebrowser(self):
         """Configure associated namespace browser widget"""
-        # Tell it that we are connected to client
-        self.namespacebrowser.is_ipyclient = True
-
         # Update namespace view
         self.sig_namespace_view.connect(lambda data:
             self.namespacebrowser.process_remote_view(data))
@@ -71,16 +69,17 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def get_value(self, name):
         """Ask kernel for a value"""
-        # Don't ask for values while reading (ipdb) is active
+        code = u"get_ipython().kernel.get_value('%s')" % name
         if self._reading:
-            raise ValueError(_("Inspecting and setting values while debugging "
-                               "in IPython consoles is not supported yet by "
-                               "Spyder."))
+            method = self.kernel_client.input
+            code = u'!' + code
+        else:
+            method = self.silent_execute
 
         # Wait until the kernel returns the value
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
-        self.silent_execute("get_ipython().kernel.get_value('%s')" % name)
+        method(code)
         wait_loop.exec_()
 
         # Remove loop connection and loop
@@ -99,19 +98,35 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def set_value(self, name, value):
         """Set value for a variable"""
         value = to_text_string(value)
-        self.silent_execute("get_ipython().kernel.set_value('%s', %s)" %
-                            (name, value))
+        code = u"get_ipython().kernel.set_value('%s', %s)" % (name, value)
+        if self._reading:
+            self.kernel_client.input(u'!' + code)
+        else:
+            self.silent_execute(code)
 
     def remove_value(self, name):
         """Remove a variable"""
-        self.silent_execute("get_ipython().kernel.remove_value('%s')" % name)
+        code = u"get_ipython().kernel.remove_value('%s')" % name
+        if self._reading:
+            self.kernel_client.input(u'!' + code)
+        else:
+            self.silent_execute(code)
 
     def copy_value(self, orig_name, new_name):
         """Copy a variable"""
-        self.silent_execute("get_ipython().kernel.copy_value('%s', '%s')" %
-                            (orig_name, new_name))
+        code = u"get_ipython().kernel.copy_value('%s', '%s')" % (orig_name,
+                                                                 new_name)
+        if self._reading:
+            self.kernel_client.input(u'!' + code)
+        else:
+            self.silent_execute(code)
 
     def load_data(self, filename, ext):
+        if self._reading:
+            message = _("Loading this kind of data while debugging is not "
+                        "supported.")
+            QMessageBox.warning(self, _("Warning"), message)
+            return
         # Wait until the kernel tries to load the file
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
@@ -126,6 +141,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         return self._kernel_reply
 
     def save_namespace(self, filename):
+        if self._reading:
+            message = _("Saving data while debugging is not supported.")
+            QMessageBox.warning(self, _("Warning"), message)
+            return
         # Wait until the kernel tries to save the file
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
@@ -156,13 +175,19 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self.sig_got_reply.emit()
             return
 
-        # We only handle data asked by Spyder
+        # Receive values asked for Spyder
         value = data.get('__spy_data__', None)
         if value is not None:
             if isinstance(value, CannedObject):
                 value = value.get_object()
             self._kernel_value = value
             self.sig_got_reply.emit()
+            return
+
+        # Receive Pdb state and dispatch it
+        pdb_state = data.get('__spy_pdb_state__', None)
+        if pdb_state is not None and isinstance(pdb_state, dict):
+            self.refresh_from_pdb(pdb_state)
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):

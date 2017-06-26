@@ -26,8 +26,9 @@ from spyder.widgets.explorer import ExplorerWidget
 
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
+
     CONF_SECTION = 'explorer'
-    open_terminal = Signal(str)
+
     open_interpreter = Signal(str)
     edit = Signal(str)
     removed = Signal(str)

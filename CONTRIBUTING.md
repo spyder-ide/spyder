@@ -101,6 +101,21 @@ So to start working on a new PR, you need to follow these commands:
   $ git checkout -b name-new-branch
 ```
 
+### Changing base branch
+
+If you started your work in the wrong branch, or want to backport it, you could
+change the base branch using `git rebase --onto`, like this:
+
+```bash
+  $ git rebase --onto <new_base> <old_base> <branch>
+```
+
+For example, backporting `my_branch` from `master` to `3.x`:
+
+```bash
+  $ git rebase --onto 3.x master my_branch
+```
+
 ##  Running Tests
 
 Install our test dependencies:

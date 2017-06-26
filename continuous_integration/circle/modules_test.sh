@@ -7,7 +7,13 @@ export PYTHONPATH=.
 export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
-conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
+
+if [ "$USE_PYQT" = "pyqt5" ]; then
+    conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
+else
+    conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
+fi
+
 
 # Depth 1
 for f in spyder/*.py; do

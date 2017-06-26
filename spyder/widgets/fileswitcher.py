@@ -13,7 +13,8 @@ import os.path as osp
 from qtpy.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
 from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
-                            QListWidget, QListWidgetItem, QVBoxLayout)
+                            QListWidget, QListWidgetItem, QVBoxLayout,
+                            QMainWindow)
 
 # Local imports
 from spyder.config.base import _
@@ -139,6 +140,12 @@ def shorten_paths(path_list, is_unsaved):
                 short_form = sample_toks[0]
             elif s == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
+            elif s == 3:
+                short_form = (sample_toks[0] + sep + sample_toks[1] +
+                              sep + sample_toks[2])
+            elif s == 4:
+                short_form = (sample_toks[0] + sep + sample_toks[1] +
+                              sep + sample_toks[2] + sep + sample_toks[3])
             else:
                 short_form = "..." + sep + sample_toks[s-1]
             for idx in level_idx:
@@ -173,7 +180,13 @@ def shorten_paths(path_list, is_unsaved):
                 short_form = sample_toks[0]
             elif k == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
-            else:  # k > 2
+            elif k == 3:
+                short_form = (sample_toks[0] + sep + sample_toks[1] + sep +
+                              sample_toks[2])
+            elif k == 4:
+                short_form = (sample_toks[0] + sep + sample_toks[1] + sep +
+                              sample_toks[2] + sep + sample_toks[3])
+            else:  # k > 4
                 short_form = sample_toks[0] + "..." + sep + sample_toks[k-1]
             for idx in group.keys():
                 new_path_list[idx] += short_form + (sep if k > 0 else '')
@@ -221,24 +234,26 @@ class FilesFilterLine(QLineEdit):
 
 class FileSwitcher(QDialog):
     """A Sublime-like file switcher."""
-    sig_goto_file = Signal(int)
-    sig_close_file = Signal(int)
+    sig_goto_file = Signal(int, object)
 
     # Constants that define the mode in which the list widget is working
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
 
-    def __init__(self, parent, tabs, data):
+    def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
 
         # Variables
-        self.tabs = tabs                  # Editor stack tabs
-        self.data = data                  # Editor data
+        self.plugins_tabs = []
+        self.plugins_data = []
+        self.plugins_instances = []
+        self.add_plugin(plugin, tabs, data, icon)
+        self.plugin = None                # Last plugin with focus
         self.mode = self.FILE_MODE        # By default start in this mode
         self.initial_cursors = None       # {fullpath: QCursor}
         self.initial_path = None          # Fullpath of initial active editor
-        self.initial_editor = None        # Initial active editor
+        self.initial_widget = None        # Initial active editor
         self.line_number = None           # Selected line number in filer
         self.is_visible = False           # Is the switcher visible?
 
@@ -287,44 +302,62 @@ class FileSwitcher(QDialog):
         self.list.itemSelectionChanged.connect(self.item_selection_changed)
         self.list.clicked.connect(self.edit.setFocus)
 
-        # Setup
-        self.save_initial_state()
-        self.set_dialog_position()
-        self.setup()
-
     # --- Properties
     @property
-    def editors(self):
-        return [self.tabs.widget(index) for index in range(self.tabs.count())]
+    def widgets(self):
+        widgets = []
+        for tabs, plugin in self.plugins_tabs:
+            widgets += [(tabs.widget(index), plugin) for
+                        index in range(tabs.count())]
+        return widgets
 
     @property
     def line_count(self):
-        return [editor.get_line_count() for editor in self.editors]
+        return [widget.get_line_count() for widget in self.widgets]
 
     @property
     def save_status(self):
-        return [getattr(td, 'newly_created', False) for td in self.data]
+        save_status = []
+        for da, icon in self.plugins_data:
+            save_status += [getattr(td, 'newly_created', False) for td in da]
+        return save_status
 
     @property
     def paths(self):
-        return [getattr(td, 'filename', None) for td in self.data]
+        paths = []
+        for da, icon in self.plugins_data:
+            paths += [getattr(td, 'filename', None) for td in da]
+        return paths
 
     @property
     def filenames(self):
-        return [os.path.basename(getattr(td, 'filename',
-                                         None)) for td in self.data]
+        filenames = []
+        for da, icon in self.plugins_data:
+            filenames += [os.path.basename(getattr(td,
+                                                   'filename',
+                                                   None)) for td in da]
+        return filenames
+
+    @property
+    def icons(self):
+        icons = []
+        for da, icon in self.plugins_data:
+            icons += [icon for td in da]
+        return icons
 
     @property
     def current_path(self):
-        return self.paths_by_editor[self.get_editor()]
+        return self.paths_by_widget[self.get_widget()]
 
     @property
-    def paths_by_editor(self):
-        return dict(zip(self.editors, self.paths))
+    def paths_by_widget(self):
+        widgets = [w[0] for w in self.widgets]
+        return dict(zip(widgets, self.paths))
 
     @property
-    def editors_by_path(self):
-        return dict(zip(self.paths, self.editors))
+    def widgets_by_path(self):
+        widgets = [w[0] for w in self.widgets]
+        return dict(zip(self.paths, widgets))
 
     @property
     def filter_text(self):
@@ -335,13 +368,13 @@ class FileSwitcher(QDialog):
         self.edit.setText(_str)
 
     def save_initial_state(self):
-        """Saves initial cursors and initial active editor."""
+        """Save initial cursors and initial active widget."""
         paths = self.paths
-        self.initial_editor = self.get_editor()
+        self.initial_widget = self.get_widget()
         self.initial_cursors = {}
 
-        for i, editor in enumerate(self.editors):
-            if editor is self.initial_editor:
+        for i, editor in enumerate(self.widgets):
+            if editor is self.initial_widget:
                 self.initial_path = paths[i]
             # This try is needed to make the fileswitcher work with 
             # plugins that does not have a textCursor.
@@ -359,34 +392,37 @@ class FileSwitcher(QDialog):
         """Restores initial cursors and initial active editor."""
         self.list.clear()
         self.is_visible = False
-        editors = self.editors_by_path
+        widgets = self.widgets_by_path
 
         if not self.edit.clicked_outside:
             for path in self.initial_cursors:
                 cursor = self.initial_cursors[path]
-                if path in editors:
-                    self.set_editor_cursor(editors[path], cursor)
+                if path in widgets:
+                    self.set_editor_cursor(widgets[path], cursor)
 
-            if self.initial_editor in self.paths_by_editor:
+            if self.initial_widget in self.paths_by_widget:
                 index = self.paths.index(self.initial_path)
                 self.sig_goto_file.emit(index)
 
     def set_dialog_position(self):
-        """Positions the file switcher dialog in the center of the editor."""
+        """Positions the file switcher dialog."""
         parent = self.parent()
         geo = parent.geometry()
         width = self.list.width()  # This has been set in setup
-
         left = parent.geometry().width()/2 - width/2
-        top = 0
+        # Note: the +1 pixel on the top makes it look better
+        if isinstance(parent, QMainWindow):
+            top = (parent.toolbars_menu.geometry().height() +
+                   parent.menuBar().geometry().height() + 1)
+        else:
+            top = self.plugins_tabs[0][0].tabBar().geometry().height() + 1
         while parent:
             geo = parent.geometry()
             top += geo.top()
             left += geo.left()
             parent = parent.parent()
 
-        # Note: the +1 pixel on the top makes it look better
-        self.move(left, top + self.tabs.tabBar().geometry().height() + 1)
+        self.move(left, top)
 
     def fix_size(self, content, extra=50):
         """
@@ -441,24 +477,49 @@ class FileSwitcher(QDialog):
 
     def previous_row(self):
         """Select previous row in list widget."""
-        self.select_row(-1)
+        prev_row = self.current_row() - 1
+        if prev_row == 0:
+            self.list.scrollToTop()
+        elif '</b></big><br>' in self.list.item(prev_row).text():
+            # Select the next previous row, the one following is a title
+            self.select_row(-2)
+        else:
+            self.select_row(-1)
 
     def next_row(self):
         """Select next row in list widget."""
-        self.select_row(+1)
+        next_row = self.current_row() + 1
+        if next_row < self.count():
+            if '</b></big><br>' in self.list.item(next_row).text():
+                # Select the next next row, the one following is a title
+                self.select_row(+2)
+            else:
+                self.select_row(+1)
 
-    # --- Helper methods: Editor
-    def get_editor(self, index=None, path=None):
-        """Get editor by index or path.
+    def get_stack_index(self, stack_index, plugin_index):
+        """Get the real index of the selected item."""
+        other_plugins_count = sum([other_tabs[0].count() \
+                                   for other_tabs in \
+                                   self.plugins_tabs[:plugin_index]])
+        real_index = stack_index - other_plugins_count
+
+        return real_index
+
+    # --- Helper methods: Widget
+    def get_widget(self, index=None, path=None, tabs=None):
+        """Get widget by index.
         
-        If no path or index specified the current active editor is returned
+        If no tabs and index specified the current active widget is returned.
         """
-        if index:
-            return self.tabs.widget(index)
-        elif path:
-            return self.tabs.widget(index)
+        if index and tabs:
+            return tabs.widget(index)
+        elif path and tabs:
+            return tabs.widget(index)
+        elif self.plugin:
+            index = self.plugins_instances.index(self.plugin)
+            return self.plugins_tabs[index][0].currentWidget()
         else:
-            return self.tabs.currentWidget()
+            return self.plugins_tabs[0][0].currentWidget()
 
     def set_editor_cursor(self, editor, cursor):
         """Set the cursor of an editor."""
@@ -477,14 +538,17 @@ class FileSwitcher(QDialog):
         """Go to specified line number in current active editor."""
         if line_number:
             line_number = int(line_number)
-            editor = self.get_editor()
-            editor.go_to_line(min(line_number, editor.get_line_count()))
+            editor = self.get_widget()
+            try:
+                editor.go_to_line(min(line_number, editor.get_line_count()))
+            except AttributeError:
+                pass
 
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
         """Get the list of symbols present in the file."""
         try:
-            oedata = self.get_editor().get_outlineexplorer_data()
+            oedata = self.get_widget().get_outlineexplorer_data()
         except AttributeError:
             oedata = {}
         return oedata
@@ -494,11 +558,26 @@ class FileSwitcher(QDialog):
         """List widget item selection change handler."""
         row = self.current_row()
         if self.count() and row >= 0:
+            if '</b></big><br>' in self.list.currentItem().text() and row == 0:
+                self.next_row()
             if self.mode == self.FILE_MODE:
                 try:
                     stack_index = self.paths.index(self.filtered_path[row])
-                    self.sig_goto_file.emit(stack_index)
+                    self.plugin = self.widgets[stack_index][1]
+                    plugin_index = self.plugins_instances.index(self.plugin)
+                    # Count the real index in the tabWidget of the
+                    # current plugin
+                    real_index = self.get_stack_index(stack_index,
+                                                      plugin_index)
+                    self.sig_goto_file.emit(real_index,
+                                            self.plugin.get_current_tab_manager())
                     self.goto_line(self.line_number)
+                    try:
+                        self.plugin.switch_to_plugin()
+                        self.raise_()
+                    except AttributeError:
+                        # The widget using the fileswitcher is not a plugin
+                        pass
                     self.edit.setFocus()
                 except ValueError:
                     pass
@@ -510,6 +589,7 @@ class FileSwitcher(QDialog):
         """Setup list widget content for file list display."""
         short_paths = shorten_paths(self.paths, self.save_status)
         paths = self.paths
+        icons = self.icons
         results = []
         trying_for_line_number = ':' in filter_text
 
@@ -536,11 +616,29 @@ class FileSwitcher(QDialog):
 
         # Sort the obtained scores and populate the list widget
         self.filtered_path = []
+        plugin = None
         for result in sorted(results):
             index = result[1]
-            text = result[-1]
             path = paths[index]
-            item = QListWidgetItem(ima.icon('FileIcon'), text)
+            icon = icons[index]
+            text = ''
+            try:
+                title = self.widgets[index][1].get_plugin_title().split(' - ')
+                if plugin != title[0]:
+                    plugin = title[0]
+                    text += '<br><big><b>' + plugin + '</b></big><br>'
+                    item = QListWidgetItem(text)
+                    item.setToolTip(path)
+                    item.setSizeHint(QSize(0, 25))
+                    item.setFlags(Qt.ItemIsEditable)
+                    self.list.addItem(item)
+                    self.filtered_path.append(path)
+            except:
+                # The widget using the fileswitcher is not a plugin
+                pass
+            text = ''
+            text += result[-1]
+            item = QListWidgetItem(icon, text)
             item.setToolTip(path)
             item.setSizeHint(QSize(0, 25))
             self.list.addItem(item)
@@ -615,13 +713,14 @@ class FileSwitcher(QDialog):
 
     def setup(self):
         """Setup list widget content."""
-        if not self.tabs.count():
+        if len(self.plugins_tabs) == 0:
             self.close()
             return
 
         self.list.clear()
         current_path = self.current_path
         filter_text = self.filter_text
+        self.set_dialog_position()
 
         # Get optional line or symbol to define mode and method handler
         trying_for_symbol = ('@' in self.filter_text)
@@ -632,3 +731,9 @@ class FileSwitcher(QDialog):
         else:
             self.mode = self.FILE_MODE
             self.setup_file_list(filter_text, current_path)
+
+    def add_plugin(self, plugin, tabs, data, icon):
+        """Add a plugin to display its files."""
+        self.plugins_tabs.append((tabs, plugin))
+        self.plugins_data.append((data, icon))
+        self.plugins_instances.append(plugin)

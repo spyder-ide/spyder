@@ -470,6 +470,18 @@ class CodeEditor(TextEditBaseWidget):
         # Update breakpoints if the number of lines in the file changes
         self.blockCountChanged.connect(self.update_breakpoints)
 
+        # Highlight using Pygments highlighter timer
+        # ---------------------------------------------------------------------
+        # For files that use the PygmentsSH we parse the full file inside
+        # the highlighter in order to generate the correct coloring.
+        self.timer_syntax_highlight = QTimer(self)
+        self.timer_syntax_highlight.setSingleShot(True)
+        # We wait 300 ms to trigger a new coloring as this value is a good
+        # proxy for estimating when an user has stopped typing
+        self.timer_syntax_highlight.setInterval(300)
+        self.timer_syntax_highlight.timeout.connect(
+            self.run_pygments_highlighter)
+
         # Mark occurrences timer
         self.occurrence_highlighting = None
         self.occurrence_timer = QTimer(self)
@@ -548,6 +560,12 @@ class CodeEditor(TextEditBaseWidget):
                                               context='Editor',
                                               name='Transform to lowercase',
                                               parent=self)
+
+        indent = config_shortcut(lambda: self.indent(force=True),
+                                 context='Editor', name='Indent', parent=self)
+        unindent = config_shortcut(lambda: self.unindent(force=True),
+                                   context='Editor', name='Unindent',
+                                   parent=self)
 
         def cb_maker(attr):
             """Make a callback for cursor move event type, (e.g. "Start")
@@ -632,7 +650,8 @@ class CodeEditor(TextEditBaseWidget):
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
                 kill_next_word, start_doc, end_doc, undo, redo, cut, copy,
-                paste, delete, select_all, array_inline, array_table]
+                paste, delete, select_all, array_inline, array_table, indent,
+                unindent]
 
     def get_shortcut_data(self):
         """
@@ -1902,7 +1921,34 @@ class CodeEditor(TextEditBaseWidget):
                                     QTextCursor.KeepAnchor, len(prefix))
                 cursor.removeSelectedText()
 
-    def fix_indent(self, forward=True, comment_or_string=False):
+
+    def fix_indent(self, *args, **kwargs):
+        """Indent line according to the preferences"""
+        if self.is_python_like():
+            return self.fix_indent_smart(*args, **kwargs)
+        else:
+            return self.simple_indentation(*args, **kwargs)
+
+
+    def simple_indentation(self, forward=True, **kwargs):
+        """
+        Simply preserve the indentation-level of the previous line.
+        """
+        cursor = self.textCursor()
+        block_nb = cursor.blockNumber()
+        prev_block = self.document().findBlockByLineNumber(block_nb-1)
+        prevline = to_text_string(prev_block.text())
+
+        indentation = re.match(r"\s*", prevline).group()
+        # Unident
+        if not forward:
+            indentation = indentation[len(self.indent_chars):]
+
+        cursor.insertText(indentation)
+        return False  # simple indentation don't fix indentation
+
+
+    def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
         forward=True: fix indent only if text is not enough indented
@@ -1925,11 +1971,16 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
+            # Remove inline comment
+            inline_comment = prevtext.find('#')
+            if inline_comment != -1:
+                prevtext = prevtext[:inline_comment]
+
             if ((self.is_python_like() and
                not prevtext.strip().startswith('#') and prevtext) or
                prevtext):
 
-                if not prevtext.strip().startswith('return') and \
+                if not "return" in prevtext.strip().split()[:1] and \
                     (prevtext.strip().endswith(')') or
                      prevtext.strip().endswith(']') or
                      prevtext.strip().endswith('}')):
@@ -1978,7 +2029,7 @@ class CodeEditor(TextEditBaseWidget):
                 (prevtext.endswith('continue') or
                  prevtext.endswith('break') or
                  prevtext.endswith('pass') or
-                 (prevtext.strip().startswith("return") and
+                 ("return" in prevtext.strip().split()[:1] and
                   len(re.split(r'\(|\{|\[', prevtext)) ==
                   len(re.split(r'\)|\}|\]', prevtext)))):
                 # Unindent
@@ -2067,8 +2118,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
             if self.indent_chars == '\t':
-                indent = indent // self.tab_stop_width_spaces \
-                + correct_indent % self.tab_stop_width_spaces
+                indent = indent // self.tab_stop_width_spaces
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
@@ -2692,6 +2742,11 @@ class CodeEditor(TextEditBaseWidget):
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
 
+    def keyReleaseEvent(self, event):
+        """Override Qt method."""
+        self.timer_syntax_highlight.start()
+        super(CodeEditor, self).keyReleaseEvent(event)
+
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
@@ -2760,6 +2815,10 @@ class CodeEditor(TextEditBaseWidget):
                 self.run_cell_and_advance.emit()
             elif ctrl:
                 self.run_cell.emit()
+        elif shift and key == Qt.Key_Delete:
+            # Shift + Del is a Key sequence reserved by most OSes
+            # https://github.com/spyder-ide/spyder/issues/3405
+            self.delete_line()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
@@ -2874,6 +2933,11 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+
+    def run_pygments_highlighter(self):
+        """Run pygments highlighter."""
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.make_charlist()
 
     def handle_parentheses(self, text):
         """Handle left and right parenthesis depending on editor config."""

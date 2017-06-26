@@ -23,14 +23,12 @@ import sys
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
-from jupyter_client.kernelspec import KernelSpec
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
                             QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
@@ -44,31 +42,35 @@ except ImportError:
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import (_, DEV, get_home_dir, get_module_path,
-                                get_module_source_path)
+from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
+                                get_module_path)
 from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
-from spyder.py3compat import (iteritems, PY2, to_binary_string,
-                              to_text_string)
+from spyder.py3compat import is_string, PY2, to_text_string
+from spyder.utils.ipython.kernelspec import SpyderKernelSpec
+from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs
-from spyder.utils.misc import (add_pathlist_to_PYTHONPATH, get_error_match,
-                               get_python_executable, remove_backslashes)
+from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
 from spyder.widgets.tabs import Tabs
 
 
+# Dependencies
 SYMPY_REQVER = '>=0.7.3'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
 
-
 CYTHON_REQVER = '>=0.21'
 dependencies.add("cython", _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
+
+QTCONSOLE_REQVER = ">=4.2.0"
+dependencies.add("qtconsole", _("Integrate the IPython console"),
+                 required_version=QTCONSOLE_REQVER)
 
 
 #------------------------------------------------------------------------------
@@ -313,17 +315,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_layout.addWidget(comp_box)
         comp_group.setLayout(comp_layout)
 
-        # Background Color Group
-        bg_group = QGroupBox(_("Background color"))
-        light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color')
-        dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color')
-        bg_layout = QVBoxLayout()
-        bg_layout.addWidget(light_radio)
-        bg_layout.addWidget(dark_radio)
-        bg_group.setLayout(bg_layout)
-
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
         buffer_spin = self.create_spinbox(
@@ -566,7 +557,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, comp_group,
-                                    bg_group, source_code_group), _("Display"))
+                                    source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
@@ -606,7 +597,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget = None
         self.menu_actions = None
 
-        self.extconsole = None         # External console plugin
         self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
@@ -663,10 +653,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.setAcceptDrops(True)
 
     #------ SpyderPluginMixin API ---------------------------------------------
-    def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.extconsole, self)
-
     def update_font(self):
         """Update font from Preferences"""
         font = self.get_plugin_font()
@@ -679,12 +665,16 @@ class IPythonConsole(SpyderPluginWidget):
         font_o = self.get_plugin_font()
         help_n = 'connect_to_oi'
         help_o = CONF.get('help', 'connect/ipython_console')
+        color_scheme_n = 'color_scheme_name'
+        color_scheme_o = CONF.get('color_schemes', 'selected')
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
                 client.set_font(font_o)
             if help_n in options and control is not None:
                 control.set_help_enabled(help_o)
+            if color_scheme_n in options:
+                client.set_color_scheme(color_scheme_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -744,8 +734,6 @@ class IPythonConsole(SpyderPluginWidget):
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
-        if not self.testing:
-            self.main.last_console_plugin_focus_was_python = False
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
@@ -778,8 +766,8 @@ class IPythonConsole(SpyderPluginWidget):
                                connect_to_kernel_action]
         
         # Plugin actions
-        self.menu_actions = [restart_action, MENU_SEPARATOR,
-                             create_client_action, connect_to_kernel_action]
+        self.menu_actions = [create_client_action, MENU_SEPARATOR,
+                             restart_action, connect_to_kernel_action]
         
         return self.menu_actions
 
@@ -787,12 +775,13 @@ class IPythonConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
 
-        self.extconsole = self.main.extconsole
         self.help = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
         self.editor = self.main.editor
-        
+        self.explorer = self.main.explorer
+        self.projects = self.main.projects
+
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.edit_goto.connect(self.editor.load)
         self.edit_goto[str, int, str, bool].connect(
@@ -804,6 +793,8 @@ class IPythonConsole(SpyderPluginWidget):
                                          self.run_script_in_current_client)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
+        self.explorer.open_interpreter.connect(self.create_client_from_path)
+        self.projects.open_interpreter.connect(self.create_client_from_path)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -874,9 +865,12 @@ class IPythonConsole(SpyderPluginWidget):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if clear_variables:
-                sw.reset_namespace(force=True)
-            sw.execute(to_text_string(lines))
+            if sw._reading:
+                pass
+            else:
+                if clear_variables:
+                    sw.reset_namespace(force=True)
+                sw.execute(to_text_string(to_text_string(lines)))
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
@@ -886,13 +880,16 @@ class IPythonConsole(SpyderPluginWidget):
             sw.write_to_stdin(line)
 
     @Slot()
-    def create_new_client(self, give_focus=True):
+    @Slot(bool)
+    @Slot(str)
+    @Slot(bool, str)
+    def create_new_client(self, give_focus=True, path=''):
         """Create a new client"""
         self.master_clients += 1
         name = "%d/A" % self.master_clients
         cf = self._new_connection_file()
         client = ClientWidget(self, name=name,
-                              history_filename='history.py',
+                              history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
@@ -927,7 +924,9 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
-        self.connect_client_to_kernel(client)
+        self.connect_client_to_kernel(client, path)
+        if client.shellwidget.kernel_manager is None:
+            return
         self.register_client(client)
 
     @Slot()
@@ -941,12 +940,17 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client):
+    def connect_client_to_kernel(self, client, path):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
         stderr_file = client.stderr_file
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
+        # An error occurred if this is True
+        if is_string(km) and kc is None:
+            client.shellwidget.kernel_manager = None
+            client.show_kernel_error(km)
+            return
 
         kc.started_channels.connect(lambda c=client: self.process_started(c))
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
@@ -955,6 +959,9 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
+
+        if path:
+            shellwidget.set_cwd(path)
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
@@ -1026,6 +1033,12 @@ class IPythonConsole(SpyderPluginWidget):
         if out_prompt_o:
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
 
+        # Style
+        color_scheme = CONF.get('color_schemes', 'selected')
+        style_sheet = create_qss_style(color_scheme)[0]
+        spy_cfg.JupyterWidget.style_sheet = style_sheet
+        spy_cfg.JupyterWidget.syntax_style = color_scheme
+
         # Editor for %edit
         if CONF.get('main', 'single_instance'):
             spy_cfg.JupyterWidget.editor = self.set_editor()
@@ -1071,11 +1084,10 @@ class IPythonConsole(SpyderPluginWidget):
         in JupyterWidget config options
         """
         options = dict(
-            pylab = self.get_option('pylab'),
-            autoload_pylab = self.get_option('pylab/autoload'),
-            sympy = self.get_option('symbolic_math'),
-            light_color = self.get_option('light_color'),
-            show_banner = self.get_option('show_banner')
+            pylab=self.get_option('pylab'),
+            autoload_pylab=self.get_option('pylab/autoload'),
+            sympy=self.get_option('symbolic_math'),
+            show_banner=self.get_option('show_banner')
         )
 
         return options
@@ -1226,6 +1238,11 @@ class IPythonConsole(SpyderPluginWidget):
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
 
+    @Slot(str)
+    def create_client_from_path(self, path):
+        """Create a client with its cwd pointing to path"""
+        self.create_new_client(path=path)
+
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
         if os.name == 'nt':
@@ -1251,100 +1268,31 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_kernel_spec(self):
         """Create a kernel spec for our own kernels"""
-        # Paths that we need to add to PYTHONPATH:
-        # 1. sc_path: Path to our sitecustomize
-        # 2. spy_path: Path to our main module, so we can use our config
-        #    system to configure kernels started by exterrnal interpreters
-        # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
-        #    manager
-        spy_path = get_module_source_path('spyder')
-        sc_path = osp.join(spy_path, 'utils', 'site')
-        spy_pythonpath = []
+        # Before creating our kernel spec, we always need to
+        # set this value in spyder.ini
         if not self.testing:
-            spy_pythonpath = self.main.get_spyder_pythonpath()
-
-        default_interpreter = CONF.get('main_interpreter', 'default')
-        if default_interpreter:
-            pathlist = [sc_path] + spy_pythonpath
-        else:
-            pathlist = [sc_path, spy_path] + spy_pythonpath
-        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=(not default_interpreter))
-
-        # Python interpreter used to start kernels
-        if default_interpreter:
-            pyexec = get_python_executable()
-        else:
-            # Avoid IPython adding the virtualenv on which Spyder is running
-            # to the kernel sys.path
-            os.environ.pop('VIRTUAL_ENV', None)
-            pyexec = CONF.get('main_interpreter', 'executable')
-
-        # Fixes Issue #3427
-        if os.name == 'nt':
-            dir_pyexec = osp.dirname(pyexec)
-            pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
-            if osp.isfile(pyexec_w):
-                pyexec = pyexec_w
-
-        # Command used to start kernels
-        utils_path = osp.join(spy_path, 'utils', 'ipython')
-        kernel_cmd = [
-            pyexec,
-            osp.join("%s" % utils_path, "start_kernel.py"),
-            '-f',
-            '{connection_file}'
-        ]
-
-        # Environment variables that we need to pass to our sitecustomize
-        umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
-
-        if PY2:
-            original_list = umr_namelist[:]
-            for umr_n in umr_namelist:
-                try:
-                    umr_n.encode('utf-8')
-                except UnicodeDecodeError:
-                    umr_namelist.remove(umr_n)
-            if original_list != umr_namelist:
-                CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
-
-        env_vars = {
-            'IPYTHON_KERNEL': 'True',
-            'EXTERNAL_INTERPRETER': not default_interpreter,
-            'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
-            'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(umr_namelist)
-        }
-
-        # Add our PYTHONPATH to env_vars
-        env_vars.update(pypath)
-
-        # Making all env_vars strings
-        for k,v in iteritems(env_vars):
-            if PY2:
-                uv = to_text_string(v)
-                env_vars[k] = to_binary_string(uv, encoding='utf-8')
-            else:
-                env_vars[k] = to_text_string(v)
-
-        # Dict for our kernel spec
-        kernel_dict = {
-            'argv': kernel_cmd,
-            'display_name': 'Spyder',
-            'language': 'python',
-            'env': env_vars
-        }
-
-        return KernelSpec(resource_dir='', **kernel_dict)
+            CONF.set('main', 'spyder_pythonpath',
+                     self.main.get_spyder_pythonpath())
+        return SpyderKernelSpec()
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
                                                 stderr_file):
         """Create kernel manager and client."""
+        # Kernel spec
+        kernel_spec = self.create_kernel_spec()
+        if not kernel_spec.env.get('PYTHONPATH'):
+            error_msg = _("This error was most probably caused by installing "
+                          "Spyder in a directory with non-ascii characters "
+                          "(i.e. characters with tildes, apostrophes or "
+                          "non-latin symbols).<br><br>"
+                          "To fix it, please <b>reinstall</b> Spyder in a "
+                          "different location.")
+            return (error_msg, None)
+
         # Kernel manager
         kernel_manager = QtKernelManager(connection_file=connection_file,
                                          config=None, autorestart=True)
-        kernel_manager._kernel_spec = self.create_kernel_spec()
+        kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
         stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
@@ -1485,7 +1433,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Creating the client
         client = ClientWidget(self, name=name,
-                              history_filename='history.py',
+                              history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
