@@ -673,6 +673,9 @@ class FileSwitcher(QDialog):
         oedata = self.get_symbol_list()
         icons = get_python_symbol_icons(oedata)
 
+        # The list of shorten paths here is needed in order to have the same
+        # point of measurement for the list widget width as in the file list
+        # See issue 4648
         short_paths = shorten_paths(self.paths, self.save_status)
         symbol_list = process_python_symbol_data(oedata)
         line_fold_token = [(item[0], item[2], item[3]) for item in symbol_list]
