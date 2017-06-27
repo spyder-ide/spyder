@@ -477,6 +477,9 @@ class FileSwitcher(QDialog):
 
     def previous_row(self):
         """Select previous row in list widget."""
+        if self.mode == self.SYMBOL_MODE:
+            self.select_row(-1)
+            return
         prev_row = self.current_row() - 1
         if prev_row == 0:
             self.list.scrollToTop()
@@ -488,6 +491,9 @@ class FileSwitcher(QDialog):
 
     def next_row(self):
         """Select next row in list widget."""
+        if self.mode == self.SYMBOL_MODE:
+            self.select_row(+1)
+            return
         next_row = self.current_row() + 1
         if next_row < self.count():
             if '</b></big><br>' in self.list.item(next_row).text():
@@ -652,7 +658,7 @@ class FileSwitcher(QDialog):
             self.set_current_row(self.filtered_path.index(current_path))
         elif self.filtered_path:
             self.set_current_row(0)
-        self.fix_size(short_paths, extra=200)
+        self.fix_size(short_paths, extra=100)
 
         # If a line number is searched look for it
         self.line_number = line_number
@@ -667,6 +673,10 @@ class FileSwitcher(QDialog):
         oedata = self.get_symbol_list()
         icons = get_python_symbol_icons(oedata)
 
+        # The list of shorten paths here is needed in order to have the same
+        # point of measurement for the list widget width as in the file list
+        # See issue 4648
+        short_paths = shorten_paths(self.paths, self.save_status)
         symbol_list = process_python_symbol_data(oedata)
         line_fold_token = [(item[0], item[2], item[3]) for item in symbol_list]
         choices = [item[1] for item in symbol_list]
@@ -709,7 +719,7 @@ class FileSwitcher(QDialog):
         # self.set_current_row(0)
 
         # Update list size
-        self.fix_size(lines, extra=125)
+        self.fix_size(short_paths, extra=100)
 
     def setup(self):
         """Setup list widget content."""
