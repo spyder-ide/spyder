@@ -798,7 +798,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
 
-        self.tabwidget.currentChanged.connect(self.update_global_working_directory)
+        self.tabwidget.currentChanged.connect(self.update_working_directory)
 
         self.explorer.open_interpreter.connect(self.create_client_from_path)
         self.projects.open_interpreter.connect(self.create_client_from_path)
@@ -868,13 +868,15 @@ class IPythonConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
-    def set_global_working_directory(self, dirname):
-        """Set global working directory."""
+    def set_working_directory(self, dirname):
+        """Set current working directory.
+        In the workingdirectory and explorer plugins.
+        """
         self.main.workingdirectory.chdir(dirname, refresh_explorer=True,
                                          refresh_console=False)
 
-    def update_global_working_directory(self):
-        """Update global working directory to current working directory."""
+    def update_working_directory(self):
+        """Update working directory to console cwd."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
             shellwidget.get_cwd()
@@ -942,7 +944,7 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
-        client.update_cwd.connect(self.set_global_working_directory)
+        client.update_cwd.connect(self.set_working_directory)
         self.connect_client_to_kernel(client, path)
         self.register_client(client)
 
