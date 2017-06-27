@@ -1066,13 +1066,12 @@ class MainWindow(QMainWindow):
         for mod in get_spyderplugins_mods():
             try:
                 plugin = mod.PLUGIN_CLASS(self)
-                check = True
                 try:
                     # Not all the plugins have the check_compatibility method
                     # i.e Breakpoints, Profiler, Pylint
-                    check, message = plugin.check_compatibility()
+                    check = plugin.check_compatibility()[0]
                 except AttributeError:
-                    pass
+                    check = True
                 if check:
                     self.thirdparty_plugins.append(plugin)
                     plugin.register_plugin()
