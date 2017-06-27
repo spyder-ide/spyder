@@ -368,7 +368,7 @@ the sympy module (e.g. plot)
         """
         Capture dir change magic for synchronization with working directory.
         """
-        if command.startswith('%cd'):
+        if command.startswith('%cd') or command.startswith("cd"):
             self.get_cwd()
 
     #---- Private methods (overrode by us) ---------------------------------
