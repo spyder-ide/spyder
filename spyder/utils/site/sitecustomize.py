@@ -9,14 +9,15 @@
 # Spyder consoles sitecustomize
 #
 
-import sys
+import bdb
+import io
 import os
 import os.path as osp
 import pdb
-import bdb
+import shlex
+import sys
 import time
 import traceback
-import shlex
 
 
 PY2 = sys.version[0] == '2'
@@ -200,6 +201,36 @@ if sys.platform == 'darwin':
 
 
 #==============================================================================
+# Add Cython files import and runfile support
+#==============================================================================
+try:
+    # Import pyximport for enable Cython files support for import statement
+    import pyximport
+    HAS_PYXIMPORT = True
+    pyx_setup_args = {}
+except ImportError:
+    HAS_PYXIMPORT = False
+
+if HAS_PYXIMPORT:
+    # Add Numpy include dir to pyximport/distutils
+    try:
+        import numpy
+        pyx_setup_args['include_dirs'] = numpy.get_include()
+    except ImportError:
+        pass
+
+    # Setup pyximport and enable Cython files reload
+    pyximport.install(setup_args=pyx_setup_args, reload_support=True)
+    
+try:
+    # Import cython_inline for runfile function
+    from Cython.Build.Inline import cython_inline
+    HAS_CYTHON = True
+except ImportError:
+    HAS_CYTHON = False
+
+
+#==============================================================================
 # Importing user's sitecustomize
 #==============================================================================
 try:
@@ -253,9 +284,7 @@ else:
     monitor = Monitor("127.0.0.1",
                       int(os.environ['SPYDER_I_PORT']),
                       int(os.environ['SPYDER_N_PORT']),
-                      os.environ['SPYDER_SHELL_ID'],
-                      float(os.environ['SPYDER_AR_TIMEOUT']),
-                      os.environ["SPYDER_AR_STATE"].lower() == "true")
+                      os.environ['SPYDER_SHELL_ID'])
     monitor.start()
 
     def open_in_spyder(source, lineno=1):
@@ -538,6 +567,14 @@ class SpyderPdb(pdb.Pdb):
     def notify_spyder(self, frame):
         if not frame:
             return
+
+        if IS_IPYKERNEL:
+            from IPython.core.getipython import get_ipython
+            ipython_shell = get_ipython()
+        else:
+            ipython_shell = None
+
+        # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
         if PY2:
             try:
@@ -545,18 +582,22 @@ class SpyderPdb(pdb.Pdb):
             except TypeError:
                 pass
         lineno = frame.f_lineno
+
+        # Set step of the current frame (if any)
+        step = {}
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname):
-                if IS_IPYKERNEL:
-                    from IPython.core.getipython import get_ipython
-                    ipython_shell = get_ipython()
-                    if ipython_shell:
-                        step = dict(fname=fname, lineno=lineno)
-                        ipython_shell.kernel._pdb_step = step
+                if ipython_shell:
+                    step = dict(fname=fname, lineno=lineno)
                 elif monitor is not None:
                     monitor.notify_pdb_step(fname, lineno)
                     time.sleep(0.1)
 
+        # Publish Pdb state so we can update the Variable Explorer
+        # and the Editor on the Spyder side
+        if ipython_shell:
+            ipython_shell.kernel._pdb_step = step
+            ipython_shell.kernel.publish_pdb_state()
 
 pdb.Pdb = SpyderPdb
 
@@ -618,10 +659,26 @@ def user_return(self, frame, return_value):
 def interaction(self, frame, traceback):
     self.setup(frame, traceback)
     if self.send_initial_notification:
-        self.notify_spyder(frame) #-----Spyder-specific-----------------------
+        self.notify_spyder(frame)
     self.print_stack_entry(self.stack[self.curindex])
-    self.cmdloop()
+    self._cmdloop()
     self.forget()
+
+
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def _cmdloop(self):
+    while True:
+        try:
+            # keyboard interrupts allow for an easy way to cancel
+            # the current command, so allow them during interactive input
+            self.allow_kbdint = True
+            self.cmdloop()
+            self.allow_kbdint = False
+            break
+        except KeyboardInterrupt:
+            _print("--KeyboardInterrupt--\n"
+                   "For copying text while debugging, use Ctrl+Shift+C",
+                   file=self.stdout)
 
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
@@ -715,6 +772,9 @@ class UserModuleReloader(object):
         self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
+        if modname.startswith('_cython_inline'):
+            # Don't return cached inline compiled .PYX files
+            return True
         for path in [sys.prefix]+self.pathlist:
             if modpath.startswith(path):
                 return True
@@ -877,7 +937,16 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         os.chdir(wdir)
     if post_mortem:
         set_post_mortem()
-    execfile(filename, namespace)
+    if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
+        # Cython files
+        with io.open(filename, encoding='utf-8') as f:
+            if IS_IPYKERNEL:
+                from IPython.core.getipython import get_ipython
+                ipython_shell = get_ipython()
+                ipython_shell.run_cell_magic('cython', '', f.read())
+    else:
+        execfile(filename, namespace)
+
     clear_post_mortem()
     sys.argv = ['']
     namespace.pop('__file__')

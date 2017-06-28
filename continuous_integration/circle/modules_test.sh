@@ -7,11 +7,17 @@ export PYTHONPATH=.
 export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
-conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
+
+if [ "$USE_PYQT" = "pyqt5" ]; then
+    conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
+else
+    conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
+fi
+
 
 # Depth 1
 for f in spyder/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     if [[ $f == spyder/pyplot.py ]]; then
@@ -26,7 +32,7 @@ done
 
 # Depth 2
 for f in spyder/*/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     if [[ $f == spyder/app/*.py ]]; then
@@ -44,10 +50,6 @@ for f in spyder/*/*.py; do
     if [[ $f == spyder/utils/windows.py ]]; then
         continue
     fi
-    # TODO: Understand why formlayout is failing in Travis!!
-    if [[ $f == spyder/widgets/formlayout.py ]]; then
-        continue
-    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1
@@ -57,7 +59,7 @@ done
 
 # Depth 3
 for f in spyder/*/*/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     if [[ $f == spyder/external/*/*.py ]]; then
@@ -96,7 +98,7 @@ done
 
 # Depth 4
 for f in spyder/*/*/*/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     python "$f"
@@ -108,7 +110,7 @@ done
 
 # Spyderplugins
 for f in spyder_*/widgets/*.py; do
-    if [[ $f == *test*/test_* ]]; then
+    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     python "$f"

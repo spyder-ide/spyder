@@ -14,9 +14,9 @@ import os
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
+from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.utils.qthelpers import qapplication
 from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
 
 
@@ -28,9 +28,32 @@ def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
     dlg.accept()  # trigger slot connected to OK button
     return dlg.get_value()
 
+def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
+    """Setups an arrayeditor."""
+    dlg = ArrayEditor()
+    dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)    
+    dlg.show()
+    qbot.addWidget(dlg)
+    return dlg
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_arrayeditor_format(qtbot):
+    """Changes the format of the array and validates its selected content."""
+    arr = np.array([1, 2, 3], dtype=np.float32)
+    dlg = setup_arrayeditor(qtbot, arr, "test array float32")
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
+    assert contents == "1.000\n2.000\n"
+    dlg.arraywidget.view.model().set_format("%.18e")
+    assert dlg.arraywidget.view.model().get_format() == "%.18e"
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
+    assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
+    
+
 def test_arrayeditor_with_string_array(qtbot):
     arr = np.array(["kjrekrjkejr"])
     assert arr == launch_arrayeditor(arr, "string array")

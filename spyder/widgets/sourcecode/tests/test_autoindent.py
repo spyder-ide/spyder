@@ -21,11 +21,11 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 # --- Fixtures
 # -----------------------------------------------------------------------------
 def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
-                   sol=False, forward=True):
+                   sol=False, forward=True, language='Python'):
     """Return text with last line's indentation fixed."""
     app = qapplication()
     editor = CodeEditor(parent=None)
-    editor.setup_editor(language='Python', indent_chars=indent_chars,
+    editor.setup_editor(language=language, indent_chars=indent_chars,
                         tab_stop_width_spaces=tab_stop_width_spaces)
 
     editor.set_text(text)
@@ -156,19 +156,18 @@ def test_first_line():
         ("a = (a  #  some comment\n", "a = (a  #  some comment\n     ", "test_inline_comment"),
         ("len(a) == 1\n", "len(a) == 1\n", "test_balanced_brackets_not_ending_in_bracket"),
         ("x = f(\n", "x = f(\n      ", "test_short_open_bracket_not_hanging_indent"),
-
-        pytest.mark.xfail(
-            ("foo = 1  # Comment open parenthesis (\n",
+        ("def some_func():\n    return 10\n", "def some_func():\n    return 10\n",
+         "test_return"),
+        ("def some_func():\n    returns = 10\n", "def some_func():\n    returns = 10\n    ",
+         "test_return_not_keyword"),
+        ("foo = 1  # Comment open parenthesis (\n",
              "foo = 1  # Comment open parenthesis (\n",
-             "test_comment_with parenthesis")),
+             "test_comment_with parenthesis"),
     ])
 def test_indentation_with_spaces(text_input, expected, test_text):
     text = get_indent_fix(text_input)
     assert text == expected, test_text
 
-# --- Failing tests
-# -----------------------------------------------------------------------------
-@pytest.mark.xfail
 def test_def_with_unindented_comment():
     text = get_indent_fix("def function():\n# Comment\n")
     assert text == "def function():\n# Comment\n    ", repr(text)
@@ -194,20 +193,39 @@ def test_def_with_unindented_comment():
          "test_commented_brackets"),
         ("s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n", "s = a[(a['a'] == l) & (a['a'] == 1)]['a']\n",
          "test_balanced_brackets"),
-
-        # Failing test
-        pytest.mark.xfail(
-            ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
-             "test_def_with_unindented_comment")),
-        pytest.mark.xfail(
-            ("a = (a  #  some comment\n", "a = (a  #  some comment\n\t ",
-             "test_inline_comment")),
+        ("def some_func():\n\treturn 10\n", "def some_func():\n\treturn 10\n",
+         "test_return"),
+        ("def some_func():\n\treturns = 10\n", "def some_func():\n\treturns = 10\n\t",
+         "test_return_not_keyword"),
+        ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
+             "test_def_with_unindented_comment"),
     ])
 def test_indentation_with_tabs(text_input, expected, test_text,
                                tab_stop_width_spaces):
     text = get_indent_fix(text_input, indent_chars="\t",
                           tab_stop_width_spaces=tab_stop_width_spaces)
     assert text == expected, test_text
+
+
+@pytest.mark.parametrize(
+    "text_input, expected, tab_stop_width_spaces",
+    [
+        ("print(\n)", "print(\n\t\t)", 1),
+        ("print(\n)", "print(\n\t\t)", 2),
+        ("print(\n)", "print(\n\t\t)", 3),
+        ("print(\n)", "print(\n\t  )", 4),
+        ("print(\n)", "print(\n\t )", 5),
+        ("print(\n)", "print(\n\t)", 6),
+        ("print(\n)", "print(\n      )", 7),
+        ("print(\n)", "print(\n      )", 8),
+        ("a = (a  #  some comment\n", "a = (a  #  some comment\n\t ", 4),
+    ])
+def test_indentation_with_tabs_parenthesis(text_input, expected,
+                                           tab_stop_width_spaces):
+    """Simple parenthesis indentation test with different tab stop widths."""
+    text = get_indent_fix(text_input, indent_chars="\t",
+                          tab_stop_width_spaces=tab_stop_width_spaces)
+    assert text == expected, tab_stop_width_spaces
 
 
 @pytest.mark.parametrize("tab_stop_width_spaces", [1,2,3,4,5,6,7,8])
@@ -222,6 +240,24 @@ def test_unindentation_with_tabs(text_input, expected, test_text,
                           tab_stop_width_spaces=tab_stop_width_spaces, 
                           forward=False)
     assert text == expected, test_text
+
+
+# --- Simple indentation tests
+# -----------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "text_input, expected, test_text",
+    [
+        ("hola\n", "hola\n", "witout indentation"),
+        ("  hola\n", "  hola\n  ", "some indentation"),
+        ("\thola\n", "\thola\n\t", "tab indentation"),
+        ("  hola(\n", "  hola(\n  ", "line with parenthesis"),
+    ])
+def test_simple_indentation(text_input, expected, test_text,):
+    # language None deactivate smart indentation
+    text = get_indent_fix(text_input, language=None)
+    assert text == expected, test_text
+
 
 
 if __name__ == "__main__":

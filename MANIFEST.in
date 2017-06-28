@@ -1,4 +1,4 @@
-recursive-include spyder *.pot *.po *.svg *.png *.css *.qss *.c, *.cpp, *.html, *.java, *.md, *.R, *.csv, *.ipynb
+recursive-include spyder *.pot *.po *.svg *.png *.css *.qss *.c, *.cpp, *.html, *.java, *.md, *.R, *.csv, *.pyx, *.ipynb
 recursive-include spyder_breakpoints *.pot *.po *.svg *.png
 recursive-include spyder_profiler *.pot *.po *.svg *.png
 recursive-include spyder_pylint *.pot *.po *.svg *.png

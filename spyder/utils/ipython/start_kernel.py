@@ -137,6 +137,11 @@ def kernel_config():
             height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
             spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
 
+
+    # Enable Cython magic
+    if is_module_installed('Cython'):
+        spy_cfg.IPKernelApp.exec_lines.append('%load_ext Cython')
+
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
@@ -219,9 +224,14 @@ def main():
         pass
     kernel.initialize()
 
-    # NOTE: Leave this and other magic modifications *after* setting
-    # __ipythonkernel__ to not have problems while starting kernels
+    # Set our own magics
     kernel.shell.register_magic_function(varexp)
+
+    # Set Pdb class to be used by %debug and %pdb.
+    # This makes IPython consoles to use the class defined in our
+    # sitecustomize instead of their default one.
+    import pdb
+    kernel.shell.InteractiveTB.debugger_cls = pdb.Pdb
 
     # Start the (infinite) kernel event loop.
     kernel.start()

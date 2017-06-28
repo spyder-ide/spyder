@@ -160,7 +160,7 @@ The requirements to run Spyder are:
 * `Qtconsole <http://jupyter.org/qtconsole/stable/>`_ >=4.2.0 -- for an
   enhanced Python interpreter.
 
-* `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 and
+* `Rope <http://rope.sourceforge.net/>`_ >=0.10.5 and
   `Jedi <http://jedi.jedidjah.ch/en/latest/>`_ >=0.9.0 -- for code completion,
   go-to-definition and calltips on the Editor.
 
@@ -175,7 +175,7 @@ The requirements to run Spyder are:
 
 * `Pylint <http://www.logilab.org/project/pylint>`_  -- for static code analysis.
 
-* `Pep8 <https://pypi.python.org/pypi/pep8>`_ -- for style analysis.
+* `Pycodestyle <https://pypi.python.org/pypi/pycodestyle>`_ -- for style analysis.
 
 * `Psutil <http://code.google.com/p/psutil/>`_  -- for memory/CPU usage in the status
   bar.
@@ -217,6 +217,9 @@ Optional modules
 
 * `Scipy <http://www.scipy.org/>`_ -- for importing Matlab workspace files in
   the Variable Explorer.
+
+* `Cython <http://cython.org/>`_ >=0.21 -- Run Cython files or Python files that
+  depend on Cython libraries in the IPython console.
 
 
 Installation procedure
