@@ -1394,6 +1394,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Connect a shellwidget to the variable explorer."""
         kc = client.shellwidget.kernel_client
         self.process_started(client)
+        client.shellwidget.set_namespace_view_settings()
         kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
