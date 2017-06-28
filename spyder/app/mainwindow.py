@@ -910,8 +910,9 @@ class MainWindow(QMainWindow):
         for mod in get_spyderplugins_mods():
             try:
                 plugin = mod.PLUGIN_CLASS(self)
-                self.thirdparty_plugins.append(plugin)
-                plugin.register_plugin()
+                if plugin.check_compatibility()[0]:
+                    self.thirdparty_plugins.append(plugin)
+                    plugin.register_plugin()
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
