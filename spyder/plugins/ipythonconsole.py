@@ -1390,6 +1390,12 @@ class IPythonConsole(SpyderPluginWidget):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
 
+    def connect_shellwidget(self, client):
+        """Connect a shellwidget to the variable explorer."""
+        kc = client.shellwidget.kernel_client
+        self.process_started(client)
+        kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
+
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
         # Verifying if the connection file exists
@@ -1464,11 +1470,13 @@ class IPythonConsole(SpyderPluginWidget):
                                    _("Could not open ssh tunnel. The "
                                      "error was:\n\n") + to_text_string(e))
                 return
-        kernel_client.start_channels()
 
         # Assign kernel manager and client to shellwidget
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
+        client.sig_spyder_kernel.connect(self.connect_shellwidget)
+        kernel_client.start_channels()
+        client.shellwidget.is_spyder_kernel()
 
         # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())

@@ -89,6 +89,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                    '# *** Spyder Python Console History Log ***',]
 
     append_to_history = Signal(str, str)
+    sig_spyder_kernel = Signal(object)
 
     def __init__(self, plugin, name, history_filename, config_options,
                  additional_options, interpreter_versions,
@@ -202,6 +203,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To show env and sys.path contents
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
+
+        # To identify if the kernel is from Spyder and
+        # attach it to other plugins
+        self.shellwidget.sig_spyder_kernel.connect(
+                lambda : self.sig_spyder_kernel.emit(self))
 
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
             self.shellwidget.silent_execute("%colors linux")
