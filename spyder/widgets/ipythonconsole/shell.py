@@ -61,6 +61,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.external_kernel = external_kernel
+        self._cwd = None
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -87,6 +88,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             self.kernel_client.input(u'!' + code)
         else:
             self.silent_execute(code)
+        self._cwd = dirname
 
     def update_cwd(self):
         """Update current working directory.
@@ -309,10 +311,10 @@ the sympy module (e.g. plot)
                     self.sig_var_properties.emit(properties)
                 elif 'update_cwd' in method:
                     if data is not None and 'text/plain' in data:
-                        cwd = ast.literal_eval(data['text/plain'])
+                        self._cwd = ast.literal_eval(data['text/plain'])
                     else:
-                        cwd = None
-                    self.sig_change_cwd.emit(cwd)
+                        self._cwd = None
+                    self.sig_change_cwd.emit(self._cwd)
                 elif 'get_syspath' in method:
                     if data is not None and 'text/plain' in data:
                         syspath = ast.literal_eval(data['text/plain'])
