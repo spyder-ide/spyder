@@ -88,10 +88,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         else:
             self.silent_execute(code)
 
-    def get_cwd(self):
-        """Get shell current working directory.
+    def update_cwd(self):
+        """Update current working directory.
 
-        This will also cause global working directory to be updated.
+        Retrieve the cwd and emit a signal connected to the working directory
+        widget. (see: handle_exec_method())
         """
         code = u"get_ipython().kernel.get_cwd()"
         if self._reading:
@@ -306,7 +307,7 @@ the sympy module (e.g. plot)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)
-                elif 'get_cwd' in method:
+                elif 'update_cwd' in method:
                     if data is not None and 'text/plain' in data:
                         cwd = ast.literal_eval(data['text/plain'])
                     else:
@@ -369,7 +370,7 @@ the sympy module (e.g. plot)
         Capture dir change magic for synchronization with working directory.
         """
         if command.startswith('%cd') or command.startswith("cd"):
-            self.get_cwd()
+            self.update_cwd()
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):

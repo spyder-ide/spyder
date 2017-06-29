@@ -879,7 +879,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Update working directory to console cwd."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
-            shellwidget.get_cwd()
+            shellwidget.update_cwd()
 
     def execute_code(self, lines, clear_variables=False):
         """Execute code instructions."""
