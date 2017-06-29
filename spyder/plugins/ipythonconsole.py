@@ -1390,8 +1390,11 @@ class IPythonConsole(SpyderPluginWidget):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
 
-    def connect_external_kernel_to_varexp(self, shellwidget):
-        """Connect a shellwidget to the variable explorer."""
+    def connect_external_kernel(self, shellwidget):
+        """
+        Connect an external kernel to the Variable Explorer and Help, if
+        it is a Spyder kernel.
+        """
         sw = shellwidget
         kc = shellwidget.kernel_client
         if self.help is not None:
@@ -1408,6 +1411,9 @@ class IPythonConsole(SpyderPluginWidget):
         try:
             cf_path = osp.dirname(connection_file)
             cf_filename = osp.basename(connection_file)
+            # To change a possible empty string to None
+            falsy_to_none = lambda arg: arg if arg else None
+            cf_path = falsy_to_none(cf_path)
             connection_file = find_connection_file(filename=cf_filename, 
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
@@ -1483,7 +1489,7 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client.start_channels()
         if external_kernel:
             client.shellwidget.sig_is_spykernel.connect(
-                    self.connect_external_kernel_to_varexp)
+                    self.connect_external_kernel)
             client.shellwidget.is_spyder_kernel()
 
         # Adding a new tab for the client
