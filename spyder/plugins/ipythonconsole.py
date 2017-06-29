@@ -937,6 +937,7 @@ class IPythonConsole(SpyderPluginWidget):
         if not ok:
             return
         else:
+            print(connection_file)
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
@@ -1398,9 +1399,9 @@ class IPythonConsole(SpyderPluginWidget):
             self.help.set_shell(sw)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(sw)
+            sw.set_namespace_view_settings()
             kc.stopped_channels.connect(lambda :
                 self.variableexplorer.remove_shellwidget(id(sw)))
-        sw.set_namespace_view_settings()
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
