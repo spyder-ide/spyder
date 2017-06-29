@@ -1390,12 +1390,17 @@ class IPythonConsole(SpyderPluginWidget):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
 
-    def connect_shellwidget(self, client):
+    def connect_external_kernel_to_varexp(self, shellwidget):
         """Connect a shellwidget to the variable explorer."""
-        kc = client.shellwidget.kernel_client
-        self.process_started(client)
-        client.shellwidget.set_namespace_view_settings()
-        kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
+        sw = shellwidget
+        kc = shellwidget.kernel_client
+        if self.help is not None:
+            self.help.set_shell(sw)
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(sw)
+            kc.stopped_channels.connect(lambda :
+                self.variableexplorer.remove_shellwidget(id(sw)))
+        sw.set_namespace_view_settings()
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
@@ -1475,9 +1480,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Assign kernel manager and client to shellwidget
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
-        client.sig_spyder_kernel.connect(self.connect_shellwidget)
         kernel_client.start_channels()
-        client.shellwidget.is_spyder_kernel()
+        if external_kernel:
+            client.shellwidget.sig_is_spykernel.connect(
+                    self.connect_external_kernel_to_varexp)
+            client.shellwidget.is_spyder_kernel()
 
         # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())

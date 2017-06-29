@@ -45,7 +45,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     focus_changed = Signal()
     new_client = Signal()
     sig_got_reply = Signal()
-    sig_spyder_kernel = Signal()
+    sig_is_spykernel = Signal(object)
     sig_kernel_restarted = Signal(str)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
@@ -79,7 +79,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             return False
 
     def is_spyder_kernel(self):
-        """."""
+        """Determine if the kernel is from Spyder."""
         code = u"getattr(get_ipython().kernel, 'set_value', False)"
         if self._reading:
             return
@@ -314,7 +314,7 @@ the sympy module (e.g. plot)
                     if data is not None and 'text/plain' in data:
                         is_spyder_kernel = data['text/plain']
                         if 'SpyderKernel' in is_spyder_kernel:
-                            self.sig_spyder_kernel.emit()
+                            self.sig_is_spykernel.emit(self)
                 else:
                     if data is not None and 'text/plain' in data:
                         self._kernel_reply = ast.literal_eval(data['text/plain'])
