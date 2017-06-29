@@ -155,6 +155,8 @@ def test_kernel_connection(main_window, qtbot):
     # Assert that a variable is visible in the variable explorer
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1, timeout=500)
+
     assert nsb.editor.model.rowCount() == 1
 
     # Shutdown the kernels
