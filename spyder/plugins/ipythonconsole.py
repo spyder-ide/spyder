@@ -937,7 +937,6 @@ class IPythonConsole(SpyderPluginWidget):
         if not ok:
             return
         else:
-            print(connection_file)
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
