@@ -126,8 +126,11 @@ def main_window(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=3)
-def test_kernel_connection(main_window, qtbot):
-    """Test that a kernel from Spyder is detected and attached to variable explorer."""
+def test_connection_to_external_kernel(main_window, qtbot):
+    """Test that only Spyder kernels are connected to the Variable Explorer."""
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # Test with a generic kernel
     km, kc = start_new_kernel()
 
@@ -136,11 +139,12 @@ def test_kernel_connection(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
-        shell.execute('a = 0')
+        shell.execute('a = 10')
 
     # Assert that there are no variables in the variable explorer
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 0
 
     # Test with a kernel from Spyder
@@ -150,12 +154,12 @@ def test_kernel_connection(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
-        shell.execute('a = 0')
+        shell.execute('a = 10')
 
     # Assert that a variable is visible in the variable explorer
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1, timeout=500)
+    qtbot.wait(500)
 
     assert nsb.editor.model.rowCount() == 1
 

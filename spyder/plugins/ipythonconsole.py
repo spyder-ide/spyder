@@ -1402,6 +1402,7 @@ class IPythonConsole(SpyderPluginWidget):
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(sw)
             sw.set_namespace_view_settings()
+            sw.refresh_namespacebrowser()
             kc.stopped_channels.connect(lambda :
                 self.variableexplorer.remove_shellwidget(id(sw)))
 
@@ -1412,8 +1413,7 @@ class IPythonConsole(SpyderPluginWidget):
             cf_path = osp.dirname(connection_file)
             cf_filename = osp.basename(connection_file)
             # To change a possible empty string to None
-            falsy_to_none = lambda arg: arg if arg else None
-            cf_path = falsy_to_none(cf_path)
+            cf_path = cf_path if cf_path else None
             connection_file = find_connection_file(filename=cf_filename, 
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
