@@ -2258,14 +2258,15 @@ class CodeEditor(TextEditBaseWidget):
 
     def comment(self):
         """Comment current line or selection."""
-        self.add_prefix(self.comment_string)
+        self.add_prefix(self.comment_string + " ")
 
     def uncomment(self):
         """Uncomment current line or selection."""
         self.remove_prefix(self.comment_string)
+        self.remove_prefix(" ")
 
     def __blockcomment_bar(self):
-        return self.comment_string + '='*(79-len(self.comment_string))
+        return self.comment_string + ' ' + '=' * (78 - len(self.comment_string))
 
     def transform_to_uppercase(self):
         """Change to uppercase current line or selection."""
