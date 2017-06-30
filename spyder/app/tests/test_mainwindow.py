@@ -126,6 +126,38 @@ def main_window(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name != 'nt' or not PY2,
+                    reason="It times out on Linux and Python 3")
+@pytest.mark.timeout(timeout=60, method='thread')
+@pytest.mark.use_introspection
+def test_calltip(main_window, qtbot):
+    """Hide the calltip in the editor when a matching ')' is found."""
+    # Load test file
+    text = 'a = [1,2,3]\n(max'
+    main_window.editor.new(fname="test.py", text=text)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Set text to start
+    code_editor.set_text(text)
+    code_editor.go_to_line(2)
+    code_editor.move_cursor(5)
+    calltip = code_editor.calltip_widget
+    assert not calltip.isVisible()
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Space)
+    assert not calltip.isVisible()
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
+    main_window.editor.close_file()
+
+@flaky(max_runs=3)
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -213,39 +245,6 @@ def test_change_types_in_varexp(main_window, qtbot):
 
     # Assert object remains the same
     assert shell.get_value('a') == 10
-
-
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name != 'nt' or not PY2,
-                    reason="It times out on Linux and Python 3")
-@pytest.mark.timeout(timeout=60, method='thread')
-@pytest.mark.use_introspection
-def test_calltip(main_window, qtbot):
-    """Hide the calltip in the editor when a matching ')' is found."""
-    # Load test file
-    text = 'a = [1,2,3]\n(max'
-    main_window.editor.new(fname="test.py", text=text)
-    code_editor = main_window.editor.get_focus_widget()
-    
-    # Set text to start
-    code_editor.set_text(text)
-    code_editor.go_to_line(2)
-    code_editor.move_cursor(5)
-    calltip = code_editor.calltip_widget
-    assert not calltip.isVisible()
-
-    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
-    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
-
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Space)
-    assert not calltip.isVisible()
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
-        
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
-    main_window.editor.close_file()
 
 
 @flaky(max_runs=3)
