@@ -128,9 +128,6 @@ def main_window(request):
 @flaky(max_runs=3)
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
     # Test with a generic kernel
     km, kc = start_new_kernel()
 
@@ -149,7 +146,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
 
     # Test with a kernel from Spyder
     spykm, spykc = start_new_kernel(spykernel=True)
-    main_window.ipyconsole._create_client_for_kernel(kc.connection_file, None,
+    main_window.ipyconsole._create_client_for_kernel(spykc.connection_file, None,
                                                      None, None)
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -160,7 +157,6 @@ def test_connection_to_external_kernel(main_window, qtbot):
     main_window.variableexplorer.visibility_changed(True)
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.wait(500)
-
     assert nsb.editor.model.rowCount() == 1
 
     # Shutdown the kernels
