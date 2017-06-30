@@ -1390,12 +1390,30 @@ class IPythonConsole(SpyderPluginWidget):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
 
+    def connect_external_kernel(self, shellwidget):
+        """
+        Connect an external kernel to the Variable Explorer and Help, if
+        it is a Spyder kernel.
+        """
+        sw = shellwidget
+        kc = shellwidget.kernel_client
+        if self.help is not None:
+            self.help.set_shell(sw)
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(sw)
+            sw.set_namespace_view_settings()
+            sw.refresh_namespacebrowser()
+            kc.stopped_channels.connect(lambda :
+                self.variableexplorer.remove_shellwidget(id(sw)))
+
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
         # Verifying if the connection file exists
         try:
             cf_path = osp.dirname(connection_file)
             cf_filename = osp.basename(connection_file)
+            # To change a possible empty string to None
+            cf_path = cf_path if cf_path else None
             connection_file = find_connection_file(filename=cf_filename, 
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
@@ -1464,11 +1482,15 @@ class IPythonConsole(SpyderPluginWidget):
                                    _("Could not open ssh tunnel. The "
                                      "error was:\n\n") + to_text_string(e))
                 return
-        kernel_client.start_channels()
 
         # Assign kernel manager and client to shellwidget
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
+        kernel_client.start_channels()
+        if external_kernel:
+            client.shellwidget.sig_is_spykernel.connect(
+                    self.connect_external_kernel)
+            client.shellwidget.is_spyder_kernel()
 
         # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())
