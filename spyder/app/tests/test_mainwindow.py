@@ -125,6 +125,8 @@ def main_window(request):
 #==============================================================================
 # Tests
 #==============================================================================
+# IMPORTANT NOTE: Please leave this test to be the first one here to
+# avoid possible timeouts in Appyevor
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name != 'nt' or not PY2,
                     reason="It times out on Linux and Python 3")
@@ -156,6 +158,7 @@ def test_calltip(main_window, qtbot):
 
     QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
     main_window.editor.close_file()
+
 
 @flaky(max_runs=3)
 def test_connection_to_external_kernel(main_window, qtbot):
@@ -194,6 +197,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     # Shutdown the kernels
     spykm.shutdown_kernel(now=True)
     km.shutdown_kernel(now=True)
+
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
