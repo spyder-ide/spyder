@@ -72,6 +72,9 @@ QTCONSOLE_REQVER = ">=4.2.0"
 dependencies.add("qtconsole", _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
 
+IPYTHON_REQVER = ">=4.0"
+dependencies.add("IPython", _("IPython interactive python environment"),
+                 required_version=IPYTHON_REQVER)
 
 #------------------------------------------------------------------------------
 # Existing kernels
