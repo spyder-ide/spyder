@@ -1,0 +1,155 @@
+# -*- coding: utf-8 -*-
+# German translation file for Spyder Pylint
+#
+# Benjamin Weis <benjamin.weis@gmx.com>, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-06-13 21:28+CEST\n"
+"PO-Revision-Date: 2017-04-11 16:10+0100\n"
+"Last-Translator: Benjamin Weis <benjamin.weis@gmx.com>\n"
+"Language-Team: German <>\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 2.0\n"
+
+#: spyder_pylint/pylint.py:36
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: spyder_pylint/pylint.py:37
+msgid "Save file before analyzing it"
+msgstr "Datei speichern, bevor sie analysiert werden"
+
+#: spyder_pylint/pylint.py:40 spyder_pylint/pylint.py:167
+msgid "History"
+msgstr "Chronik"
+
+#: spyder_pylint/pylint.py:41
+msgid "The following option will be applied at next startup."
+msgstr "Die folgende Option wird beim nächsten Start angewendet."
+
+#: spyder_pylint/pylint.py:44
+msgid "History: "
+msgstr "Chronik: "
+
+#: spyder_pylint/pylint.py:45
+msgid " results"
+msgstr " Ergebnisse"
+
+#: spyder_pylint/pylint.py:48
+msgid "Results"
+msgstr "Ergebnisse"
+
+#: spyder_pylint/pylint.py:49
+msgid "Results are stored here:"
+msgstr "Ergebnisse werden hier gespeichert:"
+
+#: spyder_pylint/pylint.py:104 spyder_pylint/widgets/pylintgui.py:51
+msgid "Static code analysis"
+msgstr "Statische Codeanalyse"
+
+#: spyder_pylint/pylint.py:121
+msgid "History..."
+msgstr "Chronik..."
+
+#: spyder_pylint/pylint.py:123
+msgid "Set history maximum entries"
+msgstr "Maximale Chronikeinträge festlegen"
+
+#: spyder_pylint/pylint.py:140
+msgid "Run static code analysis"
+msgstr "Statische Codeanalyse ausführen"
+
+#: spyder_pylint/pylint.py:168
+msgid "Maximum entries"
+msgstr "Maximale Einträge"
+
+#: spyder_pylint/widgets/pylintgui.py:87
+msgid "Results for "
+msgstr "Ergebnisse für "
+
+#: spyder_pylint/widgets/pylintgui.py:92
+msgid "Convention"
+msgstr "Konvention"
+
+#: spyder_pylint/widgets/pylintgui.py:94
+msgid "Refactor"
+msgstr "Refaktor"
+
+#: spyder_pylint/widgets/pylintgui.py:96
+msgid "Warning"
+msgstr "Warnung"
+
+#: spyder_pylint/widgets/pylintgui.py:98 spyder_pylint/widgets/pylintgui.py:315
+#: spyder_pylint/widgets/pylintgui.py:343
+msgid "Error"
+msgstr "Fehler"
+
+#: spyder_pylint/widgets/pylintgui.py:176
+msgid "Analyze"
+msgstr "Analysieren"
+
+#: spyder_pylint/widgets/pylintgui.py:177
+msgid "Run analysis"
+msgstr "Analyse ausführen"
+
+#: spyder_pylint/widgets/pylintgui.py:181
+msgid "Stop"
+msgstr "Stopp"
+
+#: spyder_pylint/widgets/pylintgui.py:182
+msgid "Stop current analysis"
+msgstr "Aktuelle Analyse stoppen"
+
+#: spyder_pylint/widgets/pylintgui.py:188
+#: spyder_pylint/widgets/pylintgui.py:239
+msgid "Select Python file"
+msgstr "Python-Datei auswählen"
+
+#: spyder_pylint/widgets/pylintgui.py:194
+msgid "Output"
+msgstr "Ausgabe"
+
+#: spyder_pylint/widgets/pylintgui.py:196
+msgid "Complete output"
+msgstr "Vollständige Ausgabe"
+
+#: spyder_pylint/widgets/pylintgui.py:240
+msgid "Python files"
+msgstr "Python-Dateien"
+
+#: spyder_pylint/widgets/pylintgui.py:277
+msgid "Pylint output"
+msgstr "Pylint-Ausgabe"
+
+#: spyder_pylint/widgets/pylintgui.py:316
+msgid "Process failed to start"
+msgstr "Der Prozess konnte nicht gestartet werden"
+
+#: spyder_pylint/widgets/pylintgui.py:417
+msgid "Source code has not been rated yet."
+msgstr "Quellcode wurde noch nicht bewertet."
+
+#: spyder_pylint/widgets/pylintgui.py:423
+msgid "Analysis did not succeed (see output for more details)."
+msgstr "Analyse war nicht erfolgreich (siehe Ausgabe für weitere Details)."
+
+#: spyder_pylint/widgets/pylintgui.py:436
+msgid "Global evaluation:"
+msgstr "Globale Evaluierung"
+
+#: spyder_pylint/widgets/pylintgui.py:440
+msgid "previous run:"
+msgstr "vorherige Ausführung:"
+
+#~ msgid "Pylint script was not found. Please add \"%s\" to PATH."
+#~ msgstr ""
+#~ "Pylint-Skript wurde nicht gefunden. Bitte fügen Sie \"%s\" zum PATH hinzu."
+
+#~ msgid "Please install <b>pylint</b>:"
+#~ msgstr "Bitte installieren Sie <b>pylint</b>:"

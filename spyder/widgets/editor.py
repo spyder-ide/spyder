@@ -327,6 +327,12 @@ class StackHistory(MutableSequence):
         if _id in self.history:
             self.history.remove(_id)
 
+    def remove_and_append(self, index):
+        """Remove previous entrances of a tab, and add it as the latest."""
+        while index in self:
+            self.remove(index)
+        self.append(index)
+
 
 class TabSwitcherWidget(QListWidget):
     """Show tabs in mru order and change between them."""
@@ -507,7 +513,7 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.blanks_enabled = False
         self.edgeline_enabled = True
-        self.edgeline_column = 79
+        self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_enter_enabled = False
@@ -519,6 +525,7 @@ class EditorStack(QWidget):
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width_spaces = 4
+        self.show_class_func_dropdown = True
         self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -534,6 +541,7 @@ class EditorStack(QWidget):
         self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
         self.create_new_file_if_empty = True
+        self.indent_guides = False
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
@@ -833,8 +841,7 @@ class EditorStack(QWidget):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer.outlineexplorer_is_visible.connect(
-                                                 self._refresh_outlineexplorer)
+        self.outlineexplorer.is_visible.connect(self._refresh_outlineexplorer)
 
     def initialize_outlineexplorer(self):
         """This method is called separately from 'set_oulineexplorer' to avoid
@@ -857,8 +864,15 @@ class EditorStack(QWidget):
     def set_title(self, text):
         self.title = text
 
+    def set_classfunc_dropdown_visible(self, state):
+        self.show_class_func_dropdown = state
+        if self.data:
+            for finfo in self.data:
+                if finfo.editor.is_python_like():
+                    finfo.editor.classfuncdropdown.setVisible(state)
+
     def __update_editor_margins(self, editor):
-        editor.setup_margins(linenumbers=self.linenumbers_enabled,
+        editor.linenumberarea.setup_margins(linenumbers=self.linenumbers_enabled,
                              markers=self.has_markers())
 
     def __codeanalysis_settings_changed(self, current_finfo):
@@ -922,14 +936,20 @@ class EditorStack(QWidget):
         self.edgeline_enabled = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_enabled(state)
+                finfo.editor.edge_line.set_enabled(state)
 
-    def set_edgeline_column(self, column):
+    def set_edgeline_columns(self, columns):
         # CONF.get(self.CONF_SECTION, 'edge_line_column')
-        self.edgeline_column = column
+        self.edgeline_columns = columns
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_edge_line_column(column)
+                finfo.editor.edge_line.set_columns(columns)
+
+    def set_indent_guides(self, state):
+        self.indent_guides = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.indent_guides.set_enabled(state)
 
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
@@ -1282,14 +1302,19 @@ class EditorStack(QWidget):
             if fixpath(filename) == fixpath(finfo.filename):
                 return index
 
-    def set_current_filename(self, filename):
-        """Set current filename and return the associated editor instance"""
+    def set_current_filename(self, filename, focus=True):
+        """Set current filename and return the associated editor instance."""
         index = self.has_filename(filename)
         if index is not None:
-            self.set_stack_index(index)
+            if focus:
+                self.set_stack_index(index)
             editor = self.data[index].editor
-            editor.setFocus()
-            return editor
+            if focus:
+                editor.setFocus()
+            else:
+                self.stack_history.remove_and_append(index)
+
+            return editor  
 
     def is_file_opened(self, filename=None):
         if filename is None:
@@ -1647,10 +1672,8 @@ class EditorStack(QWidget):
         self.opened_files_list_changed.emit()
 
         self.stack_history.refresh()
+        self.stack_history.remove_and_append(index)
 
-        while index in self.stack_history:
-            self.stack_history.remove(index)
-        self.stack_history.append(index)
         if DEBUG_EDITOR:
             print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
             print(self.data[index].editor.get_document_id(), file=STDOUT)
@@ -1920,7 +1943,7 @@ class EditorStack(QWidget):
                 linenumbers=self.linenumbers_enabled,
                 show_blanks=self.blanks_enabled,
                 edge_line=self.edgeline_enabled,
-                edge_line_column=self.edgeline_column, language=language,
+                edge_line_columns=self.edgeline_columns, language=language,
                 markers=self.has_markers(), font=self.default_font,
                 color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
@@ -1941,7 +1964,9 @@ class EditorStack(QWidget):
                 indent_chars=self.indent_chars,
                 tab_stop_width_spaces=self.tab_stop_width_spaces,
                 cloned_from=cloned_from,
-                filename=fname)
+                filename=fname,
+                show_class_func_dropdown=self.show_class_func_dropdown,
+                indent_guides=self.indent_guides)
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
@@ -2300,8 +2325,8 @@ class EditorSplitter(QSplitter):
         return dict(hexstate=qbytearray_to_str(self.saveState()),
                     sizes=self.sizes(), splitsettings=splitsettings)
 
-    def set_layout_settings(self, settings):
-        """Restore layout state"""
+    def set_layout_settings(self, settings, dont_goto=None):
+        """Restore layout state."""
         splitsettings = settings.get('splitsettings')
         if splitsettings is None:
             return
@@ -2314,12 +2339,17 @@ class EditorSplitter(QSplitter):
             editorstack = splitter.widget(0)
             for index, finfo in enumerate(editorstack.data):
                 editor = finfo.editor
-                # FIXME: Temporal fix
-                try:
-                    editor.go_to_line(clines[index])
-                except IndexError:
+                # TODO: go_to_line is not working properly (the line it jumps
+                # to is not the corresponding to that file). This will be fixed
+                # in a future PR (which will fix issue #3857)
+                if dont_goto is not None:
+                    # skip go to line for first file because is already there
                     pass
-            editorstack.set_current_filename(cfname)
+                else:
+                    try:
+                        editor.go_to_line(clines[index])
+                    except IndexError:
+                        pass
         hexstate = settings.get('hexstate')
         if hexstate is not None:
             self.restoreState( QByteArray().fromHex(

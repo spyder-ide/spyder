@@ -733,23 +733,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
 
-class PluginConfigPage(SpyderConfigPage):
-    """Plugin configuration dialog box page widget"""
-    def __init__(self, plugin, parent):
-        self.plugin = plugin
-        self.get_option = plugin.get_option
-        self.set_option = plugin.set_option
-        self.get_font = plugin.get_plugin_font
-        self.apply_settings = plugin.apply_plugin_settings
-        SpyderConfigPage.__init__(self, parent)
-
-    def get_name(self):
-        return self.plugin.get_plugin_title()
-
-    def get_icon(self):
-        return self.plugin.get_plugin_icon()
-
-
 class GeneralConfigPage(SpyderConfigPage):
     """Config page that maintains reference to main Spyder window
        and allows to specify page name and icon declaratively

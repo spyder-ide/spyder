@@ -168,6 +168,16 @@ class IconProvider(QFileIconProvider):
 
 class DirView(QTreeView):
     """Base file/directory tree view"""
+    sig_edit = Signal(str)
+    sig_removed = Signal(str)
+    sig_removed_tree = Signal(str)
+    sig_renamed = Signal(str, str)
+    sig_create_module = Signal(str)
+    sig_run = Signal(str)
+    sig_new_file = Signal(str)
+    sig_open_interpreter = Signal(str)
+    redirect_stdio = Signal(bool)
+
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
         self.name_filters = ['*.py']
@@ -541,12 +551,12 @@ class DirView(QTreeView):
             path = file_uri(path)
             ok = programs.start_file(path)
             if not ok:
-                self.parent_widget.edit.emit(path)
+                self.sig_edit.emit(path)
 
     def open_interpreter(self, fnames):
         """Open interpreter"""
         for path in sorted(fnames):
-            self.parent_widget.open_interpreter.emit(path)
+            self.sig_open_interpreter.emit(path)
 
     @Slot()
     def run(self, fnames=None):
@@ -554,7 +564,7 @@ class DirView(QTreeView):
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            self.parent_widget.run.emit(fname)
+            self.sig_run.emit(fname)
     
     def remove_tree(self, dirname):
         """Remove whole directory tree
@@ -582,10 +592,10 @@ class DirView(QTreeView):
         try:
             if osp.isfile(fname):
                 misc.remove_file(fname)
-                self.parent_widget.removed.emit(fname)
+                self.sig_removed.emit(fname)
             else:
                 self.remove_tree(fname)
-                self.parent_widget.removed_tree.emit(fname)
+                self.sig_removed_tree.emit(fname)
             return yes_to_all
         except EnvironmentError as error:
             action_str = _('delete')
@@ -628,7 +638,7 @@ class DirView(QTreeView):
                                  "notebook. The error is:\n\n") + \
                                  to_text_string(e))
             return
-        self.parent_widget.sig_new_file.emit(script)
+        self.sig_new_file.emit(script)
 
     @Slot()
     def convert_notebooks(self):
@@ -657,7 +667,7 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                self.parent_widget.renamed.emit(fname, path)
+                self.sig_renamed.emit(fname, path)
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),
@@ -689,9 +699,9 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
-            self.parent_widget.redirect_stdio.emit(False)
+            self.redirect_stdio.emit(False)
             folder = getexistingdirectory(self, _("Select directory"), orig)
-            self.parent_widget.redirect_stdio.emit(True)
+            self.redirect_stdio.emit(True)
             if folder:
                 folder = fixpath(folder)
                 if folder != orig:
@@ -760,9 +770,9 @@ class DirView(QTreeView):
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        self.parent_widget.redirect_stdio.emit(False)
+        self.redirect_stdio.emit(False)
         fname, _selfilter = getsavefilename(self, title, current_path, filters)
-        self.parent_widget.redirect_stdio.emit(True)
+        self.redirect_stdio.emit(True)
         if fname:
             try:
                 create_func(fname)
@@ -792,7 +802,10 @@ class DirView(QTreeView):
         """New module"""
         title = _("New module")
         filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
-        create_func = lambda fname: self.parent_widget.create_module.emit(fname)
+
+        def create_func(fname):
+            self.sig_create_module.emit(fname)
+
         self.create_new_file(basedir, title, filters, create_func)
 
     def go_to_parent_directory(self):
@@ -994,7 +1007,8 @@ class FilteredDirView(DirView):
         self.setHeaderHidden(True)
         # Disable the view of .spyproject. 
         self.filter_directories()
-      
+
+
 class ExplorerTreeWidget(DirView):
     """File/directory explorer tree widget
     show_cd_only: Show current directory only
@@ -1002,6 +1016,7 @@ class ExplorerTreeWidget(DirView):
      None: enable the option and do not allow the user to disable it)"""
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
+    sig_open_dir = Signal(str)
     
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
@@ -1126,7 +1141,7 @@ class ExplorerTreeWidget(DirView):
             PermissionError = OSError
         try:
             os.chdir(directory)
-            self.parent_widget.open_dir.emit(directory)
+            self.sig_open_dir.emit(directory)
             self.refresh(new_path=directory, force_current=True)
         except PermissionError:
             QMessageBox.critical(self.parent_widget, "Error",
@@ -1138,8 +1153,6 @@ class ExplorerWidget(QWidget):
     """Explorer widget"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    sig_new_file = Signal(str)
-    redirect_stdio = Signal(bool)
     open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],

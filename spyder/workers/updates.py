@@ -14,7 +14,7 @@ from qtpy.QtCore import QObject, Signal
 # Local imports
 from spyder import __version__
 from spyder.config.base import _
-from spyder.py3compat import PY3
+from spyder.py3compat import PY3, is_text_string
 from spyder.utils.programs import check_version, is_stable_version
 
 
@@ -77,7 +77,7 @@ class WorkerUpdates(QObject):
                 data = page.read()
 
                 # Needed step for python3 compatibility
-                if not isinstance(data, str):
+                if not is_text_string(data):
                     data = data.decode()
 
                 data = json.loads(data)

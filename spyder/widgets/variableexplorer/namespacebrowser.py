@@ -20,13 +20,6 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
-# Third party imports (others)
-try:
-    import ipykernel.pickleutil
-    from ipykernel.serialize import serialize_object
-except ImportError:
-    serialize_object = None
-
 # Local imports
 from spyder.config.base import _, get_supported_types
 from spyder.py3compat import is_text_string, getcwd, to_text_string
@@ -44,16 +37,6 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
-
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-if serialize_object is not None:
-    ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 class NamespaceBrowser(QWidget):
@@ -87,8 +70,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action = None
 
         self.filename = None
-
-        self.var_properties = {}
 
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
@@ -124,25 +105,10 @@ class NamespaceBrowser(QWidget):
 
         self.editor = RemoteCollectionsEditorTableView(
                         self,
-                        None,
+                        data=None,
                         minmax=minmax,
-                        dataframe_format=dataframe_format,
-                        get_value_func=self.get_value,
-                        set_value_func=self.set_value,
-                        new_value_func=self.set_value,
-                        remove_values_func=self.remove_values,
-                        copy_value_func=self.copy_value,
-                        is_list_func=self.is_list,
-                        get_len_func=self.get_len,
-                        is_array_func=self.is_array,
-                        is_image_func=self.is_image,
-                        is_dict_func=self.is_dict,
-                        is_data_frame_func=self.is_data_frame,
-                        is_series_func=self.is_series,
-                        get_array_shape_func=self.get_array_shape,
-                        get_array_ndim_func=self.get_array_ndim,
-                        plot_func=self.plot, imshow_func=self.imshow,
-                        show_image_func=self.show_image)
+                        shellwidget=self.shellwidget,
+                        dataframe_format=dataframe_format)
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
@@ -186,8 +152,7 @@ class NamespaceBrowser(QWidget):
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported):
         """Setup toolbar"""
-        self.setup_in_progress = True                          
-                          
+        self.setup_in_progress = True
         toolbar = []
 
         load_button = create_toolbutton(self, text=_('Import data'),
@@ -203,7 +168,7 @@ class NamespaceBrowser(QWidget):
                                            triggered=self.save_data)
 
         toolbar += [load_button, self.save_button, save_as_button]
-        
+
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
                 tip=_("Exclude references which name starts"
@@ -245,22 +210,6 @@ class NamespaceBrowser(QWidget):
         self.shellwidget.set_namespace_view_settings()
         self.refresh_table()
 
-    def visibility_changed(self, enable):
-        """Notify the widget whether its container (the namespace browser
-        plugin is visible or not"""
-        # This is slowing down Spyder a lot if too much data is present in
-        # the Variable Explorer, and users give focus to it after being hidden.
-        # This also happens when the Variable Explorer is visible and users
-        # give focus to Spyder after using another application (like Chrome
-        # or Firefox).
-        # That's why we've decided to remove this feature
-        # Fixes Issue 2593
-        #
-        # self.is_visible = enable
-        # if enable:
-        #     self.refresh_table()
-        pass
-
     def get_view_settings(self):
         """Return dict editor view settings"""
         settings = {}
@@ -285,91 +234,8 @@ class NamespaceBrowser(QWidget):
     def set_var_properties(self, properties):
         """Set properties of variables"""
         if properties is not None:
-            self.var_properties = properties
+            self.editor.var_properties = properties
 
-    #------ Remote commands ------------------------------------
-    def get_value(self, name):
-        value = self.shellwidget.get_value(name)
-
-        # Reset temporal variable where value is saved to
-        # save memory
-        self.shellwidget._kernel_value = None
-        return value
-
-    def set_value(self, name, value):
-        """Set value for a variable."""
-        value = serialize_object(value)
-        self.shellwidget.set_value(name, value)
-        self.refresh_table()
-        
-    def remove_values(self, names):
-        for name in names:
-            self.shellwidget.remove_value(name)
-        self.refresh_table()
-        
-    def copy_value(self, orig_name, new_name):
-        self.shellwidget.copy_value(orig_name, new_name)
-        self.refresh_table()
-        
-    def is_list(self, name):
-        """Return True if variable is a list or a tuple"""
-        return self.var_properties[name]['is_list']
-        
-    def is_dict(self, name):
-        """Return True if variable is a dictionary"""
-        return self.var_properties[name]['is_dict']
-        
-    def get_len(self, name):
-        """Return sequence length"""
-        return self.var_properties[name]['len']
-
-    def is_array(self, name):
-        """Return True if variable is a NumPy array"""
-        return self.var_properties[name]['is_array']
-
-    def is_image(self, name):
-        """Return True if variable is a PIL.Image image"""
-        return self.var_properties[name]['is_image']
-
-    def is_data_frame(self, name):
-        """Return True if variable is a DataFrame"""
-        return self.var_properties[name]['is_data_frame']
-
-    def is_series(self, name):
-        """Return True if variable is a Series"""
-        return self.var_properties[name]['is_series']
-
-    def get_array_shape(self, name):
-        """Return array's shape"""
-        return self.var_properties[name]['array_shape']
-
-    def get_array_ndim(self, name):
-        """Return array's ndim"""
-        return self.var_properties[name]['array_ndim']
-
-    def plot(self, name, funcname):
-        sw = self.shellwidget
-        if sw._reading:
-            sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
-        else:
-            sw.execute("%%varexp --%s %s" % (funcname, name))
-
-    def imshow(self, name):
-        sw = self.shellwidget
-        if sw._reading:
-            sw.dbg_exec_magic('varexp', '--imshow %s' % name)
-        else:
-            sw.execute("%%varexp --imshow %s" % name)
-
-    def show_image(self, name):
-        command = "%s.show()" % name
-        sw = self.shellwidget
-        if sw._reading:
-            sw.kernel_client.input(command)
-        else:
-            sw.execute(command)
-
-    # ------ Set, load and save data ------------------------------------------
     def set_data(self, data):
         """Set data."""
         if data != self.editor.model.get_data():
@@ -432,14 +298,13 @@ class NamespaceBrowser(QWidget):
                                   varname=fix_reference_name(base_name))
                     if editor.exec_():
                         var_name, clip_data = editor.get_data()
-                        self.set_value(var_name, clip_data)
+                        self.editor.new_value(var_name, clip_data)
                 except Exception as error:
                     error_message = str(error)
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                error_message = self.shellwidget.load_data(self.filename,
-                                                            ext)
+                error_message = self.shellwidget.load_data(self.filename, ext)
                 self.shellwidget._kernel_reply = None
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
@@ -467,8 +332,10 @@ class NamespaceBrowser(QWidget):
                 return False
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
+
         error_message = self.shellwidget.save_namespace(self.filename)
         self.shellwidget._kernel_reply = None
+
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:

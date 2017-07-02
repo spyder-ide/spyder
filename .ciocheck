@@ -28,7 +28,7 @@ max-line-length = 79
 # http://www.pydocstyle.org/en/latest/usage.html#example
 # -----------------------------------------------------------------------------
 [pydocstyle]
-add-ignore = D203, D400
+add-ignore = D203
 inherit = false
 
 # -----------------------------------------------------------------------------
