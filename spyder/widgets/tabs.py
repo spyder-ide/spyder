@@ -31,6 +31,90 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 
 
+class EditTabNamePopup(QLineEdit):
+    """Popup on top of the tab to edit its name."""
+
+    def __init__(self, parent):
+        """Popup on top of the tab to edit its name."""
+
+        # Variables
+        # Parent (main)
+        self.main = parent if parent is not None else self.parent()
+        # Track with tab is being edited
+        self.tab_index = None
+
+        # Widget setup
+        QLineEdit.__init__(self, parent=None)
+
+        # Slot to handle tab name update
+        self.editingFinished.connect(self.edit_finished)
+
+        # Even filter to catch clicks and ESC key
+        self.installEventFilter(self)
+
+        # Clean borders and no shadow to blend with tab
+        self.setWindowFlags(
+            Qt.Popup |
+            Qt.FramelessWindowHint |
+            Qt.NoDropShadowWindowHint
+        )
+        self.setFrame(False)
+
+        # Align with tab name
+        self.setTextMargins(9, 0, 0, 0)
+
+    def eventFilter(self, widget, event):
+        """Catch clicks outside the object and ESC key press."""
+        if ((event.type() == QEvent.MouseButtonPress and
+                 not self.geometry().contains(event.globalPos())) or
+                (event.type() == QEvent.KeyPress and
+                 event.key() == Qt.Key_Escape)):
+            # Exits editing
+            self.hide()
+            self.setFocus(False)
+            return True
+
+        # Event is not interessant, raise to parent
+        return QLineEdit.eventFilter(self, widget, event)
+
+    def edit_tab(self, index):
+        """Activate the edit tab."""
+
+        # Sets focus, shows cursor
+        self.setFocus(True)
+
+        # Updates tab index
+        self.tab_index = index
+
+        # Gets tab size and shrinks to avoid overlapping tab borders
+        rect = self.main.tabRect(index)
+        rect.adjust(1, 1, -2, -1)
+
+        # Sets size
+        self.setFixedSize(rect.size())
+
+        # Places on top of the tab
+        self.move(self.main.mapToGlobal(rect.topLeft()))
+
+        # Copies tab name and selects all
+        self.setText(self.main.tabText(index))
+        self.selectAll()
+
+        if not self.isVisible():
+            # Makes editor visible
+            self.show()
+
+    def edit_finished(self):
+        """On clean exit, update tab name."""
+        # Hides editor
+        self.hide()
+
+        if isinstance(self.tab_index, int) and self.tab_index >= 0:
+            # We are editing a valid tab, update name
+            tab_text = to_text_string(self.text())
+            self.main.setTabText(self.tab_index, tab_text)
+
+
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
@@ -359,86 +443,3 @@ class Tabs(BaseTabs):
         # (see Issue 1094, Issue 1098)
         self.sig_move_tab.emit(tabwidget_from, str(id(self)), index_from,
                                index_to)
-
-
-class EditTabNamePopup(QLineEdit):
-    """Popup on top of the tab to edit its name."""
-
-    def __init__(self, parent):
-        """Popup on top of the tab to edit its name."""
-
-        # Variables
-        # Parent (main)
-        self.main = parent if parent is not None else self.parent()
-        # Track with tab is being edited
-        self.tab_index = None
-      
-        # Widget setup
-        QLineEdit.__init__(self, parent=None)
-        
-        # Slot to handle tab name update
-        self.editingFinished.connect(self.edit_finished)
-
-        # Even filter to catch clicks and ESC key
-        self.installEventFilter(self)
-        
-        # Clean borders and no shadow to blend with tab
-        self.setWindowFlags(
-            Qt.Popup |
-            Qt.FramelessWindowHint |
-            Qt.NoDropShadowWindowHint
-        )
-        self.setFrame(False)
-
-        # Align with tab name
-        self.setTextMargins(9, 0, 0, 0)
-
-    def eventFilter(self, widget, event):
-        """Catch clicks outside the object and ESC key press."""
-        if ((event.type() == QEvent.MouseButtonPress and
-                 not self.geometry().contains(event.globalPos())) or
-                (event.type() == QEvent.KeyPress and
-                 event.key() == Qt.Key_Escape)):
-            # Exits editing
-            self.hide()
-            self.setFocus(False)
-            return True
-        
-        # Event is not interessant, raise to parent
-        return QLineEdit.eventFilter(self, widget, event)
-
-    def edit_tab(self, index):
-        """Activate the edit tab."""
-        
-        # Sets focus, shows cursor
-        self.setFocus(True)
-        
-        # Updates tab index
-        self.tab_index = index
-        
-        # Gets tab size and shrinks to avoid overlapping tab borders
-        rect = self.main.tabRect(index)
-        rect.adjust(1, 1, -2, -1)
-        
-        # Sets size
-        self.setFixedSize(rect.size())
-
-        # Places on top of the tab
-        self.move(self.main.mapToGlobal(rect.topLeft()))
-
-        # Copies tab name and selects all
-        self.setText(self.main.tabText(index))
-        self.selectAll()
-
-        if not self.isVisible():
-            # Makes editor visible
-            self.show()
-
-    def edit_finished(self):
-        """On clean exit, update tab name."""
-        # Hides editor
-        self.hide()
-        
-        if isinstance(self.tab_index, int) and self.tab_index >= 0:
-            # We are editing a valid tab, update name
-            self.main.setTabText(self.tab_index, self.text())
