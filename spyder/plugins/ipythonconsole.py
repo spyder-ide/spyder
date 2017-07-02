@@ -774,9 +774,8 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Plugin actions
         self.menu_actions = [create_client_action, MENU_SEPARATOR,
-                             restart_action, connect_to_kernel_action]
-                             MENU_SEPARATOR,
-                             rename_tab_action]
+                             restart_action, connect_to_kernel_action,
+                             MENU_SEPARATOR, rename_tab_action]
         
         return self.menu_actions
 
