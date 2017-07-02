@@ -630,6 +630,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
+        self.tabwidget.tabBar().sig_change_name.connect(
+            self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
 
@@ -1189,11 +1191,6 @@ class IPythonConsole(SpyderPluginWidget):
             if id(client) == client_id:
                 return index
 
-    def rename_client_tab(self, client):
-        """Rename client's tab"""
-        index = self.get_client_index_from_id(id(client))
-        self.tabwidget.setTabText(index, client.get_name())
-
     def get_related_clients(self, client):
         """
         Get all other clients that are connected to the same kernel as `client`
@@ -1341,6 +1338,28 @@ class IPythonConsole(SpyderPluginWidget):
         client = self.clients.pop(index_from)
         self.clients.insert(index_to, client)
         self.update_plugin_title.emit()
+
+    def rename_client_tab(self, client):
+        """Rename client's tab"""
+        index = self.get_client_index_from_id(id(client))
+        self.tabwidget.setTabText(index, client.get_name())
+
+    def rename_tabs_after_change(self, given_name):
+        client = self.get_current_client()
+
+        # Rename current client tab to add str_id
+        client.given_name = given_name
+        self.rename_client_tab(client)
+
+        # Rename related clients
+        for cl in self.get_related_clients(client):
+            cl.given_name = given_name
+            self.rename_client_tab(cl)
+
+    def tab_name_editor(self):
+        """Trigger the tab name editor."""
+        index = self.tabwidget.currentIndex()
+        self.tabwidget.tabBar().tab_name_editor.edit_tab(index)
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):
@@ -1507,8 +1526,3 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Register client
         self.register_client(client)
-
-    def tab_name_editor(self):
-        """Trigger the tab name editor."""
-        index = self.tabwidget.currentIndex()
-        self.tabwidget.tabBar().tab_name_editor.edit_tab(index)
