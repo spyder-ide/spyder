@@ -8,10 +8,11 @@
 Tests for iofuncs.py
 """
 
+import io
 import os
 import pytest
 import numpy as np
-import spyder.utils.iofuncs as io
+import spyder.utils.iofuncs as iofuncs
 
 LOCATION = os.path.realpath(os.path.join(os.getcwd(),
                                          os.path.dirname(__file__)))
@@ -53,7 +54,7 @@ def real_values():
     E = file_s['E']
     return {'A':A, 'B':B, 'C':C, 'D':D, 'E':E}
 
-@pytest.mark.skipif(io.load_matlab is None, reason="SciPy required")
+@pytest.mark.skipif(iofuncs.load_matlab is None, reason="SciPy required")
 def test_matlab_import(real_values):
     """
     Test the automatic conversion and import of variables from MATLAB.
@@ -65,7 +66,7 @@ def test_matlab_import(real_values):
     manual conversion of the variables.
     """
     path = os.path.join(LOCATION, 'data.mat')
-    inf, _ = io.load_matlab(path)
+    inf, _ = iofuncs.load_matlab(path)
     valid = True
     for var in sorted(real_values.keys()):
         valid = valid and bool(np.mean(real_values[var] == inf[var]))
@@ -79,8 +80,30 @@ def test_spydata_import(spydata_values):
     container and compares them against their static values.
     """
     path = os.path.join(LOCATION, 'test_export.spydata')
-    data, error = io.load_dictionary(path)
+    data, error = iofuncs.load_dictionary(path)
     valid = True
     for var in sorted(spydata_values.keys()):
         valid = valid and bool(np.mean(spydata_values[var] == data[var]))
     assert valid
+
+@pytest.mark.skipif(iofuncs.load_matlab is None, reason="SciPy required")
+def test_matlabstruct():
+    """Test support for matlab stlye struct."""
+    a = iofuncs.MatlabStruct()
+    a.b = 'spam'
+    assert a["b"] == 'spam'
+    a.c["d"] = 'eggs'
+    assert a.c.d == 'eggs'
+    assert a == {'c': {'d': 'eggs'}, 'b': 'spam'}
+    a['d'] = [1, 2, 3]
+
+    buf = io.BytesIO()
+    iofuncs.save_matlab(a, buf)
+    buf.seek(0)
+    data, err = iofuncs.load_matlab(buf)
+    assert data['b'] == 'spam'
+    assert data['c'].d == 'eggs'
+    assert data['d'].tolist() == [[1, 2, 3]]
+
+if __name__ == "__main__":
+    pytest.main()

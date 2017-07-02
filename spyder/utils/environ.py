@@ -38,26 +38,21 @@ def listdict2envdict(listdict):
 
 
 class RemoteEnvDialog(CollectionsEditor):
-    """Remote process environment variables Dialog"""
-    def __init__(self, get_environ_func, set_environ_func, parent=None):
+    """Remote process environment variables dialog."""
+
+    def __init__(self, environ, parent=None):
         super(RemoteEnvDialog, self).__init__(parent)
-        self.setup(envdict2listdict(get_environ_func()),
-                   title="os.environ", width=600, icon=ima.icon('environ'))
-        self.set_environ = set_environ_func
-    def accept(self):
-        """Reimplement Qt method"""
-        self.set_environ(listdict2envdict(self.get_value()))
-        QDialog.accept(self)
+        self.setup(envdict2listdict(environ),
+                   title=_("Environment variables"),
+                   width=700,
+                   readonly=True,
+                   icon=ima.icon('environ'))
 
 
 class EnvDialog(RemoteEnvDialog):
     """Environment variables Dialog"""
     def __init__(self):
-        def get_environ_func():
-            return dict(os.environ)
-        def set_environ_func(env):
-            os.environ = env
-        RemoteEnvDialog.__init__(self, get_environ_func, set_environ_func)
+        RemoteEnvDialog.__init__(self, dict(os.environ))
 
 
 # For Windows only
@@ -124,7 +119,7 @@ try:
             
         def accept(self):
             """Reimplement Qt method"""
-            set_user_env( listdict2envdict(self.get_value()), parent=self )
+            set_user_env(listdict2envdict(self.get_value()), parent=self)
             QDialog.accept(self)
 
 except ImportError:

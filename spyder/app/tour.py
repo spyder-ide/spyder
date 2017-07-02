@@ -38,7 +38,6 @@ from spyder.utils.qthelpers import add_actions, create_action
 class SpyderWidgets(object):
     """List of supported widgets to highlight/decorate"""
     # Panes
-    external_console = 'extconsole'
     ipython_console = 'ipyconsole'
     editor = 'editor'
     editor_line_number_area = 'editor.get_current_editor().linenumberarea'
@@ -176,21 +175,6 @@ def get_tour(index):
                            "can inspect and modify their contents."),
               'widgets': [sw.variable_explorer],
               'interact': True},
-
-             {'title': _("The Python console"),
-              'content': _("You can also run your code on a Python console. "
-                           "These consoles are useful because they let you "
-                           "run a file in a console dedicated only to it."
-                           "To select this behavior, please press the <b>F6</b> "
-                           "key.<br><br>"
-                           "By pressing the button below and then focusing the "
-                           "Variable Explorer, you will notice that "
-                           "Python consoles are also connected to that pane, "
-                           "and that the Variable Explorer only shows "
-                           "the variables of the currently focused console."),
-              'widgets': [sw.external_console],
-              'run': ["a = 2", "s='Hello, world!'"],
-              },
 
              {'title': _("Help"),
               'content': _("This pane displays documentation of the "
@@ -811,7 +795,7 @@ class FadingTipBox(FadingDialog):
         """ """
         key = event.key()
         self.key_pressed = key
-#        print(key)
+
         keys = [Qt.Key_Right, Qt.Key_Left, Qt.Key_Down, Qt.Key_Up,
                 Qt.Key_Escape, Qt.Key_PageUp, Qt.Key_PageDown,
                 Qt.Key_Home, Qt.Key_End, Qt.Key_Menu]
@@ -928,20 +912,22 @@ class AnimatedTour(QWidget):
 
     def _resized(self, event):
         """ """
-        size = event.size()
-        self.canvas.setFixedSize(size)
-        self.canvas.update_canvas()
+        if self.is_running:
+            size = event.size()
+            self.canvas.setFixedSize(size)
+            self.canvas.update_canvas()
 
-        if self.is_tour_set:
-            self._set_data()
+            if self.is_tour_set:
+                self._set_data()
 
     def _moved(self, event):
         """ """
-        pos = event.pos()
-        self.canvas.move(QPoint(pos.x(), pos.y()))
+        if self.is_running:
+            pos = event.pos()
+            self.canvas.move(QPoint(pos.x(), pos.y()))
 
-        if self.is_tour_set:
-            self._set_data()
+            if self.is_tour_set:
+                self._set_data()
 
     def _close_canvas(self):
         """ """
@@ -1200,7 +1186,9 @@ class AnimatedTour(QWidget):
     def close_tour(self):
         """ """
         self.tips.fade_out(self._close_canvas)
-        self.tips.show()
+        self.canvas.set_interaction(False)
+        self._set_modal(True, [self.tips])
+        self.canvas.hide()
 
         try:
             # set the last played frame by updating the available tours in 
@@ -1271,13 +1259,13 @@ class AnimatedTour(QWidget):
 # Used for testing the functionality
 
 
-class TestWindow(QMainWindow):
+class TourTestWindow(QMainWindow):
     """ """
     sig_resized = Signal("QResizeEvent")
     sig_moved = Signal("QMoveEvent")
 
     def __init__(self):
-        super(TestWindow, self).__init__()
+        super(TourTestWindow, self).__init__()
         self.setGeometry(300, 100, 400, 600)
         self.setWindowTitle('Exploring QMainWindow')
 
@@ -1301,7 +1289,7 @@ class TestWindow(QMainWindow):
 
         effect = QGraphicsOpacityEffect(self.button2)
         self.button2.setGraphicsEffect(effect)
-        self.anim = QPropertyAnimation(effect, "opacity")
+        self.anim = QPropertyAnimation(effect, to_binary_string("opacity"))
         self.anim.setStartValue(0.01)
         self.anim.setEndValue(1.0)
         self.anim.setDuration(500)
@@ -1346,7 +1334,7 @@ class TestWindow(QMainWindow):
 def test():
     """ """
     app = QApplication([])
-    win = TestWindow()
+    win = TourTestWindow()
     win.show()
     app.exec_()
 

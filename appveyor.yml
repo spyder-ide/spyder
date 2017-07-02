@@ -1,26 +1,27 @@
-# https://ci.appveyor.com/project/ccordoba12/spyder
+# https://ci.appveyor.com/project/spyder-ide/spyder
 
 environment:
+
+  global:
+    PYTHON: "C:\\conda"
+    MINICONDA_VERSION: "latest"
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
+    PYTHON_ARCH: "64"
+    PIP_DEPENDENCIES_FLAGS: "-q"
+    CONDA_DEPENDENCIES_FLAGS: "--quiet"
+    CONDA_DEPENDENCIES: >
+      rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
+      qtawesome pickleshare qtpy pyzmq chardet mock pandas pytest
+      pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi
+    PIP_DEPENDENCIES: "pytest-qt pytest-timeout flaky"
+
   matrix:
-    - PYTHON:         "C:\\Python27_64"
-      PYTHON_VERSION: "2.7"
-      PYTHON_ARCH:    "64"
-      USE_QT_API:     "PyQt5"
+    - PYTHON_VERSION: "2.7"
+    #- PYTHON_VERSION: "3.5"
+    - PYTHON_VERSION: "3.6"
 
-    - PYTHON:         "C:\\Python35_64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH:    "64"
-      USE_QT_API:     "PyQt5"
-
-    #- PYTHON:         "C:\\Python35_64"
-    #  PYTHON_VERSION: "3.5"
-    #  PYTHON_ARCH:    "64"
-    #  USE_QT_API:     "PyQt4"
-
-    #- PYTHON:         "C:\\Python27_64"
-    #  PYTHON_VERSION: "2.7"
-    #  PYTHON_ARCH:    "64"
-    #  USE_QT_API:     "PyQt4"
+platform:
+  -x64
 
 install:
   # If there is a newer build queued for the same PR, cancel this one.
@@ -32,13 +33,12 @@ install:
       https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds | `
       Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) { `
         throw "There are newer queued builds for this pull request, failing early." }
-  - powershell .\\continuous_integration\\appveyor\\install.ps1
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
+  - "git clone git://github.com/astropy/ci-helpers.git"
+  - "powershell ci-helpers/appveyor/install-miniconda.ps1"
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "activate test"
 
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\build_test.bat"
-  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\run_test.bat"
-  - "%CMD_IN_ENV% %APPVEYOR_BUILD_FOLDER%\\continuous_integration\\appveyor\\modules_test.bat"
-  - cd %APPVEYOR_BUILD_FOLDER% & python runtests.py
+  - "%CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py"

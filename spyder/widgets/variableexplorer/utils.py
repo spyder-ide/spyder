@@ -48,15 +48,14 @@ class FakeObject(object):
 #==============================================================================
 try:
     from numpy import (ndarray, array, matrix, recarray,
-                      int64, int32, float64, float32,
-                      complex64, complex128)
+                       int64, int32, float64, float32,
+                       complex64, complex128)
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
-    from numpy import set_printoptions as np_set_printoptions
+    from numpy import get_printoptions, set_printoptions
 except ImportError:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
-    np_set_printoptions = int64 = int32 = float64 = float32 = \
-    complex64 = complex128 = FakeObject
+    int64 = int32 = float64 = float32 = complex64 = complex128 = FakeObject
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -160,9 +159,6 @@ CollectionsRepr.maxdict = 10
 CollectionsRepr.maxtuple = 10
 CollectionsRepr.maxset = 10
 
-if np_set_printoptions is not FakeObject:
-    np_set_printoptions(threshold=10)
-
 
 #==============================================================================
 # Date and datetime objects support
@@ -181,7 +177,7 @@ except ImportError:
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
     v = dateparse(value[rp:-1])
-    print(value, "-->", v)
+    print(value, "-->", v)  # spyder: test-skip
     return v
 
 
@@ -259,9 +255,17 @@ def unsorted_unique(lista):
 #==============================================================================
 def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
+    # To save current Numpy threshold
+    np_threshold = FakeObject
     try:
         numeric_numpy_types = (int64, int32, float64, float32,
                                complex128, complex64)
+        if ndarray is not FakeObject:
+            # Save threshold
+            np_threshold = get_printoptions().get('threshold')
+            # Set max number of elements to show for Numpy arrays
+            # in our display
+            set_printoptions(threshold=10)
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
@@ -325,6 +329,10 @@ def value_to_display(value, minmax=False):
     # because of large displays
     if len(display) > 80:
         display = display[:80].rstrip() + ' ...'
+
+    # Restore Numpy threshold
+    if np_threshold is not FakeObject:
+        set_printoptions(threshold=np_threshold)
 
     return display
 
@@ -421,17 +429,21 @@ def get_human_readable_type(item):
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
+    if value is None:
+        return True
     if not is_editable_type(value):
         return False
     elif not isinstance(value, filters):
         return False
     elif iterate:
         if isinstance(value, (list, tuple, set)):
+            valid_count = 0
             for val in value:
-                if not is_supported(val, filters=filters, iterate=check_all):
-                    return False
+                if is_supported(val, filters=filters, iterate=check_all):
+                    valid_count += 1
                 if not check_all:
                     break
+            return valid_count > 0
         elif isinstance(value, dict):
             for key, val in list(value.items()):
                 if not is_supported(key, filters=filters, iterate=check_all) \
@@ -468,7 +480,7 @@ def globalsfilter(input_dict, check_all=False, filters=None,
 #==============================================================================
 REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
-                   'excluded_names', 'minmax', 'autorefresh')
+                   'excluded_names', 'minmax')
 
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):

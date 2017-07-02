@@ -142,6 +142,9 @@ class ContentsWidget(QWidget):
         self.tab_btn = QRadioButton(_("Tab"))
         self.tab_btn.setChecked(False)
         col_btn_layout.addWidget(self.tab_btn)
+        self.ws_btn = QRadioButton(_("Whitespace"))
+        self.ws_btn.setChecked(False)
+        col_btn_layout.addWidget(self.ws_btn)
         other_btn_col = QRadioButton(_("other"))
         other_btn_col.setChecked(True)
         col_btn_layout.addWidget(other_btn_col)
@@ -231,6 +234,8 @@ class ContentsWidget(QWidget):
         """Return the column separator"""
         if self.tab_btn.isChecked():
             return u"\t"
+        elif self.ws_btn.isChecked():
+            return None
         return to_text_string(self.line_edt.text())
 
     def get_row_sep(self):
@@ -323,7 +328,7 @@ class PreviewTableModel(QAbstractTableModel):
                     self._data[index.row()][index.column()])
             self.dataChanged.emit(index, index)
         except Exception as instance:
-            print(instance)
+            print(instance)  # spyder: test-skip
 
     def reset(self):
         self.beginResetModel()
@@ -462,7 +467,10 @@ class PreviewWidget(QWidget):
         if pd:
             self.pd_text = text
             self.pd_info = dict(sep=colsep, lineterminator=rowsep,
-                skiprows=skiprows,comment=comments)
+                skiprows=skiprows, comment=comments)
+            if colsep is None:
+                self.pd_info = dict(lineterminator=rowsep, skiprows=skiprows,
+                    comment=comments, delim_whitespace=True)
         self._table_view.process_data(text, colsep, rowsep, transpose,
                                       skiprows, comments)
 
@@ -635,7 +643,7 @@ def test(text):
     _app = qapplication()  # analysis:ignore
     dialog = ImportWizard(None, text)
     if dialog.exec_():
-        print(dialog.get_data())
+        print(dialog.get_data())  # spyder: test-skip
 
 if __name__ == "__main__":
     test(u"17/11/1976\t1.34\n14/05/09\t3.14")

@@ -35,7 +35,6 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     CONF_SECTION = 'project_explorer'
 
-    open_terminal = Signal(str)
     open_interpreter = Signal(str)
     pythonpath_changed = Signal()
 
@@ -51,6 +50,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
+    sig_new_file = Signal(str)
 
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
@@ -135,6 +135,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.main.add_dockwidget(self)
 
         self.sig_open_file.connect(self.main.open_file)
+
+        self.sig_new_file.connect(lambda x: self.editor.new(text=x))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
@@ -380,9 +382,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        self.main.extconsole.restart()
-        if self.main.ipyconsole:
-            self.main.ipyconsole.restart()
+        self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):
         """Check if a directory is a valid Spyder project"""

@@ -14,6 +14,7 @@ IPython console plugin.
 # Standard library imports
 from xml.sax.saxutils import escape
 import os
+import os.path as osp
 import re
 import sre_constants
 import textwrap
@@ -26,7 +27,7 @@ from qtpy import QT_VERSION
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import is_text_string, to_text_string, u
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
 from spyder.utils.dochelpers import (getargspecfromtext, getobj,
                                      getsignaturefromtext)
@@ -39,8 +40,6 @@ if QT55_VERSION:
     from qtpy.QtCore import QRegularExpression
 else:
     from qtpy.QtCore import QRegExp
-
-HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
@@ -298,13 +297,13 @@ class BaseEditMixin(object):
         if text and not all_text:
             while text.endswith("\n"):
                 text = text[:-1]
-            while text.endswith(u("\u2029")):
+            while text.endswith(u"\u2029"):
                 text = text[:-1]
         return text
     
-    def get_character(self, position):
-        """Return character at *position*"""
-        position = self.get_position(position)
+    def get_character(self, position, offset=0):
+        """Return character at *position* with the given offset."""
+        position = self.get_position(position) + offset
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         if position < cursor.position():
@@ -381,7 +380,7 @@ class BaseEditMixin(object):
         """Return line at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.BlockUnderCursor)
-        return to_text_string(cursor.selectedText()).replace(u('\u2029'), '')
+        return to_text_string(cursor.selectedText()).replace(u'\u2029', '')
     
     def get_word_at(self, coordinates):
         """Return word at *coordinates* (QPoint)"""
@@ -416,7 +415,7 @@ class BaseEditMixin(object):
         Replace the unicode line separator character \u2029 by 
         the line separator characters returned by get_line_separator
         """
-        return to_text_string(self.textCursor().selectedText()).replace(u("\u2029"),
+        return to_text_string(self.textCursor().selectedText()).replace(u"\u2029",
                                                      self.get_line_separator())
     
     def remove_selected_text(self):
@@ -693,11 +692,19 @@ class SaveHistoryMixin(object):
     
     INITHISTORY = None
     SEPARATOR = None
+    HISTORY_FILENAMES = []
+
     append_to_history = None
     
-    def __init__(self):
-        pass
-    
+    def __init__(self, history_filename=''):
+        self.history_filename = history_filename
+        self.create_history_filename()
+
+    def create_history_filename(self):
+        """Create history_filename with INITHISTORY if it doesn't exist."""
+        if self.history_filename and not osp.isfile(self.history_filename):
+            encoding.writelines(self.INITHISTORY, self.history_filename)
+
     def add_to_history(self, command):
         """Add command to history"""
         command = to_text_string(command)
@@ -706,17 +713,72 @@ class SaveHistoryMixin(object):
         if command.endswith('\n'):
             command = command[:-1]
         self.histidx = None
-        if len(self.history)>0 and self.history[-1] == command:
+        if len(self.history) > 0 and self.history[-1] == command:
             return
         self.history.append(command)
         text = os.linesep + command
         
         # When the first entry will be written in history file,
         # the separator will be append first:
-        if self.history_filename not in HISTORY_FILENAMES:
-            HISTORY_FILENAMES.append(self.history_filename)
+        if self.history_filename not in self.HISTORY_FILENAMES:
+            self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
         
         encoding.write(text, self.history_filename, mode='ab')
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)
+
+
+class BrowseHistoryMixin(object):
+
+    def __init__(self):
+        self.history = []
+        self.histidx = None
+        self.hist_wholeline = False
+
+    def clear_line(self):
+        """Clear current line (without clearing console prompt)"""
+        self.remove_text(self.current_prompt_pos, 'eof')
+
+    def browse_history(self, backward):
+        """Browse history"""
+        if self.is_cursor_before('eol') and self.hist_wholeline:
+            self.hist_wholeline = False
+        tocursor = self.get_current_line_to_cursor()
+        text, self.histidx = self.find_in_history(tocursor, self.histidx,
+                                                  backward)
+        if text is not None:
+            if self.hist_wholeline:
+                self.clear_line()
+                self.insert_text(text)
+            else:
+                cursor_position = self.get_position('cursor')
+                # Removing text from cursor to the end of the line
+                self.remove_text('cursor', 'eol')
+                # Inserting history text
+                self.insert_text(text)
+                self.set_cursor_position(cursor_position)
+
+    def find_in_history(self, tocursor, start_idx, backward):
+        """Find text 'tocursor' in history, from index 'start_idx'"""
+        if start_idx is None:
+            start_idx = len(self.history)
+        # Finding text in history
+        step = -1 if backward else 1
+        idx = start_idx
+        if len(tocursor) == 0 or self.hist_wholeline:
+            idx += step
+            if idx >= len(self.history) or len(self.history) == 0:
+                return "", len(self.history)
+            elif idx < 0:
+                idx = 0
+            self.hist_wholeline = True
+            return self.history[idx], idx
+        else:
+            for index in range(len(self.history)):
+                idx = (start_idx+step*(index+1)) % len(self.history)
+                entry = self.history[idx]
+                if entry.startswith(tocursor):
+                    return entry[len(tocursor):], idx
+            else:
+                return None, start_idx

@@ -27,17 +27,22 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QToolButton,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import (_, get_conf_path, get_image_path,
-                                get_module_source_path)
+from spyder.config.base import _, get_image_path, get_module_source_path
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
+from spyder.utils.encoding import get_coding
+from spyder.utils.environ import RemoteEnvDialog
+from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, DialogManager,
+                                    MENU_SEPARATOR)
+from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
-from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.widgets.ipythonconsole import ShellWidget
+from spyder.widgets.mixins import SaveHistoryMixin
+from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 #-----------------------------------------------------------------------------
@@ -79,7 +84,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     to print different messages there.
     """
 
-    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
+    INITHISTORY = ['# -*- coding: utf-8 -*-',
+                   '# *** Spyder Python Console History Log ***',]
+
     append_to_history = Signal(str, str)
 
     def __init__(self, plugin, id_, history_filename, config_options,
@@ -88,11 +96,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  menu_actions=None, slave=False,
                  external_kernel=False):
         super(ClientWidget, self).__init__(plugin)
-        SaveHistoryMixin.__init__(self)
+        SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
         self.id_ = id_
-        self.history_filename = get_conf_path(history_filename)
         self.connection_file = connection_file
         self.hostname = hostname
         self.menu_actions = menu_actions
@@ -138,14 +145,24 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         document = self.get_control().document()
         document.contentsChange.connect(self._hide_loading_page)
 
+        # --- Dialog manager
+        self.dialog_manager = DialogManager()
+
     #------ Public API --------------------------------------------------------
+    @property
+    def kernel_id(self):
+        """Get kernel id"""
+        if self.connection_file is not None:
+            json_file = osp.basename(self.connection_file)
+            return json_file.split('.json')[0]
+
     @property
     def stderr_file(self):
         """Filename to save kernel stderr output."""
-        json_file = osp.basename(self.connection_file)
-        stderr_file = json_file.split('json')[0] + 'stderr'
-        stderr_file = osp.join(TEMPDIR, stderr_file)
-        return stderr_file
+        if self.connection_file is not None:
+            stderr_file = self.kernel_id + '.stderr'
+            stderr_file = osp.join(TEMPDIR, stderr_file)
+            return stderr_file
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
@@ -159,7 +176,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executing.connect(self.add_to_history)
 
         # For Mayavi to run correctly
-        self.shellwidget.executing.connect(self.set_backend_for_mayavi)
+        self.shellwidget.executing.connect(
+            self.shellwidget.set_backend_for_mayavi)
 
         # To update history after execution
         self.shellwidget.executed.connect(self.update_history)
@@ -177,6 +195,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To show kernel restarted/died messages
         self.shellwidget.sig_kernel_restarted.connect(
             self.kernel_restarted_message)
+
+        # To correctly change Matplotlib backend interactively
+        self.shellwidget.executing.connect(
+            self.shellwidget.change_mpl_backend)
+
+        # To show env and sys.path contents
+        self.shellwidget.sig_show_syspath.connect(self.show_syspath)
+        self.shellwidget.sig_show_env.connect(self.show_env)
+
+        if not create_qss_style(self.shellwidget.syntax_style)[1]:
+            self.shellwidget.silent_execute("%colors linux")
+        else:
+            self.shellwidget.silent_execute("%colors lightbg")
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -247,7 +278,25 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        return self.menu_actions
+        env_action = create_action(
+                        self,
+                        _("Show environment variables"),
+                        icon=ima.icon('environ'),
+                        triggered=self.shellwidget.get_env
+                     )
+        syspath_action = create_action(
+                            self,
+                            _("Show sys.path contents"),
+                            icon=ima.icon('syspath'),
+                            triggered=self.shellwidget.get_syspath
+                         )
+
+        additional_actions = [MENU_SEPARATOR, env_action, syspath_action]
+
+        if self.menu_actions is not None:
+            return self.menu_actions + additional_actions
+        else:
+            return additional_actions
 
     def get_toolbar_buttons(self):
         """Return toolbar buttons list."""
@@ -315,6 +364,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
+    def set_color_scheme(self, color_scheme):
+        """Set IPython color scheme."""
+        self.shellwidget.set_color_scheme(color_scheme)
+
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
@@ -334,12 +387,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         Took this code from the qtconsole project
         Licensed under the BSD license
         """
+        sw = self.shellwidget
+
         message = _('Are you sure you want to restart the kernel?')
         buttons = QMessageBox.Yes | QMessageBox.No
         result = QMessageBox.question(self, _('Restart kernel?'),
                                       message, buttons)
+
         if result == QMessageBox.Yes:
-            sw = self.shellwidget
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
@@ -354,8 +409,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 else:
                     sw.reset(clear=True)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
-                        before_prompt=False,
-                    )
+                                    before_prompt=False)
             else:
                 sw._append_plain_text(
                     _('Cannot restart a kernel not started by Spyder\n'),
@@ -365,7 +419,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @Slot(str)
     def kernel_restarted_message(self, msg):
         """Show kernel restarted/died messages."""
-        stderr = codecs.open(self.stderr_file, 'r', encoding='utf-8').read()
+        try:
+            stderr = codecs.open(self.stderr_file, 'r',
+                                 encoding='utf-8').read()
+        except UnicodeDecodeError:
+            # This is needed since the stderr file could be encoded
+            # in something different to utf-8.
+            # See issue 4191
+            try:
+                stderr = self._read_stderr()
+            except:
+                stderr = None
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
@@ -397,22 +461,21 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def update_history(self):
         self.history = self.shellwidget._history
 
-    def set_backend_for_mayavi(self, command):
-        """
-        Mayavi plots require the Qt backend, so we try to detect if one is
-        generated to change backends
-        """
-        calling_mayavi = False
-        lines = command.splitlines()
-        for l in lines:
-            if not l.startswith('#'):
-                if 'import mayavi' in l or 'from mayavi' in l:
-                    calling_mayavi = True
-                    break
-        if calling_mayavi:
-            message = _("Changing backend to Qt for Mayavi")
-            self.shellwidget._append_plain_text(message + '\n')
-            self.shellwidget.execute("%gui inline\n%gui qt")
+    @Slot(object)
+    def show_syspath(self, syspath):
+        """Show sys.path contents."""
+        if syspath is not None:
+            editor = CollectionsEditor()
+            editor.setup(syspath, title="sys.path contents", readonly=True,
+                         width=600, icon=ima.icon('syspath'))
+            self.dialog_manager.show(editor)
+        else:
+            return
+
+    @Slot(object)
+    def show_env(self, env):
+        """Show environment variables."""
+        self.dialog_manager.show(RemoteEnvDialog(env))
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
@@ -442,3 +505,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         document = self.get_control().document()
         document.contentsChange.disconnect(self._hide_loading_page)
+
+    def _read_stderr(self):
+        """Read the stderr file of the kernel."""
+        stderr_text = open(self.stderr_file, 'rb').read()
+        encoding = get_coding(stderr_text)
+        stderr = to_text_string(stderr_text, encoding)
+        return stderr

@@ -268,13 +268,13 @@ def test():
                           sort=True)
     # Full results
     for r in a:
-        print(r)
+        print(r)  # spyder: test-skip
     
     # Ordered and filtered results
-    print('\n')
+    print('\n')  # spyder: test-skip
 
     for r in b:
-        print(r)
+        print(r)  # spyder: test-skip
 
 if __name__ == '__main__':
     test()

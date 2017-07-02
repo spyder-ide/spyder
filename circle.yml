@@ -3,16 +3,11 @@
 machine:
   environment:
     # Python versions to tests (Maximum of 4 different versions)
-    PY_VERSIONS: "2.7 3.4 3.5"
-    # For Coveralls
-    COVERALLS_REPO_TOKEN: yt7YToGxRtnAcM6kSULoiCmOPetq10TaU
-    # Environment variables used by astropy helpers
+    PY_VERSIONS: "2.7 3.5 3.6"
+    # Environment variable used by astropy helpers
     TRAVIS_OS_NAME: "linux"
-    CONDA_DEPENDENCIES_FLAGS: "--quiet"
-    CONDA_DEPENDENCIES: >
-      rope jedi pyflakes sphinx pygments pylint pep8 psutil nbconvert qtawesome pickleshare
-      qtpy pyzmq chardet mock nomkl pandas pytest pytest-cov numpydoc scipy
-    PIP_DEPENDENCIES: "coveralls pytest-qt flaky"
+    # PyQt version to test with
+    USE_PYQT: pyqt5
 
 dependencies:
   pre:
@@ -20,16 +15,7 @@ dependencies:
     # See https://github.com/TestFX/TestFX/issues/158#issuecomment-62421691
     - sudo apt-get install matchbox-window-manager
   override:
-    # First convert PY_VERSIONS to an array and then select the python version based on the CIRCLE_NODE_INDEX
-    - export PY_VERSIONS=($PY_VERSIONS) &&
-      export TRAVIS_PYTHON_VERSION=${PY_VERSIONS[$CIRCLE_NODE_INDEX]} && 
-      echo -e "PYTHON = $TRAVIS_PYTHON_VERSION \n============" &&
-      git clone git://github.com/astropy/ci-helpers.git > /dev/null &&
-      source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh &&
-      export PATH="$HOME/miniconda/bin:$PATH" &&
-      source activate test &&
-      conda install -q ciocheck -c spyder-ide --no-update-deps &&
-      python setup.py install > /dev/null;
+    - ./continuous_integration/circle/install.sh
     - DISPLAY=:99 /usr/bin/matchbox-window-manager:
         background: true
     - sleep 5
@@ -40,11 +26,5 @@ test:
     #- export PATH="$HOME/miniconda/bin:$PATH" && source activate test && ciocheck spyder: # note the colon
     #    parallel: true
     # PyQt5
-    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install -q qt=5.* pyqt=5.* qtconsole matplotlib && python runtests.py: # note the colon
+    - ./continuous_integration/circle/modules_test.sh || ./continuous_integration/circle/modules_test.sh: # note the colon
         parallel: true
-    # Coveralls
-    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls: # note the colon
-        parallel: true
-    # PyQt4
-#    - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && conda install qt=4.* pyqt=4.* qtconsole && python runtests.py: # note the colon
-#        parallel: true

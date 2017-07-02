@@ -33,7 +33,7 @@ dependencies.add('rope',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=ROPE_REQVER)
 
-JEDI_REQVER = '=0.9.0'
+JEDI_REQVER = '>=0.9.0'
 dependencies.add('jedi',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=JEDI_REQVER)
@@ -43,12 +43,13 @@ class PluginManager(QObject):
 
     introspection_complete = Signal(object)
 
-    def __init__(self, executable):
+    def __init__(self, executable, extra_path=None):
+
         super(PluginManager, self).__init__()
         plugins = OrderedDict()
         for name in PLUGINS:
             try:
-                plugin = PluginClient(name, executable)
+                plugin = PluginClient(name, executable, extra_path=extra_path)
                 plugin.run()
             except Exception as e:
                 debug_print('Introspection Plugin Failed: %s' % name)
@@ -129,7 +130,9 @@ class PluginManager(QObject):
             self.pending = response
 
     def close(self):
-        [plugin.close() for plugin in self.plugins]
+        for name, plugin in self.plugins.items():
+            plugin.close()
+            debug_print("Introspection Plugin Closed: {}".format(name))
 
     def _finalize(self, response):
         self.waiting = False
@@ -160,17 +163,29 @@ class IntrospectionManager(QObject):
     send_to_help = Signal(str, str, str, str, bool)
     edit_goto = Signal(str, int, str)
 
-    def __init__(self, executable=None):
+    def __init__(self, executable=None, extra_path=None):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = None
         self.pending = None
-        self.plugin_manager = PluginManager(executable)
+        self.extra_path = extra_path
+        self.executable = executable
+        self.plugin_manager = PluginManager(executable, extra_path)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 
     def change_executable(self, executable):
+        self.executable = executable
+        self._restart_plugin()
+
+    def change_extra_path(self, extra_path):
+        if extra_path != self.extra_path:
+            self.extra_path = extra_path
+            self._restart_plugin()
+
+    def _restart_plugin(self):
         self.plugin_manager.close()
-        self.plugin_manager = PluginManager(executable)
+        self.plugin_manager = PluginManager(self.executable,
+                                            extra_path=self.extra_path)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 
