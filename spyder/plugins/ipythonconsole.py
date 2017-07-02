@@ -1433,7 +1433,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Getting the master name that corresponds to the client
         # (i.e. the i in i/A)
-        master_name = None
+        master_id = None
         external_kernel = False
         slave_ord = ord('A') - 1
         kernel_manager = None
@@ -1442,24 +1442,25 @@ class IPythonConsole(SpyderPluginWidget):
                 if cl.get_kernel() is not None:
                     kernel_manager = cl.get_kernel()
                 connection_file = cl.connection_file
-                if master_name is None:
-                    master_name = cl.name.split('/')[0]
-                new_slave_ord = ord(cl.name.split('/')[1])
+                if master_id is None:
+                    master_id = cl.id_['int_id']
+                new_slave_ord = ord(cl.id_['str_id'])
                 if new_slave_ord > slave_ord:
                     slave_ord = new_slave_ord
         
         # If we couldn't find a client with the same connection file,
         # it means this is a new master client
-        if master_name is None:
+        if master_id is None:
             self.master_clients += 1
-            master_name = to_text_string(self.master_clients)
+            master_id = to_text_string(self.master_clients)
             external_kernel = True
 
         # Set full client name
-        name = master_name + '/' + chr(slave_ord + 1)
+        client_id = dict(int_id=master_id,
+                         str_id=chr(slave_ord + 1))
 
         # Creating the client
-        client = ClientWidget(self, name=name,
+        client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
