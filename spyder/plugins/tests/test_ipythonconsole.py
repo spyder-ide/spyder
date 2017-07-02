@@ -484,7 +484,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
-    assert new_client.name == '1/B'
+    assert new_client.id_ == dict(int_id='1', str_id='B')
 
 
 @flaky(max_runs=3)
@@ -533,7 +533,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     with qtbot.waitSignal(new_shell.executed):
         new_shell.execute('a = 10')
 
-    assert new_client.name == '1/B'
+    assert new_client.id_ == dict(int_id='1', str_id='B')
     assert shell.get_value('a') == new_shell.get_value('a')
 
 

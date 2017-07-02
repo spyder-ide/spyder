@@ -617,7 +617,7 @@ class IPythonConsole(SpyderPluginWidget):
                 os.mkdir(programs.TEMPDIR)
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions)
+        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
@@ -626,6 +626,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
+        self.tabwidget.tabBar().sig_change_name.connect(
+            self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
 
@@ -758,6 +760,10 @@ class IPythonConsole(SpyderPluginWidget):
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
         
+        rename_tab_action = create_action(self, _("Rename tab"),
+                                       icon=ima.icon('rename'),
+                                       triggered=self.tab_name_editor)
+        
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
@@ -766,7 +772,8 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Plugin actions
         self.menu_actions = [create_client_action, MENU_SEPARATOR,
-                             restart_action, connect_to_kernel_action]
+                             restart_action, connect_to_kernel_action,
+                             MENU_SEPARATOR, rename_tab_action]
         
         return self.menu_actions
 
@@ -883,9 +890,10 @@ class IPythonConsole(SpyderPluginWidget):
     def create_new_client(self, give_focus=True, path=''):
         """Create a new client"""
         self.master_clients += 1
-        name = "%d/A" % self.master_clients
+        client_id = dict(int_id=to_text_string(self.master_clients),
+                         str_id='A')
         cf = self._new_connection_file()
-        client = ClientWidget(self, name=name,
+        client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
@@ -1177,11 +1185,6 @@ class IPythonConsole(SpyderPluginWidget):
             if id(client) == client_id:
                 return index
 
-    def rename_client_tab(self, client):
-        """Rename client's tab"""
-        index = self.get_client_index_from_id(id(client))
-        self.tabwidget.setTabText(index, client.get_name())
-
     def get_related_clients(self, client):
         """
         Get all other clients that are connected to the same kernel as `client`
@@ -1330,6 +1333,30 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.insert(index_to, client)
         self.sig_update_plugin_title.emit()
 
+    def rename_client_tab(self, client):
+        """Rename client's tab"""
+        index = self.get_client_index_from_id(id(client))
+        self.tabwidget.setTabText(index, client.get_name())
+
+    def rename_tabs_after_change(self, given_name):
+        client = self.get_current_client()
+
+        # Rename current client tab to add str_id
+        if client.allow_rename:
+            client.given_name = given_name
+        self.rename_client_tab(client)
+
+        # Rename related clients
+        if client.allow_rename:
+            for cl in self.get_related_clients(client):
+                cl.given_name = given_name
+                self.rename_client_tab(cl)
+
+    def tab_name_editor(self):
+        """Trigger the tab name editor."""
+        index = self.tabwidget.currentIndex()
+        self.tabwidget.tabBar().tab_name_editor.edit_tab(index)
+
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):
         """Go to error if relevant"""
@@ -1419,35 +1446,41 @@ class IPythonConsole(SpyderPluginWidget):
                                    "<b>%s</b>") % connection_file)
             return
 
-        # Getting the master name that corresponds to the client
+        # Getting the master id that corresponds to the client
         # (i.e. the i in i/A)
-        master_name = None
+        master_id = None
+        given_name = None
         external_kernel = False
         slave_ord = ord('A') - 1
         kernel_manager = None
+
         for cl in self.get_clients():
             if connection_file in cl.connection_file:
                 if cl.get_kernel() is not None:
                     kernel_manager = cl.get_kernel()
                 connection_file = cl.connection_file
-                if master_name is None:
-                    master_name = cl.name.split('/')[0]
-                new_slave_ord = ord(cl.name.split('/')[1])
+                if master_id is None:
+                    master_id = cl.id_['int_id']
+                given_name = cl.given_name
+                new_slave_ord = ord(cl.id_['str_id'])
                 if new_slave_ord > slave_ord:
                     slave_ord = new_slave_ord
         
         # If we couldn't find a client with the same connection file,
         # it means this is a new master client
-        if master_name is None:
+        if master_id is None:
             self.master_clients += 1
-            master_name = to_text_string(self.master_clients)
+            master_id = to_text_string(self.master_clients)
             external_kernel = True
 
         # Set full client name
-        name = master_name + '/' + chr(slave_ord + 1)
+        client_id = dict(int_id=master_id,
+                         str_id=chr(slave_ord + 1))
 
         # Creating the client
-        client = ClientWidget(self, name=name,
+        client = ClientWidget(self,
+                              id_=client_id,
+                              given_name=given_name,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
