@@ -16,6 +16,7 @@ import os.path as osp
 import sys
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.QtCore import QByteArray, QMimeData, QPoint, Qt, Signal, QEvent
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
@@ -53,11 +54,17 @@ class EditTabNamePopup(QLineEdit):
         self.installEventFilter(self)
 
         # Clean borders and no shadow to blend with tab
-        self.setWindowFlags(
-            Qt.Popup |
-            Qt.FramelessWindowHint |
-            Qt.NoDropShadowWindowHint
-        )
+        if PYQT5:
+            self.setWindowFlags(
+                Qt.Popup |
+                Qt.FramelessWindowHint |
+                Qt.NoDropShadowWindowHint
+            )
+        else:
+            self.setWindowFlags(
+                Qt.Popup |
+                Qt.FramelessWindowHint
+            )
         self.setFrame(False)
 
         # Align with tab name
