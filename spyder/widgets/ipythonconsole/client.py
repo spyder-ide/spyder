@@ -434,7 +434,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except FileNotFoundError:
             stderr = None
 
-        if stderr is not None:
+        if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
         else:
             self.shellwidget._append_html("<br>%s<hr><br>" % msg,

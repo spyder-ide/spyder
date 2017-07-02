@@ -216,7 +216,7 @@ class TabBar(QTabBar):
                 # Tab is valid, call tab name editor
                 self.tab_name_editor.edit_tab(index)
         else:
-            # Even is not interessant, raise to parent
+            # Event is not interesting, raise to parent
             QTabBar.mouseDoubleClickEvent(self, event)
 
         
