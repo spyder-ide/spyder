@@ -112,6 +112,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_button = None
         self.stop_icon = ima.icon('stop')
         self.history = []
+        self.allow_rename = True
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
