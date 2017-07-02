@@ -90,11 +90,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     append_to_history = Signal(str, str)
 
-    def __init__(self, plugin, id_, history_filename, config_options,
+    def __init__(self, plugin, id_,
+                 history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
-                 external_kernel=False):
+                 external_kernel=False, given_name=None):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -104,13 +105,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.hostname = hostname
         self.menu_actions = menu_actions
         self.slave = slave
+        self.given_name = given_name
 
         # --- Other attrs
         self.options_button = None
         self.stop_button = None
         self.stop_icon = ima.icon('stop')
         self.history = []
-        self.given_name = None
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
