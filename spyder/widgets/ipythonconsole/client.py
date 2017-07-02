@@ -257,10 +257,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             else:
                 name = self.hostname
             # Adding id to name
-            client_id = self.id_[0] + u'/' + self.id_[1]
+            client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = name + u' ' + client_id
         else:
-            name = self.given_name + u' /' + self.id_[1]
+            name = self.given_name + u' /' + self.id_['str_id']
         return name
 
     def get_control(self):
