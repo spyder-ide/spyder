@@ -1339,9 +1339,12 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.insert(index_to, client)
         self.update_plugin_title.emit()
 
-    def rename_client_tab(self, client):
+    def rename_client_tab(self, client, given_name):
         """Rename client's tab"""
         index = self.get_client_index_from_id(id(client))
+
+        if given_name is not None:
+            client.given_name = given_name
         self.tabwidget.setTabText(index, client.get_name())
 
     def rename_tabs_after_change(self, given_name):
@@ -1349,14 +1352,14 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Rename current client tab to add str_id
         if client.allow_rename:
-            client.given_name = given_name
-        self.rename_client_tab(client)
+            self.rename_client_tab(client, given_name)
+        else:
+            self.rename_client_tab(client, None)
 
         # Rename related clients
         if client.allow_rename:
             for cl in self.get_related_clients(client):
-                cl.given_name = given_name
-                self.rename_client_tab(cl)
+                self.rename_client_tab(cl, given_name)
 
     def tab_name_editor(self):
         """Trigger the tab name editor."""
