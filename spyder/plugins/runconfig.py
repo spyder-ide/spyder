@@ -42,9 +42,7 @@ ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
-
 INTERACT = _("Interact with the Python console after execution")
-SHOW_WARNING = _("Show warning when killing running processes")
 
 
 class RunConfiguration(object):
@@ -58,7 +56,6 @@ class RunConfiguration(object):
         self.current = None
         self.systerm = None
         self.interact = None
-        self.show_kill_warning =None
         self.post_mortem = None
         self.python_args = None
         self.python_args_enabled = None
@@ -87,8 +84,6 @@ class RunConfiguration(object):
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
         self.interact = options.get('interact',
                            CONF.get('run', 'interact', False))
-        self.show_kill_warning = options.get('show_kill_warning', 
-                           CONF.get('run', 'show_kill_warning', False))
         self.post_mortem = options.get('post_mortem',
                            CONF.get('run', 'post_mortem', False))
         self.python_args = options.get('python_args', '')
@@ -105,7 +100,6 @@ class RunConfiguration(object):
                 'current': self.current,
                 'systerm': self.systerm,
                 'interact': self.interact,
-                'show_kill_warning': self.show_kill_warning,
                 'post_mortem': self.post_mortem,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
@@ -218,9 +212,6 @@ class RunConfigOptions(QWidget):
         external_group.setLayout(external_layout)
         self.interact_cb = QCheckBox(INTERACT)
         external_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
-        
-        self.show_kill_warning_cb = QCheckBox(SHOW_WARNING)
-        external_layout.addWidget(self.show_kill_warning_cb, 2, 0, 1, -1)
 
         self.pclo_cb = QCheckBox(_("Command line options:"))
         external_layout.addWidget(self.pclo_cb, 3, 0)
@@ -272,7 +263,6 @@ class RunConfigOptions(QWidget):
         else:
             self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
-        self.show_kill_warning_cb.setChecked(self.runconf.show_kill_warning)
         self.post_mortem_cb.setChecked(self.runconf.post_mortem)
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
@@ -286,7 +276,6 @@ class RunConfigOptions(QWidget):
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
-        self.runconf.show_kill_warning = self.show_kill_warning_cb.isChecked()
         self.runconf.post_mortem = self.post_mortem_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
@@ -522,12 +511,9 @@ class RunConfigPage(GeneralConfigPage):
 
         external_group = QGroupBox(_("External system terminal"))
         interact_after = self.create_checkbox(INTERACT, 'interact', False)
-        show_warning = self.create_checkbox(SHOW_WARNING, 'show_kill_warning',
-                                            True)
 
         external_layout = QVBoxLayout()
         external_layout.addWidget(interact_after)
-        external_layout.addWidget(show_warning)
         external_group.setLayout(external_layout)
 
         firstrun_cb = self.create_checkbox(
