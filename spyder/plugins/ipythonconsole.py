@@ -891,9 +891,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     @Slot()
     @Slot(bool)
-    @Slot(str)
-    @Slot(bool, str)
-    def create_new_client(self, give_focus=True, path=''):
+    def create_new_client(self, give_focus=True):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -935,7 +933,7 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
-        self.connect_client_to_kernel(client, path)
+        self.connect_client_to_kernel(client)
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client)
@@ -951,7 +949,7 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client, path):
+    def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
         stderr_file = client.stderr_file
@@ -970,9 +968,6 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
-
-        if path:
-            shellwidget.set_cwd(path)
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
@@ -1246,8 +1241,10 @@ class IPythonConsole(SpyderPluginWidget):
 
     @Slot(str)
     def create_client_from_path(self, path):
-        """Create a client with its cwd pointing to path"""
-        self.create_new_client(path=path)
+        """Create a client with its cwd pointing to path."""
+        self.create_new_client()
+        sw = self.get_current_shellwidget()
+        sw.set_cwd(path)
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
