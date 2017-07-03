@@ -799,8 +799,7 @@ class IPythonConsole(SpyderPluginWidget):
                              self.editor.load(fname, lineno, word,
                                               processevents=processevents))
         self.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
-        self.editor.run_in_current_ipyclient.connect(
-                                         self.run_script_in_current_client)
+        self.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
         self.explorer.open_interpreter.connect(self.create_client_from_path)
@@ -830,11 +829,20 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client.shellwidget
 
-    def run_script_in_current_client(self, filename, wdir, args, debug,
-                                     post_mortem, clear_variables):
-        """Run script in current client, if any"""
+    def run_script(self, filename, wdir, args, debug, post_mortem,
+                   current_client, clear_variables):
+        """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
-        client = self.get_current_client()
+
+        # Select client to execute code on it
+        if current_client:
+            client = self.get_current_client()
+        else:
+            client = self.get_client_for_file(filename)
+            if client is None:
+                self.create_client_for_file(filename)
+                client = self.get_current_client()
+
         if client is not None:
             # Internal kernels, use runfile
             if client.get_kernel() is not None:
@@ -854,7 +862,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
-            self.execute_code(line, clear_variables)
+            self.execute_code(line, current_client, clear_variables)
             self.visibility_changed(True)
             self.raise_()
         else:
@@ -871,14 +879,19 @@ class IPythonConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
-    def execute_code(self, lines, clear_variables=False):
+    def execute_code(self, lines, current_client, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
             if sw._reading:
                 pass
             else:
-                if clear_variables:
+                if not current_client:
+                    # Clear console and reset namespace for
+                    # dedicated clients
+                    sw.silent_execute('%clear')
+                    sw.reset_namespace(force=True)
+                elif current_client and clear_variables:
                     sw.reset_namespace(force=True)
                 sw.execute(to_text_string(to_text_string(lines)))
             self.activateWindow()
@@ -1245,6 +1258,22 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client()
         sw = self.get_current_shellwidget()
         sw.set_cwd(path)
+
+    def create_client_for_file(self, filename):
+        """Create a client to execute code related to a file."""
+        self.create_new_client()
+        client = self.get_current_client()
+        client.allow_rename = False
+        self.rename_client_tab(client, filename)
+
+    def get_client_for_file(self, filename):
+        """Get client associated with a given file."""
+        client = None
+        for cl in self.get_clients():
+            if cl.given_name == filename:
+                client = cl
+                break
+        return client
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
