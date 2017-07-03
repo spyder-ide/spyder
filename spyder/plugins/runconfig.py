@@ -43,6 +43,9 @@ ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
 
+INTERACT = _("Interact with the Python console after execution")
+SHOW_WARNING = _("Show warning when killing running processes")
+
 
 class RunConfiguration(object):
     """Run configuration"""
@@ -213,12 +216,10 @@ class RunConfigOptions(QWidget):
 
         external_layout = QGridLayout()
         external_group.setLayout(external_layout)
-        self.interact_cb = QCheckBox(_("Interact with the Python "
-                                       "console after execution"))
+        self.interact_cb = QCheckBox(INTERACT)
         external_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
         
-        self.show_kill_warning_cb = QCheckBox(_("Show warning when killing"
-                                                " running process"))
+        self.show_kill_warning_cb = QCheckBox(SHOW_WARNING)
         external_layout.addWidget(self.show_kill_warning_cb, 2, 0, 1, -1)
 
         self.pclo_cb = QCheckBox(_("Command line options:"))
@@ -519,18 +520,15 @@ class RunConfigPage(GeneralConfigPage):
         general_layout.addWidget(post_mortem)
         general_group.setLayout(general_layout)
 
-        dedicated_group = QGroupBox(_("Dedicated Python console"))
-        interact_after = self.create_checkbox(
-            _("Interact with the Python console after execution"),
-            'interact', False)
-        show_warning = self.create_checkbox(
-            _("Show warning when killing running processes"),
-            'show_kill_warning', True)
+        external_group = QGroupBox(_("External system terminal"))
+        interact_after = self.create_checkbox(INTERACT, 'interact', False)
+        show_warning = self.create_checkbox(SHOW_WARNING, 'show_kill_warning',
+                                            True)
 
-        dedicated_layout = QVBoxLayout()
-        dedicated_layout.addWidget(interact_after)
-        dedicated_layout.addWidget(show_warning)
-        dedicated_group.setLayout(dedicated_layout)
+        external_layout = QVBoxLayout()
+        external_layout.addWidget(interact_after)
+        external_layout.addWidget(show_warning)
+        external_group.setLayout(external_layout)
 
         firstrun_cb = self.create_checkbox(
                             ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
@@ -541,7 +539,7 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
         vlayout.addWidget(general_group)
-        vlayout.addWidget(dedicated_group)
+        vlayout.addWidget(external_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
