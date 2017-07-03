@@ -2433,8 +2433,8 @@ class MainWindow(QMainWindow):
 
     def execute_in_external_console(self, lines, focus_to_editor):
         """
-        Execute lines in external or IPython console and eventually set focus
-        to the editor
+        Execute lines in IPython console and eventually set focus
+        to the Editor.
         """
         console = self.ipyconsole
         console.visibility_changed(True)
