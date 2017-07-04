@@ -17,7 +17,6 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Signal, Slot, Qt
 from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QVBoxLayout,
@@ -34,7 +33,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
-from spyder.plugins import SpyderPluginWidget
+from spyder.api.plugins  import SpyderPluginWidget
 from spyder.py3compat import getcwd, to_text_string
 
 
@@ -49,11 +48,8 @@ class Console(SpyderPluginWidget):
     
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
-        
+        SpyderPluginWidget.__init__(self, parent)
+
         debug_print("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
 

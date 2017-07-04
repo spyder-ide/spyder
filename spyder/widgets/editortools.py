@@ -179,6 +179,7 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
         #XXX: remove this debug-related fragment of code
         print("unable to remove tree item: ", debug, file=STDOUT)
 
+
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, fullpath_sorting=True,
                  show_all_files=True, show_comments=True):
@@ -494,7 +495,7 @@ class OutlineExplorerWidget(QWidget):
     """Class browser"""
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
-    outlineexplorer_is_visible = Signal()
+    is_visible = Signal()
     
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
                  show_all_files=True, show_comments=True):
@@ -531,7 +532,7 @@ class OutlineExplorerWidget(QWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             if state:
-                self.outlineexplorer_is_visible.emit()
+                self.is_visible.emit()
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,

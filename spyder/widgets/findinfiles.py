@@ -183,6 +183,7 @@ class FindOptions(QWidget):
     REGEX_INVALID = "background-color:rgb(255, 175, 90);"
     find = Signal()
     stop = Signal()
+    redirect_stdio = Signal(bool)
 
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  exclude, exclude_idx, exclude_regexp,
@@ -258,7 +259,8 @@ class FindOptions(QWidget):
         # Layout 3
         hlayout3 = QHBoxLayout()
 
-        self.global_path_search = QRadioButton(_("Path"), self)
+        self.global_path_search = QRadioButton(_("Current Working "
+                                                 "Directory"), self)
         self.global_path_search.setChecked(True)
         self.global_path_search.setToolTip(_("Search in all files and "
                                              "directories present on the"
@@ -386,12 +388,12 @@ class FindOptions(QWidget):
     @Slot()
     def select_directory(self):
         """Select directory"""
-        self.parent().redirect_stdio.emit(False)
+        self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self, _("Select directory"),
                                          self.dir_combo.currentText())
         if directory:
             self.set_directory(directory)
-        self.parent().redirect_stdio.emit(True)
+        self.redirect_stdio.emit(True)
 
     def set_directory(self, directory):
         self.path = to_text_string(osp.abspath(to_text_string(directory)))
@@ -518,6 +520,8 @@ class ItemDelegate(QStyledItemDelegate):
 
 
 class ResultsBrowser(OneColumnTree):
+    sig_edit_goto = Signal(str, int, str)
+
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
         self.search_text = None
@@ -542,7 +546,7 @@ class ResultsBrowser(OneColumnTree):
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno, colno = itemdata
-            self.parent().edit_goto.emit(filename, lineno, self.search_text)
+            self.sig_edit_goto.emit(filename, lineno, self.search_text)
 
     def set_sorting(self, flag):
         """Enable result sorting after search is complete."""
