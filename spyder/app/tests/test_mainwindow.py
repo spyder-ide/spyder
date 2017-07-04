@@ -107,7 +107,8 @@ def main_window(request):
 @flaky(max_runs=3)
 def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
     """
-    Test synchronization with working directory and File Explorer when changing Ipython console.
+    Test synchronization with working directory and File Explorer when
+    changing cwd in the IPython console.
     """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -129,7 +130,8 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 def test_change_cwd_explorer(main_window, qtbot, tmpdir):
     """
-    Test synchronization with working directory and Ipython console when changing File Explorer.
+    Test synchronization with working directory and IPython console when
+    changing directories in the File Explorer.
     """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -144,7 +146,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir):
     assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
 
     # assert that cwd changed in ipythonconsole
-    assert osp.normpath(temp_dir ) == osp.normpath(shell._cwd)
+    assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
 
 
 @flaky(max_runs=3)
