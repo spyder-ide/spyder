@@ -386,7 +386,7 @@ the sympy module (e.g. plot)
         Capture dir change magic for synchronization with working directory.
         """
         if command.startswith('%cd') or command.split()[0] == 'cd':
-            self.update_cwd()
+            self.get_cwd()
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
