@@ -206,6 +206,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
 
+        #To sync global working directory
+        self.shellwidget.executing.connect(self.shellwidget.capture_dir_change)
+
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
             self.shellwidget.silent_execute("%colors linux")
         else:
