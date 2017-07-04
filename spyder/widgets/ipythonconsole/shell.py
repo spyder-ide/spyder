@@ -90,7 +90,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             self.silent_execute(code)
         self._cwd = dirname
 
-    def update_cwd(self):
+    def get_cwd(self):
         """Update current working directory.
 
         Retrieve the cwd and emit a signal connected to the working directory
