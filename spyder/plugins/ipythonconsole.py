@@ -891,6 +891,8 @@ class IPythonConsole(SpyderPluginWidget):
                     # Clear console and reset namespace for
                     # dedicated clients
                     sw.silent_execute('%clear')
+                    sw.silent_execute(
+                        'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(force=True)
                 elif current_client and clear_variables:
                     sw.reset_namespace(force=True)
