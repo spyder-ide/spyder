@@ -297,34 +297,6 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-def test_change_types_in_varexp(main_window, qtbot):
-    """Test that variable types can't be changed in the Variable Explorer."""
-    # Create object
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('a = 10')
-
-    # Edit object
-    main_window.variableexplorer.visibility_changed(True)
-    nsb = main_window.variableexplorer.get_focus_widget()
-    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
-    nsb.editor.setFocus()
-    nsb.editor.edit_item()
-
-    # Try to change types
-    qtbot.keyClicks(QApplication.focusWidget(), "'s'")
-    qtbot.keyClick(QApplication.focusWidget(), Qt.Key_Enter)
-    qtbot.wait(1000)
-
-    # Assert object remains the same
-    assert shell.get_value('a') == 10
-
-
-
-
-@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
                     reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
