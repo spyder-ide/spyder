@@ -766,9 +766,10 @@ class EditorStack(QWidget):
             self.fileswitcher_dlg.hide()
             self.fileswitcher_dlg.is_visible = False
             return
-        self.fileswitcher_dlg = FileSwitcher(self, self.tabs, self.data)
+        self.fileswitcher_dlg = FileSwitcher(self, self, self.tabs, self.data,
+                                             ima.icon('TextFileIcon'))
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
-        self.fileswitcher_dlg.sig_close_file.connect(self.close_file)
+        self.fileswitcher_dlg.setup()
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
 
@@ -781,6 +782,10 @@ class EditorStack(QWidget):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg:
             self.fileswitcher_dlg.setup()
+
+    def get_current_tab_manager(self):
+        """Get the widget with the TabWidget attribute."""
+        return self
 
     def go_to_line(self):
         """Go to line dialog"""
@@ -1104,8 +1109,9 @@ class EditorStack(QWidget):
     def get_stack_count(self):
         return self.tabs.count()
 
-    def set_stack_index(self, index):
-        self.tabs.setCurrentIndex(index)
+    def set_stack_index(self, index, instance=None):
+        if instance == self or instance == None:
+            self.tabs.setCurrentIndex(index)
 
     def set_tabbar_visible(self, state):
         self.tabs.tabBar().setVisible(state)

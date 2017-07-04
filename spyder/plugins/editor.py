@@ -657,22 +657,6 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file", add_sc_to_tip=True)
 
-        self.file_switcher_action = create_action(self, _('File switcher...'),
-                                            icon=ima.icon('filelist'),
-                                            tip=_('Fast switch between files'),
-                                            triggered=self.call_file_switcher,
-                                            context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.file_switcher_action, context="_",
-                               name="File switcher", add_sc_to_tip=True)
-
-        self.symbol_finder_action = create_action(self, _('Symbol finder...'),
-                                            icon=ima.icon('symbol_find'),
-                                            tip=_('Fast symbol search in file'),
-                                            triggered=self.call_symbol_finder,
-                                            context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.symbol_finder_action, context="_",
-                               name="symbol finder", add_sc_to_tip=True)
-
         self.revert_action = create_action(self, _("&Revert"),
                 icon=ima.icon('revert'), tip=_("Revert file from disk"),
                 triggered=self.revert)
@@ -1032,8 +1016,6 @@ class Editor(SpyderPluginWidget):
                              self.save_all_action,
                              save_as_action,
                              save_copy_as_action,
-                             self.file_switcher_action,
-                             self.symbol_finder_action,
                              self.revert_action,
                              MENU_SEPARATOR,
                              print_preview_action,
@@ -1044,11 +1026,11 @@ class Editor(SpyderPluginWidget):
                              MENU_SEPARATOR]
 
         self.main.file_menu_actions += file_menu_actions
-        file_toolbar_actions = [self.new_action, self.open_action,
-                                self.save_action, self.save_all_action,
-                                self.file_switcher_action,
-                                self.symbol_finder_action]
-        self.main.file_toolbar_actions += file_toolbar_actions
+        file_toolbar_actions = ([self.new_action, self.open_action,
+                                self.save_action, self.save_all_action] +
+                                self.main.file_toolbar_actions)
+
+        self.main.file_toolbar_actions = file_toolbar_actions
 
         # ---- Find menu/toolbar construction ----
         self.main.search_menu_actions = [find_action,
@@ -1183,6 +1165,8 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.main.add_dockwidget(self)
+        self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data,
+                                      ima.icon('TextFileIcon'))
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1504,6 +1488,11 @@ class Editor(SpyderPluginWidget):
             self.introspector.change_extra_path(
                     self.main.get_spyder_pythonpath())
     
+    #------ FileSwitcher API
+    def get_current_tab_manager(self):
+        """Get the widget with the TabWidget attribute."""
+        return self.get_current_editorstack()
+
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
         """Enable/disable file dependent actions
@@ -1775,16 +1764,6 @@ class Editor(SpyderPluginWidget):
     def edit_template(self):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
-
-    @Slot()
-    def call_file_switcher(self):
-        if self.editorstacks:
-            self.get_current_editorstack().open_fileswitcher_dlg()
-
-    @Slot()
-    def call_symbol_finder(self):
-        if self.editorstacks:
-            self.get_current_editorstack().open_symbolfinder_dlg()            
 
     def update_recent_file_menu(self):
         """Update recent file menu"""

@@ -45,6 +45,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     focus_changed = Signal()
     new_client = Signal()
     sig_got_reply = Signal()
+    sig_is_spykernel = Signal(object)
     sig_kernel_restarted = Signal(str)
 
     # For global working directory
@@ -80,6 +81,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             return True
         else:
             return False
+
+    def is_spyder_kernel(self):
+        """Determine if the kernel is from Spyder."""
+        code = u"getattr(get_ipython().kernel, 'set_value', False)"
+        if self._reading:
+            return
+        else:
+            self.silent_exec_method(code)
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
@@ -327,6 +336,11 @@ the sympy module (e.g. plot)
                     else:
                         env = None
                     self.sig_show_env.emit(env)
+                elif 'getattr' in method:
+                    if data is not None and 'text/plain' in data:
+                        is_spyder_kernel = data['text/plain']
+                        if 'SpyderKernel' in is_spyder_kernel:
+                            self.sig_is_spykernel.emit(self)
                 else:
                     if data is not None and 'text/plain' in data:
                         self._kernel_reply = ast.literal_eval(data['text/plain'])

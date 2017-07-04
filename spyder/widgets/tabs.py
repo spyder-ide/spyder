@@ -16,10 +16,11 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import QByteArray, QMimeData, QPoint, Qt, Signal
+from qtpy import PYQT5
+from qtpy.QtCore import QByteArray, QMimeData, QPoint, Qt, Signal, QEvent
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
-                            QTabWidget, QWidget)
+                            QTabWidget, QWidget, QLineEdit)
 
 # Local imports
 from spyder.config.base import _
@@ -31,11 +32,103 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 
 
+class EditTabNamePopup(QLineEdit):
+    """Popup on top of the tab to edit its name."""
+
+    def __init__(self, parent):
+        """Popup on top of the tab to edit its name."""
+
+        # Variables
+        # Parent (main)
+        self.main = parent if parent is not None else self.parent()
+        # Track with tab is being edited
+        self.tab_index = None
+
+        # Widget setup
+        QLineEdit.__init__(self, parent=None)
+
+        # Slot to handle tab name update
+        self.editingFinished.connect(self.edit_finished)
+
+        # Even filter to catch clicks and ESC key
+        self.installEventFilter(self)
+
+        # Clean borders and no shadow to blend with tab
+        if PYQT5:
+            self.setWindowFlags(
+                Qt.Popup |
+                Qt.FramelessWindowHint |
+                Qt.NoDropShadowWindowHint
+            )
+        else:
+            self.setWindowFlags(
+                Qt.Popup |
+                Qt.FramelessWindowHint
+            )
+        self.setFrame(False)
+
+        # Align with tab name
+        self.setTextMargins(9, 0, 0, 0)
+
+    def eventFilter(self, widget, event):
+        """Catch clicks outside the object and ESC key press."""
+        if ((event.type() == QEvent.MouseButtonPress and
+                 not self.geometry().contains(event.globalPos())) or
+                (event.type() == QEvent.KeyPress and
+                 event.key() == Qt.Key_Escape)):
+            # Exits editing
+            self.hide()
+            self.setFocus(False)
+            return True
+
+        # Event is not interessant, raise to parent
+        return QLineEdit.eventFilter(self, widget, event)
+
+    def edit_tab(self, index):
+        """Activate the edit tab."""
+
+        # Sets focus, shows cursor
+        self.setFocus(True)
+
+        # Updates tab index
+        self.tab_index = index
+
+        # Gets tab size and shrinks to avoid overlapping tab borders
+        rect = self.main.tabRect(index)
+        rect.adjust(1, 1, -2, -1)
+
+        # Sets size
+        self.setFixedSize(rect.size())
+
+        # Places on top of the tab
+        self.move(self.main.mapToGlobal(rect.topLeft()))
+
+        # Copies tab name and selects all
+        self.setText(self.main.tabText(index))
+        self.selectAll()
+
+        if not self.isVisible():
+            # Makes editor visible
+            self.show()
+
+    def edit_finished(self):
+        """On clean exit, update tab name."""
+        # Hides editor
+        self.hide()
+
+        if isinstance(self.tab_index, int) and self.tab_index >= 0:
+            # We are editing a valid tab, update name
+            tab_text = to_text_string(self.text())
+            self.main.setTabText(self.tab_index, tab_text)
+            self.main.sig_change_name.emit(tab_text)
+
+
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
+    sig_change_name = Signal(str)
     
-    def __init__(self, parent, ancestor):
+    def __init__(self, parent, ancestor, rename_tabs=False):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
 
@@ -47,6 +140,14 @@ class TabBar(QTabBar):
         self.__drag_start_pos = QPoint()
         self.setAcceptDrops(True)
         self.setUsesScrollButtons(True)
+
+        # Tab name editor
+        self.rename_tabs = rename_tabs
+        if self.rename_tabs:
+            # Creates tab name editor
+            self.tab_name_editor = EditTabNamePopup(self)
+        else:
+            self.tab_name_editor = None
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -111,7 +212,20 @@ class TabBar(QTabBar):
             self.sig_move_tab.emit(index_from, index_to)
             event.acceptProposedAction()
         QTabBar.dropEvent(self, event)
-        
+
+    def mouseDoubleClickEvent(self, event):
+        """Override Qt method to trigger the tab name editor."""
+        if self.rename_tabs is True and \
+                event.buttons() == Qt.MouseButtons(Qt.LeftButton):
+            # Tab index
+            index = self.tabAt(event.pos())
+            if index >= 0:
+                # Tab is valid, call tab name editor
+                self.tab_name_editor.edit_tab(index)
+        else:
+            # Event is not interesting, raise to parent
+            QTabBar.mouseDoubleClickEvent(self, event)
+
         
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
@@ -284,10 +398,11 @@ class Tabs(BaseTabs):
     sig_move_tab = Signal(str, str, int, int)
     
     def __init__(self, parent, actions=None, menu=None,
-                 corner_widgets=None, menu_use_tooltips=False):
+                 corner_widgets=None, menu_use_tooltips=False,
+                 rename_tabs=False):
         BaseTabs.__init__(self, parent, actions, menu,
                           corner_widgets, menu_use_tooltips)
-        tab_bar = TabBar(self, parent)
+        tab_bar = TabBar(self, parent, rename_tabs=rename_tabs)
         tab_bar.sig_move_tab.connect(self.move_tab)
         tab_bar.sig_move_tab[(str, int, int)].connect(
                                           self.move_tab_from_another_tabwidget)

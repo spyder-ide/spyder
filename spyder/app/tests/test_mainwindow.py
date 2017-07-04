@@ -14,6 +14,7 @@ import shutil
 import tempfile
 
 from flaky import flaky
+from jupyter_client.manager import KernelManager
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -25,6 +26,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
 from spyder.py3compat import PY2
+from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_save_message_box
 
@@ -74,6 +76,25 @@ def reset_run_code(qtbot, shell, code_editor, nsb):
     qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
 
 
+def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
+                     **kwargs):
+    """Start a new kernel, and return its Manager and Client"""
+    km = KernelManager(kernel_name=kernel_name)
+    if spykernel:
+        km._kernel_spec = SpyderKernelSpec()
+    km.start_kernel(**kwargs)
+    kc = km.client()
+    kc.start_channels()
+    try:
+        kc.wait_for_ready(timeout=startup_timeout)
+    except RuntimeError:
+        kc.stop_channels()
+        km.shutdown_kernel()
+        raise
+
+    return km, kc
+
+
 #==============================================================================
 # Fixtures
 #==============================================================================
@@ -104,6 +125,132 @@ def main_window(request):
 #==============================================================================
 # Tests
 #==============================================================================
+# IMPORTANT NOTE: Please leave this test to be the first one here to
+# avoid possible timeouts in Appyevor
+@flaky(max_runs=3
+@pytest.mark.skipif(os.name != 'nt' or not PY2,
+                    reason="It times out on Linux and Python 3")
+@pytest.mark.timeout(timeout=60, method='thread')
+@pytest.mark.use_introspection
+def test_calltip(main_window, qtbot):
+    """Hide the calltip in the editor when a matching ')' is found."""
+    # Load test file
+    text = 'a = [1,2,3]\n(max'
+    main_window.editor.new(fname="test.py", text=text)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Set text to start
+    code_editor.set_text(text)
+    code_editor.go_to_line(2)
+    code_editor.move_cursor(5)
+    calltip = code_editor.calltip_widget
+    assert not calltip.isVisible()
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
+
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Space)
+    assert not calltip.isVisible()
+    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
+    main_window.editor.close_file()
+
+
+@flaky(max_runs=3)
+def test_connection_to_external_kernel(main_window, qtbot):
+    """Test that only Spyder kernels are connected to the Variable Explorer."""
+    # Test with a generic kernel
+    km, kc = start_new_kernel()
+
+    main_window.ipyconsole._create_client_for_kernel(kc.connection_file, None,
+                                                     None, None)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert that there are no variables in the variable explorer
+    main_window.variableexplorer.visibility_changed(True)
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.wait(500)
+    assert nsb.editor.model.rowCount() == 0
+
+    # Test with a kernel from Spyder
+    spykm, spykc = start_new_kernel(spykernel=True)
+    main_window.ipyconsole._create_client_for_kernel(spykc.connection_file, None,
+                                                     None, None)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert that a variable is visible in the variable explorer
+    main_window.variableexplorer.visibility_changed(True)
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.wait(500)
+    assert nsb.editor.model.rowCount() == 1
+
+    # Shutdown the kernels
+    spykm.shutdown_kernel(now=True)
+    km.shutdown_kernel(now=True)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_np_threshold(main_window, qtbot):
+    """Test that setting Numpy threshold doesn't make the Variable Explorer slow."""
+    # Set Numpy threshold
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np; np.set_printoptions(threshold=np.nan)')
+
+    # Create a big Numpy array
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('x = np.random.rand(75000,5)')
+
+    # Wait a very small time to see the array in the Variable Explorer
+    main_window.variableexplorer.visibility_changed(True)
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1, timeout=500)
+
+    # Assert that NumPy threshold remains the same as the one
+    # set by the user
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("t = np.get_printoptions()['threshold']")
+    assert np.isnan(shell.get_value('t'))
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_change_types_in_varexp(main_window, qtbot):
+    """Test that variable types can't be changed in the Variable Explorer."""
+    # Create object
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Edit object
+    main_window.variableexplorer.visibility_changed(True)
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() > 0, timeout=EVAL_TIMEOUT)
+    nsb.editor.setFocus()
+    nsb.editor.edit_item()
+
+    # Try to change types
+    qtbot.keyClicks(QApplication.focusWidget(), "'s'")
+    qtbot.keyClick(QApplication.focusWidget(), Qt.Key_Enter)
+    qtbot.wait(1000)
+
+    # Assert object remains the same
+    assert shell.get_value('a') == 10
+
+
 @flaky(max_runs=3)
 def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
     """
@@ -175,36 +322,6 @@ def test_change_types_in_varexp(main_window, qtbot):
     assert shell.get_value('a') == 10
 
 
-@flaky(max_runs=3)
-@pytest.mark.skipif(os.name != 'nt' or not PY2,
-                    reason="It times out on Linux and Python 3")
-@pytest.mark.use_introspection
-def test_calltip(main_window, qtbot):
-    """Hide the calltip in the editor when a matching ')' is found."""
-    # Load test file
-    text = 'a = [1,2,3]\n(max'
-    main_window.editor.new(fname="test.py", text=text)
-    code_editor = main_window.editor.get_focus_widget()
-    
-    # Set text to start
-    code_editor.set_text(text)
-    code_editor.go_to_line(2)
-    code_editor.move_cursor(5)
-    calltip = code_editor.calltip_widget
-    assert not calltip.isVisible()
-
-    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
-    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
-
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Space)
-    assert not calltip.isVisible()
-    qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
-        
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
-    main_window.editor.close_file()
 
 
 @flaky(max_runs=3)

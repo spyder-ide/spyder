@@ -90,26 +90,29 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     append_to_history = Signal(str, str)
 
-    def __init__(self, plugin, name, history_filename, config_options,
+    def __init__(self, plugin, id_,
+                 history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
-                 external_kernel=False):
+                 external_kernel=False, given_name=None):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
-        self.name = name
+        self.id_ = id_
         self.connection_file = connection_file
         self.hostname = hostname
         self.menu_actions = menu_actions
         self.slave = slave
+        self.given_name = given_name
 
         # --- Other attrs
         self.options_button = None
         self.stop_button = None
         self.stop_icon = ima.icon('stop')
         self.history = []
+        self.allow_rename = True
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -249,8 +252,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_name(self):
         """Return client name"""
-        return ((_("Console") if self.hostname is None else self.hostname)
-                + " " + self.name)
+        if self.given_name is None:
+            # Name according to host
+            if self.hostname is None:
+                name = _("Console")
+            else:
+                name = self.hostname
+            # Adding id to name
+            client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
+            name = name + u' ' + client_id
+        else:
+            name = self.given_name + u'/' + self.id_['str_id']
+        return name
 
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
@@ -419,6 +432,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = self._read_stderr()
             except:
                 stderr = None
+        except FileNotFoundError:
+            stderr = None
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
