@@ -621,7 +621,8 @@ class IPythonConsole(SpyderPluginWidget):
                 os.mkdir(programs.TEMPDIR)
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True)
+        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
+                              split_char='/')
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
@@ -1377,13 +1378,13 @@ class IPythonConsole(SpyderPluginWidget):
         client = self.get_current_client()
 
         # Rename current client tab to add str_id
-        if client.allow_rename:
+        if client.allow_rename and not u'/' in given_name:
             self.rename_client_tab(client, given_name)
         else:
             self.rename_client_tab(client, None)
 
         # Rename related clients
-        if client.allow_rename:
+        if client.allow_rename and not u'/' in given_name:
             for cl in self.get_related_clients(client):
                 self.rename_client_tab(cl, given_name)
 
