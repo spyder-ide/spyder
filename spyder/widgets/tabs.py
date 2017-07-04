@@ -35,13 +35,15 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 class EditTabNamePopup(QLineEdit):
     """Popup on top of the tab to edit its name."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, split_char):
         """Popup on top of the tab to edit its name."""
 
         # Variables
         # Parent (main)
         self.main = parent if parent is not None else self.parent()
-        # Track with tab is being edited
+        self.split_char = split_char
+
+        # Track which tab is being edited
         self.tab_index = None
 
         # Widget setup
@@ -104,7 +106,12 @@ class EditTabNamePopup(QLineEdit):
         self.move(self.main.mapToGlobal(rect.topLeft()))
 
         # Copies tab name and selects all
-        self.setText(self.main.tabText(index))
+        text = self.main.tabText(index)
+        text = text.replace(u'&', u'')
+        if self.split_char:
+            text = text.split(self.split_char)[0]
+
+        self.setText(text)
         self.selectAll()
 
         if not self.isVisible():
@@ -128,7 +135,7 @@ class TabBar(QTabBar):
     sig_move_tab = Signal((int, int), (str, int, int))
     sig_change_name = Signal(str)
     
-    def __init__(self, parent, ancestor, rename_tabs=False):
+    def __init__(self, parent, ancestor, rename_tabs=False, split_char=''):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
 
@@ -145,7 +152,7 @@ class TabBar(QTabBar):
         self.rename_tabs = rename_tabs
         if self.rename_tabs:
             # Creates tab name editor
-            self.tab_name_editor = EditTabNamePopup(self)
+            self.tab_name_editor = EditTabNamePopup(self, split_char)
         else:
             self.tab_name_editor = None
 
@@ -399,10 +406,11 @@ class Tabs(BaseTabs):
     
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False,
-                 rename_tabs=False):
+                 rename_tabs=False, split_char=''):
         BaseTabs.__init__(self, parent, actions, menu,
                           corner_widgets, menu_use_tooltips)
-        tab_bar = TabBar(self, parent, rename_tabs=rename_tabs)
+        tab_bar = TabBar(self, parent, rename_tabs=rename_tabs,
+                         split_char=split_char)
         tab_bar.sig_move_tab.connect(self.move_tab)
         tab_bar.sig_move_tab[(str, int, int)].connect(
                                           self.move_tab_from_another_tabwidget)
