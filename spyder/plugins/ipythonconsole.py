@@ -622,7 +622,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
-                              split_char='/')
+                              split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
