@@ -256,6 +256,15 @@ class SpyderKernel(IPythonKernel):
         """Get environment variables."""
         return os.environ.copy()
 
+    def close_all_mpl_figures(self):
+        """Close all Matplotlib figures."""
+        try:
+            import matplotlib.pyplot as plt
+            plt.close('all')
+            del plt
+        except:
+            pass
+
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
     def _get_current_namespace(self, with_magics=False):
