@@ -589,7 +589,6 @@ class IPythonConsole(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
-    change_dir = Signal(bool)
 
     def __init__(self, parent, testing=False):
         """Ipython Console constructor."""
@@ -944,7 +943,6 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
-        client.update_cwd.connect(self.set_working_directory)
         self.connect_client_to_kernel(client, path)
         self.register_client(client)
 
@@ -1141,6 +1139,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect focus signal to client's control widget
         control.focus_changed.connect(lambda: self.focus_changed.emit())
         
+        shellwidget.sig_change_cwd.connect(self.set_working_directory)
+
         # Update the find widget if focus changes between control and
         # page_control
         self.find_widget.set_editor(control)
