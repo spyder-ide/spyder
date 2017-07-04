@@ -2107,7 +2107,8 @@ class MainWindow(QMainWindow):
 
     def remove_tmpdir(self):
         """Remove Spyder temporary directory"""
-        shutil.rmtree(programs.TEMPDIR, ignore_errors=True)
+        if CONF.get('main', 'single_instance') and not self.new_instance:
+            shutil.rmtree(programs.TEMPDIR, ignore_errors=True)
 
     def closeEvent(self, event):
         """closeEvent reimplementation"""
