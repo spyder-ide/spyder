@@ -258,7 +258,8 @@ class FindOptions(QWidget):
         # Layout 3
         hlayout3 = QHBoxLayout()
 
-        self.global_path_search = QRadioButton(_("Path"), self)
+        self.global_path_search = QRadioButton(_("Current working "
+                                                 "directory"), self)
         self.global_path_search.setChecked(True)
         self.global_path_search.setToolTip(_("Search in all files and "
                                              "directories present on the"
