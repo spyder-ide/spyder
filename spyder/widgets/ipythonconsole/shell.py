@@ -309,7 +309,7 @@ the sympy module (e.g. plot)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)
-                elif 'update_cwd' in method:
+                elif 'get_cwd' in method:
                     if data is not None and 'text/plain' in data:
                         self._cwd = ast.literal_eval(data['text/plain'])
                     else:
