@@ -378,7 +378,7 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool)
+    run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
@@ -2436,10 +2436,10 @@ class Editor(SpyderPluginWidget):
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm,
          post_mortem, clear_namespace) = self.__last_ec_exec
-        if current:
+        if not systerm:
             self.run_in_current_ipyclient.emit(fname, wdir, args,
                                                debug, post_mortem,
-                                               clear_namespace)
+                                               current, clear_namespace)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,

@@ -26,9 +26,9 @@ from spyder.py3compat import getcwd, to_text_string
 from spyder.utils import icon_manager as ima
 
 
-CURRENT_INTERPRETER = _("Execute in current Python or IPython console")
-DEDICATED_INTERPRETER = _("Execute in a new dedicated Python console")
-SYSTERM_INTERPRETER = _("Execute in an external System terminal")
+CURRENT_INTERPRETER = _("Execute in current console")
+DEDICATED_INTERPRETER = _("Execute in a dedicated console")
+SYSTERM_INTERPRETER = _("Execute in an external system terminal")
 
 CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'
 DEDICATED_INTERPRETER_OPTION = 'default/interpreter/dedicated'
@@ -41,11 +41,13 @@ WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
-CLEAR_ALL_VARIABLES = _("Clear all variables before execution (IPython "
-                        "consoles)")
+CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
+INTERACT = _("Interact with the Python console after execution")
+
 
 class RunConfiguration(object):
     """Run configuration"""
+
     def __init__(self, fname=None):
         self.args = None
         self.args_enabled = None
@@ -54,12 +56,13 @@ class RunConfiguration(object):
         self.current = None
         self.systerm = None
         self.interact = None
-        self.show_kill_warning =None
         self.post_mortem = None
         self.python_args = None
         self.python_args_enabled = None
         self.clear_namespace = None
+
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
+
         if fname is not None and\
            CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True):
             self.wdir = osp.dirname(fname)
@@ -81,8 +84,6 @@ class RunConfiguration(object):
                            CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
         self.interact = options.get('interact',
                            CONF.get('run', 'interact', False))
-        self.show_kill_warning = options.get('show_kill_warning', 
-                           CONF.get('run', 'show_kill_warning', False))
         self.post_mortem = options.get('post_mortem',
                            CONF.get('run', 'post_mortem', False))
         self.python_args = options.get('python_args', '')
@@ -99,7 +100,6 @@ class RunConfiguration(object):
                 'current': self.current,
                 'systerm': self.systerm,
                 'interact': self.interact,
-                'show_kill_warning': self.show_kill_warning,
                 'post_mortem': self.post_mortem,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
@@ -124,7 +124,7 @@ class RunConfiguration(object):
         else:
             return ''
         
-        
+
 def _get_run_configurations():
     history_count = CONF.get('run', 'history', 20)
     try:
@@ -135,10 +135,12 @@ def _get_run_configurations():
         CONF.set('run', 'configurations', [])
         return []
 
+
 def _set_run_configurations(configurations):
     history_count = CONF.get('run', 'history', 20)
     CONF.set('run', 'configurations', configurations[:history_count])
-        
+
+
 def get_run_configuration(fname):
     """Return script *fname* run configuration"""
     configurations = _get_run_configurations()
@@ -189,9 +191,7 @@ class RunConfigOptions(QWidget):
         self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
                                           "errors appear during execution"))
         common_layout.addWidget(self.post_mortem_cb)
-        
 
-        
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
         interpreter_layout = QVBoxLayout()
@@ -202,28 +202,25 @@ class RunConfigOptions(QWidget):
         interpreter_layout.addWidget(self.dedicated_radio)
         self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
         interpreter_layout.addWidget(self.systerm_radio)
-        
-        # --- Dedicated interpreter ---
-        new_group = QGroupBox(_("Dedicated Python console"))
-        self.current_radio.toggled.connect(new_group.setDisabled)
-        new_layout = QGridLayout()
-        new_group.setLayout(new_layout)
-        self.interact_cb = QCheckBox(_("Interact with the Python "
-                                       "console after execution"))
-        new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
-        
-        self.show_kill_warning_cb = QCheckBox(_("Show warning when killing"
-                                                " running process"))
 
-        new_layout.addWidget(self.show_kill_warning_cb, 2, 0, 1, -1)
+        # --- System terminal ---
+        external_group = QGroupBox(_("External system terminal"))
+        external_group.setDisabled(True)
+        self.systerm_radio.toggled.connect(external_group.setEnabled)
+
+        external_layout = QGridLayout()
+        external_group.setLayout(external_layout)
+        self.interact_cb = QCheckBox(INTERACT)
+        external_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
+
         self.pclo_cb = QCheckBox(_("Command line options:"))
-        new_layout.addWidget(self.pclo_cb, 3, 0)
+        external_layout.addWidget(self.pclo_cb, 3, 0)
         self.pclo_edit = QLineEdit()
         self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
         self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
                                     "other options you set here"))
-        new_layout.addWidget(self.pclo_edit, 3, 1)
+        external_layout.addWidget(self.pclo_edit, 3, 1)
         
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
@@ -238,7 +235,7 @@ class RunConfigOptions(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
-        layout.addWidget(new_group)
+        layout.addWidget(external_group)
         layout.addWidget(hline)
         layout.addWidget(self.firstrun_cb)
         self.setLayout(layout)
@@ -266,7 +263,6 @@ class RunConfigOptions(QWidget):
         else:
             self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
-        self.show_kill_warning_cb.setChecked(self.runconf.show_kill_warning)
         self.post_mortem_cb.setChecked(self.runconf.post_mortem)
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
@@ -280,7 +276,6 @@ class RunConfigOptions(QWidget):
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
-        self.runconf.show_kill_warning = self.show_kill_warning_cb.isChecked()
         self.runconf.post_mortem = self.post_mortem_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
@@ -514,18 +509,12 @@ class RunConfigPage(GeneralConfigPage):
         general_layout.addWidget(post_mortem)
         general_group.setLayout(general_layout)
 
-        dedicated_group = QGroupBox(_("Dedicated Python console"))
-        interact_after = self.create_checkbox(
-            _("Interact with the Python console after execution"),
-            'interact', False)
-        show_warning = self.create_checkbox(
-            _("Show warning when killing running processes"),
-            'show_kill_warning', True)
+        external_group = QGroupBox(_("External system terminal"))
+        interact_after = self.create_checkbox(INTERACT, 'interact', False)
 
-        dedicated_layout = QVBoxLayout()
-        dedicated_layout.addWidget(interact_after)
-        dedicated_layout.addWidget(show_warning)
-        dedicated_group.setLayout(dedicated_layout)
+        external_layout = QVBoxLayout()
+        external_layout.addWidget(interact_after)
+        external_group.setLayout(external_layout)
 
         firstrun_cb = self.create_checkbox(
                             ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
@@ -536,7 +525,7 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
         vlayout.addWidget(general_group)
-        vlayout.addWidget(dedicated_group)
+        vlayout.addWidget(external_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
         self.setLayout(vlayout)

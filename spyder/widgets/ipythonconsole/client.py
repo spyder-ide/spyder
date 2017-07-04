@@ -432,7 +432,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = self._read_stderr()
             except:
                 stderr = None
-        except FileNotFoundError:
+        except OSError:
             stderr = None
 
         if stderr:
