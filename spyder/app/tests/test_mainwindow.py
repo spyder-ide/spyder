@@ -127,7 +127,7 @@ def main_window(request):
 #==============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appyevor
-@flaky(max_runs=3
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name != 'nt' or not PY2,
                     reason="It times out on Linux and Python 3")
 @pytest.mark.timeout(timeout=60, method='thread')
