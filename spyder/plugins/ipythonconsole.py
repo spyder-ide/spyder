@@ -1264,7 +1264,13 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_client_for_file(self, filename):
         """Create a client to execute code related to a file."""
+        # Create client
         self.create_new_client()
+
+        # Don't increase the count of master clients
+        self.master_clients -= 1
+
+        # Rename client tab with filename
         client = self.get_current_client()
         client.allow_rename = False
         self.rename_client_tab(client, filename)
