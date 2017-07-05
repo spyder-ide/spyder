@@ -49,7 +49,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_kernel_restarted = Signal(str)
 
     # For global working directory
-    sig_change_cwd =  Signal(str)
+    sig_change_cwd = Signal(str)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
