@@ -35,6 +35,7 @@ from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 #==============================================================================
 SHELL_TIMEOUT = 20000
 PYQT_WHEEL = PYQT_VERSION > '5.6'
+TEMP_DIRECTORY = tempfile.gettempdir()
 
 
 #==============================================================================
@@ -77,6 +78,40 @@ def ipyconsole(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=3)
+def test_console_disambiguation(ipyconsole, qtbot):
+    """Test the disambiguation of dedicated consoles."""
+    # Create directories and file for TEMP_DIRECTORY/a/b/c.py
+    # and TEMP_DIRECTORY/a/d/c.py
+    dir_b = osp.join(TEMP_DIRECTORY, 'a', 'b')
+    filename_b =  osp.join(dir_b, 'c.py')
+    if not osp.isdir(dir_b):
+        os.makedirs(dir_b)
+    if not osp.isfile(filename_b):
+        file_c = open(filename_b, 'w+')
+        file_c.close()
+    dir_d = osp.join(TEMP_DIRECTORY, 'a', 'd')
+    filename_d =  osp.join(dir_d, 'c.py')
+    if not osp.isdir(dir_d):
+        os.makedirs(dir_d)
+    if not osp.isfile(filename_d):
+        file_e = open(filename_d, 'w+')
+        file_e.close()
+
+    # Create new client and assert name without disambiguation
+    ipyconsole.create_client_for_file(filename_b)
+    client = ipyconsole.get_current_client()
+    assert client.get_name() == 'c.py/A'
+
+    # Create new client and assert name with disambiguation
+    ipyconsole.create_client_for_file(filename_d)
+    client = ipyconsole.get_current_client()
+    assert client.get_name() == 'c.py - d/A'
+    ipyconsole.tabwidget.setCurrentIndex(1)
+    client = ipyconsole.get_current_client()
+    assert client.get_name() == 'c.py - b/A'
+
+
+@flaky(max_runs=3)
 def test_console_coloring(ipyconsole, qtbot):
 
     config_options = ipyconsole.config_options()
@@ -98,6 +133,7 @@ def test_console_coloring(ipyconsole, qtbot):
 
     assert console_background_color.strip() == editor_background_color.strip()
     assert console_font_color.strip() == editor_font_color.strip()
+
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")

@@ -1135,7 +1135,7 @@ class EditorStack(QWidget):
         """Return tab title."""
         files_path_list = [finfo.filename for finfo in self.data]
         fname = self.data[index].filename
-        fname = sourcecode.get_file_title(files_path_list, fname)
+        fname = sourcecode.disambiguate_fname(files_path_list, fname)
         return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 

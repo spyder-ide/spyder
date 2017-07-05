@@ -1277,8 +1277,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Rename client tab with filename
         client = self.get_current_client()
         client.allow_rename = False
-        fname = self.get_tab_text(filename)
-        self.rename_client_tab(client, fname)
+        tab_text = self.disambiguate_fname(filename)
+        self.rename_client_tab(client, tab_text)
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
@@ -1383,18 +1383,18 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.insert(index_to, client)
         self.update_plugin_title.emit()
 
-    def get_tab_text(self, fname):
-        """Get tab text without ambiguation."""
+    def disambiguate_fname(self, fname):
+        """Generate a file name without ambiguation."""
         files_path_list = [filename for filename in self.filenames
                            if filename is not None]
-        return sourcecode.get_file_title(files_path_list, fname)
+        return sourcecode.disambiguate_fname(files_path_list, fname)
 
     def update_tabs_text(self):
         """Update the text from the tabs."""
         for index, fname in enumerate(self.filenames):
             if fname is not None:
                 client = self.clients[index]
-                self.rename_client_tab(client, self.get_tab_text(fname))
+                self.rename_client_tab(client, self.disambiguate_fname(fname))
 
     def rename_client_tab(self, client, given_name):
         """Rename client's tab"""
