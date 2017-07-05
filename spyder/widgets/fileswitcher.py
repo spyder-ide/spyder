@@ -485,9 +485,13 @@ class FileSwitcher(QDialog):
             self.select_row(-1)
             return
         prev_row = self.current_row() - 1
-        if prev_row == 0:
+        if prev_row >= 0:
+            title = self.list.item(prev_row).text()
+        else:
+            title = ''
+        if prev_row == 0 and '</b></big><br>' in title:
             self.list.scrollToTop()
-        elif '</b></big><br>' in self.list.item(prev_row).text():
+        elif '</b></big><br>' in title:
             # Select the next previous row, the one following is a title
             self.select_row(-2)
         else:
