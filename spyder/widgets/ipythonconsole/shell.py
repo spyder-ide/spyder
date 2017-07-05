@@ -62,7 +62,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.external_kernel = external_kernel
-        self._cwd = None
+        self._cwd = ''
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -322,7 +322,7 @@ the sympy module (e.g. plot)
                     if data is not None and 'text/plain' in data:
                         self._cwd = ast.literal_eval(data['text/plain'])
                     else:
-                        self._cwd = None
+                        self._cwd = ''
                     self.sig_change_cwd.emit(self._cwd)
                 elif 'get_syspath' in method:
                     if data is not None and 'text/plain' in data:
