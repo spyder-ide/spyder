@@ -1859,9 +1859,6 @@ class Editor(SpyderPluginWidget):
             self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
-                if CONF.get('workingdir', 'editor/open/auto_set_to_basedir'):
-                    directory = osp.dirname(filenames[0])
-                    self.open_dir.emit(directory)
             else:
                 return
             
@@ -1980,18 +1977,13 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
-            if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.open_dir.emit(osp.dirname(fname))
             self.__add_recent_file(fname)
 
     @Slot()
     def save_copy_as(self):
         """Save *copy as* the currently edited file"""
         editorstack = self.get_current_editorstack()
-        if editorstack.save_copy_as():
-            fname = editorstack.get_current_filename()
-            if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.open_dir.emit(osp.dirname(fname))
+        editorstack.save_copy_as()
 
     @Slot()
     def save_all(self):
