@@ -438,9 +438,10 @@ class FileSwitcher(QDialog):
                 strings.append(label.text())
                 fm = label.fontMetrics()
 
-            # Max width
-            max_width = max([fm.width(s) * 1.3 for s in strings])
-            self.list.setMinimumWidth(max_width + extra)
+            # Width
+            width = max([fm.width(s) * 1.3 for s in strings])
+            self.list.setMinimumWidth(600)
+            self.list.setMaximumWidth(700)
 
             # Max height
             if len(strings) < 8:
@@ -449,6 +450,9 @@ class FileSwitcher(QDialog):
                 max_entries = 8
             max_height = fm.height() * max_entries * 2.5
             self.list.setMinimumHeight(max_height)
+
+            # Resize
+            self.list.resize(width, self.list.height())
 
             # Set position according to size
             self.set_dialog_position()
