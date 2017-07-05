@@ -35,6 +35,7 @@ DEDICATED_INTERPRETER_OPTION = 'default/interpreter/dedicated'
 SYSTERM_INTERPRETER_OPTION = 'default/interpreter/systerm'
 
 WDIR_USE_SCRIPT_DIR_OPTION = 'default/wdir/use_script_directory'
+WDIR_USE_CWD_DIR_OPTION = 'default/wdir/use_cwd_directory'
 WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
 WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 
@@ -494,15 +495,23 @@ class RunConfigPage(GeneralConfigPage):
         wdir_bg = QButtonGroup(wdir_group)
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
-        dirname_radio = self.create_radiobutton(_("the currrent file directory"),
-                                WDIR_USE_SCRIPT_DIR_OPTION, True,
-                                button_group=wdir_bg)
-        thisdir_radio = self.create_radiobutton(_("the following directory:"),
-                                WDIR_USE_FIXED_DIR_OPTION, False,
-                                button_group=wdir_bg)
+        dirname_radio = self.create_radiobutton(
+                    _("The directory of the file being executed"),
+                    WDIR_USE_SCRIPT_DIR_OPTION, True,
+                    button_group=wdir_bg)
+        cwd_radio = self.create_radiobutton(
+                    _("The current working directory"),
+                    WDIR_USE_CWD_DIR_OPTION, False,
+                    button_group=wdir_bg)
+
+        thisdir_radio = self.create_radiobutton(
+                _("The following directory:"),
+                WDIR_USE_FIXED_DIR_OPTION, False,
+                button_group=wdir_bg)
         thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
         thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
         dirname_radio.toggled.connect(thisdir_bd.setDisabled)
+        cwd_radio.toggled.connect(thisdir_bd.setDisabled)
         thisdir_layout = QHBoxLayout()
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
@@ -510,6 +519,7 @@ class RunConfigPage(GeneralConfigPage):
         wdir_layout = QVBoxLayout()
         wdir_layout.addWidget(wdir_label)
         wdir_layout.addWidget(dirname_radio)
+        wdir_layout.addWidget(cwd_radio)
         wdir_layout.addLayout(thisdir_layout)
         wdir_group.setLayout(wdir_layout)
 
