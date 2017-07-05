@@ -1738,7 +1738,10 @@ class Editor(SpyderPluginWidget):
                 if not osp.isfile(fname):
                     break
             basedir = getcwd()
-            if CONF.get('workingdir', 'editor/new/browse_scriptdir'):
+
+            if self.main.projects.current_active_project is not None:
+                basedir = self.main.projects.current_active_project.root_path
+            else:
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
