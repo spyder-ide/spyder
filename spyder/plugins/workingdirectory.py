@@ -187,11 +187,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
-            if self.get_option('startup/use_last_directory'):
-                if wdhistory:
-                    workdir = wdhistory[0]
-                else:
-                    workdir = "."
+            if self.get_option('startup/use_project_or_home_directory'):
+                workdir = get_home_dir()
             else:
                 workdir = self.get_option('startup/fixed_directory', ".")
                 if not osp.isdir(workdir):
