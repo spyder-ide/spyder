@@ -1829,10 +1829,10 @@ class Editor(SpyderPluginWidget):
                 self.edit_filetypes = get_edit_filetypes()
             if self.edit_filters is None:
                 self.edit_filters = get_edit_filters()
-            if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
-                c_fname = self.get_current_filename()
-                if c_fname is not None and c_fname != self.TEMPFILE_PATH:
-                    basedir = osp.dirname(c_fname)
+
+            c_fname = self.get_current_filename()
+            if c_fname is not None and c_fname != self.TEMPFILE_PATH:
+                basedir = osp.dirname(c_fname)
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
