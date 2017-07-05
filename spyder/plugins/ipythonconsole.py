@@ -909,6 +909,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     @Slot()
     @Slot(bool)
+    @Slot(object)
+    @Slot(bool, object)
     def create_new_client(self, give_focus=True, filename=None):
         """Create a new client"""
         self.master_clients += 1
@@ -1386,13 +1388,13 @@ class IPythonConsole(SpyderPluginWidget):
     def disambiguate_fname(self, fname):
         """Generate a file name without ambiguation."""
         files_path_list = [filename for filename in self.filenames
-                           if filename is not None]
+                           if filename]
         return sourcecode.disambiguate_fname(files_path_list, fname)
 
     def update_tabs_text(self):
         """Update the text from the tabs."""
         for index, fname in enumerate(self.filenames):
-            if fname is not None:
+            if fname:
                 client = self.clients[index]
                 self.rename_client_tab(client, self.disambiguate_fname(fname))
 
