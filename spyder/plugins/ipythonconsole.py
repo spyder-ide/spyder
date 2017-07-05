@@ -909,9 +909,9 @@ class IPythonConsole(SpyderPluginWidget):
 
     @Slot()
     @Slot(bool)
-    @Slot(object)
-    @Slot(bool, object)
-    def create_new_client(self, give_focus=True, filename=None):
+    @Slot(str)
+    @Slot(bool, str)
+    def create_new_client(self, give_focus=True, filename=''):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -1362,7 +1362,7 @@ class IPythonConsole(SpyderPluginWidget):
             client.restart_kernel()
 
     #------ Public API (for tabs) ---------------------------------------------
-    def add_tab(self, widget, name, filename=None):
+    def add_tab(self, widget, name, filename=''):
         """Add tab"""
         self.clients.append(widget)
         index = self.tabwidget.addTab(widget, name)
