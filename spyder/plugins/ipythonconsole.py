@@ -604,6 +604,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
         self.editor = None             # Editor plugin
+        self.projects = None           # Projects plugin
 
         self.master_clients = 0
         self.clients = []
@@ -1149,6 +1150,22 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
+
+        # Set shell cwd according to preferences
+        cwd_path = ''
+        if CONF.get('workingdir', 'console/use_project_or_home_directory'):
+            cwd_path = get_home_dir()
+            if (self.projects is not None and
+               self.projects.current_active_project is not None):
+                cwd_path = self.projects.current_active_project.root_path
+        elif CONF.get('workingdir', 'console/use_fixed_directory'):
+            cwd_path = CONF.get('workingdir', 'console/fixed_directory')
+
+        if osp.isdir(cwd_path) and self.main is not None:
+            shellwidget.set_cwd(cwd_path)
+            if give_focus:
+                # Syncronice cwd with explorer and cwd widget
+                shellwidget.get_cwd()
 
         # Connect text widget to Help
         if self.help is not None:
