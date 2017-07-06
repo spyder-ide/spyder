@@ -163,58 +163,6 @@ def test_calltip(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-def test_fileswitcher(main_window, qtbot):
-    """Test the use of shorten paths when necessary in the fileswitcher."""
-    # Load tests files
-    dir_b = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_b')
-    filename_b =  osp.join(dir_b, 'c.py')
-    if not osp.isdir(dir_b):
-        os.makedirs(dir_b)
-    if not osp.isfile(filename_b):
-        file_c = open(filename_b, 'w+')
-        file_c.close()
-    if PYQT5:
-        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d', 'temp_e')
-    else:
-        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d')
-        dir_e = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_dir_f', 'temp_e')
-        filename_e = osp.join(dir_e, 'a.py')
-        if not osp.isdir(dir_e):
-            os.makedirs(dir_e)
-        if not osp.isfile(filename_e):
-            file_e = open(filename_e, 'w+')
-            file_e.close()
-    filename_d =  osp.join(dir_d, 'c.py')
-    if not osp.isdir(dir_d):
-        os.makedirs(dir_d)
-    if not osp.isfile(filename_d):
-        file_d = open(filename_d, 'w+')
-        file_d.close()
-    main_window.editor.load(filename_b)
-    main_window.editor.load(filename_d)
-
-    # Assert that all the path of the file is shown
-    main_window.open_fileswitcher()
-    if os.name == 'nt':
-        item_text = main_window.fileswitcher.list.currentItem().text().replace('\\', '/').lower()
-        dir_d = dir_d.replace('\\', '/').lower()
-    else:
-        item_text = main_window.fileswitcher.list.currentItem().text()
-    assert dir_d in item_text
-
-    # Resize Main Window to a third of its width
-    size = main_window.window_size
-    main_window.resize(size.width() / 3, size.height())
-    main_window.open_fileswitcher()
-
-    # Assert that the path shown in the fileswitcher is shorter
-    if PYQT5:
-       main_window.open_fileswitcher()
-       item_text = main_window.fileswitcher.list.currentItem().text()
-       assert '...' in item_text
-
-
-@flaky(max_runs=3)
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -303,6 +251,58 @@ def test_change_types_in_varexp(main_window, qtbot):
 
     # Assert object remains the same
     assert shell.get_value('a') == 10
+
+
+@flaky(max_runs=3)
+def test_fileswitcher(main_window, qtbot):
+    """Test the use of shorten paths when necessary in the fileswitcher."""
+    # Load tests files
+    dir_b = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_b')
+    filename_b =  osp.join(dir_b, 'c.py')
+    if not osp.isdir(dir_b):
+        os.makedirs(dir_b)
+    if not osp.isfile(filename_b):
+        file_c = open(filename_b, 'w+')
+        file_c.close()
+    if PYQT5:
+        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d', 'temp_e')
+    else:
+        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d')
+        dir_e = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_dir_f', 'temp_e')
+        filename_e = osp.join(dir_e, 'a.py')
+        if not osp.isdir(dir_e):
+            os.makedirs(dir_e)
+        if not osp.isfile(filename_e):
+            file_e = open(filename_e, 'w+')
+            file_e.close()
+    filename_d =  osp.join(dir_d, 'c.py')
+    if not osp.isdir(dir_d):
+        os.makedirs(dir_d)
+    if not osp.isfile(filename_d):
+        file_d = open(filename_d, 'w+')
+        file_d.close()
+    main_window.editor.load(filename_b)
+    main_window.editor.load(filename_d)
+
+    # Assert that all the path of the file is shown
+    main_window.open_fileswitcher()
+    if os.name == 'nt':
+        item_text = main_window.fileswitcher.list.currentItem().text().replace('\\', '/').lower()
+        dir_d = dir_d.replace('\\', '/').lower()
+    else:
+        item_text = main_window.fileswitcher.list.currentItem().text()
+    assert dir_d in item_text
+
+    # Resize Main Window to a third of its width
+    size = main_window.window_size
+    main_window.resize(size.width() / 3, size.height())
+    main_window.open_fileswitcher()
+
+    # Assert that the path shown in the fileswitcher is shorter
+    if PYQT5:
+       main_window.open_fileswitcher()
+       item_text = main_window.fileswitcher.list.currentItem().text()
+       assert '...' in item_text
 
 
 @flaky(max_runs=3)
