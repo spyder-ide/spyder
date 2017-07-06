@@ -1270,7 +1270,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
-    traceback_available = Signal(str)
+    exception_occurred = Signal(str)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
     
@@ -1379,11 +1379,9 @@ class ConsoleBaseWidget(TextEditBaseWidget):
             text = text[index+1:]
             self.clear()
         if error:
-            is_traceback = False
             for text in text.splitlines(True):
                 if text.startswith('  File') \
                 and not text.startswith('  File "<'):
-                    is_traceback = True
                     # Show error links in blue underlined text
                     cursor.insertText('  ', self.default_style.format)
                     cursor.insertText(text[2:],
@@ -1391,8 +1389,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 else:
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
-            if is_traceback:
-                self.traceback_available.emit(text)
+            self.exception_occurred.emit(text)
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)
