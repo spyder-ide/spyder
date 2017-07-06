@@ -240,6 +240,8 @@ class FileSwitcher(QDialog):
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
+    MIN_WIDTH = 600
+    MAX_WIDTH = 700
 
     def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
@@ -424,12 +426,11 @@ class FileSwitcher(QDialog):
 
         self.move(left, top)
 
-    def fix_size(self, content, extra=50):
+    def get_item_size(self, content):
         """
-        Adjusts the width and height of the file switcher,
-        based on its content.
+        Get the max size (width and height) for the elements of a list of
+        strings as a QLabel.
         """
-        # Update size of dialog based on longest shortened path
         strings = []
         if content:
             for rich_text in content:
@@ -438,17 +439,28 @@ class FileSwitcher(QDialog):
                 strings.append(label.text())
                 fm = label.fontMetrics()
 
+            return (max([fm.width(s) * 1.3 for s in strings]),
+                    fm.height(), strings)
+
+    def fix_size(self, content, extra=50):
+        """
+        Adjusts the width and height of the file switcher,
+        based on its content.
+        """
+        # Update size of dialog based on longest shortened path
+        if content:
+            width, height, strings = self.get_item_size(content)
+
             # Width
-            width = max([fm.width(s) * 1.3 for s in strings])
-            self.list.setMinimumWidth(600)
-            self.list.setMaximumWidth(700)
+            self.list.setMinimumWidth(self.MIN_WIDTH)
+            self.list.setMaximumWidth(self.MAX_WIDTH)
 
             # Max height
             if len(strings) < 8:
                 max_entries = len(strings)
             else:
                 max_entries = 8
-            max_height = fm.height() * max_entries * 2.5
+            max_height = height * max_entries * 2.5
             self.list.setMinimumHeight(max_height)
 
             # Resize
@@ -617,6 +629,9 @@ class FileSwitcher(QDialog):
         scores = get_search_scores(filter_text, self.filenames,
                                    template="<b>{0}</b>")
 
+        # Get max width and determine if shortpaths should be used
+        max_width = self.get_item_size(paths)[0]
+
         # Build the text that will appear on the list widget
         for index, score in enumerate(scores):
             text, rich_text, score_value = score
@@ -625,7 +640,10 @@ class FileSwitcher(QDialog):
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
-                text_item += u"<br><i>{0:}</i>".format(short_paths[index])
+                if max_width > self.MAX_WIDTH:
+                    text_item += u"<br><i>{0:}</i>".format(short_paths[index])
+                else:
+                    text_item += u"<br><i>{0:}</i>".format(paths[index])
                 results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
