@@ -197,7 +197,7 @@ class FindReplace(QWidget):
                                    name='Find previous', parent=parent)
         togglefind = config_shortcut(self.show, context='_',
                                      name='Find text', parent=parent)
-        togglereplace = config_shortcut(self.toggle_replace_widgets,
+        togglereplace = config_shortcut(self.show_replace,
                                         context='_', name='Replace text',
                                         parent=parent)
         hide = config_shortcut(self.hide, context='_', name='hide find and replace',
@@ -488,18 +488,6 @@ class FindReplace(QWidget):
     @Slot()
     def replace_find_selection(self, focus_replace_text=False):
         """Replace and find in the current selection"""
-        def _word_replacer(match):
-            """Used to replace only match objects that are whole
-            words when the user has selected whole word search"""
-            unchanged = match.group(0)
-            if match.start(0)>0 and re.search(r'\w', seltxt[match.start(0)-1], flags=word_flags):
-                return unchanged
-            if match.end(0)<len(seltxt) and re.search(r'\w', seltxt[match.end(0)+1], flags=word_flags):
-                return unchanged
-            if re.search(r'\W', unchanged, flags=word_flags):
-                return unchanged
-            return match.expand(replace_text) 
-
         if (self.editor is not None):
             replace_text = to_text_string(self.replace_text.currentText())
             search_text = to_text_string(self.search_text.currentText())
@@ -517,8 +505,12 @@ class FindReplace(QWidget):
             if words:
                 #If whole words is checked we need to check that each match
                 #is actually a whole word before replacing
-                word_flags = 0 if case else re.IGNORECASE
-                replacement = re.sub(pattern, _word_replacer, seltxt, flags=re_flags)
+                try:
+                    re.compile(pattern)
+                except re.error:
+                    return #if the pattern won't compile cancel the find/replace
+                word_pattern = r'\b{pattern}\b'.format(pattern = pattern)
+                replacement = re.sub(word_pattern, replace_text, seltxt, flags=re_flags)
             else:
                 replacement = re.sub(pattern, replace_text, seltxt, flags=re_flags)
             if replacement != seltxt:
