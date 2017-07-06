@@ -208,11 +208,10 @@ def test_fileswitcher(main_window, qtbot):
     main_window.open_fileswitcher()
 
     # Assert that the path shown in the fileswitcher is shorter
-    if not PYQT5:
-        main_window.editor.load(filename_e)
-    main_window.open_fileswitcher()
-    item_text = main_window.fileswitcher.list.currentItem().text()
-    assert '...' in item_text
+    if PYQT5:
+       main_window.open_fileswitcher()
+       item_text = main_window.fileswitcher.list.currentItem().text()
+       assert '...' in item_text
 
 
 @flaky(max_runs=3)
