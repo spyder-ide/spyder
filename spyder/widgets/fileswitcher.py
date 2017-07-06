@@ -140,12 +140,6 @@ def shorten_paths(path_list, is_unsaved):
                 short_form = sample_toks[0]
             elif s == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
-            elif s == 3:
-                short_form = (sample_toks[0] + sep + sample_toks[1] +
-                              sep + sample_toks[2])
-            elif s == 4:
-                short_form = (sample_toks[0] + sep + sample_toks[1] +
-                              sep + sample_toks[2] + sep + sample_toks[3])
             else:
                 short_form = "..." + sep + sample_toks[s-1]
             for idx in level_idx:
@@ -180,13 +174,7 @@ def shorten_paths(path_list, is_unsaved):
                 short_form = sample_toks[0]
             elif k == 2:
                 short_form = sample_toks[0] + sep + sample_toks[1]
-            elif k == 3:
-                short_form = (sample_toks[0] + sep + sample_toks[1] + sep +
-                              sample_toks[2])
-            elif k == 4:
-                short_form = (sample_toks[0] + sep + sample_toks[1] + sep +
-                              sample_toks[2] + sep + sample_toks[3])
-            else:  # k > 4
+            else:  # k > 2
                 short_form = sample_toks[0] + "..." + sep + sample_toks[k-1]
             for idx in group.keys():
                 new_path_list[idx] += short_form + (sep if k > 0 else '')
@@ -240,8 +228,7 @@ class FileSwitcher(QDialog):
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
     # in a given file when using the '@' symbol.
     FILE_MODE, SYMBOL_MODE = [1, 2]
-    MIN_WIDTH = 600
-    MAX_WIDTH = 700
+    MAX_WIDTH = 600
 
     def __init__(self, parent, plugin, tabs, data, icon):
         QDialog.__init__(self, parent)
@@ -418,6 +405,7 @@ class FileSwitcher(QDialog):
                    parent.menuBar().geometry().height() + 1)
         else:
             top = self.plugins_tabs[0][0].tabBar().geometry().height() + 1
+
         while parent:
             geo = parent.geometry()
             top += geo.top()
@@ -439,35 +427,34 @@ class FileSwitcher(QDialog):
                 strings.append(label.text())
                 fm = label.fontMetrics()
 
-            return (max([fm.width(s) * 1.3 for s in strings]),
-                    fm.height(), strings)
+            return (max([fm.width(s) * 1.3 for s in strings]), fm.height())
 
-    def fix_size(self, content, extra=50):
+    def fix_size(self, content):
         """
-        Adjusts the width and height of the file switcher,
-        based on its content.
+        Adjusts the width and height of the file switcher
+        based on the relative size of the parent and content.
         """
-        # Update size of dialog based on longest shortened path
+        # Update size of dialog based on relative size of the parent
         if content:
-            width, height, strings = self.get_item_size(content)
+            width, height = self.get_item_size(content)
 
             # Width
-            self.list.setMinimumWidth(self.MIN_WIDTH)
-            self.list.setMaximumWidth(self.MAX_WIDTH)
+            parent = self.parent()
+            relative_width = parent.geometry().width() * 0.65
+            if relative_width > self.MAX_WIDTH:
+                relative_width = self.MAX_WIDTH
+            self.list.setMinimumWidth(relative_width)
 
-            # Max height
-            if len(strings) < 8:
-                max_entries = len(strings)
+            # Height
+            if len(content) < 8:
+                max_entries = len(content)
             else:
                 max_entries = 8
             max_height = height * max_entries * 2.5
             self.list.setMinimumHeight(max_height)
 
             # Resize
-            self.list.resize(width, self.list.height())
-
-            # Set position according to size
-            self.set_dialog_position()
+            self.list.resize(relative_width, self.list.height())
 
     # --- Helper methods: List widget
     def count(self):
@@ -629,8 +616,9 @@ class FileSwitcher(QDialog):
         scores = get_search_scores(filter_text, self.filenames,
                                    template="<b>{0}</b>")
 
-        # Get max width and determine if shortpaths should be used
+        # Get max width to determine if shortpaths should be used
         max_width = self.get_item_size(paths)[0]
+        self.fix_size(paths)
 
         # Build the text that will appear on the list widget
         for index, score in enumerate(scores):
@@ -640,7 +628,7 @@ class FileSwitcher(QDialog):
                 if trying_for_line_number:
                     text_item += " [{0:} {1:}]".format(self.line_count[index],
                                                        _("lines"))
-                if max_width > self.MAX_WIDTH:
+                if max_width > self.list.width():
                     text_item += u"<br><i>{0:}</i>".format(short_paths[index])
                 else:
                     text_item += u"<br><i>{0:}</i>".format(paths[index])
@@ -684,7 +672,6 @@ class FileSwitcher(QDialog):
             self.set_current_row(self.filtered_path.index(current_path))
         elif self.filtered_path:
             self.set_current_row(0)
-        self.fix_size(short_paths, extra=100)
 
         # If a line number is searched look for it
         self.line_number = line_number
@@ -699,10 +686,13 @@ class FileSwitcher(QDialog):
         oedata = self.get_symbol_list()
         icons = get_python_symbol_icons(oedata)
 
-        # The list of shorten paths here is needed in order to have the same
-        # point of measurement for the list widget width as in the file list
+        # The list of paths here is needed in order to have the same
+        # point of measurement for the list widget size as in the file list
         # See issue 4648
-        short_paths = shorten_paths(self.paths, self.save_status)
+        paths = self.paths
+        # Update list size
+        self.fix_size(paths)
+
         symbol_list = process_python_symbol_data(oedata)
         line_fold_token = [(item[0], item[2], item[3]) for item in symbol_list]
         choices = [item[1] for item in symbol_list]
@@ -744,9 +734,6 @@ class FileSwitcher(QDialog):
         # That's why this line is commented!
         # self.set_current_row(0)
 
-        # Update list size
-        self.fix_size(short_paths, extra=100)
-
     def setup(self):
         """Setup list widget content."""
         if len(self.plugins_tabs) == 0:
@@ -756,7 +743,6 @@ class FileSwitcher(QDialog):
         self.list.clear()
         current_path = self.current_path
         filter_text = self.filter_text
-        self.set_dialog_position()
 
         # Get optional line or symbol to define mode and method handler
         trying_for_symbol = ('@' in self.filter_text)
@@ -767,6 +753,9 @@ class FileSwitcher(QDialog):
         else:
             self.mode = self.FILE_MODE
             self.setup_file_list(filter_text, current_path)
+
+        # Set position according to size
+        self.set_dialog_position()
 
     def add_plugin(self, plugin, tabs, data, icon):
         """Add a plugin to display its files."""
