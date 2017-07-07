@@ -51,6 +51,8 @@ EVAL_TIMEOUT = 3000
 # Test for PyQt 5 wheels
 PYQT_WHEEL = PYQT_VERSION > '5.6'
 
+# Temporary directory
+TEMP_DIRECTORY = tempfile.gettempdir()
 
 #==============================================================================
 # Utility functions
@@ -126,7 +128,7 @@ def main_window(request):
 # Tests
 #==============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
-# avoid possible timeouts in Appyevor
+# avoid possible timeouts in Appveyor
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name != 'nt' or not PY2,
                     reason="It times out on Linux and Python 3")
@@ -766,6 +768,58 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
+
+
+@flaky(max_runs=3)
+def test_fileswitcher(main_window, qtbot):
+    """Test the use of shorten paths when necessary in the fileswitcher."""
+    # Load tests files
+    dir_b = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_b')
+    filename_b =  osp.join(dir_b, 'c.py')
+    if not osp.isdir(dir_b):
+        os.makedirs(dir_b)
+    if not osp.isfile(filename_b):
+        file_c = open(filename_b, 'w+')
+        file_c.close()
+    if PYQT5:
+        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d', 'temp_e')
+    else:
+        dir_d = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_d')
+        dir_e = osp.join(TEMP_DIRECTORY, 'temp_dir_a', 'temp_c', 'temp_dir_f', 'temp_e')
+        filename_e = osp.join(dir_e, 'a.py')
+        if not osp.isdir(dir_e):
+            os.makedirs(dir_e)
+        if not osp.isfile(filename_e):
+            file_e = open(filename_e, 'w+')
+            file_e.close()
+    filename_d =  osp.join(dir_d, 'c.py')
+    if not osp.isdir(dir_d):
+        os.makedirs(dir_d)
+    if not osp.isfile(filename_d):
+        file_d = open(filename_d, 'w+')
+        file_d.close()
+    main_window.editor.load(filename_b)
+    main_window.editor.load(filename_d)
+
+    # Assert that all the path of the file is shown
+    main_window.open_fileswitcher()
+    if os.name == 'nt':
+        item_text = main_window.fileswitcher.list.currentItem().text().replace('\\', '/').lower()
+        dir_d = dir_d.replace('\\', '/').lower()
+    else:
+        item_text = main_window.fileswitcher.list.currentItem().text()
+    assert dir_d in item_text
+
+    # Resize Main Window to a third of its width
+    size = main_window.window_size
+    main_window.resize(size.width() / 3, size.height())
+    main_window.open_fileswitcher()
+
+    # Assert that the path shown in the fileswitcher is shorter
+    if PYQT5:
+       main_window.open_fileswitcher()
+       item_text = main_window.fileswitcher.list.currentItem().text()
+       assert '...' in item_text
 
 
 if __name__ == "__main__":
