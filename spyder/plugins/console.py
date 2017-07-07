@@ -202,9 +202,13 @@ class Console(SpyderPluginWidget):
         # Connecting the following signal once the dockwidget has been created:
         self.shell.exception_occurred.connect(self.exception_occurred)
     
-    def exception_occurred(self, text):
+    def exception_occurred(self, text, is_traceback):
         """Exception ocurred in the internal console.
         Show a QMessageBox or the internal console to warn the user"""
+        # Skip errors without traceback
+        if not is_traceback and self.msgbox_traceback is None:
+            return
+
         if CONF.get('main', 'show_internal_console_if_traceback', False):
             self.dockwidget.show()
             self.dockwidget.raise_()
