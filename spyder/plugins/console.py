@@ -234,6 +234,14 @@ class Console(SpyderPluginWidget):
                 self.error_traceback = ""
                 self.msgbox_traceback.show()
                 self.msgbox_traceback.finished.connect(self.close_msg)
+                self.msgbox_traceback.setDetailedText(' ')
+
+                # open show details (iterate over all buttons and click it)
+                for button in self.msgbox_traceback.buttons():
+                    if (self.msgbox_traceback.buttonRole(button)
+                       == QMessageBox.ActionRole):
+                        button.click()
+                        break
 
             self.error_traceback += text
             self.msgbox_traceback.setDetailedText(self.error_traceback)
