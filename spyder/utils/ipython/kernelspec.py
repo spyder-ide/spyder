@@ -97,7 +97,6 @@ class SpyderKernelSpec(KernelSpec):
                 CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
 
         env_vars = {
-            'IPYTHON_KERNEL': 'True',
             'EXTERNAL_INTERPRETER': not default_interpreter,
             'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
             'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),

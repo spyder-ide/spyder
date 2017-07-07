@@ -17,7 +17,6 @@ import pdb
 import shlex
 import sys
 import time
-import traceback
 
 
 PY2 = sys.version[0] == '2'
@@ -35,7 +34,6 @@ if not hasattr(sys, 'argv'):
 #==============================================================================
 # Main constants
 #==============================================================================
-IS_IPYKERNEL = os.environ.get("IPYTHON_KERNEL", "").lower() == "true"
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
 
@@ -251,23 +249,22 @@ if matplotlib is not None:
 #==============================================================================
 # IPython kernel adjustments
 #==============================================================================
-if IS_IPYKERNEL:
-    # Use ipydb as the debugger to patch on IPython consoles
-    from IPython.core.debugger import Pdb as ipyPdb
-    pdb.Pdb = ipyPdb
+# Use ipydb as the debugger to patch on IPython consoles
+from IPython.core.debugger import Pdb as ipyPdb
+pdb.Pdb = ipyPdb
 
-    # Patch unittest.main so that errors are printed directly in the console.
-    # See http://comments.gmane.org/gmane.comp.python.ipython.devel/10557
-    # Fixes Issue 1370
-    import unittest
-    from unittest import TestProgram
-    class IPyTesProgram(TestProgram):
-        def __init__(self, *args, **kwargs):
-            test_runner = unittest.TextTestRunner(stream=sys.stderr)
-            kwargs['testRunner'] = kwargs.pop('testRunner', test_runner)
-            kwargs['exit'] = False
-            TestProgram.__init__(self, *args, **kwargs)
-    unittest.main = IPyTesProgram
+# Patch unittest.main so that errors are printed directly in the console.
+# See http://comments.gmane.org/gmane.comp.python.ipython.devel/10557
+# Fixes Issue 1370
+import unittest
+from unittest import TestProgram
+class IPyTesProgram(TestProgram):
+    def __init__(self, *args, **kwargs):
+        test_runner = unittest.TextTestRunner(stream=sys.stderr)
+        kwargs['testRunner'] = kwargs.pop('testRunner', test_runner)
+        kwargs['exit'] = False
+        TestProgram.__init__(self, *args, **kwargs)
+unittest.main = IPyTesProgram
 
 
 #==============================================================================
@@ -334,11 +331,8 @@ class SpyderPdb(pdb.Pdb):
         if not frame:
             return
 
-        if IS_IPYKERNEL:
-            from IPython.core.getipython import get_ipython
-            ipython_shell = get_ipython()
-        else:
-            ipython_shell = None
+        from IPython.core.getipython import get_ipython
+        ipython_shell = get_ipython()
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -447,11 +441,12 @@ def _cmdloop(self):
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def reset(self):
     self._old_Pdb_reset()
-    if IS_IPYKERNEL:
-        from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
-        if ipython_shell:
-            ipython_shell.kernel._register_pdb_session(self)
+
+    from IPython.core.getipython import get_ipython
+    ipython_shell = get_ipython()
+    if ipython_shell:
+        ipython_shell.kernel._register_pdb_session(self)
+
     self.set_spyder_breakpoints()
 
 
@@ -575,13 +570,10 @@ def clear_post_mortem():
     """
     Remove the post mortem excepthook and replace with a standard one.
     """
-    if IS_IPYKERNEL:
-        from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
-        if ipython_shell:
-            ipython_shell.set_custom_exc((), None)
-    else:
-        sys.excepthook = sys.__excepthook__
+    from IPython.core.getipython import get_ipython
+    ipython_shell = get_ipython()
+    if ipython_shell:
+        ipython_shell.set_custom_exc((), None)
 
 
 def post_mortem_excepthook(type, value, tb):
@@ -590,14 +582,11 @@ def post_mortem_excepthook(type, value, tb):
     mortem debugging.
     """
     clear_post_mortem()
-    if IS_IPYKERNEL:
-        from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
-        ipython_shell.showtraceback((type, value, tb))
-        p = pdb.Pdb(ipython_shell.colors)
-    else:
-        traceback.print_exception(type, value, tb, file=sys.stderr)
-        p = pdb.Pdb()
+
+    from IPython.core.getipython import get_ipython
+    ipython_shell = get_ipython()
+    ipython_shell.showtraceback((type, value, tb))
+    p = pdb.Pdb(ipython_shell.colors)
 
     if not type == SyntaxError:
         # wait for stderr to print (stderr.flush does not work in this case)
@@ -623,15 +612,12 @@ def set_post_mortem():
     """
     Enable the post mortem debugging excepthook.
     """
-    if IS_IPYKERNEL:
-        from IPython.core.getipython import get_ipython
-        def ipython_post_mortem_debug(shell, etype, evalue, tb,
-                   tb_offset=None):
-            post_mortem_excepthook(etype, evalue, tb)
-        ipython_shell = get_ipython()
-        ipython_shell.set_custom_exc((Exception,), ipython_post_mortem_debug)
-    else:
-        sys.excepthook = post_mortem_excepthook
+    from IPython.core.getipython import get_ipython
+    def ipython_post_mortem_debug(shell, etype, evalue, tb,
+               tb_offset=None):
+        post_mortem_excepthook(etype, evalue, tb)
+    ipython_shell = get_ipython()
+    ipython_shell.set_custom_exc((Exception,), ipython_post_mortem_debug)
 
 # Add post mortem debugging if requested and in a dedicated interpreter
 # existing interpreters use "runfile" below
@@ -700,10 +686,9 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
     if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
         # Cython files
         with io.open(filename, encoding='utf-8') as f:
-            if IS_IPYKERNEL:
-                from IPython.core.getipython import get_ipython
-                ipython_shell = get_ipython()
-                ipython_shell.run_cell_magic('cython', '', f.read())
+            from IPython.core.getipython import get_ipython
+            ipython_shell = get_ipython()
+            ipython_shell.run_cell_magic('cython', '', f.read())
     else:
         execfile(filename, namespace)
 
