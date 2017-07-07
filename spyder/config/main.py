@@ -137,27 +137,6 @@ DEFAULTS = [
               'umr/verbose': True,
               'umr/namelist': [],
               }),
-            ('console',
-             {
-              'max_line_count': 500,
-              'wrap': True,
-              'single_tab': True,
-              'calltips': True,
-              'codecompletion/auto': True,
-              'codecompletion/enter_key': True,
-              'codecompletion/case_sensitive': True,
-              'show_elapsed_time': False,
-              'show_icontext': False,
-              'monitor/enabled': True,
-              'qt/api': 'default',
-              'matplotlib/backend/value': 0,
-              'light_background': True,
-              'merge_output_channels': os.name != 'nt',
-              'colorize_sys_stderr': os.name != 'nt',
-              'pythonstartup/default': True,
-              'pythonstartup/custom': False,
-              'ets_backend': 'qt4'
-              }),
             ('ipython_console',
              {
               'show_banner': True,
@@ -659,7 +638,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '37.2.0'
+CONF_VERSION = '38.0.0'
 
 # Main configuration instance
 try:
