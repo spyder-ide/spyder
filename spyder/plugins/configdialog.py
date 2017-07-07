@@ -39,6 +39,9 @@ from spyder.widgets.colors import ColorLayout
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 
+HDPI_QT_PAGE = "http://doc.qt.io/qt-5/highdpi.html"
+
+
 class ConfigAccessMixin(object):
     """Namespace for methods that access config storage"""
     CONF_SECTION = None
@@ -949,9 +952,13 @@ class MainConfigPage(GeneralConfigPage):
         # --- Screen resolution Group (hidpi)
         screen_resolution_group = QGroupBox(_("Screen resolution"))
         screen_resolution_bg = QButtonGroup(screen_resolution_group)
-        screen_resolution_label = QLabel(_("Configurations for highdpi screens, "
-                                "See: <a href=\"http://doc.qt.io/qt-5/highdpi.html\">http://doc.qt.io/qt-5/highdpi.html</a><> "
-                                "for more information"))
+        screen_resolution_label = QLabel(_("Configuration for high DPI "
+                                           "screens<br><br>"
+                                           "Please see "
+                                           "<a href=\"{0}\">{0}</a><> "
+                                           "for more information about "
+                                           "these options (in "
+                                           "English).").format(HDPI_QT_PAGE))
         screen_resolution_label.setWordWrap(True)
 
         normal_radio = self.create_radiobutton(
