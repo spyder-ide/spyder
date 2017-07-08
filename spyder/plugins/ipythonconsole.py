@@ -1279,8 +1279,9 @@ class IPythonConsole(SpyderPluginWidget):
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
         client = None
-        for cl in self.get_clients():
-            if cl.given_name == filename:
+        for idx, cl in enumerate(self.get_clients()):
+            if self.filenames[idx] == filename:
+                self.tabwidget.setCurrentIndex(idx)
                 client = cl
                 break
         return client
@@ -1377,6 +1378,7 @@ class IPythonConsole(SpyderPluginWidget):
         client = self.clients.pop(index_from)
         self.filenames.insert(index_to, filename)
         self.clients.insert(index_to, client)
+        self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
     def disambiguate_fname(self, fname):
@@ -1388,9 +1390,11 @@ class IPythonConsole(SpyderPluginWidget):
     def update_tabs_text(self):
         """Update the text from the tabs."""
         for index, fname in enumerate(self.filenames):
+            client = self.clients[index]
             if fname:
-                client = self.clients[index]
                 self.rename_client_tab(client, self.disambiguate_fname(fname))
+            else:
+                self.rename_client_tab(client, None)
 
     def rename_client_tab(self, client, given_name):
         """Rename client's tab"""

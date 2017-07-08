@@ -17,7 +17,8 @@ import sys
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import QByteArray, QMimeData, QPoint, Qt, Signal, QEvent
+from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, Qt, Signal,
+                         Slot)
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
                             QTabWidget, QWidget, QLineEdit)
@@ -25,7 +26,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, to_binary_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -172,21 +173,18 @@ class TabBar(QTabBar):
                 QApplication.startDragDistance():
             drag = QDrag(self)
             mimeData = QMimeData()
-            # Converting id's to long to avoid an OverflowError with PySide
-            if PY2:
-                ancestor_id = long(id(self.ancestor))
-                parent_widget_id = long(id(self.parentWidget()))
-                self_id = long(id(self))
-            else:
-                ancestor_id = id(self.ancestor)
-                parent_widget_id = id(self.parentWidget())
-                self_id = id(self)
-            mimeData.setData("parent-id", QByteArray.number(ancestor_id))
+
+            ancestor_id = to_text_string(id(self.ancestor))
+            parent_widget_id = to_text_string(id(self.parentWidget()))
+            self_id = to_text_string(id(self))
+            source_index = to_text_string(self.tabAt(self.__drag_start_pos))
+
+            mimeData.setData("parent-id", to_binary_string(ancestor_id))
             mimeData.setData("tabwidget-id",
-                             QByteArray.number(parent_widget_id))
-            mimeData.setData("tabbar-id", QByteArray.number(self_id))
-            mimeData.setData("source-index", 
-                         QByteArray.number(self.tabAt(self.__drag_start_pos)))
+                             to_binary_string(parent_widget_id))
+            mimeData.setData("tabbar-id", to_binary_string(self_id))
+            mimeData.setData("source-index", to_binary_string(source_index))
+
             drag.setMimeData(mimeData)
             drag.exec_()
         QTabBar.mouseMoveEvent(self, event)
@@ -194,21 +192,23 @@ class TabBar(QTabBar):
     def dragEnterEvent(self, event):
         """Override Qt method"""
         mimeData = event.mimeData()
-        formats = list( mimeData.formats() )
+        formats = list(mimeData.formats())
+
         if "parent-id" in formats and \
-           mimeData.data("parent-id").toLong()[0] == id(self.ancestor):
+          int(mimeData.data("parent-id")) == id(self.ancestor):
             event.acceptProposedAction()
+
         QTabBar.dragEnterEvent(self, event)
     
     def dropEvent(self, event):
         """Override Qt method"""
         mimeData = event.mimeData()
-        index_from = mimeData.data("source-index").toInt()[0]
+        index_from = int(mimeData.data("source-index"))
         index_to = self.tabAt(event.pos())
         if index_to == -1:
             index_to = self.count()
-        if mimeData.data("tabbar-id").toLong()[0] != id(self):
-            tabwidget_from = str(mimeData.data("tabwidget-id").toLong()[0])
+        if int(mimeData.data("tabbar-id")) != id(self):
+            tabwidget_from = to_text_string(mimeData.data("tabwidget-id"))
             
             # We pass self object ID as a QString, because otherwise it would 
             # depend on the platform: long for 64bit, int for 32bit. Replacing 
@@ -216,7 +216,6 @@ class TabBar(QTabBar):
             # (see Issue 1094, Issue 1098)
             self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
                                                     index_to)
-
             event.acceptProposedAction()
         elif index_from != index_to:
             self.sig_move_tab.emit(index_from, index_to)
@@ -441,6 +440,7 @@ class Tabs(BaseTabs):
             index = self.currentIndex()+delta
         self.setCurrentIndex(index)
 
+    @Slot(int, int)
     def move_tab(self, index_from, index_to):
         """Move tab inside a tabwidget"""
         self.move_data.emit(index_from, index_to)
@@ -456,6 +456,7 @@ class Tabs(BaseTabs):
         self.setCurrentWidget(current_widget)
         self.move_tab_finished.emit()
 
+    @Slot(str, int, int)
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):
         """Move tab from a tabwidget to another"""
@@ -464,5 +465,5 @@ class Tabs(BaseTabs):
         # depend on the platform: long for 64bit, int for 32bit. Replacing 
         # by long all the time is not working on some 32bit platforms 
         # (see Issue 1094, Issue 1098)
-        self.sig_move_tab.emit(tabwidget_from, str(id(self)), index_from,
-                               index_to)
+        self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
+                               index_from, index_to)
