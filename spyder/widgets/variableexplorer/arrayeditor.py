@@ -266,8 +266,8 @@ class ArrayModel(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
           and value is not np.ma.masked:
             hue = self.hue0+\
-                  self.dhue*(self.vmax-self.color_func(value)) \
-                  /(self.vmax-self.vmin)
+                  self.dhue*(float(self.vmax)-self.color_func(value)) \
+                  /(float(self.vmax)-self.vmin) #float convert to handle bool arrays
             hue = float(np.abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return to_qvariant(color)

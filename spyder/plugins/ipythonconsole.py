@@ -52,7 +52,7 @@ from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
-from spyder.utils import encoding, programs
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
@@ -72,6 +72,9 @@ QTCONSOLE_REQVER = ">=4.2.0"
 dependencies.add("qtconsole", _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
 
+IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
+dependencies.add("IPython", _("IPython interactive python environment"),
+                 required_version=IPYTHON_REQVER)
 
 #------------------------------------------------------------------------------
 # Existing kernels
@@ -604,6 +607,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.master_clients = 0
         self.clients = []
+        self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
         self.testing = testing
@@ -618,7 +622,8 @@ class IPythonConsole(SpyderPluginWidget):
                 os.mkdir(programs.TEMPDIR)
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions)
+        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
+                              split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
@@ -627,6 +632,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
+        self.tabwidget.tabBar().sig_change_name.connect(
+            self.rename_tabs_after_change)
 
         self.tabwidget.set_close_function(self.close_client)
 
@@ -734,6 +741,7 @@ class IPythonConsole(SpyderPluginWidget):
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
+        self.update_tabs_text()
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
@@ -759,6 +767,10 @@ class IPythonConsole(SpyderPluginWidget):
                _("Open a new IPython console connected to an existing kernel"),
                triggered=self.create_client_for_kernel)
         
+        rename_tab_action = create_action(self, _("Rename tab"),
+                                       icon=ima.icon('rename'),
+                                       triggered=self.tab_name_editor)
+        
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
@@ -767,7 +779,8 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Plugin actions
         self.menu_actions = [create_client_action, MENU_SEPARATOR,
-                             restart_action, connect_to_kernel_action]
+                             restart_action, connect_to_kernel_action,
+                             MENU_SEPARATOR, rename_tab_action]
         
         return self.menu_actions
 
@@ -789,8 +802,7 @@ class IPythonConsole(SpyderPluginWidget):
                              self.editor.load(fname, lineno, word,
                                               processevents=processevents))
         self.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
-        self.editor.run_in_current_ipyclient.connect(
-                                         self.run_script_in_current_client)
+        self.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
         self.explorer.open_interpreter.connect(self.create_client_from_path)
@@ -820,11 +832,20 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client.shellwidget
 
-    def run_script_in_current_client(self, filename, wdir, args, debug,
-                                     post_mortem, clear_variables):
-        """Run script in current client, if any"""
+    def run_script(self, filename, wdir, args, debug, post_mortem,
+                   current_client, clear_variables):
+        """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
-        client = self.get_current_client()
+
+        # Select client to execute code on it
+        if current_client:
+            client = self.get_current_client()
+        else:
+            client = self.get_client_for_file(filename)
+            if client is None:
+                self.create_client_for_file(filename)
+                client = self.get_current_client()
+
         if client is not None:
             # Internal kernels, use runfile
             if client.get_kernel() is not None:
@@ -844,7 +865,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
-            self.execute_code(line, clear_variables)
+            self.execute_code(line, current_client, clear_variables)
             self.visibility_changed(True)
             self.raise_()
         else:
@@ -861,14 +882,21 @@ class IPythonConsole(SpyderPluginWidget):
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
-    def execute_code(self, lines, clear_variables=False):
+    def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
             if sw._reading:
                 pass
             else:
-                if clear_variables:
+                if not current_client:
+                    # Clear console and reset namespace for
+                    # dedicated clients
+                    sw.silent_execute('%clear')
+                    sw.silent_execute(
+                        'get_ipython().kernel.close_all_mpl_figures()')
+                    sw.reset_namespace(force=True)
+                elif current_client and clear_variables:
                     sw.reset_namespace(force=True)
                 sw.execute(to_text_string(to_text_string(lines)))
             self.activateWindow()
@@ -883,19 +911,20 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
-    def create_new_client(self, give_focus=True, path=''):
+    def create_new_client(self, give_focus=True, filename=''):
         """Create a new client"""
         self.master_clients += 1
-        name = "%d/A" % self.master_clients
+        client_id = dict(int_id=to_text_string(self.master_clients),
+                         str_id='A')
         cf = self._new_connection_file()
-        client = ClientWidget(self, name=name,
+        client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions)
-        self.add_tab(client, name=client.get_name())
+        self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:
             error_msg = _("The directory {} is not writable and it is "
@@ -924,7 +953,7 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel</tt>"))
                 return
 
-        self.connect_client_to_kernel(client, path)
+        self.connect_client_to_kernel(client)
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client)
@@ -940,7 +969,7 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client, path):
+    def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
         stderr_file = client.stderr_file
@@ -959,9 +988,6 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
-
-        if path:
-            shellwidget.set_cwd(path)
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
@@ -1170,8 +1196,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
+        self.filenames.pop(index)
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
+        self.update_tabs_text()
         self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
@@ -1179,11 +1207,6 @@ class IPythonConsole(SpyderPluginWidget):
         for index, client in enumerate(self.clients):
             if id(client) == client_id:
                 return index
-
-    def rename_client_tab(self, client):
-        """Rename client's tab"""
-        index = self.get_client_index_from_id(id(client))
-        self.tabwidget.setTabText(index, client.get_name())
 
     def get_related_clients(self, client):
         """
@@ -1240,8 +1263,34 @@ class IPythonConsole(SpyderPluginWidget):
 
     @Slot(str)
     def create_client_from_path(self, path):
-        """Create a client with its cwd pointing to path"""
-        self.create_new_client(path=path)
+        """Create a client with its cwd pointing to path."""
+        self.create_new_client()
+        sw = self.get_current_shellwidget()
+        sw.set_cwd(path)
+
+    def create_client_for_file(self, filename):
+        """Create a client to execute code related to a file."""
+        # Create client
+        self.create_new_client(filename=filename)
+
+        # Don't increase the count of master clients
+        self.master_clients -= 1
+
+        # Rename client tab with filename
+        client = self.get_current_client()
+        client.allow_rename = False
+        tab_text = self.disambiguate_fname(filename)
+        self.rename_client_tab(client, tab_text)
+
+    def get_client_for_file(self, filename):
+        """Get client associated with a given file."""
+        client = None
+        for idx, cl in enumerate(self.get_clients()):
+            if self.filenames[idx] == filename:
+                self.tabwidget.setCurrentIndex(idx)
+                client = cl
+                break
+        return client
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
@@ -1314,24 +1363,71 @@ class IPythonConsole(SpyderPluginWidget):
             client.restart_kernel()
 
     #------ Public API (for tabs) ---------------------------------------------
-    def add_tab(self, widget, name):
+    def add_tab(self, widget, name, filename=''):
         """Add tab"""
         self.clients.append(widget)
         index = self.tabwidget.addTab(widget, name)
+        self.filenames.insert(index, filename)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         self.activateWindow()
         widget.get_control().setFocus()
+        self.update_tabs_text()
         
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)
         """
+        filename = self.filenames.pop(index_from)
         client = self.clients.pop(index_from)
+        self.filenames.insert(index_to, filename)
         self.clients.insert(index_to, client)
+        self.update_tabs_text()
         self.update_plugin_title.emit()
+
+    def disambiguate_fname(self, fname):
+        """Generate a file name without ambiguation."""
+        files_path_list = [filename for filename in self.filenames
+                           if filename]
+        return sourcecode.disambiguate_fname(files_path_list, fname)
+
+    def update_tabs_text(self):
+        """Update the text from the tabs."""
+        for index, fname in enumerate(self.filenames):
+            client = self.clients[index]
+            if fname:
+                self.rename_client_tab(client, self.disambiguate_fname(fname))
+            else:
+                self.rename_client_tab(client, None)
+
+    def rename_client_tab(self, client, given_name):
+        """Rename client's tab"""
+        index = self.get_client_index_from_id(id(client))
+
+        if given_name is not None:
+            client.given_name = given_name
+        self.tabwidget.setTabText(index, client.get_name())
+
+    def rename_tabs_after_change(self, given_name):
+        client = self.get_current_client()
+
+        # Rename current client tab to add str_id
+        if client.allow_rename and not u'/' in given_name:
+            self.rename_client_tab(client, given_name)
+        else:
+            self.rename_client_tab(client, None)
+
+        # Rename related clients
+        if client.allow_rename and not u'/' in given_name:
+            for cl in self.get_related_clients(client):
+                self.rename_client_tab(cl, given_name)
+
+    def tab_name_editor(self):
+        """Trigger the tab name editor."""
+        index = self.tabwidget.currentIndex()
+        self.tabwidget.tabBar().tab_name_editor.edit_tab(index)
 
     #------ Public API (for help) ---------------------------------------------
     def go_to_error(self, text):
@@ -1390,12 +1486,30 @@ class IPythonConsole(SpyderPluginWidget):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
 
+    def connect_external_kernel(self, shellwidget):
+        """
+        Connect an external kernel to the Variable Explorer and Help, if
+        it is a Spyder kernel.
+        """
+        sw = shellwidget
+        kc = shellwidget.kernel_client
+        if self.help is not None:
+            self.help.set_shell(sw)
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(sw)
+            sw.set_namespace_view_settings()
+            sw.refresh_namespacebrowser()
+            kc.stopped_channels.connect(lambda :
+                self.variableexplorer.remove_shellwidget(id(sw)))
+
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):
         # Verifying if the connection file exists
         try:
             cf_path = osp.dirname(connection_file)
             cf_filename = osp.basename(connection_file)
+            # To change a possible empty string to None
+            cf_path = cf_path if cf_path else None
             connection_file = find_connection_file(filename=cf_filename, 
                                                    path=cf_path)
         except (IOError, UnboundLocalError):
@@ -1404,35 +1518,41 @@ class IPythonConsole(SpyderPluginWidget):
                                    "<b>%s</b>") % connection_file)
             return
 
-        # Getting the master name that corresponds to the client
+        # Getting the master id that corresponds to the client
         # (i.e. the i in i/A)
-        master_name = None
+        master_id = None
+        given_name = None
         external_kernel = False
         slave_ord = ord('A') - 1
         kernel_manager = None
+
         for cl in self.get_clients():
             if connection_file in cl.connection_file:
                 if cl.get_kernel() is not None:
                     kernel_manager = cl.get_kernel()
                 connection_file = cl.connection_file
-                if master_name is None:
-                    master_name = cl.name.split('/')[0]
-                new_slave_ord = ord(cl.name.split('/')[1])
+                if master_id is None:
+                    master_id = cl.id_['int_id']
+                given_name = cl.given_name
+                new_slave_ord = ord(cl.id_['str_id'])
                 if new_slave_ord > slave_ord:
                     slave_ord = new_slave_ord
         
         # If we couldn't find a client with the same connection file,
         # it means this is a new master client
-        if master_name is None:
+        if master_id is None:
             self.master_clients += 1
-            master_name = to_text_string(self.master_clients)
+            master_id = to_text_string(self.master_clients)
             external_kernel = True
 
         # Set full client name
-        name = master_name + '/' + chr(slave_ord + 1)
+        client_id = dict(int_id=master_id,
+                         str_id=chr(slave_ord + 1))
 
         # Creating the client
-        client = ClientWidget(self, name=name,
+        client = ClientWidget(self,
+                              id_=client_id,
+                              given_name=given_name,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
@@ -1464,11 +1584,15 @@ class IPythonConsole(SpyderPluginWidget):
                                    _("Could not open ssh tunnel. The "
                                      "error was:\n\n") + to_text_string(e))
                 return
-        kernel_client.start_channels()
 
         # Assign kernel manager and client to shellwidget
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
+        kernel_client.start_channels()
+        if external_kernel:
+            client.shellwidget.sig_is_spykernel.connect(
+                    self.connect_external_kernel)
+            client.shellwidget.is_spyder_kernel()
 
         # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())
