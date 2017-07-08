@@ -1285,8 +1285,9 @@ class IPythonConsole(SpyderPluginWidget):
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
         client = None
-        for cl in self.get_clients():
-            if cl.given_name == filename:
+        for idx, cl in enumerate(self.get_clients()):
+            if self.filenames[idx] == filename:
+                self.tabwidget.setCurrentIndex(idx)
                 client = cl
                 break
         return client
