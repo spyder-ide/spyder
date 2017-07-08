@@ -196,11 +196,15 @@ class Console(SpyderPluginWidget):
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         # Connecting the following signal once the dockwidget has been created:
-        self.shell.traceback_available.connect(self.traceback_available)
+        self.shell.exception_occurred.connect(self.exception_occurred)
     
-    def traceback_available(self, text):
-        """Traceback is available in the internal console: showing the 
-        internal console automatically to warn the user"""
+    def exception_occurred(self, text, is_traceback):
+        """Exception ocurred in the internal console.
+        Show a QMessageBox or the internal console to warn the user"""
+        # Skip errors without traceback
+        if not is_traceback and self.msgbox_traceback is None:
+            return
+
         if CONF.get('main', 'show_internal_console_if_traceback', False):
             self.dockwidget.show()
             self.dockwidget.raise_()
@@ -226,6 +230,14 @@ class Console(SpyderPluginWidget):
                 self.error_traceback = ""
                 self.msgbox_traceback.show()
                 self.msgbox_traceback.finished.connect(self.close_msg)
+                self.msgbox_traceback.setDetailedText(' ')
+
+                # open show details (iterate over all buttons and click it)
+                for button in self.msgbox_traceback.buttons():
+                    if (self.msgbox_traceback.buttonRole(button)
+                       == QMessageBox.ActionRole):
+                        button.click()
+                        break
 
             self.error_traceback += text
             self.msgbox_traceback.setDetailedText(self.error_traceback)
