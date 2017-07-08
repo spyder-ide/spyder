@@ -432,7 +432,7 @@ class MainWindow(QMainWindow):
         if options.window_title is not None:
             title += ' -- ' + options.window_title
 
-        if DEV or DEBUG or PYTEST:
+        if DEBUG or PYTEST:
             # Show errors in internal console when developing or testing.
             CONF.set('main', 'show_internal_console_if_traceback', True)
 
