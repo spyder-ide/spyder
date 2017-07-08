@@ -39,6 +39,9 @@ from spyder.widgets.colors import ColorLayout
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 
+HDPI_QT_PAGE = "http://doc.qt.io/qt-5/highdpi.html"
+
+
 class ConfigAccessMixin(object):
     """Namespace for methods that access config storage"""
     CONF_SECTION = None
@@ -872,9 +875,6 @@ class MainConfigPage(GeneralConfigPage):
         tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
                              tip=_("Set this to detach any<br> "
                                    "menu from the main window"))
-        high_dpi_scaling_box = newcb(_("Enable high DPI scaling"), 
-                                     'high_dpi_scaling',
-                                     tip=_("Set this for high DPI displays"))
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
@@ -901,7 +901,6 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
-        interface_layout.addWidget(high_dpi_scaling_box)
         interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
 
@@ -953,9 +952,13 @@ class MainConfigPage(GeneralConfigPage):
         # --- Screen resolution Group (hidpi)
         screen_resolution_group = QGroupBox(_("Screen resolution"))
         screen_resolution_bg = QButtonGroup(screen_resolution_group)
-        screen_resolution_label = QLabel(_("Configurations for highdpi screens, "
-                                "See: <a href=\"http://doc.qt.io/qt-5/highdpi.html\">http://doc.qt.io/qt-5/highdpi.html</a><> "
-                                "for more information"))
+        screen_resolution_label = QLabel(_("Configuration for high DPI "
+                                           "screens<br><br>"
+                                           "Please see "
+                                           "<a href=\"{0}\">{0}</a><> "
+                                           "for more information about "
+                                           "these options (in "
+                                           "English).").format(HDPI_QT_PAGE))
         screen_resolution_label.setWordWrap(True)
 
         normal_radio = self.create_radiobutton(

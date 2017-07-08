@@ -358,7 +358,7 @@ class TabSwitcherWidget(QListWidget):
         for index in reversed(self.stack_history):
             text = self.tabs.tabText(index)
             text = text.replace('&', '')
-            item = QListWidgetItem(ima.icon('FileIcon'), text)
+            item = QListWidgetItem(ima.icon('TextFileIcon'), text)
             self.addItem(item)
 
     def item_selected(self, item=None):
@@ -1135,7 +1135,7 @@ class EditorStack(QWidget):
         """Return tab title."""
         files_path_list = [finfo.filename for finfo in self.data]
         fname = self.data[index].filename
-        fname = sourcecode.get_file_title(files_path_list, fname)
+        fname = sourcecode.disambiguate_fname(files_path_list, fname)
         return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 

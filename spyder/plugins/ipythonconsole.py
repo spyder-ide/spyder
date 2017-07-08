@@ -52,7 +52,7 @@ from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
-from spyder.utils import encoding, programs
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
@@ -608,6 +608,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.master_clients = 0
         self.clients = []
+        self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
         self.testing = testing
@@ -741,6 +742,7 @@ class IPythonConsole(SpyderPluginWidget):
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
+        self.update_tabs_text()
         self.update_plugin_title.emit()
 
     def get_plugin_actions(self):
@@ -925,7 +927,9 @@ class IPythonConsole(SpyderPluginWidget):
 
     @Slot()
     @Slot(bool)
-    def create_new_client(self, give_focus=True):
+    @Slot(str)
+    @Slot(bool, str)
+    def create_new_client(self, give_focus=True, filename=''):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -938,7 +942,7 @@ class IPythonConsole(SpyderPluginWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions)
-        self.add_tab(client, name=client.get_name())
+        self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:
             error_msg = _("The directory {} is not writable and it is "
@@ -1228,8 +1232,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
+        self.filenames.pop(index)
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
+        self.update_tabs_text()
         self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
@@ -1301,7 +1307,7 @@ class IPythonConsole(SpyderPluginWidget):
     def create_client_for_file(self, filename):
         """Create a client to execute code related to a file."""
         # Create client
-        self.create_new_client()
+        self.create_new_client(filename=filename)
 
         # Don't increase the count of master clients
         self.master_clients -= 1
@@ -1309,13 +1315,15 @@ class IPythonConsole(SpyderPluginWidget):
         # Rename client tab with filename
         client = self.get_current_client()
         client.allow_rename = False
-        self.rename_client_tab(client, filename)
+        tab_text = self.disambiguate_fname(filename)
+        self.rename_client_tab(client, tab_text)
 
     def get_client_for_file(self, filename):
         """Get client associated with a given file."""
         client = None
-        for cl in self.get_clients():
-            if cl.given_name == filename:
+        for idx, cl in enumerate(self.get_clients()):
+            if self.filenames[idx] == filename:
+                self.tabwidget.setCurrentIndex(idx)
                 client = cl
                 break
         return client
@@ -1391,24 +1399,44 @@ class IPythonConsole(SpyderPluginWidget):
             client.restart_kernel()
 
     #------ Public API (for tabs) ---------------------------------------------
-    def add_tab(self, widget, name):
+    def add_tab(self, widget, name, filename=''):
         """Add tab"""
         self.clients.append(widget)
         index = self.tabwidget.addTab(widget, name)
+        self.filenames.insert(index, filename)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         self.activateWindow()
         widget.get_control().setFocus()
+        self.update_tabs_text()
         
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)
         """
+        filename = self.filenames.pop(index_from)
         client = self.clients.pop(index_from)
+        self.filenames.insert(index_to, filename)
         self.clients.insert(index_to, client)
+        self.update_tabs_text()
         self.update_plugin_title.emit()
+
+    def disambiguate_fname(self, fname):
+        """Generate a file name without ambiguation."""
+        files_path_list = [filename for filename in self.filenames
+                           if filename]
+        return sourcecode.disambiguate_fname(files_path_list, fname)
+
+    def update_tabs_text(self):
+        """Update the text from the tabs."""
+        for index, fname in enumerate(self.filenames):
+            client = self.clients[index]
+            if fname:
+                self.rename_client_tab(client, self.disambiguate_fname(fname))
+            else:
+                self.rename_client_tab(client, None)
 
     def rename_client_tab(self, client, given_name):
         """Rename client's tab"""
