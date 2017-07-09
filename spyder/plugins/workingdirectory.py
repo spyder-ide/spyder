@@ -36,10 +36,8 @@ from spyder.widgets.comboboxes import PathComboBox
 class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
         about_label = QLabel(_("The <b>current working directory</b> is "
-                    "the working directory for newly opened <i>consoles</i> "
-                    "(Python/IPython consoles and terminals), for the "
-                    "<i>file explorer</i>, for the <i>find in files</i> "
-                    "plugin and for new files created in the <i>editor</i>."))
+                    "the working directory for IPython consoles "
+                    "and the current directory for the File Explorer."))
         about_label.setWordWrap(True)
 
         startup_group = QGroupBox(_("Startup"))
@@ -78,7 +76,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         # Console Directory
 
         console_group = QGroupBox(_("Console directory"))
-        console_label = QLabel(_("The directory when a new console is open:"))
+        console_label = QLabel(_("The working directory for new consoles is:"))
         console_label.setWordWrap(True)
         console_bg = QButtonGroup(console_group)
         console_project_radio = self.create_radiobutton(
@@ -216,7 +214,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return _('Global working directory')
+        return _('Current working directory')
     
     def get_plugin_icon(self):
         """Return widget icon"""
