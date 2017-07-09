@@ -890,7 +890,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Set current working directory.
         In the workingdirectory and explorer plugins.
         """
-        if dirname:
+        if dirname and not self.testing:
             self.main.workingdirectory.chdir(dirname, refresh_explorer=True,
                                              refresh_console=False)
 
