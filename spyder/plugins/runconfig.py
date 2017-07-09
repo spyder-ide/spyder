@@ -165,6 +165,19 @@ class RunConfigOptions(QWidget):
         
         firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
+        # --- Interpreter ---
+        interpreter_group = QGroupBox(_("Console"))
+        interpreter_layout = QVBoxLayout()
+        interpreter_group.setLayout(interpreter_layout)
+        self.current_radio = QRadioButton(CURRENT_INTERPRETER)
+        interpreter_layout.addWidget(self.current_radio)
+
+        self.dedicated_radio = QRadioButton(DEDICATED_INTERPRETER)
+        interpreter_layout.addWidget(self.dedicated_radio)
+
+        self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
+        interpreter_layout.addWidget(self.systerm_radio)
+
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
         common_layout = QGridLayout()
@@ -183,19 +196,6 @@ class RunConfigOptions(QWidget):
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 2, 1)
-
-        # --- Interpreter ---
-        interpreter_group = QGroupBox(_("Console"))
-        interpreter_layout = QVBoxLayout()
-        interpreter_group.setLayout(interpreter_layout)
-        self.current_radio = QRadioButton(CURRENT_INTERPRETER)
-        interpreter_layout.addWidget(self.current_radio)
-
-        self.dedicated_radio = QRadioButton(DEDICATED_INTERPRETER)
-        interpreter_layout.addWidget(self.dedicated_radio)
-
-        self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
-        interpreter_layout.addWidget(self.systerm_radio)
 
         # --- System terminal ---
         external_group = QGroupBox(_("External system terminal"))
