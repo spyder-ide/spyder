@@ -21,7 +21,7 @@ from threading import Thread
 import time
 
 # Third party imports (qtpy)
-from qtpy.QtCore import Qt, QUrl, Signal, Slot
+from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QToolButton,
                             QVBoxLayout, QWidget)
@@ -205,6 +205,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To show env and sys.path contents
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
+
+        #To sync global working directory
+        self.shellwidget.executing.connect(self.shellwidget.capture_dir_change)
+        self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
             self.shellwidget.silent_execute("%colors linux")
@@ -480,6 +484,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def show_env(self, env):
         """Show environment variables."""
         self.dialog_manager.show(RemoteEnvDialog(env))
+
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):

@@ -254,6 +254,51 @@ def test_change_types_in_varexp(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
+    """
+    Test synchronization with working directory and File Explorer when
+    changing cwd in the IPython console.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Change directory in ipython console using %cd
+    temp_dir = str(tmpdir.mkdir("test_dir"))
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%cd {}".format(temp_dir))
+    qtbot.wait(1000)
+
+    # assert that cwd changed in workingdirectory
+    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+
+    # assert that cwd changed in explorer
+    assert osp.normpath(main_window.explorer.fileexplorer.treewidget.get_current_folder()) == osp.normpath(temp_dir)
+
+
+@flaky(max_runs=3)
+def test_change_cwd_explorer(main_window, qtbot, tmpdir):
+    """
+    Test synchronization with working directory and IPython console when
+    changing directories in the File Explorer.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Change directory in the explorer widget
+    temp_dir = str(tmpdir.mkdir("test_dir"))
+    main_window.explorer.chdir(temp_dir)
+    qtbot.wait(1000)
+
+    # assert that cwd changed in workingdirectory
+    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+
+    # assert that cwd changed in ipythonconsole
+    assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
+
+
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
                     reason="It times out sometimes on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):

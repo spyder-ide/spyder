@@ -35,6 +35,7 @@ DEDICATED_INTERPRETER_OPTION = 'default/interpreter/dedicated'
 SYSTERM_INTERPRETER_OPTION = 'default/interpreter/systerm'
 
 WDIR_USE_SCRIPT_DIR_OPTION = 'default/wdir/use_script_directory'
+WDIR_USE_CWD_DIR_OPTION = 'default/wdir/use_cwd_directory'
 WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
 WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 
@@ -42,7 +43,12 @@ ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
+POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
+
+FILE_DIR = _("The directory of the file being executed")
+CW_DIR = _("The current working directory")
+FIXED_DIR = _("The following directory:")
 
 
 class RunConfiguration(object):
@@ -60,24 +66,16 @@ class RunConfiguration(object):
         self.python_args = None
         self.python_args_enabled = None
         self.clear_namespace = None
+        self.file_dir = None
+        self.cw_dir = None
+        self.fixed_dir = None
+        self.dir = None
 
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
 
-        if fname is not None and\
-           CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True):
-            self.wdir = osp.dirname(fname)
-            self.wdir_enabled = True
-        
     def set(self, options):
         self.args = options.get('args', '')
         self.args_enabled = options.get('args/enabled', False)
-        if CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False):
-            default_wdir = CONF.get('run', WDIR_FIXED_DIR_OPTION, getcwd())
-            self.wdir = options.get('workdir', default_wdir)
-            self.wdir_enabled = True
-        else:
-            self.wdir = options.get('workdir', getcwd())
-            self.wdir_enabled = options.get('workdir/enabled', False)
         self.current = options.get('current',
                            CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
         self.systerm = options.get('systerm',
@@ -90,7 +88,14 @@ class RunConfiguration(object):
         self.python_args_enabled = options.get('python_args/enabled', False)
         self.clear_namespace = options.get('clear_namespace',  
                                     CONF.get('run', 'clear_namespace', False))
-        
+        self.file_dir = options.get('file_dir',
+                           CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
+        self.cw_dir = options.get('cw_dir',
+                           CONF.get('run', WDIR_USE_CWD_DIR_OPTION, False))
+        self.fixed_dir = options.get('fixed_dir',
+                           CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False))
+        self.dir = options.get('dir', '')
+
     def get(self):
         return {
                 'args/enabled': self.args_enabled,
@@ -103,15 +108,16 @@ class RunConfiguration(object):
                 'post_mortem': self.post_mortem,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
-                'clear_namespace': self.clear_namespace
+                'clear_namespace': self.clear_namespace,
+                'file_dir': self.file_dir,
+                'cw_dir': self.cw_dir,
+                'fixed_dir': self.fixed_dir,
+                'dir': self.dir
                 }
         
     def get_working_directory(self):
-        if self.wdir_enabled:
-            return self.wdir
-        else:
-            return ''
-        
+       return self.dir
+
     def get_arguments(self):
         if self.args_enabled:
             return self.args
@@ -156,56 +162,70 @@ class RunConfigOptions(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
-        self.current_radio = None
-        self.dedicated_radio = None
-        self.systerm_radio = None
-
+        self.dir = None
         self.runconf = RunConfiguration()
-        
         firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
-
-        # --- General settings ----
-        common_group = QGroupBox(_("General settings"))
-        common_layout = QGridLayout()
-        common_group.setLayout(common_layout)
-        self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
-        common_layout.addWidget(self.clear_var_cb, 0, 0)
-        self.clo_cb = QCheckBox(_("Command line options:"))
-        common_layout.addWidget(self.clo_cb, 1, 0)
-        self.clo_edit = QLineEdit()
-        self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
-        self.clo_edit.setEnabled(False)
-        common_layout.addWidget(self.clo_edit, 1, 1)
-        self.wd_cb = QCheckBox(_("Working directory:"))
-        common_layout.addWidget(self.wd_cb, 2, 0)
-        wd_layout = QHBoxLayout()
-        self.wd_edit = QLineEdit()
-        self.wd_cb.toggled.connect(self.wd_edit.setEnabled)
-        self.wd_edit.setEnabled(False)
-        wd_layout.addWidget(self.wd_edit)
-        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
-        browse_btn.setToolTip(_("Select directory"))
-        browse_btn.clicked.connect(self.select_directory)
-        wd_layout.addWidget(browse_btn)
-        common_layout.addLayout(wd_layout, 2, 1)
-        self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
-                                          "errors appear during execution"))
-        common_layout.addWidget(self.post_mortem_cb)
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
         interpreter_layout = QVBoxLayout()
         interpreter_group.setLayout(interpreter_layout)
+
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
         interpreter_layout.addWidget(self.current_radio)
+
         self.dedicated_radio = QRadioButton(DEDICATED_INTERPRETER)
         interpreter_layout.addWidget(self.dedicated_radio)
+
         self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
         interpreter_layout.addWidget(self.systerm_radio)
+
+        # --- General settings ----
+        common_group = QGroupBox(_("General settings"))
+        common_layout = QGridLayout()
+        common_group.setLayout(common_layout)
+
+        self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
+        common_layout.addWidget(self.clear_var_cb, 0, 0)
+
+        self.post_mortem_cb = QCheckBox(POST_MORTEM)
+        common_layout.addWidget(self.post_mortem_cb, 1, 0)
+
+        self.clo_cb = QCheckBox(_("Command line options:"))
+        common_layout.addWidget(self.clo_cb, 2, 0)
+        self.clo_edit = QLineEdit()
+        self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
+        self.clo_edit.setEnabled(False)
+        common_layout.addWidget(self.clo_edit, 2, 1)
+
+        # --- Working directory ---
+        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_layout = QVBoxLayout()
+        wdir_group.setLayout(wdir_layout)
+
+        self.file_dir_radio = QRadioButton(FILE_DIR)
+        wdir_layout.addWidget(self.file_dir_radio)
+
+        self.cwd_radio = QRadioButton(CW_DIR)
+        wdir_layout.addWidget(self.cwd_radio)
+
+        fixed_dir_layout = QHBoxLayout()
+        self.fixed_dir_radio = QRadioButton(FIXED_DIR)
+        fixed_dir_layout.addWidget(self.fixed_dir_radio)
+        self.wd_edit = QLineEdit()
+        self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
+        self.wd_edit.setEnabled(False)
+        fixed_dir_layout.addWidget(self.wd_edit)
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
+        browse_btn.setToolTip(_("Select directory"))
+        browse_btn.clicked.connect(self.select_directory)
+        fixed_dir_layout.addWidget(browse_btn)
+        wdir_layout.addLayout(fixed_dir_layout)
 
         # --- System terminal ---
         external_group = QGroupBox(_("External system terminal"))
         external_group.setDisabled(True)
+
         self.systerm_radio.toggled.connect(external_group.setEnabled)
 
         external_layout = QGridLayout()
@@ -221,7 +241,6 @@ class RunConfigOptions(QWidget):
         self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
                                     "other options you set here"))
         external_layout.addWidget(self.pclo_edit, 3, 1)
-        
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
@@ -231,10 +250,11 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
         self.firstrun_cb.clicked.connect(self.set_firstrun_o)
         self.firstrun_cb.setChecked(firstrun_o)
-        
+
         layout = QVBoxLayout()
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
+        layout.addWidget(wdir_group)
         layout.addWidget(external_group)
         layout.addWidget(hline)
         layout.addWidget(self.firstrun_cb)
@@ -248,14 +268,12 @@ class RunConfigOptions(QWidget):
         directory = getexistingdirectory(self, _("Select directory"), basedir)
         if directory:
             self.wd_edit.setText(directory)
-            self.wd_cb.setChecked(True)
-        
+            self.dir = directory
+
     def set(self, options):
         self.runconf.set(options)
         self.clo_cb.setChecked(self.runconf.args_enabled)
         self.clo_edit.setText(self.runconf.args)
-        self.wd_cb.setChecked(self.runconf.wdir_enabled)
-        self.wd_edit.setText(self.runconf.wdir)
         if self.runconf.current:
             self.current_radio.setChecked(True)
         elif self.runconf.systerm:
@@ -267,12 +285,14 @@ class RunConfigOptions(QWidget):
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
         self.clear_var_cb.setChecked(self.runconf.clear_namespace)
-    
+        self.file_dir_radio.setChecked(self.runconf.file_dir)
+        self.cwd_radio.setChecked(self.runconf.cw_dir)
+        self.fixed_dir_radio.setChecked(self.runconf.fixed_dir)
+        self.dir = self.runconf.dir
+
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
         self.runconf.args = to_text_string(self.clo_edit.text())
-        self.runconf.wdir_enabled = self.wd_cb.isChecked()
-        self.runconf.wdir = to_text_string(self.wd_edit.text())
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
@@ -280,18 +300,22 @@ class RunConfigOptions(QWidget):
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         self.runconf.clear_namespace = self.clear_var_cb.isChecked()
+        self.runconf.file_dir = self.file_dir_radio.isChecked()
+        self.runconf.cw_dir = self.cwd_radio.isChecked()
+        self.runconf.fixed_dir = self.fixed_dir_radio.isChecked()
+        self.runconf.dir = self.dir
         return self.runconf.get()
-    
+
     def is_valid(self):
         wdir = to_text_string(self.wd_edit.text())
-        if not self.wd_cb.isChecked() or osp.isdir(wdir):
+        if not self.fixed_dir_radio.isChecked() or osp.isdir(wdir):
             return True
         else:
             QMessageBox.critical(self, _("Run configuration"),
                                  _("The following working directory is "
                                    "not valid:<br><b>%s</b>") % wdir)
             return False
-    
+
     def set_firstrun_o(self):
         CONF.set('run', ALWAYS_OPEN_FIRST_RUN_OPTION,
                  self.firstrun_cb.isChecked())
@@ -427,7 +451,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.add_widgets(combo_label, self.combo, 10, self.stack)
         self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
 
-        self.setWindowTitle(_("Run Settings"))
+        self.setWindowTitle(_("Run configuration per file"))
         
     def accept(self):
         """Reimplement Qt method"""
@@ -452,12 +476,10 @@ class RunConfigPage(GeneralConfigPage):
     ICON = ima.icon('run')
     
     def setup_page(self):
-        run_dlg = _("Run Settings")
-        run_menu = _("Run")
-        about_label = QLabel(_("The following are the default <i>%s</i>. "\
-                               "These options may be overriden using the "\
-                               "<b>%s</b> dialog box (see the <b>%s</b> menu)"\
-                               ) % (run_dlg, run_dlg, run_menu))
+        about_label = QLabel(_("The following are the default options for "
+                               "running files.These options may be overriden "
+                               "using the <b>Configuration per file</b> entry "
+                               "of the <b>Run</b> menu."))
         about_label.setWordWrap(True)
 
         interpreter_group = QGroupBox(_("Console"))
@@ -479,35 +501,47 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.systerm_radio)
         
         general_group = QGroupBox(_("General settings"))
-        wdir_bg = QButtonGroup(general_group)
-        wdir_label = QLabel(_("Default working directory is:"))
-        wdir_label.setWordWrap(True)
-        dirname_radio = self.create_radiobutton(_("the script directory"),
-                                WDIR_USE_SCRIPT_DIR_OPTION, True,
-                                button_group=wdir_bg)
-        thisdir_radio = self.create_radiobutton(_("the following directory:"),
-                                WDIR_USE_FIXED_DIR_OPTION, False,
-                                button_group=wdir_bg)
-        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
-        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
-        dirname_radio.toggled.connect(thisdir_bd.setDisabled)
-        thisdir_layout = QHBoxLayout()
-        thisdir_layout.addWidget(thisdir_radio)
-        thisdir_layout.addWidget(thisdir_bd)
-
-        post_mortem = self.create_checkbox(
-             _("Enter debugging mode when errors appear during execution"),
-             'post_mortem', False)
+        post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
         clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
             'clear_namespace', False)
 
         general_layout = QVBoxLayout()
         general_layout.addWidget(clear_variables)
-        general_layout.addWidget(wdir_label)
-        general_layout.addWidget(dirname_radio)
-        general_layout.addLayout(thisdir_layout)
         general_layout.addWidget(post_mortem)
         general_group.setLayout(general_layout)
+
+        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_bg = QButtonGroup(wdir_group)
+        wdir_label = QLabel(_("Default working directory is:"))
+        wdir_label.setWordWrap(True)
+        dirname_radio = self.create_radiobutton(
+                    FILE_DIR,
+                    WDIR_USE_SCRIPT_DIR_OPTION, True,
+                    button_group=wdir_bg)
+        cwd_radio = self.create_radiobutton(
+                    CW_DIR,
+                    WDIR_USE_CWD_DIR_OPTION, False,
+                    button_group=wdir_bg)
+
+        thisdir_radio = self.create_radiobutton(
+                FIXED_DIR,
+                WDIR_USE_FIXED_DIR_OPTION, False,
+                button_group=wdir_bg)
+        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
+        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
+        dirname_radio.toggled.connect(thisdir_bd.setDisabled)
+        cwd_radio.toggled.connect(thisdir_bd.setDisabled)
+        thisdir_layout = QHBoxLayout()
+        thisdir_layout.addWidget(thisdir_radio)
+        thisdir_layout.addWidget(thisdir_bd)
+
+        wdir_layout = QVBoxLayout()
+        wdir_layout.addWidget(wdir_label)
+        wdir_layout.addWidget(dirname_radio)
+        wdir_layout.addWidget(cwd_radio)
+        wdir_layout.addLayout(thisdir_layout)
+        wdir_group.setLayout(wdir_layout)
+
 
         external_group = QGroupBox(_("External system terminal"))
         interact_after = self.create_checkbox(INTERACT, 'interact', False)
@@ -525,6 +559,7 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
         vlayout.addWidget(general_group)
+        vlayout.addWidget(wdir_group)
         vlayout.addWidget(external_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)

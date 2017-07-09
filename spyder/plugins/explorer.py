@@ -88,7 +88,8 @@ class Explorer(SpyderPluginWidget):
         treewidget.sig_open_dir.connect(
                      lambda dirname:
                      self.main.workingdirectory.chdir(dirname,
-                                                      refresh_explorer=False))
+                                                      refresh_explorer=False,
+                                                      refresh_console=True))
 
         self.main.editor.open_dir.connect(self.chdir)
 

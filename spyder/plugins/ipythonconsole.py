@@ -600,6 +600,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
         self.editor = None             # Editor plugin
+        self.projects = None           # Projects plugin
 
         self.master_clients = 0
         self.clients = []
@@ -802,6 +803,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
 
+        self.tabwidget.currentChanged.connect(self.update_working_directory)
+
+
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
@@ -875,6 +879,20 @@ class IPythonConsole(SpyderPluginWidget):
         if shellwidget is not None:
             directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
+
+    def set_working_directory(self, dirname):
+        """Set current working directory.
+        In the workingdirectory and explorer plugins.
+        """
+        if dirname and not self.testing:
+            self.main.workingdirectory.chdir(dirname, refresh_explorer=True,
+                                             refresh_console=False)
+
+    def update_working_directory(self):
+        """Update working directory to console cwd."""
+        shellwidget = self.get_current_shellwidget()
+        if shellwidget is not None:
+            shellwidget.get_cwd()
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
@@ -1131,6 +1149,22 @@ class IPythonConsole(SpyderPluginWidget):
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
 
+        # Set shell cwd according to preferences
+        cwd_path = ''
+        if CONF.get('workingdir', 'console/use_project_or_home_directory'):
+            cwd_path = get_home_dir()
+            if (self.projects is not None and
+              self.projects.get_active_project() is not None):
+                cwd_path = self.projects.get_active_project_path()
+        elif CONF.get('workingdir', 'console/use_fixed_directory'):
+            cwd_path = CONF.get('workingdir', 'console/fixed_directory')
+
+        if osp.isdir(cwd_path) and self.main is not None:
+            shellwidget.set_cwd(cwd_path)
+            if give_focus:
+                # Syncronice cwd with explorer and cwd widget
+                shellwidget.get_cwd()
+
         # Connect text widget to Help
         if self.help is not None:
             control.set_help(self.help)
@@ -1147,6 +1181,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect focus signal to client's control widget
         control.focus_changed.connect(lambda: self.focus_changed.emit())
         
+        shellwidget.sig_change_cwd.connect(self.set_working_directory)
+
         # Update the find widget if focus changes between control and
         # page_control
         self.find_widget.set_editor(control)
