@@ -2357,8 +2357,7 @@ class Editor(SpyderPluginWidget):
                 if show_dlg and not dialog.exec_():
                     return
                 runconf = dialog.get_configuration()
-                
-            wdir = runconf.get_working_directory()
+
             args = runconf.get_arguments()
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
@@ -2366,7 +2365,16 @@ class Editor(SpyderPluginWidget):
             current = runconf.current
             systerm = runconf.systerm
             clear_namespace = runconf.clear_namespace
-            
+
+            if runconf.file_dir:
+                wdir = osp.dirname(fname)
+            elif runconf.cw_dir:
+                wdir = ''
+            elif osp.isdir(runconf.dir):
+                wdir = runconf.dir
+            else:
+                wdir = ''
+
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
