@@ -45,6 +45,10 @@ ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
 INTERACT = _("Interact with the Python console after execution")
 
+FILE_DIR = _("The directory of the file being executed")
+CW_DIR = _("The current working directory")
+THIS_DIR = _("The following directory:")
+
 
 class RunConfiguration(object):
     """Run configuration"""
@@ -197,9 +201,34 @@ class RunConfigOptions(QWidget):
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 2, 1)
 
+        # --- Working directory ---
+        wdir_group = QGroupBox(_("Working Directory settings"))
+        wdir_layout = QVBoxLayout()
+        wdir_group.setLayout(wdir_layout)
+
+        self.dirname_radio = QRadioButton(FILE_DIR)
+        wdir_layout.addWidget(self.dirname_radio)
+
+        self.cwd_radio = QRadioButton(CW_DIR)
+        wdir_layout.addWidget(self.cwd_radio)
+
+        thisdir_layout = QHBoxLayout()
+        self.thisdir_radio = QRadioButton(THIS_DIR)
+        thisdir_layout.addWidget(self.thisdir_radio)
+        self.wd_edit = QLineEdit()
+        self.thisdir_radio.toggled.connect(self.wd_edit.setEnabled)
+        self.wd_edit.setEnabled(False)
+        thisdir_layout.addWidget(self.wd_edit)
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
+        browse_btn.setToolTip(_("Select directory"))
+        browse_btn.clicked.connect(self.select_directory)
+        thisdir_layout.addWidget(browse_btn)
+        wdir_layout.addLayout(thisdir_layout)
+
         # --- System terminal ---
         external_group = QGroupBox(_("External system terminal"))
         external_group.setDisabled(True)
+
         self.systerm_radio.toggled.connect(external_group.setEnabled)
 
         external_layout = QGridLayout()
@@ -225,10 +254,11 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
         self.firstrun_cb.clicked.connect(self.set_firstrun_o)
         self.firstrun_cb.setChecked(firstrun_o)
-        
+
         layout = QVBoxLayout()
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
+        layout.addWidget(wdir_group)
         layout.addWidget(external_group)
         layout.addWidget(hline)
         layout.addWidget(self.firstrun_cb)
@@ -242,7 +272,7 @@ class RunConfigOptions(QWidget):
         directory = getexistingdirectory(self, _("Select directory"), basedir)
         if directory:
             self.wd_edit.setText(directory)
-            self.wd_cb.setChecked(True)
+            self.thisdir_radio.setChecked(True)
         
     def set(self, options):
         self.runconf.set(options)
@@ -274,7 +304,7 @@ class RunConfigOptions(QWidget):
     
     def is_valid(self):
         wdir = to_text_string(self.wd_edit.text())
-        if not self.wd_cb.isChecked() or osp.isdir(wdir):
+        if not self.thisdir_radio.isChecked() or osp.isdir(wdir):
             return True
         else:
             QMessageBox.critical(self, _("Run configuration"),
@@ -485,16 +515,16 @@ class RunConfigPage(GeneralConfigPage):
         wdir_label = QLabel(_("Default working directory is:"))
         wdir_label.setWordWrap(True)
         dirname_radio = self.create_radiobutton(
-                    _("The directory of the file being executed"),
+                    FILE_DIR,
                     WDIR_USE_SCRIPT_DIR_OPTION, True,
                     button_group=wdir_bg)
         cwd_radio = self.create_radiobutton(
-                    _("The current working directory"),
+                    CW_DIR,
                     WDIR_USE_CWD_DIR_OPTION, False,
                     button_group=wdir_bg)
 
         thisdir_radio = self.create_radiobutton(
-                _("The following directory:"),
+                THIS_DIR,
                 WDIR_USE_FIXED_DIR_OPTION, False,
                 button_group=wdir_bg)
         thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
