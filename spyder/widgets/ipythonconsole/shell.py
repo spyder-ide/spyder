@@ -48,6 +48,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted = Signal(str)
 
+    # For global working directory
+    sig_change_cwd = Signal(str)
+
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
@@ -59,6 +62,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self.additional_options = additional_options
         self.interpreter_versions = interpreter_versions
         self.external_kernel = external_kernel
+        self._cwd = ''
 
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
@@ -93,6 +97,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             self.kernel_client.input(u'!' + code)
         else:
             self.silent_execute(code)
+        self._cwd = dirname
+
+    def get_cwd(self):
+        """Update current working directory.
+
+        Retrieve the cwd and emit a signal connected to the working directory
+        widget. (see: handle_exec_method())
+        """
+        code = u"get_ipython().kernel.get_cwd()"
+        if self._reading:
+            return
+        else:
+            self.silent_exec_method(code)
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme of the shell."""
@@ -264,6 +281,9 @@ the sympy module (e.g. plot)
         # not the unique request originated from here
         local_uuid = to_text_string(uuid.uuid1())
         code = to_text_string(code)
+        if self.kernel_client is None:
+            return
+
         msg_id = self.kernel_client.execute('', silent=True,
                                             user_expressions={ local_uuid:code })
         self._kernel_methods[local_uuid] = code
@@ -298,6 +318,12 @@ the sympy module (e.g. plot)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)
+                elif 'get_cwd' in method:
+                    if data is not None and 'text/plain' in data:
+                        self._cwd = ast.literal_eval(data['text/plain'])
+                    else:
+                        self._cwd = ''
+                    self.sig_change_cwd.emit(self._cwd)
                 elif 'get_syspath' in method:
                     if data is not None and 'text/plain' in data:
                         syspath = ast.literal_eval(data['text/plain'])
@@ -354,6 +380,16 @@ the sympy module (e.g. plot)
           len(command.splitlines()) == 1:
             if not 'inline' in command:
                 self.silent_execute(command)
+
+    def capture_dir_change(self, command):
+        """
+        Capture dir change magic for synchronization with working directory.
+        """
+        try:
+            if command.startswith('%cd') or command.split()[0] == 'cd':
+                self.get_cwd()
+        except IndexError:
+            pass
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):

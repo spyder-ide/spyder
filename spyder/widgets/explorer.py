@@ -1059,6 +1059,9 @@ class ExplorerTreeWidget(DirView):
             self.setRootIndex(index)
         return index
         
+    def get_current_folder(self):
+        return self.__last_folder
+
     def refresh(self, new_path=None, force_current=False):
         """Refresh widget
         force=False: won't refresh widget if path has not changed"""

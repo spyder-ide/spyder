@@ -243,6 +243,10 @@ class SpyderKernel(IPythonKernel):
         """Set current working directory."""
         return os.chdir(dirname)
 
+    def get_cwd(self):
+        """Get current working directory."""
+        return os.getcwd()
+
     def get_syspath(self):
         """Return sys.path contents."""
         import sys

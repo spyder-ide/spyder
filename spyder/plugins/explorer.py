@@ -86,7 +86,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         self.open_dir.connect(
                      lambda dirname:
                      self.main.workingdirectory.chdir(dirname,
-                                                      refresh_explorer=False))
+                                                      refresh_explorer=False,
+                                                      refresh_console=True))
 
         self.sig_open_file.connect(self.main.open_file)
         self.sig_new_file.connect(lambda t: self.main.editor.new(text=t))

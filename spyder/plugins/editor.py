@@ -798,7 +798,7 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(run_action, context="_", name="Run",
                                add_sc_to_tip=True)
 
-        configure_action = create_action(self, _("&Configure..."),
+        configure_action = create_action(self, _("&Configuration per file..."),
                                          icon=ima.icon('run_settings'),
                                tip=_("Run settings"),
                                menurole=QAction.NoRole,
@@ -1738,7 +1738,10 @@ class Editor(SpyderPluginWidget):
                 if not osp.isfile(fname):
                     break
             basedir = getcwd()
-            if CONF.get('workingdir', 'editor/new/browse_scriptdir'):
+
+            if self.main.projects.get_active_project() is not None:
+                basedir = self.main.projects.get_active_project_path()
+            else:
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
@@ -1829,10 +1832,10 @@ class Editor(SpyderPluginWidget):
                 self.edit_filetypes = get_edit_filetypes()
             if self.edit_filters is None:
                 self.edit_filters = get_edit_filters()
-            if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
-                c_fname = self.get_current_filename()
-                if c_fname is not None and c_fname != self.TEMPFILE_PATH:
-                    basedir = osp.dirname(c_fname)
+
+            c_fname = self.get_current_filename()
+            if c_fname is not None and c_fname != self.TEMPFILE_PATH:
+                basedir = osp.dirname(c_fname)
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
@@ -1856,9 +1859,6 @@ class Editor(SpyderPluginWidget):
             self.redirect_stdio.emit(True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
-                if CONF.get('workingdir', 'editor/open/auto_set_to_basedir'):
-                    directory = osp.dirname(filenames[0])
-                    self.open_dir.emit(directory)
             else:
                 return
             
@@ -1977,18 +1977,13 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
-            if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.open_dir.emit(osp.dirname(fname))
             self.__add_recent_file(fname)
 
     @Slot()
     def save_copy_as(self):
         """Save *copy as* the currently edited file"""
         editorstack = self.get_current_editorstack()
-        if editorstack.save_copy_as():
-            fname = editorstack.get_current_filename()
-            if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
-                self.open_dir.emit(osp.dirname(fname))
+        editorstack.save_copy_as()
 
     @Slot()
     def save_all(self):
@@ -2362,8 +2357,7 @@ class Editor(SpyderPluginWidget):
                 if show_dlg and not dialog.exec_():
                     return
                 runconf = dialog.get_configuration()
-                
-            wdir = runconf.get_working_directory()
+
             args = runconf.get_arguments()
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
@@ -2371,7 +2365,16 @@ class Editor(SpyderPluginWidget):
             current = runconf.current
             systerm = runconf.systerm
             clear_namespace = runconf.clear_namespace
-            
+
+            if runconf.file_dir:
+                wdir = osp.dirname(fname)
+            elif runconf.cw_dir:
+                wdir = ''
+            elif osp.isdir(runconf.dir):
+                wdir = runconf.dir
+            else:
+                wdir = ''
+
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
