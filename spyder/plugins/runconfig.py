@@ -43,6 +43,7 @@ ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
+POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
 
 FILE_DIR = _("The directory of the file being executed")
@@ -173,6 +174,7 @@ class RunConfigOptions(QWidget):
         interpreter_group = QGroupBox(_("Console"))
         interpreter_layout = QVBoxLayout()
         interpreter_group.setLayout(interpreter_layout)
+
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
         interpreter_layout.addWidget(self.current_radio)
 
@@ -190,8 +192,7 @@ class RunConfigOptions(QWidget):
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
         common_layout.addWidget(self.clear_var_cb, 0, 0)
 
-        self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
-                                          "errors appear during execution"))
+        self.post_mortem_cb = QCheckBox(POST_MORTEM)
         common_layout.addWidget(self.post_mortem_cb, 1, 0)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
@@ -499,9 +500,7 @@ class RunConfigPage(GeneralConfigPage):
         interpreter_layout.addWidget(self.systerm_radio)
         
         general_group = QGroupBox(_("General settings"))
-        post_mortem = self.create_checkbox(
-             _("Enter debugging mode when errors appear during execution"),
-             'post_mortem', False)
+        post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
         clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES, 
             'clear_namespace', False)
 
