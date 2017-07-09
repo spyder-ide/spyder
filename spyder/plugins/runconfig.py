@@ -48,7 +48,7 @@ INTERACT = _("Interact with the Python console after execution")
 
 FILE_DIR = _("The directory of the file being executed")
 CW_DIR = _("The current working directory")
-THIS_DIR = _("The following directory:")
+FIXED_DIR = _("The following directory:")
 
 
 class RunConfiguration(object):
@@ -66,24 +66,16 @@ class RunConfiguration(object):
         self.python_args = None
         self.python_args_enabled = None
         self.clear_namespace = None
+        self.file_dir = None
+        self.cw_dir = None
+        self.fixed_dir = None
+        self.dir = None
 
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
 
-        if fname is not None and\
-           CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True):
-            self.wdir = osp.dirname(fname)
-            self.wdir_enabled = True
-        
     def set(self, options):
         self.args = options.get('args', '')
         self.args_enabled = options.get('args/enabled', False)
-        if CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False):
-            default_wdir = CONF.get('run', WDIR_FIXED_DIR_OPTION, getcwd())
-            self.wdir = options.get('workdir', default_wdir)
-            self.wdir_enabled = True
-        else:
-            self.wdir = options.get('workdir', getcwd())
-            self.wdir_enabled = options.get('workdir/enabled', False)
         self.current = options.get('current',
                            CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
         self.systerm = options.get('systerm',
@@ -96,7 +88,14 @@ class RunConfiguration(object):
         self.python_args_enabled = options.get('python_args/enabled', False)
         self.clear_namespace = options.get('clear_namespace',  
                                     CONF.get('run', 'clear_namespace', False))
-        
+        self.file_dir = options.get('file_dir',
+                           CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
+        self.cw_dir = options.get('cw_dir',
+                           CONF.get('run', WDIR_USE_CWD_DIR_OPTION, False))
+        self.fixed_dir = options.get('fixed_dir',
+                           CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False))
+        self.dir = options.get('dir', '')
+
     def get(self):
         return {
                 'args/enabled': self.args_enabled,
@@ -109,15 +108,16 @@ class RunConfiguration(object):
                 'post_mortem': self.post_mortem,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
-                'clear_namespace': self.clear_namespace
+                'clear_namespace': self.clear_namespace,
+                'file_dir': self.file_dir,
+                'cw_dir': self.cw_dir,
+                'fixed_dir': self.fixed_dir,
+                'dir': self.dir
                 }
         
     def get_working_directory(self):
-        if self.wdir_enabled:
-            return self.wdir
-        else:
-            return ''
-        
+       return self.dir
+
     def get_arguments(self):
         if self.args_enabled:
             return self.args
@@ -162,12 +162,8 @@ class RunConfigOptions(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
-        self.current_radio = None
-        self.dedicated_radio = None
-        self.systerm_radio = None
-
+        self.dir = None
         self.runconf = RunConfiguration()
-        
         firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
         # --- Interpreter ---
@@ -207,24 +203,24 @@ class RunConfigOptions(QWidget):
         wdir_layout = QVBoxLayout()
         wdir_group.setLayout(wdir_layout)
 
-        self.dirname_radio = QRadioButton(FILE_DIR)
-        wdir_layout.addWidget(self.dirname_radio)
+        self.file_dir_radio = QRadioButton(FILE_DIR)
+        wdir_layout.addWidget(self.file_dir_radio)
 
         self.cwd_radio = QRadioButton(CW_DIR)
         wdir_layout.addWidget(self.cwd_radio)
 
-        thisdir_layout = QHBoxLayout()
-        self.thisdir_radio = QRadioButton(THIS_DIR)
-        thisdir_layout.addWidget(self.thisdir_radio)
+        fixed_dir_layout = QHBoxLayout()
+        self.fixed_dir_radio = QRadioButton(FIXED_DIR)
+        fixed_dir_layout.addWidget(self.fixed_dir_radio)
         self.wd_edit = QLineEdit()
-        self.thisdir_radio.toggled.connect(self.wd_edit.setEnabled)
+        self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
-        thisdir_layout.addWidget(self.wd_edit)
+        fixed_dir_layout.addWidget(self.wd_edit)
         browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
         browse_btn.setToolTip(_("Select directory"))
         browse_btn.clicked.connect(self.select_directory)
-        thisdir_layout.addWidget(browse_btn)
-        wdir_layout.addLayout(thisdir_layout)
+        fixed_dir_layout.addWidget(browse_btn)
+        wdir_layout.addLayout(fixed_dir_layout)
 
         # --- System terminal ---
         external_group = QGroupBox(_("External system terminal"))
@@ -245,7 +241,6 @@ class RunConfigOptions(QWidget):
         self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
                                     "other options you set here"))
         external_layout.addWidget(self.pclo_edit, 3, 1)
-        
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
@@ -273,8 +268,8 @@ class RunConfigOptions(QWidget):
         directory = getexistingdirectory(self, _("Select directory"), basedir)
         if directory:
             self.wd_edit.setText(directory)
-            self.thisdir_radio.setChecked(True)
-        
+            self.dir = directory
+
     def set(self, options):
         self.runconf.set(options)
         self.clo_cb.setChecked(self.runconf.args_enabled)
@@ -290,7 +285,11 @@ class RunConfigOptions(QWidget):
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
         self.clear_var_cb.setChecked(self.runconf.clear_namespace)
-    
+        self.file_dir_radio.setChecked(self.runconf.file_dir)
+        self.cwd_radio.setChecked(self.runconf.cw_dir)
+        self.fixed_dir_radio.setChecked(self.runconf.fixed_dir)
+        self.dir = self.runconf.dir
+
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
         self.runconf.args = to_text_string(self.clo_edit.text())
@@ -301,18 +300,22 @@ class RunConfigOptions(QWidget):
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         self.runconf.clear_namespace = self.clear_var_cb.isChecked()
+        self.runconf.file_dir = self.file_dir_radio.isChecked()
+        self.runconf.cw_dir = self.cwd_radio.isChecked()
+        self.runconf.fixed_dir = self.fixed_dir_radio.isChecked()
+        self.runconf.dir = self.dir
         return self.runconf.get()
-    
+
     def is_valid(self):
         wdir = to_text_string(self.wd_edit.text())
-        if not self.thisdir_radio.isChecked() or osp.isdir(wdir):
+        if not self.fixed_dir_radio.isChecked() or osp.isdir(wdir):
             return True
         else:
             QMessageBox.critical(self, _("Run configuration"),
                                  _("The following working directory is "
                                    "not valid:<br><b>%s</b>") % wdir)
             return False
-    
+
     def set_firstrun_o(self):
         CONF.set('run', ALWAYS_OPEN_FIRST_RUN_OPTION,
                  self.firstrun_cb.isChecked())
@@ -523,7 +526,7 @@ class RunConfigPage(GeneralConfigPage):
                     button_group=wdir_bg)
 
         thisdir_radio = self.create_radiobutton(
-                THIS_DIR,
+                FIXED_DIR,
                 WDIR_USE_FIXED_DIR_OPTION, False,
                 button_group=wdir_bg)
         thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
