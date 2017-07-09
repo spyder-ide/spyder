@@ -451,7 +451,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.add_widgets(combo_label, self.combo, 10, self.stack)
         self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
 
-        self.setWindowTitle(_("Run Settings"))
+        self.setWindowTitle(_("Run configuration per file"))
         
     def accept(self):
         """Reimplement Qt method"""
@@ -476,12 +476,10 @@ class RunConfigPage(GeneralConfigPage):
     ICON = ima.icon('run')
     
     def setup_page(self):
-        run_dlg = _("Run Settings")
-        run_menu = _("Run")
-        about_label = QLabel(_("The following are the default <i>%s</i>. "\
-                               "These options may be overriden using the "\
-                               "<b>%s</b> dialog box (see the <b>%s</b> menu)"\
-                               ) % (run_dlg, run_dlg, run_menu))
+        about_label = QLabel(_("The following are the default options for "
+                               "running files.These options may be overriden "
+                               "using the <b>Configuration per file</b> entry "
+                               "of the <b>Run</b> menu."))
         about_label.setWordWrap(True)
 
         interpreter_group = QGroupBox(_("Console"))
