@@ -169,29 +169,20 @@ class RunConfigOptions(QWidget):
         common_group = QGroupBox(_("General settings"))
         common_layout = QGridLayout()
         common_group.setLayout(common_layout)
+
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
         common_layout.addWidget(self.clear_var_cb, 0, 0)
+
+        self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
+                                          "errors appear during execution"))
+        common_layout.addWidget(self.post_mortem_cb, 1, 0)
+
         self.clo_cb = QCheckBox(_("Command line options:"))
-        common_layout.addWidget(self.clo_cb, 1, 0)
+        common_layout.addWidget(self.clo_cb, 2, 0)
         self.clo_edit = QLineEdit()
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
-        common_layout.addWidget(self.clo_edit, 1, 1)
-        self.wd_cb = QCheckBox(_("Working directory:"))
-        common_layout.addWidget(self.wd_cb, 2, 0)
-        wd_layout = QHBoxLayout()
-        self.wd_edit = QLineEdit()
-        self.wd_cb.toggled.connect(self.wd_edit.setEnabled)
-        self.wd_edit.setEnabled(False)
-        wd_layout.addWidget(self.wd_edit)
-        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
-        browse_btn.setToolTip(_("Select directory"))
-        browse_btn.clicked.connect(self.select_directory)
-        wd_layout.addWidget(browse_btn)
-        common_layout.addLayout(wd_layout, 2, 1)
-        self.post_mortem_cb = QCheckBox(_("Enter debugging mode when "
-                                          "errors appear during execution"))
-        common_layout.addWidget(self.post_mortem_cb)
+        common_layout.addWidget(self.clo_edit, 2, 1)
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
@@ -199,8 +190,10 @@ class RunConfigOptions(QWidget):
         interpreter_group.setLayout(interpreter_layout)
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
         interpreter_layout.addWidget(self.current_radio)
+
         self.dedicated_radio = QRadioButton(DEDICATED_INTERPRETER)
         interpreter_layout.addWidget(self.dedicated_radio)
+
         self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
         interpreter_layout.addWidget(self.systerm_radio)
 
@@ -255,8 +248,6 @@ class RunConfigOptions(QWidget):
         self.runconf.set(options)
         self.clo_cb.setChecked(self.runconf.args_enabled)
         self.clo_edit.setText(self.runconf.args)
-        self.wd_cb.setChecked(self.runconf.wdir_enabled)
-        self.wd_edit.setText(self.runconf.wdir)
         if self.runconf.current:
             self.current_radio.setChecked(True)
         elif self.runconf.systerm:
@@ -272,8 +263,6 @@ class RunConfigOptions(QWidget):
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
         self.runconf.args = to_text_string(self.clo_edit.text())
-        self.runconf.wdir_enabled = self.wd_cb.isChecked()
-        self.runconf.wdir = to_text_string(self.wd_edit.text())
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
