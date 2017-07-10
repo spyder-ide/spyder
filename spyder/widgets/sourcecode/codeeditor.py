@@ -1927,6 +1927,16 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.comment()
 
+    def is_comment(self, block):
+        """Detect inline comments.
+
+        Return True if the block is an inline comment.
+        """
+        if block is None:
+            return False
+        text = to_text_string(block.text()).lstrip()
+        return text.startswith(self.comment_string)
+
     def comment(self):
         """Comment current line or selection."""
         self.add_prefix(self.comment_string)
