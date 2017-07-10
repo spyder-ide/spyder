@@ -2485,6 +2485,7 @@ class Editor(SpyderPluginWidget):
             if size > 0:
                 font.setPointSize(size)
                 editor.set_font(font)
+        editor.update_tab_stop_width_spaces()
 
     #------ Options
     def apply_plugin_settings(self, options):
