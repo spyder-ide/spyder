@@ -25,6 +25,7 @@ from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
+from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2
@@ -162,6 +163,55 @@ def test_calltip(main_window, qtbot):
 
     QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
     main_window.editor.close_file()
+
+
+@flaky(max_runs=3)
+def test_runconfig_workdir(main_window, qtbot, tmpdir):
+    """Test runconfig workdir options."""
+    # ---- Load test file ----
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # --- Use cwd for this file ---
+    rc = RunConfiguration().get()
+    rc['file_dir'] = False
+    rc['cw_dir'] = True
+    config_entry = (test_file, rc)
+    CONF.set('run', 'configurations', [config_entry])
+
+    # --- Run test file ---
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # --- Assert we're in cwd after execution ---
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import os; current_dir = os.getcwd()')
+    assert shell.get_value('current_dir') == get_home_dir()
+
+    # --- Use fixed execution dir for test file ---
+    temp_dir = str(tmpdir.mkdir("test_dir"))
+    rc['file_dir'] = False
+    rc['cw_dir'] = False
+    rc['fixed_dir'] = True
+    rc['dir'] = temp_dir
+    config_entry = (test_file, rc)
+    CONF.set('run', 'configurations', [config_entry])
+
+    # --- Run test file ---
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # --- Assert we're in fixed dir after execution ---
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import os; current_dir = os.getcwd()')
+    assert shell.get_value('current_dir') == temp_dir
+
+    # ---- Closing test file and resetting config ----
+    main_window.editor.close_file()
+    CONF.set('run', 'configurations', [])
 
 
 @flaky(max_runs=3)
