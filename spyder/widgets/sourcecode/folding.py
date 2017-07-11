@@ -216,7 +216,9 @@ class IndentFoldDetector(FoldDetector):
         # round down to previous indentation guide to ensure contiguous block
         # fold level evolution.
         indent_len = 0
-        if prev_lvl and prev_block is not None:
+        if (prev_lvl and prev_block is not None and
+           not self.editor.is_comment(prev_block)):
+            # ignore commented lines (could have arbitary indentation)
             prev_text = prev_block.text()
             indent_len = (len(prev_text) - len(prev_text.lstrip())) // prev_lvl
         if indent_len == 0:
