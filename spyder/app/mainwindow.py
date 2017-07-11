@@ -2137,10 +2137,13 @@ class MainWindow(QMainWindow):
 
     def hideEvent(self, event):
         """Reimplement Qt method"""
-        for plugin in self.widgetlist:
-            if plugin.isAncestorOf(self.last_focused_widget):
-                plugin.visibility_changed(True)
-        QMainWindow.hideEvent(self, event)
+        try:
+            for plugin in self.widgetlist:
+                if plugin.isAncestorOf(self.last_focused_widget):
+                    plugin.visibility_changed(True)
+            QMainWindow.hideEvent(self, event)
+        except RuntimeError:
+            QMainWindow.hideEvent(self, event)
 
     def change_last_focused_widget(self, old, now):
         """To keep track of to the last focused widget"""
