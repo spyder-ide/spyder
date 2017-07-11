@@ -36,6 +36,8 @@ def get_fold_levels():
             '        self.b = 3\n'
             '\n'
             '    def other_method(self):\n'  # fold-block level-1
+            '\n' # a blank line (should be ignored)
+            '  # a comment with arbitrary indentation\n' # should be ignored
             '         a = (1,\n'  # fold-block level-2
             '              2,\n'
             '              3)\n'
@@ -50,6 +52,6 @@ def test_simple_folding(get_fold_levels):
     assert get_fold_levels == [[2, 0, 'V'], 
                                  [6, 1, 'V'],
                                  [9, 1, 'V'],
-                                 [10, 2, 'V']]
+                                 [12, 2, 'V']]
 
 
