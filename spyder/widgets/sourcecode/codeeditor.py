@@ -1179,7 +1179,8 @@ class CodeEditor(TextEditBaseWidget):
         active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(ytop, pixmap):
-            painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2,
+            pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
+            painter.drawPixmap(0, ytop + (font_height-pixmap_height) / 2,
                                pixmap)
 
         for top, line_number, block in self.visible_blocks:
