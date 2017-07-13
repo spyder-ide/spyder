@@ -1179,7 +1179,11 @@ class CodeEditor(TextEditBaseWidget):
         active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(ytop, pixmap):
-            pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
+            if is_pyqt46:
+                pixmap_height = pixmap.height()
+            else:
+                # scale pixmap height to device independent pixels
+                pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
             painter.drawPixmap(0, ytop + (font_height-pixmap_height) / 2,
                                pixmap)
 
