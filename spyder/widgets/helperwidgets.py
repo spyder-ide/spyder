@@ -71,8 +71,12 @@ class MessageCheckBox(QMessageBox):
         check_layout.addItem(QSpacerItem(size, size))
 
         # Access the Layout of the MessageBox to add the Checkbox
+        from qtpy import PYQT5
         layout = self.layout()
-        layout.addLayout(check_layout, 1, 1)
+        if PYQT5:
+            layout.addLayout(check_layout, 1, 2)
+        else:
+            layout.addLayout(check_layout, 1, 1)
 
     # --- Public API
     # Methods to access the checkbox
