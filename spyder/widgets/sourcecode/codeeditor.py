@@ -27,7 +27,7 @@ import sys
 import time
 
 # Third party imports
-from qtpy import is_pyqt46
+from qtpy import is_pyqt46, QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRect, QRegExp, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, QIntValidator,
@@ -52,6 +52,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
+from spyder.utils.programs import check_version
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.widgets.editortools import PythonCFM
@@ -68,6 +69,7 @@ except:
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('codeeditor.log')
 DEBUG_EDITOR = DEBUG >= 3
+QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
 
 
 def is_letter_or_number(char):
@@ -1179,7 +1181,7 @@ class CodeEditor(TextEditBaseWidget):
         active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(ytop, pixmap):
-            if is_pyqt46:
+            if not QT55_VERSION:
                 pixmap_height = pixmap.height()
             else:
                 # scale pixmap height to device independent pixels
