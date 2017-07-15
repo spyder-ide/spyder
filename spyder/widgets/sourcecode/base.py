@@ -104,7 +104,7 @@ class CompletionWidget(QListWidget):
         screen_bottom = srect.bottom()
         
         point = self.textedit.cursorRect().bottomRight()
-        point.setX(point.x()+self.textedit.get_linenumberarea_width())
+        point = self.textedit.calculate_real_position(point)
         point = self.textedit.mapToGlobal(point)
 
         # Computing completion widget and its parent right positions
@@ -284,8 +284,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
         self.tab_stop_width_spaces = tab_stop_width_spaces
-        self.setTabStopWidth(tab_stop_width_spaces
-                             * self.fontMetrics().width('9'))
+        self.update_tab_stop_width_spaces()
+
+    def update_tab_stop_width_spaces(self):
+        self.setTabStopWidth(self.fontMetrics().width(
+                '9' * self.tab_stop_width_spaces))
 
     def set_palette(self, background, foreground):
         """
@@ -329,13 +332,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def update_extra_selections(self):
         extra_selections = []
+
+        # Python 3 compatibility (weird): current line has to be
+        # highlighted first
+        if 'current_cell' in self.extra_selections_dict:
+            extra_selections.extend(self.extra_selections_dict['current_cell'])
+        if 'current_line' in self.extra_selections_dict:
+            extra_selections.extend(self.extra_selections_dict['current_line'])
+
         for key, extra in list(self.extra_selections_dict.items()):
-            if key == 'current_line' or key == 'current_cell':
-                # Python 3 compatibility (weird): current line has to be
-                # highlighted first
-                extra_selections = extra + extra_selections
-            else:
-                extra_selections += extra
+            if not (key == 'current_line' or key == 'current_cell'):
+                extra_selections.extend(extra)
         self.setExtraSelections(extra_selections)
 
     def clear_extra_selections(self, key):
@@ -782,6 +789,26 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cur_pos = cursor.position()
             if cur_pos == prev_pos:
                 return
+        self.setTextCursor(cursor)
+
+    def go_to_previous_cell(self):
+        """Go to the previous cell of lines"""
+        cursor = self.textCursor()
+        cur_pos = prev_pos = cursor.position()
+
+        if self.is_cell_separator(cursor):
+            # Move to the previous cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            cur_pos = prev_pos = cursor.position()
+
+        while not self.is_cell_separator(cursor):
+            # Move to the previous cell or the beginning of the current cell
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+
         self.setTextCursor(cursor)
 
     def get_line_count(self):
@@ -1246,7 +1273,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
-    traceback_available = Signal()
+    exception_occurred = Signal(str, bool)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
     
@@ -1367,8 +1394,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 else:
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
-            if is_traceback:
-                self.traceback_available.emit()
+            self.exception_occurred.emit(text, is_traceback)
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)

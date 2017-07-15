@@ -134,19 +134,25 @@ class TextHelper(object):
                                      column)
         if move:
             block = text_cursor.block()
-            # unfold parent fold trigger if the block is collapsed
-            try:
-                folding_panel = self._editor.panels.get('FoldingPanel')
-            except KeyError:
-                pass
-            else:
-                from spyder.widgets.sourcecode.folding import FoldScope
-                if not block.isVisible():
-                    block = FoldScope.find_parent_scope(block)
-                    if TextBlockHelper.is_collapsed(block):
-                        folding_panel.toggle_fold_trigger(block)
+            self.unfold_if_colapsed(block)
             self._editor.setTextCursor(text_cursor)
         return text_cursor
+
+    def unfold_if_colapsed(self, block):
+        """Unfold parent fold trigger if the block is collapsed.
+
+        :param block: Block to unfold.
+        """
+        try:
+            folding_panel = self._editor.panels.get('FoldingPanel')
+        except KeyError:
+            pass
+        else:
+            from spyder.widgets.sourcecode.folding import FoldScope
+            if not block.isVisible():
+                block = FoldScope.find_parent_scope(block)
+                if TextBlockHelper.is_collapsed(block):
+                    folding_panel.toggle_fold_trigger(block)
 
     def selected_text(self):
         """Returns the selected text."""

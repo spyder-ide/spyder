@@ -14,6 +14,7 @@ IPython console plugin.
 # Standard library imports
 from xml.sax.saxutils import escape
 import os
+import os.path as osp
 import re
 import sre_constants
 import textwrap
@@ -40,8 +41,6 @@ if QT55_VERSION:
 else:
     from qtpy.QtCore import QRegExp
 
-HISTORY_FILENAMES = []
-
 
 class BaseEditMixin(object):
     
@@ -55,6 +54,16 @@ class BaseEditMixin(object):
         # Implemented in CodeEditor, but needed for calltip/completion widgets
         return 0
     
+
+    def calculate_real_position(self, point):
+        """
+        Add offset to a point, to take into account the Editor panels.
+
+        This is reimplemented in CodeEditor, in other widgets it returns
+        the same point.
+        """
+        return point
+
     
     #------Calltips
     def _format_signature(self, text):
@@ -112,7 +121,7 @@ class BaseEditMixin(object):
             cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
             cy = self.cursorRect(cursor).top()
         point = self.mapToGlobal(QPoint(cx, cy))
-        point.setX(point.x()+self.get_linenumberarea_width())
+        point = self.calculate_real_position(point)
         point.setY(point.y()+font.pointSize()+5)
         if signature:
             self.calltip_widget.show_tip(point, tiptext, wrapped_textlines)
@@ -540,11 +549,12 @@ class BaseEditMixin(object):
 
         # TODO: adapt to font size
         x = rect.left()
-        x = x + self.get_linenumberarea_width() - 14
+        x = x - 14
         y = rect.top() + (rect.bottom() - rect.top())/2
         y = y - dlg.height()/2 - 3
 
         pos = QPoint(x, y)
+        pos = self.calculate_real_position(pos)
         dlg.move(self.mapToGlobal(pos))
 
         # called from editor
@@ -693,11 +703,19 @@ class SaveHistoryMixin(object):
     
     INITHISTORY = None
     SEPARATOR = None
+    HISTORY_FILENAMES = []
+
     append_to_history = None
     
-    def __init__(self):
-        pass
-    
+    def __init__(self, history_filename=''):
+        self.history_filename = history_filename
+        self.create_history_filename()
+
+    def create_history_filename(self):
+        """Create history_filename with INITHISTORY if it doesn't exist."""
+        if self.history_filename and not osp.isfile(self.history_filename):
+            encoding.writelines(self.INITHISTORY, self.history_filename)
+
     def add_to_history(self, command):
         """Add command to history"""
         command = to_text_string(command)
@@ -706,17 +724,72 @@ class SaveHistoryMixin(object):
         if command.endswith('\n'):
             command = command[:-1]
         self.histidx = None
-        if len(self.history)>0 and self.history[-1] == command:
+        if len(self.history) > 0 and self.history[-1] == command:
             return
         self.history.append(command)
         text = os.linesep + command
         
         # When the first entry will be written in history file,
         # the separator will be append first:
-        if self.history_filename not in HISTORY_FILENAMES:
-            HISTORY_FILENAMES.append(self.history_filename)
+        if self.history_filename not in self.HISTORY_FILENAMES:
+            self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
         
         encoding.write(text, self.history_filename, mode='ab')
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)
+
+
+class BrowseHistoryMixin(object):
+
+    def __init__(self):
+        self.history = []
+        self.histidx = None
+        self.hist_wholeline = False
+
+    def clear_line(self):
+        """Clear current line (without clearing console prompt)"""
+        self.remove_text(self.current_prompt_pos, 'eof')
+
+    def browse_history(self, backward):
+        """Browse history"""
+        if self.is_cursor_before('eol') and self.hist_wholeline:
+            self.hist_wholeline = False
+        tocursor = self.get_current_line_to_cursor()
+        text, self.histidx = self.find_in_history(tocursor, self.histidx,
+                                                  backward)
+        if text is not None:
+            if self.hist_wholeline:
+                self.clear_line()
+                self.insert_text(text)
+            else:
+                cursor_position = self.get_position('cursor')
+                # Removing text from cursor to the end of the line
+                self.remove_text('cursor', 'eol')
+                # Inserting history text
+                self.insert_text(text)
+                self.set_cursor_position(cursor_position)
+
+    def find_in_history(self, tocursor, start_idx, backward):
+        """Find text 'tocursor' in history, from index 'start_idx'"""
+        if start_idx is None:
+            start_idx = len(self.history)
+        # Finding text in history
+        step = -1 if backward else 1
+        idx = start_idx
+        if len(tocursor) == 0 or self.hist_wholeline:
+            idx += step
+            if idx >= len(self.history) or len(self.history) == 0:
+                return "", len(self.history)
+            elif idx < 0:
+                idx = 0
+            self.hist_wholeline = True
+            return self.history[idx], idx
+        else:
+            for index in range(len(self.history)):
+                idx = (start_idx+step*(index+1)) % len(self.history)
+                entry = self.history[idx]
+                if entry.startswith(tocursor):
+                    return entry[len(tocursor):], idx
+            else:
+                return None, start_idx

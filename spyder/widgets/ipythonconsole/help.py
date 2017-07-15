@@ -35,10 +35,7 @@ class HelpWidget(RichJupyterWidget):
 
         Taken from http://stackoverflow.com/a/3305731/438386
         """
-        if PY3:
-            return re.sub('\W|^(?=\d)', '_', var, re.UNICODE)
-        else:
-            return re.sub('\W|^(?=\d)', '_', var)
+        return re.sub('\W|^(?=\d)', '_', var)
 
     def get_signature(self, content):
         """Get signature from inspect reply content"""
@@ -69,6 +66,8 @@ class HelpWidget(RichJupyterWidget):
 
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
+        if self._reading:
+            return
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
         self.silent_exec_method(
@@ -84,6 +83,8 @@ class HelpWidget(RichJupyterWidget):
 
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
+        if self._reading:
+            return
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
         self.silent_exec_method("get_ipython().kernel.get_doc('%s')" % objtxt)
@@ -97,6 +98,8 @@ class HelpWidget(RichJupyterWidget):
 
     def get_source(self, objtxt):
         """Get object source"""
+        if self._reading:
+            return
         wait_loop = QEventLoop()
         self.sig_got_reply.connect(wait_loop.quit)
         self.silent_exec_method("get_ipython().kernel.get_source('%s')" % objtxt)

@@ -28,8 +28,7 @@ from spyder.utils import codeanalysis
 # Main constants
 #==============================================================================
 # Find in files exclude patterns
-EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
-                    r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
+EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
@@ -73,7 +72,10 @@ DEFAULTS = [
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
+              'normal_screen_resolution': True,
               'high_dpi_scaling': False,
+              'high_dpi_custom_scale_factor': False,
+              'high_dpi_custom_scale_factors': '1.5',
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
@@ -91,7 +93,7 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
-              'show_internal_console_if_traceback': True,
+              'show_internal_console_if_traceback': False,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
               # Global Spyder fonts
@@ -134,27 +136,6 @@ DEFAULTS = [
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
-              }),
-            ('console',
-             {
-              'max_line_count': 500,
-              'wrap': True,
-              'single_tab': True,
-              'calltips': True,
-              'codecompletion/auto': True,
-              'codecompletion/enter_key': True,
-              'codecompletion/case_sensitive': True,
-              'show_elapsed_time': False,
-              'show_icontext': False,
-              'monitor/enabled': True,
-              'qt/api': 'default',
-              'matplotlib/backend/value': 0,
-              'light_background': True,
-              'merge_output_channels': os.name != 'nt',
-              'colorize_sys_stderr': os.name != 'nt',
-              'pythonstartup/default': True,
-              'pythonstartup/custom': False,
-              'ets_backend': 'qt4'
               }),
             ('ipython_console',
              {
@@ -213,6 +194,7 @@ DEFAULTS = [
               'blank_spaces': False,
               'edge_line': True,
               'edge_line_columns': '79',
+              'indent_guides': False,
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
@@ -234,6 +216,7 @@ DEFAULTS = [
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'show_tab_bar': True,
+              'show_class_func_dropdown': True,
               'max_recent_files': 20,
               'save_all_before_run': True,
               'focus_to_editor': True,
@@ -252,7 +235,6 @@ DEFAULTS = [
               'max_history_entries': 20,
               'wrap': True,
               'connect/editor': False,
-              'connect/python_console': False,
               'connect/ipython_console': False,
               'math': True,
               'automatic_import': True,
@@ -289,8 +271,6 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': '',
-              'include_regexp': True,
               'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': True,
               'search_text_regexp': True,
@@ -301,15 +281,12 @@ DEFAULTS = [
               }),
             ('workingdir',
              {
-              'editor/open/browse_scriptdir': True,
-              'editor/open/browse_workdir': False,
-              'editor/new/browse_scriptdir': False,
-              'editor/new/browse_workdir': True,
-              'editor/open/auto_set_to_basedir': False,
-              'editor/save/auto_set_to_basedir': False,
               'working_dir_adjusttocontents': False,
               'working_dir_history': 20,
-              'startup/use_last_directory': True,
+              'startup/use_project_or_home_directory': True,
+              'console/use_project_or_home_directory': True,
+              'console/use_cwd': False,
+              'console/use_fixed_directory': False,
               }),
             ('shortcuts',
              {
@@ -368,6 +345,8 @@ DEFAULTS = [
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
+              'editor/indent': 'Ctrl+]',
+              'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to definition': "Ctrl+G",
@@ -388,8 +367,8 @@ DEFAULTS = [
               'editor/rotate kill ring': 'Shift+Meta+Y',
               'editor/kill previous word': 'Meta+Backspace',
               'editor/kill next word': 'Meta+D',
-              'editor/start of document': 'Ctrl+Up',
-              'editor/end of document': 'Ctrl+Down',
+              'editor/start of document': 'Ctrl+Home',
+              'editor/end of document': 'Ctrl+End',
               'editor/undo': 'Ctrl+Z',
               'editor/redo': 'Ctrl+Shift+Z',
               'editor/cut': 'Ctrl+X',
@@ -403,8 +382,8 @@ DEFAULTS = [
               'editor/conditional breakpoint': 'Shift+F12',
               'editor/run selection': "F9",
               'editor/go to line': 'Ctrl+L',
-              'editor/go to previous file': 'Ctrl+Tab',
-              'editor/go to next file': 'Ctrl+Shift+Tab',
+              'editor/go to previous file': 'Ctrl+Shift+Tab',
+              'editor/go to next file': 'Ctrl+Tab',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
@@ -423,9 +402,9 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': RUN_CELL_SHORTCUT,
               'editor/run cell and advance': RUN_CELL_AND_ADVANCE_SHORTCUT,
+              'editor/go to next cell': 'Ctrl+Down',
+              'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
-              # -- In plugins/editor.py
-              'editor/show/hide outline': "Ctrl+Alt+O",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -656,7 +635,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '35.0.0'
+CONF_VERSION = '39.0.0'
 
 # Main configuration instance
 try:

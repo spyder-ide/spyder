@@ -33,6 +33,7 @@ ALL_LANGUAGES = {
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
                  'Yaml':('yaml','yml'),
+                 "Markdown": ('md', ),
                  }
 
 PYTHON_LIKE_LANGUAGES = ('Python', 'Cython', 'Enaml')
@@ -182,7 +183,7 @@ def differentiate_prefix(path_components0, path_components1):
             path_0 = '/'
     return path_0
 
-def get_file_title(files_path_list, filename):
+def disambiguate_fname(files_path_list, filename):
     """Get tab title without ambiguation."""
     fname = os.path.basename(filename)
     same_name_files = get_same_name_files(files_path_list, fname)

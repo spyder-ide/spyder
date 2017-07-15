@@ -25,7 +25,7 @@ class LineNumberArea(Panel):
         Panel.__init__(self, editor)
 
         self.setMouseTracking(True)
-
+        self.scrollable = True
         self.linenumbers_color = QColor(Qt.darkGray)
 
         # Markers
@@ -39,7 +39,6 @@ class LineNumberArea(Panel):
 
         # Line number area management
         self._margin = True
-        self._enabled = None
         self._pressed = -1
         self._released = -1
 
@@ -178,14 +177,6 @@ class LineNumberArea(Panel):
         else:
             return 0
 
-    def update_(self, qrect, dy):
-        """Update line number area"""
-        if dy:
-            self.scroll(0, dy)
-        else:
-            self.update(0, qrect.y(),
-                        self.width(),
-                        qrect.height())
 
     def setup_margins(self, linenumbers=True, markers=True):
         """

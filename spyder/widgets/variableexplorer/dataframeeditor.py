@@ -14,7 +14,6 @@ Pandas DataFrame Editor Dialog
 """
 import time
 # Third party imports
-from pandas import DataFrame, DatetimeIndex, Series
 from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
@@ -25,6 +24,8 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QMenu, QMessageBox, QPushButton, QTableView,
                             QHeaderView, QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
+
+from pandas import DataFrame, DatetimeIndex, Series
 import numpy as np
 
 # Local imports
@@ -1195,9 +1196,7 @@ def test():
     out = test_edit(df1.iloc[0])
     assert_series_equal(result, out)
 
-    # Sorting large DataFrame takes time
     df1 = DataFrame(np.random.rand(100100, 10))
-    df1.sort(columns=[0, 1], inplace=True)
     out = test_edit(df1)
     assert_frame_equal(out, df1)
 

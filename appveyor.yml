@@ -12,11 +12,12 @@ environment:
     CONDA_DEPENDENCIES: >
       rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
       qtawesome pickleshare qtpy pyzmq chardet mock pandas pytest
-      pytest-cov numpydoc scipy pillow qtconsole matplotlib
-    PIP_DEPENDENCIES: "pytest-qt flaky jedi"
+      pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi
+    PIP_DEPENDENCIES: "pytest-qt pytest-timeout flaky"
 
   matrix:
     - PYTHON_VERSION: "2.7"
+    #- PYTHON_VERSION: "3.5"
     - PYTHON_VERSION: "3.6"
 
 platform:
@@ -40,4 +41,4 @@ install:
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% python runtests.py"
+  - "%CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py"
