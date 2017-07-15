@@ -9,7 +9,7 @@ Base plugin class
 """
 
 # Third party imports
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QDockWidget, QShortcut, QWidget
 
@@ -85,8 +85,11 @@ class BasePluginWidget(QWidget):
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
+        dock.topLevelChanged.connect(self.create_window)
         dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
+        self.undocked = False
+        self.dock_flags = dock.windowFlags()
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
@@ -109,9 +112,17 @@ class BasePluginWidget(QWidget):
             self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
-    def plugin_closed(self):
+    def plugin_closed(self, event):
         """DockWidget was closed"""
-        self.toggle_view_action.setChecked(False)
+        if self.undocked or not self.dockwidget.isFloating():
+            self.toggle_view_action.setChecked(False)
+            event.accept()
+        else:
+            self.dockwidget.setWindowFlags(self.dock_flags)
+            self.dockwidget.setAllowedAreas(self.ALLOWED_AREAS)
+            self.dockwidget.setFloating(False)
+            self.switch_to_plugin()
+            event.ignore()
 
     def get_plugin_font(self, rich_text=False):
         """
@@ -169,3 +180,12 @@ class BasePluginWidget(QWidget):
             self.dockwidget.raise_()
         else:
             self.dockwidget.hide()
+
+    @Slot()
+    def create_window(self):
+        """Open a window of the plugin instead of undocking it."""
+        if self.dockwidget.isFloating() and not self.undocked:
+            self.dockwidget.setWindowFlags(Qt.Window)
+            self.dockwidget.setAllowedAreas(Qt.NoDockWidgetArea)
+            self.dockwidget.show()
+        self.undocked = False

@@ -153,10 +153,10 @@ class TabFilter(QObject):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
-    plugin_closed = Signal()
+    plugin_closed = Signal(object)
 
     def __init__(self, title, parent):
-        super(SpyderDockWidget, self).__init__(title, parent)
+        super(SpyderDockWidget, self).__init__(title)
 
         # Needed for the installation of the event filter
         self.title = title
@@ -173,7 +173,7 @@ class SpyderDockWidget(QDockWidget):
         Reimplement Qt method to send a signal on close so that "Panes" main
         window menu can be updated correctly
         """
-        self.plugin_closed.emit()
+        self.plugin_closed.emit(event)
 
     def install_tab_event_filter(self, value):
         """
