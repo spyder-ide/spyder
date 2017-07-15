@@ -1168,7 +1168,7 @@ class ExplorerWidget(QWidget):
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
         self.button_menu = QToolButton(self)
-        menu = QMenu(self)
+        self.menu = QMenu(self)
 
         self.action_widgets = [button_previous, button_next, button_parent,
                                self.button_menu]
@@ -1202,9 +1202,9 @@ class ExplorerWidget(QWidget):
 
         self.button_menu.setIcon(ima.icon('tooloptions'))
         self.button_menu.setPopupMode(QToolButton.InstantPopup)
-        self.button_menu.setMenu(menu)
-        add_actions(menu, self.treewidget.common_actions)
-        options_action.setMenu(menu)
+        self.button_menu.setMenu(self.menu)
+        add_actions(self.menu, self.treewidget.common_actions)
+        options_action.setMenu(self.menu)
 
         self.toggle_icontext(show_icontext)
         icontext_action.setChecked(show_icontext)

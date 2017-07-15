@@ -414,7 +414,7 @@ class EditorStack(QWidget):
     sig_close_file = Signal(str, int)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
-    undock_window = Signal()
+    sig_undock_window = Signal()
     opened_files_list_changed = Signal()
     analysis_results_changed = Signal()
     todo_results_changed = Signal()
@@ -1264,7 +1264,7 @@ class EditorStack(QWidget):
                                            icon=ima.icon('newwindow'),
                                            tip=_("Undock the editor window"),
                                            triggered=lambda:
-                                               self.undock_window.emit())
+                                               self.sig_undock_window.emit())
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon=ima.icon('versplit'),

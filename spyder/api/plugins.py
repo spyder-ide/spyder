@@ -88,6 +88,7 @@ class PluginWidget(BasePluginWidget):
         It must be run at the end of __init__
         """
         self.create_toggle_view_action()
+        self.create_undock_action()
         self.plugin_actions = self.get_plugin_actions()
         self.sig_show_message.connect(self.show_message)
         self.sig_update_plugin_title.connect(self.update_plugin_title)
@@ -100,7 +101,7 @@ class PluginWidget(BasePluginWidget):
 
         Note: this method is currently not used in Spyder core plugins
         """
-        self.mainwindow = mainwindow = QMainWindow()
+        self.mainwindow = mainwindow = PluginMainWindow(self)
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
         if is_text_string(icon):
@@ -311,3 +312,17 @@ class SpyderPluginWidget(PluginWidget):
         message = ''
         valid = True
         return valid, message
+
+class PluginMainWindow(QMainWindow):
+    """Spyder Plugin MainWindow class."""
+    def __init__(self, plugin):
+        QMainWindow.__init__(self)
+        self.plugin = plugin
+
+    def closeEvent(self, event):
+        """Reimplement Qt method."""
+        self.plugin.dockwidget.setWidget(self.plugin)
+        self.plugin.dockwidget.setVisible(True)
+        self.plugin.undock_action.setDisabled(False)
+        self.plugin.switch_to_plugin()
+        QMainWindow.closeEvent(self, event)

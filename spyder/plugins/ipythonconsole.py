@@ -772,12 +772,14 @@ class IPythonConsole(SpyderPluginWidget):
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
-                               connect_to_kernel_action]
+                               connect_to_kernel_action,
+                               MENU_SEPARATOR, self.undock_action]
         
         # Plugin actions
         self.menu_actions = [create_client_action, MENU_SEPARATOR,
                              restart_action, connect_to_kernel_action,
-                             MENU_SEPARATOR, rename_tab_action]
+                             MENU_SEPARATOR, rename_tab_action,
+                             MENU_SEPARATOR, self.undock_action]
         
         return self.menu_actions
 

@@ -431,7 +431,8 @@ class Help(SpyderPluginWidget):
         menu = QMenu(self)
         add_actions(menu, [self.rich_text_action, self.plain_text_action,
                            self.show_source_action, None,
-                           self.auto_import_action])
+                           self.auto_import_action, None,
+                           self.undock_action])
         options_button.setMenu(menu)
         layout_edit.addWidget(options_button)
 

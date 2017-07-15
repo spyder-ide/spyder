@@ -154,7 +154,8 @@ class HistoryLog(SpyderPluginWidget):
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked( self.get_option('wrap') )
-        self.menu_actions = [history_action, self.wrap_action]
+        self.menu_actions = [history_action, self.wrap_action, None,
+                             self.undock_action]
         return self.menu_actions
 
     def on_first_registration(self):

@@ -403,8 +403,6 @@ class Editor(SpyderPluginWidget):
                 '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
-        self.undocked = False
-        
         self.projects = None
         self.outlineexplorer = None
         self.help = None
@@ -1183,7 +1181,6 @@ class Editor(SpyderPluginWidget):
         self.main.add_dockwidget(self)
         self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data,
                                       ima.icon('TextFileIcon'))
-        self.dockwidget.topLevelChanged.connect(self.undock_editor)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1319,7 +1316,7 @@ class Editor(SpyderPluginWidget):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.undock_window.connect(self.undock_window)
+        editorstack.sig_undock_window.connect(self.undock_plugin)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
         editorstack.analysis_results_changed.connect(
@@ -1436,7 +1433,7 @@ class Editor(SpyderPluginWidget):
             win.set_layout_settings(layout_settings)
 
     @Slot()
-    def undock_editor(self):
+    def create_window(self):
         """Open a new window instance of the Editor instead of undocking it."""
         if self.dockwidget.isFloating() and not self.undocked:
             self.dockwidget.setVisible(False)
@@ -1447,10 +1444,9 @@ class Editor(SpyderPluginWidget):
         if self.get_current_editorstack():
             self.get_current_editorstack().new_window = False
 
-    def undock_window(self):
+    def undock_plugin(self):
         """Undocks the Editor window."""
-        self.undocked = True
-        self.dockwidget.setFloating(True)
+        super(Editor, self).undock_plugin()
         self.get_current_editorstack().new_window = True
 
     def switch_to_plugin(self):

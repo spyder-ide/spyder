@@ -20,9 +20,9 @@ from qtpy.QtWidgets import QVBoxLayout
 # Local imports
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
+from spyder.utils.qthelpers import add_actions
 from spyder.py3compat import to_text_string
 from spyder.widgets.explorer import ExplorerWidget
-
 
 class Explorer(SpyderPluginWidget):
     """File and Directories Explorer DockWidget."""
@@ -66,9 +66,11 @@ class Explorer(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
         treewidget = self.fileexplorer.treewidget
+        undock = [None, self.undock_action]
 
         self.main.add_dockwidget(self)
         self.fileexplorer.sig_open_file.connect(self.main.open_file)
+        add_actions(self.fileexplorer.menu, undock)
 
         treewidget.sig_edit.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)
