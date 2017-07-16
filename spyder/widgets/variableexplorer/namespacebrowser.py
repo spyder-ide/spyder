@@ -132,6 +132,7 @@ class NamespaceBrowser(QWidget):
                    self.exclude_unsupported_action, None]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
+        actions.append(self.parent().undock_action)
         add_actions(menu, actions)
         options_button.setMenu(menu)
 

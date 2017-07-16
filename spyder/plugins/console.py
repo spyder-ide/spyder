@@ -184,7 +184,7 @@ class Console(SpyderPluginWidget):
                                   codecompenter_action, exteditor_action))
                     
         plugin_actions = [None, run_action, environ_action, syspath_action,
-                          option_menu, None, quit_action]
+                          option_menu, None, quit_action, self.undock_action]
         
         # Add actions to context menu
         add_actions(self.shell.menu, plugin_actions)
