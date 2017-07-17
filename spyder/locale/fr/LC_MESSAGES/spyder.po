@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2017-07-11 13:28+COT\n"
-"PO-Revision-Date: 2016-11-17 19:16-0500\n"
+"PO-Revision-Date: 2017-07-17 10:23-0500\n"
 "Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.2\n"
 
 #: spyder/app/mainwindow.py:126
 msgid "Initializing..."
@@ -47,6 +47,10 @@ msgid ""
 "your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</"
 "b></span><br>"
 msgstr ""
+"Une erreur s’est produite lors de la création d’un websocket requis par "
+"Spyder. S’il vous plaît, essayez d’exécuter la commande suivante comme "
+"administrateur dans une console cmd.exe, puis redémarrez votre ordinateur :"
+"<br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
 
 #: spyder/app/mainwindow.py:535
 msgid "Close current pane"
@@ -79,7 +83,7 @@ msgstr "Dossier..."
 
 #: spyder/app/mainwindow.py:571
 msgid "Fast symbol search in file"
-msgstr ""
+msgstr "Recherche rapide de symboles dans le fichier"
 
 #: spyder/app/mainwindow.py:590 spyder/widgets/sourcecode/codeeditor.py:2656
 msgid "Undo"
@@ -1102,6 +1106,8 @@ msgid ""
 "Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</"
 "a><> for more information about these options (in English)."
 msgstr ""
+"Configuration pour les écrans PPP/DPI élevés<br><br>Consultez <a "
+"href=“{0}”>{0}</a><> pour plus d’informations sur ces options (en anglais)."
 
 #: spyder/plugins/configdialog.py:965
 #, fuzzy
@@ -1132,6 +1138,8 @@ msgid ""
 "Enter values for different screens separated by semicolons ';', float values "
 "are supported"
 msgstr ""
+"Entrez les valeurs pour différents écrans séparés par des points-virgules "
+"‘;’, les valeurs de virgule flottante sont prises en charge"
 
 #: spyder/plugins/configdialog.py:1012
 msgid "Plain text font"
@@ -1291,10 +1299,14 @@ msgid ""
 "<br><br>You can automatically submit this error to our Github issues tracker."
 "<br><br><i>Note:</i> You need a Github account for that."
 msgstr ""
+"<b>Spyder a rencontré un problème. </b> <br> Désolé pour les inconvénients. "
+"<br><br>Vous pouvez envoyer automatiquement cette erreur à notre agent de "
+"suivi des problèmes sur Github. <br><br><i>Remarque:</i> Vous avez besoin "
+"d’un compte Github pour cela."
 
 #: spyder/plugins/console.py:230
 msgid "Submit to Github"
-msgstr ""
+msgstr "Soumettre à Github"
 
 #: spyder/plugins/console.py:281
 msgid "Run Python script"
@@ -1839,6 +1851,8 @@ msgstr "Afficher la liste des tâches"
 msgid ""
 "Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/OPTIMIZE/!!!/???)"
 msgstr ""
+"Afficher la liste des commentaires (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/"
+"OPTIMIZE/!!!/???)"
 
 #: spyder/plugins/editor.py:866
 msgid "Show warning/error list"
@@ -2246,7 +2260,7 @@ msgstr "Intégrer la console IPython"
 
 #: spyder/plugins/ipythonconsole.py:76
 msgid "IPython interactive python environment"
-msgstr ""
+msgstr "Environnement python interactif IPython"
 
 #: spyder/plugins/ipythonconsole.py:127
 msgid ""
@@ -2687,6 +2701,8 @@ msgid ""
 "The directory {} is not writable and it is required to create IPython "
 "consoles. Please make it writable."
 msgstr ""
+"Le répertoire {} n’est pas accessible en écriture et il est nécessaire de "
+"créer des consoles IPython. Créez le chemin d’accès accessible en écriture."
 
 #: spyder/plugins/ipythonconsole.py:961
 msgid ""
@@ -2730,6 +2746,10 @@ msgid ""
 "symbols).<br><br>To fix it, please <b>reinstall</b> Spyder in a different "
 "location."
 msgstr ""
+"Cette erreur est probablement causée par l’installation de Spyder dans un "
+"répertoire avec des caractères non ascii (c’est-à-dire des caractères avec "
+"des tildes, des apostrophes ou des symboles non latins).<br><br> Pour le "
+"réparer, <b>réinstallez</b> Spyder dans un endroit différent."
 
 #: spyder/plugins/ipythonconsole.py:1552
 msgid "IPython"
@@ -2848,6 +2868,9 @@ msgid ""
 "You selected an invalid Python interpreter for the console so the previous "
 "interpreter will stay. Please make sure to select a valid one."
 msgstr ""
+"Vous avez sélectionné un interpréteur Python non valide pour la console afin "
+"que l’interprète précédent reste. Assurez-vous de sélectionner un interprète "
+"valide."
 
 #: spyder/plugins/maininterpreter.py:176
 msgid ""
@@ -2979,7 +3002,7 @@ msgstr "Interagir avec la console Python après l'exécution"
 
 #: spyder/plugins/runconfig.py:49
 msgid "The directory of the file being executed"
-msgstr ""
+msgstr "Le répertoire du fichier en cours d’exécution"
 
 #: spyder/plugins/runconfig.py:50 spyder/plugins/workingdirectory.py:90
 #, fuzzy
@@ -3059,15 +3082,17 @@ msgstr "la fenêtre Options d'exécution"
 
 #: spyder/plugins/shortcuts.py:65
 msgid "Currently used to delete lines on editor"
-msgstr ""
+msgstr "Actuellement utilisé pour supprimer des lignes sur l’éditeur"
 
 #: spyder/plugins/shortcuts.py:69
 msgid "We cannot support this shortcut on Windows"
-msgstr ""
+msgstr "Nous ne pouvons pas prendre en charge ce raccourci sur Windows"
 
 #: spyder/plugins/shortcuts.py:72
 msgid "Shortcuts that use Shift and another key are unsupported"
 msgstr ""
+"Les raccourcis qui utilisent `Shift` et une autre touche ne sont pas pris en "
+"charge"
 
 #: spyder/plugins/shortcuts.py:149
 msgid ""
@@ -3103,7 +3128,7 @@ msgstr "Le nouveau raccourci "
 
 #: spyder/plugins/shortcuts.py:334 spyder/plugins/shortcuts.py:343
 msgid "Forbidden key sequence!"
-msgstr ""
+msgstr "Séquence de clé interdite!"
 
 #: spyder/plugins/shortcuts.py:354
 msgid ""
@@ -3190,6 +3215,8 @@ msgid ""
 "The <b>current working directory</b> is the working directory for IPython "
 "consoles and the current directory for the File Explorer."
 msgstr ""
+"Le <b>répertoire de travail actuel</b> est le répertoire de travail pour les "
+"consoles IPython et le répertoire actuel pour l’Explorateur de fichiers."
 
 #: spyder/plugins/workingdirectory.py:45
 #, fuzzy
@@ -3201,6 +3228,8 @@ msgid ""
 "The current project directory or user home directory (if no project is "
 "active)"
 msgstr ""
+"Le répertoire actuel du projet ou le répertoire d’accueil de l’utilisateur "
+"(si aucun projet n’est actif)"
 
 #: spyder/plugins/workingdirectory.py:54
 #, fuzzy
@@ -4034,6 +4063,8 @@ msgstr "Exclure :"
 #: spyder/widgets/findinfiles.py:264
 msgid "Search in all files and directories present on thecurrent Spyder path"
 msgstr ""
+"Recherchez dans tous les fichiers et répertoires présents sur le chemin "
+"actuel de Spyder"
 
 #: spyder/widgets/findinfiles.py:268
 #, fuzzy
@@ -4045,6 +4076,8 @@ msgid ""
 "Search in all files and directories present on thecurrent project path (If "
 "opened)"
 msgstr ""
+"Recherchez dans tous les fichiers et répertoires présents sur le chemin de "
+"projet actuel (si ouvert)"
 
 #: spyder/widgets/findinfiles.py:275
 #, fuzzy
@@ -4077,16 +4110,17 @@ msgid "file"
 msgstr "fichier"
 
 #: spyder/widgets/findinfiles.py:698
+#, fuzzy
 msgid " Scanning: {0}"
-msgstr ""
+msgstr " Scanning: {0}"
 
 #: spyder/widgets/findinfiles.py:700
 msgid " Searching for files in folder: {0}"
-msgstr ""
+msgstr "Recherche de fichiers dans le dossier: {0}"
 
 #: spyder/widgets/findinfiles.py:704
 msgid "  Searching for files..."
-msgstr ""
+msgstr "Recherche de fichiers …"
 
 #: spyder/widgets/findreplace.py:65
 msgid "Search string"
@@ -4230,10 +4264,13 @@ msgstr "Arguments"
 #: spyder/widgets/ipythonconsole/namespacebrowser.py:126
 msgid "Loading this kind of data while debugging is not supported."
 msgstr ""
+"Le chargement de ce type de données alors que le déboggage n’est pas pris en "
+"charge."
 
 #: spyder/widgets/ipythonconsole/namespacebrowser.py:145
 msgid "Saving data while debugging is not supported."
 msgstr ""
+"L’enregistrement de données lors du déboggage n’est pas pris en charge."
 
 #: spyder/widgets/ipythonconsole/shell.py:205
 msgid "Reset IPython namespace"
@@ -4253,7 +4290,7 @@ msgstr "Utilisation du backend Qt pour Mayavi"
 
 #: spyder/widgets/ipythonconsole/shell.py:415
 msgid "Kernel died, restarting"
-msgstr ""
+msgstr "Kernel est mort, redémarré"
 
 #: spyder/widgets/ipythonconsole/shell.py:415
 #, fuzzy
@@ -4932,7 +4969,7 @@ msgstr "Le format (%s) n'est pas valide"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:747
 msgid "Format ({}) should start with '%'"
-msgstr ""
+msgstr "Le format ({}) devrait commencer par ‘%’"
 
 #: spyder/widgets/variableexplorer/importwizard.py:116
 #: spyder/widgets/variableexplorer/importwizard.py:436
