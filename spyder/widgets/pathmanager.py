@@ -17,7 +17,7 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListWidget, QListWidgetItem, QMessageBox,
-                            QVBoxLayout)
+                            QVBoxLayout, QCheckBox)
 
 # Local imports
 from spyder.config.base import _
@@ -29,7 +29,8 @@ from spyder.utils.qthelpers import create_toolbutton
 class PathManager(QDialog):
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent=None, pathlist=None, ro_pathlist=None, sync=True):
+    def __init__(self, parent=None, pathlist=None, ro_pathlist=None, 
+                 na_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
         
         # Destroying the C++ object right after closing the dialog box,
@@ -40,6 +41,9 @@ class PathManager(QDialog):
         
         assert isinstance(pathlist, list)
         self.pathlist = pathlist
+        if na_pathlist is None:
+            na_pathlist = []
+        self.na_pathlist = na_pathlist
         if ro_pathlist is None:
             ro_pathlist = []
         self.ro_pathlist = ro_pathlist
@@ -61,6 +65,7 @@ class PathManager(QDialog):
 
         self.listwidget = QListWidget(self)
         self.listwidget.currentRowChanged.connect(self.refresh)
+        self.listwidget.itemChanged.connect(self.update_nalist)        
         layout.addWidget(self.listwidget)
 
         bottom_layout = QHBoxLayout()
@@ -174,6 +179,21 @@ class PathManager(QDialog):
     def get_path_list(self):
         """Return path list (does not include the read-only path list)"""
         return self.pathlist
+    
+    def update_nalist(self, item):
+        path = item.text()
+        if bool(item.checkState()) is True:
+            self.remove_from_nalist(path)
+        else:
+            self.add_to_nalist(path)
+            
+    def add_to_nalist(self, path):
+        if path not in self.na_pathlist:
+            self.na_pathlist.append(path)
+            
+    def remove_from_nalist(self, path):
+        if path in self.na_pathlist:
+            self.na_pathlist.remove(path)        
         
     def update_list(self):
         """Update path list"""
@@ -182,7 +202,14 @@ class PathManager(QDialog):
             item = QListWidgetItem(name)
             item.setIcon(ima.icon('DirClosedIcon'))
             if name in self.ro_pathlist:
-                item.setFlags(Qt.NoItemFlags)
+                item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Checked)
+            elif name in self.na_pathlist:
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Unchecked)
+            else:
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Checked)
             self.listwidget.addItem(item)
         self.refresh()
         
@@ -216,6 +243,7 @@ class PathManager(QDialog):
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.pathlist.pop(self.listwidget.currentRow())
+            self.remove_from_nalist(self.listwidget.currentItem().text())            
             self.update_list()
 
     @Slot()
@@ -228,6 +256,8 @@ class PathManager(QDialog):
             directory = osp.abspath(directory)
             self.last_path = directory
             if directory in self.pathlist:
+                item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
+                item.setCheckState(Qt.Checked)
                 answer = QMessageBox.question(self, _("Add path"),
                     _("This directory is already included in Spyder path "
                             "list.<br>Do you want to move it to the top of "
