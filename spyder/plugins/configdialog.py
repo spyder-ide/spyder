@@ -884,6 +884,16 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout = QHBoxLayout()
         margins_layout.addWidget(margin_box)
         margins_layout.addWidget(margin_spin)
+        
+        caret_box = newcb(_("Caret blinking:"),
+                           'use_custom_caret_blinking')
+        caret_spin = self.create_spinbox("", _("ms"), 'custom_caret_blinking',
+                                          0, 0, 5000)
+        caret_box.toggled.connect(caret_spin.setEnabled)
+        caret_spin.setEnabled(self.get_option('use_custom_caret_blinking'))
+        caret_layout = QHBoxLayout()
+        caret_layout.addWidget(caret_box)
+        caret_layout.addWidget(caret_spin)
 
         # Layout interface
         comboboxes_layout = QHBoxLayout()
@@ -902,6 +912,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_layout)
+        interface_layout.addLayout(caret_layout)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar
