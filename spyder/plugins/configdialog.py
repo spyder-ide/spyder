@@ -921,7 +921,6 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)        
         interface_layout.addLayout(margins_caret_layout)
-        interface_layout.addWidget(high_dpi_scaling_box)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar
