@@ -49,7 +49,11 @@ parser.add_argument('--server',
 parser.add_argument('--external-server',
                     action="store_true",
                     help="Do not start a local server")
+parser.add_argument('--debug',
+                    action='store_true',
+                    help='Display debug level log messages')
 
+args, unknownargs = parser.parse_known_args()
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
@@ -59,8 +63,12 @@ logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 logging.basicConfig(level=logging.ERROR, format=LOG_FORMAT)
 
 LOGGER = logging.getLogger(__name__)
-# LOGGER.setLevel(logging.DEBUG)
-coloredlogs.install(level='debug')
+
+LEVEL = 'info'
+if args.debug:
+    LEVEL = 'debug'
+
+coloredlogs.install(level=LEVEL)
 
 
 class IncomingMessageThread(Thread):
@@ -117,7 +125,7 @@ class LanguageServerClient:
                 stderr=subprocess.PIPE)
 
             LOGGER.info('Waiting server to start...')
-            time.sleep(2)
+            time.sleep(1)
 
         LOGGER.info('Connecting to language server at {0}:{1}'.format(
             self.host, self.port))
@@ -211,7 +219,6 @@ class LanguageServerClient:
 
 
 if __name__ == '__main__':
-    args, unknownargs = parser.parse_known_args()
     client = LanguageServerClient(host=args.server_host,
                                   port=args.server_port,
                                   workspace=args.folder,
@@ -223,3 +230,4 @@ if __name__ == '__main__':
         client.start()
     except KeyboardInterrupt:
         client.stop()
+        sys.exit(0)
