@@ -18,7 +18,7 @@ import os
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QMainWindow
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 # Local imports
 from spyder.config.gui import get_color_scheme
