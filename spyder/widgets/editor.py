@@ -22,7 +22,7 @@ from collections import MutableSequence
 from qtpy import is_pyqt46
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
-                         QThread, QTimer, Signal, Slot, QEvent)
+                         QThread, QTimer, Signal, Slot)
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
                             QMessageBox, QMenu, QSplitter, QVBoxLayout,
@@ -1896,7 +1896,6 @@ class EditorStack(QWidget):
         editor.get_completions.connect(introspector.get_completions)
         editor.sig_show_object_info.connect(introspector.show_object_info)
         editor.go_to_definition.connect(introspector.go_to_definition)
-        editor.installEventFilter(self)
 
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
                          self.introspector)
@@ -2169,23 +2168,24 @@ class EditorStack(QWidget):
                 editor.insert_text( source.text() )
         event.acceptProposedAction()
 
-    def eventFilter(self, widget, event):   
-        """
+    def keyReleaseEvent(self, event):
+        """Reimplement Qt method.
+
         Handle "most recent used" tab behavior,
         When ctrl is released and tab_switcher is visible, tab will be changed.
-        """              
-        if event.type() == QEvent.KeyRelease:
-            if (self.tabs_switcher is not None and 
-                self.tabs_switcher.isVisible()):
-                qsc = get_shortcut(context='Editor', name='Go to next file')
-                for key in qsc.split('+'):
-                    key = key.lower()
-                    if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
-                       (key == 'alt' and event.key() == Qt.Key_Alt)):
-                            self.tabs_switcher.item_selected()
-                            self.tabs_switcher = None    
-                            
-        return super(EditorStack, self).eventFilter(widget, event)
+        """
+        if self.tabs_switcher is not None and self.tabs_switcher.isVisible():
+            qsc = get_shortcut(context='Editor', name='Go to next file')
+
+            for key in qsc.split('+'):
+                key = key.lower()
+                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
+                   (key == 'alt' and event.key() == Qt.Key_Alt)):
+                        self.tabs_switcher.item_selected()
+                        self.tabs_switcher = None
+                        return
+
+        super(EditorStack, self).keyPressEvent(event)
 
 
 class EditorSplitter(QSplitter):
