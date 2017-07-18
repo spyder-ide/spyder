@@ -919,7 +919,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
-        interface_layout.addWidget(tear_off_box)        
+        interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_caret_layout)
         interface_group.setLayout(interface_layout)
 
