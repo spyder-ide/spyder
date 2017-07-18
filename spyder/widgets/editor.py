@@ -2185,7 +2185,7 @@ class EditorStack(QWidget):
                         self.tabs_switcher = None
                         return
 
-        super(EditorStack, self).keyPressEvent(event)
+        super(EditorStack, self).keyReleaseEvent(event)
 
 
 class EditorSplitter(QSplitter):
