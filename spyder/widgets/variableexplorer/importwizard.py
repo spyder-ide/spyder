@@ -22,9 +22,11 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
                             QSizePolicy, QSpacerItem, QTableView, QTabWidget,
                             QTextEdit, QVBoxLayout, QWidget)
 
+# If pandas fails to import here (for any reason), Spyder
+# will crash at startup.
 try:
     import pandas as pd
-except ImportError:
+except:
     pd = None
 
 # Local import
