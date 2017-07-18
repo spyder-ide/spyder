@@ -2522,6 +2522,11 @@ class MainWindow(QMainWindow):
 
         self.apply_panes_settings()
         self.apply_statusbar_settings()
+        
+        if CONF.get('main', 'use_custom_caret_blinking') is True:
+            qapp.setCursorFlashTime(CONF.get('main', 'custom_caret_blinking'))
+        else:
+            qapp.setCursorFlashTime(QApplication.cursorFlashTime())
 
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
