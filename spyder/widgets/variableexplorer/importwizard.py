@@ -60,7 +60,7 @@ class FakeObject(object):
     pass
 try:
     from numpy import ndarray, array
-except ImportError:
+except:
     class ndarray(FakeObject):  # analysis:ignore
         """Fake ndarray"""
         pass
@@ -69,7 +69,7 @@ except ImportError:
 import datetime
 try:
     from dateutil.parser import parse as dateparse
-except ImportError:
+except:
     def dateparse(datestr, dayfirst=True):  # analysis:ignore
         """Just for 'day/month/year' strings"""
         _a, _b, _c = list(map(int, datestr.split('/')))
