@@ -84,7 +84,7 @@ def test_shortest_path():
         shortest_path = os.path.join(*['c:','','documents','test','test.py'])
     assert sourcecode.shortest_path(files_path_list) == shortest_path
 
-def test_get_file_title():
+def test_disambiguate_fname():
     files_path_list = []
     if sys.platform.startswith('linux'):
         fname0 = os.path.join(*['','','documents','test','test.py'])
@@ -98,8 +98,8 @@ def test_get_file_title():
         files_path_list.append(fname1)
     title0 = 'test.py - ' + os.path.join(*['test'])
     title1 = 'test.py - ' + os.path.join(*['projects','test'])
-    assert sourcecode.get_file_title(files_path_list, fname0) == title0
-    assert sourcecode.get_file_title(files_path_list, fname1) == title1
+    assert sourcecode.disambiguate_fname(files_path_list, fname0) == title0
+    assert sourcecode.disambiguate_fname(files_path_list, fname1) == title1
 
 if __name__ == '__main__':
     pytest.main()

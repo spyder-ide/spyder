@@ -8,6 +8,14 @@ import socket
 import sys
 import time
 
+# This import is needed to fix errors with OpenGL when installed using pip
+# See issue #3332
+try:
+    from OpenGL import GL
+except ImportError:
+    # pyopengl is not present when installed using conda
+    pass
+
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.base import get_conf_path, running_in_mac_app

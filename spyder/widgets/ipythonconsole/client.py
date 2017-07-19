@@ -21,25 +21,28 @@ from threading import Thread
 import time
 
 # Third party imports (qtpy)
-from qtpy.QtCore import Qt, QUrl, Signal, Slot
+from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QToolButton,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import (_, get_conf_path, get_image_path,
-                                get_module_source_path)
+from spyder.config.base import _, get_image_path, get_module_source_path
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
+from spyder.utils.environ import RemoteEnvDialog
+from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, DialogManager,
+                                    MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
-from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.widgets.ipythonconsole import ShellWidget
+from spyder.widgets.mixins import SaveHistoryMixin
+from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 #-----------------------------------------------------------------------------
@@ -81,30 +84,35 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     to print different messages there.
     """
 
-    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
+    INITHISTORY = ['# -*- coding: utf-8 -*-',
+                   '# *** Spyder Python Console History Log ***',]
+
     append_to_history = Signal(str, str)
 
-    def __init__(self, plugin, name, history_filename, config_options,
+    def __init__(self, plugin, id_,
+                 history_filename, config_options,
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
-                 external_kernel=False):
+                 external_kernel=False, given_name=None):
         super(ClientWidget, self).__init__(plugin)
-        SaveHistoryMixin.__init__(self)
+        SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
-        self.name = name
-        self.history_filename = get_conf_path(history_filename)
+        self.id_ = id_
         self.connection_file = connection_file
         self.hostname = hostname
         self.menu_actions = menu_actions
         self.slave = slave
+        self.given_name = given_name
 
         # --- Other attrs
         self.options_button = None
         self.stop_button = None
         self.stop_icon = ima.icon('stop')
         self.history = []
+        self.allow_rename = True
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -138,6 +146,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # our loading animation
         document = self.get_control().document()
         document.contentsChange.connect(self._hide_loading_page)
+
+        # --- Dialog manager
+        self.dialog_manager = DialogManager()
 
     #------ Public API --------------------------------------------------------
     @property
@@ -191,6 +202,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executing.connect(
             self.shellwidget.change_mpl_backend)
 
+        # To show env and sys.path contents
+        self.shellwidget.sig_show_syspath.connect(self.show_syspath)
+        self.shellwidget.sig_show_env.connect(self.show_env)
+
+        #To sync global working directory
+        self.shellwidget.executing.connect(self.shellwidget.capture_dir_change)
+        self.shellwidget.executed.connect(self.shellwidget.get_cwd)
+
+        if not create_qss_style(self.shellwidget.syntax_style)[1]:
+            self.shellwidget.silent_execute("%colors linux")
+        else:
+            self.shellwidget.silent_execute("%colors lightbg")
+
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
 
@@ -232,8 +256,18 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_name(self):
         """Return client name"""
-        return ((_("Console") if self.hostname is None else self.hostname)
-                + " " + self.name)
+        if self.given_name is None:
+            # Name according to host
+            if self.hostname is None:
+                name = _("Console")
+            else:
+                name = self.hostname
+            # Adding id to name
+            client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
+            name = name + u' ' + client_id
+        else:
+            name = self.given_name + u'/' + self.id_['str_id']
+        return name
 
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
@@ -250,7 +284,25 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        return self.menu_actions
+        env_action = create_action(
+                        self,
+                        _("Show environment variables"),
+                        icon=ima.icon('environ'),
+                        triggered=self.shellwidget.get_env
+                     )
+        syspath_action = create_action(
+                            self,
+                            _("Show sys.path contents"),
+                            icon=ima.icon('syspath'),
+                            triggered=self.shellwidget.get_syspath
+                         )
+
+        additional_actions = [MENU_SEPARATOR, env_action, syspath_action]
+
+        if self.menu_actions is not None:
+            return self.menu_actions + additional_actions
+        else:
+            return additional_actions
 
     def get_toolbar_buttons(self):
         """Return toolbar buttons list."""
@@ -318,6 +370,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
+    def set_color_scheme(self, color_scheme):
+        """Set IPython color scheme."""
+        self.shellwidget.set_color_scheme(color_scheme)
+
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
@@ -380,6 +436,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = self._read_stderr()
             except:
                 stderr = None
+        except OSError:
+            stderr = None
 
         if stderr:
             self.show_kernel_error('<tt>%s</tt>' % stderr)
@@ -410,6 +468,23 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def update_history(self):
         self.history = self.shellwidget._history
+
+    @Slot(object)
+    def show_syspath(self, syspath):
+        """Show sys.path contents."""
+        if syspath is not None:
+            editor = CollectionsEditor()
+            editor.setup(syspath, title="sys.path contents", readonly=True,
+                         width=600, icon=ima.icon('syspath'))
+            self.dialog_manager.show(editor)
+        else:
+            return
+
+    @Slot(object)
+    def show_env(self, env):
+        """Show environment variables."""
+        self.dialog_manager.show(RemoteEnvDialog(env))
+
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
