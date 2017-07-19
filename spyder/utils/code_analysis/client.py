@@ -3,10 +3,10 @@
 """Spyder MS Language Server v3.0 client implementation."""
 
 import os
-import sys
 import zmq
 import json
 import time
+import signal
 import socket
 import logging
 import argparse
@@ -58,6 +58,9 @@ args, unknownargs = parser.parse_known_args()
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
 
+# LOG_FORMAT = ('%(asctime)s %(hostname)s %(name)s[%(process)d] '
+#               '(%(funcName)s: %(lineno)d) %(levelname)s %(message)s')
+
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 logging.basicConfig(level=logging.ERROR, format=LOG_FORMAT)
@@ -85,6 +88,7 @@ class IncomingMessageThread(Thread):
         while True:
             with self.mutex:
                 if self.stopped:
+                    LOGGER.debug('Stopping Thread...')
                     break
             try:
                 recv = self.socket.recv(4096)
@@ -92,6 +96,7 @@ class IncomingMessageThread(Thread):
                 self.zmq_sock.send_pyobj(recv)
             except socket.error:
                 pass
+        LOGGER.debug('Thread stopped.')
 
     def stop(self):
         with self.mutex:
@@ -160,7 +165,6 @@ class LanguageServerClient:
     def start(self):
         LOGGER.info('Ready to recieve/attend requests and responses!')
         self.reading_thread.start()
-        self.__listen()
 
     def stop(self):
         LOGGER.info('Sending shutdown instruction to server')
@@ -170,8 +174,13 @@ class LanguageServerClient:
         if self.is_local_server_running:
             LOGGER.info('Closing language server process...')
             self.server.terminate()
+        LOGGER.info('Closing TCP socket...')
+        self.socket.close()
         LOGGER.info('Closing consumer thread...')
         self.reading_thread.stop()
+        LOGGER.debug('Joining thread...')
+        self.reading_thread.join()
+        LOGGER.debug('Exit routine should be complete')
 
     def shutdown(self):
         method = 'shutdown'
@@ -185,16 +194,15 @@ class LanguageServerClient:
         request = self.__compose_request(method, params)
         self.__send_request(request)
 
-    def __listen(self):
-        while True:
-            events = self.zmq_socket.poll(TIMEOUT)
-            requests = []
-            while events > 0:
-                client_request = self.zmq_socket.recv_pyobj()
-                LOGGER.debug("Client Event: {0}".format(client_request))
-                requests.append(client_request)
-                server_request = self.__compose_request('None', {})
-                self.__send_request(server_request)
+    def listen(self):
+        events = self.zmq_socket.poll(TIMEOUT)
+        requests = []
+        while events > 0:
+            client_request = self.zmq_socket.recv_pyobj()
+            LOGGER.debug("Client Event: {0}".format(client_request))
+            requests.append(client_request)
+            server_request = self.__compose_request('None', {})
+            self.__send_request(server_request)
 
     def __compose_request(self, method, params):
         request = {
@@ -218,7 +226,32 @@ class LanguageServerClient:
         self.request_seq += 1
 
 
+class TerminateSignal(Exception):
+    """Terminal exception descriptor."""
+    pass
+
+
+class SignalManager:
+    """Manage and intercept SIGTERM and SIGKILL signals."""
+
+    def __init__(self):
+        self.original_sigint = signal.getsignal(signal.SIGINT)
+        self.original_sigterm = signal.getsignal(signal.SIGTERM)
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self, signum, frame):
+        LOGGER.info('Termination signal ({}) captured, '
+                    'initiating exit sequence'.format(signum))
+        raise TerminateSignal("Exit process!")
+
+    def restore(self):
+        signal.signal(signal.SIGINT, self.original_sigint)
+        signal.signal(signal.SIGTERM, self.original_sigterm)
+
+
 if __name__ == '__main__':
+    sig_manager = SignalManager()
     client = LanguageServerClient(host=args.server_host,
                                   port=args.server_port,
                                   workspace=args.folder,
@@ -226,8 +259,12 @@ if __name__ == '__main__':
                                   use_external_server=args.external_server,
                                   server=args.server,
                                   server_args=unknownargs)
+    client.start()
     try:
-        client.start()
-    except KeyboardInterrupt:
-        client.stop()
-        sys.exit(0)
+        while True:
+            client.listen()
+    except TerminateSignal:
+        pass
+    client.stop()
+    sig_manager.restore()
+    os.kill(os.getpid(), signal.SIGTERM)
