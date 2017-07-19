@@ -271,12 +271,7 @@ unittest.main = IPyTesProgram
 # Pandas adjustments
 #==============================================================================
 try:
-    # Make Pandas recognize our Jupyter consoles as proper qtconsoles
-    # Fixes Issue 2015
-    def in_qtconsole():
-        return True
     import pandas as pd
-    pd.core.common.in_qtconsole = in_qtconsole
 
     # Set Pandas output encoding
     pd.options.display.encoding = 'utf-8'
