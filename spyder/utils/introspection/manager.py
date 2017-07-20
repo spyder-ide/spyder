@@ -46,6 +46,10 @@ class PluginManager(QObject):
     def __init__(self, executable, extra_path=None):
 
         super(PluginManager, self).__init__()
+        self.setup(executable, extra_path)
+
+    def setup(self, executable, extra_path):
+        """Initialize the manager."""
         plugins = OrderedDict()
         for name in PLUGINS:
             try:
@@ -58,6 +62,8 @@ class PluginManager(QObject):
             debug_print('Introspection Plugin Loaded: %s' % name)
             plugins[name] = plugin
             plugin.received.connect(self.handle_response)
+        self.executable = executable
+        self.extra_path = extra_path
         self.plugins = plugins
         self.timer = QTimer()
         self.desired = []
@@ -67,6 +73,7 @@ class PluginManager(QObject):
         self.pending = None
         self.pending_request = None
         self.waiting = False
+        self.timeout_counter = 0
 
     def send_request(self, info):
         """Handle an incoming request from the user."""
@@ -155,6 +162,12 @@ class PluginManager(QObject):
         if self.pending:
             self._finalize(self.pending)
         else:
+            self.timeout_counter += 1
+            if self.timeout_counter > 5:
+                executable = self.executable
+                extra_path = self.extra_path
+                self.close()
+                self.setup(executable, extra_path)
             debug_print('No valid responses acquired')
 
 
@@ -184,6 +197,7 @@ class IntrospectionManager(QObject):
 
     def _restart_plugin(self):
         self.plugin_manager.close()
+        self.pending = None
         self.plugin_manager = PluginManager(self.executable,
                                             extra_path=self.extra_path)
         self.plugin_manager.introspection_complete.connect(
@@ -204,7 +218,6 @@ class IntrospectionManager(QObject):
         kwargs['editor'] = editor
         kwargs['finfo'] = finfo
         kwargs['editor_widget'] = self.editor_widget
-
         return CodeInfo(name, finfo.get_source_code(), position,
             finfo.filename, editor.is_python_like, in_comment_or_string,
             **kwargs)

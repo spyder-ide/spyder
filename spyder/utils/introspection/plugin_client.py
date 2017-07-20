@@ -151,6 +151,8 @@ class AsyncClient(QObject):
         if self.process is not None:
             self.process.waitForFinished(1000)
             self.process.close()
+            self.process.terminate()
+            self.process = None
         self.context.destroy()
 
     def _on_finished(self):
