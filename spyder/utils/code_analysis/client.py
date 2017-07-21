@@ -26,6 +26,7 @@ else:
 
 TIMEOUT = 5000
 PID = os.getpid()
+WINDOWS = os.name == 'nt'
 
 
 parser = argparse.ArgumentParser(
@@ -245,6 +246,9 @@ class SignalManager:
         self.original_sigterm = signal.getsignal(signal.SIGTERM)
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
+        if WINDOWS:
+            self.original_sigbreak = signal.getsignal(signal.CTRL_BREAK_EVENT)
+            signal.signal(signal.CTRL_BREAK_EVENT, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
         LOGGER.info('Termination signal ({}) captured, '
@@ -254,6 +258,8 @@ class SignalManager:
     def restore(self):
         signal.signal(signal.SIGINT, self.original_sigint)
         signal.signal(signal.SIGTERM, self.original_sigterm)
+        if WINDOWS:
+            signal.signal(signal.CTRL_BREAK_EVENT, self.original_sigbreak)
 
 
 if __name__ == '__main__':
