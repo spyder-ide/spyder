@@ -247,8 +247,8 @@ class SignalManager:
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
         if WINDOWS:
-            self.original_sigbreak = signal.getsignal(signal.CTRL_BREAK_EVENT)
-            signal.signal(signal.CTRL_BREAK_EVENT, self.exit_gracefully)
+            self.original_sigbreak = signal.getsignal(signal.SIGBREAK)
+            signal.signal(signal.SIGBREAK, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
         LOGGER.info('Termination signal ({}) captured, '
@@ -259,7 +259,7 @@ class SignalManager:
         signal.signal(signal.SIGINT, self.original_sigint)
         signal.signal(signal.SIGTERM, self.original_sigterm)
         if WINDOWS:
-            signal.signal(signal.CTRL_BREAK_EVENT, self.original_sigbreak)
+            signal.signal(signal.SIGBREAK, self.original_sigbreak)
 
 
 if __name__ == '__main__':
