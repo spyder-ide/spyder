@@ -6,6 +6,7 @@ import os
 import zmq
 import json
 import time
+import psutil
 import signal
 import socket
 import logging
@@ -130,7 +131,7 @@ class LanguageServerClient:
                 stderr=subprocess.PIPE)
 
             LOGGER.info('Waiting server to start...')
-            time.sleep(1)
+            time.sleep(3)
 
         LOGGER.info('Connecting to language server at {0}:{1}'.format(
             self.host, self.port))
@@ -171,11 +172,11 @@ class LanguageServerClient:
         self.shutdown()
         LOGGER.info('Stopping language server')
         self.exit()
+        LOGGER.info('Closing TCP socket...')
+        self.socket.close()
         if self.is_local_server_running:
             LOGGER.info('Closing language server process...')
             self.server.terminate()
-        LOGGER.info('Closing TCP socket...')
-        self.socket.close()
         LOGGER.info('Closing consumer thread...')
         self.reading_thread.stop()
         LOGGER.debug('Joining thread...')
@@ -221,7 +222,9 @@ class LanguageServerClient:
         LOGGER.debug('Sending request of type: {0}'.format(request['method']))
         LOGGER.debug(json_req)
 
-        self.socket.send(self.CONTENT_LENGTH.format(content_length))
+        content_length = self.CONTENT_LENGTH.format(
+            content_length).encode('utf-8')
+        self.socket.send(bytes(content_length))
         self.socket.send(content)
         self.request_seq += 1
 
@@ -251,6 +254,7 @@ class SignalManager:
 
 
 if __name__ == '__main__':
+    process = psutil.Process()
     sig_manager = SignalManager()
     client = LanguageServerClient(host=args.server_host,
                                   port=args.server_port,
@@ -267,4 +271,5 @@ if __name__ == '__main__':
         pass
     client.stop()
     sig_manager.restore()
-    os.kill(os.getpid(), signal.SIGTERM)
+    process.terminate()
+    process.wait()
