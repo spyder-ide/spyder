@@ -171,7 +171,10 @@ class LanguageServerClient:
         LOGGER.info('Sending shutdown instruction to server')
         self.shutdown()
         LOGGER.info('Stopping language server')
-        self.exit()
+        try:
+            self.exit()
+        except ConnectionAbortedError:
+            pass
         LOGGER.info('Closing TCP socket...')
         self.socket.close()
         if self.is_local_server_running:
