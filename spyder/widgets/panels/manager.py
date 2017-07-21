@@ -30,7 +30,8 @@ class PanelsManager(Manager):
             Panel.Position.TOP: {},
             Panel.Position.LEFT: {},
             Panel.Position.RIGHT: {},
-            Panel.Position.BOTTOM: {}
+            Panel.Position.BOTTOM: {},
+            Panel.Position.FLOATING: {}
         }
         try:
             editor.blockCountChanged.connect(self._update_viewport_margins)
@@ -53,7 +54,8 @@ class PanelsManager(Manager):
             Panel.Position.BOTTOM: 'bottom',
             Panel.Position.LEFT: 'left',
             Panel.Position.RIGHT: 'right',
-            Panel.Position.TOP: 'top'
+            Panel.Position.TOP: 'top',
+            Panel.Position.FLOATING: 'floating'
         }
         debug_print('adding panel {} at {}'.format(panel.name,
                                                    pos_to_string[position]))
@@ -205,6 +207,15 @@ class PanelsManager(Manager):
                 size_hint.height())
             bottom += size_hint.height()
 
+    def update_floating_panels(self):
+        """Update foating panels."""
+        crect = self.editor.contentsRect()
+        panels = self.panels_for_zone(Panel.Position.FLOATING)
+        for panel in panels:
+            if not panel.isVisible():
+                continue
+            panel.set_geometry(crect)
+
     def _update(self, rect, delta_y, force_update_margins=False):
         """Updates panels."""
         if not self:
@@ -225,6 +236,7 @@ class PanelsManager(Manager):
         if (rect.contains(self.editor.viewport().rect()) or
                 force_update_margins):
             self._update_viewport_margins()
+        self.update_floating_panels()
 
     def _update_viewport_margins(self):
         """Update viewport margins."""

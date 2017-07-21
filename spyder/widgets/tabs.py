@@ -16,26 +16,129 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy.QtCore import QByteArray, QMimeData, QPoint, Qt, Signal
+from qtpy import PYQT5
+from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, Qt, Signal,
+                         Slot)
 from qtpy.QtGui import QDrag
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
-                            QTabWidget, QWidget)
+                            QTabWidget, QWidget, QLineEdit)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, to_binary_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 
 
+class EditTabNamePopup(QLineEdit):
+    """Popup on top of the tab to edit its name."""
+
+    def __init__(self, parent, split_char, split_index):
+        """Popup on top of the tab to edit its name."""
+
+        # Variables
+        # Parent (main)
+        self.main = parent if parent is not None else self.parent()
+        self.split_char = split_char
+        self.split_index = split_index
+
+        # Track which tab is being edited
+        self.tab_index = None
+
+        # Widget setup
+        QLineEdit.__init__(self, parent=None)
+
+        # Slot to handle tab name update
+        self.editingFinished.connect(self.edit_finished)
+
+        # Even filter to catch clicks and ESC key
+        self.installEventFilter(self)
+
+        # Clean borders and no shadow to blend with tab
+        if PYQT5:
+            self.setWindowFlags(
+                Qt.Popup |
+                Qt.FramelessWindowHint |
+                Qt.NoDropShadowWindowHint
+            )
+        else:
+            self.setWindowFlags(
+                Qt.Popup |
+                Qt.FramelessWindowHint
+            )
+        self.setFrame(False)
+
+        # Align with tab name
+        self.setTextMargins(9, 0, 0, 0)
+
+    def eventFilter(self, widget, event):
+        """Catch clicks outside the object and ESC key press."""
+        if ((event.type() == QEvent.MouseButtonPress and
+                 not self.geometry().contains(event.globalPos())) or
+                (event.type() == QEvent.KeyPress and
+                 event.key() == Qt.Key_Escape)):
+            # Exits editing
+            self.hide()
+            self.setFocus(False)
+            return True
+
+        # Event is not interessant, raise to parent
+        return QLineEdit.eventFilter(self, widget, event)
+
+    def edit_tab(self, index):
+        """Activate the edit tab."""
+
+        # Sets focus, shows cursor
+        self.setFocus(True)
+
+        # Updates tab index
+        self.tab_index = index
+
+        # Gets tab size and shrinks to avoid overlapping tab borders
+        rect = self.main.tabRect(index)
+        rect.adjust(1, 1, -2, -1)
+
+        # Sets size
+        self.setFixedSize(rect.size())
+
+        # Places on top of the tab
+        self.move(self.main.mapToGlobal(rect.topLeft()))
+
+        # Copies tab name and selects all
+        text = self.main.tabText(index)
+        text = text.replace(u'&', u'')
+        if self.split_char:
+            text = text.split(self.split_char)[self.split_index]
+
+        self.setText(text)
+        self.selectAll()
+
+        if not self.isVisible():
+            # Makes editor visible
+            self.show()
+
+    def edit_finished(self):
+        """On clean exit, update tab name."""
+        # Hides editor
+        self.hide()
+
+        if isinstance(self.tab_index, int) and self.tab_index >= 0:
+            # We are editing a valid tab, update name
+            tab_text = to_text_string(self.text())
+            self.main.setTabText(self.tab_index, tab_text)
+            self.main.sig_change_name.emit(tab_text)
+
+
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     sig_move_tab = Signal((int, int), (str, int, int))
+    sig_change_name = Signal(str)
     
-    def __init__(self, parent, ancestor):
+    def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
+                 split_index=0):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
 
@@ -47,6 +150,15 @@ class TabBar(QTabBar):
         self.__drag_start_pos = QPoint()
         self.setAcceptDrops(True)
         self.setUsesScrollButtons(True)
+
+        # Tab name editor
+        self.rename_tabs = rename_tabs
+        if self.rename_tabs:
+            # Creates tab name editor
+            self.tab_name_editor = EditTabNamePopup(self, split_char,
+                                                    split_index)
+        else:
+            self.tab_name_editor = None
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -61,21 +173,18 @@ class TabBar(QTabBar):
                 QApplication.startDragDistance():
             drag = QDrag(self)
             mimeData = QMimeData()
-            # Converting id's to long to avoid an OverflowError with PySide
-            if PY2:
-                ancestor_id = long(id(self.ancestor))
-                parent_widget_id = long(id(self.parentWidget()))
-                self_id = long(id(self))
-            else:
-                ancestor_id = id(self.ancestor)
-                parent_widget_id = id(self.parentWidget())
-                self_id = id(self)
-            mimeData.setData("parent-id", QByteArray.number(ancestor_id))
+
+            ancestor_id = to_text_string(id(self.ancestor))
+            parent_widget_id = to_text_string(id(self.parentWidget()))
+            self_id = to_text_string(id(self))
+            source_index = to_text_string(self.tabAt(self.__drag_start_pos))
+
+            mimeData.setData("parent-id", to_binary_string(ancestor_id))
             mimeData.setData("tabwidget-id",
-                             QByteArray.number(parent_widget_id))
-            mimeData.setData("tabbar-id", QByteArray.number(self_id))
-            mimeData.setData("source-index", 
-                         QByteArray.number(self.tabAt(self.__drag_start_pos)))
+                             to_binary_string(parent_widget_id))
+            mimeData.setData("tabbar-id", to_binary_string(self_id))
+            mimeData.setData("source-index", to_binary_string(source_index))
+
             drag.setMimeData(mimeData)
             drag.exec_()
         QTabBar.mouseMoveEvent(self, event)
@@ -83,21 +192,23 @@ class TabBar(QTabBar):
     def dragEnterEvent(self, event):
         """Override Qt method"""
         mimeData = event.mimeData()
-        formats = list( mimeData.formats() )
+        formats = list(mimeData.formats())
+
         if "parent-id" in formats and \
-           mimeData.data("parent-id").toLong()[0] == id(self.ancestor):
+          int(mimeData.data("parent-id")) == id(self.ancestor):
             event.acceptProposedAction()
+
         QTabBar.dragEnterEvent(self, event)
     
     def dropEvent(self, event):
         """Override Qt method"""
         mimeData = event.mimeData()
-        index_from = mimeData.data("source-index").toInt()[0]
+        index_from = int(mimeData.data("source-index"))
         index_to = self.tabAt(event.pos())
         if index_to == -1:
             index_to = self.count()
-        if mimeData.data("tabbar-id").toLong()[0] != id(self):
-            tabwidget_from = str(mimeData.data("tabwidget-id").toLong()[0])
+        if int(mimeData.data("tabbar-id")) != id(self):
+            tabwidget_from = to_text_string(mimeData.data("tabwidget-id"))
             
             # We pass self object ID as a QString, because otherwise it would 
             # depend on the platform: long for 64bit, int for 32bit. Replacing 
@@ -105,13 +216,25 @@ class TabBar(QTabBar):
             # (see Issue 1094, Issue 1098)
             self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
                                                     index_to)
-
             event.acceptProposedAction()
         elif index_from != index_to:
             self.sig_move_tab.emit(index_from, index_to)
             event.acceptProposedAction()
         QTabBar.dropEvent(self, event)
-        
+
+    def mouseDoubleClickEvent(self, event):
+        """Override Qt method to trigger the tab name editor."""
+        if self.rename_tabs is True and \
+                event.buttons() == Qt.MouseButtons(Qt.LeftButton):
+            # Tab index
+            index = self.tabAt(event.pos())
+            if index >= 0:
+                # Tab is valid, call tab name editor
+                self.tab_name_editor.edit_tab(index)
+        else:
+            # Event is not interesting, raise to parent
+            QTabBar.mouseDoubleClickEvent(self, event)
+
         
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
@@ -284,10 +407,15 @@ class Tabs(BaseTabs):
     sig_move_tab = Signal(str, str, int, int)
     
     def __init__(self, parent, actions=None, menu=None,
-                 corner_widgets=None, menu_use_tooltips=False):
+                 corner_widgets=None, menu_use_tooltips=False,
+                 rename_tabs=False, split_char='',
+                 split_index=0):
         BaseTabs.__init__(self, parent, actions, menu,
                           corner_widgets, menu_use_tooltips)
-        tab_bar = TabBar(self, parent)
+        tab_bar = TabBar(self, parent,
+                         rename_tabs=rename_tabs,
+                         split_char=split_char,
+                         split_index=split_index)
         tab_bar.sig_move_tab.connect(self.move_tab)
         tab_bar.sig_move_tab[(str, int, int)].connect(
                                           self.move_tab_from_another_tabwidget)
@@ -312,6 +440,7 @@ class Tabs(BaseTabs):
             index = self.currentIndex()+delta
         self.setCurrentIndex(index)
 
+    @Slot(int, int)
     def move_tab(self, index_from, index_to):
         """Move tab inside a tabwidget"""
         self.move_data.emit(index_from, index_to)
@@ -327,6 +456,7 @@ class Tabs(BaseTabs):
         self.setCurrentWidget(current_widget)
         self.move_tab_finished.emit()
 
+    @Slot(str, int, int)
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):
         """Move tab from a tabwidget to another"""
@@ -335,5 +465,5 @@ class Tabs(BaseTabs):
         # depend on the platform: long for 64bit, int for 32bit. Replacing 
         # by long all the time is not working on some 32bit platforms 
         # (see Issue 1094, Issue 1098)
-        self.sig_move_tab.emit(tabwidget_from, str(id(self)), index_from,
-                               index_to)
+        self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
+                               index_from, index_to)

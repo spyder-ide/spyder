@@ -8,25 +8,21 @@
 This module contains the edge line panel
 """
 
-from qtpy.QtWidgets import QWidget
 from qtpy.QtCore import Qt, QRect, QPoint
 from qtpy.QtGui import QPainter, QColor
 
 from spyder.py3compat import is_text_string
+from spyder.api.panel import Panel
 
-class EdgeLine(QWidget):
+class EdgeLine(Panel):
     """Source code editor's edge line (default: 79 columns, PEP8)"""
 
     # --- Qt Overrides
     # -----------------------------------------------------------------
-    def __init__(self, editor, color=Qt.darkGray, columns=(79,)):
-        QWidget.__init__(self, editor)
-        self.editor = editor
-        self.columns = columns
-        self.color = color
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
-
-        self._enabled = True
+    def __init__(self, editor):
+        Panel.__init__(self, editor)
+        self.columns = (79,)
+        self.color = Qt.darkGray
 
     def paintEvent(self, event):
         """Override Qt method"""

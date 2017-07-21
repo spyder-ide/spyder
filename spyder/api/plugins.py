@@ -18,7 +18,7 @@ import os
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QMainWindow
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 # Local imports
 from spyder.config.gui import get_color_scheme
@@ -52,6 +52,11 @@ class PluginWidget(BasePluginWidget):
         """Bind widget to a QMainWindow instance."""
         BasePluginWidget.__init__(self, main)
         assert self.CONF_SECTION is not None
+
+        # Check compatibility
+        check_compatibility, message = self.check_compatibility()
+        if not check_compatibility:
+            self.show_compatibility_message(message)
 
         self.PLUGIN_PATH = os.path.dirname(inspect.getfile(self.__class__))
         self.main = main
@@ -173,6 +178,16 @@ class PluginWidget(BasePluginWidget):
         """Get current color scheme."""
         return get_color_scheme(CONF.get('color_schemes', 'selected'))
 
+    def show_compatibility_message(self, message):
+        """Show compatibility message."""
+        messageBox = QMessageBox(self)
+        messageBox.setWindowModality(Qt.NonModal)
+        messageBox.setAttribute(Qt.WA_DeleteOnClose)
+        messageBox.setWindowTitle('Compatibility Check')
+        messageBox.setText(message)
+        messageBox.setStandardButtons(QMessageBox.Ok)
+        messageBox.show()
+
 
 class SpyderPluginWidget(PluginWidget):
     """
@@ -284,3 +299,15 @@ class SpyderPluginWidget(PluginWidget):
         This must be reimplemented by plugins that need to adjust their fonts.
         """
         pass
+
+    def check_compatibility(self):
+        """
+        This method can be implemented to check compatibility of a plugin
+        for a given condition.
+
+        `message` should give information in case of non compatibility:
+        For example: 'This plugin does not work with Qt4'
+        """
+        message = ''
+        valid = True
+        return valid, message

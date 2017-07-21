@@ -13,15 +13,22 @@ from textwrap import dedent
 
 from flaky import flaky
 from ipykernel.serialize import serialize_object
+from pygments.token import Name
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
 
+from spyder.config.gui import get_color_scheme
+from spyder.config.main import CONF
 from spyder.py3compat import PY2
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
+from spyder.utils.environ import listdict2envdict
+from spyder.utils.ipython.style import create_style_class
 from spyder.utils.test import close_message_box
+from spyder.plugins.variableexplorer.widgets.viewers.collections import (
+        CollectionsEditor)
 
 
 #==============================================================================
@@ -29,6 +36,7 @@ from spyder.utils.test import close_message_box
 #==============================================================================
 SHELL_TIMEOUT = 20000
 PYQT_WHEEL = PYQT_VERSION > '5.6'
+TEMP_DIRECTORY = tempfile.gettempdir()
 
 
 #==============================================================================
@@ -41,6 +49,16 @@ def open_client_from_connection_info(connection_info, qtbot):
             w.cf.setText(connection_info)
             qtbot.keyClick(w, Qt.Key_Enter)
 
+def get_console_font_color(syntax_style):
+    styles = create_style_class(syntax_style).styles
+    font_color = styles[Name]
+
+    return font_color
+
+def get_console_background_color(style_sheet):
+    background_color = style_sheet.split('background-color:')[1]
+    background_color = background_color.split(';')[0]
+    return background_color
 
 #==============================================================================
 # Qt Test Fixtures
@@ -60,6 +78,124 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
+def test_console_disambiguation(ipyconsole, qtbot):
+    """Test the disambiguation of dedicated consoles."""
+    # Create directories and file for TEMP_DIRECTORY/a/b/c.py
+    # and TEMP_DIRECTORY/a/d/c.py
+    dir_b = osp.join(TEMP_DIRECTORY, 'a', 'b')
+    filename_b =  osp.join(dir_b, 'c.py')
+    if not osp.isdir(dir_b):
+        os.makedirs(dir_b)
+    if not osp.isfile(filename_b):
+        file_c = open(filename_b, 'w+')
+        file_c.close()
+    dir_d = osp.join(TEMP_DIRECTORY, 'a', 'd')
+    filename_d =  osp.join(dir_d, 'c.py')
+    if not osp.isdir(dir_d):
+        os.makedirs(dir_d)
+    if not osp.isfile(filename_d):
+        file_e = open(filename_d, 'w+')
+        file_e.close()
+
+    # Create new client and assert name without disambiguation
+    ipyconsole.create_client_for_file(filename_b)
+    client = ipyconsole.get_current_client()
+    assert client.get_name() == 'c.py/A'
+
+    # Create new client and assert name with disambiguation
+    ipyconsole.create_client_for_file(filename_d)
+    client = ipyconsole.get_current_client()
+    assert client.get_name() == 'c.py - d/A'
+    ipyconsole.tabwidget.setCurrentIndex(1)
+    client = ipyconsole.get_current_client()
+    assert client.get_name() == 'c.py - b/A'
+
+
+@flaky(max_runs=3)
+def test_console_coloring(ipyconsole, qtbot):
+
+    config_options = ipyconsole.config_options()
+
+    syntax_style = config_options.JupyterWidget.syntax_style
+    style_sheet = config_options.JupyterWidget.style_sheet
+    console_font_color = get_console_font_color(syntax_style)
+    console_background_color = get_console_background_color(style_sheet)
+
+    selected_color_scheme = CONF.get('color_schemes', 'selected')
+    color_scheme = get_color_scheme(selected_color_scheme)
+    editor_background_color = color_scheme['background']
+    editor_font_color = color_scheme['normal'][0]
+
+    console_background_color = console_background_color.replace("'", "")
+    editor_background_color = editor_background_color.replace("'", "")
+    console_font_color = console_font_color.replace("'", "")
+    editor_font_color = editor_font_color.replace("'", "")
+
+    assert console_background_color.strip() == editor_background_color.strip()
+    assert console_font_color.strip() == editor_font_color.strip()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_get_env(ipyconsole, qtbot):
+    """Test that showing env var contents is working as expected."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Add a new entry to os.environ
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; os.environ['FOO'] = 'bar'" )
+
+    # Ask for os.environ contents
+    with qtbot.waitSignal(shell.sig_show_env):
+        shell.get_env()
+
+    # Get env contents from the generated widget
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, CollectionsEditor):
+            env_contents = w.get_value()
+            qtbot.keyClick(w, Qt.Key_Enter)
+
+    # Assert that our added entry is part of os.environ
+    env_contents = listdict2envdict(env_contents)
+    assert env_contents['FOO'] == 'bar'
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_get_syspath(ipyconsole, qtbot):
+    """Test that showing sys.path contents is working as expected."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Add a new entry to sys.path
+    with qtbot.waitSignal(shell.executed):
+        tmp_dir = tempfile.mkdtemp()
+        shell.execute("import sys, tempfile; sys.path.append('%s')" % tmp_dir)
+
+    # Ask for sys.path contents
+    with qtbot.waitSignal(shell.sig_show_syspath):
+        shell.get_syspath()
+
+    # Get sys.path contents from the generated widget
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, CollectionsEditor):
+            syspath_contents = w.get_value()
+            qtbot.keyClick(w, Qt.Key_Enter)
+
+    # Assert that our added entry is part of sys.path
+    assert tmp_dir in syspath_contents
+
+    # Remove temporary directory
+    try:
+        os.rmdir(tmp_dir)
+    except:
+        pass
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_browse_history_dbg(ipyconsole, qtbot):
@@ -385,7 +521,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
-    assert new_client.name == '1/B'
+    assert new_client.id_ == dict(int_id='1', str_id='B')
 
 
 @flaky(max_runs=3)
@@ -434,7 +570,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     with qtbot.waitSignal(new_shell.executed):
         new_shell.execute('a = 10')
 
-    assert new_client.name == '1/B'
+    assert new_client.id_ == dict(int_id='1', str_id='B')
     assert shell.get_value('a') == new_shell.get_value('a')
 
 

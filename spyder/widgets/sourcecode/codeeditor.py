@@ -60,6 +60,7 @@ from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
 from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
+from spyder.widgets.panels.indentationguides import IndentationGuide
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
@@ -227,6 +228,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # To have these attrs when early viewportEvent's are triggered
     edge_line = None
+    indent_guides = None
 
     breakpoints_changed = Signal()
     get_completions = Signal(bool)
@@ -273,7 +275,12 @@ class CodeEditor(TextEditBaseWidget):
         self._panels = PanelsManager(self)
 
         # 79-col edge line
-        self.edge_line = EdgeLine(self)
+        self.edge_line = self.panels.register(EdgeLine(self),
+                                              Panel.Position.FLOATING)
+
+        # indent guides
+        self.indent_guides = self.panels.register(IndentationGuide(self),
+                                                  Panel.Position.FLOATING)
 
         # Blanks enabled
         self.blanks_enabled = False
@@ -286,7 +293,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
-        self.updateRequest.connect(self.linenumberarea.update_)
         
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
@@ -354,6 +360,18 @@ class CodeEditor(TextEditBaseWidget):
 
         # Update breakpoints if the number of lines in the file changes
         self.blockCountChanged.connect(self.update_breakpoints)
+
+        # Highlight using Pygments highlighter timer
+        # ---------------------------------------------------------------------
+        # For files that use the PygmentsSH we parse the full file inside
+        # the highlighter in order to generate the correct coloring.
+        self.timer_syntax_highlight = QTimer(self)
+        self.timer_syntax_highlight.setSingleShot(True)
+        # We wait 300 ms to trigger a new coloring as this value is a good
+        # proxy for estimating when an user has stopped typing
+        self.timer_syntax_highlight.setInterval(300)
+        self.timer_syntax_highlight.timeout.connect(
+            self.run_pygments_highlighter)
 
         # Mark occurrences timer
         self.occurrence_highlighting = None
@@ -433,6 +451,12 @@ class CodeEditor(TextEditBaseWidget):
                                               context='Editor',
                                               name='Transform to lowercase',
                                               parent=self)
+
+        indent = config_shortcut(lambda: self.indent(force=True),
+                                 context='Editor', name='Indent', parent=self)
+        unindent = config_shortcut(lambda: self.unindent(force=True),
+                                   context='Editor', name='Unindent',
+                                   parent=self)
 
         def cb_maker(attr):
             """Make a callback for cursor move event type, (e.g. "Start")
@@ -517,7 +541,8 @@ class CodeEditor(TextEditBaseWidget):
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
                 kill_next_word, start_doc, end_doc, undo, redo, cut, copy,
-                paste, delete, select_all, array_inline, array_table]
+                paste, delete, select_all, array_inline, array_table, indent,
+                unindent]
 
     def get_shortcut_data(self):
         """
@@ -567,7 +592,8 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500, show_class_func_dropdown=True):
+                     occurrence_timeout=1500, show_class_func_dropdown=True,
+                     indent_guides=False):
         
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
@@ -588,6 +614,13 @@ class CodeEditor(TextEditBaseWidget):
         # Edge line
         self.edge_line.set_enabled(edge_line)
         self.edge_line.set_columns(edge_line_columns)
+
+        # Indent guides
+        self.indent_guides.set_enabled(indent_guides)
+        if self.indent_chars == '\t':
+            self.indent_guides.set_indentation_width(self.tab_stop_width_spaces)
+        else:
+            self.indent_guides.set_indentation_width(len(self.indent_chars))
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
@@ -1160,12 +1193,6 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).showEvent(event)
         self.panels.refresh()
 
-    #-----edgeline
-    def viewportEvent(self, event):
-        """Override Qt method"""
-        cr = self.contentsRect()
-        self.edge_line.set_geometry(cr)
-        return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----Misc.
     def _apply_highlighter_color_scheme(self):
@@ -1185,6 +1212,7 @@ class CodeEditor(TextEditBaseWidget):
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
             self.edge_line.update_color()
+            self.indent_guides.update_color()
 
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
@@ -1564,7 +1592,34 @@ class CodeEditor(TextEditBaseWidget):
                                     QTextCursor.KeepAnchor, len(prefix))
                 cursor.removeSelectedText()
 
-    def fix_indent(self, forward=True, comment_or_string=False):
+
+    def fix_indent(self, *args, **kwargs):
+        """Indent line according to the preferences"""
+        if self.is_python_like():
+            return self.fix_indent_smart(*args, **kwargs)
+        else:
+            return self.simple_indentation(*args, **kwargs)
+
+
+    def simple_indentation(self, forward=True, **kwargs):
+        """
+        Simply preserve the indentation-level of the previous line.
+        """
+        cursor = self.textCursor()
+        block_nb = cursor.blockNumber()
+        prev_block = self.document().findBlockByLineNumber(block_nb-1)
+        prevline = to_text_string(prev_block.text())
+
+        indentation = re.match(r"\s*", prevline).group()
+        # Unident
+        if not forward:
+            indentation = indentation[len(self.indent_chars):]
+
+        cursor.insertText(indentation)
+        return False  # simple indentation don't fix indentation
+
+
+    def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
         forward=True: fix indent only if text is not enough indented
@@ -1872,6 +1927,16 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.comment()
 
+    def is_comment(self, block):
+        """Detect inline comments.
+
+        Return True if the block is an inline comment.
+        """
+        if block is None:
+            return False
+        text = to_text_string(block.text()).lstrip()
+        return text.startswith(self.comment_string)
+
     def comment(self):
         """Comment current line or selection."""
         self.add_prefix(self.comment_string)
@@ -1881,7 +1946,7 @@ class CodeEditor(TextEditBaseWidget):
         self.remove_prefix(self.comment_string)
 
     def __blockcomment_bar(self):
-        return self.comment_string + '='*(79-len(self.comment_string))
+        return self.comment_string + ' ' + '=' * (78 - len(self.comment_string))
 
     def transform_to_uppercase(self):
         """Change to uppercase current line or selection."""
@@ -2358,6 +2423,11 @@ class CodeEditor(TextEditBaseWidget):
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
 
+    def keyReleaseEvent(self, event):
+        """Override Qt method."""
+        self.timer_syntax_highlight.start()
+        super(CodeEditor, self).keyReleaseEvent(event)
+
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         self.key_pressed.emit(event)
@@ -2427,6 +2497,10 @@ class CodeEditor(TextEditBaseWidget):
                 self.run_cell_and_advance.emit()
             elif ctrl:
                 self.run_cell.emit()
+        elif shift and key == Qt.Key_Delete:
+            # Shift + Del is a Key sequence reserved by most OSes
+            # https://github.com/spyder-ide/spyder/issues/3405
+            self.delete_line()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
@@ -2541,6 +2615,11 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+
+    def run_pygments_highlighter(self):
+        """Run pygments highlighter."""
+        if isinstance(self.highlighter, sh.PygmentsSH):
+            self.highlighter.make_charlist()
 
     def handle_parentheses(self, text):
         """Handle left and right parenthesis depending on editor config."""

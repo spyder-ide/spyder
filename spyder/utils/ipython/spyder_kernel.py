@@ -238,9 +238,32 @@ class SpyderKernel(IPythonKernel):
         if valid:
             return getsource(obj)
 
+    # --- Additional methods
     def set_cwd(self, dirname):
         """Set current working directory."""
         return os.chdir(dirname)
+
+    def get_cwd(self):
+        """Get current working directory."""
+        return os.getcwd()
+
+    def get_syspath(self):
+        """Return sys.path contents."""
+        import sys
+        return sys.path[:]
+
+    def get_env(self):
+        """Get environment variables."""
+        return os.environ.copy()
+
+    def close_all_mpl_figures(self):
+        """Close all Matplotlib figures."""
+        try:
+            import matplotlib.pyplot as plt
+            plt.close('all')
+            del plt
+        except:
+            pass
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer

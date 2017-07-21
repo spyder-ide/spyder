@@ -25,7 +25,7 @@ def setup_dependencies(qtbot):
 def test_dependencies(qtbot):
     """Run dependency widget test."""
     # Test sample
-    dependencies.add("IPython", "Enhanced Python interpreter", ">=0.13")
+    dependencies.add("zmq", "Run introspection services", ">=10.0")
     dependencies.add("foo", "Non-existent module", ">=1.0")
 
     dlg = setup_dependencies(qtbot)

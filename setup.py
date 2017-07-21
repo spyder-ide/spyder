@@ -272,7 +272,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
-    'rope_py3k' if PY3 else 'rope>=0.9.4',
+    'rope>=0.10.5',
     'jedi>=0.9.0',
     'pyflakes',
     'pygments>=2.0',
@@ -287,8 +287,13 @@ install_requires = [
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
-    'numpydoc',
+    'numpydoc'
 ]
+
+# This is needed only for pip installations on Linux.
+# See issue #3332
+if any([arg.startswith('manylinux1') for arg in sys.argv]):
+    install_requires = install_requires + ['pyopengl']
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
@@ -296,6 +301,7 @@ extras_require = {
              'pytest-qt',
              'pytest-cov',
              'pytest-xvfb',
+             'pytest-timeout',
              'mock',
              'flaky',
              'pandas',

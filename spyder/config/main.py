@@ -93,7 +93,7 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
-              'show_internal_console_if_traceback': True,
+              'show_internal_console_if_traceback': False,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
               # Global Spyder fonts
@@ -136,27 +136,6 @@ DEFAULTS = [
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
-              }),
-            ('console',
-             {
-              'max_line_count': 500,
-              'wrap': True,
-              'single_tab': True,
-              'calltips': True,
-              'codecompletion/auto': True,
-              'codecompletion/enter_key': True,
-              'codecompletion/case_sensitive': True,
-              'show_elapsed_time': False,
-              'show_icontext': False,
-              'monitor/enabled': True,
-              'qt/api': 'default',
-              'matplotlib/backend/value': 0,
-              'light_background': True,
-              'merge_output_channels': os.name != 'nt',
-              'colorize_sys_stderr': os.name != 'nt',
-              'pythonstartup/default': True,
-              'pythonstartup/custom': False,
-              'ets_backend': 'qt4'
               }),
             ('ipython_console',
              {
@@ -215,6 +194,7 @@ DEFAULTS = [
               'blank_spaces': False,
               'edge_line': True,
               'edge_line_columns': '79',
+              'indent_guides': False,
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
@@ -301,15 +281,12 @@ DEFAULTS = [
               }),
             ('workingdir',
              {
-              'editor/open/browse_scriptdir': True,
-              'editor/open/browse_workdir': False,
-              'editor/new/browse_scriptdir': False,
-              'editor/new/browse_workdir': True,
-              'editor/open/auto_set_to_basedir': False,
-              'editor/save/auto_set_to_basedir': False,
               'working_dir_adjusttocontents': False,
               'working_dir_history': 20,
-              'startup/use_last_directory': True,
+              'startup/use_project_or_home_directory': True,
+              'console/use_project_or_home_directory': True,
+              'console/use_cwd': False,
+              'console/use_fixed_directory': False,
               }),
             ('shortcuts',
              {
@@ -368,6 +345,8 @@ DEFAULTS = [
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
+              'editor/indent': 'Ctrl+]',
+              'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
               'editor/go to definition': "Ctrl+G",
@@ -656,7 +635,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '37.1.0'
+CONF_VERSION = '39.0.0'
 
 # Main configuration instance
 try:
