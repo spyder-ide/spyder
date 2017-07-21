@@ -108,6 +108,7 @@ class IncomingMessageThread(Thread):
 class LanguageServerClient:
     """Implementation of a v3.0 compilant language server client."""
     CONTENT_LENGTH = 'Content-Length: {0}\r\n\r\n'
+    MAX_TIMEOUT_TIME = 5000
 
     def __init__(self, host='127.0.0.1', port=2087, workspace=getcwd(),
                  use_external_server=False, zmq_port=7000,
@@ -131,13 +132,27 @@ class LanguageServerClient:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
 
-            LOGGER.info('Waiting server to start...')
-            time.sleep(3)
-
         LOGGER.info('Connecting to language server at {0}:{1}'.format(
             self.host, self.port))
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.host, int(self.port)))
+        connected = False
+
+        initial_time = time.time()
+        while not connected:
+            try:
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket.connect((self.host, int(self.port)))
+                connected = True
+            except:
+                pass
+
+            if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
+                break
+
+        if not connected:
+            LOGGER.error("The client was unable to establish a connection "
+                         "with the language server, terminating process...")
+            raise TerminateSignal('Error!')
+
         self.socket.setblocking(False)
 
         LOGGER.info('Initializing server connection...')
