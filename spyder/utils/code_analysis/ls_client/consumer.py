@@ -4,6 +4,7 @@
 
 
 import os
+import json
 import socket
 import logging
 from threading import Thread, Lock
@@ -22,6 +23,7 @@ class IncomingMessageThread(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.stopped = False
+        self.expect_body = False
         self.mutex = Lock()
 
     def initialize(self, sock, zmq_sock, req_status):
@@ -38,10 +40,45 @@ class IncomingMessageThread(Thread):
             try:
                 recv = self.socket.recv(4096)
                 LOGGER.debug(recv)
-                self.zmq_sock.send_pyobj(recv)
+                err, body = self.process_response(recv)
+                if not err and body is not None:
+                    LOGGER.debug(body)
+                    self.zmq_sock.send_pyobj(body)
             except socket.error:
                 pass
         LOGGER.debug('Thread stopped.')
+
+    def process_response(self, response):
+        err = True
+        body = None
+        msg_parts = response.split('\r\n\r\n')
+        if len(msg_parts) == 1:
+            if self.expect_body:
+                body = msg_parts[0]
+                try:
+                    body = json.loads(body)
+                    err = False
+                    self.expect_body = False
+                except ValueError:
+                    pass
+        elif len(msg_parts) == 2:
+            headers, body = msg_parts
+            if len(body) == 0:
+                headers = headers.split(';')
+                if headers[0].startswith('Content-Length'):
+                    self.expect_body = True
+                    err = False
+            else:
+                try:
+                    body = json.loads(body)
+                    err = False
+                    self.expect_body = False
+                except ValueError:
+                    pass
+        if err:
+            LOGGER.debug('Invalid message recieved, discarding')
+
+        return err, body
 
     def stop(self):
         with self.mutex:
