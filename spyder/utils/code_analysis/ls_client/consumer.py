@@ -39,7 +39,7 @@ class IncomingMessageThread(Thread):
                     break
             try:
                 recv = self.socket.recv(4096)
-                LOGGER.debug(recv)
+                # LOGGER.debug(recv)
                 err, body = self.process_response(recv)
                 if not err and body is not None:
                     LOGGER.debug(body)
@@ -76,7 +76,7 @@ class IncomingMessageThread(Thread):
                 except ValueError:
                     pass
         if err:
-            LOGGER.debug('Invalid message recieved, discarding')
+            LOGGER.error('Invalid message recieved, discarding')
 
         return err, body
 

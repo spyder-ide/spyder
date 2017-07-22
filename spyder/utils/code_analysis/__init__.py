@@ -17,6 +17,8 @@ if DEV:
     TRACE = 'verbose'
 
 
+# -------------------- CLIENT CONFIGURATION SETTINGS --------------------------
+
 # WorkspaceClientCapabilities define capabilities the
 # editor / tool provides on the workspace
 
@@ -221,4 +223,156 @@ TEXT_EDITOR_CAPABILITES = {
 EDITOR_CAPABILITES = {
     "workspace": WORKSPACE_CAPABILITIES,
     "textDocument": TEXT_EDITOR_CAPABILITES
+}
+
+
+# -------------------- SERVER CONFIGURATION SETTINGS --------------------------
+
+# Text document synchronization mode constants
+
+class TextDocumentSyncKind:
+    """Text document synchronization modes supported by a lsp-server"""
+    NONE = 0  # Text synchronization is not supported
+    FULL = 1  # Text synchronization requires all document contents
+    INCREMENTAL = 2  # Partial text synchronization is supported
+
+
+# Save options.
+
+SAVE_OPTIONS = {
+    # The client is supposed to include the content on save.
+    'includeText': False
+}
+
+# Text synchronization capabilities
+
+TEXT_DOCUMENT_SYNC_OPTIONS = {
+    # Open and close notifications are sent to the server.
+    'openClose': False,
+
+    # Change notificatins are sent to the server.
+    # See TextDocumentSyncKind.NONE, TextDocumentSyncKind.FULL
+    # and TextDocumentSyncKind.INCREMENTAL.
+    'change': TextDocumentSyncKind.NONE,
+
+    # Will save notifications are sent to the server.
+    'willSave': False,
+
+    # Will save wait until requests are sent to the server.
+    'willSaveWaitUntil': False,
+
+    # Save notifications are sent to the server.
+    'save': SAVE_OPTIONS
+}
+
+
+# Code completion options
+
+COMPLETION_OPTIONS = {
+    # The server provides support to resolve additional
+    # information for a completion item.
+    'resolveProvider': False,
+
+    # The characters that trigger completion automatically.
+    'triggerCharacters': []
+}
+
+# Signature help options
+
+SIGNATURE_HELP_OPTIONS = {
+    # The characters that trigger signature help automatically.
+    'triggerCharacters': []
+}
+
+# Code lens options
+
+CODE_LENS_OPTIONS = {
+    # Code lens has a resolve provider as well.
+    'resolveProvider': False
+}
+
+# Format document on type options
+
+DOCUMENT_ON_TYPE_FORMATTING_OPTIONS = {
+    # A character on which formatting should be triggered, like `}`.
+    'firstTriggerCharacter': None,
+
+    # More trigger characters.
+    'moreTriggerCharacter': [],
+}
+
+
+# Document link options
+
+DOCUMENT_LINK_OPTIONS = {
+    # Document links have a resolve provider as well.
+    'resolveProvider': False
+}
+
+# Execute command options.
+
+EXECUTE_COMMAND_OPTIONS = {
+    # The commands to be executed on the server
+    'commands': []
+}
+
+
+# Server available capabilites options as defined by the protocol.
+
+SERVER_CAPABILITES = {
+    # Defines how text documents are synced.
+    # Is either a detailed structure defining each notification or
+    # for backwards compatibility the TextDocumentSyncKind number.
+    'textDocumentSync': TEXT_DOCUMENT_SYNC_OPTIONS,
+
+    # The server provides hover support.
+    'hoverProvider': False,
+
+    # The server provides completion support.
+    'completionProvider': COMPLETION_OPTIONS,
+
+    # The server provides signature help support.
+    'signatureHelpProvider': SIGNATURE_HELP_OPTIONS,
+
+    # The server provides goto definition support.
+    'definitionProvider': False,
+
+    # The server provides find references support.
+    'referencesProvider': False,
+
+    # The server provides document highlight support.
+    'documentHighlightProvider': False,
+
+    # The server provides document symbol support.
+    'documentSymbolProvider': False,
+
+    # The server provides workspace symbol support.
+    'workspaceSymbolProvider': False,
+
+    # The server provides code actions.
+    'codeActionProvider': False,
+
+    # The server provides code lens.
+    'codeLensProvider': CODE_LENS_OPTIONS,
+
+    # The server provides document formatting.
+    'documentFormattingProvider': False,
+
+    # The server provides document range formatting.
+    'documentRangeFormattingProvider': False,
+
+    # The server provides document formatting on typing.
+    'documentOnTypeFormattingProvider': DOCUMENT_ON_TYPE_FORMATTING_OPTIONS,
+
+    # The server provides rename support.
+    'renameProvider': False,
+
+    # The server provides document link support.
+    'documentLinkProvider': DOCUMENT_LINK_OPTIONS,
+
+    # The server provides execute command support.
+    'executeCommandProvider': EXECUTE_COMMAND_OPTIONS,
+
+    # Experimental server capabilities.
+    'experimental': None
 }
