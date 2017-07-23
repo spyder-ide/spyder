@@ -152,7 +152,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             if self.get_option('console/use_project_or_home_directory'):
                 workdir = get_home_dir()
             else:
-                workdir = self.get_option('console/fixed_directory')
+                workdir = self.get_option('console/fixed_directory', default='')
                 if not osp.isdir(workdir):
                     workdir = get_home_dir()
         self.chdir(workdir)
