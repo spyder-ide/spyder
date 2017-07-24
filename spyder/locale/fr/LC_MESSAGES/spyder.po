@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2017-07-11 13:28+COT\n"
-"PO-Revision-Date: 2016-11-17 19:16-0500\n"
+"PO-Revision-Date: 2017-07-17 10:58-0500\n"
 "Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.2\n"
 
 #: spyder/app/mainwindow.py:126
 msgid "Initializing..."
@@ -47,6 +47,10 @@ msgid ""
 "your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</"
 "b></span><br>"
 msgstr ""
+"Une erreur s’est produite lors de la création d’un websocket requis par "
+"Spyder. S’il vous plaît, essayez d’exécuter la commande suivante comme "
+"administrateur dans une console cmd.exe, puis redémarrez votre ordinateur :"
+"<br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
 
 #: spyder/app/mainwindow.py:535
 msgid "Close current pane"
@@ -73,13 +77,12 @@ msgid "Fast switch between files"
 msgstr "Commutateur de fichiers"
 
 #: spyder/app/mainwindow.py:569
-#, fuzzy
 msgid "Symbol finder..."
-msgstr "Dossier..."
+msgstr "Recherche de symboles…"
 
 #: spyder/app/mainwindow.py:571
 msgid "Fast symbol search in file"
-msgstr ""
+msgstr "Recherche rapide de symboles dans le fichier"
 
 #: spyder/app/mainwindow.py:590 spyder/widgets/sourcecode/codeeditor.py:2656
 msgid "Undo"
@@ -373,9 +376,8 @@ msgid "Spyder tutorial"
 msgstr "Tutoriel de Spyder"
 
 #: spyder/app/mainwindow.py:959
-#, fuzzy
 msgid "Shortcuts Summary"
-msgstr "Raccourci clavier"
+msgstr "Sommaire des raccourcis"
 
 #: spyder/app/mainwindow.py:965
 msgid "Interactive tours"
@@ -911,9 +913,8 @@ msgid "Configuration files"
 msgstr "Configurations"
 
 #: spyder/config/utils.py:48
-#, fuzzy
 msgid "Markdown files"
-msgstr "Fichiers Json"
+msgstr "Fichiers Markdown"
 
 #: spyder/config/utils.py:52 spyder/widgets/explorer.py:779
 msgid "All files"
@@ -1093,23 +1094,22 @@ msgid "Show CPU usage every"
 msgstr "Afficher la charge du CPU toutes les"
 
 #: spyder/plugins/configdialog.py:953
-#, fuzzy
 msgid "Screen resolution"
-msgstr "Résolution :"
+msgstr "Résolution d’écran"
 
 #: spyder/plugins/configdialog.py:955
 msgid ""
 "Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</"
 "a><> for more information about these options (in English)."
 msgstr ""
+"Configuration pour les écrans PPP/DPI élevés<br><br>Consultez <a "
+"href=“{0}”>{0}</a><> pour plus d’informations sur ces options (en anglais)."
 
 #: spyder/plugins/configdialog.py:965
-#, fuzzy
 msgid "Normal"
-msgstr "Texte normal :"
+msgstr "Normal"
 
 #: spyder/plugins/configdialog.py:969
-#, fuzzy
 msgid "Enable auto high DPI scaling"
 msgstr "Activer la mise à l'échelle pour les écrans à haute résolution"
 
@@ -1118,20 +1118,24 @@ msgid "Set this for high DPI displays"
 msgstr "Sélectionner pour les écrans à haute résolution"
 
 #: spyder/plugins/configdialog.py:976
-#, fuzzy
 msgid "Set a custom high DPI scaling"
-msgstr "Activer la mise à l'échelle pour les écrans à haute résolution"
+msgstr ""
+"Définissez une mise à l’échelle personnalisée pour les écrans à haute "
+"résolution"
 
 #: spyder/plugins/configdialog.py:979
-#, fuzzy
 msgid "Set this for high DPI displays when auto scaling does not work"
-msgstr "Sélectionner pour les écrans à haute résolution"
+msgstr ""
+"Réglez ceci pour les écrans à haute résolution élevés lorsque la mise à "
+"l’échelle automatique ne fonctionne pas"
 
 #: spyder/plugins/configdialog.py:985
 msgid ""
 "Enter values for different screens separated by semicolons ';', float values "
 "are supported"
 msgstr ""
+"Entrez les valeurs pour différents écrans séparés par des points-virgules "
+"‘;’, les valeurs de virgule flottante sont prises en charge"
 
 #: spyder/plugins/configdialog.py:1012
 msgid "Plain text font"
@@ -1291,10 +1295,14 @@ msgid ""
 "<br><br>You can automatically submit this error to our Github issues tracker."
 "<br><br><i>Note:</i> You need a Github account for that."
 msgstr ""
+"<b>Spyder a rencontré un problème. </b> <br> Désolé pour les inconvénients. "
+"<br><br>Vous pouvez envoyer automatiquement cette erreur à notre agent de "
+"suivi des problèmes sur Github. <br><br><i>Remarque:</i> Vous avez besoin "
+"d’un compte Github pour cela."
 
 #: spyder/plugins/console.py:230
 msgid "Submit to Github"
-msgstr ""
+msgstr "Soumettre à Github"
 
 #: spyder/plugins/console.py:281
 msgid "Run Python script"
@@ -1469,9 +1477,8 @@ msgid "Tab stop width:"
 msgstr "Largeur des tabulations :"
 
 #: spyder/plugins/editor.py:212
-#, fuzzy
 msgid "spaces"
-msgstr "2 espaces"
+msgstr "espaces"
 
 #: spyder/plugins/editor.py:224
 msgid "Tab always indent"
@@ -1533,7 +1540,6 @@ msgid "Real-time code style analysis"
 msgstr "Analyse de code en temps réel dans l'éditeur"
 
 #: spyder/plugins/editor.py:257
-#, fuzzy
 msgid ""
 "<p>If enabled, Python source code will be analyzed using pycodestyle, lines "
 "that are not following PEP8 style guide will be highlighted.</p><p><u>Note</"
@@ -1541,17 +1547,17 @@ msgid ""
 "warnings.</p>"
 msgstr ""
 "<p>Si cette option est activée, le style du code source Python sera analysé "
-"avec l'outil d'introspection de code pep8 et les lignes ne suivant pas les "
+"avec l'outil d'introspection de code PEP8 et les lignes ne suivant pas les "
 "recommandations officielles seront indiquées.</p><p><u>Note</u>: rajouter "
 "<b>analysis:ignore</b> dans un commentaire pour ignorer les avertissements "
 "d'analyse de code.</p>"
 
 #: spyder/plugins/editor.py:264
-#, fuzzy
 msgid ""
 "Code annotations (TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, "
 "OPTIMIZE, !!!, ???)"
-msgstr "Tâches (TODO, FIXME, XXX, HINT, TIP, @todo)"
+msgstr ""
+"Tâches (TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???)"
 
 #: spyder/plugins/editor.py:268
 msgid "Perform analysis when saving file and every"
@@ -1603,14 +1609,12 @@ msgid "New file"
 msgstr "Nouveau fichier"
 
 #: spyder/plugins/editor.py:646
-#, fuzzy
 msgid "O&pen last closed"
-msgstr "Ouvrir une nouvelle console"
+msgstr "O&uvrir le dernier fermé"
 
 #: spyder/plugins/editor.py:647
-#, fuzzy
 msgid "Open last closed"
-msgstr "Ouvrir une nouvelle console"
+msgstr "Ouvert dernier fermé"
 
 #: spyder/plugins/editor.py:653
 msgid "&Open..."
@@ -1654,14 +1658,12 @@ msgid "Save current file as..."
 msgstr "Enregistrer le fichier en cours d'édition sous un autre nom..."
 
 #: spyder/plugins/editor.py:684
-#, fuzzy
 msgid "Save copy as..."
-msgstr "Enregistrer sous..."
+msgstr "Sauvegarder copie sous…"
 
 #: spyder/plugins/editor.py:685
-#, fuzzy
 msgid "Save copy of current file as..."
-msgstr "Enregistrer le fichier en cours d'édition sous un autre nom..."
+msgstr "Enregistrez la copie du fichier actuel sous…"
 
 #: spyder/plugins/editor.py:688 spyder/plugins/editor.py:689
 msgid "Print preview..."
@@ -1775,9 +1777,8 @@ msgid "Run file"
 msgstr "Exécuter le fichier"
 
 #: spyder/plugins/editor.py:801
-#, fuzzy
 msgid "&Configuration per file..."
-msgstr "Configurations"
+msgstr "&Configuration par fichier…"
 
 #: spyder/plugins/editor.py:803
 msgid "Run settings"
@@ -1822,14 +1823,12 @@ msgstr ""
 "(voir la documentation de l'Editeur, pour plus de détails sur les cellules)"
 
 #: spyder/plugins/editor.py:846 spyder/widgets/sourcecode/codeeditor.py:2699
-#, fuzzy
 msgid "Re-run last cell"
-msgstr "Exécuter de nouveau le dernier script"
+msgstr "Exécuter de nouveau le dernier cellule"
 
 #: spyder/plugins/editor.py:847
-#, fuzzy
 msgid "Re run last cell "
-msgstr "Exécuter de nouveau le dernier script"
+msgstr "Exécuter de nouveau la dernière cellule "
 
 #: spyder/plugins/editor.py:857
 msgid "Show todo list"
@@ -1839,6 +1838,8 @@ msgstr "Afficher la liste des tâches"
 msgid ""
 "Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/OPTIMIZE/!!!/???)"
 msgstr ""
+"Afficher la liste des commentaires (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/"
+"OPTIMIZE/!!!/???)"
 
 #: spyder/plugins/editor.py:866
 msgid "Show warning/error list"
@@ -2236,9 +2237,8 @@ msgid "Symbolic mathematics in the IPython Console"
 msgstr "Mathématiques symboliques pour la console IPython"
 
 #: spyder/plugins/ipythonconsole.py:68
-#, fuzzy
 msgid "Run Cython files in the IPython Console"
-msgstr "Mathématiques symboliques pour la console IPython"
+msgstr "Exécutez les fichiers Cython dans la console IPython"
 
 #: spyder/plugins/ipythonconsole.py:72
 msgid "Integrate the IPython console"
@@ -2246,7 +2246,7 @@ msgstr "Intégrer la console IPython"
 
 #: spyder/plugins/ipythonconsole.py:76
 msgid "IPython interactive python environment"
-msgstr ""
+msgstr "Environnement python interactif IPython"
 
 #: spyder/plugins/ipythonconsole.py:127
 msgid ""
@@ -2670,9 +2670,8 @@ msgid "Open a new IPython console connected to an existing kernel"
 msgstr "Ouvrir une nouvelle console IPython connecté à un noyau existant"
 
 #: spyder/plugins/ipythonconsole.py:771
-#, fuzzy
 msgid "Rename tab"
-msgstr "Renommer"
+msgstr "Renommer l’onglet"
 
 #: spyder/plugins/ipythonconsole.py:878
 msgid ""
@@ -2687,6 +2686,8 @@ msgid ""
 "The directory {} is not writable and it is required to create IPython "
 "consoles. Please make it writable."
 msgstr ""
+"Le répertoire {} n’est pas accessible en écriture et il est nécessaire de "
+"créer des consoles IPython. Créez le chemin d’accès accessible en écriture."
 
 #: spyder/plugins/ipythonconsole.py:961
 msgid ""
@@ -2715,13 +2716,12 @@ msgstr ""
 "que celle-ci ?"
 
 #: spyder/plugins/ipythonconsole.py:1279
-#, fuzzy
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was {0}"
 msgstr ""
-"Impossible de convertir ce notebook. Message d'erreur:\n"
-"\n"
+"Il n’a pas été possible de redémarrer la console IPython lors du passage à "
+"ce projet. L’erreur était la suivante: {0}"
 
 #: spyder/plugins/ipythonconsole.py:1369
 msgid ""
@@ -2730,6 +2730,10 @@ msgid ""
 "symbols).<br><br>To fix it, please <b>reinstall</b> Spyder in a different "
 "location."
 msgstr ""
+"Cette erreur est probablement causée par l’installation de Spyder dans un "
+"répertoire avec des caractères non ascii (c’est-à-dire des caractères avec "
+"des tildes, des apostrophes ou des symboles non latins).<br><br> Pour le "
+"réparer, <b>réinstallez</b> Spyder dans un endroit différent."
 
 #: spyder/plugins/ipythonconsole.py:1552
 msgid "IPython"
@@ -2848,6 +2852,9 @@ msgid ""
 "You selected an invalid Python interpreter for the console so the previous "
 "interpreter will stay. Please make sure to select a valid one."
 msgstr ""
+"Vous avez sélectionné un interpréteur Python non valide pour la console afin "
+"que l’interprète précédent reste. Assurez-vous de sélectionner un interprète "
+"valide."
 
 #: spyder/plugins/maininterpreter.py:176
 msgid ""
@@ -2943,17 +2950,14 @@ msgid "<b>%s</b> is not a Spyder project!"
 msgstr "<b>%s</b> n'est pas un projet Spyder!"
 
 #: spyder/plugins/runconfig.py:29
-#, fuzzy
 msgid "Execute in current console"
-msgstr "Exécuter dans la console Python ou IPython active"
+msgstr "Exécuter dans la console actuelle"
 
 #: spyder/plugins/runconfig.py:30
-#, fuzzy
 msgid "Execute in a dedicated console"
-msgstr "Exécuter dans une nouvelle console Python dédiée"
+msgstr "Exécuter dans une nouvelle console dédiée"
 
 #: spyder/plugins/runconfig.py:31
-#, fuzzy
 msgid "Execute in an external system terminal"
 msgstr "Exécuter dans un terminal système externe"
 
@@ -2962,16 +2966,12 @@ msgid "Always show %s on a first file run"
 msgstr "Toujours afficher %s lors de la première exécution d'un script"
 
 #: spyder/plugins/runconfig.py:45
-#, fuzzy
 msgid "Clear all variables before execution"
-msgstr "Effacer toutes les variables avant l'exécution (consoles IPython)"
+msgstr "Effacer toutes les variables avant l'exécution"
 
 #: spyder/plugins/runconfig.py:46
-#, fuzzy
 msgid "Directly enter debugging when errors appear"
-msgstr ""
-"Entrer dans le mode de débogage si des erreurs apparaissent pendant "
-"l'exécution"
+msgstr "Entrez directement le débogage lorsque des erreurs apparaissent"
 
 #: spyder/plugins/runconfig.py:47
 msgid "Interact with the Python console after execution"
@@ -2979,17 +2979,15 @@ msgstr "Interagir avec la console Python après l'exécution"
 
 #: spyder/plugins/runconfig.py:49
 msgid "The directory of the file being executed"
-msgstr ""
+msgstr "Le répertoire du fichier en cours d’exécution"
 
 #: spyder/plugins/runconfig.py:50 spyder/plugins/workingdirectory.py:90
-#, fuzzy
 msgid "The current working directory"
-msgstr "Changer le répertoire de travail"
+msgstr "Le répertoire de travail actuel"
 
 #: spyder/plugins/runconfig.py:51
-#, fuzzy
 msgid "The following directory:"
-msgstr "le répertoire suivant :"
+msgstr "le répertoire suivant:"
 
 #: spyder/plugins/runconfig.py:184 spyder/plugins/runconfig.py:503
 msgid "General settings"
@@ -3000,14 +2998,12 @@ msgid "Command line options:"
 msgstr "Options en ligne de commande :"
 
 #: spyder/plugins/runconfig.py:202 spyder/plugins/runconfig.py:513
-#, fuzzy
 msgid "Working Directory settings"
-msgstr "Répertoire de travail"
+msgstr "Paramètres du répertoire de travail"
 
 #: spyder/plugins/runconfig.py:226 spyder/plugins/runconfig.py:546
-#, fuzzy
 msgid "External system terminal"
-msgstr "Exécuter dans un terminal système externe"
+msgstr "Terminal système externe"
 
 #: spyder/plugins/runconfig.py:241
 msgid "<b>-u</b> is added to the other options you set here"
@@ -3034,20 +3030,18 @@ msgid "Select a run configuration:"
 msgstr "Sélectionner une configuration d'exécution :"
 
 #: spyder/plugins/runconfig.py:454
-#, fuzzy
 msgid "Run configuration per file"
-msgstr "Configuration d'exécution"
+msgstr "Exécuter la configuration par fichier"
 
 #: spyder/plugins/runconfig.py:479
-#, fuzzy
 msgid ""
 "The following are the default options for running files.These options may be "
 "overriden using the <b>Configuration per file</b> entry of the <b>Run</b> "
 "menu."
 msgstr ""
-"La page suivante présente les réglages par défaut pour les <i>%s</i>. Ces "
-"réglages peuvent être remplacés à tout moment en utilisant la boîte de "
-"dialogue <b>%s</b> (voir le menu <b>%s</b>)"
+"Voici les options par défaut pour l’exécution des fichiers. Ces options "
+"peuvent être remplacées en utilisant l’entrée <b> Configuration par fichier "
+"</b> du menu <b> Exécuter </b>."
 
 #: spyder/plugins/runconfig.py:515
 msgid "Default working directory is:"
@@ -3059,15 +3053,17 @@ msgstr "la fenêtre Options d'exécution"
 
 #: spyder/plugins/shortcuts.py:65
 msgid "Currently used to delete lines on editor"
-msgstr ""
+msgstr "Actuellement utilisé pour supprimer des lignes sur l’éditeur"
 
 #: spyder/plugins/shortcuts.py:69
 msgid "We cannot support this shortcut on Windows"
-msgstr ""
+msgstr "Nous ne pouvons pas prendre en charge ce raccourci sur Windows"
 
 #: spyder/plugins/shortcuts.py:72
 msgid "Shortcuts that use Shift and another key are unsupported"
 msgstr ""
+"Les raccourcis qui utilisent `Shift` et une autre touche ne sont pas pris en "
+"charge"
 
 #: spyder/plugins/shortcuts.py:149
 msgid ""
@@ -3097,13 +3093,12 @@ msgid "Please introduce a different shortcut"
 msgstr "Merci d'utiliser un raccourci clavier différent"
 
 #: spyder/plugins/shortcuts.py:325
-#, fuzzy
 msgid "The new shortcut conflicts with:"
-msgstr "Le nouveau raccourci "
+msgstr "Le nouveau raccourci est en conflit avec"
 
 #: spyder/plugins/shortcuts.py:334 spyder/plugins/shortcuts.py:343
 msgid "Forbidden key sequence!"
-msgstr ""
+msgstr "Séquence de clé interdite!"
 
 #: spyder/plugins/shortcuts.py:354
 msgid ""
@@ -3190,50 +3185,45 @@ msgid ""
 "The <b>current working directory</b> is the working directory for IPython "
 "consoles and the current directory for the File Explorer."
 msgstr ""
+"Le <b>répertoire de travail actuel</b> est le répertoire de travail pour les "
+"consoles IPython et le répertoire actuel pour l’Explorateur de fichiers."
 
 #: spyder/plugins/workingdirectory.py:45
-#, fuzzy
 msgid "At startup, the current working directory is:"
-msgstr "Au démarrage, le répertoire de travail global est :"
+msgstr "Au démarrage, le répertoire de travail global est:"
 
 #: spyder/plugins/workingdirectory.py:49 spyder/plugins/workingdirectory.py:83
 msgid ""
 "The current project directory or user home directory (if no project is "
 "active)"
 msgstr ""
+"Le répertoire actuel du projet ou le répertoire d’accueil de l’utilisateur "
+"(si aucun projet n’est actif)"
 
 #: spyder/plugins/workingdirectory.py:54
-#, fuzzy
 msgid "At startup,"
-msgstr "Démarrage"
+msgstr "Au démarrage,"
 
 #: spyder/plugins/workingdirectory.py:57 spyder/plugins/workingdirectory.py:96
 msgid "the following directory:"
 msgstr "le répertoire suivant :"
 
 #: spyder/plugins/workingdirectory.py:59
-#, fuzzy
 msgid "At startup, the current working directory will be the specified path"
-msgstr ""
-"Au démarrage, le répertoire de travail global sera le chemin d'accès "
-"spécifié ici"
+msgstr "Au démarrage, le répertoire de travail actuel sera le chemin spécifié"
 
 #: spyder/plugins/workingdirectory.py:78
-#, fuzzy
 msgid "Console directory"
-msgstr "Sélectionner un répertoire"
+msgstr "Répertoire de la console"
 
 #: spyder/plugins/workingdirectory.py:79
-#, fuzzy
 msgid "The working directory for new consoles is:"
-msgstr "Le répertoire de travail par défaut est :"
+msgstr "Le répertoire de travail pour les nouvelles consoles est:"
 
 #: spyder/plugins/workingdirectory.py:98
-#, fuzzy
 msgid "The directory when a new console is open will be the specified path"
 msgstr ""
-"Au démarrage, le répertoire de travail global sera le chemin d'accès "
-"spécifié ici"
+"Le répertoire quand une nouvelle console est ouverte sera le chemin spécifié"
 
 #: spyder/plugins/workingdirectory.py:159
 msgid "Back"
@@ -3267,9 +3257,8 @@ msgid "Change to parent directory"
 msgstr "Aller au répertoire parent"
 
 #: spyder/plugins/workingdirectory.py:217 spyder/widgets/findinfiles.py:261
-#, fuzzy
 msgid "Current working directory"
-msgstr "Changer le répertoire de travail"
+msgstr "Le répertoire de travail actuel"
 
 #: spyder/utils/codeanalysis.py:92
 msgid "Real-time code analysis on the Editor"
@@ -3589,9 +3578,8 @@ msgid "Copy to clipboard"
 msgstr "Copier dans le presse-papier"
 
 #: spyder/widgets/editor.py:467
-#, fuzzy
 msgid "Find symbols in file..."
-msgstr "Recherche dans des fichiers"
+msgstr "Rechercher des symboles dans le fichier…"
 
 #: spyder/widgets/editor.py:470
 msgid "Copy path to clipboard"
@@ -3606,14 +3594,12 @@ msgid "Close all but this"
 msgstr "Fermer tout sauf cet onglet"
 
 #: spyder/widgets/editor.py:480 spyder/widgets/explorer.py:359
-#, fuzzy
 msgid "Show in Finder"
-msgstr "Afficher les numéros de ligne"
+msgstr "Afficher dans le Finder"
 
 #: spyder/widgets/editor.py:482 spyder/widgets/explorer.py:361
-#, fuzzy
 msgid "Show in external file explorer"
-msgstr "Afficher l'explorateur de structure"
+msgstr "Afficher dans l’explorateur de fichiers externe"
 
 #: spyder/widgets/editor.py:1152
 msgid "Temporary file"
@@ -3818,9 +3804,8 @@ msgid "Open terminal here"
 msgstr "Ouvrir un terminal ici"
 
 #: spyder/widgets/explorer.py:405
-#, fuzzy
 msgid "Open IPython console here"
-msgstr "Ouvrir une console &Python ici"
+msgstr "Ouvrir une console IPython ici"
 
 #: spyder/widgets/explorer.py:419
 msgid "New"
@@ -4034,27 +4019,28 @@ msgstr "Exclure :"
 #: spyder/widgets/findinfiles.py:264
 msgid "Search in all files and directories present on thecurrent Spyder path"
 msgstr ""
+"Recherchez dans tous les fichiers et répertoires présents sur le chemin "
+"actuel de Spyder"
 
 #: spyder/widgets/findinfiles.py:268
-#, fuzzy
 msgid "Project"
-msgstr "&Projets"
+msgstr "Projets"
 
 #: spyder/widgets/findinfiles.py:269
 msgid ""
 "Search in all files and directories present on thecurrent project path (If "
 "opened)"
 msgstr ""
+"Recherchez dans tous les fichiers et répertoires présents sur le chemin de "
+"projet actuel (si ouvert)"
 
 #: spyder/widgets/findinfiles.py:275
-#, fuzzy
 msgid "File"
-msgstr "&Fichier"
+msgstr "Fichier"
 
 #: spyder/widgets/findinfiles.py:276
-#, fuzzy
 msgid "Search in current opened file"
-msgstr "Rechercher une chaîne de caractères dans plusieurs fichiers à la fois"
+msgstr "Recherche dans le fichier ouvert actuel"
 
 #: spyder/widgets/findinfiles.py:306
 msgid "Hide advanced options"
@@ -4077,16 +4063,17 @@ msgid "file"
 msgstr "fichier"
 
 #: spyder/widgets/findinfiles.py:698
+#, fuzzy
 msgid " Scanning: {0}"
-msgstr ""
+msgstr " Scanning: {0}"
 
 #: spyder/widgets/findinfiles.py:700
 msgid " Searching for files in folder: {0}"
-msgstr ""
+msgstr "Recherche de fichiers dans le dossier: {0}"
 
 #: spyder/widgets/findinfiles.py:704
 msgid "  Searching for files..."
-msgstr ""
+msgstr "Recherche de fichiers …"
 
 #: spyder/widgets/findreplace.py:65
 msgid "Search string"
@@ -4113,14 +4100,12 @@ msgid "Replace string"
 msgstr "Chaîne de caractères de remplacement"
 
 #: spyder/widgets/findreplace.py:129
-#, fuzzy
 msgid "Replace/find next"
-msgstr "Remplacer/rechercher"
+msgstr "Remplacer/rechercher suivant"
 
 #: spyder/widgets/findreplace.py:134
-#, fuzzy
 msgid "Replace selection"
-msgstr "Chaîne de caractères de remplacement"
+msgstr "Remplacer la sélection"
 
 #: spyder/widgets/findreplace.py:142
 msgid "Replace all"
@@ -4167,9 +4152,8 @@ msgid "An error ocurred while starting the kernel"
 msgstr "Une erreur est survenue lors du démarrage du noyau."
 
 #: spyder/widgets/ipythonconsole/client.py:289
-#, fuzzy
 msgid "Show environment variables"
-msgstr "Variables d'environnement"
+msgstr "Afficher les variables d’environnement"
 
 #: spyder/widgets/ipythonconsole/client.py:295
 msgid "Show sys.path contents"
@@ -4230,10 +4214,13 @@ msgstr "Arguments"
 #: spyder/widgets/ipythonconsole/namespacebrowser.py:126
 msgid "Loading this kind of data while debugging is not supported."
 msgstr ""
+"Le chargement de ce type de données alors que le déboggage n’est pas pris en "
+"charge."
 
 #: spyder/widgets/ipythonconsole/namespacebrowser.py:145
 msgid "Saving data while debugging is not supported."
 msgstr ""
+"L’enregistrement de données lors du déboggage n’est pas pris en charge."
 
 #: spyder/widgets/ipythonconsole/shell.py:205
 msgid "Reset IPython namespace"
@@ -4253,12 +4240,11 @@ msgstr "Utilisation du backend Qt pour Mayavi"
 
 #: spyder/widgets/ipythonconsole/shell.py:415
 msgid "Kernel died, restarting"
-msgstr ""
+msgstr "Kernel est mort, redémarré"
 
 #: spyder/widgets/ipythonconsole/shell.py:415
-#, fuzzy
 msgid "Kernel restarting"
-msgstr "Redémarrage"
+msgstr "Redémarrage du kernel"
 
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
@@ -4517,9 +4503,8 @@ msgid "Clear shell contents ('cls' command)"
 msgstr "Effacer le contenu de la console"
 
 #: spyder/widgets/shortcutssummary.py:42
-#, fuzzy
 msgid "Spyder Keyboard ShortCuts"
-msgstr "Raccourcis clavier"
+msgstr "Raccourcis clavier Spyder"
 
 #: spyder/widgets/sourcecode/codeeditor.py:99
 msgid "Go to line:"
@@ -4926,13 +4911,12 @@ msgid "Column min/max"
 msgstr "Colonne min/max"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:743
-#, fuzzy
 msgid "Format ({}) is incorrect"
 msgstr "Le format (%s) n'est pas valide"
 
 #: spyder/widgets/variableexplorer/dataframeeditor.py:747
 msgid "Format ({}) should start with '%'"
-msgstr ""
+msgstr "Le format ({}) devrait commencer par ‘%’"
 
 #: spyder/widgets/variableexplorer/importwizard.py:116
 #: spyder/widgets/variableexplorer/importwizard.py:436
@@ -4961,9 +4945,8 @@ msgid "Tab"
 msgstr "Tab"
 
 #: spyder/widgets/variableexplorer/importwizard.py:145
-#, fuzzy
 msgid "Whitespace"
-msgstr "Espace de travail"
+msgstr "Whitespace"
 
 #: spyder/widgets/variableexplorer/importwizard.py:148
 #: spyder/widgets/variableexplorer/importwizard.py:166
