@@ -1043,9 +1043,10 @@ class CodeEditor(TextEditBaseWidget):
 
         while block.isValid() and top < event.pos().y():
             block = block.next()
-            top = bottom
-            bottom = top + self.blockBoundingRect(block).height()
-            line_number += 1
+            if block.isVisible():  # skip collapsed blocks
+                top = bottom
+                bottom = top + self.blockBoundingRect(block).height()
+                line_number += 1
 
         return line_number
 
