@@ -21,8 +21,10 @@ import os.path as osp
 from spyder.config.base import DEV
 from spyder.py3compat import getcwd
 from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
-                                        SERVER_CAPABILITES, TRACE)
-from spyder.utils.code_analysis.decorators import send_request
+                                        SERVER_CAPABILITES, TRACE,
+                                        LSPRequestTypes)
+from spyder.utils.code_analysis.decorators import (send_request,
+                                                   class_register)
 
 from qtpy.QtCore import QObject, Signal, QSocketNotifier
 
@@ -32,6 +34,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(),
 PENDING = 'pending'
 
 
+@class_register
 class LSPClient(QObject):
     """Language Server Protocol v3.0 client implementation."""
     initialized = Signal()
@@ -114,7 +117,7 @@ class LSPClient(QObject):
 
     @send_request
     def initialize(self):
-        method = 'initialize'
+        method = LSPRequestTypes.INITIALIZE
         requires_response = True
         params = {
             'processId': self.transport_client.pid,
@@ -126,14 +129,14 @@ class LSPClient(QObject):
 
     @send_request
     def shutdown(self):
-        method = 'shutdown'
+        method = LSPRequestTypes.SHUTDOWN
         requires_response = False
         params = {}
         return method, params, requires_response
 
     @send_request
     def exit(self):
-        method = 'exit'
+        method = LSPRequestTypes.EXIT
         requires_response = False
         params = {}
         return method, params, requires_response

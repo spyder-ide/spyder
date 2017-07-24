@@ -376,3 +376,51 @@ SERVER_CAPABILITES = {
     # Experimental server capabilities.
     'experimental': None
 }
+
+
+class LSPRequestTypes:
+    """Language Server Protocol request/response types."""
+    # General requests
+    INITIALIZE = 'initialize'
+    SHUTDOWN = 'shutdown'
+    EXIT = 'exit'
+    CANCEL_REQUEST = '$/cancelRequest'
+    # Window requests
+    WINDOW_SHOW_MESSAGE = 'window/showMessage'
+    WINDOW_SHOW_MESSAGE_REQUEST = 'window/showMessageRequest'
+    WINDOW_LOG_MESSAGE = 'window/logMessage'
+    TELEMETRY_EVENT = 'telemetry/event'
+    # Client capabilities requests
+    CLIENT_REGISTER_CAPABILITY = 'client/registerCapability'
+    CLIENT_UNREGISTER_CAPABILITY = 'client/unregisterCapability'
+    # Workspace requests
+    WORKSPACE_CONFIGURATION_CHANGE = 'workspace/didChangeConfiguration'
+    WORKSPACE_WATCHED_FILES_UPDATE = 'workspace/didChangeWatchedFiles'
+    WORKSPACE_SYMBOL = 'workspace/symbol'
+    WORKSPACE_EXECUTE_COMMAND = 'workspace/executeCommand'
+    WORKSPACE_APPLY_EDIT = 'workspace/applyEdit'
+    # Document requests
+    DOCUMENT_PUBLISH_DIAGNOSTICS = 'textDocument/publishDiagnostics'
+    DOCUMENT_DID_OPEN = 'textDocument/didOpen'
+    DOCUMENT_DID_CHANGE = 'textDocument/didChange'
+    DOCUMENT_WILL_SAVE = 'textDocument/willSave'
+    DOCUMENT_WILL_SAVE_UNTIL = 'textDocument/willSaveWaitUntil'
+    DOCUMENT_DID_SAVE = 'textDocument/didSave'
+    DOCUMENT_DID_CLOSE = 'textDocument/didClose'
+    DOCUMENT_COMPLETION = 'textDocument/completion'
+    COMPLETION_RESOLVE = 'completionItem/resolve'
+    DOCUMENT_HOVER = 'textDocument/hover'
+    DOCUMENT_SIGNATURE = 'textDocument/signatureHelp'
+    DOCUMENT_REFERENCES = ' textDocument/references'
+    DOCUMENT_HIGHLIGHT = 'textDocument/documentHighlight'
+    DOCUMENT_SYMBOL = 'textDocument/documentSymbol'
+    DOCUMENT_FORMATTING = 'textDocument/formatting'
+    DOCUMENT_RANGE_FORMATTING = 'textDocument/rangeFormatting'
+    DOCUMENT_ON_TYPE_FORMATTING = 'textDocument/onTypeFormatting'
+    DOCUMENT_DEFINITION = 'textDocument/definition'
+    DOCUMENT_CODE_ACTION = 'textDocument/codeAction'
+    DOCUMENT_CODE_LENS = 'textDocument/codeLens'
+    CODE_LENS_RESOLVE = 'codeLens/resolve'
+    DOCUMENT_LINKS = 'textDocument/documentLink'
+    DOCUMENT_LINK_RESOLVE = 'documentLink/resolve'
+    DOCUMENT_RENAME = 'textDocument/rename'
