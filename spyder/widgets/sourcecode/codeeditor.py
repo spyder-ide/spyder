@@ -55,6 +55,7 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.utils.editor import TextHelper
 from spyder.widgets.editortools import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
@@ -271,6 +272,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
+
+        self.text_helper = TextHelper(self)
 
         self._panels = PanelsManager(self)
 
@@ -1314,15 +1317,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
-        block = self.document().findBlockByNumber(line-1)
-        self.setTextCursor(QTextCursor(block))
-        if self.isVisible():
-            self.centerCursor()
-        else:
-            self.focus_in.connect(self.center_cursor_on_next_focus)
-        self.horizontalScrollBar().setValue(0)
-        if word and to_text_string(word) in to_text_string(block.text()):
-            self.find(word, QTextDocument.FindCaseSensitively)
+        self.text_helper.goto_line(line, move=True, word=word)
 
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
