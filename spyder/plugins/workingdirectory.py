@@ -39,41 +39,6 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                     "and the current directory for the File Explorer."))
         about_label.setWordWrap(True)
 
-        startup_group = QGroupBox(_("Startup"))
-        startup_bg = QButtonGroup(startup_group)
-        startup_label = QLabel(_("At startup, the current working "
-                                 "directory is:"))
-        startup_label.setWordWrap(True)
-        lastdir_radio = self.create_radiobutton(
-                                _("The current project directory "
-                                  "or user home directory "
-                                  "(if no project is active)"),
-                                'startup/use_project_or_home_directory',
-                                True,
-                                _("At startup,"),  # TODO
-                                button_group=startup_bg)
-        thisdir_radio = self.create_radiobutton(
-                                _("the following directory:"),
-                                'startup/use_fixed_directory', False,
-                                _("At startup, the current working "
-                                  "directory will be the specified path"),
-                                button_group=startup_bg)
-        thisdir_bd = self.create_browsedir("", 'startup/fixed_directory',
-                                           getcwd())
-        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
-        lastdir_radio.toggled.connect(thisdir_bd.setDisabled)
-        thisdir_layout = QHBoxLayout()
-        thisdir_layout.addWidget(thisdir_radio)
-        thisdir_layout.addWidget(thisdir_bd)
-
-        startup_layout = QVBoxLayout()
-        startup_layout.addWidget(startup_label)
-        startup_layout.addWidget(lastdir_radio)
-        startup_layout.addLayout(thisdir_layout)
-        startup_group.setLayout(startup_layout)
-
-        # Console Directory
-
         console_group = QGroupBox(_("Console directory"))
         console_label = QLabel(_("The working directory for new consoles is:"))
         console_label.setWordWrap(True)
@@ -116,7 +81,6 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
-        vlayout.addWidget(startup_group)
         vlayout.addWidget(console_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
@@ -182,12 +146,12 @@ class WorkingDirectory(SpyderPluginWidget):
         self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
-            if self.get_option('startup/use_project_or_home_directory'):
+            if self.get_option('console/use_project_or_home_directory'):
                 workdir = get_home_dir()
             else:
-                workdir = self.get_option('startup/fixed_directory', ".")
+                workdir = self.get_option('console/fixed_directory', default='')
                 if not osp.isdir(workdir):
-                    workdir = "."
+                    workdir = get_home_dir()
         self.chdir(workdir)
         self.pathedit.addItems(wdhistory)
         self.pathedit.selected_text = self.pathedit.currentText()
