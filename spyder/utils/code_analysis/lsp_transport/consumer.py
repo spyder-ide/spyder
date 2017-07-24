@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 
-"""Spyder MS Language Server v3.0 client implementation."""
+"""
+Spyder MS Language Server Protocol v3.0 transport proxy implementation.
+
+This module handles and processes incoming TCP messages sent by
+a lsp-server, then it relays the information to the actual Spyder lsp
+client via ZMQ.
+"""
 
 
 import os
@@ -39,7 +45,6 @@ class IncomingMessageThread(Thread):
                     break
             try:
                 recv = self.socket.recv(4096)
-                # LOGGER.debug(recv)
                 err, body = self.process_response(recv)
                 if not err and body is not None:
                     LOGGER.debug(body)

@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-"""Spyder MS Language Server v3.0 client implementation."""
+"""
+Spyder MS Language Server v3.0 transport proxy implementation.
+
+Main point-of-entry to start an LSP ZMQ/TCP transport proxy.
+"""
 
 import os
 import psutil
@@ -37,7 +41,7 @@ parser.add_argument('--server',
 parser.add_argument('--external-server',
                     action="store_true",
                     help="Do not start a local server")
-parser.add_argument('--debug',
+parser.add_argument('--transport-debug',
                     action='store_true',
                     help='Display debug level log messages')
 
@@ -46,9 +50,6 @@ args, unknownargs = parser.parse_known_args()
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
 
-# LOG_FORMAT = ('%(asctime)s %(hostname)s %(name)s[%(process)d] '
-#               '(%(funcName)s: %(lineno)d) %(levelname)s %(message)s')
-
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 logging.basicConfig(level=logging.ERROR, format=LOG_FORMAT)
@@ -56,7 +57,7 @@ logging.basicConfig(level=logging.ERROR, format=LOG_FORMAT)
 LOGGER = logging.getLogger(__name__)
 
 LEVEL = 'info'
-if args.debug:
+if args.transport_debug:
     LEVEL = 'debug'
 
 coloredlogs.install(level=LEVEL)
@@ -80,11 +81,13 @@ class SignalManager:
             signal.signal(signal.SIGBREAK, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
+        """Capture exit/kill signal and throw and exception."""
         LOGGER.info('Termination signal ({}) captured, '
                     'initiating exit sequence'.format(signum))
         raise TerminateSignal("Exit process!")
 
     def restore(self):
+        """Restore signal handlers to their original settings."""
         signal.signal(signal.SIGINT, self.original_sigint)
         signal.signal(signal.SIGTERM, self.original_sigterm)
         if WINDOWS:

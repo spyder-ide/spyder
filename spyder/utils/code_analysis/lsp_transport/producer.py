@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 
-"""Spyder MS Language Server v3.0 client implementation."""
+"""
+Spyder MS Language Server Protocol v3.0 transport proxy implementation.
+
+This module handles incoming requests from the actual Spyder LSP client ZMQ
+queue, encapsulates them into valid JSONRPC messages and sends them to an
+LSP server via TCP.
+"""
 
 
 import os
@@ -41,7 +47,7 @@ class LanguageServerClient:
         self.host = host
         self.port = port
         self.workspace = pathlib.Path(osp.abspath(workspace)).as_uri()
-        self.request_seq = 1
+        # self.request_seq = 1
 
         self.server = None
         self.is_local_server_running = not use_external_server
@@ -80,8 +86,8 @@ class LanguageServerClient:
 
         self.socket.setblocking(False)
 
-        LOGGER.info('Initializing server connection...')
-        self.__initialize()
+        # LOGGER.info('Initializing server connection...')
+        # self.__initialize()
 
         LOGGER.info('Starting ZMQ connection...')
         self.context = zmq.Context()
@@ -99,13 +105,13 @@ class LanguageServerClient:
         self.reading_thread.start()
 
     def stop(self):
-        LOGGER.info('Sending shutdown instruction to server')
-        self.shutdown()
-        LOGGER.info('Sending exit instruction to server')
-        try:
-            self.exit()
-        except ConnectionAbortedError:
-            pass
+        # LOGGER.info('Sending shutdown instruction to server')
+        # self.shutdown()
+        # LOGGER.info('Sending exit instruction to server')
+        # try:
+            # self.exit()
+        # except ConnectionAbortedError:
+            # pass
         LOGGER.info('Closing TCP socket...')
         self.socket.close()
         if self.is_local_server_running:
@@ -117,49 +123,19 @@ class LanguageServerClient:
         self.reading_thread.join()
         LOGGER.debug('Exit routine should be complete')
 
-    def send_request(f):
-        @functools.wraps(f)
-        def wrapper(self, *args, **kwargs):
-            method, params = f(self, *args, **kwargs)
-            request = self.__compose_request(method, params)
-            self.__send_request(request)
-        return wrapper
-
-    @send_request
-    def __initialize(self):
-        method = 'initialize'
-        params = {
-            'processId': PID,
-            'rootUri': self.workspace,
-            'capabilities': EDITOR_CAPABILITES,
-            'trace': TRACE
-        }
-
-        return method, params
-
-    @send_request
-    def shutdown(self):
-        method = 'shutdown'
-        params = {}
-        return method, params
-
-    @send_request
-    def exit(self):
-        method = 'exit'
-        params = {}
-        return method, params
-
     def listen(self):
         events = self.zmq_socket.poll(TIMEOUT)
-        requests = []
+        # requests = []
         while events > 0:
             client_request = self.zmq_socket.recv_pyobj()
             LOGGER.debug("Client Event: {0}".format(client_request))
-            requests.append(client_request)
-            server_request = self.__compose_request('None', {})
+            server_request = self.__compose_request(client_request['id'],
+                                                    client_request['method'],
+                                                    client_request['params'])
             self.__send_request(server_request)
+            events -= 1
 
-    def __compose_request(self, method, params):
+    def __compose_request(self, id, method, params):
         request = {
             "jsonrpc": "2.0",
             "id": self.request_seq,

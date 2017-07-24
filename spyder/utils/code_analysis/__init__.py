@@ -220,7 +220,7 @@ TEXT_EDITOR_CAPABILITES = {
 
 # Spyder editor and workspace capabilities
 
-EDITOR_CAPABILITES = {
+CLIENT_CAPABILITES = {
     "workspace": WORKSPACE_CAPABILITIES,
     "textDocument": TEXT_EDITOR_CAPABILITES
 }
