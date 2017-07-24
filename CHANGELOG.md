@@ -65,7 +65,6 @@
 * Automatically load the Cython extension if Cython is installed.
 
 #### Find in Files
-
 * Add options to search on the current file, project or working directory.
 * Display results as search takes place.
 * Allow to order results alphabetically.
@@ -79,7 +78,6 @@
 * Omit binary files during a search.
 
 #### File Explorer
-
 * Add an option to show the selected file in the operating system
   file explorer.
 * Show icons for different file types (pdf, image, video, audio,
@@ -88,7 +86,6 @@
   when changing directories on it.
 
 #### Working Directory toolbar
-
 * Rename it to *Current working directory* (it was Global working
   directory).
 * Simplify its options to make them more understandable.
@@ -96,13 +93,11 @@
   the current directory in the File Explorer.
 
 #### Preferences
-
 * Prevent assignment of `Shift+<single key>` shortcuts because they can't
   be used by Qt applications unless they are hard-coded in the application
   itself.
 
 #### Under the hood
-
 * Use `pycodestyle` package instead of `pep8` to do style analysis.
 * Add `pyopengl` as a new dependency to our pip wheels on Linux to
   prevent crashes related to OpenGL in PyQt 5.7+.
