@@ -83,7 +83,7 @@ def editor_cells_bot(base_editor_bot):
 @pytest.fixture
 def editor_folding_bot(base_editor_bot):
     """
-    Setup CodeEditor with some text usepful for folding related tests.
+    Setup CodeEditor with some text useful for folding related tests.
     """
     editor_stack, qtbot = base_editor_bot
     text = ('# dummy test file\n'
@@ -233,15 +233,12 @@ def test_advance_cell(editor_cells_bot):
 
 def test_unfold_when_searching(editor_folding_bot):
     editor_stack, editor, finder, qtbot = editor_folding_bot
-
     folding_panel = editor.panels.get('FoldingPanel')
-
     line_search = editor.document().findBlockByLineNumber(3)
 
     # fold region
     block = editor.document().findBlockByLineNumber(1)
     folding_panel.toggle_fold_trigger(block)
-
     assert not line_search.isVisible()
 
     # unfolded when searching
@@ -253,15 +250,12 @@ def test_unfold_when_searching(editor_folding_bot):
 
 def test_unfold_goto(editor_folding_bot):
     editor_stack, editor, finder, qtbot = editor_folding_bot
-
     folding_panel = editor.panels.get('FoldingPanel')
-
     line_goto = editor.document().findBlockByLineNumber(3)
 
     # fold region
     block = editor.document().findBlockByLineNumber(1)
     folding_panel.toggle_fold_trigger(block)
-
     assert not line_goto.isVisible()
 
     # unfolded when goto
