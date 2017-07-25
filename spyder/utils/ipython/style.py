@@ -49,7 +49,6 @@ def create_qss_style(color_scheme):
         in_prompt_color = 'lime'
         out_prompt_color = 'red'
     background_color = color_scheme['background']
-    selection_background_color = '#ccc'
     error_color = 'red'
     in_prompt_number_font_weight = 'bold'
     out_prompt_number_font_weight = 'bold'
