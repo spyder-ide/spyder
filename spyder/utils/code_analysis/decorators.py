@@ -9,11 +9,15 @@
 import functools
 
 
-def send_request(req):
+def send_request(req=None, method=None, requires_response=True):
     """Call function req and then send its results via ZMQ."""
+    if req is None:
+        return functools.partial(send_request, method=method,
+                                 requires_response=requires_response)
+
     @functools.wraps(req)
     def wrapper(self, *args, **kwargs):
-        method, params, requires_response = req(self, *args, **kwargs)
+        params = req(self, *args, **kwargs)
         self.send(method, params, requires_response)
     return wrapper
 
@@ -24,7 +28,7 @@ def class_register(cls):
     for method_name in dir(cls):
         method = getattr(cls, method_name)
         if hasattr(method, '_handle'):
-            cls.handler_registry.update({method._handle: method})
+            cls.handler_registry.update({method._handle: method_name})
     return cls
 
 

@@ -25,8 +25,10 @@ from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
                                         LSPRequestTypes)
 from spyder.utils.code_analysis.decorators import (send_request,
                                                    class_register)
+from spyder.utils.code_analysis.lsp_providers import LSPMethodProviderMixIn
 
 from qtpy.QtCore import QObject, Signal, QSocketNotifier
+from qtpy.QtWidgets import QApplication
 
 LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
@@ -35,7 +37,7 @@ PENDING = 'pending'
 
 
 @class_register
-class LSPClient(QObject):
+class LSPClient(QObject, LSPMethodProviderMixIn):
     """Language Server Protocol v3.0 client implementation."""
     initialized = Signal()
     external_server_fmt = ('--server-host %(host)s '
@@ -49,6 +51,7 @@ class LSPClient(QObject):
                  server_settings={}, external_server=False,
                  folder=getcwd()):
         QObject.__init__(self)
+        # LSPMethodProviderMixIn.__init__(self)
         self.zmq_socket = None
         self.zmq_port = None
         self.transport_client = None
@@ -56,6 +59,7 @@ class LSPClient(QObject):
         self.initialized = False
         self.request_seq = 1
         self.req_status = {}
+        QApplication.instance().aboutToQuit.connect(self.stop)
 
         self.transport_args = [sys.executable,
                                osp.join(LOCATION, 'lsp_transport', 'main.py')]
@@ -115,32 +119,6 @@ class LSPClient(QObject):
         self.transport_client.send_signal(signal.SIGINT)
         self.context.destroy()
 
-    @send_request
-    def initialize(self):
-        method = LSPRequestTypes.INITIALIZE
-        requires_response = True
-        params = {
-            'processId': self.transport_client.pid,
-            'rootUri': self.folder,
-            'capabilities': self.client_capabilites,
-            'trace': TRACE
-        }
-        return method, params, requires_response
-
-    @send_request
-    def shutdown(self):
-        method = LSPRequestTypes.SHUTDOWN
-        requires_response = False
-        params = {}
-        return method, params, requires_response
-
-    @send_request
-    def exit(self):
-        method = LSPRequestTypes.EXIT
-        requires_response = False
-        params = {}
-        return method, params, requires_response
-
     def send(self, method, params, requires_response):
         msg = {
             'id': self.request_seq,
@@ -161,3 +139,24 @@ class LSPClient(QObject):
             except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 break
+
+    # ------ LSP initialization methods --------------------------------
+    @send_request(method=LSPRequestTypes.INITIALIZE)
+    def initialize(self):
+        params = {
+            'processId': self.transport_client.pid,
+            'rootUri': self.folder,
+            'capabilities': self.client_capabilites,
+            'trace': TRACE
+        }
+        return params
+
+    @send_request(method=LSPRequestTypes.SHUTDOWN, requires_response=False)
+    def shutdown(self):
+        params = {}
+        return params
+
+    @send_request(method=LSPRequestTypes.EXIT, requires_response=False)
+    def exit(self):
+        params = {}
+        return params
