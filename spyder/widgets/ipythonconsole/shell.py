@@ -12,7 +12,6 @@ import ast
 import uuid
 
 from qtpy.QtCore import Signal
-from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
