@@ -80,11 +80,8 @@ your PR on Github against it.
 Besides, issues are marked with a milestone that indicates the correct branch
 to use, like this:
 
-* Use the `3.1.x` branch for bugfixes only (milestones `v3.1.1`, `v3.1.2`, `v3.1.3`,
+* Use the `3.x` branch for bugfixes only (milestones `v3.2.1`, `v3.2.2`, `v3.2.3`,
   etc)
-
-* Use the `3.x` branch to introduce new features that don't require major internal
-  changes (milestones `v3.1`, `v3.2`, `v3.3`, etc).
 
 * Use `master` to introduce new features that break compatibility with previous
   Spyder versions (Milestone `v4.0beta1`, `v4.0beta2`, etc).

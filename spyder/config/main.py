@@ -283,9 +283,8 @@ DEFAULTS = [
              {
               'working_dir_adjusttocontents': False,
               'working_dir_history': 20,
-              'startup/use_project_or_home_directory': True,
-              'console/use_project_or_home_directory': True,
-              'console/use_cwd': False,
+              'console/use_project_or_home_directory': False,
+              'console/use_cwd': True,
               'console/use_fixed_directory': False,
               }),
             ('shortcuts',
@@ -635,7 +634,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '39.0.0'
+CONF_VERSION = '40.0.0'
 
 # Main configuration instance
 try:

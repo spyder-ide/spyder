@@ -698,9 +698,9 @@ class FileProgressBar(QWidget):
     def set_label_path(self, path, folder=False):
         text = self.__truncate(path)
         if not folder:
-            status_str = _(u' Scanning: {0}'.format(text))
+            status_str = _(u' Scanning: {0}').format(text)
         else:
-            status_str = _(u' Searching for files in folder: {0}'.format(text))
+            status_str = _(u' Searching for files in folder: {0}').format(text)
         self.status_text.setText(status_str)
 
     def reset(self):

@@ -1,19 +1,79 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.1.4 is released!
+**Subject**: [ANN] Spyder 3.2.0 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.1.4** has been released and is available for
+I'm pleased to announce that Spyder **3.2.0** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes almost two months after version 3.1.3 and adds compatibility
-with IPython 6 and Jedi 0.10, so everyone is encouraged to update to this version.
+This release comes three months after version 3.1.4 and comes with major
+enhancements and new features. The most important ones are:
 
-In this release we also fixed 19 issues and merged 37 pull requests that amount
-to almost 200 commits. For a full list of fixes, please see our
+* **Main Window**
+    * Add a dialog to quickly view all keyboard shortcuts defined in Spyder.
+      It can be accessed in the `Help > Shortcuts Summary` menu or using
+      the `Meta+F1` shortcut.
+    * Add an option to set a custom screen resolution scale factor. This option
+      is available in `Preferences > Appearance > Screen resolution`.
+
+* **Editor**
+    * Add the ability to reorganize tabs by drag and drop.
+    * Add option to only replace in a selection.
+    * Add `Ctrl+Up` and `Ctrl+Down` shortcuts to move to the next/previous
+      cell, respectively.
+    * Add `Alt+Enter` shortcut to re-run the last cell.
+    * Add support to run Cython files from the Editor (i.e. by simply
+      pressing `F5`).
+    * Add syntax highlighting support for Markdown files.
+    * Add a tab switcher dialog to navigate files in most recently used
+      order. This dialog is activated with `Ctrl+Tab` and
+      `Ctrl+Shift+Tab` to go in forward or backward order, respectively.
+    * Make `Shift+Enter` search text backwards in the find/replace
+      widget.
+    * Add `Shift+Del` shortcut to delete lines.
+    * Add `Ctrl+]` and `Ctrl+[` shortcuts to indent/unindent text,
+      respectively.
+    * Add a *Save copy as* action.
+    * Add a context menu entry to show the selected file in the operating
+      system file explorer.
+
+* **IPython Console**
+    * Several improvements to its debugger:
+        - Restore the ability to inspect variables using the Variable
+          Explorer.
+        - Make plotting work with a new `%plot` magic, but only using
+          the `inline` backend (e.g. `%plot plt.plot(range(10))`).
+        - Add history browsing with the Up and Down arrow keys.
+        - Make the *Clear console* and *Reset* keyboard shortcuts to work.
+        - Show plots from the Variable Explorer.
+        - Change the current working directory using the Working Directory toolbar.
+        - Use `Ctrl+Shift+C` to copy text.
+    * Add the possibility to run a file in the same (dedicated) console all the
+      time.
+    * Allow to rename consoles by doing a double-click on their tabs and setting
+      a new name.
+    * Make drag and drop of its tabs to work.
+    * Add menu entries to show environment variables and `sys.path` contents for
+      each console.
+
+* **Find in Files**
+    * Add options to search on the current file, project or working directory.
+    * Allow to order results alphabetically.
+    * Remove previous search results when a new search takes place.
+    * Remove unused search options.
+
+* **Working Directory toolbar**
+    * Rename it to *Current working directory* (it was Global working
+      directory).
+    * Simplify its options to make them more understandable.
+    * Make it show the working directory of the active IPython console and
+      the current directory in the File Explorer.
+
+In this release we also fixed 98 issues and merged 111 pull requests that amount
+to more than 750 commits. For a full list of fixes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md)
 
 Don't forget to follow Spyder updates/news on the project
@@ -98,7 +158,7 @@ Enjoy!<br>
 # Major release to others
 
 **Note**: Leave this free of Markdown because it could go to mailing lists that
-don't support it.
+don't support hmtl.
 
 **Subject**: [ANN] Spyder 3.0 is released!
 

@@ -53,7 +53,7 @@ try:
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
     from numpy import get_printoptions, set_printoptions
-except ImportError:
+except:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
     int64 = int32 = float64 = float32 = complex64 = complex128 = FakeObject
 
@@ -81,7 +81,10 @@ def get_numpy_dtype(obj):
 # Pandas support
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, DatetimeIndex, Series
+    try:
+        from pandas import DataFrame, DatetimeIndex, Series
+    except:
+        DataFrame = DatetimeIndex = Series = FakeObject
 else:
     DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
 
@@ -92,7 +95,7 @@ else:
 try:
     from spyder import pil_patch
     Image = pil_patch.Image.Image
-except ImportError:
+except:
     Image = FakeObject  # analysis:ignore
 
 
@@ -102,7 +105,7 @@ except ImportError:
 try:
     import bs4
     NavigableString = bs4.element.NavigableString
-except (ImportError, AttributeError):
+except:
     NavigableString = FakeObject  # analysis:ignore
 
 
@@ -168,7 +171,7 @@ import datetime
 
 try:
     from dateutil.parser import parse as dateparse
-except ImportError:
+except:
     def dateparse(datestr):  # analysis:ignore
         """Just for 'year, month, day' strings"""
         return datetime.datetime( *list(map(int, datestr.split(','))) )
