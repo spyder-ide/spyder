@@ -20,7 +20,7 @@ import subprocess
 import os.path as osp
 from spyder.py3compat import PY2, getcwd
 from consumer import IncomingMessageThread
-from spyder.utils.code_analysis import EDITOR_CAPABILITES, TRACE
+# from spyder.utils.code_analysis import EDITOR_CAPABILITES, TRACE
 
 if PY2:
     import pathlib2 as pathlib
@@ -54,8 +54,7 @@ class LanguageServerClient:
         if not use_external_server:
             LOGGER.info('Starting server: {0} {1} on {2}:{3}'.format(
                 server, ' '.join(server_args), self.host, self.port))
-            exec_line = [server, '--host', str(self.host), '--port',
-                         str(self.port)] + server_args
+            exec_line = [server] + server_args
             LOGGER.info(' '.join(exec_line))
 
             self.server = subprocess.Popen(
@@ -93,7 +92,8 @@ class LanguageServerClient:
         self.context = zmq.Context()
         self.zmq_socket = self.context.socket(zmq.PAIR)
         self.zmq_socket.connect("tcp://localhost:{0}".format(zmq_port))
-        self.zmq_socket.send_pyobj(zmq_port)
+        self.zmq_socket.send_pyobj({'id': -1, 'method': 'server_ready',
+                                    'params': {}})
 
         LOGGER.info('Creating consumer Thread...')
         self.reading_thread = IncomingMessageThread()
@@ -133,12 +133,13 @@ class LanguageServerClient:
                                                     client_request['method'],
                                                     client_request['params'])
             self.__send_request(server_request)
+            # self.zmq_socket.send_pyobj({'a': 'b'})
             events -= 1
 
     def __compose_request(self, id, method, params):
         request = {
             "jsonrpc": "2.0",
-            "id": self.request_seq,
+            "id": id,
             "method": method,
             "params": params
         }
@@ -156,4 +157,4 @@ class LanguageServerClient:
             content_length).encode('utf-8')
         self.socket.send(bytes(content_length))
         self.socket.send(content)
-        self.request_seq += 1
+        # self.request_seq += 1

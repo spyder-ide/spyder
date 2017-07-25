@@ -33,7 +33,7 @@ def class_register(cls):
 
 
 def handles(method_name):
-    """Assign an LSP method to a method."""
+    """Assign an LSP method name to a python handler."""
     def wrapper(func):
         func._handle = method_name
         return func

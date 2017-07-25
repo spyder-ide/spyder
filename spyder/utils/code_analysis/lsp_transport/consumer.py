@@ -45,10 +45,12 @@ class IncomingMessageThread(Thread):
                     break
             try:
                 recv = self.socket.recv(4096)
+                # LOGGER.debug(recv)
                 err, body = self.process_response(recv)
                 if not err and body is not None:
                     LOGGER.debug(body)
                     self.zmq_sock.send_pyobj(body)
+                    LOGGER.debug('Message sent')
             except socket.error:
                 pass
         LOGGER.debug('Thread stopped.')
@@ -56,6 +58,7 @@ class IncomingMessageThread(Thread):
     def process_response(self, response):
         err = True
         body = None
+        response = str(response.decode('utf-8'))
         msg_parts = response.split('\r\n\r\n')
         if len(msg_parts) == 1:
             if self.expect_body:

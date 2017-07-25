@@ -18,17 +18,20 @@ import signal
 import datetime
 import subprocess
 import os.path as osp
-from spyder.config.base import DEV
+# from spyder.config.base import DEV
 from spyder.py3compat import getcwd
 from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
                                         SERVER_CAPABILITES, TRACE,
                                         LSPRequestTypes)
 from spyder.utils.code_analysis.decorators import (send_request,
-                                                   class_register)
+                                                   class_register,
+                                                   handles)
 from spyder.utils.code_analysis.lsp_providers import LSPMethodProviderMixIn
 
-from qtpy.QtCore import QObject, Signal, QSocketNotifier
-from qtpy.QtWidgets import QApplication
+from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
+# from qtpy.QtWidgets import QApplication
+
+DEV = True
 
 LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
@@ -59,7 +62,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.initialized = False
         self.request_seq = 1
         self.req_status = {}
-        QApplication.instance().aboutToQuit.connect(self.stop)
 
         self.transport_args = [sys.executable,
                                osp.join(LOCATION, 'lsp_transport', 'main.py')]
@@ -83,7 +85,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     def start(self):
         self.zmq_socket = self.context.socket(zmq.PAIR)
-        self.port = self.socket.bind_to_random_port('tcp://*')
+        self.port = self.zmq_socket.bind_to_random_port('tcp://*')
         self.transport_args += ['--zmq-port', self.port]
 
         if not self.external_server:
@@ -96,27 +98,30 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 datetime.datetime.now().isoformat())
             stderr_log_file = 'lsp_client_{0}_err.log'.format(
                 datetime.datetime.now().isoformat())
-            self.stdout_log = open(osp.join(getcwd(), stdout_log_file), 'w')
-            self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
+            # self.stdout_log = open(osp.join(getcwd(), stdout_log_file), 'w')
+            # self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
 
-        self.transport_client = subprocess.Popen(self.transport_args,
-                                                 stdout=self.stdout_log,
-                                                 stderr=self.stderr_log)
+        self.transport_args = map(str, self.transport_args)
+        self.transport_client = subprocess.Popen(self.transport_args)
+                                                 # stdout=self.stdout_log,
+                                                 # stderr=self.stderr_log)
 
         fid = self.zmq_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
+        # self.notifier.activated.connect(self.debug_print)
         self.notifier.activated.connect(self.on_msg_received)
-
-        self.initialize()
+        # print(self.notifier.isEnabled())
+        # self.initialize()
 
     def stop(self):
+        print('Stopping')
         self.shutdown()
         self.exit()
         if self.notifier is not None:
-            self.notifier.activated.disconnect(self._on_msg_received)
+            self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        self.transport_client.send_signal(signal.SIGINT)
+        self.transport_client.terminate()
         self.context.destroy()
 
     def send(self, method, params, requires_response):
@@ -126,23 +131,39 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             'params': params
         }
         if requires_response:
-            self.req_status[self.request_seq] = PENDING
+            self.req_status[self.request_seq] = method
 
         self.zmq_socket.send_pyobj(msg)
         self.request_seq += 1
 
+    @Slot()
     def on_msg_received(self):
         self.notifier.setEnabled(False)
         while True:
             try:
                 resp = self.zmq_socket.recv_pyobj(flags=zmq.NOBLOCK)
+                print(resp)
+                if 'method' in resp:
+                    if resp['method'] in self.handler_registry:
+                        handler_name = self.handler_registry[resp['method']]
+                        handler = getattr(self, handler_name)
+                        handler(resp['params'])
+                    self.request_seq = resp['id']
+                elif 'result' in resp:
+                    req_id = resp['id']
+                    if req_id in self.req_status:
+                        req_type = self.req_status[req_id]
+                        handler_name = self.handler_registry[req_type]
+                        handler = getattr(self, handler_name)
+                        handler(resp['result'])
             except zmq.ZMQError:
                 self.notifier.setEnabled(True)
-                break
+                return
 
     # ------ LSP initialization methods --------------------------------
+    @handles('server_ready')
     @send_request(method=LSPRequestTypes.INITIALIZE)
-    def initialize(self):
+    def initialize(self, *args, **kwargs):
         params = {
             'processId': self.transport_client.pid,
             'rootUri': self.folder,
@@ -160,3 +181,26 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def exit(self):
         params = {}
         return params
+
+    @handles(LSPRequestTypes.INITIALIZE)
+    def process_server_capabilities(self, server_capabilites):
+        print(server_capabilites)
+
+
+def test():
+    """Test LSP client."""
+    from spyder.utils.qthelpers import qapplication
+    app = qapplication(test_time=8)
+    server_args_fmt = '--host %(host)s --port %(port)s --tcp'
+    server_settings = {'host': '127.0.0.1', 'port': 2087, 'server_cmd': 'pyls'}
+    lsp = LSPClient(server_args_fmt, server_settings)
+    lsp.start()
+    # lsp.on_msg_received()
+    # term.show()
+    app.aboutToQuit.connect(lsp.stop)
+    # signal.signal(signal.SIGINT, signal.SIG_DFL)
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    test()

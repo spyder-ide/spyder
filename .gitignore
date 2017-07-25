@@ -20,3 +20,6 @@ spyder_crash.log
 
 # git .orig files
 *.orig
+
+# log files
+*.log
