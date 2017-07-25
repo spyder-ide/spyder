@@ -59,7 +59,6 @@ def create_qss_style(color_scheme):
     sheet = """QPlainTextEdit, QTextEdit, ControlWidget {{
                                           color: {} ;
                                           background-color: {};
-                                          selection-background-color: {}
                                          }}
               .error {{ color: {}; }}
               .in-prompt {{ color: {}; }}
@@ -70,7 +69,6 @@ def create_qss_style(color_scheme):
               """
 
     sheet_formatted = sheet.format(font_color, background_color,
-                                   selection_background_color,
                                    error_color,
                                    in_prompt_color, in_prompt_color,
                                    in_prompt_number_font_weight,

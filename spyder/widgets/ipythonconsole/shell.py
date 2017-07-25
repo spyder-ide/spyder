@@ -12,11 +12,13 @@ import ast
 import uuid
 
 from qtpy.QtCore import Signal
+from qtpy.QtGui import QColor
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
+from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.ipython.style import create_qss_style, create_style_class
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
@@ -70,6 +72,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         # To save kernel replies in silent execution
         self._kernel_reply = None
 
+        color_scheme = kw['config']['JupyterWidget']['syntax_style']
+        self.set_bracket_matcher_color_scheme(color_scheme)
+                
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
@@ -110,9 +115,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             return
         else:
             self.silent_exec_method(code)
+            
+    def set_bracket_matcher_color_scheme(self, color_scheme):
+        bsh = sh.BaseSH(parent=self, color_scheme=color_scheme)
+        mpcolor = bsh.get_matched_p_color()
+        self._bracket_matcher.format.setBackground(mpcolor)
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme of the shell."""
+        self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
