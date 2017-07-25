@@ -19,7 +19,7 @@ from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
-from spyder.widgets.editortools import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 
 
 class OutlineExplorer(SpyderPluginWidget):

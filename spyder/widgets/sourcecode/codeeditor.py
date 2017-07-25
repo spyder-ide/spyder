@@ -55,7 +55,7 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.widgets.editortools import PythonCFM
+from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
 from spyder.widgets.panels.linenumber import LineNumberArea
@@ -2862,7 +2862,7 @@ class TestWidget(QSplitter):
                                  font=QFont("Courier New", 10),
                                  show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
-        from spyder.widgets.editortools import OutlineExplorerWidget
+        from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)
         self.addWidget(self.classtree)
         self.classtree.edit_goto.connect(
