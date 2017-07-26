@@ -901,7 +901,7 @@ class MainWindow(QMainWindow):
 
         # Find in files
         if CONF.get('find_in_files', 'enable'):
-            from spyder.plugins.findinfiles import FindInFiles
+            from spyder.plugins.findinfiles.plugin import FindInFiles
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
 
