@@ -240,7 +240,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         
     def set_current_editor(self, editor, fname, update):
         """Bind editor instance"""
-        editor_id = editor.get_document_id()
+        editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
             item = self.editor_items[editor_id]
             if not self.freeze:
@@ -271,7 +271,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
-        editor_id = editor.get_document_id()
+        editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
             root_item = self.editor_items[editor_id]
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
@@ -322,7 +322,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         previous_item = None
         previous_level = None
         
-        oe_data = editor.highlighter.get_outlineexplorer_data()
+        oe_data = editor.get_outlineexplorer_data()
         editor.has_cell_separators = oe_data.get('found_cell_separators', False)
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
@@ -505,8 +505,7 @@ class OutlineExplorerWidget(QWidget):
         self.setVisible(state)
         current_editor = self.treewidget.current_editor
         if current_editor is not None:
-            current_editor.clearFocus()
-            current_editor.setFocus()
+            current_editor.give_focus()
             if state:
                 self.is_visible.emit()
         
@@ -526,7 +525,7 @@ class OutlineExplorerWidget(QWidget):
     def set_current_editor(self, editor, fname, update, clear):
         if clear:
             self.remove_editor(editor)
-        if editor.highlighter is not None:
+        if editor is not None:
             self.treewidget.set_current_editor(editor, fname, update)
         
     def remove_editor(self, editor):
