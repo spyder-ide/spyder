@@ -34,10 +34,10 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
 from spyder.config.base import _
 from spyder.py3compat import getcwd, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.encoding import is_text_file
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.utils.qthelpers import create_toolbutton, get_icon
 
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
@@ -70,12 +70,14 @@ class SearchThread(QThread):
         self.texts = None
         self.text_re = None
         self.completed = None
+        self.case_sensitive = True
         self.get_pythonpath_callback = None
         self.results = {}
         self.total_matches = 0
         self.is_file = False
 
-    def initialize(self, path, is_file, exclude, texts, text_re):
+    def initialize(self, path, is_file, exclude,
+                   texts, text_re, case_sensitive):
         self.rootpath = path
         self.python_path = False
         self.hg_manifest = False
@@ -85,6 +87,7 @@ class SearchThread(QThread):
         self.is_file = is_file
         self.stopped = False
         self.completed = False
+        self.case_sensitive = case_sensitive
 
     def run(self):
         try:
@@ -136,18 +139,23 @@ class SearchThread(QThread):
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
+                    line_search = line
+                    if not self.case_sensitive:
+                        line_search = line_search.lower()
                     if self.text_re:
-                        found = re.search(text, line)
+                        found = re.search(text, line_search)
                         if found is not None:
                             break
                     else:
-                        found = line.find(text)
+                        found = line_search.find(text)
                         if found > -1:
                             break
                 try:
                     line_dec = line.decode(enc)
                 except UnicodeDecodeError:
                     line_dec = line
+                if not self.case_sensitive:
+                    line = line.lower()
                 if self.text_re:
                     for match in re.finditer(text, line):
                         self.total_matches += 1
@@ -186,7 +194,8 @@ class FindOptions(QWidget):
 
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  exclude, exclude_idx, exclude_regexp,
-                 supported_encodings, in_python_path, more_options):
+                 supported_encodings, in_python_path, more_options,
+                 case_sensitive):
         QWidget.__init__(self, parent)
 
         if search_path is None:
@@ -212,6 +221,11 @@ class FindOptions(QWidget):
         self.edit_regexp = create_toolbutton(self,
                                              icon=ima.icon('advanced'),
                                              tip=_('Regular expression'))
+        self.case_button = create_toolbutton(self,
+                                             icon=get_icon("upper_lower.png"),
+                                             tip=_("Case Sensitive"))
+        self.case_button.setCheckable(True)
+        self.case_button.setChecked(case_sensitive)
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
@@ -233,7 +247,7 @@ class FindOptions(QWidget):
                                              tip=_("Stop search"),
                                              text_beside_icon=True)
         self.stop_button.setEnabled(False)
-        for widget in [self.search_text, self.edit_regexp,
+        for widget in [self.search_text, self.edit_regexp, self.case_button,
                        self.ok_button, self.stop_button, self.more_options]:
             hlayout1.addWidget(widget)
 
@@ -340,7 +354,11 @@ class FindOptions(QWidget):
         text_re = self.edit_regexp.isChecked()
         exclude = to_text_string(self.exclude_pattern.currentText())
         exclude_re = self.exclude_regexp.isChecked()
+        case_sensitive = self.case_button.isChecked()
         python_path = False
+
+        if not case_sensitive:
+            texts = [(text[0].lower(), text[1]) for text in texts]
 
         global_path_search = self.global_path_search.isChecked()
         project_search = self.project_search.isChecked()
@@ -382,7 +400,7 @@ class FindOptions(QWidget):
                     exclude, exclude_idx, exclude_re,
                     python_path, more_options)
         else:
-            return (path, file_search, exclude, texts, text_re)
+            return (path, file_search, exclude, texts, text_re, case_sensitive)
 
     @Slot()
     def select_directory(self):
@@ -716,7 +734,8 @@ class FindInFilesWidget(QWidget):
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 in_python_path=False, more_options=False):
+                 in_python_path=False, more_options=False,
+                 case_sensitive=True):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
@@ -731,7 +750,7 @@ class FindInFilesWidget(QWidget):
                                         search_path,
                                         exclude, exclude_idx, exclude_regexp,
                                         supported_encodings, in_python_path,
-                                        more_options)
+                                        more_options, case_sensitive)
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
