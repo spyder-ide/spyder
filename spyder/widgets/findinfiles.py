@@ -398,7 +398,7 @@ class FindOptions(QWidget):
             more_options = self.more_options.isChecked()
             return (search_text, text_re, [],
                     exclude, exclude_idx, exclude_re,
-                    python_path, more_options)
+                    python_path, more_options, case_sensitive)
         else:
             return (path, file_search, exclude, texts, text_re, case_sensitive)
 
