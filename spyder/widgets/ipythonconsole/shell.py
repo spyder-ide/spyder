@@ -71,8 +71,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         # To save kernel replies in silent execution
         self._kernel_reply = None
 
-        color_scheme = kw['config']['JupyterWidget']['syntax_style']
-        self.set_bracket_matcher_color_scheme(color_scheme)
+        # To set the color of the matched parentheses
+        self.set_bracket_matcher_color_scheme(self.syntax_style)
                 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
@@ -116,6 +116,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             self.silent_exec_method(code)
             
     def set_bracket_matcher_color_scheme(self, color_scheme):
+        """Set color scheme for matched parentheses."""
         bsh = sh.BaseSH(parent=self, color_scheme=color_scheme)
         mpcolor = bsh.get_matched_p_color()
         self._bracket_matcher.format.setBackground(mpcolor)
