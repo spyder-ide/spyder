@@ -142,7 +142,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         while True:
             try:
                 resp = self.zmq_socket.recv_pyobj(flags=zmq.NOBLOCK)
-                print(resp)
                 if 'method' in resp:
                     if resp['method'] in self.handler_registry:
                         handler_name = self.handler_registry[resp['method']]
@@ -184,6 +183,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     @handles(LSPRequestTypes.INITIALIZE)
     def process_server_capabilities(self, server_capabilites):
+        self.initialized = True
         print(server_capabilites)
 
 

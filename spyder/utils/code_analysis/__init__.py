@@ -241,25 +241,25 @@ class TextDocumentSyncKind:
 
 SAVE_OPTIONS = {
     # The client is supposed to include the content on save.
-    'includeText': False
+    'includeText': True
 }
 
 # Text synchronization capabilities
 
 TEXT_DOCUMENT_SYNC_OPTIONS = {
     # Open and close notifications are sent to the server.
-    'openClose': False,
+    'openClose': True,
 
-    # Change notificatins are sent to the server.
+    # Change notifications are sent to the server.
     # See TextDocumentSyncKind.NONE, TextDocumentSyncKind.FULL
     # and TextDocumentSyncKind.INCREMENTAL.
     'change': TextDocumentSyncKind.NONE,
 
     # Will save notifications are sent to the server.
-    'willSave': False,
+    'willSave': True,
 
     # Will save wait until requests are sent to the server.
-    'willSaveWaitUntil': False,
+    'willSaveWaitUntil': True,
 
     # Save notifications are sent to the server.
     'save': SAVE_OPTIONS
