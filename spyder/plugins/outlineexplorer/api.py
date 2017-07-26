@@ -7,6 +7,35 @@
 """Outline explorer API."""
 
 
+class OutlineExplorerProxy(object):
+    """
+    Proxy class between editors and OutlineExplorerWidget.
+    """
+    def __init__(self):
+        self.fname = None
+
+    def get_id(self):
+        """Return an unique id, used for identify objects in a dict"""
+        raise NotImplementedError
+
+    def give_focus(self):
+        """Give focus to the editor, called when toogling visibility of
+        OutlineExplorerWidget."""
+        raise NotImplementedError
+
+    def get_outlineexplorer_data(self):
+        """Return a dict of OutlineExplorerData objects."""
+        raise NotImplementedError
+
+    def get_line_count(self):
+        """Return the number of lines of the editor (int)."""
+        raise NotImplementedError
+
+    def parent():
+        """This is used for diferenciate editors in multi-window mode."""
+        return None
+
+
 class OutlineExplorerData(object):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
     FUNCTION_TOKEN = 'def'
