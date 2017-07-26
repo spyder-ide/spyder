@@ -323,7 +323,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         previous_level = None
         
         oe_data = editor.get_outlineexplorer_data()
-        editor.has_cell_separators = oe_data.get('found_cell_separators', False)
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
             data = oe_data.get(block_nb)

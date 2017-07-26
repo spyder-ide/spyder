@@ -22,7 +22,9 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         self._editor.setFocus()
 
     def get_outlineexplorer_data(self):
-        return self._editor.get_outlineexplorer_data()
+        oe_data = self._editor.get_outlineexplorer_data()
+        self._editor.has_cell_separators = oe_data.get('found_cell_separators', False)
+        return oe_data
 
     def get_line_count(self):
         return self._editor.get_line_count()
