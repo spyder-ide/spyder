@@ -890,19 +890,19 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
         # ------ Select text
         
-        # get selection start location
+        # Get selection start location
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
         start_pos = cursor.position()
         
-        # get selection end location
+        # Get selection end location
         cursor.setPosition(end_pos)
         if not cursor.atBlockStart() or end_pos == start_pos:
             cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.movePosition(QTextCursor.NextBlock)
         end_pos = cursor.position()
         
-        # check if selection ends on the last line of the document
+        # Check if selection ends on the last line of the document
         if cursor.atEnd():
             if not cursor.atBlockStart() or end_pos == start_pos:
                 last_line = True
@@ -930,18 +930,22 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         sel_text = to_text_string(cursor.selectedText())
         cursor.removeSelectedText()
         
-        if after_current_line:  # shift selection down
+        
+        if after_current_line:
+            # Shift selection down
             text = to_text_string(cursor.block().text())  
-            sel_text = os.linesep + sel_text[0:-1]  # move linesep at the start
+            sel_text = os.linesep + sel_text[0:-1]  # Move linesep at the start
             cursor.movePosition(QTextCursor.EndOfBlock)
             start_pos += len(text)+1
             end_pos += len(text)
             if not cursor.atEnd():
-                end_pos += 1
-        else:  # shift selection up
+                end_pos += 1        
+        else:
+            # Shift selection up
             if last_line:
-                cursor.deletePreviousChar()  # remove last linesep...
-                sel_text = sel_text + os.linesep  # ...and add it to sel_text
+                # Remove the last linesep and add it to the selected text
+                cursor.deletePreviousChar()
+                sel_text = sel_text + os.linesep
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 end_pos += 1
             else:
