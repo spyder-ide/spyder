@@ -238,7 +238,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.set_title('')
         OneColumnTree.clear(self)
         
-    def set_current_editor(self, editor, fname, update):
+    def set_current_editor(self, editor, update):
         """Bind editor instance"""
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
@@ -255,7 +255,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         else:
     #        import time
     #        t0 = time.time()
-            root_item = FileRootItem(fname, self)
+            root_item = FileRootItem(editor.fname, self)
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
             self.__sort_toplevel_items()
@@ -522,11 +522,11 @@ class OutlineExplorerWidget(QWidget):
         restore_btn.setDefaultAction(self.treewidget.restore_action)
         return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
         
-    def set_current_editor(self, editor, fname, update, clear):
+    def set_current_editor(self, editor, update, clear):
         if clear:
             self.remove_editor(editor)
         if editor is not None:
-            self.treewidget.set_current_editor(editor, fname, update)
+            self.treewidget.set_current_editor(editor, update)
         
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
