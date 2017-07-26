@@ -169,7 +169,7 @@ class DataFrameModel(QAbstractTableModel):
             return ax.names[level]
         if ax.name:
             return ax.name
-        return 'L' + to_text_string(level)
+        return '    '
 
     def max_min_col_update(self):
         """
@@ -672,6 +672,8 @@ class DataFrameHeader(QAbstractTableModel):
                 return Qt.AlignRight | Qt.AlignVCenter
         if role != Qt.DisplayRole:
             return None
+        if self.axis == 1 and self._shape[1] <= 1:
+            return None
         orient_axis = 0 if orientation == Qt.Horizontal else 1
         return section if self.axis == orient_axis else \
             self.model.name(self.axis, section)
@@ -688,6 +690,8 @@ class DataFrameHeader(QAbstractTableModel):
             cur = self.model.header(self.axis, col, row)
             return self._palette.midlight() if prev != cur else None
         if role != Qt.DisplayRole:
+            return None
+        if self.axis == 0 and self._shape[0] <= 1:
             return None
         return to_text_string(self.model.header(self.axis, col, row))
 
@@ -714,10 +718,16 @@ class DataFrameLevel(QAbstractTableModel):
         self._font = font
 
     def rowCount(self, index=None):
-        return max(1, self.model.header_shape[0])
+        if self.model.header_shape[0] > 1:
+            return self.model.header_shape[0]
+        else:
+            return 1
 
     def columnCount(self, index=None):
-        return max(1, self.model.header_shape[1])
+        if self.model.header_shape[1] > 1:
+            return self.model.header_shape[1]
+        else:
+            return 1
 
     def headerData(self, section, orientation, role):
         if role == Qt.TextAlignmentRole:
@@ -726,7 +736,11 @@ class DataFrameLevel(QAbstractTableModel):
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
         if role != Qt.DisplayRole: return None
-        return 'L' + to_text_string(section)
+        if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
+            return ' Index '
+        elif self.model.header_shape[0] <= 1:
+            return None
+        return 'Index ' + to_text_string(section)
 
     def data(self, index, role):
         if not index.isValid():
