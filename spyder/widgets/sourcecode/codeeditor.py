@@ -2778,7 +2778,7 @@ class CodeEditor(TextEditBaseWidget):
         ebottom_bottom = self.height()
 
         while block.isValid():
-            visible = (top >= ebottom_top and bottom <= ebottom_bottom)
+            visible = bottom <= ebottom_bottom
             if not visible:
                 break
             if block.isVisible():
