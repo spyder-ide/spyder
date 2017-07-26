@@ -2423,6 +2423,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
+        event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
