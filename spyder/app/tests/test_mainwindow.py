@@ -345,8 +345,9 @@ def test_change_types_in_varexp(main_window, qtbot):
     assert shell.get_value('a') == 10
 
 
+@pytest.mark.parametrize("test_directory", ["test_dir", "non_ascii_ñ_í_ç"])
 @flaky(max_runs=3)
-def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
+def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
     changing cwd in the IPython console.
@@ -356,7 +357,7 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Change directory in ipython console using %cd
-    temp_dir = str(tmpdir.mkdir("test_dir"))
+    temp_dir = str(tmpdir.mkdir(test_directory))
     with qtbot.waitSignal(shell.executed):
         shell.execute("%cd {}".format(temp_dir))
     qtbot.wait(1000)
