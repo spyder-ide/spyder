@@ -283,7 +283,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             self.histindex = len(self.history)-1
         
         # Changing working directory
-        os.chdir( to_text_string(directory) )
+        os.chdir(encoding.to_unicode_from_fs(directory))
         self.refresh_plugin()
         if refresh_explorer:
             self.set_explorer_cwd.emit(directory)
