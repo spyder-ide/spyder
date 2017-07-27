@@ -20,9 +20,9 @@ from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog
 from qtpy.QtTest import QTest
-from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit,
-                            QPrintDialog, QAbstractPrintDialog)
+from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
