@@ -71,7 +71,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         # To save kernel replies in silent execution
         self._kernel_reply = None
 
-        # To set the color of the matched parentheses
+        # Set the color of the matched parentheses here since the qtconsole
+        # uses a hard-coded value that is not modified when the color scheme is
+        # set in the qtconsole constructor. See issue #4806.   
         self.set_bracket_matcher_color_scheme(self.syntax_style)
                 
     #---- Public API ----------------------------------------------------------
