@@ -28,7 +28,7 @@ from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot, QSize
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QListWidget, QSizePolicy,
                             QTreeWidgetItem, QVBoxLayout, QWidget,
                             QStyledItemDelegate, QStyleOptionViewItem,
-                            QApplication, QStyle)
+                            QApplication, QStyle, QListWidgetItem)
 
 # Local imports
 from spyder.config.base import _
@@ -49,6 +49,17 @@ OFF = 'off'
 CWD = 0
 PROJECT = 1
 FILE_PATH = 2
+EXTERNAL_PATH = 4
+
+MAX_PATH_LENGTH = 60
+
+
+def truncate_path(text):
+    ellipsis = '...'
+    part_len = (MAX_PATH_LENGTH - len(ellipsis)) / 2.0
+    left_text = text[:int(math.ceil(part_len))]
+    right_text = text[-int(math.floor(part_len)):]
+    return left_text + ellipsis + right_text
 
 
 class SearchThread(QThread):
@@ -182,6 +193,24 @@ class SearchThread(QThread):
         return self.results, self.pathlist, self.total_matches, self.error_flag
 
 
+class ExternalPathItem(QListWidgetItem):
+    def __init__(self, parent, path):
+        self.path = path
+        print(self.__repr__())
+        QListWidgetItem.__init__(self, self.__repr__(), parent)
+
+    def __repr__(self):
+        if len(self.path) > MAX_PATH_LENGTH:
+            return truncate_path(self.path)
+        return self.path
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __unicode__(self):
+        return self.__repr__()
+
+
 class FindOptions(QWidget):
     """Find widget with options"""
     REGEX_INVALID = "background-color:rgb(255, 175, 90);"
@@ -190,7 +219,8 @@ class FindOptions(QWidget):
 
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  exclude, exclude_idx, exclude_regexp,
-                 supported_encodings, in_python_path, more_options):
+                 supported_encodings, in_python_path, more_options,
+                 external_path_history):
         QWidget.__init__(self, parent)
 
         if search_path is None:
@@ -199,8 +229,8 @@ class FindOptions(QWidget):
         self.path = ''
         self.project_path = None
         self.file_path = None
-        self.selected_path = None
-        self.external_selected = False
+        self.external_path = None
+        self.external_path_history = external_path_history
 
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -208,6 +238,8 @@ class FindOptions(QWidget):
             search_path = [search_path]
         if not isinstance(exclude, (list, tuple)):
             exclude = [exclude]
+        if not isinstance(external_path_history, (list, tuple)):
+            external_path_history = [external_path_history]
 
         self.supported_encodings = supported_encodings
 
@@ -296,6 +328,10 @@ class FindOptions(QWidget):
         item.setToolTip(_("Search in other folder present on the file system"))
 
         self.path_selection_combo.insertSeparator(3)
+        self.path_selection_combo.insertSeparator(5)
+        for path in external_path_history:
+            item = ExternalPathItem(None, path)
+            self.path_selection_contents.addItem(item)
 
         self.path_selection_combo.currentIndexChanged.connect(
             self.path_selection_changed)
@@ -335,15 +371,18 @@ class FindOptions(QWidget):
     @Slot()
     def path_selection_changed(self):
         idx = self.path_selection_combo.currentIndex()
-        self.external_selected = False
-        if idx == self.path_selection_combo.count() - 1:
-            self.external_selected = True
-            self.external_dir = self.select_directory()
-            print(self.external_dir)
-            if self.external_dir is not None:
-                self.path_selection_contents.insertItem(idx - 1,
-                                                        self.external_dir)
-            self.path_selection_combo.setCurrentIndex(0)
+        if idx == EXTERNAL_PATH:
+            external_path = self.select_directory()
+            if len(external_path) > 0:
+                item = ExternalPathItem(None, external_path)
+                self.path_selection_contents.addItem(item)
+                self.path_selection_combo.setCurrentIndex(
+                    self.path_selection_combo.count() - 1)
+            else:
+                self.path_selection_combo.setCurrentIndex(0)
+        elif idx > EXTERNAL_PATH:
+            item = self.path_selection_contents.item(idx)
+            self.external_path = item.path
 
     def update_combos(self):
         self.search_text.lineEdit().returnPressed.emit()
@@ -377,16 +416,17 @@ class FindOptions(QWidget):
         exclude_re = self.exclude_regexp.isChecked()
         python_path = False
 
-        global_path_search = self.global_path_search.isChecked()
-        project_search = self.project_search.isChecked()
-        file_search = self.file_search.isChecked()
-
-        if global_path_search:
+        file_search = False
+        selection_idx = self.path_selection_combo.currentIndex()
+        if selection_idx == CWD:
             path = self.path
-        elif project_search:
+        elif selection_idx == PROJECT:
             path = self.project_path
-        else:
+        elif selection_idx == FILE_PATH:
             path = self.file_path
+            file_search = True
+        else:
+            path = self.external_path
 
         # Finding text occurrences
         if not exclude_re:
@@ -411,24 +451,25 @@ class FindOptions(QWidget):
                            for index in range(self.search_text.count())]
             exclude = [to_text_string(self.exclude_pattern.itemText(index))
                        for index in range(self.exclude_pattern.count())]
+            path_history = [to_text_string(
+                            self.path_selection_contents.item(index))
+                            for index in range(
+                                6, self.path_selection_combo.count())]
             exclude_idx = self.exclude_pattern.currentIndex()
             more_options = self.more_options.isChecked()
             return (search_text, text_re, [],
                     exclude, exclude_idx, exclude_re,
-                    python_path, more_options)
+                    python_path, more_options, path_history)
         else:
             return (path, file_search, exclude, texts, text_re)
 
     @Slot()
     def select_directory(self):
         """Select directory"""
-        # self.parent().redirect_stdio.emit(False)
-        print("Me?")
         directory = getexistingdirectory(self, _("Select directory"),
                                          self.path)
         if directory:
             directory = to_text_string(osp.abspath(to_text_string(directory)))
-        # self.parent().redirect_stdio.emit(True)
         return directory
 
     def set_directory(self, directory):
@@ -436,15 +477,12 @@ class FindOptions(QWidget):
 
     def set_project_path(self, path):
         self.project_path = to_text_string(osp.abspath(to_text_string(path)))
-        # self.project_search.setEnabled(True)
-        item = self.path_selection_contents.item(1)
+        item = self.path_selection_contents.item(PROJECT)
         item.setFlags(item.flags() | Qt.ItemIsEnabled)
 
     def disable_project_search(self):
-        # self.project_search.setEnabled(False)
-        item = self.path_selection_contents.item(1)
+        item = self.path_selection_contents.item(PROJECT)
         item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
-        # self.project_search.setChecked(False)
         self.project_path = None
 
     def set_file_path(self, path):
@@ -710,7 +748,6 @@ class ResultsBrowser(OneColumnTree):
 
 class FileProgressBar(QWidget):
     """Simple progress spinner with a label"""
-    MAX_LABEL_LENGTH = 60
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -725,16 +762,9 @@ class FileProgressBar(QWidget):
         layout.addWidget(self.status_text)
         self.setLayout(layout)
 
-    def __truncate(self, text):
-        ellipsis = '...'
-        part_len = (self.MAX_LABEL_LENGTH - len(ellipsis)) / 2.0
-        left_text = text[:int(math.ceil(part_len))]
-        right_text = text[-int(math.floor(part_len)):]
-        return left_text + ellipsis + right_text
-
     @Slot(str)
     def set_label_path(self, path, folder=False):
-        text = self.__truncate(path)
+        text = truncate_path(path)
         if not folder:
             status_str = _(u' Scanning: {0}').format(text)
         else:
@@ -757,7 +787,8 @@ class FindInFilesWidget(QWidget):
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 in_python_path=False, more_options=False):
+                 in_python_path=False, more_options=False,
+                 external_path_history=[]):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
@@ -772,7 +803,7 @@ class FindInFilesWidget(QWidget):
                                         search_path,
                                         exclude, exclude_idx, exclude_regexp,
                                         supported_encodings, in_python_path,
-                                        more_options)
+                                        more_options, external_path_history)
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
