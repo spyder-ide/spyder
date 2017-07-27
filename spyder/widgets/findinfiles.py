@@ -25,7 +25,7 @@ import traceback
 from qtpy.compat import getexistingdirectory
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot, QSize
-from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
+from qtpy.QtWidgets import (QHBoxLayout, QLabel, QListWidget, QSizePolicy,
                             QTreeWidgetItem, QVBoxLayout, QWidget,
                             QStyledItemDelegate, QStyleOptionViewItem,
                             QApplication, QStyle)
@@ -45,6 +45,10 @@ from spyder.widgets.waitingspinner import QWaitingSpinner
 
 ON = 'on'
 OFF = 'off'
+
+CWD = 0
+PROJECT = 1
+FILE_PATH = 2
 
 
 class SearchThread(QThread):
@@ -195,6 +199,8 @@ class FindOptions(QWidget):
         self.path = ''
         self.project_path = None
         self.file_path = None
+        self.selected_path = None
+        self.external_selected = False
 
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -258,28 +264,44 @@ class FindOptions(QWidget):
         # Layout 3
         hlayout3 = QHBoxLayout()
 
-        self.global_path_search = QRadioButton(_("Current working "
-                                                 "directory"), self)
-        self.global_path_search.setChecked(True)
-        self.global_path_search.setToolTip(_("Search in all files and "
-                                             "directories present on the"
-                                             "current Spyder path"))
+        search_on_label = QLabel(_("Search in:"))
+        self.path_selection_combo = PatternComboBox(self, exclude,
+                                                    _('Search directory'))
+        self.path_selection_combo.setEditable(False)
+        self.path_selection_contents = QListWidget(self.path_selection_combo)
+        self.path_selection_contents.hide()
+        self.path_selection_combo.setModel(
+            self.path_selection_contents.model())
 
-        self.project_search = QRadioButton(_("Project"), self)
-        self.project_search.setToolTip(_("Search in all files and "
-                                         "directories present on the"
-                                         "current project path (If opened)"))
+        self.path_selection_contents.addItem(_("Current working directory"))
+        item = self.path_selection_contents.item(0)
+        item.setToolTip(_("Search in all files and "
+                          "directories present on the"
+                          "current Spyder path"))
 
-        self.project_search.setEnabled(False)
+        self.path_selection_contents.addItem(_("Project"))
+        item = self.path_selection_contents.item(1)
+        item.setToolTip(_("Search in all files and "
+                          "directories present on the"
+                          "current project path "
+                          "(If opened)"))
+        item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
 
-        self.file_search = QRadioButton(_("File"), self)
-        self.file_search.setToolTip(_("Search in current opened file"))
+        self.path_selection_contents.addItem(_("File"))
+        item = self.path_selection_contents.item(2)
+        item.setToolTip(_("Search in current opened file"))
 
-        for wid in [self.global_path_search,
-                    self.project_search, self.file_search]:
-            hlayout3.addWidget(wid)
+        self.path_selection_contents.addItem(_("Select other directory"))
+        item = self.path_selection_contents.item(3)
+        item.setToolTip(_("Search in other folder present on the file system"))
 
-        hlayout3.addStretch(1)
+        self.path_selection_combo.insertSeparator(3)
+
+        self.path_selection_combo.currentIndexChanged.connect(
+            self.path_selection_changed)
+
+        hlayout3.addWidget(search_on_label)
+        hlayout3.addWidget(self.path_selection_combo)
 
         self.search_text.valid.connect(lambda valid: self.find.emit())
         self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
@@ -309,6 +331,19 @@ class FindOptions(QWidget):
             tip = _('Show advanced options')
         self.more_options.setIcon(icon)
         self.more_options.setToolTip(tip)
+
+    @Slot()
+    def path_selection_changed(self):
+        idx = self.path_selection_combo.currentIndex()
+        self.external_selected = False
+        if idx == self.path_selection_combo.count() - 1:
+            self.external_selected = True
+            self.external_dir = self.select_directory()
+            print(self.external_dir)
+            if self.external_dir is not None:
+                self.path_selection_contents.insertItem(idx - 1,
+                                                        self.external_dir)
+            self.path_selection_combo.setCurrentIndex(0)
 
     def update_combos(self):
         self.search_text.lineEdit().returnPressed.emit()
@@ -387,23 +422,29 @@ class FindOptions(QWidget):
     @Slot()
     def select_directory(self):
         """Select directory"""
-        self.parent().redirect_stdio.emit(False)
+        # self.parent().redirect_stdio.emit(False)
+        print("Me?")
         directory = getexistingdirectory(self, _("Select directory"),
-                                         self.dir_combo.currentText())
+                                         self.path)
         if directory:
-            self.set_directory(directory)
-        self.parent().redirect_stdio.emit(True)
+            directory = to_text_string(osp.abspath(to_text_string(directory)))
+        # self.parent().redirect_stdio.emit(True)
+        return directory
 
     def set_directory(self, directory):
         self.path = to_text_string(osp.abspath(to_text_string(directory)))
 
     def set_project_path(self, path):
         self.project_path = to_text_string(osp.abspath(to_text_string(path)))
-        self.project_search.setEnabled(True)
+        # self.project_search.setEnabled(True)
+        item = self.path_selection_contents.item(1)
+        item.setFlags(item.flags() | Qt.ItemIsEnabled)
 
     def disable_project_search(self):
-        self.project_search.setEnabled(False)
-        self.project_search.setChecked(False)
+        # self.project_search.setEnabled(False)
+        item = self.path_selection_contents.item(1)
+        item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
+        # self.project_search.setChecked(False)
         self.project_path = None
 
     def set_file_path(self, path):
@@ -759,8 +800,8 @@ class FindInFilesWidget(QWidget):
             return
         self.stop_and_reset_thread(ignore_results=True)
         self.search_thread = SearchThread(self)
-        self.search_thread.get_pythonpath_callback = \
-                                                self.get_pythonpath_callback
+        self.search_thread.get_pythonpath_callback = (
+            self.get_pythonpath_callback)
         self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.sig_current_file.connect(
             lambda x: self.status_bar.set_label_path(x, folder=False)
