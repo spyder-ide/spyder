@@ -73,12 +73,12 @@ def open_file_in_editor(main_window, fname, directory=None):
             QTest.keyClick(w, Qt.Key_Enter)
 
 
-def print_file(main_window, selection_option=False):
+def print_file(main_window, result, selection_option=False):
     """Check if the print dialog has the correct option"""
     top_level_widgets = QApplication.topLevelWidgets()
     for w in top_level_widgets:
         if isinstance(w, QPrintDialog):
-            assert selection_option == w.testOption(QAbstractPrintDialog.PrintSelection)
+            result.append(selection_option == w.testOption(QAbstractPrintDialog.PrintSelection))
             QTest.keyClick(w, Qt.Key_Escape)
 
 
@@ -176,8 +176,10 @@ def test_calltip(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-def test_print_selected_section(main_window, qtbot, tmpdir):
-    """Test print funtionality for selected section."""
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="QtWarningMsg: QPrintDialog: Cannot be used on non-native printer")
+def test_print_file(main_window, qtbot, tmpdir):
+    """Test print funtionality."""
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     editor = main_window.editor
@@ -186,15 +188,18 @@ def test_print_selected_section(main_window, qtbot, tmpdir):
 
     # --- Test without selecting text ---
     # Set a timer to manipulate the print dialog while it's running
-    QTimer.singleShot(2000, lambda: print_file(main_window))
+    result = []
+    QTimer.singleShot(2000, lambda: print_file(main_window, result))
+    editor.print_file()
+    assert True in result
 
     # --- Test selecting text --
-    # Select all the text
+    # Select all the text and set a timer to manipulate the print dialog while it's running
+    result = []
     code_editor.selectAll()
+    QTimer.singleShot(2000, lambda: print_file(main_window, result, selection_option=True))
     editor.print_file()
-
-    # Set a timer to manipulate the print dialog while it's running
-    QTimer.singleShot(2000, lambda: print_file(main_window, selection_option=True))
+    assert True in result
 
 
 @flaky(max_runs=3)
