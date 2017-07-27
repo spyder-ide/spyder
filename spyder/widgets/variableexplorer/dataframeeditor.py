@@ -718,16 +718,10 @@ class DataFrameLevel(QAbstractTableModel):
         self._font = font
 
     def rowCount(self, index=None):
-        if self.model.header_shape[0] > 1:
-            return self.model.header_shape[0]
-        else:
-            return 1
+        return max(1, self.model.header_shape[0])
 
     def columnCount(self, index=None):
-        if self.model.header_shape[1] > 1:
-            return self.model.header_shape[1]
-        else:
-            return 1
+        return max(1, self.model.header_shape[1])
 
     def headerData(self, section, orientation, role):
         if role == Qt.TextAlignmentRole:
@@ -737,7 +731,7 @@ class DataFrameLevel(QAbstractTableModel):
                 return Qt.AlignRight | Qt.AlignVCenter
         if role != Qt.DisplayRole: return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
-            return ' Index '
+            return 'Index'
         elif self.model.header_shape[0] <= 1:
             return None
         return 'Index ' + to_text_string(section)
@@ -966,6 +960,9 @@ class DataFrameEditor(QDialog):
             hdr_height = self.table_level.rowViewportPosition(last_row) + \
                          self.table_level.rowHeight(last_row) + \
                          self.table_level.horizontalHeader().height()
+            if last_row == 0:
+                self.table_level.setRowHidden(0, True)
+                self.table_header.setRowHidden(0, True)
         self.table_header.setFixedHeight(hdr_height)
         self.table_level.setFixedHeight(hdr_height)
 
@@ -1090,6 +1087,7 @@ class DataFrameEditor(QDialog):
         self._resizeColumnsToContents(self.table_level,
                                       self.table_index, self._max_autosize_ms)
         self._update_layout()
+        self.table_level.resizeColumnsToContents()
 
     def change_bgcolor_enable(self, state):
         """
