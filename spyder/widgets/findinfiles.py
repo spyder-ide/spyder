@@ -196,7 +196,6 @@ class SearchThread(QThread):
 class ExternalPathItem(QListWidgetItem):
     def __init__(self, parent, path):
         self.path = path
-        print(self.__repr__())
         QListWidgetItem.__init__(self, self.__repr__(), parent)
 
     def __repr__(self):

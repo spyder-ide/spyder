@@ -78,7 +78,6 @@ def test_find_in_files_search(qtbot):
     blocker = qtbot.waitSignal(find_in_files.sig_finished)
     blocker.wait()
     matches = process_search_results(find_in_files.result_browser.data)
-    print(matches)
     assert expected_results() == matches
 
 
