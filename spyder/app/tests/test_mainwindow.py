@@ -21,7 +21,8 @@ import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
-from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
+from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit,
+                            QPrintDialog, QAbstractPrintDialog)
 
 from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
@@ -70,6 +71,15 @@ def open_file_in_editor(main_window, fname, directory=None):
             input_field = w.findChildren(QLineEdit)[0]
             input_field.setText(fname)
             QTest.keyClick(w, Qt.Key_Enter)
+
+
+def print_file(main_window, selection_option=False):
+    """Check if the print dialog has the correct option"""
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, QPrintDialog):
+            assert selection_option == w.testOption(QAbstractPrintDialog.PrintSelection)
+            QTest.keyClick(w, Qt.Key_Escape)
 
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
@@ -163,6 +173,28 @@ def test_calltip(main_window, qtbot):
 
     QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
     main_window.editor.close_file()
+
+
+@flaky(max_runs=3)
+def test_print_selected_section(main_window, qtbot, tmpdir):
+    """Test print funtionality for selected section."""
+    # ---- Load test file ----
+    test_file = osp.join(LOCATION, 'script.py')
+    editor = main_window.editor
+    editor.load(test_file)
+    code_editor = editor.get_focus_widget()
+
+    # --- Test without selecting text ---
+    # Set a timer to manipulate the print dialog while it's running
+    QTimer.singleShot(2000, lambda: print_file(main_window))
+
+    # --- Test selecting text --
+    # Select all the text
+    code_editor.selectAll()
+    editor.print_file()
+
+    # Set a timer to manipulate the print dialog while it's running
+    QTimer.singleShot(2000, lambda: print_file(main_window, selection_option=True))
 
 
 @flaky(max_runs=3)
