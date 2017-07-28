@@ -1170,11 +1170,8 @@ class CodeEditor(TextEditBaseWidget):
         painter.fillRect(event.rect(), self.sideareas_color)
         # This is needed to make that the font size of line numbers
         # be the same as the text one when zooming
-        # See Issue 2296
-        if sys.platform == 'darwin':
-            font = self.font()
-        else:
-            font = painter.font()
+        # See Issues 2296 and 4811
+        font = self.font()
         font_height = self.fontMetrics().height()
 
         active_block = self.textCursor().block()
