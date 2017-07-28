@@ -20,6 +20,7 @@ from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
@@ -70,6 +71,15 @@ def open_file_in_editor(main_window, fname, directory=None):
             input_field = w.findChildren(QLineEdit)[0]
             input_field.setText(fname)
             QTest.keyClick(w, Qt.Key_Enter)
+
+
+def print_file(main_window, result, selection_option=False):
+    """Check if the print dialog has the correct option"""
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, QPrintDialog):
+            result.append(selection_option == w.testOption(QAbstractPrintDialog.PrintSelection))
+            QTest.keyClick(w, Qt.Key_Escape)
 
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
@@ -163,6 +173,33 @@ def test_calltip(main_window, qtbot):
 
     QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
     main_window.editor.close_file()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="QtWarningMsg: QPrintDialog: Cannot be used on non-native printer")
+def test_print_file(main_window, qtbot, tmpdir):
+    """Test print funtionality."""
+    # ---- Load test file ----
+    test_file = osp.join(LOCATION, 'script.py')
+    editor = main_window.editor
+    editor.load(test_file)
+    code_editor = editor.get_focus_widget()
+
+    # --- Test without selecting text ---
+    # Set a timer to manipulate the print dialog while it's running
+    result = []
+    QTimer.singleShot(2000, lambda: print_file(main_window, result))
+    editor.print_file()
+    assert True in result
+
+    # --- Test selecting text --
+    # Select all the text and set a timer to manipulate the print dialog while it's running
+    result = []
+    code_editor.selectAll()
+    QTimer.singleShot(2000, lambda: print_file(main_window, result, selection_option=True))
+    editor.print_file()
+    assert True in result
 
 
 @flaky(max_runs=3)
