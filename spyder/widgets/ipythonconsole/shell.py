@@ -15,7 +15,8 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY2, to_text_string
+from spyder.utils import encoding
 from spyder.utils import programs
 from spyder.utils.ipython.style import create_qss_style, create_style_class
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
@@ -321,6 +322,8 @@ the sympy module (e.g. plot)
                 elif 'get_cwd' in method:
                     if data is not None and 'text/plain' in data:
                         self._cwd = ast.literal_eval(data['text/plain'])
+                        if PY2:
+                            self._cwd = encoding.to_unicode_from_fs(self._cwd)
                     else:
                         self._cwd = ''
                     self.sig_change_cwd.emit(self._cwd)
