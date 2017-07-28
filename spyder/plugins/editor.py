@@ -1929,7 +1929,7 @@ class Editor(SpyderPluginWidget):
                           header_font=self.get_plugin_font('printer_header'))
         printDialog = QPrintDialog(printer, editor)
         if editor.has_selected_text():
-            printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
+            printDialog.setOption(QAbstractPrintDialog.PrintSelection, True)
         self.redirect_stdio.emit(False)
         answer = printDialog.exec_()
         self.redirect_stdio.emit(True)
