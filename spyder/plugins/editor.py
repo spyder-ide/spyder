@@ -2681,6 +2681,7 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
 
+    @Slot(int, int)
     def move_editorstack_data(self, start, end):
         """Move editorstack.data to be synchronized when tabs are moved."""
         if start < 0 or end < 0:
@@ -2689,12 +2690,13 @@ class Editor(SpyderPluginWidget):
             steps = abs(end - start)
             direction = (end-start) // steps  # +1 for right, -1 for left
 
-            for editorstack in self.editorstacks :
-                data = editorstack.data
-                editorstack.blockSignals(True)
+            for editorstack in self.editorstacks:
+                if editorstack.isAncestorOf(self.sender()):
+                    data = editorstack.data
+                    editorstack.blockSignals(True)
 
-                for i in range(start, end, direction):
-                    data[i], data[i+direction] = data[i+direction], data[i]
+                    for i in range(start, end, direction):
+                        data[i], data[i+direction] = data[i+direction], data[i]
 
-                editorstack.blockSignals(False)
-                editorstack.refresh()
+                    editorstack.blockSignals(False)
+                    editorstack.refresh()
