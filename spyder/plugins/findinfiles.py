@@ -52,7 +52,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         exclude_regexp = self.get_option('exclude_regexp')
         in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
-        case_sensitive = self.get_option('case_sensitive', True)
+        case_sensitive = self.get_option('case_sensitive')
         FindInFilesWidget.__init__(self, parent,
                                    search_text, search_text_regexp,
                                    search_path, exclude, exclude_idx,
