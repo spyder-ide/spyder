@@ -677,6 +677,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
+        self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
 
     #-----Widget setup and options
