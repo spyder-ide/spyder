@@ -57,7 +57,7 @@ def expected_results():
 
 def expected_case_unsensitive_results():
     results = {'spam.txt': [(1, 10)],
-               'ham.erl': [(1, 0), (1, 10), (3, 0), (4, 0),
+               'ham.txt': [(1, 0), (1, 10), (3, 0), (4, 0),
                            (5, 4), (9, 0), (10, 0)]}
     return results
 
@@ -127,7 +127,7 @@ def test_case_sensitive_search(qtbot):
     blocker.wait()
     matches = process_search_results(find_in_files.result_browser.data)
     print(matches)
-    assert matches == {'ham.erl': [(9, 0)]}
+    assert matches == {'ham.txt': [(9, 0)]}
 
 
 if __name__ == "__main__":
