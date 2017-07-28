@@ -52,6 +52,7 @@ FILE_PATH = 2
 EXTERNAL_PATH = 4
 
 MAX_PATH_LENGTH = 60
+MAX_PATH_HISTORY = 15
 
 
 def truncate_path(text):
@@ -375,10 +376,16 @@ class FindOptions(QWidget):
             if len(external_path) > 0:
                 item = ExternalPathItem(None, external_path)
                 self.path_selection_contents.addItem(item)
+
+                total_items = (self.path_selection_combo.count() -
+                               MAX_PATH_HISTORY)
+                for i in range(6, total_items):
+                    self.path_selection_contents.takeItem(i)
+
                 self.path_selection_combo.setCurrentIndex(
                     self.path_selection_combo.count() - 1)
             else:
-                self.path_selection_combo.setCurrentIndex(0)
+                self.path_selection_combo.setCurrentIndex(CWD)
         elif idx > EXTERNAL_PATH:
             item = self.path_selection_contents.item(idx)
             self.external_path = item.path
