@@ -62,11 +62,8 @@ class LineNumberArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         # This is needed to make that the font size of line numbers
         # be the same as the text one when zooming
-        # See Issue 2296
-        if sys.platform == 'darwin':
-            font = self.editor.font()
-        else:
-            font = painter.font()
+        # See Issue 2296 and 4811
+        font = self.editor.font()
         font_height = self.editor.fontMetrics().height()
 
         active_block = self.editor.textCursor().block()
