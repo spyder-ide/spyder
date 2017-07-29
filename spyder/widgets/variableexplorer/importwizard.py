@@ -22,9 +22,11 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFrame, QGridLayout, QGroupBox,
                             QSizePolicy, QSpacerItem, QTableView, QTabWidget,
                             QTextEdit, QVBoxLayout, QWidget)
 
+# If pandas fails to import here (for any reason), Spyder
+# will crash at startup.
 try:
     import pandas as pd
-except ImportError:
+except:
     pd = None
 
 # Local import
@@ -58,7 +60,7 @@ class FakeObject(object):
     pass
 try:
     from numpy import ndarray, array
-except ImportError:
+except:
     class ndarray(FakeObject):  # analysis:ignore
         """Fake ndarray"""
         pass
@@ -67,7 +69,7 @@ except ImportError:
 import datetime
 try:
     from dateutil.parser import parse as dateparse
-except ImportError:
+except:
     def dateparse(datestr, dayfirst=True):  # analysis:ignore
         """Just for 'day/month/year' strings"""
         _a, _b, _c = list(map(int, datestr.split('/')))
@@ -142,6 +144,9 @@ class ContentsWidget(QWidget):
         self.tab_btn = QRadioButton(_("Tab"))
         self.tab_btn.setChecked(False)
         col_btn_layout.addWidget(self.tab_btn)
+        self.ws_btn = QRadioButton(_("Whitespace"))
+        self.ws_btn.setChecked(False)
+        col_btn_layout.addWidget(self.ws_btn)
         other_btn_col = QRadioButton(_("other"))
         other_btn_col.setChecked(True)
         col_btn_layout.addWidget(other_btn_col)
@@ -231,6 +236,8 @@ class ContentsWidget(QWidget):
         """Return the column separator"""
         if self.tab_btn.isChecked():
             return u"\t"
+        elif self.ws_btn.isChecked():
+            return None
         return to_text_string(self.line_edt.text())
 
     def get_row_sep(self):
@@ -462,7 +469,10 @@ class PreviewWidget(QWidget):
         if pd:
             self.pd_text = text
             self.pd_info = dict(sep=colsep, lineterminator=rowsep,
-                skiprows=skiprows,comment=comments)
+                skiprows=skiprows, comment=comments)
+            if colsep is None:
+                self.pd_info = dict(lineterminator=rowsep, skiprows=skiprows,
+                    comment=comments, delim_whitespace=True)
         self._table_view.process_data(text, colsep, rowsep, transpose,
                                       skiprows, comments)
 

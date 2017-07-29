@@ -17,6 +17,9 @@ import os
 import os.path as osp
 import re
 import shutil
+import subprocess
+import sys
+import mimetypes as mime
 
 # Third party imports
 from qtpy import API, is_pyqt46
@@ -42,6 +45,26 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
+def open_file_in_external_explorer(filename):
+    if sys.platform == "darwin":
+        subprocess.call(["open", "-R", filename])
+    else:
+        filename=os.path.dirname(filename)
+        if os.name == 'nt':
+            os.startfile(filename)
+        else:
+            subprocess.call(["xdg-open", filename])
+
+def show_in_external_file_explorer(fnames=None):
+    """Show files in external file explorer
+
+    Args:
+        fnames (list): Names of files to show.
+    """
+    if not isinstance(fnames, (tuple, list)):
+        fnames = [fnames]
+    for fname in fnames:
+        open_file_in_external_explorer(fname)
 
 def fixpath(path):
     """Normalize path fixing case, making absolute and removing symlinks"""
@@ -84,10 +107,28 @@ def has_subdirectories(path, include, exclude, show_all):
 
 
 class IconProvider(QFileIconProvider):
+    BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
+                 'x-7z-compressed', 'rar']}
+    DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
+                      'vnd.openxmlformats-officedocument.'
+                      'presentationml.presentation': 'PowerpointFileIcon',
+                      'msword': 'WordFileIcon',
+                      'vnd.openxmlformats-officedocument.'
+                      'wordprocessingml.document': 'WordFileIcon',
+                      'vnd.ms-excel': 'ExcelFileIcon',
+                      'vnd.openxmlformats-officedocument.'
+                      'spreadsheetml.sheet': 'ExcelFileIcon',
+                      'pdf': 'PDFIcon'}
+    OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
+                    '.pptx': 'PowerpointFileIcon'}
+
     """Project tree widget icon provider"""
     def __init__(self, treeview):
         super(IconProvider, self).__init__()
         self.treeview = treeview
+        self.application_icons = {}
+        self.application_icons.update(self.BIN_FILES)
+        self.application_icons.update(self.DOCUMENT_FILES)
 
     @Slot(int)
     @Slot(QFileInfo)
@@ -101,7 +142,28 @@ class IconProvider(QFileIconProvider):
             if osp.isdir(fname):
                 return ima.icon('DirOpenIcon')
             else:
-                return ima.icon('FileIcon')
+                basename = osp.basename(fname)
+                _, extension = osp.splitext(basename)
+                mime_type, _ = mime.guess_type(basename)
+                icon = ima.icon('FileIcon')
+
+                if extension in self.OFFICE_FILES:
+                    icon = ima.icon(self.OFFICE_FILES[extension])
+
+                if mime_type is not None:
+                    file_type, bin_name = mime_type.split('/')
+                    if file_type == 'text':
+                        icon = ima.icon('TextFileIcon')
+                    elif file_type == 'audio':
+                        icon = ima.icon('AudioFileIcon')
+                    elif file_type == 'video':
+                        icon = ima.icon('VideoFileIcon')
+                    elif file_type == 'image':
+                        icon = ima.icon('ImageFileIcon')
+                    elif file_type == 'application':
+                        if bin_name in self.application_icons:
+                            icon = ima.icon(self.application_icons[bin_name])
+                return icon
 
 
 class DirView(QTreeView):
@@ -113,7 +175,6 @@ class DirView(QTreeView):
     sig_create_module = Signal(str)
     sig_run = Signal(str)
     sig_new_file = Signal(str)
-    sig_open_terminal = Signal(str)
     sig_open_interpreter = Signal(str)
     redirect_stdio = Signal(bool)
 
@@ -304,6 +365,13 @@ class DirView(QTreeView):
             actions.append(edit_action)
         else:
             actions.append(open_action)
+        if sys.platform == 'darwin':
+            text=_("Show in Finder")
+        else:
+            text=_("Show in external file explorer")
+        external_fileexp_action = create_action(self, text, 
+                                triggered=self.show_in_external_file_explorer)        
+        actions.append(external_fileexp_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
@@ -344,12 +412,8 @@ class DirView(QTreeView):
             _title = _("Open command prompt here")
         else:
             _title = _("Open terminal here")
-        action = create_action(self, _title, icon=ima.icon('cmdprompt'),
-                               triggered=lambda:
-                               self.open_terminal(fnames))
-        actions.append(action)
-        _title = _("Open Python console here")
-        action = create_action(self, _title, icon=ima.icon('python'),
+        _title = _("Open IPython console here")
+        action = create_action(self, _title,
                                triggered=lambda:
                                self.open_interpreter(fnames))
         actions.append(action)
@@ -488,12 +552,7 @@ class DirView(QTreeView):
             ok = programs.start_file(path)
             if not ok:
                 self.sig_edit.emit(path)
-                
-    def open_terminal(self, fnames):
-        """Open terminal"""
-        for path in sorted(fnames):
-            self.sig_open_terminal.emit(path)
-            
+
     def open_interpreter(self, fnames):
         """Open interpreter"""
         for path in sorted(fnames):
@@ -615,6 +674,13 @@ class DirView(QTreeView):
                             _("<b>Unable to rename file <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
                               ) % (osp.basename(fname), to_text_string(error)))
+
+    @Slot()
+    def show_in_external_file_explorer(self, fnames=None):
+        """Show file in external file explorer"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        show_in_external_file_explorer(fnames)
 
     @Slot()
     def rename(self, fnames=None):
@@ -1008,6 +1074,9 @@ class ExplorerTreeWidget(DirView):
             self.setRootIndex(index)
         return index
         
+    def get_current_folder(self):
+        return self.__last_folder
+
     def refresh(self, new_path=None, force_current=False):
         """Refresh widget
         force=False: won't refresh widget if path has not changed"""

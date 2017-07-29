@@ -37,11 +37,12 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
                                     restore_keyevent)
 from spyder.widgets.mixins import (GetHelpMixin, SaveHistoryMixin,
-                                   TracebackLinksMixin)
+                                   TracebackLinksMixin, BrowseHistoryMixin)
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 
-class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
+class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
+                      BrowseHistoryMixin):
     """
     Shell base widget
     """
@@ -57,17 +58,15 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         parent : specifies the parent widget
         """
         ConsoleBaseWidget.__init__(self, parent)
-        SaveHistoryMixin.__init__(self)
+        SaveHistoryMixin.__init__(self, history_filename)
+        BrowseHistoryMixin.__init__(self)
                 
         # Prompt position: tuple (line, index)
         self.current_prompt_pos = None
         self.new_input_line = True
         
         # History
-        self.histidx = None
-        self.hist_wholeline = False
         assert is_text_string(history_filename)
-        self.history_filename = history_filename
         self.history = self.load_history()
         
         # Session
@@ -168,12 +167,6 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         else:
             pline, pindex = self.current_prompt_pos
         self.setSelection(pline, pindex, line, index)
-
-    @Slot()
-    def clear_line(self):
-        """Clear current line (without clearing console prompt)"""
-        if self.current_prompt_pos is not None:
-            self.remove_text(self.current_prompt_pos, 'eof')
 
     @Slot()
     def clear_terminal(self):
@@ -520,51 +513,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         # Saving truncated history:
         encoding.writelines(rawhistory, self.history_filename)
         return history
-        
-    def browse_history(self, backward):
-        """Browse history"""
-        if self.is_cursor_before('eol') and self.hist_wholeline:
-            self.hist_wholeline = False
-        tocursor = self.get_current_line_to_cursor()
-        text, self.histidx = self.__find_in_history(tocursor,
-                                                    self.histidx, backward)
-        if text is not None:
-            if self.hist_wholeline:
-                self.clear_line()
-                self.insert_text(text)
-            else:
-                cursor_position = self.get_position('cursor')
-                # Removing text from cursor to the end of the line
-                self.remove_text('cursor', 'eol')
-                # Inserting history text
-                self.insert_text(text)
-                self.set_cursor_position(cursor_position)
 
-    def __find_in_history(self, tocursor, start_idx, backward):
-        """Find text 'tocursor' in history, from index 'start_idx'"""
-        if start_idx is None:
-            start_idx = len(self.history)
-        # Finding text in history
-        step = -1 if backward else 1
-        idx = start_idx
-        if len(tocursor) == 0 or self.hist_wholeline:
-            idx += step
-            if idx >= len(self.history) or len(self.history) == 0:
-                return "", len(self.history)
-            elif idx < 0:
-                idx = 0
-            self.hist_wholeline = True
-            return self.history[idx], idx
-        else:
-            for index in range(len(self.history)):
-                idx = (start_idx+step*(index+1)) % len(self.history)
-                entry = self.history[idx]
-                if entry.startswith(tocursor):
-                    return entry[len(tocursor):], idx
-            else:
-                return None, start_idx
-    
-    
     #------ Simulation standards input/output
     def write_error(self, text):
         """Simulate stderr"""

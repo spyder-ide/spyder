@@ -79,6 +79,27 @@ def editor_cells_bot(base_editor_bot):
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor, qtbot
 
+
+@pytest.fixture
+def editor_folding_bot(base_editor_bot):
+    """
+    Setup CodeEditor with some text useful for folding related tests.
+    """
+    editor_stack, qtbot = base_editor_bot
+    text = ('# dummy test file\n'
+            'class a():\n'  # fold-block level-0
+            '    self.b = 1\n'
+            '    print(self.b)\n'
+            '    \n'
+            )
+    finfo = editor_stack.new('foo.py', 'utf-8', text)
+
+    find_replace = FindReplace(None, enable_replace=True)
+    editor_stack.set_find_widget(find_replace)
+    find_replace.set_editor(finfo.editor)
+    qtbot.addWidget(editor_stack)
+    return editor_stack, finfo.editor, find_replace, qtbot
+
 # Tests
 #-------------------------------
 def test_run_top_line(editor_bot):
@@ -155,11 +176,45 @@ def test_replace_current_selected_line(editor_find_replace_bot):
     qtbot.keyPress(finder.replace_text, Qt.Key_Return)
     assert editor.toPlainText()[0:-1] == expected_new_text
 
+def test_replace_enter_press(editor_find_replace_bot):
+    """Test advance forward pressing Enter, and backwards with Shift+Enter."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    text = '  \nspam \nspam \nspam '
+    editor.set_text(text)
+    finder.show()
+
+    finder.search_text.add_text('spam')
+
+    # search forward
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert editor.get_cursor_line_column() == (1,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert editor.get_cursor_line_column() == (2,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert editor.get_cursor_line_column() == (3,4)
+
+    # search backwards
+    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert editor.get_cursor_line_column() == (2,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert editor.get_cursor_line_column() == (1,4)
+
+    qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert editor.get_cursor_line_column() == (3,4)
+
+
 def test_advance_cell(editor_cells_bot):
     editor_stack, editor, qtbot = editor_cells_bot
 
     # cursor at the end of the file
     assert editor.get_cursor_line_column() == (10, 0)
+
+    # advance backwards to the begining of the 3rd cell
+    editor_stack.advance_cell(reverse=True)
+    assert editor.get_cursor_line_column() == (6, 0)
 
     # advance backwards to 2nd cell
     editor_stack.advance_cell(reverse=True)
@@ -174,6 +229,38 @@ def test_advance_cell(editor_cells_bot):
     # advance to 3rd cell
     editor_stack.advance_cell()
     assert editor.get_cursor_line_column() == (6, 0)
+
+
+def test_unfold_when_searching(editor_folding_bot):
+    editor_stack, editor, finder, qtbot = editor_folding_bot
+    folding_panel = editor.panels.get('FoldingPanel')
+    line_search = editor.document().findBlockByLineNumber(3)
+
+    # fold region
+    block = editor.document().findBlockByLineNumber(1)
+    folding_panel.toggle_fold_trigger(block)
+    assert not line_search.isVisible()
+
+    # unfolded when searching
+    finder.show()
+    qtbot.keyClicks(finder.search_text, 'print')
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert line_search.isVisible()
+
+
+def test_unfold_goto(editor_folding_bot):
+    editor_stack, editor, finder, qtbot = editor_folding_bot
+    folding_panel = editor.panels.get('FoldingPanel')
+    line_goto = editor.document().findBlockByLineNumber(3)
+
+    # fold region
+    block = editor.document().findBlockByLineNumber(1)
+    folding_panel.toggle_fold_trigger(block)
+    assert not line_goto.isVisible()
+
+    # unfolded when goto
+    editor.go_to_line(4)
+    assert line_goto.isVisible()
 
 
 if __name__ == "__main__":

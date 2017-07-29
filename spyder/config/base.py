@@ -189,9 +189,6 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
-SCIENTIFIC_STARTUP = get_module_source_path('spyder', 'scientific_startup.py')
-
-
 #==============================================================================
 # Image path list
 #==============================================================================
@@ -231,7 +228,9 @@ LANGUAGE_CODES = {'en': u'English',
                   'es': u'Español',
                   'pt_BR': u'Português',
                   'ru': u'Русский',
-                  'ja': u'日本語'
+                  'zh_CN': u'简体中文',
+                  'ja': u'日本語',
+                  'de': u'Deutsch'
                   }
 
 # Disabled languages (because their translations are outdated)
@@ -386,18 +385,18 @@ def get_supported_types():
     try:
         from numpy import ndarray, matrix, generic
         editable_types += [ndarray, matrix, generic]
-    except ImportError:
+    except:
         pass
     try:
         from pandas import DataFrame, Series, DatetimeIndex
         editable_types += [DataFrame, Series, DatetimeIndex]
-    except ImportError:
+    except:
         pass
     picklable_types = editable_types[:]
     try:
         from spyder.pil_patch import Image
         editable_types.append(Image.Image)
-    except ImportError:
+    except:
         pass
     return dict(picklable=picklable_types, editable=editable_types)
 

@@ -23,7 +23,6 @@ from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.ipython import QTCONSOLE_INSTALLED
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import get_meth_class_inst, to_text_string
@@ -122,16 +121,12 @@ class HelpConfigPage(PluginConfigPage):
             editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
                            "It seems you don't have either installed.")
             editor_box.setToolTip(editor_tip)
-        python_box = self.create_checkbox(_("Python Console"),
-                                          'connect/python_console')
         ipython_box = self.create_checkbox(_("IPython Console"),
                                            'connect/ipython_console')
-        ipython_box.setEnabled(QTCONSOLE_INSTALLED)
 
         connections_layout = QVBoxLayout()
         connections_layout.addWidget(connections_label)
         connections_layout.addWidget(editor_box)
-        connections_layout.addWidget(python_box)
         connections_layout.addWidget(ipython_box)
         connections_group.setLayout(connections_layout)
 
@@ -543,9 +538,7 @@ class Help(SpyderPluginWidget):
 
         # To make auto-connection changes take place instantly
         self.main.editor.apply_plugin_settings(options=[connect_n])
-        self.main.extconsole.apply_plugin_settings(options=[connect_n])
-        if self.main.ipyconsole is not None:
-            self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
+        self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
 
     #------ Public API (related to Help's source) -------------------------
     def source_is_console(self):
@@ -812,8 +805,8 @@ class Help(SpyderPluginWidget):
                and (force or text != self._last_texts[index]):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
                 if self.main.console.dockwidget not in dockwidgets and \
-                   (hasattr(self.main, 'extconsole') and \
-                    self.main.extconsole.dockwidget not in dockwidgets):
+                   (hasattr(self.main, 'ipyconsole') and \
+                    self.main.ipyconsole.dockwidget not in dockwidgets):
                     self.dockwidget.show()
                     self.dockwidget.raise_()
         self._last_texts[index] = text
@@ -897,8 +890,6 @@ class Help(SpyderPluginWidget):
                 shell = self.main.ipyconsole.get_current_shellwidget()
                 if shell is not None and shell.kernel_client is not None:
                     self.shell = shell
-            if self.shell is None and self.main.extconsole is not None:
-                self.shell = self.main.extconsole.get_running_python_shell()
             if self.shell is None:
                 self.shell = self.internal_shell
         return self.shell

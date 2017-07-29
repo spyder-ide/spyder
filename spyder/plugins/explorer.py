@@ -64,7 +64,7 @@ class Explorer(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        extconsole = self.main.extconsole
+        ipyconsole = self.main.ipyconsole
         treewidget = self.fileexplorer.treewidget
 
         self.main.add_dockwidget(self)
@@ -76,8 +76,7 @@ class Explorer(SpyderPluginWidget):
         treewidget.sig_renamed.connect(self.main.editor.renamed)
         treewidget.sig_create_module.connect(self.main.editor.new)
         treewidget.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
-        treewidget.sig_open_terminal.connect(extconsole.open_terminal)
-        treewidget.sig_open_interpreter.connect(extconsole.open_interpreter)
+        treewidget.sig_open_interpreter.connect(ipyconsole.create_client_from_path)
         treewidget.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         treewidget.sig_run.connect(
                      lambda fname:
@@ -89,7 +88,8 @@ class Explorer(SpyderPluginWidget):
         treewidget.sig_open_dir.connect(
                      lambda dirname:
                      self.main.workingdirectory.chdir(dirname,
-                                                      refresh_explorer=False))
+                                                      refresh_explorer=False,
+                                                      refresh_console=True))
 
         self.main.editor.open_dir.connect(self.chdir)
 

@@ -22,9 +22,7 @@ class ScrollFlagArea(Panel):
     def __init__(self, editor):
         Panel.__init__(self, editor)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
-        self._enabled = None
-        editor.verticalScrollBar().valueChanged.connect(
-                                                  lambda value: self.repaint())
+        self.scrollable = True
 
     def sizeHint(self):
         """Override Qt method"""

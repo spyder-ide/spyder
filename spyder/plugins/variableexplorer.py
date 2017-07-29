@@ -20,6 +20,7 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 class VariableExplorerConfigPage(PluginConfigPage):
+
     def setup_page(self):
         filter_group = QGroupBox(_("Filter"))
         filter_data = [
@@ -199,7 +200,6 @@ class VariableExplorer(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.extconsole.set_variableexplorer(self)
         self.main.add_dockwidget(self)
         
     def apply_plugin_settings(self, options):

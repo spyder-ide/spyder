@@ -236,7 +236,6 @@ class NamespaceBrowser(QWidget):
         if properties is not None:
             self.editor.var_properties = properties
 
-
     def set_data(self, data):
         """Set data."""
         if data != self.editor.model.get_data():

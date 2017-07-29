@@ -8,6 +8,14 @@ import socket
 import sys
 import time
 
+# This import is needed to fix errors with OpenGL when installed using pip
+# See issue #3332
+try:
+    from OpenGL import GL
+except ImportError:
+    # pyopengl is not present when installed using conda
+    pass
+
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.base import get_conf_path, running_in_mac_app
@@ -57,6 +65,30 @@ def main():
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
+
+    #==========================================================================
+    # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+    # be set before creating the application.
+    #==========================================================================
+    if CONF.get('main', 'high_dpi_custom_scale_factor'):
+        factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
+        os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+    else:
+        os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
+
+    # Prevent Spyder from crashing in macOS if locale is not defined
+    if sys.platform == 'darwin':
+        LANG = os.environ.get('LANG')
+        LC_ALL = os.environ.get('LC_ALL')
+        if bool(LANG) and not bool(LC_ALL):
+            LC_ALL = LANG
+        elif not bool(LANG) and bool(LC_ALL):
+            LANG = LC_ALL
+        else:
+            LANG = LC_ALL = 'en_US.UTF-8'
+
+        os.environ['LANG'] = LANG
+        os.environ['LC_ALL'] = LC_ALL
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():

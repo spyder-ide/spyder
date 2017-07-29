@@ -267,7 +267,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def get_index_from_key(self, key):
         try:
             return self.createIndex(self.keys.index(key), 0)
-        except ValueError:
+        except (RuntimeError, ValueError):
             return QModelIndex()
     
     def get_key(self, index):
@@ -505,9 +505,12 @@ class CollectionsDelegate(QItemDelegate):
             return editor
         #---editor = TextEditor
         elif is_text_string(value) and len(value) > 40:
-            editor = TextEditor(value, key)
-            self.create_dialog(editor, dict(model=index.model(), editor=editor,
-                                            key=key, readonly=readonly))
+            te = TextEditor(None)
+            if te.setup_and_check(value):
+                editor = TextEditor(value, key)
+                self.create_dialog(editor, dict(model=index.model(),
+                                                editor=editor, key=key,
+                                                readonly=readonly))
             return None
         #---editor = QLineEdit
         elif is_editable_type(value):
@@ -1015,13 +1018,13 @@ class BaseTableView(QTableView):
         try:
             import guiqwt.pyplot   #analysis:ignore
             return True
-        except (ImportError, AssertionError):
+        except:
             try:
                 if 'matplotlib' not in sys.modules:
                     import matplotlib
                     matplotlib.use("Qt4Agg")
                 return True
-            except ImportError:
+            except:
                 QMessageBox.warning(self, _("Import error"),
                                     _("Please install <b>matplotlib</b>"
                                       " or <b>guiqwt</b>."))
@@ -1459,16 +1462,28 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     def plot(self, name, funcname):
         """Plot item"""
-        self.shellwidget.execute("%%varexp --%s %s" % (funcname, name))
+        sw = self.shellwidget
+        if sw._reading:
+            sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
+        else:
+            sw.execute("%%varexp --%s %s" % (funcname, name))
 
     def imshow(self, name):
         """Show item's image"""
-        self.shellwidget.execute("%%varexp --imshow %s" % name)
+        sw = self.shellwidget
+        if sw._reading:
+            sw.dbg_exec_magic('varexp', '--imshow %s' % name)
+        else:
+            sw.execute("%%varexp --imshow %s" % name)
 
     def show_image(self, name):
         """Show image (item is a PIL image)"""
         command = "%s.show()" % name
-        self.shellwidget.execute(command)
+        sw = self.shellwidget
+        if sw._reading:
+            sw.kernel_client.input(command)
+        else:
+            sw.execute(command)
 
     # -------------------------------------------------------------------------
 

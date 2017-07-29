@@ -14,7 +14,7 @@ import sys
 from spyder.utils.editor import TextBlockHelper
 
 
-def print_tree(editor, file=sys.stdout, print_blocks=False):
+def print_tree(editor, file=sys.stdout, print_blocks=False, return_list=False):
     """
     Prints the editor fold tree to stdout, for debugging purpose.
 
@@ -23,6 +23,8 @@ def print_tree(editor, file=sys.stdout, print_blocks=False):
     :param print_blocks: True to print all blocks, False to only print blocks
         that are fold triggers
     """
+    output_list = []
+
     block = editor.document().firstBlock()
     while block.isValid():
         trigger = TextBlockHelper().is_fold_trigger(block)
@@ -31,14 +33,22 @@ def print_tree(editor, file=sys.stdout, print_blocks=False):
         visible = 'V' if block.isVisible() else 'I'
         if trigger:
             trigger = '+' if trigger_state else '-'
-            print('l%d:%s%s%s' %
-                  (block.blockNumber() + 1, lvl, trigger, visible),
-                  file=file)
+            if return_list:
+                output_list.append([block.blockNumber() + 1, lvl, visible])
+            else:
+                print('l%d:%s%s%s' %
+                      (block.blockNumber() + 1, lvl, trigger, visible),
+                      file=file)
         elif print_blocks:
-            print('l%d:%s%s' %
-                  (block.blockNumber() + 1, lvl, visible), file=file)
+            if return_list:
+                output_list.append([block.blockNumber() + 1, lvl, visible])
+            else:
+                print('l%d:%s%s' %
+                      (block.blockNumber() + 1, lvl, visible), file=file)
         block = block.next()
 
+    if return_list:
+        return output_list
 
 class FoldDetector(object):
     """
@@ -81,8 +91,9 @@ class FoldDetector(object):
         :param text: current block text
         """
         prev_fold_level = TextBlockHelper.get_fold_lvl(previous_block)
-        if text.strip() == '':
-            # blank line always have the same level as the previous line
+        if text.strip() == '' or self.editor.is_comment(current_block):
+            # blank or comment line always have the same level
+            # as the previous line
             fold_level = prev_fold_level
         else:
             fold_level = self.detect_fold_level(
@@ -93,32 +104,34 @@ class FoldDetector(object):
         prev_fold_level = TextBlockHelper.get_fold_lvl(previous_block)
 
         if fold_level > prev_fold_level:
-            # apply on previous blank lines
+            # apply on previous blank or comment lines
             block = current_block.previous()
-            while block.isValid() and block.text().strip() == '':
+            while block.isValid() and (block.text().strip() == ''
+                                       or self.editor.is_comment(block)):
                 TextBlockHelper.set_fold_lvl(block, fold_level)
                 block = block.previous()
             TextBlockHelper.set_fold_trigger(
                 block, True)
 
         # update block fold level
-        if text.strip():
+        if text.strip() and not self.editor.is_comment(previous_block):
             TextBlockHelper.set_fold_trigger(
                 previous_block, fold_level > prev_fold_level)
         TextBlockHelper.set_fold_lvl(current_block, fold_level)
 
         # user pressed enter at the beginning of a fold trigger line
-        # the previous blank line will keep the trigger state and the new line
-        # (which actually contains the trigger) must use the prev state (
-        # and prev state must then be reset).
+        # the previous blank or comment line will keep the trigger state
+        # and the new line (which actually contains the trigger) must use
+        # the prev state (and prev state must then be reset).
         prev = current_block.previous()  # real prev block (may be blank)
-        if (prev and prev.isValid() and prev.text().strip() == '' and
+        if (prev and prev.isValid() and
+            (prev.text().strip() == '' or self.editor.is_comment(prev)) and
                 TextBlockHelper.is_fold_trigger(prev)):
             # prev line has the correct trigger fold state
             TextBlockHelper.set_collapsed(
                 current_block, TextBlockHelper.is_collapsed(
                     prev))
-            # make empty line not a trigger
+            # make empty or comment line not a trigger
             TextBlockHelper.set_fold_trigger(prev, False)
             TextBlockHelper.set_collapsed(prev, False)
 

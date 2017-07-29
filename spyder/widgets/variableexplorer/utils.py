@@ -48,15 +48,14 @@ class FakeObject(object):
 #==============================================================================
 try:
     from numpy import (ndarray, array, matrix, recarray,
-                      int64, int32, float64, float32,
-                      complex64, complex128)
+                       int64, int32, float64, float32,
+                       complex64, complex128)
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
-    from numpy import set_printoptions as np_set_printoptions
-except ImportError:
+    from numpy import get_printoptions, set_printoptions
+except:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
-    np_set_printoptions = int64 = int32 = float64 = float32 = \
-    complex64 = complex128 = FakeObject
+    int64 = int32 = float64 = float32 = complex64 = complex128 = FakeObject
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -82,7 +81,10 @@ def get_numpy_dtype(obj):
 # Pandas support
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
-    from pandas import DataFrame, DatetimeIndex, Series
+    try:
+        from pandas import DataFrame, DatetimeIndex, Series
+    except:
+        DataFrame = DatetimeIndex = Series = FakeObject
 else:
     DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
 
@@ -93,7 +95,7 @@ else:
 try:
     from spyder import pil_patch
     Image = pil_patch.Image.Image
-except ImportError:
+except:
     Image = FakeObject  # analysis:ignore
 
 
@@ -103,7 +105,7 @@ except ImportError:
 try:
     import bs4
     NavigableString = bs4.element.NavigableString
-except (ImportError, AttributeError):
+except:
     NavigableString = FakeObject  # analysis:ignore
 
 
@@ -160,9 +162,6 @@ CollectionsRepr.maxdict = 10
 CollectionsRepr.maxtuple = 10
 CollectionsRepr.maxset = 10
 
-if np_set_printoptions is not FakeObject:
-    np_set_printoptions(threshold=10)
-
 
 #==============================================================================
 # Date and datetime objects support
@@ -172,7 +171,7 @@ import datetime
 
 try:
     from dateutil.parser import parse as dateparse
-except ImportError:
+except:
     def dateparse(datestr):  # analysis:ignore
         """Just for 'year, month, day' strings"""
         return datetime.datetime( *list(map(int, datestr.split(','))) )
@@ -259,9 +258,17 @@ def unsorted_unique(lista):
 #==============================================================================
 def value_to_display(value, minmax=False):
     """Convert value for display purpose"""
+    # To save current Numpy threshold
+    np_threshold = FakeObject
     try:
         numeric_numpy_types = (int64, int32, float64, float32,
                                complex128, complex64)
+        if ndarray is not FakeObject:
+            # Save threshold
+            np_threshold = get_printoptions().get('threshold')
+            # Set max number of elements to show for Numpy arrays
+            # in our display
+            set_printoptions(threshold=10)
         if isinstance(value, recarray):
             fields = value.names
             display = 'Field names: ' + ', '.join(fields)
@@ -325,6 +332,10 @@ def value_to_display(value, minmax=False):
     # because of large displays
     if len(display) > 80:
         display = display[:80].rstrip() + ' ...'
+
+    # Restore Numpy threshold
+    if np_threshold is not FakeObject:
+        set_printoptions(threshold=np_threshold)
 
     return display
 
@@ -421,17 +432,21 @@ def get_human_readable_type(item):
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
+    if value is None:
+        return True
     if not is_editable_type(value):
         return False
     elif not isinstance(value, filters):
         return False
     elif iterate:
         if isinstance(value, (list, tuple, set)):
+            valid_count = 0
             for val in value:
-                if not is_supported(val, filters=filters, iterate=check_all):
-                    return False
+                if is_supported(val, filters=filters, iterate=check_all):
+                    valid_count += 1
                 if not check_all:
                     break
+            return valid_count > 0
         elif isinstance(value, dict):
             for key, val in list(value.items()):
                 if not is_supported(key, filters=filters, iterate=check_all) \
