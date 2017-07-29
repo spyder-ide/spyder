@@ -72,8 +72,13 @@ def main():
     #==========================================================================
     if CONF.get('main', 'high_dpi_custom_scale_factor'):
         factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
-        os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+        f = list(filter(None, factors.split(';')))
+        if len(f) == 1:
+            os.environ['QT_SCALE_FACTOR'] = f[0]
+        else:
+            os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
     else:
+        os.environ['QT_SCALE_FACTOR'] = ''
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
     # Prevent Spyder from crashing in macOS if locale is not defined
