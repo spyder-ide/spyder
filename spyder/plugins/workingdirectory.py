@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
 from spyder.config.base import _, get_conf_path, get_home_dir
 from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
-from spyder.py3compat import PY2, to_text_string, getcwd
+from spyder.py3compat import to_text_string, getcwd
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
@@ -267,8 +267,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
               refresh_explorer=True, refresh_console=True):
         """Set directory as working directory"""
         if directory:
-            directory = to_text_string(directory)
-            directory = osp.abspath(directory)
+            directory = osp.abspath(to_text_string(directory))
 
         # Working directory history management
         if browsing_history:
