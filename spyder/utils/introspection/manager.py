@@ -11,7 +11,7 @@ import time
 
 # Third party imports
 from qtpy.QtCore import QObject, QTimer, Signal
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QMessageBox
 
 # Local imports
 from spyder import dependencies
@@ -26,6 +26,7 @@ PLUGINS = ['rope', 'jedi', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
 LEAD_TIME_SEC = 0.25
+MAX_TIMEOUTS = 15
 
 
 ROPE_REQVER = '>=0.9.4'
@@ -81,7 +82,7 @@ class PluginManager(QObject):
         self.timeout_counter = 0
 
     def initialized_plugin(self, name):
-        """Validate initialized plugins."""
+        """Set initialized plugin."""
         self.plugins_initialized[name] = True
 
     def errored_plugin(self, name):
@@ -188,11 +189,22 @@ class PluginManager(QObject):
             self.send_request(info)
         else:
             self.timeout_counter += 1
-            if self.timeout_counter > 5:
-                executable = self.executable
-                extra_path = self.extra_path
-                self.close()
-                self.setup(executable, extra_path)
+            if (self.timeout_counter > MAX_TIMEOUTS and
+                    not self.plugins_initialized['jedi']):
+                question = _("The introspection plugin seems not responding. "
+                             "Do you want to restart it?")
+                reply = QMessageBox.question(self.parent(),
+                                             _('Information'),
+                                             question,
+                                             QMessageBox.Yes | QMessageBox.No,
+                                             QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    executable = self.executable
+                    extra_path = self.extra_path
+                    self.close()
+                    self.setup(executable, extra_path)
+                else:
+                    self.timeout_counter = 0
             debug_print('No valid responses acquired')
 
 
