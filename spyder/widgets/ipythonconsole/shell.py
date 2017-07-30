@@ -9,13 +9,15 @@ Shell Widget for the IPython Console
 """
 
 import ast
+import os
 import uuid
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY2, to_text_string
+from spyder.utils import encoding
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.ipython.style import create_qss_style, create_style_class
@@ -98,7 +100,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        code = u"get_ipython().kernel.set_cwd(r'{}')".format(dirname)
+        # Replace single for double backslashes on Windows
+        if os.name == 'nt':
+            dirname = dirname.replace(u"\\", u"\\\\")
+
+        code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
         if self._reading:
             self.kernel_client.input(u'!' + code)
         else:
@@ -334,6 +340,8 @@ the sympy module (e.g. plot)
                 elif 'get_cwd' in method:
                     if data is not None and 'text/plain' in data:
                         self._cwd = ast.literal_eval(data['text/plain'])
+                        if PY2:
+                            self._cwd = encoding.to_unicode_from_fs(self._cwd)
                     else:
                         self._cwd = ''
                     self.sig_change_cwd.emit(self._cwd)

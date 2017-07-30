@@ -28,7 +28,7 @@ from spyder.app.mainwindow import initialize, run_spyder
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_save_message_box
@@ -346,47 +346,59 @@ def test_change_types_in_varexp(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
+@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
     changing cwd in the IPython console.
     """
-    # Wait until the window is fully up
+    wdir = main_window.workingdirectory
+    treewidget = main_window.explorer.treewidget
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window is fully up
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Change directory in ipython console using %cd
-    temp_dir = str(tmpdir.mkdir("test_dir"))
+    # Create temp dir
+    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
+
+    # Change directory in IPython console using %cd
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%cd {}".format(temp_dir))
+        shell.execute(u"%cd {}".format(temp_dir))
     qtbot.wait(1000)
 
-    # assert that cwd changed in workingdirectory
-    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+    # Assert that cwd changed in workingdirectory
+    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
 
-    # assert that cwd changed in explorer
-    assert osp.normpath(main_window.explorer.treewidget.get_current_folder()) == osp.normpath(temp_dir)
+    # Assert that cwd changed in explorer
+    assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(temp_dir)
 
 
 @flaky(max_runs=3)
-def test_change_cwd_explorer(main_window, qtbot, tmpdir):
+@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and IPython console when
     changing directories in the File Explorer.
     """
-    # Wait until the window is fully up
+    wdir = main_window.workingdirectory
+    explorer = main_window.explorer
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window is fully up
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
+    # Create temp directory
+    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
+
     # Change directory in the explorer widget
-    temp_dir = str(tmpdir.mkdir("test_dir"))
-    main_window.explorer.chdir(temp_dir)
+    explorer.chdir(temp_dir)
     qtbot.wait(1000)
 
-    # assert that cwd changed in workingdirectory
-    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+    # Assert that cwd changed in workingdirectory
+    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
 
-    # assert that cwd changed in ipythonconsole
+    # Assert that cwd changed in IPython console
     assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
 
 
