@@ -32,10 +32,10 @@ class AsyncClient(QObject):
     """
 
     # Emitted when the client has initialized.
-    initialized = Signal()
+    initialized = Signal(str)
 
     # Emitted when the client errors.
-    errored = Signal()
+    errored = Signal(str)
 
     # Emitted when a request response is received.
     received = Signal(object)
@@ -171,7 +171,7 @@ class AsyncClient(QObject):
             debug_print('Errored %s' % self.name)
             debug_print(self.process.readAllStandardOutput())
             debug_print(self.process.readAllStandardError())
-            self.errored.emit()
+            self.errored.emit(self.name)
 
     def _on_msg_received(self):
         """Handle a message trigger from the socket.
@@ -183,11 +183,12 @@ class AsyncClient(QObject):
             except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 return
-            if not self.is_initialized:
+            if str(self.port) == resp:
                 self.is_initialized = True
                 debug_print('Initialized %s' % self.name)
-                self.initialized.emit()
+                self.initialized.emit(self.name)
                 self.timer.start(HEARTBEAT)
+                resp = None
                 continue
             resp['name'] = self.name
             self.received.emit(resp)
@@ -232,11 +233,11 @@ if __name__ == '__main__':
         else:
             plugin.request('foo')
 
-    def handle_errored():
+    def handle_errored(name):
         print('errored')  # spyder: test-skip
         sys.exit(1)
 
-    def start():
+    def start(name):
         print('start')  # spyder: test-skip
         plugin.request('validate')
 
