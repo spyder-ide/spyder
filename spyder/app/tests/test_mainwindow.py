@@ -411,7 +411,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
         except:
             pass
     else:
-        temp_dir = str(tmpdir.mkdir(test_directory))
+        temp_dir = temp_dir_unicode = str(tmpdir.mkdir(test_directory))
 
     # Change directory in the explorer widget
     explorer.chdir(temp_dir_unicode)
