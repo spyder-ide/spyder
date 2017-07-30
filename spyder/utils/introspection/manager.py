@@ -172,7 +172,7 @@ class PluginManager(QObject):
                    str(response['result'])[:100], delta))
             response['info'] = self.info
             self.info = None
-            self.introspection_complete.emit(response)
+            self.introspection_complete.emit(response)            
         if self.pending_request:
             info = self.pending_request
             self.pending_request = None

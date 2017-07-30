@@ -27,7 +27,7 @@ import sys
 import time
 
 # Third party imports
-from qtpy import is_pyqt46
+from qtpy import is_pyqt46, QT_VERSION
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRect, QRegExp, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QBrush, QColor, QCursor, QFont, QIntValidator,
@@ -52,6 +52,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
+from spyder.utils.programs import check_version
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.widgets.editortools import PythonCFM
@@ -68,6 +69,7 @@ except:
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('codeeditor.log')
 DEBUG_EDITOR = DEBUG >= 3
+QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
 
 
 def is_letter_or_number(char):
@@ -675,6 +677,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
+        self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
 
     #-----Widget setup and options
@@ -1168,18 +1171,20 @@ class CodeEditor(TextEditBaseWidget):
         painter.fillRect(event.rect(), self.sideareas_color)
         # This is needed to make that the font size of line numbers
         # be the same as the text one when zooming
-        # See Issue 2296
-        if sys.platform == 'darwin':
-            font = self.font()
-        else:
-            font = painter.font()
+        # See Issues 2296 and 4811
+        font = self.font()
         font_height = self.fontMetrics().height()
 
         active_block = self.textCursor().block()
         active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(ytop, pixmap):
-            painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2,
+            if not QT55_VERSION:
+                pixmap_height = pixmap.height()
+            else:
+                # scale pixmap height to device independent pixels
+                pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
+            painter.drawPixmap(0, ytop + (font_height-pixmap_height) / 2,
                                pixmap)
 
         for top, line_number, block in self.visible_blocks:
@@ -2746,6 +2751,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
+        event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -3088,7 +3094,7 @@ class CodeEditor(TextEditBaseWidget):
         ebottom_bottom = self.height()
 
         while block.isValid():
-            visible = (top >= ebottom_top and bottom <= ebottom_bottom)
+            visible = bottom <= ebottom_bottom
             if not visible:
                 break
             if block.isVisible():

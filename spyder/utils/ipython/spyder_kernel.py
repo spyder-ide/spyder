@@ -328,7 +328,7 @@ class SpyderKernel(IPythonKernel):
         try:
             import numpy
             return isinstance(var, numpy.ndarray)
-        except ImportError:
+        except:
             return False
 
     def _is_image(self, var):
@@ -336,7 +336,7 @@ class SpyderKernel(IPythonKernel):
         try:
             from PIL import Image
             return isinstance(var, Image.Image)
-        except ImportError:
+        except:
             return False
 
     def _is_data_frame(self, var):

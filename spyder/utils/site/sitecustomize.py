@@ -133,7 +133,7 @@ if os.name == 'nt' and PY2:
         except (ValueError, TypeError):
             # Code page number in locale is not valid
             pass
-    except ImportError:
+    except:
         pass
 
 
@@ -173,7 +173,7 @@ try:
     import pyximport
     HAS_PYXIMPORT = True
     pyx_setup_args = {}
-except ImportError:
+except:
     HAS_PYXIMPORT = False
 
 if HAS_PYXIMPORT:
@@ -181,7 +181,7 @@ if HAS_PYXIMPORT:
     try:
         import numpy
         pyx_setup_args['include_dirs'] = numpy.get_include()
-    except ImportError:
+    except:
         pass
 
     # Setup pyximport and enable Cython files reload
@@ -191,7 +191,7 @@ try:
     # Import cython_inline for runfile function
     from Cython.Build.Inline import cython_inline
     HAS_CYTHON = True
-except ImportError:
+except:
     HAS_CYTHON = False
 
 
@@ -200,7 +200,7 @@ except ImportError:
 #==============================================================================
 try:
     import sitecustomize  #analysis:ignore
-except ImportError:
+except:
     pass
 
 
@@ -234,7 +234,7 @@ if os.environ["QT_API"] == 'pyqt':
 #==============================================================================
 try:
     import matplotlib
-except (ImportError, UnicodeDecodeError):
+except:
     matplotlib = None   # analysis:ignore
 
 
@@ -290,7 +290,7 @@ try:
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.formats.format',
                             message=".*invalid value encountered in.*")
-except (ImportError, AttributeError):
+except:
     pass
 
 
