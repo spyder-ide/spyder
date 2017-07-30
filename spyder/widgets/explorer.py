@@ -1052,10 +1052,7 @@ class ExplorerTreeWidget(DirView):
     def set_current_folder(self, folder):
         """Set current folder and return associated model index"""
         index = self.fsmodel.setRootPath(folder)
-        if PY2:
-            self.__last_folder = encoding.to_fs_from_unicode(folder)
-        else:
-            self.__last_folder = folder
+        self.__last_folder = folder
         if self.show_cd_only:
             if self.__original_root_index is None:
                 self.__original_root_index = self.rootIndex()

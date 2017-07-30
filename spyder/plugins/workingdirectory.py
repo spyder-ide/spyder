@@ -267,10 +267,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
               refresh_explorer=True, refresh_console=True):
         """Set directory as working directory"""
         if directory:
-            if PY2:
-                directory = encoding.to_fs_from_unicode(directory)
-            else:
-                directory = to_text_string(directory)
+            directory = to_text_string(directory)
             directory = osp.abspath(directory)
 
         # Working directory history management
@@ -290,9 +287,6 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         os.chdir(directory)
         self.refresh_plugin()
 
-        # Refresh other plugins
-        if PY2:
-            directory = encoding.to_unicode_from_fs(directory)
         if refresh_explorer:
             self.set_explorer_cwd.emit(directory)
         if refresh_console:
