@@ -280,14 +280,11 @@ class WorkingDirectory(SpyderPluginWidget):
             self.histindex = len(self.history)-1
         
         # Changing working directory
-        os.chdir( to_text_string(directory) )
+        os.chdir(directory)
         self.refresh_plugin()
+
         if refresh_explorer:
             self.set_explorer_cwd.emit(directory)
         if refresh_console:
-            self.set_as_current_console_wd()
+            self.set_current_console_wd.emit(directory)
         self.refresh_findinfiles.emit()
-
-    def set_as_current_console_wd(self):
-        """Set as current console working directory"""
-        self.set_current_console_wd.emit(getcwd())
