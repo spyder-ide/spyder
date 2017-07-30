@@ -346,8 +346,8 @@ def test_change_types_in_varexp(main_window, qtbot):
     assert shell.get_value('a') == 10
 
 
-@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 @flaky(max_runs=3)
+@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
@@ -388,25 +388,40 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
 
 
 @flaky(max_runs=3)
-def test_change_cwd_explorer(main_window, qtbot, tmpdir):
+@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and IPython console when
     changing directories in the File Explorer.
     """
-    # Wait until the window is fully up
+    wdir = main_window.workingdirectory
+    explorer = main_window.explorer
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window is fully up
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
+    # Create temp directory
+    if PY2:
+        temp_dir_unicode = osp.join(encoding.to_unicode_from_fs(tempfile.gettempdir()),
+                                    test_directory)
+        temp_dir = encoding.to_fs_from_unicode(temp_dir_unicode)
+        try:
+            os.makedirs(temp_dir)
+        except:
+            pass
+    else:
+        temp_dir = str(tmpdir.mkdir(test_directory))
+
     # Change directory in the explorer widget
-    temp_dir = str(tmpdir.mkdir("test_dir"))
-    main_window.explorer.chdir(temp_dir)
+    explorer.chdir(temp_dir_unicode)
     qtbot.wait(1000)
 
-    # assert that cwd changed in workingdirectory
-    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+    # Assert that cwd changed in workingdirectory
+    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
 
-    # assert that cwd changed in ipythonconsole
-    assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
+    # Assert that cwd changed in IPython console
+    assert osp.normpath(temp_dir_unicode) == osp.normpath(shell._cwd)
 
 
 @flaky(max_runs=3)
