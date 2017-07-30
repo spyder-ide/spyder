@@ -29,6 +29,7 @@ from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2
+from spyder.utils import encoding
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_save_message_box
@@ -345,28 +346,45 @@ def test_change_types_in_varexp(main_window, qtbot):
     assert shell.get_value('a') == 10
 
 
-@pytest.mark.parametrize("test_directory", ["test_dir", "non_ascii_ñ_í_ç"])
+@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 @flaky(max_runs=3)
 def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
     changing cwd in the IPython console.
     """
-    # Wait until the window is fully up
+    wdir = main_window.workingdirectory
+    treewidget = main_window.explorer.treewidget
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window is fully up
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Change directory in ipython console using %cd
-    temp_dir = str(tmpdir.mkdir(test_directory))
+    # Create temp directory
+    if PY2:
+        temp_dir_unicode = osp.join(encoding.to_unicode_from_fs(tempfile.gettempdir()),
+                                    test_directory)
+        temp_dir = encoding.to_fs_from_unicode(temp_dir_unicode)
+        try:
+            os.makedirs(temp_dir)
+        except:
+            pass
+    else:
+        temp_dir = str(tmpdir.mkdir(test_directory))
+
+    # Change directory in IPython console using %cd
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%cd {}".format(temp_dir))
+        if PY2:
+            shell.execute(u"%cd {}".format(temp_dir_unicode))
+        else:
+            shell.execute("%cd {}".format(temp_dir))
     qtbot.wait(1000)
 
-    # assert that cwd changed in workingdirectory
-    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+    # Assert that cwd changed in workingdirectory
+    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
 
-    # assert that cwd changed in explorer
-    assert osp.normpath(main_window.explorer.treewidget.get_current_folder()) == osp.normpath(temp_dir)
+    # Assert that cwd changed in explorer
+    assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(temp_dir)
 
 
 @flaky(max_runs=3)
