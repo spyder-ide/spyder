@@ -290,6 +290,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         os.chdir(directory)
         self.refresh_plugin()
         if refresh_explorer:
+            if PY2:
+                directory = encoding.to_unicode_from_fs(directory)
             self.set_explorer_cwd.emit(directory)
         if refresh_console:
             self.set_as_current_console_wd()
