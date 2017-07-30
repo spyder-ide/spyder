@@ -134,7 +134,9 @@ class EditorConfigPage(PluginConfigPage):
                                              regex="[0-9]+(,[0-9]+)*")
         edgeline_edit_label = QLabel(_("characters"))
         edgeline_box.toggled.connect(edgeline_edit.setEnabled)
+        edgeline_box.toggled.connect(edgeline_edit_label.setEnabled)
         edgeline_edit.setEnabled(self.get_option('edge_line'))
+        edgeline_edit_label.setEnabled(self.get_option('edge_line'))
 
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
@@ -145,8 +147,12 @@ class EditorConfigPage(PluginConfigPage):
         occurrence_spin = self.create_spinbox("", _(" ms"),
                                              'occurrence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
-        occurrence_box.toggled.connect(occurrence_spin.setEnabled)
-        occurrence_spin.setEnabled(self.get_option('occurrence_highlighting'))
+        occurrence_box.toggled.connect(occurrence_spin.spinbox.setEnabled)
+        occurrence_box.toggled.connect(occurrence_spin.slabel.setEnabled)
+        occurrence_spin.spinbox.setEnabled(
+                self.get_option('occurrence_highlighting'))
+        occurrence_spin.slabel.setEnabled(
+                self.get_option('occurrence_highlighting'))
 
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
 
