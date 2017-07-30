@@ -28,8 +28,7 @@ from spyder.app.mainwindow import initialize, run_spyder
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
-from spyder.py3compat import PY2
-from spyder.utils import encoding
+from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_save_message_box
@@ -360,24 +359,12 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     # Wait until the window is fully up
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Create temp directory
-    if PY2:
-        temp_dir_unicode = osp.join(encoding.to_unicode_from_fs(tempfile.gettempdir()),
-                                    test_directory)
-        temp_dir = encoding.to_fs_from_unicode(temp_dir_unicode)
-        try:
-            os.makedirs(temp_dir)
-        except:
-            pass
-    else:
-        temp_dir = str(tmpdir.mkdir(test_directory))
+    # Create temp dir
+    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
 
     # Change directory in IPython console using %cd
     with qtbot.waitSignal(shell.executed):
-        if PY2:
-            shell.execute(u"%cd {}".format(temp_dir_unicode))
-        else:
-            shell.execute("%cd {}".format(temp_dir))
+        shell.execute(u"%cd {}".format(temp_dir))
     qtbot.wait(1000)
 
     # Assert that cwd changed in workingdirectory
@@ -402,26 +389,17 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Create temp directory
-    if PY2:
-        temp_dir_unicode = osp.join(encoding.to_unicode_from_fs(tempfile.gettempdir()),
-                                    test_directory)
-        temp_dir = encoding.to_fs_from_unicode(temp_dir_unicode)
-        try:
-            os.makedirs(temp_dir)
-        except:
-            pass
-    else:
-        temp_dir = temp_dir_unicode = str(tmpdir.mkdir(test_directory))
+    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
 
     # Change directory in the explorer widget
-    explorer.chdir(temp_dir_unicode)
+    explorer.chdir(temp_dir)
     qtbot.wait(1000)
 
     # Assert that cwd changed in workingdirectory
     assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
 
     # Assert that cwd changed in IPython console
-    assert osp.normpath(temp_dir_unicode) == osp.normpath(shell._cwd)
+    assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
 
 
 @flaky(max_runs=3)
