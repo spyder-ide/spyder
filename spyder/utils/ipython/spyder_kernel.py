@@ -320,7 +320,7 @@ class SpyderKernel(IPythonKernel):
         """Return sequence length"""
         try:
             return len(var)
-        except TypeError:
+        except:
             return None
 
     def _is_array(self, var):
@@ -362,7 +362,7 @@ class SpyderKernel(IPythonKernel):
                 return var.shape
             else:
                 return None
-        except AttributeError:
+        except:
             return None
 
     def _get_array_ndim(self, var):
@@ -372,7 +372,7 @@ class SpyderKernel(IPythonKernel):
                 return var.ndim
             else:
                 return None
-        except AttributeError:
+        except:
             return None
 
     # --- For Pdb
