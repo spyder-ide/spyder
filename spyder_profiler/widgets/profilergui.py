@@ -353,6 +353,10 @@ class ProfilerWidget(QWidget):
         self.datelabel.setText(date_text)
 
 def gettime_s(text):
+    """Parse text and returns a time in seconds
+    
+    The text is of the format 0h : 0.min:0.0s:0 ms:0us:0 ns. 
+    Spaces are not taken into account and any of the specifiers can be ignored"""
     pattern = '([+-]?\d+\.?\d*) ?([munsecinh]+)'
     matches = re.findall(pattern, text)
     if len(matches) == 0:
@@ -361,15 +365,15 @@ def gettime_s(text):
     for res in matches:
         tmp = float(res[0])
         if res[1] == 'ns':
-            tmp*=1e-9
+            tmp *= 1e-9
         elif res[1] == 'us':
-            tmp*=1e-6
+            tmp *= 1e-6
         elif res[1] == 'ms':
-            tmp*=1e-3
+            tmp *= 1e-3
         elif res[1] == 'min':
-            tmp*=60
+            tmp *= 60
         elif res[1] == 'h':
-            tmp*=3600
+            tmp *= 3600
         time += tmp
     return time
 
