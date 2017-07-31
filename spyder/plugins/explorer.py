@@ -77,7 +77,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                      lambda fname:
                      self.main.open_external_console(to_text_string(fname),
                                          osp.dirname(to_text_string(fname)),
-                                         '', False, False, True, '', False))
+                                         '', False, False, True, '', True))
         # Signal "set_explorer_cwd(QString)" will refresh only the
         # contents of path passed by the signal in explorer:
         self.main.workingdirectory.set_explorer_cwd.connect(

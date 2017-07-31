@@ -22,7 +22,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox
 # Local imports
 from spyder.config.base import _, get_home_dir
 from spyder.plugins import SpyderPluginMixin
-from spyder.py3compat import is_text_string, getcwd
+from spyder.py3compat import is_text_string, getcwd, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
@@ -45,6 +45,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     removed_tree = Signal(str)
     renamed = Signal(str, str)
     redirect_stdio = Signal(bool)
+    run = Signal(str)
 
     # Project handling
     sig_project_created = Signal(object, object, object)
@@ -153,6 +154,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.sig_project_closed.connect(
             lambda v: self.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
+        self.run.connect(lambda fname: self.main.open_external_console(
+            to_text_string(fname), osp.dirname(to_text_string(fname)),
+            '', False, False, True, '', True))
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""
