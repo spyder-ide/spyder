@@ -884,25 +884,25 @@ class MainConfigPage(GeneralConfigPage):
         margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))
         margin_spin.slabel.setEnabled(self.get_option('use_custom_margin'))
         
-        caret_box = newcb(_("Caret blinking:"),
-                           'use_custom_caret_blinking')
-        caret_spin = self.create_spinbox("", _("ms"), 'custom_caret_blinking',
+        cursor_box = newcb(_("Cursor blinking:"),
+                           'use_custom_cursor_blinking')
+        cursor_spin = self.create_spinbox("", _("ms"), 'custom_cursor_blinking',
                                           0, 0, 5000)
-        caret_box.toggled.connect(caret_spin.spinbox.setEnabled)
-        caret_box.toggled.connect(caret_spin.slabel.setEnabled)
-        caret_spin.spinbox.setEnabled(
-                self.get_option('use_custom_caret_blinking'))
-        caret_spin.slabel.setEnabled(
-                self.get_option('use_custom_caret_blinking'))
+        cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
+        cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
+        cursor_spin.spinbox.setEnabled(
+                self.get_option('use_custom_cursor_blinking'))
+        cursor_spin.slabel.setEnabled(
+                self.get_option('use_custom_cursor_blinking'))
         
-        margins_caret_layout = QGridLayout()
-        margins_caret_layout.addWidget(margin_box, 0, 0)
-        margins_caret_layout.addWidget(margin_spin.spinbox, 0, 1)
-        margins_caret_layout.addWidget(margin_spin.slabel, 0, 2)        
-        margins_caret_layout.addWidget(caret_box, 1, 0)
-        margins_caret_layout.addWidget(caret_spin.spinbox, 1, 1)
-        margins_caret_layout.addWidget(caret_spin.slabel, 1, 2)
-        margins_caret_layout.setColumnStretch(2, 100)
+        margins_cursor_layout = QGridLayout()
+        margins_cursor_layout.addWidget(margin_box, 0, 0)
+        margins_cursor_layout.addWidget(margin_spin.spinbox, 0, 1)
+        margins_cursor_layout.addWidget(margin_spin.slabel, 0, 2)        
+        margins_cursor_layout.addWidget(cursor_box, 1, 0)
+        margins_cursor_layout.addWidget(cursor_spin.spinbox, 1, 1)
+        margins_cursor_layout.addWidget(cursor_spin.slabel, 1, 2)
+        margins_cursor_layout.setColumnStretch(2, 100)
 
         # Layout interface
         comboboxes_layout = QHBoxLayout()
@@ -920,7 +920,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
-        interface_layout.addLayout(margins_caret_layout)
+        interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar
