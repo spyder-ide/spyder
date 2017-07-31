@@ -2540,8 +2540,8 @@ class MainWindow(QMainWindow):
 
         self.apply_panes_settings()
         self.apply_statusbar_settings()
-        
-        if CONF.get('main', 'use_custom_cursor_blinking') is True:
+
+        if CONF.get('main', 'use_custom_cursor_blinking'):
             qapp.setCursorFlashTime(CONF.get('main', 'custom_cursor_blinking'))
         else:
             qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
