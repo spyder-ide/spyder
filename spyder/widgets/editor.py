@@ -1233,7 +1233,7 @@ class EditorStack(QWidget):
         else:
             actions = (self.new_action, self.open_action)
             self.setFocus() # --> Editor.__get_focus_editortabwidget
-        add_actions(self.menu, list(actions)+self.__get_split_actions())
+        add_actions(self.menu, list(actions) + self.__get_split_actions())
         self.close_action.setEnabled(self.is_closable)
 
 
@@ -2293,9 +2293,13 @@ class EditorSplitter(QSplitter):
         """Return layout state"""
         splitsettings = []
         for editorstack, orientation in self.iter_editorstacks():
-            clines = [finfo.editor.get_cursor_line_number()
-                      for finfo in editorstack.data]
-            cfname = editorstack.get_current_filename()
+            clines = []
+            cfname = ''
+            orientation = False
+            if hasattr(editorstack, 'data'):
+                clines = [finfo.editor.get_cursor_line_number()
+                          for finfo in editorstack.data]
+                cfname = editorstack.get_current_filename()
             splitsettings.append((orientation == Qt.Vertical, cfname, clines))
         return dict(hexstate=qbytearray_to_str(self.saveState()),
                     sizes=self.sizes(), splitsettings=splitsettings)
