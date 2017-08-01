@@ -287,10 +287,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                    "an external terminal"),
                                  QMessageBox.Ok)
     elif os.name == 'posix':
-        programs = [{'cmd': 'x-terminal-emulator',
-                     'wdir-option': '--working-directory',
-                     'execute-option': '-x'},
-                    {'cmd': 'gnome-terminal',
+        programs = [{'cmd': 'gnome-terminal',
                      'wdir-option': '--working-directory',
                      'execute-option': '-x'},
                     {'cmd': 'konsole',
