@@ -436,7 +436,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = self._read_stderr()
             except:
                 stderr = None
-        except OSError:
+        except (OSError, IOError):
             stderr = None
 
         if stderr:
