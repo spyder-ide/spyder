@@ -13,8 +13,8 @@ if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
 
     # Install qtpy from Github
     pip install git+https://github.com/spyder-ide/qtpy.git
-else
+elif [ "$USE_PYQT" = "pyqt5" ]; then
     conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
+else
+    conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
 fi
-
-python runtests.py
