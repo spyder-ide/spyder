@@ -306,7 +306,10 @@ def add_actions(target, actions, insert_before=None):
         elif isinstance(action, QAction):
             if isinstance(action, SpyderAction):
                 if isinstance(target, QMenu) or not isinstance(target, QToolBar):
-                    action = action.no_icon_action
+                    try:
+                        action = action.no_icon_action
+                    except RuntimeError:
+                        continue
             if insert_before is None:
                 target.addAction(action)
             else:
