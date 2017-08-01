@@ -8,7 +8,7 @@ if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
 else
     export CONDA_DEPENDENCIES_FLAGS="--quiet"
     export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
-                               qtawesome pickleshare pyzmq chardet mock nomkl pandas \
+                               qtawesome pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-timeout flaky"
 fi
@@ -21,10 +21,6 @@ git clone git://github.com/astropy/ci-helpers.git > /dev/null
 source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
-
-
-# Install qtpy from Github
-pip install git+https://github.com/spyder-ide/qtpy.git
 
 
 # We test with pip packages in Python 3.5 and PyQt5

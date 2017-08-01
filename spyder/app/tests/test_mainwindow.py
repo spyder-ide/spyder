@@ -168,6 +168,8 @@ def test_calltip(main_window, qtbot):
 @flaky(max_runs=3)
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
+    CONF.set('run', 'configurations', [])
+
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
@@ -184,6 +186,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # --- Assert we're in cwd after execution ---
     with qtbot.waitSignal(shell.executed):
@@ -203,6 +206,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # --- Assert we're in fixed dir after execution ---
     with qtbot.waitSignal(shell.executed):
