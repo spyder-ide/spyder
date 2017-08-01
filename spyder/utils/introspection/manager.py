@@ -26,7 +26,7 @@ PLUGINS = ['rope', 'jedi', 'fallback']
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
 LEAD_TIME_SEC = 0.25
-MAX_TIMEOUTS = 15
+MAX_TIMEOUTS = 5
 
 
 ROPE_REQVER = '>=0.9.4'
@@ -84,6 +84,7 @@ class PluginManager(QObject):
     def initialized_plugin(self, name):
         """Set initialized plugin."""
         self.plugins_initialized[name] = True
+        self.plugins[name].request('validate')
 
     def errored_plugin(self, name):
         """Handle error of plugin creating a new one."""

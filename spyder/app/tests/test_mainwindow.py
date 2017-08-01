@@ -171,7 +171,7 @@ def test_calltip(main_window, qtbot):
                            "It makes to not finish the test run on Windows with Python 2.")
 @pytest.mark.timeout(timeout=60, method='thread')
 @pytest.mark.use_introspection
-def test_introspection(main_window, qtbot):
+def test_introspection_works_after_restart(main_window, qtbot):
     """Validate introspection after restart of the introspection plugin."""
     # Load test file
     main_window.editor.new(fname="test.py", text="")

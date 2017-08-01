@@ -234,11 +234,11 @@ if __name__ == '__main__':
             plugin.request('foo')
 
     def handle_errored(name):
-        print('errored')  # spyder: test-skip
+        print('errored' + name)  # spyder: test-skip
         sys.exit(1)
 
     def start(name):
-        print('start')  # spyder: test-skip
+        print('start' + name)  # spyder: test-skip
         plugin.request('validate')
 
     plugin.errored.connect(handle_errored)
