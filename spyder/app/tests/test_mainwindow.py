@@ -168,6 +168,8 @@ def test_calltip(main_window, qtbot):
 @flaky(max_runs=3)
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
+    CONF.set('run', 'configurations', [])
+
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
