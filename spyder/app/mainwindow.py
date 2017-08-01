@@ -2491,14 +2491,18 @@ class MainWindow(QMainWindow):
             sys_path.pop(1)
 
     @Slot()
-    def path_manager_callback(self):
+    def path_manager_callback(self, extra_path=None):
         """Spyder path manager"""
         from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
         project_path = self.projects.get_pythonpath()
-        dialog = PathManager(self, self.path, project_path, sync=True)
-        dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
-        dialog.exec_()
+        if extra_path:
+            path = osp.abspath(extra_path)
+            self.path.insert(0, path)
+        else:
+            dialog = PathManager(self, self.path, project_path, sync=True)
+            dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
+            dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
         self.sig_pythonpath_changed.emit()

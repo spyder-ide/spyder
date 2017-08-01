@@ -11,7 +11,7 @@ import time
 
 # Third party imports
 from qtpy.QtCore import QObject, QTimer, Signal
-from qtpy.QtWidgets import QApplication, QMessageBox
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder import dependencies
@@ -191,20 +191,10 @@ class PluginManager(QObject):
             self.timeout_counter += 1
             if (self.timeout_counter > MAX_TIMEOUTS and
                     not self.plugins_initialized['jedi']):
-                question = _("The introspection plugin seems not responding. "
-                             "Do you want to restart it?")
-                reply = QMessageBox.question(self.parent(),
-                                             _('Information'),
-                                             question,
-                                             QMessageBox.Yes | QMessageBox.No,
-                                             QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    executable = self.executable
-                    extra_path = self.extra_path
-                    self.close()
-                    self.setup(executable, extra_path)
-                else:
-                    self.timeout_counter = 0
+                executable = self.executable
+                extra_path = self.extra_path
+                self.close()
+                self.setup(executable, extra_path)
             debug_print('No valid responses acquired')
 
 
