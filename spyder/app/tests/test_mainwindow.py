@@ -110,7 +110,7 @@ def main_window(request):
     # (it's faster and less memory consuming not to use it!)
     marker = request.node.get_marker('use_introspection')
     if marker:
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'USE_INTROSPECTION'
+        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     else:
         try:
             os.environ.pop('SPY_TEST_USE_INTROSPECTION')
