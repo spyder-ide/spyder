@@ -329,7 +329,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
         for spinbox, (option, default) in list(self.spinboxes.items()):
-            print(option, default, self.get_option(option, default))
             spinbox.setValue(self.get_option(option, default))
             spinbox.valueChanged.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
