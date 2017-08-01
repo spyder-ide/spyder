@@ -186,6 +186,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # --- Assert we're in cwd after execution ---
     with qtbot.waitSignal(shell.executed):
@@ -205,6 +206,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # --- Assert we're in fixed dir after execution ---
     with qtbot.waitSignal(shell.executed):
