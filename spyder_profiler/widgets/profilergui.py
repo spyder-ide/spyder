@@ -384,7 +384,7 @@ class TreeWidgetItem( QTreeWidgetItem ):
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
         try:
-            if column == 1: #TODO: Hardcoded Column
+            if column == 1 or column == 3: #TODO: Hardcoded Column
                 t0 = gettime_s(self.text(column))
                 t1 = gettime_s(otherItem.text(column))
                 if t0 is not None and t1 is not None:
