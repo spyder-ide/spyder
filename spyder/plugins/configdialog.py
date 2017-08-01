@@ -23,7 +23,8 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QListView, QListWidget, QListWidgetItem,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget)
+                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
+                            QApplication)
 
 # Local imports
 from spyder.config.base import (_, LANGUAGE_CODES, load_lang_conf,
@@ -328,6 +329,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
         for spinbox, (option, default) in list(self.spinboxes.items()):
+            print(option, default, self.get_option(option, default))
             spinbox.setValue(self.get_option(option, default))
             spinbox.valueChanged.connect(lambda _foo, opt=option:
                                          self.has_been_modified(opt))
@@ -887,7 +889,8 @@ class MainConfigPage(GeneralConfigPage):
         cursor_box = newcb(_("Cursor blinking:"),
                            'use_custom_cursor_blinking')
         cursor_spin = self.create_spinbox("", _("ms"), 'custom_cursor_blinking',
-                                          0, 0, 5000)
+                                          default = QApplication.cursorFlashTime(),
+                                          min_ = 0, max_ = 5000, step = 10)
         cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
         cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
         cursor_spin.spinbox.setEnabled(
