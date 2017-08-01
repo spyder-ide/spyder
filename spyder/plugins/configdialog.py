@@ -889,7 +889,7 @@ class MainConfigPage(GeneralConfigPage):
                            'use_custom_cursor_blinking')
         cursor_spin = self.create_spinbox("", _("ms"), 'custom_cursor_blinking',
                                           default = QApplication.cursorFlashTime(),
-                                          min_ = 0, max_ = 5000, step = 10)
+                                          min_=0, max_=5000, step=100)
         cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
         cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
         cursor_spin.spinbox.setEnabled(
