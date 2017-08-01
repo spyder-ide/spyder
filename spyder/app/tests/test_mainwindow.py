@@ -672,6 +672,8 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(PYQT_WHEEL,
+                    reason="It times out sometimes on PyQt wheels")
 def test_close_when_file_is_changed(main_window, qtbot):
     """Test closing spyder when there is a file with modifications open."""
     # Wait until the window is fully up
