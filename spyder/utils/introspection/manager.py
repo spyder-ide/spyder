@@ -25,7 +25,7 @@ PLUGINS = ['rope', 'jedi', 'fallback']
 
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
-LEAD_TIME_SEC = 0.25
+LEAD_TIME_SEC = 3
 MAX_TIMEOUTS = 5
 
 
