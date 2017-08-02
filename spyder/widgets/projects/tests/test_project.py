@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 #
 """
-Tests for __init__.py
+Tests for __init__.py.
 """
 
 # Test library imports
@@ -21,10 +21,11 @@ from spyder.widgets.projects.config import (CODESTYLE, WORKSPACE, ENCODING,
 @pytest.fixture(scope='session')
 def project_test(tmpdir_factory):
     """
-    Fixture for create a temporary project (mdw).
+    Fixture for create a temporary project.
 
     Returns:
-        str: Path of temporary project dir.
+        project_dir: fixture of temporary project dir.
+        project: EmptyProject object.
     """
     project_dir = tmpdir_factory.mktemp("test_project")
     project = EmptyProject(str(project_dir))
@@ -32,6 +33,7 @@ def project_test(tmpdir_factory):
 
 
 def test_empty_project(project_test):
+    """Test creation of anEmpy project, and its configuration files."""
     project_dir, project = project_test
     assert project.root_path == str(project_dir)
 
@@ -46,6 +48,10 @@ def test_empty_project(project_test):
 
 
 def test_set_load_recent_files(project_test):
+    """Test saving and loading files from the configuration.
+
+    Saving/loading should preserved the order, and remove duplicates.
+    """
     project_dir, project = project_test
 
     # Create some files for testing
