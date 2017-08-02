@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
     SPYDER_PATH = get_conf_path('path')
-    SPYDER_NAPATH = get_conf_path('napath')
+    SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     BOOKMARKS = (
          ('numpy', "http://docs.scipy.org/doc/",
           _("Numpy and Scipy documentation")),
@@ -298,14 +298,16 @@ class MainWindow(QMainWindow):
 
         # Loading Spyder path
         self.path = []
-        self.na_path = []
+        self.not_active_path = []
         self.project_path = []
         if osp.isfile(self.SPYDER_PATH):
             self.path, _x = encoding.readlines(self.SPYDER_PATH)
             self.path = [name for name in self.path if osp.isdir(name)]
-        if osp.isfile(self.SPYDER_NAPATH):
-            self.na_path, _x = encoding.readlines(self.SPYDER_NAPATH)
-            self.na_path = [name for name in self.na_path if osp.isdir(name)]
+        if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
+            self.not_active_path, _x = \
+                encoding.readlines(self.SPYDER_NOT_ACTIVE_PATH)
+            self.not_active_path = \
+                [name for name in self.not_active_path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
 
@@ -2487,7 +2489,7 @@ class MainWindow(QMainWindow):
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
         for path in reversed(self.get_spyder_pythonpath()):
-            if path not in self.na_path:
+            if path not in self.not_active_path:
                 sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
@@ -2502,13 +2504,13 @@ class MainWindow(QMainWindow):
         from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
         project_path = self.projects.get_pythonpath()
-        dialog = PathManager(self, self.path, project_path, self.na_path,
-                             sync=True)
+        dialog = PathManager(self, self.path, project_path,
+                             self.not_active_path, sync=True)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
-        encoding.writelines(self.na_path, self.SPYDER_NAPATH)
+        encoding.writelines(self.not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):

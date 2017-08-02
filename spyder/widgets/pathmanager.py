@@ -30,7 +30,7 @@ class PathManager(QDialog):
     redirect_stdio = Signal(bool)
     
     def __init__(self, parent=None, pathlist=None, ro_pathlist=None, 
-                 na_pathlist=None, sync=True):
+                 not_active_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
         
         # Destroying the C++ object right after closing the dialog box,
@@ -41,9 +41,9 @@ class PathManager(QDialog):
         
         assert isinstance(pathlist, list)
         self.pathlist = pathlist
-        if na_pathlist is None:
-            na_pathlist = []
-        self.na_pathlist = na_pathlist
+        if not_active_pathlist is None:
+            not_active_pathlist = []
+        self.not_active_pathlist = not_active_pathlist
         if ro_pathlist is None:
             ro_pathlist = []
         self.ro_pathlist = ro_pathlist
@@ -65,7 +65,7 @@ class PathManager(QDialog):
 
         self.listwidget = QListWidget(self)
         self.listwidget.currentRowChanged.connect(self.refresh)
-        self.listwidget.itemChanged.connect(self.update_nalist)        
+        self.listwidget.itemChanged.connect(self.update_not_active_pathlist)        
         layout.addWidget(self.listwidget)
 
         bottom_layout = QHBoxLayout()
@@ -180,20 +180,20 @@ class PathManager(QDialog):
         """Return path list (does not include the read-only path list)"""
         return self.pathlist
     
-    def update_nalist(self, item):
+    def update_not_active_pathlist(self, item):
         path = item.text()
         if bool(item.checkState()) is True:
-            self.remove_from_nalist(path)
+            self.remove_from_not_active_pathlist(path)
         else:
-            self.add_to_nalist(path)
+            self.add_to_not_active_pathlist(path)
             
-    def add_to_nalist(self, path):
-        if path not in self.na_pathlist:
-            self.na_pathlist.append(path)
+    def add_to_not_active_pathlist(self, path):
+        if path not in self.not_active_pathlist:
+            self.not_active_pathlist.append(path)
             
-    def remove_from_nalist(self, path):
-        if path in self.na_pathlist:
-            self.na_pathlist.remove(path)        
+    def remove_from_not_active_pathlist(self, path):
+        if path in self.not_active_pathlist:
+            self.not_active_pathlist.remove(path)        
         
     def update_list(self):
         """Update path list"""
@@ -204,7 +204,7 @@ class PathManager(QDialog):
             if name in self.ro_pathlist:
                 item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
                 item.setCheckState(Qt.Checked)
-            elif name in self.na_pathlist:
+            elif name in self.not_active_pathlist:
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                 item.setCheckState(Qt.Unchecked)
             else:
@@ -243,7 +243,8 @@ class PathManager(QDialog):
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.pathlist.pop(self.listwidget.currentRow())
-            self.remove_from_nalist(self.listwidget.currentItem().text())            
+            self.remove_from_not_active_pathlist(
+                    self.listwidget.currentItem().text())            
             self.update_list()
 
     @Slot()
