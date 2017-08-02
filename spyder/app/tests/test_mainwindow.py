@@ -676,6 +676,31 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(PYQT_WHEEL,
+                    reason="It times out sometimes on PyQt wheels")
+def test_close_when_file_is_changed(main_window, qtbot):
+    """Test closing spyder when there is a file with modifications open."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+    editorstack = main_window.editor.get_current_editorstack()
+    editor = editorstack.get_current_editor()
+    editor.document().setModified(True)
+
+    # Close.main-window
+    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
+    main_window.close()
+
+    # Wait for the segfault
+    qtbot.wait(3000)
+
+
+
+@flaky(max_runs=3)
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working correctly."""
     # Set focus to the Editor
