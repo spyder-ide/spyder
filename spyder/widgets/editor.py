@@ -564,6 +564,9 @@ class EditorStack(QWidget):
         #For opening last closed tabs
         self.last_closed_files = []
 
+        # Reference to save msgbox and avoid memory to be freed.
+        self.msgbox = None
+
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
@@ -1449,11 +1452,17 @@ class EditorStack(QWidget):
                 if not self.save():
                     return False
             elif finfo.editor.document().isModified():
-                answer = QMessageBox.question(self, self.title,
-                            _("<b>%s</b> has been modified."
-                              "<br>Do you want to save changes?"
-                              ) % osp.basename(finfo.filename),
-                            buttons)
+
+                self.msgbox = QMessageBox(
+                        QMessageBox.Question,
+                        self.title,
+                        _("<b>%s</b> has been modified."
+                          "<br>Do you want to save changes?"
+                         ) % osp.basename(finfo.filename),
+                          buttons,
+                          parent=self)
+
+                answer = self.msgbox.exec_()
                 if answer == QMessageBox.Yes:
                     if not self.save():
                         return False
@@ -1513,11 +1522,15 @@ class EditorStack(QWidget):
             self._refresh_outlineexplorer(index)
             return True
         except EnvironmentError as error:
-            QMessageBox.critical(self, _("Save"),
-                                 _("<b>Unable to save file '%s'</b>"
-                                   "<br><br>Error message:<br>%s"
-                                   ) % (osp.basename(finfo.filename),
-                                        str(error)))
+            self.msgbox = QMessageBox(
+                    QMessageBox.Critical,
+                    _("Save"),
+                    _("<b>Unable to save file '%s'</b>"
+                      "<br><br>Error message:<br>%s"
+                      ) % (osp.basename(finfo.filename),
+                                        str(error)),
+                      self)
+            self.msgbox.exec_()
             return False
 
     def file_saved_in_other_editorstack(self, index, filename):
@@ -1602,11 +1615,15 @@ class EditorStack(QWidget):
                 self.plugin_load.emit(filename)
                 return True
             except EnvironmentError as error:
-                QMessageBox.critical(self, _("Save"),
-                                     _("<b>Unable to save file '%s'</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % (osp.basename(finfo.filename),
-                                            str(error)))
+                self.msgbox = QMessageBox(
+                    QMessageBox.Critical,
+                    _("Save"),
+                    _("<b>Unable to save file '%s'</b>"
+                      "<br><br>Error message:<br>%s"
+                      ) % (osp.basename(finfo.filename),
+                                        str(error)),
+                      self)
+                self.msgbox.exec_()
         else:
             return False
 
@@ -1773,12 +1790,16 @@ class EditorStack(QWidget):
 
         elif not osp.isfile(finfo.filename):
             # File doesn't exist (removed, moved or offline):
-            answer = QMessageBox.warning(self, self.title,
-                                _("<b>%s</b> is unavailable "
-                                  "(this file may have been removed, moved "
-                                  "or renamed outside Spyder)."
-                                  "<br>Do you want to close it?") % name,
-                                QMessageBox.Yes | QMessageBox.No)
+            self.msgbox = QMessageBox(
+                    QMessageBox.Warning,
+                    self.title,
+                    _("<b>%s</b> is unavailable "
+                      "(this file may have been removed, moved "
+                      "or renamed outside Spyder)."
+                      "<br>Do you want to close it?") % name,
+                    QMessageBox.Yes | QMessageBox.No,
+                    self)
+            answer = self.msgbox.exec_()
             if answer == QMessageBox.Yes:
                 self.close_file(index)
             else:
@@ -1792,12 +1813,15 @@ class EditorStack(QWidget):
             if to_text_string(lastm.toString()) \
                != to_text_string(finfo.lastmodified.toString()):
                 if finfo.editor.document().isModified():
-                    answer = QMessageBox.question(self,
-                                self.title,
-                                _("<b>%s</b> has been modified outside Spyder."
-                                  "<br>Do you want to reload it and lose all "
-                                  "your changes?") % name,
-                                QMessageBox.Yes | QMessageBox.No)
+                    self.msgbox = QMessageBox(
+                        QMessageBox.Question,
+                        self.title,
+                        _("<b>%s</b> has been modified outside Spyder."
+                          "<br>Do you want to reload it and lose all "
+                          "your changes?") % name,
+                        QMessageBox.Yes | QMessageBox.No,
+                        self)
+                    answer = self.msgbox.exec_()  
                     if answer == QMessageBox.Yes:
                         self.reload(index)
                     else:
@@ -1899,11 +1923,15 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         filename = finfo.filename
         if finfo.editor.document().isModified():
-            answer = QMessageBox.warning(self, self.title,
-                                _("All changes to <b>%s</b> will be lost."
-                                  "<br>Do you want to revert file from disk?"
-                                  ) % osp.basename(filename),
-                                  QMessageBox.Yes|QMessageBox.No)
+            self.msgbox = QMessageBox(
+                    QMessageBox.Warning,
+                    self.title,
+                    _("All changes to <b>%s</b> will be lost."
+                      "<br>Do you want to revert file from disk?"
+                      ) % osp.basename(filename),
+                    QMessageBox.Yes | QMessageBox.No,
+                    self)
+            answer = self.msgbox.exec_()  
             if answer != QMessageBox.Yes:
                 return
         self.reload(index)
@@ -2057,11 +2085,15 @@ class EditorStack(QWidget):
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
-            QMessageBox.warning(self, self.title,
-                                _("<b>%s</b> contains mixed end-of-line "
-                                  "characters.<br>Spyder will fix this "
-                                  "automatically.") % name,
-                                QMessageBox.Ok)
+            self.msgbox = QMessageBox(
+                    QMessageBox.Warning,
+                    self.title,
+                    _("<b>%s</b> contains mixed end-of-line "
+                      "characters.<br>Spyder will fix this "
+                      "automatically.") % name,
+                    QMessageBox.Ok,
+                    self)
+            self.msgbox.exec_()
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
         return finfo
