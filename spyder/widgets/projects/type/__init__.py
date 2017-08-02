@@ -9,6 +9,7 @@
 
 import os
 import os.path as osp
+from collections import OrderedDict
 
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
@@ -70,7 +71,7 @@ class BaseProject(object):
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)
         self.CONF[WORKSPACE].set('main', 'recent_files',
-                                 list(set(recent_files)))
+                                 list(OrderedDict.fromkeys(recent_files)))
 
     def get_recent_files(self):
         """Return a list of files opened by the project."""
@@ -79,7 +80,7 @@ class BaseProject(object):
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)
-        return list(set(recent_files))
+        return list(OrderedDict.fromkeys(recent_files))
 
     def create_project_config_files(self):
         """ """
