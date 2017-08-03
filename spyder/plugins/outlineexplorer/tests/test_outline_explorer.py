@@ -8,6 +8,9 @@
 # Test library imports
 import pytest
 
+# Third party imports
+from qtpy.QtCore import Qt
+
 # Local imports
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerProxy,
@@ -53,6 +56,16 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
         return None
 
 
+def click_item(treewidget, item, qtbot):
+    """Click an item in a treewidget."""
+    index = treewidget.indexFromItem(item)
+    # Make sure item is visible
+    treewidget.scrollTo(index)
+    item_rect = treewidget.visualRect(index)
+    qtbot.mouseClick(treewidget.viewport(), Qt.LeftButton, Qt.NoModifier,
+                     item_rect.center())
+
+
 @pytest.fixture
 def setup_outline_explorer(qtbot):
     """Set up outline_explorer."""
@@ -83,6 +96,16 @@ def test_outline_explorer(setup_outline_explorer):
     oedata_texts = [oe[4] for oe in oe_data]
     for item, oe_item in zip(items, oedata_texts):
         assert item.text(0) == oe_item
+
+
+def test_go_to(setup_outline_explorer, qtbot):
+    """Test clicking in an item."""
+    outline_explorer, oe_proxy = setup_outline_explorer
+
+    item = outline_explorer.treewidget.get_items()[1]
+
+    with qtbot.waitSignal(outline_explorer.edit_goto):
+        click_item(outline_explorer.treewidget, item, qtbot)
 
 
 if __name__ == "__main__":
