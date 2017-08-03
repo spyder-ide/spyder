@@ -2191,8 +2191,9 @@ class Editor(SpyderPluginWidget):
 
     @Slot(bool)
     def toggle_show_indent_guides(self, checked):
-        for editorstack in self.editorstacks:
-            editorstack.set_indent_guides(checked)
+        if self.editorstacks:
+            for editorstack in self.editorstacks:
+                editorstack.set_indent_guides(checked)
 
     @Slot()
     def remove_trailing_spaces(self):
