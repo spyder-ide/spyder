@@ -44,7 +44,9 @@ class OutlineExplorerProxy(object):
     def get_outlineexplorer_data(self):
         """Return a dict of OutlineExplorerData objects.
 
-        {line_number: OutlineExplorerData}
+        {block_number: OutlineExplorerData}
+
+        Note: block numbers start in 0
         """
         raise NotImplementedError
 

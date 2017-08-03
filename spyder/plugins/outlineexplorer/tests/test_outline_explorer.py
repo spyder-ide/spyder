@@ -44,8 +44,8 @@ class OutlineExplorerProxyTest(OutlineExplorerProxy):
 
     def get_outlineexplorer_data(self):
         oe_dict = {}
-        for line_number, text, fold_level, def_type, def_name in self.oe_data:
-            oe_dict[line_number] = OutlineExplorerData(text, fold_level,
+        for block_number, text, fold_level, def_type, def_name in self.oe_data:
+            oe_dict[block_number] = OutlineExplorerData(text, fold_level,
                                                        def_type, def_name)
         return oe_dict
 
