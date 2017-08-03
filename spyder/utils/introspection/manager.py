@@ -89,11 +89,12 @@ class PluginManager(QObject):
     def errored_plugin(self, name):
         """Handle error of plugin creating a new one."""
         self.plugins_initialized[name] = False
-        self.plugin[name] = PluginClient(name, self.executable,
+        self.plugins[name] = PluginClient(name, self.executable,
                                          extra_path=self.extra_path)
 
     def send_request(self, info):
         """Handle an incoming request from the user."""
+        print(self.plugins_initialized)
         if self.waiting:
             if info.serialize() != self.info.serialize():
                 self.pending_request = info

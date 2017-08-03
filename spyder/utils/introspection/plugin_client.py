@@ -171,6 +171,8 @@ class AsyncClient(QObject):
             debug_print('Errored %s' % self.name)
             debug_print(self.process.readAllStandardOutput())
             debug_print(self.process.readAllStandardError())
+            print(self.process.readAllStandardOutput())
+            print(self.process.readAllStandardError())
             self.errored.emit(self.name)
 
     def _on_msg_received(self):
