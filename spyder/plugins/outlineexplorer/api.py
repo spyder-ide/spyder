@@ -45,9 +45,6 @@ class OutlineExplorerProxy(object):
         """Return a dict of OutlineExplorerData objects.
 
         {line_number: OutlineExplorerData}
-
-        The returned dict also can contain an special key:
-            {'found_cell_separators': boolean}
         """
         raise NotImplementedError
 
