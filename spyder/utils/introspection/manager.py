@@ -94,7 +94,6 @@ class PluginManager(QObject):
 
     def send_request(self, info):
         """Handle an incoming request from the user."""
-        print(self.plugins_initialized)
         if self.waiting:
             if info.serialize() != self.info.serialize():
                 self.pending_request = info
