@@ -161,16 +161,16 @@ class AsyncClient(QObject):
         if self.closing:
             return
         if self.is_initialized:
-            print('Restarting %s' % self.name)
-            print(self.process.readAllStandardOutput())
-            print(self.process.readAllStandardError())
+            debug_print('Restarting %s' % self.name)
+            debug_print(self.process.readAllStandardOutput())
+            debug_print(self.process.readAllStandardError())
             self.is_initialized = False
             self.notifier.setEnabled(False)
             self.run()
         else:
-            print('Errored %s' % self.name)
-            print(self.process.readAllStandardOutput())
-            print(self.process.readAllStandardError())
+            debug_print('Errored %s' % self.name)
+            debug_print(self.process.readAllStandardOutput())
+            debug_print(self.process.readAllStandardError())
             self.errored.emit(self.name)
 
     def _on_msg_received(self):
