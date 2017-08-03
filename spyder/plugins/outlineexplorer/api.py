@@ -4,13 +4,31 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Outline explorer API."""
+"""Outline explorer API.
+
+You need to declare a OutlineExplorerProxy, and a function for handle the
+edit_goto Signal.
+
+class OutlineExplorerProxyCustom(OutlineExplorerProxy):
+    ...
+
+
+def handle_go_to(name, line, text):
+    ...
+
+outlineexplorer = OutlineExplorerWidget(None)
+oe_proxy = OutlineExplorerProxyCustom(name)
+outlineexplorer.set_current_editor(oe_proxy, update=True, clear=False)
+
+outlineexplorer.edit_goto.connect(handle_go_to)
+"""
 
 
 class OutlineExplorerProxy(object):
     """
     Proxy class between editors and OutlineExplorerWidget.
     """
+
     def __init__(self):
         self.fname = None
 
@@ -24,7 +42,13 @@ class OutlineExplorerProxy(object):
         raise NotImplementedError
 
     def get_outlineexplorer_data(self):
-        """Return a dict of OutlineExplorerData objects."""
+        """Return a dict of OutlineExplorerData objects.
+
+        {line_number: OutlineExplorerData}
+
+        The returned dict also can contain an special key:
+            {'found_cell_separators': boolean}
+        """
         raise NotImplementedError
 
     def get_line_count(self):
@@ -41,11 +65,19 @@ class OutlineExplorerData(object):
     FUNCTION_TOKEN = 'def'
     CLASS_TOKEN = 'class'
 
-    def __init__(self):
-        self.text = None
-        self.fold_level = None
-        self.def_type = None
-        self.def_name = None
+    def __init__(self, text=None, fold_level=None, def_type=None,
+                 def_name=None):
+        """
+        Args:
+            text (str)
+            fold_level (int)
+            def_type (int): [CLASS, FUNCTION, STATEMENT, COMMENT, CELL]
+            def_name (str)
+        """
+        self.text = text
+        self.fold_level = fold_level
+        self.def_type = def_type
+        self.def_name = def_name
 
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
