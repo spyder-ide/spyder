@@ -104,8 +104,11 @@ def test_go_to(setup_outline_explorer, qtbot):
 
     item = outline_explorer.treewidget.get_items()[1]
 
-    with qtbot.waitSignal(outline_explorer.edit_goto):
+    with qtbot.waitSignal(outline_explorer.edit_goto) as sig_edit_goto:
         click_item(outline_explorer.treewidget, item, qtbot)
+
+    # It sends line_number (block_number+1)
+    assert sig_edit_goto.args == ['test.py', 18, '__init__']
 
 
 if __name__ == "__main__":
