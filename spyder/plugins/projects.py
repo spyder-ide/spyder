@@ -154,9 +154,6 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.sig_project_closed.connect(
             lambda v: self.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
-        self.run.connect(lambda fname: self.main.open_external_console(
-            to_text_string(fname), osp.dirname(to_text_string(fname)),
-            '', False, False, True, '', True))
 
     def refresh_plugin(self):
         """Refresh project explorer widget"""
