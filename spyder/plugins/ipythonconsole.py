@@ -805,7 +805,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.tabwidget.currentChanged.connect(self.update_working_directory)
 
-
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
