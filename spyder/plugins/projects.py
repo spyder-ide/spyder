@@ -45,6 +45,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     removed_tree = Signal(str)
     renamed = Signal(str, str)
     redirect_stdio = Signal(bool)
+    run = Signal(str)
 
     # Project handling
     sig_project_created = Signal(object, object, object)
