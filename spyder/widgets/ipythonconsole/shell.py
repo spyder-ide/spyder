@@ -402,16 +402,6 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    def capture_dir_change(self, command):
-        """
-        Capture dir change magic for synchronization with working directory.
-        """
-        try:
-            if command.startswith('%cd') or command.split()[0] == 'cd':
-                self.get_cwd()
-        except IndexError:
-            pass
-
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
