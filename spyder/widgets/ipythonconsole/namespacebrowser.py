@@ -190,6 +190,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             self.refresh_from_pdb(pdb_state)
 
     # ---- Private API (overrode by us) ----------------------------
+    def _handle_error(self, msg):
+        """
+        Reimplemented to reset the prompt if the error comes after the reply
+        """
+        super()._handle_error(msg)
+        self._show_interpreter_prompt()
+    
     def _handle_execute_reply(self, msg):
         """
         Reimplemented to handle communications between Spyder
