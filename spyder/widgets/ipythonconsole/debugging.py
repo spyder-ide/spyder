@@ -9,6 +9,8 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
+import ast
+
 from qtpy.QtCore import Qt
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -52,10 +54,14 @@ class DebuggingWidget(RichJupyterWidget):
             self.sig_pdb_step.emit(fname, lineno)
 
         if 'namespace_view' in pdb_state:
-            self.sig_namespace_view.emit(pdb_state['namespace_view'])
+            if pdb_state['namespace_view']:
+                self.sig_namespace_view.emit(ast.literal_eval(
+                        pdb_state['namespace_view']))
 
         if 'var_properties' in pdb_state:
-            self.sig_var_properties.emit(pdb_state['var_properties'])
+            if pdb_state['var_properties']:
+                self.sig_var_properties.emit(ast.literal_eval(
+                        pdb_state['var_properties']))
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_input_request(self, msg):
