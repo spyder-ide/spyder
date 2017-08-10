@@ -378,6 +378,14 @@ SERVER_CAPABILITES = {
 }
 
 
+class LSPEventTypes:
+    """Language Server Protocol event types."""
+    DOCUMENT = 'textDocument'
+    WORKSPACE = 'workspace'
+    WINDOW = 'window'
+    CODE_LENS = 'codeLens'
+
+
 class LSPRequestTypes:
     """Language Server Protocol request/response types."""
     # General requests

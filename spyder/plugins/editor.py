@@ -51,6 +51,7 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)
+from spyder.utils.code_analysis import LSPRequestTypes, LSPEventTypes
 
 
 # Dependencies
@@ -391,6 +392,7 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+    sig_lsp_notification = Signal(dict)
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -453,6 +455,8 @@ class Editor(SpyderPluginWidget):
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
+
+        self.sig_lsp_notification.connect(self.document_server_settings)
 
         # Don't start IntrospectionManager when running tests because
         # it consumes a lot of memory
@@ -567,7 +571,11 @@ class Editor(SpyderPluginWidget):
             self.get_current_editor().centerCursor()
         except AttributeError:
             pass
-            
+
+    def document_server_settings(self, settings):
+        """Update LSP server settings for textDocument requests."""
+        pass
+
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -1172,6 +1180,8 @@ class Editor(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
+        self.main.lsp_client.register_plugin_type(LSPEventTypes.DOCUMENT,
+                                                  self.sig_lsp_notification)
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.main.console.edit_goto.connect(self.load)

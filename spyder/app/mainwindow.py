@@ -151,6 +151,8 @@ from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
 from spyder.widgets.fileswitcher import FileSwitcher
+from spyder.utils.code_analysis.lsp_client import LSPClient
+
 
 #==============================================================================
 # Local gui imports
@@ -303,6 +305,9 @@ class MainWindow(QMainWindow):
             self.path = [name for name in self.path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
+
+        # Language Server Protocol Client
+        self.lsp_client = None
 
         # Plugins
         self.console = None
@@ -805,6 +810,14 @@ class MainWindow(QMainWindow):
                                     "  spy.app, spy.window, dir(spy)\n\n"
                                     "Please don't use it to run your code\n\n"))
         self.console.register_plugin()
+
+        # Language Server Protocol Client initialization
+        lsp_server_args_fmt = '--host %(host)s --port %(port)s --tcp'
+        lsp_server_settings = {'host': '127.0.0.1', 'port': 2087,
+                               'server_cmd': 'pyls'}
+        self.set_splash(_("Launching Language Server Protocol Client..."))
+        self.lsp_client = LSPClient(lsp_server_args_fmt, lsp_server_settings)
+        self.lsp_client.start()
 
         # Working directory plugin
         self.debug_print("  ..plugin: working directory")
@@ -2174,6 +2187,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
+        self.lsp_client.stop()
         self.already_closed = True
         return True
 

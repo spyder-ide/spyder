@@ -37,6 +37,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
 
 PENDING = 'pending'
+SERVER_READY = 'server_ready'
 
 
 @class_register
@@ -62,6 +63,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.initialized = False
         self.request_seq = 1
         self.req_status = {}
+        self.plugin_registry = {}
 
         self.transport_args = [sys.executable,
                                osp.join(LOCATION, 'lsp_transport', 'main.py')]
@@ -102,9 +104,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             # self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
 
         self.transport_args = map(str, self.transport_args)
-        self.transport_client = subprocess.Popen(self.transport_args)
-                                                 # stdout=self.stdout_log,
-                                                 # stderr=self.stderr_log)
+        self.transport_client = subprocess.Popen(self.transport_args,
+                                                 stdout=self.stdout_log,
+                                                 stderr=self.stderr_log)
 
         fid = self.zmq_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
@@ -159,8 +161,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.notifier.setEnabled(True)
                 return
 
+    # ------ Spyder plugin registration --------------------------------
+    def register_plugin_type(self, plugin_type, notification_sig):
+        if plugin_type not in self.plugin_registry:
+            self.plugin_registry[plugin_type] = []
+        self.plugin_registry[plugin_type].append(notification_sig)
+
     # ------ LSP initialization methods --------------------------------
-    @handles('server_ready')
+    @handles(SERVER_READY)
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, *args, **kwargs):
         params = {
@@ -198,7 +206,7 @@ def test():
     # lsp.on_msg_received()
     # term.show()
     app.aboutToQuit.connect(lsp.stop)
-    # signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     sys.exit(app.exec_())
 
 
