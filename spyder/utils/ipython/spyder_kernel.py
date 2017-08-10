@@ -112,6 +112,8 @@ class SpyderKernel(IPythonKernel):
             ns = self._get_current_namespace()
             view = repr(make_remote_view(ns, settings, EXCLUDED_NAMES))
             return view
+        else:
+            return repr(None)
 
     def get_var_properties(self):
         """
