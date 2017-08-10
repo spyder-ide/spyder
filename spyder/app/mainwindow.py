@@ -815,9 +815,8 @@ class MainWindow(QMainWindow):
         lsp_server_args_fmt = '--host %(host)s --port %(port)s --tcp'
         lsp_server_settings = {'host': '127.0.0.1', 'port': 2087,
                                'server_cmd': 'pyls'}
-        self.set_splash(_("Launching Language Server Protocol Client..."))
+        self.set_splash(_("Creating LSP Client..."))
         self.lsp_client = LSPClient(lsp_server_args_fmt, lsp_server_settings)
-        self.lsp_client.start()
 
         # Working directory plugin
         self.debug_print("  ..plugin: working directory")
@@ -848,6 +847,10 @@ class MainWindow(QMainWindow):
         self.editor = Editor(self)
         self.editor.register_plugin()
 
+        # Start LSP client
+        self.set_splash(_("Launching LSP Client..."))
+        self.lsp_client.start()
+
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
                                     icon=ima.icon('exit'),
@@ -868,6 +871,7 @@ class MainWindow(QMainWindow):
         self.set_splash("")
 
         self.debug_print("  ..widgets")
+
 
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
