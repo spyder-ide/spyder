@@ -403,6 +403,13 @@ the sympy module (e.g. plot)
                 self.silent_execute(command)
 
     #---- Private methods (overrode by us) ---------------------------------
+    def _handle_error(self, msg):
+        """
+        Reimplemented to reset the prompt if the error comes after the reply
+        """
+        super(ShellWidget, self)._handle_error(msg)
+        self._show_interpreter_prompt()
+    
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(ShellWidget, self)._context_menu_make(pos)
