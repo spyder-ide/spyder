@@ -140,7 +140,7 @@ class SpyderKernel(IPythonKernel):
 
             return repr(properties)
         else:
-            return {}
+            return repr({})
 
     def get_value(self, name):
         """Get the value of a variable"""
