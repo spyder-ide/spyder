@@ -45,6 +45,7 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
+
 def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
@@ -180,6 +181,7 @@ class DirView(QTreeView):
         self.fsmodel = None
         self.setup_fs_model()
         self._scrollbar_positions = None
+        self.setSelectionMode(self.ExtendedSelection)
                 
     #---- Model
     def setup_fs_model(self):
@@ -231,7 +233,8 @@ class DirView(QTreeView):
     def get_selected_filenames(self):
         """Return selected filenames"""
         if self.selectionMode() == self.ExtendedSelection:
-            return [self.get_filename(idx) for idx in self.selectedIndexes()]
+            return [self.get_filename(idx) for idx in 
+                    self.selectionModel().selectedRows()]
         else:
             return [self.get_filename(self.currentIndex())]
             
