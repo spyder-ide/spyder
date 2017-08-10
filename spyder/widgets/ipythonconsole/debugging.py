@@ -54,14 +54,12 @@ class DebuggingWidget(RichJupyterWidget):
             self.sig_pdb_step.emit(fname, lineno)
 
         if 'namespace_view' in pdb_state:
-            if pdb_state['namespace_view']:
-                self.sig_namespace_view.emit(ast.literal_eval(
-                        pdb_state['namespace_view']))
+            self.sig_namespace_view.emit(ast.literal_eval(
+                    pdb_state['namespace_view']))
 
         if 'var_properties' in pdb_state:
-            if pdb_state['var_properties']:
-                self.sig_var_properties.emit(ast.literal_eval(
-                        pdb_state['var_properties']))
+            self.sig_var_properties.emit(ast.literal_eval(
+                    pdb_state['var_properties']))
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_input_request(self, msg):
