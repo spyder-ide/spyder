@@ -437,9 +437,6 @@ class DirView(QTreeView):
             actions.append(None)
         if fnames and all([osp.isdir(_fn) for _fn in fnames]):
             actions += self.create_folder_manage_actions(fnames)
-        if actions:
-            actions.append(None)
-        actions += self.common_actions
         return actions
 
     def update_menu(self):
