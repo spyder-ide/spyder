@@ -110,8 +110,10 @@ class SpyderKernel(IPythonKernel):
         settings = self.namespace_view_settings
         if settings:
             ns = self._get_current_namespace()
-            view = make_remote_view(ns, settings, EXCLUDED_NAMES)
+            view = repr(make_remote_view(ns, settings, EXCLUDED_NAMES))
             return view
+        else:
+            return repr(None)
 
     def get_var_properties(self):
         """
@@ -138,9 +140,9 @@ class SpyderKernel(IPythonKernel):
                     'array_ndim': self._get_array_ndim(value)
                 }
 
-            return properties
+            return repr(properties)
         else:
-            return {}
+            return repr(None)
 
     def get_value(self, name):
         """Get the value of a variable"""
