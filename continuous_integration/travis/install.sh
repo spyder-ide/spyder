@@ -25,5 +25,9 @@ source activate test
 
 # We test with pip packages in Python 3.5 and PyQt5
 if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
+    # Install qtconsole from Github
+    pip install git+https://github.com/jupyter/qtconsole.git
+
+    # Install Spyder and its dependencies
     pip install -q -e .[test]
 fi

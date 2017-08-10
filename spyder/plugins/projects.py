@@ -125,14 +125,16 @@ class Projects(SpyderPluginWidget):
         treewidget.sig_removed_tree.connect(self.editor.removed_tree)
         treewidget.sig_renamed.connect(self.editor.renamed)
         treewidget.sig_create_module.connect(self.editor.new)
-        treewidget.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
-        treewidget.sig_open_interpreter.connect(ipyconsole.create_client_from_path)
-        treewidget.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
+        treewidget.sig_new_file.connect(
+            lambda t: self.main.editor.new(text=t))
+        treewidget.sig_open_interpreter.connect(
+            ipyconsole.create_client_from_path)
+        treewidget.redirect_stdio.connect(
+            self.main.redirect_internalshell_stdio)
         treewidget.sig_run.connect(
-                     lambda fname:
-                     self.main.open_external_console(to_text_string(fname),
-                                         osp.dirname(to_text_string(fname)),
-                                         '', False, False, True, '', False))
+            lambda fname:
+            ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
+                                  False, True))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(

@@ -569,6 +569,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
+        self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
 
     #-----Widget setup and options
@@ -2423,6 +2424,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
+        event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -2778,7 +2780,7 @@ class CodeEditor(TextEditBaseWidget):
         ebottom_bottom = self.height()
 
         while block.isValid():
-            visible = (top >= ebottom_top and bottom <= ebottom_bottom)
+            visible = bottom <= ebottom_bottom
             if not visible:
                 break
             if block.isVisible():

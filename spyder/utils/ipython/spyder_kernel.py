@@ -241,7 +241,7 @@ class SpyderKernel(IPythonKernel):
     # --- Additional methods
     def set_cwd(self, dirname):
         """Set current working directory."""
-        return os.chdir(dirname)
+        os.chdir(dirname)
 
     def get_cwd(self):
         """Get current working directory."""
@@ -320,7 +320,7 @@ class SpyderKernel(IPythonKernel):
         """Return sequence length"""
         try:
             return len(var)
-        except TypeError:
+        except:
             return None
 
     def _is_array(self, var):
@@ -362,7 +362,7 @@ class SpyderKernel(IPythonKernel):
                 return var.shape
             else:
                 return None
-        except AttributeError:
+        except:
             return None
 
     def _get_array_ndim(self, var):
@@ -372,7 +372,7 @@ class SpyderKernel(IPythonKernel):
                 return var.ndim
             else:
                 return None
-        except AttributeError:
+        except:
             return None
 
     # --- For Pdb
