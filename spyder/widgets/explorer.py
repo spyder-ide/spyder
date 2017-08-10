@@ -357,20 +357,22 @@ class DirView(QTreeView):
             actions.append(run_action)
         if only_valid and only_files:
             actions.append(edit_action)
-        if only_files:
-            actions.append(open_external_action)
+        
         if sys.platform == 'darwin':
             text=_("Show in Finder")
         else:
-            text=_("Show in external file explorer")
+            text=_("Show in Folder")
         external_fileexp_action = create_action(self, text, 
                                 triggered=self.show_in_external_file_explorer)        
-        actions.append(external_fileexp_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
+        if only_files:
+            actions.append(open_external_action)
+        actions.append(external_fileexp_action)
+        actions.append([None])
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
