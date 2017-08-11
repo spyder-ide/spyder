@@ -217,6 +217,7 @@ _qtaargs = {
     'folding.arrow_right_on':  [('fa.caret-right',), {}],
     'folding.arrow_down_off':  [('fa.caret-down',), {'color': 'gray'}],
     'folding.arrow_down_on':   [('fa.caret-down',), {}],
+    'lspserver':               [('fa.server',), {}]
 }
 
 

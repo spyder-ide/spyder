@@ -22,7 +22,9 @@ import os.path as osp
 from spyder.py3compat import getcwd
 from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
                                         SERVER_CAPABILITES, TRACE,
-                                        LSPRequestTypes)
+                                        TEXT_DOCUMENT_SYNC_OPTIONS,
+                                        LSPRequestTypes,
+                                        LSPEventTypes)
 from spyder.utils.code_analysis.decorators import (send_request,
                                                    class_register,
                                                    handles)
@@ -192,7 +194,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @handles(LSPRequestTypes.INITIALIZE)
     def process_server_capabilities(self, server_capabilites):
         self.initialized = True
-        print(server_capabilites)
+        server_capabilites = server_capabilites['capabilities']
+
+        if isinstance(server_capabilites['textDocumentSync'], int):
+            kind = server_capabilites['textDocumentSync']
+            server_capabilites['textDocumentSync'] = TEXT_DOCUMENT_SYNC_OPTIONS
+            server_capabilites['textDocumentSync']['change'] = kind
+
+        self.server_capabilites.update(server_capabilites)
+
+        for sig in self.plugin_registry[LSPEventTypes.DOCUMENT]:
+            sig.emit(self.server_capabilites)
 
 
 def test():

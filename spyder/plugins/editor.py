@@ -51,7 +51,8 @@ from spyder.api.preferences import PluginConfigPage
 from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)
-from spyder.utils.code_analysis import LSPRequestTypes, LSPEventTypes
+from spyder.utils.code_analysis import (LSPRequestTypes, LSPEventTypes,
+                                        TextDocumentSyncKind)
 
 
 # Dependencies
@@ -456,7 +457,9 @@ class Editor(SpyderPluginWidget):
         self.toolbar_list = None
         self.menu_list = None
 
+        # LSP setup
         self.sig_lsp_notification.connect(self.document_server_settings)
+        self.lsp_editor_settings = {}
 
         # Don't start IntrospectionManager when running tests because
         # it consumes a lot of memory
@@ -528,7 +531,7 @@ class Editor(SpyderPluginWidget):
             self.add_cursor_position_to_history(filename, position)
         self.update_cursorpos_actions()
         self.set_path()
-        
+
     def set_projects(self, projects):
         self.projects = projects
 
@@ -574,7 +577,7 @@ class Editor(SpyderPluginWidget):
 
     def document_server_settings(self, settings):
         """Update LSP server settings for textDocument requests."""
-        pass
+        self.lsp_editor_settings = settings
 
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -1240,6 +1243,7 @@ class Editor(SpyderPluginWidget):
 
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
+        print(self.lsp_editor_settings)
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
 
