@@ -312,5 +312,48 @@ def test_advance_cell(editor_cells_bot):
     assert editor.get_cursor_line_column() == (6, 0)
 
 
+def test_get_current_word(base_editor_bot):
+    """Test getting selected valid python word."""
+    editor_stack, qtbot = base_editor_bot
+    text = ('some words with non-ascii  characters\n'
+            'niño\n'
+            'garçon\n'
+            'α alpha greek\n'
+            '123valid_python_word')
+    finfo = editor_stack.new('foo.py', 'utf-8', text)
+    qtbot.addWidget(editor_stack)
+    editor = finfo.editor
+    editor.go_to_line(1)
+
+    # Select some
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'some' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'some'
+
+    # Select niño
+    editor.go_to_line(2)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'niño' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'niño'
+
+    # Select garçon
+    editor.go_to_line(3)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'garçon' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'garçon'
+
+    # Select α
+    editor.go_to_line(4)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'α' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'α'
+
+    # Select valid_python_word, should search first valid python word
+    editor.go_to_line(5)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert '123valid_python_word' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'valid_python_word'
+
+
 if __name__ == "__main__":
     pytest.main()
