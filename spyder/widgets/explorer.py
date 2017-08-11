@@ -49,7 +49,7 @@ except:
 def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
-    if os.name == 'nt':
+    elif os.name == 'nt':
         subprocess.call(["explorer", "/select,", filename])
     else:
         filename=os.path.dirname(filename)
