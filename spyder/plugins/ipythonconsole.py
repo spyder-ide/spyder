@@ -919,9 +919,9 @@ class IPythonConsole(SpyderPluginWidget):
                     sw.silent_execute('%clear')
                     sw.silent_execute(
                         'get_ipython().kernel.close_all_mpl_figures()')
-                    sw.reset_namespace(force=True)
+                    sw.reset_namespace(warning=False, silent=True)
                 elif current_client and clear_variables:
-                    sw.reset_namespace(force=True)
+                    sw.reset_namespace(warning=False, silent=True)
                 sw.execute(to_text_string(to_text_string(lines)))
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
