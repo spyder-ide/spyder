@@ -49,12 +49,11 @@ except:
 def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
+    if os.name == 'nt':
+        subprocess.call(["explorer", "/select,", filename])
     else:
         filename=os.path.dirname(filename)
-        if os.name == 'nt':
-            os.startfile(filename)
-        else:
-            subprocess.call(["xdg-open", filename])
+        subprocess.call(["xdg-open", filename])
 
 def show_in_external_file_explorer(fnames=None):
     """Show files in external file explorer
