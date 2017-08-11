@@ -357,7 +357,8 @@ class BaseEditMixin(object):
 
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
-        match = re.findall(r'([a-zA-Z\_]+[0-9a-zA-Z\_]*)', text)
+        # find a valid python variable name
+        match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
             return match[0]
     
