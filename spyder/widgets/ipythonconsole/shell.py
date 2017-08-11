@@ -14,6 +14,7 @@ import uuid
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
+from spyder.config.main import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
@@ -21,6 +22,7 @@ from spyder.utils import encoding
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.ipython.style import create_qss_style, create_style_class
+from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -40,6 +42,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
     sig_show_env = Signal(object)
+    sig_namespace_reseted = Signal()
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
@@ -219,27 +222,44 @@ the sympy module (e.g. plot)
         else:
             self.execute("%clear")
 
-    def reset_namespace(self, force=False):
+    def reset_namespace(self, warning=None, silent=True):
         """Reset the namespace by removing all names defined by the user."""
         reset_str = _("Reset IPython namespace")
         warn_str = _("All user-defined variables will be removed."
                      "<br>Are you sure you want to reset the namespace?")
-        if not force:
-            reply = QMessageBox.question(self, reset_str,
-                                         warn_str,
-                                         QMessageBox.Yes | QMessageBox.No
-            )
 
-            if reply == QMessageBox.Yes:
-                if self._reading:
-                    self.dbg_exec_magic('reset', '-f')
-                else:
-                    self.execute("%reset -f")
+        if warning is None:
+            section = 'ipython_console'
+            option = 'show_reset_namespace_warning'
+            warning = CONF.get(section, option)
+
+        if warning:
+            box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
+            box.setWindowTitle(reset_str)
+            box.set_checkbox_text(_("Don't show again."))
+            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            box.setDefaultButton(QMessageBox.No)
+
+            box.set_checked(False)
+            box.set_check_visible(True)
+            box.setText(warn_str)
+
+            answer = box.exec_()
+
+            # Update checkbox based on user interaction
+            CONF.set(section, option, not box.is_checked())
+
+            if answer != QMessageBox.Yes:
+                return
+
+        if self._reading:
+            self.dbg_exec_magic('reset', '-f')
         else:
-            if self._reading:
-                self.dbg_exec_magic('reset', '-f')
-            else:
+            if silent:
                 self.silent_execute("%reset -f")
+                self.sig_namespace_reseted.emit()
+            else:
+                self.execute("%reset -f")
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""

@@ -28,7 +28,6 @@ except ImportError:
     serialize_object = None
 
 # Local imports
-from spyder.config.main import CONF
 from spyder.config.base import _, get_supported_types
 from spyder.py3compat import is_text_string, getcwd, to_text_string
 from spyder.utils import encoding
@@ -42,7 +41,6 @@ from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
 from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
-from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -184,6 +182,7 @@ class NamespaceBrowser(QWidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
+        shellwidget.sig_namespace_reseted.connect(self.refresh_table)
 
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported):
@@ -456,34 +455,11 @@ class NamespaceBrowser(QWidget):
                                        "<br><br>Error message:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
-            
+
     @Slot()
     def reset_namespace(self):
-        section, option = 'ipython_console', 'show_reset_namespace_warning'
-        show_reset_namespace_warning = CONF.get(section, option)        
-        if show_reset_namespace_warning:
-            box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
-            box.setWindowTitle(_("Reset namespace"))
-            box.set_checkbox_text(_("Don't show again."))
-            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            box.setDefaultButton(QMessageBox.No)            
-            
-            box.set_checked(False)
-            box.set_check_visible(True)
-            box.setText(_("Once deleted, variables cannot be recovered. "
-                          "Proceed?"))
-            
-            answer = box.exec_()           
-            if answer == QMessageBox.Yes:
-                self.shellwidget.reset_namespace(force=True)
-                self.refresh_table()
-                
-            # Update checkbox based on user interaction
-            CONF.set(section, option, not box.is_checked())
-        else:
-            self.shellwidget.reset_namespace(force=True)
-            self.refresh_table()
-            
+        self.shellwidget.reset_namespace(silent=True)
+
     @Slot()
     def save_data(self, filename=None):
         """Save data"""
