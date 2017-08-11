@@ -23,6 +23,7 @@ from qtpy.QtGui import QTextCursor
 from spyder.utils.fixtures import setup_editor
 from spyder.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
+from spyder.py3compat import PY2
 
 # Qt Test Fixtures
 #--------------------------------
@@ -312,6 +313,7 @@ def test_advance_cell(editor_cells_bot):
     assert editor.get_cursor_line_column() == (6, 0)
 
 
+@pytest.mark.skipif(PY2, reason="Python2 does not support unicode very well")
 def test_get_current_word(base_editor_bot):
     """Test getting selected valid python word."""
     editor_stack, qtbot = base_editor_bot
