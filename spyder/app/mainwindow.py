@@ -1183,6 +1183,10 @@ class MainWindow(QMainWindow):
         was triggered"""
         self.restore_scrollbar_position.emit()
 
+        # Enforce correct drawing of custom title bar on dockwidgets
+        for plugin in self.widgetlist:
+            plugin.dockwidget.setup()
+
         # Remove our temporary dir
         atexit.register(self.remove_tmpdir)
 
@@ -1266,6 +1270,7 @@ class MainWindow(QMainWindow):
         # Raise the menuBar to the top of the main window widget's stack
         # (Fixes issue 3887)
         self.menuBar().raise_()
+
         self.is_setting_up = False
 
     def update_window_title(self):
@@ -2540,7 +2545,7 @@ class MainWindow(QMainWindow):
         """Update dockwidgets features settings"""
         # Update toggle action on menu
         for child in self.widgetlist:
-            features = child.FEATURES
+            features = child.dockwidget.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             if not self.dockwidgets_locked:
