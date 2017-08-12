@@ -234,6 +234,7 @@ class LSPServerEditor(QDialog):
             self.button_ok.setEnabled(False)
             self.host_input.setStyleSheet("QLineEdit{border: 1px solid red;}")
             self.host_input.setToolTip('Hostname must be valid')
+            return
         else:
             self.host_input.setStyleSheet(
                 "QLineEdit{border: 1px solid green;}")
@@ -306,7 +307,7 @@ class LSPServerEditor(QDialog):
             self.cmd_input.setEnabled(False)
             self.cmd_input.setStyleSheet('')
             self.args_input.setEnabled(False)
-            self.validate()
+        self.validate()
 
     def get_options(self):
         language_idx = self.lang_cb.currentIndex()
