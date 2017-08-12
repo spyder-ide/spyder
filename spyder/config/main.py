@@ -620,6 +620,15 @@ DEFAULTS = [
               'solarized/dark/string':     ('#2aa198', False, False),
               'solarized/dark/number':     ('#cb4b16', False, False),
               'solarized/dark/instance':   ('#b58900', False, True)
+             }),
+             ('lsp-server', {
+              'python': {
+                'index': 0,
+                'cmd': 'pyls',
+                'args': '--host %(host)s --port %(port)s --tcp',
+                'host': '127.0.0.1',
+                'port': 2087
+              }
              })
             ]
 

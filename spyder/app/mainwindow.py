@@ -152,6 +152,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.utils.code_analysis.lsp_client import LSPClient
+from spyder.plugins.lspmanager import LSPManager
 
 
 #==============================================================================
@@ -817,6 +818,7 @@ class MainWindow(QMainWindow):
                                'server_cmd': 'pyls'}
         self.set_splash(_("Creating LSP Client..."))
         self.lsp_client = LSPClient(lsp_server_args_fmt, lsp_server_settings)
+        self.lsp_manager = LSPManager()
 
         # Working directory plugin
         self.debug_print("  ..plugin: working directory")
@@ -2592,7 +2594,7 @@ class MainWindow(QMainWindow):
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
             dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.editor,
+        for plugin in [self.workingdirectory, self.lsp_manager, self.editor,
                        self.projects, self.ipyconsole,
                        self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles
