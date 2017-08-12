@@ -14,3 +14,6 @@ third-party plugins to extend Spyder.
 This API should be considered pre-release and is subject to change
 The final API version will be released in Spyder 4.0
 """
+
+# Expose python3 compatibility module through the api
+import spyder.py3compat as py3compat
