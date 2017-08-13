@@ -1,5 +1,73 @@
 # History of changes
 
+## Version 3.2.1 (2017-08-13)
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 4943](https://github.com/spyder-ide/spyder/issues/4943) - Unicode symbols are not highlighted in the Editor
+* [Issue 4922](https://github.com/spyder-ide/spyder/issues/4922) - Static code analysis produces error when running with empty filename
+* [Issue 4873](https://github.com/spyder-ide/spyder/issues/4873) - Error when trying to get a very large namespace view from the kernel
+* [Issue 4862](https://github.com/spyder-ide/spyder/issues/4862) - File execution fails with AttributeError: _Feature instance has no attribute '__len__'
+* [Issue 4843](https://github.com/spyder-ide/spyder/issues/4843) - Error when attempting to close a split panel in the editor window
+* [Issue 4841](https://github.com/spyder-ide/spyder/issues/4841) - Setting  QT_SCREEN_SCALE_FACTORS is not working as expected
+* [Issue 4831](https://github.com/spyder-ide/spyder/issues/4831) - Error when rearranging tabs and multiple Editors
+* [Issue 4824](https://github.com/spyder-ide/spyder/issues/4824) - Error when trying to print source code - AttributeError: 'QPrintDialog' object has no attribute 'addEnabledOption'
+* [Issue 4816](https://github.com/spyder-ide/spyder/issues/4816) - Error when trying to change to non-ascii directories in the Working Directory toolbar
+* [Issue 4811](https://github.com/spyder-ide/spyder/issues/4811) - Editor line number font size does not increase when zooming on windows
+* [Issue 4810](https://github.com/spyder-ide/spyder/issues/4810) - Spyder crashes when attempting to define function named setup in IPython console
+* [Issue 4806](https://github.com/spyder-ide/spyder/issues/4806) - Change color of matched parens in the IPython console
+* [Issue 4797](https://github.com/spyder-ide/spyder/issues/4797) - Remove scientific_startup.py
+* [Issue 4769](https://github.com/spyder-ide/spyder/issues/4769) - Exception raised when running file from project explorer
+* [Issue 4763](https://github.com/spyder-ide/spyder/issues/4763) - In the Editor, tab does not switch when ctrl is released and focus remains on the tab_switcher
+* [Issue 4754](https://github.com/spyder-ide/spyder/issues/4754) - Shifting multiple lines of code with ctrl + cmd + down-arrow-key doesn't work properly after first shift
+* [Issue 4734](https://github.com/spyder-ide/spyder/issues/4734) - High DPI scaling messes up placement of breakpoint red circles
+* [Issue 4453](https://github.com/spyder-ide/spyder/issues/4453) - Crash when opened file is renamed/deleted outside Spyder
+* [Issue 4442](https://github.com/spyder-ide/spyder/issues/4442) - Segfault when closing with temporary file open
+* [Issue 4304](https://github.com/spyder-ide/spyder/issues/4304) - EOLs incorrectly switch from LF to CRLF on split editor panes
+* [Issue 4039](https://github.com/spyder-ide/spyder/issues/4039) - Sorting order of profiler is wrong
+* [Issue 3166](https://github.com/spyder-ide/spyder/issues/3166) - Editor line numbers dissappear
+
+In this release 22 issues were closed
+
+**Pull requests**
+
+* [PR 4949](https://github.com/spyder-ide/spyder/pull/4949) - PR: Add basic pep8speaks config file.
+* [PR 4946](https://github.com/spyder-ide/spyder/pull/4946) - PR: Fix error when the selecting an unicode word
+* [PR 4928](https://github.com/spyder-ide/spyder/pull/4928) - PR: Check that combobox text is not empty string before emiting valid signal
+* [PR 4918](https://github.com/spyder-ide/spyder/pull/4918) - PR: Handle truncated dictionary of namespace view from the kernel
+* [PR 4899](https://github.com/spyder-ide/spyder/pull/4899) - PR: Remove capture_dir_change method of IPython console shell widget
+* [PR 4875](https://github.com/spyder-ide/spyder/pull/4875) - PR: Separate the installation of Qt from running our tests in Travis
+* [PR 4870](https://github.com/spyder-ide/spyder/pull/4870) - PR: Save a reference to messagebox in EditorStack to avoid memory to be freed.
+* [PR 4869](https://github.com/spyder-ide/spyder/pull/4869) - PR: Omit editor split menu option if its reference was deleted
+* [PR 4866](https://github.com/spyder-ide/spyder/pull/4866) - PR: Remove TypeError and AttributeError exceptions from SpyderKernel
+* [PR 4864](https://github.com/spyder-ide/spyder/pull/4864) - PR: Fix Run option in File and Project explorers
+* [PR 4863](https://github.com/spyder-ide/spyder/pull/4863) - PR: Fix sorting in Profiler
+* [PR 4861](https://github.com/spyder-ide/spyder/pull/4861) - PR: Install qtpy and qtconsole from Github when testing
+* [PR 4850](https://github.com/spyder-ide/spyder/pull/4850) - PR: Update only current editor stack when moving tabs.
+* [PR 4849](https://github.com/spyder-ide/spyder/pull/4849) - PR: Prevent importing packages that raise SystemExit exceptions when verifying if an object is defined
+* [PR 4847](https://github.com/spyder-ide/spyder/pull/4847) - PR: Use Editor font to paint line numbers on all platforms
+* [PR 4846](https://github.com/spyder-ide/spyder/pull/4846) - PR: Use QT_SCALE_FACTOR when users set only one scale factor
+* [PR 4845](https://github.com/spyder-ide/spyder/pull/4845) - PR: Set eol_chars in cloned editor on split editor panes
+* [PR 4835](https://github.com/spyder-ide/spyder/pull/4835) - PR: Delete print test because it segfaults too frequently
+* [PR 4830](https://github.com/spyder-ide/spyder/pull/4830) - PR: Fix error when printing source code
+* [PR 4828](https://github.com/spyder-ide/spyder/pull/4828) - PR: Fix error when using non-ascii current directory to run code
+* [PR 4813](https://github.com/spyder-ide/spyder/pull/4813) - PR: Make highlighting colors in the IPython Console match those used in the Spyder Editor
+* [PR 4799](https://github.com/spyder-ide/spyder/pull/4799) - PR: Delete scientific_startup.py
+* [PR 4774](https://github.com/spyder-ide/spyder/pull/4774) - PR: Fix shifting code selection issues in the Editor
+* [PR 4764](https://github.com/spyder-ide/spyder/pull/4764) - PR: Fix tab does not switch when ctrl is released issue
+* [PR 4759](https://github.com/spyder-ide/spyder/pull/4759) - PR: Fix enable/disable spinbox bug in Editor preferences panel
+* [PR 4749](https://github.com/spyder-ide/spyder/pull/4749) - PR: Add icon to MessageCheckBox while avoiding unclickable issue
+* [PR 4738](https://github.com/spyder-ide/spyder/pull/4738) - PR: Update pixmap height calculation
+* [PR 4733](https://github.com/spyder-ide/spyder/pull/4733) - PR: Avoid visible_blocks to be empty when first visible block is wrapped
+
+In this release 28 pull requests were merged
+
+
+----
+
+
 ## Version 3.2 (2017-07-24)
 
 ### New features
