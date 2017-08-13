@@ -21,7 +21,8 @@ from spyder.config.base import _, STDOUT
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
-                                    set_item_user_text)
+                                    set_item_user_text,
+                                    create_control_layout)
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
@@ -512,15 +513,7 @@ class OutlineExplorerWidget(QWidget):
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
         
-        btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
-        for btn in self.setup_buttons():
-            btn_layout.addWidget(btn)
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(btn_layout)
-        layout.addWidget(self.treewidget)
+        layout = create_control_layout(self.setup_buttons(), self.treewidget)
         self.setLayout(layout)
 
     @Slot(bool)
