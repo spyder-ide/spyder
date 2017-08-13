@@ -276,6 +276,7 @@ DEFAULTS = [
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
               'in_python_path': False,
               'more_options': False,
+              'case_sensitive': True
               }),
             ('workingdir',
              {
