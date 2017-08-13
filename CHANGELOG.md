@@ -58,7 +58,7 @@ In this release 22 issues were closed
 * [PR 4774](https://github.com/spyder-ide/spyder/pull/4774) - PR: Fix shifting code selection issues in the Editor
 * [PR 4764](https://github.com/spyder-ide/spyder/pull/4764) - PR: Fix tab does not switch when ctrl is released issue
 * [PR 4759](https://github.com/spyder-ide/spyder/pull/4759) - PR: Fix enable/disable spinbox bug in Editor preferences panel
-* [PR 4749](https://github.com/spyder-ide/spyder/pull/4749) - PR: Add icon to MessageCheckBox while avoiding unclickable  issue
+* [PR 4749](https://github.com/spyder-ide/spyder/pull/4749) - PR: Add icon to MessageCheckBox while avoiding unclickable issue
 * [PR 4738](https://github.com/spyder-ide/spyder/pull/4738) - PR: Update pixmap height calculation
 * [PR 4733](https://github.com/spyder-ide/spyder/pull/4733) - PR: Avoid visible_blocks to be empty when first visible block is wrapped
 
