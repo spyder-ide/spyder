@@ -65,18 +65,20 @@ class OutlineExplorerData(object):
     CLASS_TOKEN = 'class'
 
     def __init__(self, text=None, fold_level=None, def_type=None,
-                 def_name=None):
+                 def_name=None, color=None):
         """
         Args:
             text (str)
             fold_level (int)
             def_type (int): [CLASS, FUNCTION, STATEMENT, COMMENT, CELL]
             def_name (str)
+            color (PyQt.QtGui.QTextCharFormat)
         """
         self.text = text
         self.fold_level = fold_level
         self.def_type = def_type
         self.def_name = def_name
+        self.color = color
 
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
