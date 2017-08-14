@@ -211,7 +211,12 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     # --- Assert we're in fixed dir after execution ---
     with qtbot.waitSignal(shell.executed):
         shell.execute('import os; current_dir = os.getcwd()')
-    assert shell.get_value('current_dir') == temp_dir
+    if os.environ.get('TRAVIS', None):
+        # Avoid an error when tests are re-run multiple times in Travis
+        assert (shell.get_value('current_dir') == temp_dir or
+                shell.get_value('current_dir') == os.environ.get('HOME'))
+    else:
+        assert shell.get_value('current_dir') == temp_dir
 
     # ---- Closing test file and resetting config ----
     main_window.editor.close_file()
