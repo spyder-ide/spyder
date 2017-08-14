@@ -78,7 +78,7 @@ from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import QColor, QDesktopServices, QKeySequence, QPixmap
+from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
                             QStyleFactory)
@@ -110,13 +110,21 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 # splash screen created below
 #==============================================================================
 from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR
+from spyder.config.base import get_image_path
 MAIN_APP = qapplication()
 
+if PYQT5:
+    APP_ICON = QIcon(get_image_path("spyder.svg"))
+else:
+    APP_ICON = QIcon(get_image_path("spyder.png"))
+
+MAIN_APP.setWindowIcon(APP_ICON)
 
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyder.config.base import _, get_image_path, DEV, PYTEST
+
 if not PYTEST:
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
     SPLASH_FONT = SPLASH.font()
@@ -128,7 +136,6 @@ if not PYTEST:
     QApplication.processEvents()
 else:
     SPLASH = None
-
 
 #==============================================================================
 # Local utility imports
@@ -439,10 +446,7 @@ class MainWindow(QMainWindow):
 
         self.base_title = title
         self.update_window_title()
-        resample = os.name != 'nt'
-        icon = ima.icon('spyder', resample=resample)
-        # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
-        self.setWindowIcon(icon)
+
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
             debug_print("appusermodelid: " + str(res))
@@ -2902,6 +2906,9 @@ def initialize():
     # MAIN_APP, created above to show our splash screen as early as
     # possible
     app = qapplication()
+
+    # --- Set application icon
+    app.setWindowIcon(APP_ICON)
 
     #----Monkey patching QApplication
     class FakeQApplication(QApplication):
