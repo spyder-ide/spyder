@@ -166,8 +166,8 @@ DEFAULTS = [
             ('variable_explorer',
              {
               'check_all': CHECK_ALL,
-              'dataframe_format': '.3g', # no percent sign to avoid problems
-                                         # with ConfigParser's interpolation
+              'dataframe_format': '.6g',  # No percent sign to avoid problems
+                                          # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
@@ -635,7 +635,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '40.0.0'
+CONF_VERSION = '40.1.0'
 
 # Main configuration instance
 try:
