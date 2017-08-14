@@ -949,6 +949,8 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of a CI")
 def test_fileswitcher(main_window, qtbot):
     """Test the use of shorten paths when necessary in the fileswitcher."""
     # Load tests files
