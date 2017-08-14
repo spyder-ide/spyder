@@ -45,7 +45,7 @@ COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 _bool_false = ['false', '0']
 
 # Default format for data frames with floats
-DEFAULT_FORMAT = '%.3g'
+DEFAULT_FORMAT = '%.6g'
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
