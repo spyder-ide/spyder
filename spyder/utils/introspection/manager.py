@@ -8,6 +8,7 @@
 from __future__ import print_function
 from collections import OrderedDict
 import time
+import sys
 
 # Third party imports
 from qtpy.QtCore import QObject, QTimer, Signal
@@ -163,11 +164,14 @@ class IntrospectionManager(QObject):
     send_to_help = Signal(str, str, str, str, bool)
     edit_goto = Signal(str, int, str)
 
-    def __init__(self, executable=None, extra_path=None):
+    def __init__(self, executable=None, extra_path=[]):
         super(IntrospectionManager, self).__init__()
         self.editor_widget = None
         self.pending = None
+        self.sys_path = sys.path[:]
         self.extra_path = extra_path
+        if self.extra_path:
+            self.sys_path.extend(extra_path)
         self.executable = executable
         self.plugin_manager = PluginManager(executable, extra_path)
         self.plugin_manager.introspection_complete.connect(
@@ -178,9 +182,11 @@ class IntrospectionManager(QObject):
         self._restart_plugin()
 
     def change_extra_path(self, extra_path):
+        """Change extra_path and update sys_path."""
         if extra_path != self.extra_path:
             self.extra_path = extra_path
-            self._restart_plugin()
+            self.sys_path = sys.path[:]
+            self.sys_path.extend(extra_path)
 
     def _restart_plugin(self):
         self.plugin_manager.close()
@@ -204,6 +210,7 @@ class IntrospectionManager(QObject):
         kwargs['editor'] = editor
         kwargs['finfo'] = finfo
         kwargs['editor_widget'] = self.editor_widget
+        kwargs['sys_path'] = self.sys_path
 
         return CodeInfo(name, finfo.get_source_code(), position,
             finfo.filename, editor.is_python_like, in_comment_or_string,

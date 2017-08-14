@@ -30,6 +30,8 @@ try:
 except ImportError:
     jedi = None
 
+JEDI_010 = [int(i) for i in jedi.__version__.split('.')] >= [0, 10, 0]
+
 
 class JediPlugin(IntrospectionPlugin):
     """
@@ -172,8 +174,13 @@ class JediPlugin(IntrospectionPlugin):
             filename = None
 
         try:
-            script = jedi.Script(info['source_code'], info['line_num'],
-                                 info['column'], filename)
+            if JEDI_010:
+                script = jedi.api.Script(info['source_code'], info['line_num'],
+                                         info['column'], filename,
+                                         sys_path=info['sys_path'])
+            else:
+                script = jedi.api.Script(info['source_code'], info['line_num'],
+                                         info['column'], filename)
             func = getattr(script, func_name)
             val = func()
         except Exception as e:
