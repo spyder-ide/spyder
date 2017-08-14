@@ -44,13 +44,13 @@ class PluginManager(QObject):
 
     introspection_complete = Signal(object)
 
-    def __init__(self, executable, extra_path=None):
+    def __init__(self, executable):
 
         super(PluginManager, self).__init__()
         plugins = OrderedDict()
         for name in PLUGINS:
             try:
-                plugin = PluginClient(name, executable, extra_path=extra_path)
+                plugin = PluginClient(name, executable)
                 plugin.run()
             except Exception as e:
                 debug_print('Introspection Plugin Failed: %s' % name)
@@ -173,7 +173,7 @@ class IntrospectionManager(QObject):
         if self.extra_path:
             self.sys_path.extend(extra_path)
         self.executable = executable
-        self.plugin_manager = PluginManager(executable, extra_path)
+        self.plugin_manager = PluginManager(executable)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 
@@ -190,8 +190,7 @@ class IntrospectionManager(QObject):
 
     def _restart_plugin(self):
         self.plugin_manager.close()
-        self.plugin_manager = PluginManager(self.executable,
-                                            extra_path=self.extra_path)
+        self.plugin_manager = PluginManager(self.executable)
         self.plugin_manager.introspection_complete.connect(
             self._introspection_complete)
 
