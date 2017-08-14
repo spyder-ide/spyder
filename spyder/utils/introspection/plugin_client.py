@@ -117,6 +117,26 @@ class AsyncClient(QObject):
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
         self.notifier.activated.connect(self._on_msg_received)
 
+    def change_extra_path(self, extra_path):
+        """Setting up a new extra path.
+
+        It requieres the plugin to be restarted.
+        """
+        self.extra_path = extra_path
+        if not self.is_initialized:
+            return
+        self.restart()
+
+    def restart(self):
+        """Restart plugin client.
+
+        Close process, reset socket and setup the plugin process again.
+        """
+        debug_print("Restarting plugin client, process and connection.")
+        self.close()
+        self.context = zmq.Context()
+        self.run()
+
     def request(self, func_name, *args, **kwargs):
         """Send a request to the server.
 
@@ -152,6 +172,7 @@ class AsyncClient(QObject):
             self.process.waitForFinished(1000)
             self.process.close()
         self.context.destroy()
+        self.socket = None
 
     def _on_finished(self):
         """Handle a finished signal from the process.

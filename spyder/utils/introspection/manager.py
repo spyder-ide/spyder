@@ -134,6 +134,12 @@ class PluginManager(QObject):
             plugin.close()
             debug_print("Introspection Plugin Closed: {}".format(name))
 
+    def change_extra_path(self, extra_path):
+        """Change python path in every plugin client."""
+        for name, plugin in self.plugins.items():
+            plugin.change_extra_path(extra_path)
+            debug_print("Introspection Plugin extra path changed: {}".format(name))
+
     def _finalize(self, response):
         self.waiting = False
         self.pending = None
@@ -180,7 +186,7 @@ class IntrospectionManager(QObject):
     def change_extra_path(self, extra_path):
         if extra_path != self.extra_path:
             self.extra_path = extra_path
-            self._restart_plugin()
+            self.plugin_manager.change_extra_path(self.extra_path)
 
     def _restart_plugin(self):
         self.plugin_manager.close()
