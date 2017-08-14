@@ -25,7 +25,8 @@ PLUGINS = ['rope', 'jedi', 'fallback']
 
 LOG_FILENAME = get_conf_path('introspection.log')
 DEBUG_EDITOR = DEBUG >= 3
-LEAD_TIME_SEC = 0.25
+LEAD_TIME_SEC = 3
+MAX_TIMEOUTS = 5
 
 
 ROPE_REQVER = '>=0.9.4'
@@ -46,10 +47,19 @@ class PluginManager(QObject):
     def __init__(self, executable, extra_path=None):
 
         super(PluginManager, self).__init__()
+        self.setup(executable, extra_path)
+
+    def setup(self, executable, extra_path):
+        """Initialize the manager."""
         plugins = OrderedDict()
+        plugins_initialized = OrderedDict()
         for name in PLUGINS:
+            plugins_initialized[name] = False
             try:
                 plugin = PluginClient(name, executable, extra_path=extra_path)
+                plugin.received.connect(self.handle_response)
+                plugin.initialized.connect(self.initialized_plugin)
+                plugin.errored.connect(self.errored_plugin)
                 plugin.run()
             except Exception as e:
                 debug_print('Introspection Plugin Failed: %s' % name)
@@ -57,8 +67,10 @@ class PluginManager(QObject):
                 continue
             debug_print('Introspection Plugin Loaded: %s' % name)
             plugins[name] = plugin
-            plugin.received.connect(self.handle_response)
+        self.executable = executable
+        self.extra_path = extra_path
         self.plugins = plugins
+        self.plugins_initialized = plugins_initialized
         self.timer = QTimer()
         self.desired = []
         self.ids = dict()
@@ -67,6 +79,18 @@ class PluginManager(QObject):
         self.pending = None
         self.pending_request = None
         self.waiting = False
+        self.timeout_counter = 0
+
+    def initialized_plugin(self, name):
+        """Set initialized plugin."""
+        self.plugins_initialized[name] = True
+        self.plugins[name].request('validate')
+
+    def errored_plugin(self, name):
+        """Handle error of plugin creating a new one."""
+        self.plugins_initialized[name] = False
+        self.plugins[name] = PluginClient(name, self.executable,
+                                         extra_path=self.extra_path)
 
     def send_request(self, info):
         """Handle an incoming request from the user."""
@@ -83,6 +107,10 @@ class PluginManager(QObject):
         if (info.name == 'completion' and 'jedi' not in self.plugins and
                 info.line.lstrip().startswith(('import ', 'from '))):
             desired = 'fallback'
+
+        if ('jedi' in self.plugins and
+                info.line.lstrip().startswith(('import ', 'from '))):
+            desired = 'jedi'
 
         if ((not editor.is_python_like()) or
                 sourcecode.is_keyword(info.obj) or
@@ -107,8 +135,9 @@ class PluginManager(QObject):
         value = info.serialize()
         self.ids = dict()
         for plugin in plugins:
-            request_id = plugin.request(method, value)
-            self.ids[request_id] = plugin.name
+            if self.plugins_initialized[plugin.name]:
+                request_id = plugin.request(method, value)
+                self.ids[request_id] = plugin.name
         self.timer.stop()
         self.timer.singleShot(LEAD_TIME_SEC * 1000, self._handle_timeout)
 
@@ -137,6 +166,7 @@ class PluginManager(QObject):
     def _finalize(self, response):
         self.waiting = False
         self.pending = None
+        self.timeout_counter = 0
         if self.info:
             delta = time.time() - self._start_time
             debug_print('%s request from %s finished: "%s" in %.1f sec'
@@ -154,7 +184,18 @@ class PluginManager(QObject):
         self.waiting = False
         if self.pending:
             self._finalize(self.pending)
+        elif self.pending_request:
+            info = self.pending_request
+            self.pending_request = None
+            self.send_request(info)
         else:
+            self.timeout_counter += 1
+            if (self.timeout_counter > MAX_TIMEOUTS and
+                    not self.plugins_initialized['jedi']):
+                executable = self.executable
+                extra_path = self.extra_path
+                self.close()
+                self.setup(executable, extra_path)
             debug_print('No valid responses acquired')
 
 
@@ -184,6 +225,7 @@ class IntrospectionManager(QObject):
 
     def _restart_plugin(self):
         self.plugin_manager.close()
+        self.pending = None
         self.plugin_manager = PluginManager(self.executable,
                                             extra_path=self.extra_path)
         self.plugin_manager.introspection_complete.connect(
@@ -204,7 +246,6 @@ class IntrospectionManager(QObject):
         kwargs['editor'] = editor
         kwargs['finfo'] = finfo
         kwargs['editor_widget'] = self.editor_widget
-
         return CodeInfo(name, finfo.get_source_code(), position,
             finfo.filename, editor.is_python_like, in_comment_or_string,
             **kwargs)

@@ -166,6 +166,52 @@ def test_calltip(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name != 'nt' and PYQT5 or os.name == 'nt' and PY2,
+                    reason="It times out on Linux with PyQt5."
+                           "It makes to not finish the test run on Windows with Python 2.")
+@pytest.mark.timeout(timeout=60, method='thread')
+@pytest.mark.use_introspection
+def test_introspection_works_after_restart(main_window, qtbot):
+    """Validate introspection after restart of the introspection plugin."""
+    # Load test file
+    main_window.editor.new(fname="test.py", text="")
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Set cursor to start
+    text = 'fr\n'
+    code_editor.set_text(text)
+    code_editor.go_to_line(1)
+    code_editor.move_cursor(2)
+    completion = code_editor.completion_widget
+    qtbot.wait(5000)
+    assert not completion.isVisible()
+
+    # Try to get completion
+    qtbot.keyPress(code_editor, Qt.Key_Tab, delay=3000)
+    qtbot.waitUntil(lambda: completion.completion_list, timeout=2000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    # Assert the completion widget is not visible
+    qtbot.keyPress(code_editor, Qt.Key_Space)
+    assert not completion.isVisible()
+
+    # Modify PYTHONPATH
+    main_window.path_manager_callback(extra_path=LOCATION)
+    qtbot.wait(5000)
+
+    # Type 'n' and try to get completion
+    qtbot.keyPress(code_editor, Qt.Key_N, delay=1000)
+    qtbot.keyPress(code_editor, Qt.Key_Tab, delay=2000)
+    qtbot.waitUntil(lambda: len(completion.completion_list) > 0, timeout=2000)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+    assert not completion.isVisible()
+
+    # Close file
+    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
+    main_window.editor.close_file()
+
+
+@flaky(max_runs=3)
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
     CONF.set('run', 'configurations', [])

@@ -32,10 +32,10 @@ class AsyncClient(QObject):
     """
 
     # Emitted when the client has initialized.
-    initialized = Signal()
+    initialized = Signal(str)
 
     # Emitted when the client errors.
-    errored = Signal()
+    errored = Signal(str)
 
     # Emitted when a request response is received.
     received = Signal(object)
@@ -151,6 +151,8 @@ class AsyncClient(QObject):
         if self.process is not None:
             self.process.waitForFinished(1000)
             self.process.close()
+            self.process.terminate()
+            self.process = None
         self.context.destroy()
 
     def _on_finished(self):
@@ -159,17 +161,17 @@ class AsyncClient(QObject):
         if self.closing:
             return
         if self.is_initialized:
-            debug_print('Restarting %s' % self.name)
-            debug_print(self.process.readAllStandardOutput())
-            debug_print(self.process.readAllStandardError())
+            print('Restarting %s' % self.name)
+            print(self.process.readAllStandardOutput())
+            print(self.process.readAllStandardError())
             self.is_initialized = False
             self.notifier.setEnabled(False)
             self.run()
         else:
-            debug_print('Errored %s' % self.name)
-            debug_print(self.process.readAllStandardOutput())
-            debug_print(self.process.readAllStandardError())
-            self.errored.emit()
+            print('Errored %s' % self.name)
+            print(self.process.readAllStandardOutput())
+            print(self.process.readAllStandardError())
+            self.errored.emit(self.name)
 
     def _on_msg_received(self):
         """Handle a message trigger from the socket.
@@ -181,11 +183,12 @@ class AsyncClient(QObject):
             except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 return
-            if not self.is_initialized:
+            if str(self.port) == resp:
                 self.is_initialized = True
                 debug_print('Initialized %s' % self.name)
-                self.initialized.emit()
+                self.initialized.emit(self.name)
                 self.timer.start(HEARTBEAT)
+                resp = None
                 continue
             resp['name'] = self.name
             self.received.emit(resp)
@@ -230,12 +233,12 @@ if __name__ == '__main__':
         else:
             plugin.request('foo')
 
-    def handle_errored():
-        print('errored')  # spyder: test-skip
+    def handle_errored(name):
+        print('errored' + name)  # spyder: test-skip
         sys.exit(1)
 
-    def start():
-        print('start')  # spyder: test-skip
+    def start(name):
+        print('start' + name)  # spyder: test-skip
         plugin.request('validate')
 
     plugin.errored.connect(handle_errored)
