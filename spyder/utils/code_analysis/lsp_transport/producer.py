@@ -65,7 +65,7 @@ class LanguageServerClient:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.connect((self.host, int(self.port)))
                 connected = True
-            except:
+            except Exception:
                 pass
 
             if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
