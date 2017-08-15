@@ -327,13 +327,15 @@ the sympy module (e.g. plot)
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
                     if data is not None and 'text/plain' in data:
-                        view = ast.literal_eval(data['text/plain'])
+                        literal = ast.literal_eval(data['text/plain'])
+                        view = ast.literal_eval(literal)
                     else:
                         view = None
                     self.sig_namespace_view.emit(view)
                 elif 'get_var_properties' in method:
                     if data is not None and 'text/plain' in data:
-                        properties = ast.literal_eval(data['text/plain'])
+                        literal = ast.literal_eval(data['text/plain'])
+                        properties = ast.literal_eval(literal)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)

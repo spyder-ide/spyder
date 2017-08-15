@@ -52,13 +52,15 @@ class FindInFiles(SpyderPluginWidget):
         exclude_regexp = self.get_option('exclude_regexp')
         in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
+        case_sensitive = self.get_option('case_sensitive')
 
         self.findinfiles = FindInFilesWidget(
                                    self,
                                    search_text, search_text_regexp, search_path,
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
-                                   in_python_path, more_options)
+                                   in_python_path, more_options,
+                                   case_sensitive)
 
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)
@@ -164,9 +166,9 @@ class FindInFiles(SpyderPluginWidget):
         self.findinfiles.closing_widget()  # stop search thread and clean-up
         options = self.findinfiles.find_options.get_options(all=True)
         if options is not None:
-            search_text, text_re, search_path, \
-            exclude, exclude_idx, exclude_re, \
-            in_python_path, more_options = options
+            (search_text, text_re, search_path,
+             exclude, exclude_idx, exclude_re,
+             in_python_path, more_options, case_sensitive) = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
             search_path = search_path[:hist_limit]
@@ -179,6 +181,7 @@ class FindInFiles(SpyderPluginWidget):
             self.set_option('exclude_regexp', exclude_re)
             self.set_option('in_python_path', in_python_path)
             self.set_option('more_options', more_options)
+            self.set_option('case_sensitive', case_sensitive)
         return True
 
 
