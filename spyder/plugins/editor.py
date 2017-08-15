@@ -393,7 +393,7 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
-    sig_lsp_notification = Signal(dict)
+    sig_lsp_notification = Signal(dict, str)
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -575,9 +575,10 @@ class Editor(SpyderPluginWidget):
         except AttributeError:
             pass
 
-    def document_server_settings(self, settings):
+    def document_server_settings(self, settings, language):
         """Update LSP server settings for textDocument requests."""
-        self.lsp_editor_settings = settings
+        self.lsp_editor_settings[language] = settings
+        print(self.lsp_editor_settings)
 
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -1183,7 +1184,7 @@ class Editor(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.lsp_client.register_plugin_type(LSPEventTypes.DOCUMENT,
+        self.main.lspmanager.register_plugin_type(LSPEventTypes.DOCUMENT,
                                                   self.sig_lsp_notification)
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
@@ -1243,7 +1244,7 @@ class Editor(SpyderPluginWidget):
 
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
-        print(self.lsp_editor_settings)
+        # print(self.lsp_editor_settings)
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
 
@@ -1330,6 +1331,7 @@ class Editor(SpyderPluginWidget):
         editorstack.zoom_in.connect(lambda: self.zoom(1))
         editorstack.zoom_out.connect(lambda: self.zoom(-1))
         editorstack.zoom_reset.connect(lambda: self.zoom(0))
+        editorstack.sig_open_file.connect(self.report_open_file)
         editorstack.sig_new_file.connect(lambda s: self.new(text=s))
         editorstack.sig_new_file[()].connect(self.new)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
@@ -1725,6 +1727,11 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks[1:]:
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts(editor)
+
+    @Slot(str)
+    def report_open_file(self, language):
+        # print(language)
+        self.main.lspmanager.start_lsp_client(language.lower())
 
     @Slot()
     @Slot(str)

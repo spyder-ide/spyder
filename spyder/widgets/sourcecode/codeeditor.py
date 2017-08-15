@@ -352,6 +352,7 @@ class CodeEditor(TextEditBaseWidget):
         self.__find_first_pos = None
         self.__find_flags = None
 
+        self.language = None
         self.supported_language = False
         self.supported_cell_language = False
         self.classfunc_match = None
@@ -729,11 +730,13 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         sh_class = sh.TextSH
+        self.language = 'Text'
         if language is not None:
             for (key, value) in ALL_LANGUAGES.items():
                 if language.lower() in value:
                     self.supported_language = True
                     sh_class, comment_string, CFMatch = self.LANGUAGES[key]
+                    self.language = key
                     self.comment_string = comment_string
                     if key in CELL_LANGUAGES:
                         self.supported_cell_language = True
@@ -746,6 +749,8 @@ class CodeEditor(TextEditBaseWidget):
         if filename is not None and not self.supported_language:
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
+            if self.support_language:
+                self.language = sh_class._lexer.name
         self._set_highlighter(sh_class)
 
     def _set_highlighter(self, sh_class):

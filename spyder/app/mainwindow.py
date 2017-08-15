@@ -308,7 +308,7 @@ class MainWindow(QMainWindow):
         self.add_path_to_sys_path()
 
         # Language Server Protocol Client
-        self.lsp_client = None
+        # self.lsp_client = None
 
         # Plugins
         self.console = None
@@ -813,12 +813,12 @@ class MainWindow(QMainWindow):
         self.console.register_plugin()
 
         # Language Server Protocol Client initialization
-        lsp_server_args_fmt = '--host %(host)s --port %(port)s --tcp'
-        lsp_server_settings = {'host': '127.0.0.1', 'port': 2087,
-                               'server_cmd': 'pyls'}
-        self.set_splash(_("Creating LSP Client..."))
-        self.lsp_client = LSPClient(lsp_server_args_fmt, lsp_server_settings)
-        self.lsp_manager = LSPManager()
+        # lsp_server_args_fmt = '--host %(host)s --port %(port)s --tcp'
+        # lsp_server_settings = {'host': '127.0.0.1', 'port': 2087,
+        #                        'server_cmd': 'pyls'}
+        self.set_splash(_("Creating LSP Manager..."))
+        # self.lsp_client = LSPClient(lsp_server_args_fmt, lsp_server_settings)
+        self.lspmanager = LSPManager(self)
 
         # Working directory plugin
         self.debug_print("  ..plugin: working directory")
@@ -851,7 +851,7 @@ class MainWindow(QMainWindow):
 
         # Start LSP client
         self.set_splash(_("Launching LSP Client..."))
-        self.lsp_client.start()
+        # self.lsp_client.start()
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -2193,7 +2193,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         if self.toolbars_visible:
             self.save_visible_toolbars()
-        self.lsp_client.stop()
+        self.lspmanager.closing_plugin(cancelable)
         self.already_closed = True
         return True
 
@@ -2594,7 +2594,7 @@ class MainWindow(QMainWindow):
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
             dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.lsp_manager, self.editor,
+        for plugin in [self.workingdirectory, self.lspmanager, self.editor,
                        self.projects, self.ipyconsole,
                        self.historylog, self.help, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles

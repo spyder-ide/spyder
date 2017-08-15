@@ -587,5 +587,45 @@ class LSPManagerConfigPage(PluginConfigPage):
 
 
 class LSPManager(SpyderPluginWidget):
+    """Language Server Protocol Client Manager."""
     CONF_SECTION = 'lsp-server'
     CONFIGWIDGET_CLASS = LSPManagerConfigPage
+
+    STOPPED = 'stopped'
+    RUNNING = 'running'
+
+    def __init__(self, parent):
+        SpyderPluginWidget.__init__(self, parent)
+        self.lsp_plugins = {}
+        self.clients = {}
+        for option in CONF.options(self.CONF_SECTION):
+            self.clients[option] = {'status': self.STOPPED,
+                                    'config': self.get_option(option),
+                                    'instance': None}
+
+    def register_plugin_type(self, type, sig):
+        self.lsp_plugins[type] = sig
+
+    def start_lsp_client(self, language):
+        if language in self.clients:
+            language_client = self.clients[language]
+            if language_client['status'] == self.STOPPED:
+                config = language_client['config']
+                language_client['instance'] = LSPClient(
+                    config['args'], config, config['external'],
+                    language=language)
+
+                for plugin in self.lsp_plugins:
+                    language_client['instance'].register_plugin_type(
+                        plugin, self.lsp_plugins[plugin])
+
+                language_client['instance'].start()
+                language_client['status'] = self.RUNNING
+
+    def closing_plugin(self, cancelable=False):
+        for language in self.clients:
+            language_client = self.clients[language]
+            if language_client['status'] == self.RUNNING:
+                language_client['instance'].shutdown()
+                language_client['instance'].exit()
+                language_client['instance'].stop()

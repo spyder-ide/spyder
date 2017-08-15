@@ -19,7 +19,8 @@ import datetime
 import subprocess
 import os.path as osp
 # from spyder.config.base import DEV
-from spyder.py3compat import getcwd
+from spyder.py3compat import PY2, getcwd
+from spyder.config.base import debug_print
 from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
                                         SERVER_CAPABILITES, TRACE,
                                         TEXT_DOCUMENT_SYNC_OPTIONS,
@@ -32,6 +33,12 @@ from spyder.utils.code_analysis.lsp_providers import LSPMethodProviderMixIn
 
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 # from qtpy.QtWidgets import QApplication
+
+if PY2:
+    import pathlib2 as pathlib
+else:
+    import pathlib
+
 
 DEV = True
 
@@ -51,16 +58,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                            '--external-server')
     local_server_fmt = ('--server-host %(host)s '
                         '--server-port %(port)s '
-                        '--server %(server_cmd)s')
+                        '--server %(cmd)s')
 
     def __init__(self, server_args_fmt='',
                  server_settings={}, external_server=False,
-                 folder=getcwd()):
+                 folder=getcwd(), language='python'):
         QObject.__init__(self)
         # LSPMethodProviderMixIn.__init__(self)
         self.zmq_socket = None
         self.zmq_port = None
         self.transport_client = None
+        self.language = language
 
         self.initialized = False
         self.request_seq = 1
@@ -118,9 +126,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # self.initialize()
 
     def stop(self):
-        print('Stopping')
-        self.shutdown()
-        self.exit()
+        # print('Stopping')
+        # self.shutdown()
+        # self.exit()
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
@@ -137,6 +145,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if requires_response:
             self.req_status[self.request_seq] = method
 
+        debug_print('\n[{0}] LSP-Client ===>'.format(self.language))
+        debug_print(msg)
+        debug_print('')
         self.zmq_socket.send_pyobj(msg)
         self.request_seq += 1
 
@@ -146,12 +157,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         while True:
             try:
                 resp = self.zmq_socket.recv_pyobj(flags=zmq.NOBLOCK)
+                debug_print('\n[{0}] LSP-Client <==='.format(self.language))
+                debug_print(resp)
+                debug_print('')
                 if 'method' in resp:
-                    if resp['method'] in self.handler_registry:
-                        handler_name = self.handler_registry[resp['method']]
-                        handler = getattr(self, handler_name)
-                        handler(resp['params'])
-                    self.request_seq = resp['id']
+                    if resp['method'][0] != '$':
+                        if resp['method'] in self.handler_registry:
+                            handler_name = (
+                                self.handler_registry[resp['method']])
+                            handler = getattr(self, handler_name)
+                            handler(resp['params'])
+                        self.request_seq = resp['id']
                 elif 'result' in resp:
                     req_id = resp['id']
                     if req_id in self.req_status:
@@ -175,7 +191,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def initialize(self, *args, **kwargs):
         params = {
             'processId': self.transport_client.pid,
-            'rootUri': self.folder,
+            'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
             'capabilities': self.client_capabilites,
             'trace': TRACE
         }
@@ -204,7 +220,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites.update(server_capabilites)
 
         for sig in self.plugin_registry[LSPEventTypes.DOCUMENT]:
-            sig.emit(self.server_capabilites)
+            sig.emit(self.server_capabilites, self.language)
 
 
 def test():
@@ -212,7 +228,7 @@ def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication(test_time=8)
     server_args_fmt = '--host %(host)s --port %(port)s --tcp'
-    server_settings = {'host': '127.0.0.1', 'port': 2087, 'server_cmd': 'pyls'}
+    server_settings = {'host': '127.0.0.1', 'port': 2087, 'cmd': 'pyls'}
     lsp = LSPClient(server_args_fmt, server_settings)
     lsp.start()
     # lsp.on_msg_received()

@@ -15,17 +15,10 @@ import json
 import time
 import socket
 import logging
-import functools
 import subprocess
-import os.path as osp
-from spyder.py3compat import PY2, getcwd
+from spyder.py3compat import getcwd
 from consumer import IncomingMessageThread
 # from spyder.utils.code_analysis import EDITOR_CAPABILITES, TRACE
-
-if PY2:
-    import pathlib2 as pathlib
-else:
-    import pathlib
 
 
 TIMEOUT = 5000
@@ -46,7 +39,7 @@ class LanguageServerClient:
         self.req_status = {}
         self.host = host
         self.port = port
-        self.workspace = pathlib.Path(osp.abspath(workspace)).as_uri()
+        self.workspace = workspace
         # self.request_seq = 1
 
         self.server = None

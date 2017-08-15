@@ -411,6 +411,7 @@ class EditorStack(QWidget):
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
+    sig_open_file = Signal(str)
     sig_close_file = Signal(str, int)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
@@ -423,7 +424,7 @@ class EditorStack(QWidget):
     refresh_save_all_action = Signal()
     save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
-    current_file_changed = Signal(str ,int)
+    current_file_changed = Signal(str, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     split_vertically = Signal()
@@ -1997,6 +1998,7 @@ class EditorStack(QWidget):
                 indent_guides=self.indent_guides)
         if cloned_from is None:
             editor.set_text(txt)
+            self.sig_open_file.emit(editor.language)
             editor.document().setModified(False)
         finfo.text_changed_at.connect(
                                     lambda fname, position:
