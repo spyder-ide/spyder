@@ -21,14 +21,14 @@ import sys
 import time
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtGui import QColor, QPixmap
+from qtpy.QtGui import QColor, QPixmap, QIcon
 from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 
 # Local imports
 from spyder.config.base import _, get_image_path
 from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import qapplication
 from spyder.config.main import CONF
 
@@ -160,8 +160,13 @@ def main():
     #==========================================================================
     if CONF.get('main', 'high_dpi_custom_scale_factor'):
         factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
-        os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+        f = list(filter(None, factors.split(';')))
+        if len(f) == 1:
+            os.environ['QT_SCALE_FACTOR'] = f[0]
+        else:
+            os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
     else:
+        os.environ['QT_SCALE_FACTOR'] = ''
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
     # Splash screen
@@ -169,10 +174,12 @@ def main():
     # Start Qt Splash to inform the user of the current status
     app = qapplication()
     restarter = Restarter()
-    resample = not IS_WINDOWS
-    # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
-    icon = ima.icon('spyder', resample=resample)
-    app.setWindowIcon(icon)
+
+    if PYQT5:
+        APP_ICON = QIcon(get_image_path("spyder.svg"))
+    else:
+        APP_ICON = QIcon(get_image_path("spyder.png"))
+    app.setWindowIcon(APP_ICON)
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables

@@ -810,7 +810,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.currentChanged.connect(self.update_working_directory)
 
         self.explorer.open_interpreter.connect(self.create_client_from_path)
+        self.explorer.run.connect(lambda fname: self.run_script(
+            fname, osp.dirname(fname), '', False, False, False, True))
         self.projects.open_interpreter.connect(self.create_client_from_path)
+        self.projects.run.connect(lambda fname: self.run_script(
+            fname, osp.dirname(fname), '', False, False, False, True))
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -883,7 +887,6 @@ class IPythonConsole(SpyderPluginWidget):
         """Set current client working directory."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
-            directory = encoding.to_unicode_from_fs(directory)
             shellwidget.set_cwd(directory)
 
     def set_working_directory(self, dirname):

@@ -9,13 +9,15 @@ Shell Widget for the IPython Console
 """
 
 import ast
+import os
 import uuid
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY2, to_text_string
+from spyder.utils import encoding
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.ipython.style import create_qss_style, create_style_class
@@ -98,7 +100,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        code = u"get_ipython().kernel.set_cwd(r'{}')".format(dirname)
+        # Replace single for double backslashes on Windows
+        if os.name == 'nt':
+            dirname = dirname.replace(u"\\", u"\\\\")
+
+        code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
         if self._reading:
             self.kernel_client.input(u'!' + code)
         else:
@@ -321,19 +327,23 @@ the sympy module (e.g. plot)
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
                     if data is not None and 'text/plain' in data:
-                        view = ast.literal_eval(data['text/plain'])
+                        literal = ast.literal_eval(data['text/plain'])
+                        view = ast.literal_eval(literal)
                     else:
                         view = None
                     self.sig_namespace_view.emit(view)
                 elif 'get_var_properties' in method:
                     if data is not None and 'text/plain' in data:
-                        properties = ast.literal_eval(data['text/plain'])
+                        literal = ast.literal_eval(data['text/plain'])
+                        properties = ast.literal_eval(literal)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)
                 elif 'get_cwd' in method:
                     if data is not None and 'text/plain' in data:
                         self._cwd = ast.literal_eval(data['text/plain'])
+                        if PY2:
+                            self._cwd = encoding.to_unicode_from_fs(self._cwd)
                     else:
                         self._cwd = ''
                     self.sig_change_cwd.emit(self._cwd)
@@ -393,16 +403,6 @@ the sympy module (e.g. plot)
           len(command.splitlines()) == 1:
             if not 'inline' in command:
                 self.silent_execute(command)
-
-    def capture_dir_change(self, command):
-        """
-        Capture dir change magic for synchronization with working directory.
-        """
-        try:
-            if command.startswith('%cd') or command.split()[0] == 'cd':
-                self.get_cwd()
-        except IndexError:
-            pass
 
     #---- Private methods (overrode by us) ---------------------------------
     def _context_menu_make(self, pos):

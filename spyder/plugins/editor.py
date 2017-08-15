@@ -124,8 +124,10 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
         edgeline_spin = self.create_spinbox("", _("characters"),
                                             'edge_line_column', 79, 1, 500)
-        edgeline_box.toggled.connect(edgeline_spin.setEnabled)
-        edgeline_spin.setEnabled(self.get_option('edge_line'))
+        edgeline_box.toggled.connect(edgeline_spin.spinbox.setEnabled)
+        edgeline_box.toggled.connect(edgeline_spin.slabel.setEnabled)
+        edgeline_spin.spinbox.setEnabled(self.get_option('edge_line'))
+        edgeline_spin.slabel.setEnabled(self.get_option('edge_line'))
 
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
@@ -136,8 +138,12 @@ class EditorConfigPage(PluginConfigPage):
         occurrence_spin = self.create_spinbox("", _(" ms"),
                                              'occurrence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
-        occurrence_box.toggled.connect(occurrence_spin.setEnabled)
-        occurrence_spin.setEnabled(self.get_option('occurrence_highlighting'))
+        occurrence_box.toggled.connect(occurrence_spin.spinbox.setEnabled)
+        occurrence_box.toggled.connect(occurrence_spin.slabel.setEnabled)
+        occurrence_spin.spinbox.setEnabled(
+                self.get_option('occurrence_highlighting'))
+        occurrence_spin.slabel.setEnabled(
+                self.get_option('occurrence_highlighting'))
 
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
 
@@ -2681,6 +2687,7 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
 
+    @Slot(int, int)
     def move_editorstack_data(self, start, end):
         """Move editorstack.data to be synchronized when tabs are moved."""
         if start < 0 or end < 0:
@@ -2689,12 +2696,13 @@ class Editor(SpyderPluginWidget):
             steps = abs(end - start)
             direction = (end-start) // steps  # +1 for right, -1 for left
 
-            for editorstack in self.editorstacks :
-                data = editorstack.data
-                editorstack.blockSignals(True)
+            for editorstack in self.editorstacks:
+                if editorstack.isAncestorOf(self.sender()):
+                    data = editorstack.data
+                    editorstack.blockSignals(True)
 
-                for i in range(start, end, direction):
-                    data[i], data[i+direction] = data[i+direction], data[i]
+                    for i in range(start, end, direction):
+                        data[i], data[i+direction] = data[i+direction], data[i]
 
-                editorstack.blockSignals(False)
-                editorstack.refresh()
+                    editorstack.blockSignals(False)
+                    editorstack.refresh()

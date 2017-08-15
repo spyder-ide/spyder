@@ -55,6 +55,13 @@ def expected_results():
     return results
 
 
+def expected_case_unsensitive_results():
+    results = {'spam.txt': [(1, 10)],
+               'ham.txt': [(1, 0), (1, 10), (3, 0), (4, 0),
+                           (5, 4), (9, 0), (10, 0)]}
+    return results
+
+
 def test_findinfiles(qtbot):
     """Run find in files widget."""
     find_in_files = setup_findinfiles(qtbot)
@@ -96,6 +103,30 @@ def test_exclude_extension(qtbot):
             files_filtered = False
             break
     assert files_filtered
+
+
+def test_case_unsensitive_search(qtbot):
+    find_in_files = setup_findinfiles(qtbot, case_sensitive=False)
+    find_in_files.set_search_text('ham')
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+    blocker.wait()
+    matches = process_search_results(find_in_files.result_browser.data)
+    print(matches)
+    assert expected_case_unsensitive_results() == matches
+
+
+def test_case_sensitive_search(qtbot):
+    find_in_files = setup_findinfiles(qtbot)
+    find_in_files.set_search_text('HaM')
+    find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
+    find_in_files.find()
+    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+    blocker.wait()
+    matches = process_search_results(find_in_files.result_browser.data)
+    print(matches)
+    assert matches == {'ham.txt': [(9, 0)]}
 
 
 if __name__ == "__main__":

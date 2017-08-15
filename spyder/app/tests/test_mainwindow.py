@@ -28,7 +28,7 @@ from spyder.app.mainwindow import initialize, run_spyder
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_save_message_box
@@ -168,6 +168,8 @@ def test_calltip(main_window, qtbot):
 @flaky(max_runs=3)
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
+    CONF.set('run', 'configurations', [])
+
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
@@ -184,6 +186,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # --- Assert we're in cwd after execution ---
     with qtbot.waitSignal(shell.executed):
@@ -203,6 +206,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # --- Assert we're in fixed dir after execution ---
     with qtbot.waitSignal(shell.executed):
@@ -346,47 +350,59 @@ def test_change_types_in_varexp(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-def test_change_cwd_ipython_console(main_window, qtbot, tmpdir):
+@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
     changing cwd in the IPython console.
     """
-    # Wait until the window is fully up
+    wdir = main_window.workingdirectory
+    treewidget = main_window.explorer.treewidget
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window is fully up
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Change directory in ipython console using %cd
-    temp_dir = str(tmpdir.mkdir("test_dir"))
+    # Create temp dir
+    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
+
+    # Change directory in IPython console using %cd
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%cd {}".format(temp_dir))
+        shell.execute(u"%cd {}".format(temp_dir))
     qtbot.wait(1000)
 
-    # assert that cwd changed in workingdirectory
-    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+    # Assert that cwd changed in workingdirectory
+    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
 
-    # assert that cwd changed in explorer
-    assert osp.normpath(main_window.explorer.treewidget.get_current_folder()) == osp.normpath(temp_dir)
+    # Assert that cwd changed in explorer
+    assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(temp_dir)
 
 
 @flaky(max_runs=3)
-def test_change_cwd_explorer(main_window, qtbot, tmpdir):
+@pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and IPython console when
     changing directories in the File Explorer.
     """
-    # Wait until the window is fully up
+    wdir = main_window.workingdirectory
+    explorer = main_window.explorer
     shell = main_window.ipyconsole.get_current_shellwidget()
+
+    # Wait until the window is fully up
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
+    # Create temp directory
+    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
+
     # Change directory in the explorer widget
-    temp_dir = str(tmpdir.mkdir("test_dir"))
-    main_window.explorer.chdir(temp_dir)
+    explorer.chdir(temp_dir)
     qtbot.wait(1000)
 
-    # assert that cwd changed in workingdirectory
-    assert osp.normpath(main_window.workingdirectory.history[-1]) == osp.normpath(temp_dir)
+    # Assert that cwd changed in workingdirectory
+    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
 
-    # assert that cwd changed in ipythonconsole
+    # Assert that cwd changed in IPython console
     assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
 
 
@@ -660,6 +676,31 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(PYQT_WHEEL,
+                    reason="It times out sometimes on PyQt wheels")
+def test_close_when_file_is_changed(main_window, qtbot):
+    """Test closing spyder when there is a file with modifications open."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+    editorstack = main_window.editor.get_current_editorstack()
+    editor = editorstack.get_current_editor()
+    editor.document().setModified(True)
+
+    # Close.main-window
+    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
+    main_window.close()
+
+    # Wait for the segfault
+    qtbot.wait(3000)
+
+
+
+@flaky(max_runs=3)
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working correctly."""
     # Set focus to the Editor
@@ -908,6 +949,8 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of a CI")
 def test_fileswitcher(main_window, qtbot):
     """Test the use of shorten paths when necessary in the fileswitcher."""
     # Load tests files
