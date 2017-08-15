@@ -30,7 +30,7 @@ try:
 except ImportError:
     jedi = None
 
-JEDI_010 = [int(i) for i in jedi.__version__.split('.')] >= [0, 10, 0]
+JEDI_010 = programs.is_module_installed('jedi', '>=0.10.0')
 
 
 class JediPlugin(IntrospectionPlugin):
