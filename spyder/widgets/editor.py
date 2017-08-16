@@ -2746,7 +2746,7 @@ def test():
     import time
     t0 = time.time()
     test.load(osp.join(spyder_dir, "widgets", "editor.py"))
-    test.load(osp.join(spyder_dir, "widgets", "explorer.py"))
+    test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets.py"))
     test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets", 
                        "viewers", "collections.py"))
     test.load(osp.join(spyder_dir, "widgets", "sourcecode", "codeeditor.py"))
