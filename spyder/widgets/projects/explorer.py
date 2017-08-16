@@ -24,7 +24,7 @@ from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils import misc
 from spyder.utils.qthelpers import create_action
-from spyder.widgets.explorer import FilteredDirView
+from spyder.plugins.explorer.widgets import FilteredDirView
 
 
 class ExplorerTreeWidget(FilteredDirView):

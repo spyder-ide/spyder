@@ -50,7 +50,7 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
-from spyder.widgets.explorer import show_in_external_file_explorer
+from spyder.plugins.explorer.widgets import show_in_external_file_explorer
 
 DEBUG_EDITOR = DEBUG >= 3
 
