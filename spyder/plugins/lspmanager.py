@@ -642,5 +642,3 @@ class LSPManager(SpyderPluginWidget):
                 language_client['instance'].exit()
                 language_client['instance'].stop()
                 language_client['status'] = self.STOPPED
-
-
