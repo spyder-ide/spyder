@@ -332,7 +332,7 @@ class FindOptions(QWidget):
                           "(If opened)"))
         item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
 
-        self.path_selection_contents.addItem(_("File"))
+        self.path_selection_contents.addItem(_("File").replace('&', ''))
         item = self.path_selection_contents.item(2)
         item.setToolTip(_("Search in current opened file"))
 
@@ -489,10 +489,12 @@ class FindOptions(QWidget):
     @Slot()
     def select_directory(self):
         """Select directory"""
+        self.parent().redirect_stdio.emit(False)
         directory = getexistingdirectory(self, _("Select directory"),
                                          self.path)
         if directory:
             directory = to_text_string(osp.abspath(to_text_string(directory)))
+        self.parent().redirect_stdio.emit(True)
         return directory
 
     def set_directory(self, directory):
