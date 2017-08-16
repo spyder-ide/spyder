@@ -333,7 +333,7 @@ class FindOptions(QWidget):
                           "(If opened)"))
         item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
 
-        self.path_selection_contents.addItem(_("File"))
+        self.path_selection_contents.addItem(_("File").replace('&', ''))
         item = self.path_selection_contents.item(2)
         item.setToolTip(_("Search in current opened file"))
 
