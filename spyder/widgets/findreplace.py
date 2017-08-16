@@ -536,7 +536,7 @@ class FindReplace(QWidget):
         """Change number of match and total matches."""
         if current_match != 0 and total_matches != 0:
             matches_string = "{} {} {}".format(current_match, _("of"),
-                              total_matches)
+                                               total_matches)
             self.number_matches_text.setText(matches_string)
         else:
             self.number_matches_text.setText(_("no matches"))
