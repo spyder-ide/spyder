@@ -417,6 +417,7 @@ class EditorStack(QWidget):
     file_renamed_in_data = Signal(str, int, str)
     create_new_window = Signal()
     opened_files_list_changed = Signal()
+    active_languages_stats = Signal(set)
     analysis_results_changed = Signal()
     todo_results_changed = Signal()
     update_code_analysis_actions = Signal()
@@ -1352,6 +1353,7 @@ class EditorStack(QWidget):
 
         is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
+            print(self.tabs.widget(index).language)
             finfo = self.data[index]
             self.threadmanager.close_threads(finfo)
             # Removing editor reference from outline explorer settings:
@@ -1371,6 +1373,8 @@ class EditorStack(QWidget):
                 # (if it's not the first editortabwidget)
                 self.close()
 
+            languages = self.poll_open_file_languages()
+            self.active_languages_stats.emit(languages)
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
@@ -1393,6 +1397,14 @@ class EditorStack(QWidget):
             return False
         self.__modify_stack_title()
         return is_ok
+
+    def poll_open_file_languages(self):
+        """Get list of current opened files' languages"""
+        languages = []
+        for index in range(self.get_stack_count()):
+            languages.append(
+                self.tabs.widget(index).language.lower())
+        return set(languages)
 
     def close_all_files(self):
         """Close all opened scripts"""

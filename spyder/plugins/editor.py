@@ -1341,6 +1341,8 @@ class Editor(SpyderPluginWidget):
         editorstack.create_new_window.connect(self.create_new_window)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
+        editorstack.active_languages_stats.connect(
+            self.update_active_languages)
         editorstack.analysis_results_changed.connect(
                                                  self.analysis_results_changed)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
@@ -1674,6 +1676,10 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         editor.rehighlight_cells()
         QApplication.processEvents()
+
+    @Slot(set)
+    def update_active_languages(self, languages):
+        self.main.lspmanager.update_client_status(languages)
 
 
     #------ Breakpoints

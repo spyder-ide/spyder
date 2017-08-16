@@ -158,7 +158,6 @@ from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port
 from spyder.widgets.fileswitcher import FileSwitcher
-from spyder.utils.code_analysis.lsp_client import LSPClient
 from spyder.plugins.lspmanager import LSPManager
 
 

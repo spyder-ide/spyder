@@ -29,6 +29,7 @@ from qtpy.QtWidgets import (QDialog,
 from spyder.config.main import CONF
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
+from spyder.utils.misc import select_port
 from spyder.utils.programs import find_program
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
@@ -611,6 +612,8 @@ class LSPManager(SpyderPluginWidget):
             language_client = self.clients[language]
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
+                port = select_port(default_port=config['port'])
+                # print(config)
                 language_client['instance'] = LSPClient(
                     config['args'], config, config['external'],
                     language=language)
@@ -624,8 +627,20 @@ class LSPManager(SpyderPluginWidget):
 
     def closing_plugin(self, cancelable=False):
         for language in self.clients:
+            self.close_client(language)
+
+    def update_client_status(self, active_set):
+        for language in self.clients:
+            if language not in active_set:
+                self.close_client(language)
+
+    def close_client(self, language):
+        if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 language_client['instance'].shutdown()
                 language_client['instance'].exit()
                 language_client['instance'].stop()
+                language_client['status'] = self.STOPPED
+
+
