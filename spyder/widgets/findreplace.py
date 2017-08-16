@@ -79,8 +79,9 @@ class FindReplace(QWidget):
                                                      self.text_has_been_edited)
 
         self.number_matches_text = QLabel(self)
-        relative_width = parent.geometry().width() * 0.65
-        self.number_matches_text.setMinimumWidth(relative_width)
+        if parent:
+            relative_width = parent.geometry().width() * 0.65
+            self.number_matches_text.setMinimumWidth(relative_width)
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
                                              icon=ima.icon('ArrowUp'))
@@ -406,7 +407,10 @@ class FindReplace(QWidget):
                 self.clear_matches()
 
             number_matches = self.editor.get_number_matches(text, case=case)
-            match_number = self.editor.get_match_number(text, case=case)
+            if hasattr(self.editor, 'get_match_number'):
+                match_number = self.editor.get_match_number(text, case=case)
+            else:
+                match_number = 0
             self.change_number_matches(current_match=match_number,
                                        total_matches=number_matches)
             return found
@@ -534,9 +538,12 @@ class FindReplace(QWidget):
 
     def change_number_matches(self, current_match=0, total_matches=0):
         """Change number of match and total matches."""
-        if current_match != 0 and total_matches != 0:
+        if current_match and total_matches:
             matches_string = "{} {} {}".format(current_match, _("of"),
                                                total_matches)
+            self.number_matches_text.setText(matches_string)
+        elif total_matches:
+            matches_string = "{} {}".format(total_matches, _("matches"))
             self.number_matches_text.setText(matches_string)
         else:
             self.number_matches_text.setText(_("no matches"))

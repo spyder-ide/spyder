@@ -7,6 +7,8 @@
 """Simple web browser widget"""
 
 # Standard library imports
+import re
+import sre_constants
 import sys
 
 # Third party imports
@@ -61,6 +63,7 @@ class WebView(QWebEngineView):
         if WEBENGINE:
             web_page = WebPage(self)
             self.setPage(web_page)
+            self.source_text = ''
 
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False,
@@ -81,7 +84,37 @@ class WebView(QWebEngineView):
     def get_selected_text(self):
         """Return text selected by current text cursor"""
         return self.selectedText()
-        
+
+    def set_source_text(self, source_text):
+        """Set source text of the page. Callback for QWebEngineView."""
+        self.source_text = source_text
+
+    def get_number_matches(self, pattern, source_text='', case=False):
+        """Get the number of matches for the searched text."""
+        pattern = to_text_string(pattern)
+        if not pattern:
+            return 0
+        if not source_text:
+            if WEBENGINE:
+                self.page().toPlainText(self.set_source_text)
+                source_text = to_text_string(self.source_text)
+            else:
+                source_text = to_text_string(
+                        self.page().mainFrame().toPlainText())
+        try:
+            if case:
+                regobj = re.compile(pattern)
+            else:
+                regobj = re.compile(pattern, re.IGNORECASE)
+        except sre_constants.error:
+            return
+
+        number_matches = 0
+        for match in regobj.finditer(source_text):
+            number_matches += 1
+
+        return number_matches
+
     def set_font(self, font, fixed_font=None):
         font = QFontInfo(font)
         settings = self.page().settings()
