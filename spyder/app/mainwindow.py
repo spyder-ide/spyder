@@ -823,7 +823,7 @@ class MainWindow(QMainWindow):
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
             self.set_splash(_("Loading outline explorer..."))
-            from spyder.plugins.outlineexplorer import OutlineExplorer
+            from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
             fullpath_sorting = CONF.get('editor', 'fullpath_sorting', True)
             self.outlineexplorer = OutlineExplorer(self,
                                         fullpath_sorting=fullpath_sorting)

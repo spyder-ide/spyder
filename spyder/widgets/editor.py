@@ -39,7 +39,8 @@ from spyder.utils import (codeanalysis, encoding, sourcecode,
                           syntaxhighlighters)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, mimedata2url)
-from spyder.widgets.editortools import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.sourcecode import codeeditor
@@ -563,6 +564,7 @@ class EditorStack(QWidget):
 
         #For opening last closed tabs
         self.last_closed_files = []
+
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -1352,7 +1354,7 @@ class EditorStack(QWidget):
             self.threadmanager.close_threads(finfo)
             # Removing editor reference from outline explorer settings:
             if self.outlineexplorer is not None:
-                self.outlineexplorer.remove_editor(finfo.editor)
+                self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
             self.remove_from_data(index)
 
@@ -1730,7 +1732,8 @@ class EditorStack(QWidget):
             if finfo.editor.is_python():
                 enable = True
                 oe.setEnabled(True)
-                oe.set_current_editor(finfo.editor, finfo.filename,
+                finfo.editor.oe_proxy = OutlineExplorerProxyEditor(finfo.editor, finfo.filename)
+                oe.set_current_editor(finfo.editor.oe_proxy,
                                       update=update, clear=clear)
         if not enable:
             oe.setEnabled(False)
@@ -1986,7 +1989,7 @@ class EditorStack(QWidget):
         editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
-            editor.destroyed.connect(lambda obj=editor:
+            editor.destroyed.connect(lambda obj=editor.oe_proxy:
                                      self.outlineexplorer.remove_editor(obj))
 
         self.find_widget.set_editor(editor)

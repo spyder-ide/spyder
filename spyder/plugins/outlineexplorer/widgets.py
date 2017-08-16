@@ -4,12 +4,11 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Editor tools: outline explorer, etc."""
+"""Outline explorer widgets."""
 
 # Standard library imports
 from __future__ import print_function
 import os.path as osp
-import re
 
 # Third party imports
 from qtpy.compat import from_qvariant
@@ -23,29 +22,6 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text)
 from spyder.widgets.onecolumntree import OneColumnTree
-
-
-#===============================================================================
-# Class browser
-#===============================================================================
-class PythonCFM(object):
-    """
-    Collection of helpers to match functions and classes
-    for Python language
-    This has to be reimplemented for other languages for the outline explorer 
-    to be supported (not implemented yet: outline explorer won't be populated
-    unless the current script is a Python script)
-    """
-    def __get_name(self, statmt, text):
-        match = re.match(r'[\ ]*%s ([a-zA-Z0-9_]*)[\ ]*[\(|\:]' % statmt, text)
-        if match is not None:
-            return match.group(1)
-        
-    def get_function_name(self, text):
-        return self.__get_name('def', text)
-    
-    def get_class_name(self, text):
-        return self.__get_name('class', text)
 
 
 class FileRootItem(QTreeWidgetItem):
@@ -262,9 +238,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.set_title('')
         OneColumnTree.clear(self)
         
-    def set_current_editor(self, editor, fname, update):
+    def set_current_editor(self, editor, update):
         """Bind editor instance"""
-        editor_id = editor.get_document_id()
+        editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
             item = self.editor_items[editor_id]
             if not self.freeze:
@@ -279,7 +255,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         else:
     #        import time
     #        t0 = time.time()
-            root_item = FileRootItem(fname, self)
+            root_item = FileRootItem(editor.fname, self)
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
             self.__sort_toplevel_items()
@@ -295,7 +271,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
-        editor_id = editor.get_document_id()
+        editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
             root_item = self.editor_items[editor_id]
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
@@ -346,8 +322,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         previous_item = None
         previous_level = None
         
-        oe_data = editor.highlighter.get_outlineexplorer_data()
-        editor.has_cell_separators = oe_data.get('found_cell_separators', False)
+        oe_data = editor.get_outlineexplorer_data()
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
             data = oe_data.get(block_nb)
@@ -529,8 +504,7 @@ class OutlineExplorerWidget(QWidget):
         self.setVisible(state)
         current_editor = self.treewidget.current_editor
         if current_editor is not None:
-            current_editor.clearFocus()
-            current_editor.setFocus()
+            current_editor.give_focus()
             if state:
                 self.is_visible.emit()
         
@@ -547,11 +521,11 @@ class OutlineExplorerWidget(QWidget):
         restore_btn.setDefaultAction(self.treewidget.restore_action)
         return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
         
-    def set_current_editor(self, editor, fname, update, clear):
+    def set_current_editor(self, editor, update, clear):
         if clear:
             self.remove_editor(editor)
-        if editor.highlighter is not None:
-            self.treewidget.set_current_editor(editor, fname, update)
+        if editor is not None:
+            self.treewidget.set_current_editor(editor, update)
         
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)

@@ -55,7 +55,7 @@ from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.widgets.editortools import PythonCFM
+from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.widgets.sourcecode.base import TextEditBaseWidget
 from spyder.widgets.sourcecode.kill_ring import QtKillRing
 from spyder.widgets.panels.linenumber import LineNumberArea
@@ -421,6 +421,8 @@ class CodeEditor(TextEditBaseWidget):
 
         self.verticalScrollBar().valueChanged.connect(
                                        lambda value: self.rehighlight_cells())
+
+        self.oe_proxy = None
 
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
@@ -2862,7 +2864,7 @@ class TestWidget(QSplitter):
                                  font=QFont("Courier New", 10),
                                  show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
-        from spyder.widgets.editortools import OutlineExplorerWidget
+        from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)
         self.addWidget(self.classtree)
         self.classtree.edit_goto.connect(
@@ -2872,11 +2874,13 @@ class TestWidget(QSplitter):
         self.setWindowIcon(ima.icon('spyder'))
  
     def load(self, filename):
+        from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
         self.editor.set_text_from_file(filename)
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),
                                               osp.basename(filename),
                                               osp.dirname(filename)))
-        self.classtree.set_current_editor(self.editor, filename, False, False)
+        oe_proxy = OutlineExplorerProxyEditor(self.editor, filename)
+        self.classtree.set_current_editor(oe_proxy, False, False)
 
 
 def test(fname):
