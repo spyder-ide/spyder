@@ -17,7 +17,7 @@ import re
 # Third party imports
 from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
+from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
                             QSizePolicy, QWidget)
 
 # Local imports
@@ -78,8 +78,9 @@ class FindReplace(QWidget):
         self.search_text.lineEdit().textEdited.connect(
                                                      self.text_has_been_edited)
 
-        self.number_matches_text = QLabel()
-        self.change_number_matches()
+        self.number_matches_text = QLabel(self)
+        relative_width = parent.geometry().width() * 0.65
+        self.number_matches_text.setMinimumWidth(relative_width)
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
                                              icon=ima.icon('ArrowUp'))
@@ -246,6 +247,7 @@ class FindReplace(QWidget):
         """Overrides Qt Method"""
         QWidget.show(self)
         self.visibility_changed.emit(True)
+        self.change_number_matches()
         if self.editor is not None:
             if hide_replace:
                 if self.replace_widgets[0].isVisible():
@@ -403,8 +405,9 @@ class FindReplace(QWidget):
             else:
                 self.clear_matches()
 
-            number_matches = self.editor.get_number_matches(text)
-            self.change_number_matches(current_match=0,
+            number_matches = self.editor.get_number_matches(text, case=case)
+            match_number = self.editor.get_match_number(text, case=case)
+            self.change_number_matches(current_match=match_number,
                                        total_matches=number_matches)
             return found
 
@@ -530,12 +533,10 @@ class FindReplace(QWidget):
                 self.editor.setFocus()
 
     def change_number_matches(self, current_match=0, total_matches=0):
-        if total_matches == 0:
-            self.number_matches_text.setText(_("no matches"))
-        elif current_match == 0:
-            matches_string = "{} matches".format(total_matches)
-            self.number_matches_text.setText(_(matches_string))
+        """Change number of match and total matches."""
+        if current_match != 0 and total_matches != 0:
+            matches_string = "{} {} {}".format(current_match, _("of"),
+                              total_matches)
+            self.number_matches_text.setText(matches_string)
         else:
-            matches_string = "{}/{}".format(current_match, total_matches)
-            self.number_matches_text.setText(_(matches_string))
-        self.number_matches_text.show()
+            self.number_matches_text.setText(_("no matches"))
