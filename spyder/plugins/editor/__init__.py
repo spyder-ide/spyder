@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.plugins.editor.api
-=========================
+spyder.plugins.editor
+=====================
 
-API to interact with some features of Editor and CodeEditor
+Editor Plugin
 """

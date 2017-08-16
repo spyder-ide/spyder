@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.widgets.sourcecode.utils
-=========================
+spyder.plugins.editor.utils
+===========================
 
 Some utility classes and functions for CodeEditor.
 """
