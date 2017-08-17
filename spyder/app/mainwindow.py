@@ -1970,7 +1970,7 @@ class MainWindow(QMainWindow):
         booleans: (is_console, not_readonly, readwrite_editor)"""
         widget = QApplication.focusWidget()
         from spyder.widgets.shell import ShellBaseWidget
-        from spyder.widgets.editor import TextEditBaseWidget
+        from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
         from spyder.widgets.ipythonconsole import ControlWidget
 
         # if focused widget isn't valid try the last focused
@@ -2402,7 +2402,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         action = self.sender()
         callback = from_qvariant(action.data(), to_text_string)
-        from spyder.widgets.editor import TextEditBaseWidget
+        from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
 
         # if focused widget isn't valid try the last focused^M
         if not isinstance(widget, TextEditBaseWidget):

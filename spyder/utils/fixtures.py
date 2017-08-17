@@ -20,7 +20,7 @@ except ImportError:
 import pytest
 
 # Local imports
-from spyder.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.config.user import UserConfig
 from spyder.config.main import CONF_VERSION, DEFAULTS

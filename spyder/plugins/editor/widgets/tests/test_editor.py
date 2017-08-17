@@ -20,7 +20,7 @@ from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.utils.fixtures import setup_editor
-from spyder.widgets.editor import EditorStack
+from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 
 # Qt Test Fixtures

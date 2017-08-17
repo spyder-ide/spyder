@@ -45,7 +45,7 @@ def qcombobox_bot(qtbot):
 
 @pytest.fixture
 def editor_bot(qtbot):
-    from spyder.widgets.editor import codeeditor
+    from spyder.plugins.editor.widgets.editor import codeeditor
     widget = codeeditor.CodeEditor(None)
     widget.setup_editor(linenumbers=True,
                         markers=True,
