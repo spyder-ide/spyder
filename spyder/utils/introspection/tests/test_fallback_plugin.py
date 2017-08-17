@@ -67,7 +67,7 @@ def test_extensions():
     path = get_parent_until(os.path.abspath(FALLBACK_PLUGIN_FILE))
     assert path == 'spyder.utils.introspection.fallback_plugin'
 
-    line = 'from spyder.widgets.sourcecode.codeeditor import CodeEditor'
+    line = 'from spyder.plugins.editor.widgets.codeeditor import CodeEditor'
     path = python_like_mod_finder(line)
     assert path.endswith('codeeditor.py')
     path = python_like_mod_finder(line, stop_token='sourcecode')

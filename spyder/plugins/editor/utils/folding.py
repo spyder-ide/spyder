@@ -257,7 +257,7 @@ if __name__ == '__main__':
     """Print folding blocks of this file for debugging"""
     from spyder.widgets.sourcecode.api.folding import print_tree
     from spyder.utils.qthelpers import qapplication
-    from spyder.widgets.sourcecode.codeeditor import CodeEditor
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
     if len(sys.argv) > 1:
         fname = sys.argv[1]

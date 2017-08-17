@@ -324,7 +324,7 @@ class FindReplace(QWidget):
             QWebEngineView = type(None)
         self.words_button.setVisible(not isinstance(editor, QWebEngineView))
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
-        from spyder.widgets.sourcecode.codeeditor import CodeEditor
+        from spyder.plugins.editor.widgets.codeeditor import CodeEditor
         self.is_code_editor = isinstance(editor, CodeEditor)
         self.highlight_button.setVisible(self.is_code_editor)
         if refresh:

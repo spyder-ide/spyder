@@ -15,7 +15,7 @@ import pytest
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.py3compat import to_text_string
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 # --- Fixtures

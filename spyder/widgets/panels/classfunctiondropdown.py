@@ -83,7 +83,7 @@ def _get_fold_levels(editor):
 
     Parameters
     ----------
-    editor : :class:`spyder.widgets.sourcecode.codeeditor.CodeEditor`
+    editor : :class:`spyder.plugins.editor.widgets.codeeditor.CodeEditor`
 
     Returns
     -------
@@ -331,7 +331,7 @@ class ClassFunctionDropdown(Panel):
 
     Parameters
     ----------
-    editor : :class:`spyder.widgets.sourcecode.codeeditor.CodeEditor`
+    editor : :class:`spyder.plugins.editor.widgets.codeeditor.CodeEditor`
         The editor to act on.
     """
 
