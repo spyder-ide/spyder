@@ -13,6 +13,7 @@ import re
 import sys
 
 # Third party imports
+from PyQt5.QtWidgets import QStyleFactory
 from qtpy.compat import to_qvariant, from_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
@@ -516,6 +517,18 @@ def create_plugin_layout(tools_layout, main_widget):
     """
     layout = QVBoxLayout()
     layout.setContentsMargins(0, 0, 0, 0)
+
+    if os.name == 'nt':
+        # adapt spacing so that main_widget has the same vertical position as
+        # the editor widgets (which have tabs above)
+        # TODO: This is a hard coded workaround until we find a way to
+        #       calculate is from the metrics.
+        spacings = {'fusion': 9, 'windowsvista': 2, 'windowsxp': 2,
+                    'windows': 2}
+        style_name = qapplication().style().property('name')
+        if style_name in spacings:
+            layout.setSpacing(spacings[style_name])
+
     layout.addLayout(tools_layout)
     if main_widget is not None:
         layout.addWidget(main_widget)

@@ -2527,8 +2527,11 @@ class MainWindow(QMainWindow):
             except:
                 pass
         else:
-            qapp.setStyle(CONF.get('main', 'windows_style',
-                                   self.default_style))
+            style_name = CONF.get('main', 'windows_style',
+                                  self.default_style)
+            style = QStyleFactory.create(style_name)
+            style.setProperty('name', style_name)
+            qapp.setStyle(style)
         
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
