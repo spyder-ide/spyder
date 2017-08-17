@@ -15,7 +15,7 @@ import pytest
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.widgets.sourcecode.api.folding import print_tree
+from spyder.plugins.editor.api.folding import print_tree
 
 
 # --- Fixtures
