@@ -2748,11 +2748,13 @@ def test():
 
     import time
     t0 = time.time()
-    test.load(osp.join(spyder_dir, "widgets", "editor.py"))
+    test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
+                       "editor.py"))
     test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets.py"))
     test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets", 
                        "viewers", "collections.py"))
-    test.load(osp.join(spyder_dir, "widgets", "sourcecode", "codeeditor.py"))
+    test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
+                       "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))  # spyder: test-skip
 
     sys.exit(app.exec_())
