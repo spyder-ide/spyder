@@ -44,7 +44,7 @@ from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.sourcecode import codeeditor
-from spyder.widgets.sourcecode.base import TextEditBaseWidget  # analysis:ignore
+from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
 from spyder.widgets.sourcecode.codeeditor import Printer       # analysis:ignore
 from spyder.widgets.sourcecode.codeeditor import get_file_language
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
