@@ -231,8 +231,7 @@ def test():
     server_settings = {'host': '127.0.0.1', 'port': 2087, 'cmd': 'pyls'}
     lsp = LSPClient(server_args_fmt, server_settings)
     lsp.start()
-    # lsp.on_msg_received()
-    # term.show()
+
     app.aboutToQuit.connect(lsp.stop)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     sys.exit(app.exec_())

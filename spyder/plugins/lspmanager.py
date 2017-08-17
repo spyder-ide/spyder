@@ -613,7 +613,7 @@ class LSPManager(SpyderPluginWidget):
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
                 port = select_port(default_port=config['port'])
-                # print(config)
+                config['port'] = port
                 language_client['instance'] = LSPClient(
                     config['args'], config, config['external'],
                     language=language)
