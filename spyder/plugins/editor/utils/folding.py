@@ -12,7 +12,7 @@ Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/f
 import sys
 
 from spyder.plugins.editor.api.folding import FoldDetector
-from spyder.utils.editor import TextBlockHelper
+from spyder.plugins.editor.utils.editor import TextBlockHelper
 
 
 class FoldScope(object):

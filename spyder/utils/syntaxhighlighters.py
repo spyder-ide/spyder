@@ -28,7 +28,7 @@ from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.py3compat import builtins, is_text_string, to_text_string
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
-from spyder.utils.editor import TextBlockHelper as tbh
+from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 

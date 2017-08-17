@@ -21,7 +21,7 @@ from spyder.widgets.panels import classfunctiondropdown as cfd
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils.syntaxhighlighters import PythonSH
 from spyder.plugins.editor.utils.folding import FoldScope
-from spyder.utils.editor import TextBlockHelper
+from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 
 

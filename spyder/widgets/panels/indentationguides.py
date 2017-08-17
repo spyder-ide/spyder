@@ -11,7 +11,7 @@ This module contains the indentation guide panel.
 from qtpy.QtCore import Qt, QRect, QPoint
 from qtpy.QtGui import QPainter, QColor
 
-from spyder.utils.editor import TextBlockHelper
+from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.api.panel import Panel
 
 class IndentationGuide(Panel):

@@ -19,7 +19,7 @@ from qtpy.QtCore import QSize
 
 from spyder.api.panel import Panel
 from spyder.plugins.editor.utils.folding import FoldScope
-from spyder.utils.editor import TextBlockHelper
+from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils import icon_manager as ima
 
