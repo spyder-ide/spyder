@@ -148,7 +148,7 @@ class TextHelper(object):
         except KeyError:
             pass
         else:
-            from spyder.widgets.sourcecode.folding import FoldScope
+            from spyder.plugins.editor.utils.folding import FoldScope
             if not block.isVisible():
                 block = FoldScope.find_parent_scope(block)
                 if TextBlockHelper.is_collapsed(block):

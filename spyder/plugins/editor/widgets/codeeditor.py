@@ -64,7 +64,7 @@ from spyder.widgets.panels.indentationguides import IndentationGuide
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
-from spyder.widgets.sourcecode.folding import IndentFoldDetector
+from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.api.panel import Panel
 

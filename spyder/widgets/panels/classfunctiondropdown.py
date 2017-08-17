@@ -18,7 +18,7 @@ from qtpy.QtCore import Slot
 from qtpy.QtCore import QSize
 
 from spyder.api.panel import Panel
-from spyder.widgets.sourcecode.folding import FoldScope
+from spyder.plugins.editor.utils.folding import FoldScope
 from spyder.utils.editor import TextBlockHelper
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils import icon_manager as ima
@@ -247,7 +247,7 @@ class FoldScopeHelper(object):
 
     Parameters
     ----------
-    fold_scope : :class:`spyder.widgets.sourcecode.folding.FoldScope`
+    fold_scope : :class:`spyder.plugins.editor.utils.folding.FoldScope`
     oed : :class:`spyder.plugins.outlineexplorer.api.OutlineExplorerData`
 
     Properties

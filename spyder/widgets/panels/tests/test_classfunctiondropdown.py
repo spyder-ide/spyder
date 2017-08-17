@@ -20,9 +20,9 @@ from pytestqt import qtbot
 from spyder.widgets.panels import classfunctiondropdown as cfd
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils.syntaxhighlighters import PythonSH
-from spyder.widgets.sourcecode.folding import FoldScope
+from spyder.plugins.editor.utils.folding import FoldScope
 from spyder.utils.editor import TextBlockHelper
-from spyder.widgets.sourcecode.folding import IndentFoldDetector
+from spyder.plugins.editor.utils.folding import IndentFoldDetector
 
 
 # ---------------------------------------------------------------------------
