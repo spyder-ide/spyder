@@ -38,8 +38,7 @@ from spyder.py3compat import (getcwd, str_lower, to_binary_string,
                               to_text_string, PY2)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, misc, programs, vcs
-from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
-                                    create_control_layout)
+from spyder.utils.qthelpers import add_actions, create_action, file_uri
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -1202,9 +1201,16 @@ class ExplorerWidget(QWidget):
             widget.setIconSize(QSize(16, 16))
 
         # Layouts
-        controls = [button_previous, button_next, button_parent, 'stretch',
-                    self.button_menu]
-        layout = create_control_layout(controls, main_widget=self.treewidget)
+        blayout = QHBoxLayout()
+        blayout.addWidget(button_previous)
+        blayout.addWidget(button_next)
+        blayout.addWidget(button_parent)
+        blayout.addStretch()
+        blayout.addWidget(self.button_menu)
+
+        layout = QVBoxLayout()
+        layout.addLayout(blayout)
+        layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
         # Signals and slots

@@ -17,9 +17,9 @@ from qtpy.compat import to_qvariant, from_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout,
-                            QLabel, QLayout, QLineEdit, QMenu, QStyle,
-                            QToolBar, QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
+                            QLineEdit, QMenu, QStyle, QToolBar, QToolButton,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_image_path, running_in_mac_app
@@ -501,41 +501,6 @@ def show_std_icons():
     dialog = ShowStdIcons(None)
     dialog.show()
     sys.exit(app.exec_())
-
-
-def create_control_layout(controls, main_widget):
-    """
-    Returns a layout for a set of controls above a main widget. This is a
-    standard layout for many panes and some other widgets.
-
-    The use-case is currently limited to a single line of controls.
-
-    controls: a list of QWidgets to be placed in a HBoxLayout at the top.
-        You may use 'stretch' to add a stretch to the layout.
-        If a more complex control of the layout is needed, you can pass a
-        ready made layout instead.
-    main_widget: the main widget. Can be None, if you want to add this
-        manually later on.
-    """
-    layout = QVBoxLayout()
-    layout.setContentsMargins(0, 0, 0, 0)
-    layout.setSpacing(2)
-
-    if isinstance(controls, QLayout):
-        layout.addLayout(controls)
-    else:
-        clayout = QHBoxLayout()
-        clayout.setAlignment(Qt.AlignLeft)
-        for control in controls:
-            if control == 'stretch':
-                clayout.addStretch()
-            else:
-                clayout.addWidget(control)
-        layout.addLayout(clayout)
-
-    if main_widget is not None:
-        layout.addWidget(main_widget)
-    return layout
 
 
 MENU_SEPARATOR = None

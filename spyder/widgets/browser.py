@@ -21,8 +21,7 @@ from qtpy.QtGui import QFontInfo
 from spyder.config.base import _, DEV
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.qthelpers import (action2button, add_actions,
-                                    create_action, create_toolbutton,
-                                    create_control_layout)
+                                    create_action, create_toolbutton)
 from spyder.utils import icon_manager as ima
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
@@ -223,7 +222,8 @@ class WebBrowser(QWidget):
                        refresh_button, progressbar, stop_button):
             hlayout.addWidget(widget)
         
-        layout = create_control_layout(hlayout, main_widget=None)
+        layout = QVBoxLayout()
+        layout.addLayout(hlayout)
         layout.addWidget(self.webview)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
