@@ -86,7 +86,7 @@ class Panel(QWidget, Mode):
             method!
 
         :param editor: editor instance
-        :type editor: spyder.widgets.sourcecode.CodeEditor
+        :type editor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
         """
         Mode.on_install(self, editor)
         self.setParent(editor)

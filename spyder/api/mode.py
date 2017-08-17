@@ -24,7 +24,8 @@ class Mode(object):
 
     A panel (model child class) is added to an editor by using the
     PanelsManager:
-        - :meth:`spyder.widgets.sourcecode.CodeEditor.panels.append`
+        - :meth:
+            `spyder.plugins.editor.widgets.codeeditor.CodeEditor.panels.append`
 
     Subclasses may/should override the following methods:
 
@@ -43,7 +44,7 @@ class Mode(object):
 
         **READ ONLY**
 
-        :rtype: spyder.widgets.sourcecode.CodeEditor
+        :rtype: spyder.plugins.editor.widgets.codeeditor.CodeEditor
         """
         if self._editor is not None:
             return self._editor
@@ -70,7 +71,8 @@ class Mode(object):
 
     def __init__(self):
         """
-        Mode name/identifier. :class:`spyder.widgets.sourcecode.CodeEditor`
+        Mode name/identifier.
+        :class:`spyder.plugins.editor.widgets.codeeditor.CodeEditor`
         uses that as the attribute key when you install a mode.
         """
         self.name = self.__class__.__name__
@@ -88,7 +90,7 @@ class Mode(object):
         Installs the extension on the editor.
 
         :param editor: editor widget instance
-        :type editor: spyder.widgets.sourcecode.CodeEditor
+        :type editor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
 
         .. note:: This method is called by editor when you install a Mode.
                   You should never call it yourself, even in a subclasss.

@@ -161,7 +161,7 @@ class TextHelper(object):
     def word_under_cursor(self, select_whole_word=False, text_cursor=None):
         """
         Gets the word under cursor using the separators defined by
-        :attr:`spyder.widgets.sourcecode.CodeEditor.word_separators`.
+        :attr:`spyder.plugins.editor.widgets.codeeditor.CodeEditor.word_separators`.
 
         FIXME: This is not working because CodeEditor have no attribute
         word_separators

@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QWidget, QToolButton,
 # Local imports
 from spyder.utils import encoding
 from spyder.py3compat import is_text_string, to_text_string
-from spyder.widgets.sourcecode import codeeditor
+from spyder.plugins.editor.widgets import codeeditor
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_toolbutton
