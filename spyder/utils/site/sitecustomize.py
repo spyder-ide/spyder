@@ -200,21 +200,17 @@ except:
 # See issue #4932
 #==============================================================================
 
-import subprocess
-
 if os.name == 'nt':
+    import subprocess
     creation_flag = 0x08000000  # CREATE_NO_WINDOW
-else:
-    creation_flag = 0  # Default value
+
+    class SubprocessPopen(subprocess.Popen):
+        def __init__(self, *args, creationflags=0, **kwargs):
+            super(SubprocessPopen, self).__init__(
+                *args, creationflags=creation_flag, **kwargs)
 
 
-class SubprocessPopen(subprocess.Popen):
-    def __init__(self, *args, creationflags=0, **kwargs):
-        super(SubprocessPopen, self).__init__(
-            *args, creationflags=creation_flag, **kwargs)
-
-
-subprocess.Popen = SubprocessPopen
+    subprocess.Popen = SubprocessPopen
 
 #==============================================================================
 # Importing user's sitecustomize
