@@ -21,7 +21,7 @@ ALL_LANGUAGES = {
                  'Html': ('htm', 'html'),
                  'Cpp': ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx'),
                  'OpenCL': ('cl',),
-                 'Yaml':('yaml','yml'),
+                 'Yaml': ('yaml', 'yml'),
                  "Markdown": ('md', ),
                  }
 

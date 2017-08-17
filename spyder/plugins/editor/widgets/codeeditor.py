@@ -54,7 +54,7 @@ from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
-from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
