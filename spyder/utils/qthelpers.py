@@ -13,7 +13,6 @@ import re
 import sys
 
 # Third party imports
-from PyQt5.QtWidgets import QStyleFactory
 from qtpy.compat import to_qvariant, from_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
