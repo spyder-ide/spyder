@@ -257,10 +257,10 @@ the sympy module (e.g. plot)
         reset_namespace = config_shortcut(lambda: self.reset_namespace(),
                                           context='ipython_console',
                                           name='reset namespace', parent=self)
-        array_inline = config_shortcut(lambda: self.enter_array_inline(),
+        array_inline = config_shortcut(self._control.enter_array_inline,
                                        context='array_builder',
                                        name='enter array inline', parent=self)
-        array_table = config_shortcut(lambda: self.enter_array_table(),
+        array_table = config_shortcut(self._control.enter_array_table,
                                       context='array_builder',
                                       name='enter array table', parent=self)
 
