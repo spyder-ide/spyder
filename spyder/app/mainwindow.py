@@ -831,7 +831,7 @@ class MainWindow(QMainWindow):
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
-        from spyder.plugins.editor import Editor
+        from spyder.plugins.editor.plugin import Editor
         self.editor = Editor(self)
         self.editor.register_plugin()
 
