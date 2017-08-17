@@ -503,6 +503,25 @@ def show_std_icons():
     sys.exit(app.exec_())
 
 
+def create_plugin_layout(tools_layout, main_widget):
+    """
+    Returns a layout for a set of controls above a main widget. This is a
+    standard layout for many plugin panes (even though, it's currently
+    more often applied not to the pane itself but with in the one widget
+    contained in the pane.
+
+    tools_layout: a layout containing the top toolbar
+    main_widget: the main widget. Can be None, if you want to add this
+        manually later on.
+    """
+    layout = QVBoxLayout()
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.addLayout(tools_layout)
+    if main_widget is not None:
+        layout.addWidget(main_widget)
+    return layout
+
+
 MENU_SEPARATOR = None
 
 
