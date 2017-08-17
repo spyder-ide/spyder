@@ -51,7 +51,7 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
 from spyder.config.main import CONF
-from spyder.widgets.explorer import show_in_external_file_explorer
+from spyder.plugins.explorer.widgets import show_in_external_file_explorer
 
 DEBUG_EDITOR = DEBUG >= 3
 
@@ -2749,7 +2749,7 @@ def test():
     import time
     t0 = time.time()
     test.load(osp.join(spyder_dir, "widgets", "editor.py"))
-    test.load(osp.join(spyder_dir, "widgets", "explorer.py"))
+    test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets.py"))
     test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets", 
                        "viewers", "collections.py"))
     test.load(osp.join(spyder_dir, "widgets", "sourcecode", "codeeditor.py"))

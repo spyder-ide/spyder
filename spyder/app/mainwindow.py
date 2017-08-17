@@ -878,7 +878,7 @@ class MainWindow(QMainWindow):
         # Explorer
         if CONF.get('explorer', 'enable'):
             self.set_splash(_("Loading file explorer..."))
-            from spyder.plugins.explorer import Explorer
+            from spyder.plugins.explorer.plugin import Explorer
             self.explorer = Explorer(self)
             self.explorer.register_plugin()
 

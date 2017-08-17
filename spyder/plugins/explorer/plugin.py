@@ -21,7 +21,7 @@ from qtpy.QtWidgets import QVBoxLayout
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
-from spyder.widgets.explorer import ExplorerWidget
+from spyder.plugins.explorer.widgets import ExplorerWidget
 
 
 class Explorer(SpyderPluginWidget):
