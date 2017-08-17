@@ -70,8 +70,8 @@ def test_extensions():
     line = 'from spyder.plugins.editor.widgets.codeeditor import CodeEditor'
     path = python_like_mod_finder(line)
     assert path.endswith('codeeditor.py')
-    path = python_like_mod_finder(line, stop_token='sourcecode')
-    assert path.endswith('__init__.py') and 'sourcecode' in path
+    path = python_like_mod_finder(line, stop_token='widgets')
+    assert path.endswith('__init__.py') and 'widgets' in path
 
     path = osp.expanduser(r'~/.spyder2/temp.py')
     if os.path.exists(path):
