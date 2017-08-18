@@ -523,7 +523,7 @@ def calc_tools_spacing(tools_layout):
     """
     metrics = {  # (tabbar_height, offset)
         'nt.fusion': (32, 0),
-        'nt.windowsvista': (21, 2),
+        'nt.windowsvista': (21, 3),
         'nt.windowsxp': (24, 0),
         'nt.windows': (21, 3),
         'posix.breeze': (28, -1),
