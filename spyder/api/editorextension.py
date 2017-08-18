@@ -125,6 +125,7 @@ class EditorExtension(object):
         Clone the settings from another editor extension (same class).
 
         This method is called when splitting an editor widget.
+        # TODO at the current estate this is not working
 
         :param original: other editor extension (must be the same class).
 
