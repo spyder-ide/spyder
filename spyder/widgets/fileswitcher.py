@@ -306,7 +306,7 @@ class FileSwitcher(QDialog):
         for widget in self.widgets:
             try:
                 line_count.append(widget[0].get_line_count())
-            except:
+            except AttributeError:
                 line_count.append(0)
         return line_count
 
