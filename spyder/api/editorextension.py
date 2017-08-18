@@ -19,9 +19,6 @@ class EditorExtension(object):
     An extension is a "thing" that can be installed on an editor to add new
     behaviours or to modify its appearance.
 
-    At the current states Editor Extensions can't be added to an Editor but
-    this class is needed because Panels can be added to an editor.
-
     A panel (model child class) is added to an editor by using the
     PanelsManager:
         - :meth:`spyder.widgets.sourcecode.CodeEditor.panels.append`
