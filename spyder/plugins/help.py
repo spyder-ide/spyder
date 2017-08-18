@@ -448,7 +448,7 @@ class Help(SpyderPluginWidget):
         self.source_changed()
 
         # Main layout
-        layout = create_plugin_layout(layout_edit, None)
+        layout = create_plugin_layout(layout_edit)
         # we have two main widgets, but only one of them is shown at a time
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)

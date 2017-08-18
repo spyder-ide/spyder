@@ -543,7 +543,7 @@ def calc_tools_spacing(tools_layout):
         return max(spacing, 0)
 
 
-def create_plugin_layout(tools_layout, main_widget):
+def create_plugin_layout(tools_layout, main_widget=None):
     """
     Returns a layout for a set of controls above a main widget. This is a
     standard layout for many plugin panes (even though, it's currently

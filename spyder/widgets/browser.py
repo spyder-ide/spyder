@@ -223,7 +223,7 @@ class WebBrowser(QWidget):
                        refresh_button, progressbar, stop_button):
             hlayout.addWidget(widget)
         
-        layout = create_plugin_layout(hlayout, main_widget=None)
+        layout = create_plugin_layout(hlayout)
         layout.addWidget(self.webview)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
