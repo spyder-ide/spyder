@@ -13,7 +13,7 @@ import re
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
 
 # Local imports
@@ -514,9 +514,13 @@ class OutlineExplorerWidget(QWidget):
         self.visibility_action.setChecked(True)
         
         btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
         for btn in self.setup_buttons():
+            btn.setAutoRaise(True)
+            btn.setIconSize(QSize(16, 16))
             btn_layout.addWidget(btn)
+        if parent.options_button:
+            btn_layout.addStretch()
+            btn_layout.addWidget(parent.options_button, Qt.AlignRight)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)

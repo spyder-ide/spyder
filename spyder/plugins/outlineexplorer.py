@@ -33,6 +33,9 @@ class OutlineExplorer(SpyderPluginWidget):
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
         show_comments = self.get_option('show_comments')
+
+        # Initialize plugin
+        self.initialize_plugin()
         self.explorer = OutlineExplorerWidget(
                                        self,
                                        show_fullpath=show_fullpath,
@@ -43,10 +46,8 @@ class OutlineExplorer(SpyderPluginWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
         self.setLayout(layout)
-
-        # Initialize plugin
-        self.initialize_plugin()
         
+        # Menu as corner widget
         self.explorer.treewidget.header().hide()
         self.load_config()
         

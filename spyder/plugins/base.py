@@ -11,7 +11,7 @@ Base plugin class
 # Third party imports
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QShortcut, QWidget
+from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut, QWidget
 
 # Local imports
 from spyder.config.base import _
@@ -207,3 +207,17 @@ class BasePluginWidget(QWidget):
         self.undocked = True
         self.dockwidget.setFloating(True)
         self.undock_action.setDisabled(True)
+
+class PluginMainWindow(QMainWindow):
+    """Spyder Plugin MainWindow class."""
+    def __init__(self, plugin):
+        QMainWindow.__init__(self)
+        self.plugin = plugin
+
+    def closeEvent(self, event):
+        """Reimplement Qt method."""
+        self.plugin.dockwidget.setWidget(self.plugin)
+        self.plugin.dockwidget.setVisible(True)
+        self.plugin.undock_action.setDisabled(False)
+        self.plugin.switch_to_plugin()
+        QMainWindow.closeEvent(self, event)

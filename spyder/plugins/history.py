@@ -12,8 +12,8 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog,
+                            QVBoxLayout, QWidget)
 
 
 # Local imports
@@ -23,8 +23,7 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+from spyder.utils.qthelpers import add_actions, create_action
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.sourcecode import codeeditor
 from spyder.widgets.findreplace import FindReplace
@@ -74,18 +73,17 @@ class HistoryLog(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
-        self.menu_actions = None
         self.dockviewer = None
         self.wrap_action = None
         
         self.editors = []
         self.filenames = []
 
-        # Initialize plugin
+        # Initialize plugin actions, toolbutton and general signals
         self.initialize_plugin()
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions)
+        self.tabwidget = Tabs(self, self.plugin_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
 
@@ -100,13 +98,7 @@ class HistoryLog(SpyderPluginWidget):
             layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, self.menu_actions)
-        options_button.setMenu(menu)
-        self.tabwidget.setCornerWidget(options_button)
+        self.tabwidget.setCornerWidget(self.options_button)
         
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -154,9 +146,8 @@ class HistoryLog(SpyderPluginWidget):
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked( self.get_option('wrap') )
-        self.menu_actions = [history_action, self.wrap_action, None,
-                             self.undock_action]
-        return self.menu_actions
+        menu_actions = [history_action, self.wrap_action]
+        return menu_actions
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""

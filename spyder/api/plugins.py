@@ -18,16 +18,18 @@ import os
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QMainWindow
+from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolButton
 
 # Local imports
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.plugins.base import BasePluginWidget
+from spyder.plugins.base import _, BasePluginWidget
 from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import toggle_actions
+from spyder.utils.qthelpers import (add_actions, create_toolbutton,
+                                    toggle_actions)
+from spyder.plugins.base import PluginMainWindow
 
 
 class PluginWidget(BasePluginWidget):
@@ -89,7 +91,15 @@ class PluginWidget(BasePluginWidget):
         """
         self.create_toggle_view_action()
         self.create_undock_action()
-        self.plugin_actions = self.get_plugin_actions()
+        self.plugin_actions = self.get_plugin_actions() + [None,
+                                                     self.undock_action]
+        self.options_button = create_toolbutton(self, text=_('Options'),
+                                                icon=ima.icon('tooloptions'))
+        self.options_button.setPopupMode(QToolButton.InstantPopup)
+        self.menu = QMenu(self)
+        add_actions(self.menu, self.plugin_actions)
+        self.options_button.setMenu(self.menu)
+        self.menu.aboutToShow.connect(self.refresh_actions)
         self.sig_show_message.connect(self.show_message)
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.sig_option_changed.connect(self.set_option)
@@ -188,6 +198,13 @@ class PluginWidget(BasePluginWidget):
         messageBox.setText(message)
         messageBox.setStandardButtons(QMessageBox.Ok)
         messageBox.show()
+
+    def refresh_actions(self):
+        """Clear the menu of the plugin and add the actions."""
+        self.menu.clear()
+        self.plugin_actions = self.get_plugin_actions() + [None,
+                                                     self.undock_action]
+        add_actions(self.menu, self.plugin_actions)
 
 
 class SpyderPluginWidget(PluginWidget):
@@ -312,17 +329,3 @@ class SpyderPluginWidget(PluginWidget):
         message = ''
         valid = True
         return valid, message
-
-class PluginMainWindow(QMainWindow):
-    """Spyder Plugin MainWindow class."""
-    def __init__(self, plugin):
-        QMainWindow.__init__(self)
-        self.plugin = plugin
-
-    def closeEvent(self, event):
-        """Reimplement Qt method."""
-        self.plugin.dockwidget.setWidget(self.plugin)
-        self.plugin.dockwidget.setVisible(True)
-        self.plugin.undock_action.setDisabled(False)
-        self.plugin.switch_to_plugin()
-        QMainWindow.closeEvent(self, event)

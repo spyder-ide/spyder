@@ -33,6 +33,9 @@ class Explorer(SpyderPluginWidget):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
+        # Initialize plugin
+        self.initialize_plugin()
+
         self.fileexplorer = ExplorerWidget(
                                 self,
                                 name_filters=self.get_option('name_filters'),
@@ -42,9 +45,6 @@ class Explorer(SpyderPluginWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.fileexplorer)
         self.setLayout(layout)
-
-        # Initialize plugin
-        self.initialize_plugin()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
