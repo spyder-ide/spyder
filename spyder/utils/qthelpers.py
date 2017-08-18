@@ -502,7 +502,70 @@ def show_std_icons():
     dialog.show()
     sys.exit(app.exec_())
 
-    
+
+def calc_tools_spacing(tools_layout):
+    """
+    Return a spacing (int) or None if we don't have the appropriate metrics
+    to calculate the spacing.
+
+    We're trying to adapt the spacing below the tools_layout spacing so that
+    the main_widget has the same vertical position as the editor widgets
+    (which have tabs above).
+
+    The required spacing is
+
+        spacing = tabbar_height - tools_height + offset
+
+    where the tabbar_heights were empirically determined for a combination of
+    operating systems and styles. Offsets were manually adjusted, so that the
+    heights of main_widgets and editor widgets match. This is probably
+    caused by a still not understood element of the layout and style metrics.
+    """
+    metrics = {  # (tabbar_height, offset)
+        'nt.fusion': (32, 0),
+        'nt.windowsvista': (21, 3),
+        'nt.windowsxp': (24, 0),
+        'nt.windows': (21, 3),
+        'posix.breeze': (28, -1),
+        'posix.oxygen': (38, -2),
+        'posix.qtcurve': (27, 0),
+        'posix.windows': (26, 0),
+        'posix.fusion': (32, 0),
+    }
+
+    style_name = qapplication().style().property('name')
+    key = '%s.%s' % (os.name, style_name)
+
+    if key in metrics:
+        tabbar_height, offset = metrics[key]
+        tools_height = tools_layout.sizeHint().height()
+        spacing = tabbar_height - tools_height + offset
+        return max(spacing, 0)
+
+
+def create_plugin_layout(tools_layout, main_widget=None):
+    """
+    Returns a layout for a set of controls above a main widget. This is a
+    standard layout for many plugin panes (even though, it's currently
+    more often applied not to the pane itself but with in the one widget
+    contained in the pane.
+
+    tools_layout: a layout containing the top toolbar
+    main_widget: the main widget. Can be None, if you want to add this
+        manually later on.
+    """
+    layout = QVBoxLayout()
+    layout.setContentsMargins(0, 0, 0, 0)
+    spacing = calc_tools_spacing(tools_layout)
+    if spacing is not None:
+        layout.setSpacing(spacing)
+
+    layout.addLayout(tools_layout)
+    if main_widget is not None:
+        layout.addWidget(main_widget)
+    return layout
+
+
 MENU_SEPARATOR = None
 
 
