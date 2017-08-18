@@ -302,7 +302,13 @@ class FileSwitcher(QDialog):
 
     @property
     def line_count(self):
-        return [widget.get_line_count() for widget in self.widgets]
+        line_count = []
+        for widget in self.widgets:
+            try:
+                line_count.append(widget[0].get_line_count())
+            except:
+                line_count.append(0)
+        return line_count
 
     @property
     def save_status(self):
@@ -609,12 +615,16 @@ class FileSwitcher(QDialog):
         # Get optional line number
         if trying_for_line_number:
             filter_text, line_number = filter_text.split(':')
+            # Get all the available filenames
+            scores = get_search_scores('', self.filenames,
+                                       template="<b>{0}</b>")
         else:
             line_number = None
+            # Get all available filenames and get the scores for
+            # "fuzzy" matching
+            scores = get_search_scores(filter_text, self.filenames,
+                                       template="<b>{0}</b>")
 
-        # Get all available filenames and get the scores for "fuzzy" matching
-        scores = get_search_scores(filter_text, self.filenames,
-                                   template="<b>{0}</b>")
 
         # Get max width to determine if shortpaths should be used
         max_width = self.get_item_size(paths)[0]
