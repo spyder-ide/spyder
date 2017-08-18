@@ -11,7 +11,7 @@ Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/f
 """
 from __future__ import print_function
 import sys
-from spyder.utils.editor import TextBlockHelper
+from spyder.plugins.editor.utils.editor import TextBlockHelper
 
 
 def print_tree(editor, file=sys.stdout, print_blocks=False, return_list=False):

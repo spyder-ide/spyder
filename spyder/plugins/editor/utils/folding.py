@@ -11,8 +11,8 @@ Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/f
 """
 import sys
 
-from spyder.widgets.sourcecode.api.folding import FoldDetector
-from spyder.utils.editor import TextBlockHelper
+from spyder.plugins.editor.api.folding import FoldDetector
+from spyder.plugins.editor.utils.editor import TextBlockHelper
 
 
 class FoldScope(object):
@@ -255,9 +255,9 @@ class CharBasedFoldDetector(FoldDetector):
 
 if __name__ == '__main__':
     """Print folding blocks of this file for debugging"""
-    from spyder.widgets.sourcecode.api.folding import print_tree
+    from spyder.plugins.editor.api.folding import print_tree
     from spyder.utils.qthelpers import qapplication
-    from spyder.widgets.sourcecode.codeeditor import CodeEditor
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
     if len(sys.argv) > 1:
         fname = sys.argv[1]

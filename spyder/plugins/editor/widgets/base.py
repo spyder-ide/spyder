@@ -33,7 +33,7 @@ from spyder.py3compat import PY3, str_lower, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
-from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
+from spyder.plugins.editor.utils.terminal import ANSIEscapeCodeHandler
 
 
 def insert_text_to(cursor, text, fmt):

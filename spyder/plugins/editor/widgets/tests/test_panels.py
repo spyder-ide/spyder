@@ -13,7 +13,7 @@ import pytest
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
 from spyder.widgets.panels.scrollflag import ScrollFlagArea

@@ -20,9 +20,9 @@ from pytestqt import qtbot
 from spyder.widgets.panels import classfunctiondropdown as cfd
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils.syntaxhighlighters import PythonSH
-from spyder.widgets.sourcecode.folding import FoldScope
-from spyder.utils.editor import TextBlockHelper
-from spyder.widgets.sourcecode.folding import IndentFoldDetector
+from spyder.plugins.editor.utils.folding import FoldScope
+from spyder.plugins.editor.utils.editor import TextBlockHelper
+from spyder.plugins.editor.utils.folding import IndentFoldDetector
 
 
 # ---------------------------------------------------------------------------
@@ -45,7 +45,7 @@ def qcombobox_bot(qtbot):
 
 @pytest.fixture
 def editor_bot(qtbot):
-    from spyder.widgets.editor import codeeditor
+    from spyder.plugins.editor.widgets.editor import codeeditor
     widget = codeeditor.CodeEditor(None)
     widget.setup_editor(linenumbers=True,
                         markers=True,

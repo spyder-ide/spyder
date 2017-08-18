@@ -43,10 +43,10 @@ from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.sourcecode import codeeditor
-from spyder.widgets.sourcecode.base import TextEditBaseWidget  # analysis:ignore
-from spyder.widgets.sourcecode.codeeditor import Printer       # analysis:ignore
-from spyder.widgets.sourcecode.codeeditor import get_file_language
+from spyder.plugins.editor.widgets import codeeditor
+from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
+from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
+from spyder.plugins.editor.widgets.codeeditor import get_file_language
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.widgets.tabs import BaseTabs
@@ -2748,11 +2748,13 @@ def test():
 
     import time
     t0 = time.time()
-    test.load(osp.join(spyder_dir, "widgets", "editor.py"))
+    test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
+                       "editor.py"))
     test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets.py"))
     test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets", 
                        "viewers", "collections.py"))
-    test.load(osp.join(spyder_dir, "widgets", "sourcecode", "codeeditor.py"))
+    test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
+                       "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))  # spyder: test-skip
 
     sys.exit(app.exec_())

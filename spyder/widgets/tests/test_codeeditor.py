@@ -12,7 +12,7 @@ from pytestqt import qtbot
 import pytest
 
 # Local imports
-from spyder.widgets.editor import codeeditor
+from spyder.plugins.editor.widgets.editor import codeeditor
 
 
 # --- Fixtures

@@ -54,18 +54,18 @@ from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
 from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
-from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
+from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.widgets.sourcecode.base import TextEditBaseWidget
-from spyder.widgets.sourcecode.kill_ring import QtKillRing
+from spyder.plugins.editor.widgets.base import TextEditBaseWidget
+from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
 from spyder.widgets.panels.indentationguides import IndentationGuide
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
-from spyder.widgets.sourcecode.folding import IndentFoldDetector
-from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
+from spyder.plugins.editor.utils.folding import IndentFoldDetector
+from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.api.panel import Panel
 
 try:

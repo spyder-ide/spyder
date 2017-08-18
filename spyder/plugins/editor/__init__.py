@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.widgets.sourcecode
-=========================
+spyder.plugins.editor
+=====================
 
-Source code related widgets (code editor, console) based exclusively on Qt
+Editor Plugin
 """

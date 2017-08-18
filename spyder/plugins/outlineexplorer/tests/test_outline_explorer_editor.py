@@ -15,7 +15,7 @@ from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 
 from spyder.utils.qthelpers import qapplication
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 text = ('# test file\n'
         'class a():\n'

@@ -20,7 +20,7 @@ from spyder.py3compat import to_text_string
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.sourcecode import codeeditor
+from spyder.plugins.editor.widgets import codeeditor
 
 
 class ObjectComboBox(EditableComboBox):

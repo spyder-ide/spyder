@@ -25,7 +25,7 @@ from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.editor import TextHelper
+from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
 
@@ -324,7 +324,7 @@ class FindReplace(QWidget):
             QWebEngineView = type(None)
         self.words_button.setVisible(not isinstance(editor, QWebEngineView))
         self.re_button.setVisible(not isinstance(editor, QWebEngineView))
-        from spyder.widgets.sourcecode.codeeditor import CodeEditor
+        from spyder.plugins.editor.widgets.codeeditor import CodeEditor
         self.is_code_editor = isinstance(editor, CodeEditor)
         self.highlight_button.setVisible(self.is_code_editor)
         if refresh:

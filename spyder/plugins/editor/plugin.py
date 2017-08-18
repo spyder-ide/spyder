@@ -41,9 +41,9 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
-                                   EditorStack, Printer)
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
+                                                  EditorSplitter, EditorStack,)
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget
