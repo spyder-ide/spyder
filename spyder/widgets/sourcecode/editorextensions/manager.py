@@ -65,7 +65,7 @@ class EditorExtensionsManager(Manager):
 
         :param name_or_klass: The name or the class of the extension to get
         :type name_or_klass: str or type
-        :rtype: spyder.api.mode.Mode
+        :rtype: spyder.api.mode.EditorExtension
         """
         if not isinstance(name_or_klass, str):
             name_or_klass = name_or_klass.__name__
