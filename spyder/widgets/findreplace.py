@@ -79,9 +79,6 @@ class FindReplace(QWidget):
                                                      self.text_has_been_edited)
 
         self.number_matches_text = QLabel(self)
-        if parent:
-            relative_width = parent.geometry().width() * 0.65
-            self.number_matches_text.setMinimumWidth(relative_width)
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
                                              icon=ima.icon('ArrowUp'))
