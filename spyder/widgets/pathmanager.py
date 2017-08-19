@@ -29,7 +29,7 @@ from spyder.utils.qthelpers import create_toolbutton
 class PathManager(QDialog):
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent=None, pathlist=None, ro_pathlist=None, 
+    def __init__(self, parent=None, pathlist=None, ro_pathlist=None,
                  not_active_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
         
@@ -65,7 +65,7 @@ class PathManager(QDialog):
 
         self.listwidget = QListWidget(self)
         self.listwidget.currentRowChanged.connect(self.refresh)
-        self.listwidget.itemChanged.connect(self.update_not_active_pathlist)        
+        self.listwidget.itemChanged.connect(self.update_not_active_pathlist)
         layout.addWidget(self.listwidget)
 
         bottom_layout = QHBoxLayout()
@@ -179,21 +179,21 @@ class PathManager(QDialog):
     def get_path_list(self):
         """Return path list (does not include the read-only path list)"""
         return self.pathlist
-    
+
     def update_not_active_pathlist(self, item):
         path = item.text()
         if bool(item.checkState()) is True:
             self.remove_from_not_active_pathlist(path)
         else:
             self.add_to_not_active_pathlist(path)
-            
+
     def add_to_not_active_pathlist(self, path):
         if path not in self.not_active_pathlist:
             self.not_active_pathlist.append(path)
-            
+
     def remove_from_not_active_pathlist(self, path):
         if path in self.not_active_pathlist:
-            self.not_active_pathlist.remove(path)        
+            self.not_active_pathlist.remove(path)
         
     def update_list(self):
         """Update path list"""
@@ -244,7 +244,7 @@ class PathManager(QDialog):
         if answer == QMessageBox.Yes:
             self.pathlist.pop(self.listwidget.currentRow())
             self.remove_from_not_active_pathlist(
-                    self.listwidget.currentItem().text())            
+                    self.listwidget.currentItem().text())
             self.update_list()
 
     @Slot()
