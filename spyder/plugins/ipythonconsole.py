@@ -303,8 +303,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                 _("Ask for confirmation before reseting the IPython "
                   "console namespace"), 'show_reset_namespace_warning',
                 tip=_("This option lets you hide the warning message shown\n"
-                      "when reseting the IPython console namespace from the\n"
-                      "variable explorer 'reset namespace' button."))
+                      "when reseting the IPython console namespace from\n"
+                      "the Spyder GUI"))
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
