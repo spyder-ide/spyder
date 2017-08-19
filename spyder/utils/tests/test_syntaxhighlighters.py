@@ -47,6 +47,26 @@ def test_HtmlSH_unclosed_commend():
     compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
 
+def test_python_string_prefix():
+    txt = "[r'test', b'test', f'test', u'test']"     
+
+    doc = QTextDocument(txt)
+    sh = PythonSH(doc, color_scheme='Spyder')
+    sh.rehighlightBlock(doc.firstBlock())
+
+    res = [(0, 1, 'normal'),   # |[|
+           (1, 7, 'string'),   # |r'test'|
+           (8, 2, 'normal'),   # |, |
+           (10, 7, 'string'),  # |b'test'|
+           (17, 2, 'normal'),  # |, |
+           (19, 7, 'string'),  # |f'test'|
+           (26, 2, 'normal'),  # |, |
+           (28, 7, 'string'),  # |u'test'|
+           (35, 1, 'normal')]  # |]|
+
+    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+
+
 def test_Markdown_basic():
     txt = "Some __random__ **text** with ~~different~~ [styles](link_url)"
 
