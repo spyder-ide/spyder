@@ -36,6 +36,10 @@ def test_pathmanager(qtbot):
 
 
 def test_check_uncheck_path(qtbot):
+    """
+    Test that checking and unchecking a path in the PathManager correctly
+    update the not active path list.
+    """
     pathmanager = setup_pathmanager(qtbot, None, pathlist=sys.path[:-10],
                                     ro_pathlist=sys.path[-10:])
 
