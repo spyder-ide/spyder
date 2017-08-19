@@ -81,6 +81,7 @@ def editor_cells_bot(base_editor_bot):
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor, qtbot
 
+
 # Tests
 #-------------------------------
 def test_find_number_matches(qtbot):
