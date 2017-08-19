@@ -204,9 +204,9 @@ if os.name == 'nt':
     creation_flag = 0x08000000  # CREATE_NO_WINDOW
 
     class SubprocessPopen(subprocess.Popen):
-        def __init__(self, *args, creationflags=0, **kwargs):
-            super(SubprocessPopen, self).__init__(
-                *args, creationflags=creation_flag, **kwargs)
+        def __init__(self, *args, **kwargs):
+            kwargs['creationflags'] = creation_flag
+            super(SubprocessPopen, self).__init__(*args, **kwargs)
 
     subprocess.Popen = SubprocessPopen
 
