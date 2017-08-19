@@ -643,7 +643,9 @@ class FileSwitcher(QDialog):
                     text_item += u"<br><i>{0:}</i>".format(short_paths[index])
                 else:
                     text_item += u"<br><i>{0:}</i>".format(paths[index])
-                results.append((score_value, index, text_item))
+                if (trying_for_line_number and self.line_count[index] != 0 or
+                        not trying_for_line_number):
+                    results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
         self.filtered_path = []
