@@ -1,19 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.1.4 is released!
+**Subject**: [ANN] Spyder 3.2.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.1.4** has been released and is available for
+I'm pleased to announce that Spyder **3.2.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes almost two months after version 3.1.3 and adds compatibility
-with IPython 6 and Jedi 0.10, so everyone is encouraged to update to this version.
+This release comes three weeks after version 3.2.0 and it fixes several important
+problems:
 
-In this release we also fixed 19 issues and merged 37 pull requests that amount
-to almost 200 commits. For a full list of fixes, please see our
+* An error when using non-ascii directories to run code in Python 2 and
+  Windows.
+* An error when setting a custom scale factor on HiDPI screens.
+* A blockage in the IPython console when running statements of the form
+  `from foo import *`.
+
+In this release we also fixed 22 issues and merged 28 pull requests that amount
+to more than 100 commits. For a full list of fixes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md)
 
 Don't forget to follow Spyder updates/news on the project
@@ -98,7 +104,7 @@ Enjoy!<br>
 # Major release to others
 
 **Note**: Leave this free of Markdown because it could go to mailing lists that
-don't support it.
+don't support hmtl.
 
 **Subject**: [ANN] Spyder 3.0 is released!
 

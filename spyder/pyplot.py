@@ -5,5 +5,5 @@ Importing guiqwt's pyplot module or matplotlib's pyplot
 
 try:
     from guiqwt.pyplot import *
-except (ImportError, AssertionError):
+except:
     from matplotlib.pyplot import *

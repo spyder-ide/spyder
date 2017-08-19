@@ -38,7 +38,8 @@ from spyder.py3compat import (getcwd, str_lower, to_binary_string,
                               to_text_string, PY2)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, misc, programs, vcs
-from spyder.utils.qthelpers import add_actions, create_action, file_uri
+from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
+                                    create_plugin_layout)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -1222,9 +1223,7 @@ class ExplorerWidget(QWidget):
         blayout.addStretch()
         blayout.addWidget(self.button_menu)
 
-        layout = QVBoxLayout()
-        layout.addLayout(blayout)
-        layout.addWidget(self.treewidget)
+        layout = create_plugin_layout(blayout, self.treewidget)
         self.setLayout(layout)
 
         # Signals and slots

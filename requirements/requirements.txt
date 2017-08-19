@@ -1,4 +1,4 @@
-rope>=0.10.5
+rope>=0.9.4
 jedi>=0.9.0
 pyflakes
 pygments>=2.0

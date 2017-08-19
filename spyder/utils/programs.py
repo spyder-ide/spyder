@@ -258,7 +258,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
 
     :str wdir: working directory, may be empty.
     """
-    
     # If fname has spaces on it it can't be ran on Windows, so we have to
     # enclose it in quotes. Also wdir can come with / as os.sep, so we
     # need to take care of it

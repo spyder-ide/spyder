@@ -173,7 +173,7 @@ class EditableComboBox(BaseComboBox):
 
     def validate(self, qstr, editing=True):
         """Validate entered path"""
-        if self.selected_text == qstr:
+        if self.selected_text == qstr and qstr != '':
             self.valid.emit(True, True)
             return
 
