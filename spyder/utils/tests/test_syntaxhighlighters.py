@@ -50,7 +50,7 @@ def test_HtmlSH_unclosed_commend():
 
 def test_python_string_prefix():
     if PY3:
-        prefixes = ("r", "u", "R", "U", "f", "F", "fr", "Fr", "fR", "FR", 
+        prefixes = ("r", "u", "R", "U", "f", "F", "fr", "Fr", "fR", "FR",
                     "rf", "rF", "Rf", "RF", "b", "B", "br", "Br", "bR", "BR",
                     "rb", "rB", "Rb", "RB")
     else:
