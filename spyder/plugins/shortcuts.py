@@ -690,6 +690,7 @@ class ShortcutsTable(QTableView):
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
+        self.resizeRowsToContents()
         self.resizeColumnsToContents()
         fm = self.horizontalHeader().fontMetrics()
         names = [fm.width(s.name + ' '*9) for s in self.source_model.shortcuts]

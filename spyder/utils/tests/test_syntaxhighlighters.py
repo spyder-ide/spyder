@@ -10,6 +10,7 @@ from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QTextDocument
 
 from spyder.utils.syntaxhighlighters import HtmlSH, PythonSH, MarkdownSH
+from spyder.py3compat import PY3
 
 def compare_formats(actualFormats, expectedFormats, sh):
     assert len(actualFormats) == len(expectedFormats)
@@ -48,23 +49,27 @@ def test_HtmlSH_unclosed_commend():
 
 
 def test_python_string_prefix():
-    txt = "[r'test', b'test', f'test', u'test']"     
+    if PY3:
+        prefixes = ("r","u","R","U","f","F","fr","Fr","fR","FR","rf","rF","Rf",
+                    "RF","b","B","br","Br","bR","BR","rb","rB","Rb","RB")
+    else:
+        prefixes = ("r","u","ur","R","U","UR","Ur","uR","b","B","br","Br","bR",
+                    "BR")
+    for prefix in prefixes:
+        txt = "[%s'test', %s'''test''']" % (prefix, prefix)
 
-    doc = QTextDocument(txt)
-    sh = PythonSH(doc, color_scheme='Spyder')
-    sh.rehighlightBlock(doc.firstBlock())
+        doc = QTextDocument(txt)
+        sh = PythonSH(doc, color_scheme='Spyder')
+        sh.rehighlightBlock(doc.firstBlock())
+        
+        offset = len(prefix)
+        res = [(0, 1, 'normal'),                    # |[|
+               (1, 6 + offset, 'string'),           # |{prefix}'test'|
+               (7 + offset, 2, 'normal'),           # |, |
+               (9 + offset, 10 + offset, 'string'), # |{prefix}'''test'''|
+               (19 + 2*offset, 1, 'normal')]        # | |
 
-    res = [(0, 1, 'normal'),   # |[|
-           (1, 7, 'string'),   # |r'test'|
-           (8, 2, 'normal'),   # |, |
-           (10, 7, 'string'),  # |b'test'|
-           (17, 2, 'normal'),  # |, |
-           (19, 7, 'string'),  # |f'test'|
-           (26, 2, 'normal'),  # |, |
-           (28, 7, 'string'),  # |u'test'|
-           (35, 1, 'normal')]  # |]|
-
-    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
+        compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
 
 def test_Markdown_basic():

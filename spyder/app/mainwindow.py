@@ -230,6 +230,7 @@ class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
     SPYDER_PATH = get_conf_path('path')
+    SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     BOOKMARKS = (
          ('numpy', "http://docs.scipy.org/doc/",
           _("Numpy and Scipy documentation")),
@@ -304,10 +305,16 @@ class MainWindow(QMainWindow):
 
         # Loading Spyder path
         self.path = []
+        self.not_active_path = []
         self.project_path = []
         if osp.isfile(self.SPYDER_PATH):
             self.path, _x = encoding.readlines(self.SPYDER_PATH)
             self.path = [name for name in self.path if osp.isdir(name)]
+        if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
+            self.not_active_path, _x = \
+                encoding.readlines(self.SPYDER_NOT_ACTIVE_PATH)
+            self.not_active_path = \
+                [name for name in self.not_active_path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
 
@@ -2482,7 +2489,8 @@ class MainWindow(QMainWindow):
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
         for path in reversed(self.get_spyder_pythonpath()):
-            sys.path.insert(1, path)
+            if path not in self.not_active_path:
+                sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
@@ -2496,11 +2504,13 @@ class MainWindow(QMainWindow):
         from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
         project_path = self.projects.get_pythonpath()
-        dialog = PathManager(self, self.path, project_path, sync=True)
+        dialog = PathManager(self, self.path, project_path,
+                             self.not_active_path, sync=True)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
+        encoding.writelines(self.not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):
@@ -2527,8 +2537,11 @@ class MainWindow(QMainWindow):
             except:
                 pass
         else:
-            qapp.setStyle(CONF.get('main', 'windows_style',
-                                   self.default_style))
+            style_name = CONF.get('main', 'windows_style',
+                                  self.default_style)
+            style = QStyleFactory.create(style_name)
+            style.setProperty('name', style_name)
+            qapp.setStyle(style)
         
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
