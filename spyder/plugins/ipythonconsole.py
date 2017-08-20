@@ -620,7 +620,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Create temp dir on testing to save kernel errors
         if self.testing:
             if not osp.isdir(osp.join(programs.TEMPDIR, '測試', 'اختبار')):
-                os.mkdir(osp.join(programs.TEMPDIR, '測試', 'اختبار'))
+                os.makedirs(osp.join(programs.TEMPDIR, '測試', 'اختبار'))
 
 
         layout = QVBoxLayout()
