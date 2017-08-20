@@ -14,7 +14,6 @@ from __future__ import print_function
 import keyword
 import os
 import re
-import sys
 import weakref
 
 # Third party imports
@@ -27,7 +26,7 @@ from qtpy.QtWidgets import QApplication
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.py3compat import builtins, is_text_string, to_text_string
+from spyder.py3compat import builtins, is_text_string, to_text_string, PY3
 from spyder.utils.sourcecode import CELL_LANGUAGES
 from spyder.utils.editor import TextBlockHelper as tbh
 from spyder.utils.workers import WorkerManager
@@ -341,7 +340,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                   r"\b[+-]?0[oO][0-7]+[lL]?\b",
                   r"\b[+-]?0[bB][01]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"])
-    if sys.version_info[0] == 3:
+    if PY3:
         prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     else:
         prefix = "r|u|ur|R|U|UR|Ur|uR|b|B|br|Br|bR|BR"
