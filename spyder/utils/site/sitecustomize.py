@@ -196,6 +196,21 @@ except:
 
 
 #==============================================================================
+# Prevent subprocess.Popen calls to create visible console windows on Windows.
+# See issue #4932
+#==============================================================================
+if os.name == 'nt':
+    import subprocess
+    creation_flag = 0x08000000  # CREATE_NO_WINDOW
+
+    class SubprocessPopen(subprocess.Popen):
+        def __init__(self, *args, **kwargs):
+            kwargs['creationflags'] = creation_flag
+            super(SubprocessPopen, self).__init__(*args, **kwargs)
+
+    subprocess.Popen = SubprocessPopen
+
+#==============================================================================
 # Importing user's sitecustomize
 #==============================================================================
 try:
@@ -226,7 +241,6 @@ if os.environ["QT_API"] == 'pyqt':
             sip.setapi(qtype, 2)
     except:
         pass
-
 
 #==============================================================================
 # This prevents a kernel crash with the inline backend in our IPython
