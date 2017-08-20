@@ -3037,10 +3037,10 @@ def main():
     options, args = get_options()
 
     if set_attached_console_visible is not None:
-        set_attached_console_visible(DEBUG or options.show_console \
-                                     or options.reset_config_files \
-                                     or options.reset_to_defaults \
-                                     or options.optimize)
+        set_attached_console_visible(options.show_console
+                                     or options.reset_config_files
+                                     or options.reset_to_defaults
+                                     or options.optimize or bool(DEBUG))
 
     app = initialize()
     if options.reset_config_files:
