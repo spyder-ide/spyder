@@ -2366,7 +2366,11 @@ class CodeEditor(TextEditBaseWidget):
         cursor3.setPosition(cursor1.position())
         cursor3.movePosition(QTextCursor.NextBlock)
         while cursor3.position() < cursor2.position():
-            cursor3.setPosition(cursor3.position()+2, QTextCursor.KeepAnchor)
+            cursor3.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
+            if not cursor3.atBlockEnd():
+                # standard commenting inserts '# ' but a trailing space on an
+                # empty line might be stripped.
+                cursor3.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
             cursor3.removeSelectedText()
             cursor3.movePosition(QTextCursor.NextBlock)
         for cursor in (cursor2, cursor1):
