@@ -619,8 +619,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create temp dir on testing to save kernel errors
         if self.testing:
-            if not osp.isdir(programs.TEMPDIR):
-                os.mkdir(programs.TEMPDIR)
+            if not osp.isdir(osp.join(programs.TEMPDIR, '測試', 'اختبار')):
+                os.mkdir(osp.join(programs.TEMPDIR, '測試', 'اختبار'))
+
 
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
@@ -932,7 +933,7 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
-    def create_new_client(self, give_focus=True, filename=''):
+    def create_new_client(self, give_focus=True, filename='', testing=False):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -944,7 +945,7 @@ class IPythonConsole(SpyderPluginWidget):
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              menu_actions=self.menu_actions)
+                              menu_actions=self.menu_actions, testing=testing)
         self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:
