@@ -168,7 +168,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             if not self.testing:
                 stderr_file = osp.join(TEMPDIR, stderr_file)
             else:
-                stderr_file = osp.join(TEMPDIR, '測試', 'اختبار', stderr_file)
+                stderr_file = osp.join(TEMPDIR, u'測試', u'اختبار', stderr_file)
             return stderr_file
 
     def configure_shellwidget(self, give_focus=True):
