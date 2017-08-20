@@ -619,7 +619,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create temp dir on testing to save kernel errors
         if self.testing:
-            if not osp.isdir(osp.join(programs.TEMPDIR, '測試', 'اختبار')):
+            if not osp.isdir(osp.join(programs.TEMPDIR, u'測試', u'اختبار')):
                 os.makedirs(osp.join(programs.TEMPDIR, '測試', 'اختبار'))
 
 
