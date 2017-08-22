@@ -699,6 +699,9 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_quotes_enabled(self, enable):
         """Enable/disable automatic quote insertion feature"""
         self.close_quotes_enabled = enable
+        quote_extension = self.editor_extensions.get(QuoteEditorExtension)
+        if quote_extension is not None:
+            quote_extension.enabled = enable
 
     def set_add_colons_enabled(self, enable):
         """Enable/disable automatic colons insertion feature"""
@@ -2288,52 +2291,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def autoinsert_quotes(self, key):
-        """Control how to automatically insert quotes in various situations"""
-        char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
-
-        line_text = self.get_text('sol', 'eol')
-        line_to_cursor = self.get_text('sol', 'cursor')
-        cursor = self.textCursor()
-        last_three = self.get_text('sol', 'cursor')[-3:]
-        last_two = self.get_text('sol', 'cursor')[-2:]
-        trailing_text = self.get_text('cursor', 'eol').strip()
-
-        if self.has_selected_text():
-            text = ''.join([char, self.get_selected_text(), char])
-            self.insert_text(text)
-        elif self.__in_comment():
-            self.insert_text(char)
-        elif len(trailing_text) > 0 and not \
-          self.__unmatched_quotes_in_line(line_to_cursor) == char:
-            self.insert_text(char)
-        elif self.__unmatched_quotes_in_line(line_text) and \
-          (not last_three == 3*char):
-            self.insert_text(char)
-        # Move to the right if we are before a quote
-        elif self.__next_char() == char:
-            cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor, 1)
-            cursor.clearSelection()
-            self.setTextCursor(cursor)
-        # Automatic insertion of triple double quotes (for docstrings)
-        elif last_three == 3*char:
-            self.insert_text(3*char)
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter,
-                                QTextCursor.KeepAnchor, 3)
-            cursor.clearSelection()
-            self.setTextCursor(cursor)
-        # If last two chars are quotes, just insert one more because most
-        # probably the user wants to write a docstring
-        elif last_two == 2*char:
-            self.insert_text(char)
-        # Automatic insertion of quotes
-        else:
-            self.insert_text(2*char)
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter)
-            self.setTextCursor(cursor)
 
 #===============================================================================
 #    Qt Event handlers
@@ -2567,9 +2524,6 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             else:
                 TextEditBaseWidget.keyPressEvent(self, event)
-        elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
-          self.close_quotes_enabled:
-            self.autoinsert_quotes(key)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
           and not self.has_selected_text() and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
