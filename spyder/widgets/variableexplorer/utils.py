@@ -256,13 +256,16 @@ def unsorted_unique(lista):
 #==============================================================================
 # Display <--> Value
 #==============================================================================
-def default_display(value):
+def default_display(value, with_module=True):
     """Default display for unknown objects."""
     object_type = type(value)
     try:
         name = object_type.__name__
         module = object_type.__module__
-        return name + ' of ' + module + ' module'
+        if with_module:
+            return name + ' of ' + module + ' module'
+        else:
+            return name
     except:
         type_str = to_text_string(object_type)
         return type_str[1:-1]
