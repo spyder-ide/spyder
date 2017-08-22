@@ -15,8 +15,8 @@ import re
 # Local imports
 from spyder.config.base import get_supported_types
 from spyder.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
-                              is_text_string, is_binary_string, reprlib,
-                              PY2, to_binary_string)
+                              is_text_string, is_binary_string, PY2,
+                              to_binary_string)
 from spyder.utils import programs
 from spyder import dependencies
 from spyder.config.base import _
@@ -150,17 +150,6 @@ def get_object_attrs(obj):
     if not attrs:
         attrs = dir(obj)
     return attrs
-
-
-# =============================================================================
-# Set limits for the amount of elements in the repr of collections (lists,
-# dicts, tuples and sets) and Numpy arrays
-# =============================================================================
-CollectionsRepr = reprlib.Repr()
-CollectionsRepr.maxlist = 10
-CollectionsRepr.maxdict = 10
-CollectionsRepr.maxtuple = 10
-CollectionsRepr.maxset = 10
 
 
 #==============================================================================
