@@ -271,7 +271,36 @@ def default_display(value, with_module=True):
         return type_str[1:-1]
 
 
-def value_to_display(value, minmax=False):
+def collections_display(value, recursion):
+    """Display for collections (i.e list, tuple and dict)."""
+    if isinstance(value, (list, tuple)):
+        # Truncate values
+        truncate = False
+        elements = value
+        if recursion == 1 and len(value) > 10:
+            elements = value[:10]
+            truncate = True
+        elif recursion == 2 and len(value) > 5:
+            elements = value[:5]
+            truncate = True
+
+        if recursion <= 2:
+            displays = [value_to_display(e, recursion) for e in elements]
+            if truncate:
+                displays.append('...')
+            display = ', '.join(displays)
+        else:
+            display = '...'
+
+        if isinstance(value, list):
+            display = '[' + display + ']'
+        else:
+            display = '(' + display + ')'
+
+        return display
+
+
+def value_to_display(value, minmax=False, recursion=0):
     """Convert value for display purpose"""
     # To save current Numpy threshold
     np_threshold = FakeObject
@@ -303,8 +332,8 @@ def value_to_display(value, minmax=False):
                 display = repr(value)
             else:
                 display = default_display(value)
-        elif any([type(value) == t for t in [list, tuple, dict, set]]):
-            display = CollectionsRepr.repr(value)
+        elif any([type(value) == t for t in [list, tuple, dict]]):
+            display = collections_display(value, recursion+1)
         elif isinstance(value, Image):
             display = '%s  Mode: %s' % (address(value), value.mode)
         elif isinstance(value, DataFrame):
