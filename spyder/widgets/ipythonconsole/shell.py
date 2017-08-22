@@ -408,13 +408,13 @@ the sympy module (e.g. plot)
         """
         Reimplemented to reset the prompt if the error comes after the reply
         """
-        # In pyqt4, if super does not has _handle_error, disregard the error 
+        # In pyqt4, if super does not has _handle_error, disregard the error
         if PYQT4:
-          if not hasattr(super(ShellWidget, self), '_handle_error'):
-            return
+            if not hasattr(super(ShellWidget, self), '_handle_error'):
+                return
         super(ShellWidget, self)._handle_error(msg)
         self._show_interpreter_prompt()
-    
+
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(ShellWidget, self)._context_menu_make(pos)
