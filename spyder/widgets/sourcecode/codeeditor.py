@@ -69,6 +69,9 @@ from spyder.widgets.sourcecode.folding import IndentFoldDetector
 from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
 from spyder.widgets.sourcecode.editorextensions.manager import (
         EditorExtensionsManager)
+from spyder.widgets.sourcecode.editorextensions.closequotes import (
+        QuoteEditorExtension)
+
 from spyder.api.panel import Panel
 
 try:
@@ -428,7 +431,9 @@ class CodeEditor(TextEditBaseWidget):
                                        lambda value: self.rehighlight_cells())
 
         # Editor Extensions
-        editor_extensions = EditorExtensionsManager(self)
+        self.editor_extensions = EditorExtensionsManager(self)
+
+        self.editor_extensions.append(QuoteEditorExtension())
 
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
