@@ -15,6 +15,8 @@ from qtpy.QtGui import QTextCursor
 from spyder.utils.qthelpers import qapplication
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.utils.editor import TextHelper
+from spyder.widgets.sourcecode.editorextensions.closequotes import (
+        QuoteEditorExtension)
 
 
 # --- Fixtures
@@ -69,7 +71,25 @@ def test_selected_text(qtbot, editor_close_quotes):
 
     qtbot.keyClicks(editor, '"')
     assert editor.toPlainText() == '"some" text'
-    
+
+
+def test_activate_deactivate(qtbot, editor_close_quotes):
+    editor = editor_close_quotes
+    quote_extension = editor.editor_extensions.get(QuoteEditorExtension)
+
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == '""'
+
+    editor.set_text('')
+    quote_extension.enabled = False
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == '"'
+
+    editor.set_text('')
+    quote_extension.enabled = True
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == '""'
+
 
 if __name__ == '__main__':
     pytest.main()
