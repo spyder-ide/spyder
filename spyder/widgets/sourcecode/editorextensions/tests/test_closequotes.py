@@ -9,6 +9,7 @@ Tests for close quotes.
 
 # Third party imports
 import pytest
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
@@ -56,6 +57,19 @@ def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
 
     assert cursor_column == TextHelper(editor).current_column_nbr()
 
+
+def test_selected_text(qtbot, editor_close_quotes):
+    editor = editor_close_quotes
+    editor.set_text('some text')
+
+    # select some
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 4)
+    editor.setTextCursor(cursor)
+
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == '"some" text'
+    
 
 if __name__ == '__main__':
     pytest.main()
