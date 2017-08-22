@@ -55,10 +55,10 @@ class QuoteEditorExtension(EditorExtension):
 
         key = event.key()
         if key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and self.enabled:
-            self.autoinsert_quotes(key)
+            self._autoinsert_quotes(key)
             event.accept()
 
-    def autoinsert_quotes(self, key):
+    def _autoinsert_quotes(self, key):
         """Control how to automatically insert quotes in various situations"""
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
 
