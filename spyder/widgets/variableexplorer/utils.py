@@ -260,21 +260,21 @@ def default_display(value, with_module=True):
         return type_str[1:-1]
 
 
-def collections_display(value, recursion):
+def collections_display(value, level):
     """Display for collections (i.e list, tuple and dict)."""
     if isinstance(value, (list, tuple)):
         # Truncate values
         truncate = False
         elements = value
-        if recursion == 1 and len(value) > 10:
+        if level == 1 and len(value) > 10:
             elements = value[:10]
             truncate = True
-        elif recursion == 2 and len(value) > 5:
+        elif level == 2 and len(value) > 5:
             elements = value[:5]
             truncate = True
 
-        if recursion <= 2:
-            displays = [value_to_display(e, recursion=recursion)
+        if level <= 2:
+            displays = [value_to_display(e, level=level)
                         for e in elements]
             if truncate:
                 displays.append('...')
@@ -290,7 +290,7 @@ def collections_display(value, recursion):
         return display
 
 
-def value_to_display(value, minmax=False, recursion=0):
+def value_to_display(value, minmax=False, level=0):
     """Convert value for display purpose"""
     # To save current Numpy threshold
     np_threshold = FakeObject
@@ -305,7 +305,7 @@ def value_to_display(value, minmax=False, recursion=0):
             # in our display
             set_printoptions(threshold=10)
         if isinstance(value, recarray):
-            if recursion == 0:
+            if level == 0:
                 fields = value.names
                 display = 'Field names: ' + ', '.join(fields)
             else:
@@ -313,7 +313,7 @@ def value_to_display(value, minmax=False, recursion=0):
         elif isinstance(value, MaskedArray):
             display = 'Masked array'
         elif isinstance(value, ndarray):
-            if recursion == 0:
+            if level == 0:
                 if minmax:
                     try:
                         display = 'Min: %r\nMax: %r' % (value.min(), value.max())
@@ -329,14 +329,14 @@ def value_to_display(value, minmax=False, recursion=0):
             else:
                 display = 'Numpy array'
         elif any([type(value) == t for t in [list, tuple, dict]]):
-            display = collections_display(value, recursion+1)
+            display = collections_display(value, level+1)
         elif isinstance(value, Image):
-            if recursion == 0:
+            if level == 0:
                 display = '%s  Mode: %s' % (address(value), value.mode)
             else:
                 display = 'Image'
         elif isinstance(value, DataFrame):
-            if recursion == 0:
+            if level == 0:
                 cols = value.columns
                 if PY2 and len(cols) > 0:
                     # Get rid of possible BOM utf-8 data present at the
@@ -358,7 +358,7 @@ def value_to_display(value, minmax=False, recursion=0):
             # Fixes Issue 2448
             display = to_text_string(value)
         elif isinstance(value, DatetimeIndex):
-            if recursion == 0:
+            if level == 0:
                 display = value.summary()
             else:
                 display = 'DatetimeIndex'
@@ -374,7 +374,7 @@ def value_to_display(value, minmax=False, recursion=0):
               isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:
-            if recursion == 0:
+            if level == 0:
                 display = default_display(value)
             else:
                 display = default_display(value, with_module=False)
