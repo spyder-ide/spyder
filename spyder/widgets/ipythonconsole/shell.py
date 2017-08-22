@@ -14,6 +14,7 @@ import uuid
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
+from qtpy import PYQT4
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
@@ -407,6 +408,10 @@ the sympy module (e.g. plot)
         """
         Reimplemented to reset the prompt if the error comes after the reply
         """
+        # In pyqt4, if super does not has _handle_error, disregard the error 
+        if PYQT4:
+          if not hasattr(super(ShellWidget, self), '_handle_error'):
+            return
         super(ShellWidget, self)._handle_error(msg)
         self._show_interpreter_prompt()
     
