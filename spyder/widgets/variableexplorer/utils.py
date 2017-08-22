@@ -10,13 +10,14 @@ Utilities
 
 from __future__ import print_function
 
+from itertools import islice
 import re
 
 # Local imports
 from spyder.config.base import get_supported_types
 from spyder.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
                               is_text_string, is_binary_string, PY2,
-                              to_binary_string)
+                              to_binary_string, iteritems)
 from spyder.utils import programs
 from spyder import dependencies
 from spyder.config.base import _
@@ -261,33 +262,48 @@ def default_display(value, with_module=True):
 
 
 def collections_display(value, level):
-    """Display for collections (i.e list, tuple and dict)."""
-    if isinstance(value, (list, tuple)):
-        # Truncate values
-        truncate = False
-        elements = value
-        if level == 1 and len(value) > 10:
-            elements = value[:10]
-            truncate = True
-        elif level == 2 and len(value) > 5:
-            elements = value[:5]
-            truncate = True
+    """Display for collections (i.e. list, tuple and dict)."""
+    is_dict = isinstance(value, dict)
 
-        if level <= 2:
+    # Get elements
+    if is_dict:
+        elements = iteritems(value)
+    else:
+        elements = value
+
+    # Truncate values
+    truncate = False
+    if level == 1 and len(value) > 10:
+        elements = islice(elements, 10) if is_dict else value[:10]
+        truncate = True
+    elif level == 2 and len(value) > 5:
+        elements = islice(elements, 5) if is_dict else value[:5]
+        truncate = True
+
+    # Get display of each element
+    if level <= 2:
+        if is_dict:
+            displays = [value_to_display(k, level=level) + ':' +
+                        value_to_display(v, level=level)
+                        for (k, v) in list(elements)]
+        else:
             displays = [value_to_display(e, level=level)
                         for e in elements]
-            if truncate:
-                displays.append('...')
-            display = ', '.join(displays)
-        else:
-            display = '...'
+        if truncate:
+            displays.append('...')
+        display = ', '.join(displays)
+    else:
+        display = '...'
 
-        if isinstance(value, list):
-            display = '[' + display + ']'
-        else:
-            display = '(' + display + ')'
+    # Return display
+    if is_dict:
+        display = '{' + display + '}'
+    elif isinstance(value, list):
+        display = '[' + display + ']'
+    else:
+        display = '(' + display + ')'
 
-        return display
+    return display
 
 
 def value_to_display(value, minmax=False, level=0):
