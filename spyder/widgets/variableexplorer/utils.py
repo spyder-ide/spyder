@@ -262,7 +262,7 @@ def default_display(value):
     try:
         name = object_type.__name__
         module = object_type.__module__
-        return name + ' of ' + module
+        return name + ' of ' + module + ' module'
     except:
         type_str = to_text_string(object_type)
         return type_str[1:-1]
@@ -292,9 +292,14 @@ def value_to_display(value, minmax=False):
                 try:
                     display = 'Min: %r\nMax: %r' % (value.min(), value.max())
                 except (TypeError, ValueError):
-                    display = repr(value)
-            else:
+                    if value.dtype.type in numeric_numpy_types:
+                        display = repr(value)
+                    else:
+                        display = default_display(value)
+            elif value.dtype.type in numeric_numpy_types:
                 display = repr(value)
+            else:
+                display = default_display(value)
         elif any([type(value) == t for t in [list, tuple, dict, set]]):
             display = CollectionsRepr.repr(value)
         elif isinstance(value, Image):
