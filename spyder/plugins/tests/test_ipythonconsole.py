@@ -15,13 +15,13 @@ from flaky import flaky
 from ipykernel.serialize import serialize_object
 from pygments.token import Name
 import pytest
-from qtpy import PYQT5, PYQT_VERSION
+from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
 
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, PY3
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
 from spyder.utils.environ import listdict2envdict
@@ -563,7 +563,8 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
+                    reason="It segfaults frequently")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
     Test that a new client is created using the connection file
