@@ -397,10 +397,10 @@ def value_to_display(value, minmax=False, level=0):
     except:
         display = default_display(value)
 
-    # Truncate display at 80 chars to avoid freezing Spyder
+    # Truncate display at 70 chars to avoid freezing Spyder
     # because of large displays
-    if len(display) > 80:
-        display = display[:80].rstrip() + ' ...'
+    if len(display) > 70:
+        display = display[:70].rstrip() + ' ...'
 
     # Restore Numpy threshold
     if np_threshold is not FakeObject:
