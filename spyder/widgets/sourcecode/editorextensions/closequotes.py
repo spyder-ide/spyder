@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 """
-This module contains the quote select editor extension
+This module contains the close quotes editor extension
 """
 
 from qtpy.QtCore import Qt
@@ -40,10 +40,10 @@ def unmatched_quotes_in_line(text):
 
 
 class QuoteEditorExtension(EditorExtension):
-    """"""
+    """Editor Extension for insert closing quotes automatically."""
 
     def on_state_changed(self, state):
-        """"""
+        """Connect/disconnect key_pressed signal."""
         if state:
             self.editor.key_pressed.connect(self._on_key_pressed)
         else:
