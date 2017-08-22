@@ -285,7 +285,8 @@ def collections_display(value, recursion):
             truncate = True
 
         if recursion <= 2:
-            displays = [value_to_display(e, recursion) for e in elements]
+            displays = [value_to_display(e, recursion=recursion)
+                        for e in elements]
             if truncate:
                 displays.append('...')
             display = ', '.join(displays)
