@@ -373,6 +373,8 @@ def value_to_display(value, minmax=False, level=0):
         elif isinstance(value, NavigableString):
             # Fixes Issue 2448
             display = to_text_string(value)
+            if level > 0:
+                display = u"'" + display + u"'"
         elif isinstance(value, DatetimeIndex):
             if level == 0:
                 display = value.summary()
@@ -383,8 +385,13 @@ def value_to_display(value, minmax=False, level=0):
                 display = to_text_string(value, 'utf8')
             except:
                 display = value
+            if level > 0:
+                display = (to_binary_string("'") + display +
+                           to_binary_string('"'))
         elif is_text_string(value):
             display = value
+            if level > 0:
+                display = u"'" + display + u"'"
         elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
               isinstance(value, datetime.date) or
               isinstance(value, numeric_numpy_types)):
