@@ -2395,6 +2395,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+        event.ignore()
         self.key_pressed.emit(event)
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -2573,8 +2574,9 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 # indent the selected text
                 self.unindent()
-        else:
+        elif not event.isAccepted():
             TextEditBaseWidget.keyPressEvent(self, event)
+            event.accept()
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
 

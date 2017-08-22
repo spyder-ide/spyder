@@ -24,10 +24,13 @@ class QuoteEditorExtension(EditorExtension):
             self.editor.key_pressed.disconnect(self._on_key_pressed)
 
     def _on_key_pressed(self, event):
-        key = event.key()
+        if event.isAccepted():
+            return
 
+        key = event.key()
         if key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and self.enabled:
             self.autoinsert_quotes(key)
+            event.accept()
 
     def autoinsert_quotes(self, key):
         """Control how to automatically insert quotes in various situations"""
