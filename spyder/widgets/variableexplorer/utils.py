@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Utilities for the Collections editor widget and dialog
+Utilities
 """
 
 from __future__ import print_function
@@ -316,48 +316,63 @@ def value_to_display(value, minmax=False, recursion=0):
             # in our display
             set_printoptions(threshold=10)
         if isinstance(value, recarray):
-            fields = value.names
-            display = 'Field names: ' + ', '.join(fields)
+            if recursion == 0:
+                fields = value.names
+                display = 'Field names: ' + ', '.join(fields)
+            else:
+                display = 'Recarray'
         elif isinstance(value, MaskedArray):
             display = 'Masked array'
         elif isinstance(value, ndarray):
-            if minmax:
-                try:
-                    display = 'Min: %r\nMax: %r' % (value.min(), value.max())
-                except (TypeError, ValueError):
-                    if value.dtype.type in numeric_numpy_types:
-                        display = repr(value)
-                    else:
-                        display = default_display(value)
-            elif value.dtype.type in numeric_numpy_types:
-                display = repr(value)
+            if recursion == 0:
+                if minmax:
+                    try:
+                        display = 'Min: %r\nMax: %r' % (value.min(), value.max())
+                    except (TypeError, ValueError):
+                        if value.dtype.type in numeric_numpy_types:
+                            display = repr(value)
+                        else:
+                            display = default_display(value)
+                elif value.dtype.type in numeric_numpy_types:
+                    display = repr(value)
+                else:
+                    display = default_display(value)
             else:
-                display = default_display(value)
+                display = 'Numpy array'
         elif any([type(value) == t for t in [list, tuple, dict]]):
             display = collections_display(value, recursion+1)
         elif isinstance(value, Image):
-            display = '%s  Mode: %s' % (address(value), value.mode)
-        elif isinstance(value, DataFrame):
-            cols = value.columns
-            if PY2 and len(cols) > 0:
-                # Get rid of possible BOM utf-8 data present at the
-                # beginning of a file, which gets attached to the first
-                # column header when headers are present in the first
-                # row.
-                # Fixes Issue 2514
-                try:
-                    ini_col = to_text_string(cols[0], encoding='utf-8-sig')
-                except:
-                    ini_col = to_text_string(cols[0])
-                cols = [ini_col] + [to_text_string(c) for c in cols[1:]]
+            if recursion == 0:
+                display = '%s  Mode: %s' % (address(value), value.mode)
             else:
-                cols = [to_text_string(c) for c in cols]
-            display = 'Column names: ' + ', '.join(list(cols))
+                display = 'Image'
+        elif isinstance(value, DataFrame):
+            if recursion == 0:
+                cols = value.columns
+                if PY2 and len(cols) > 0:
+                    # Get rid of possible BOM utf-8 data present at the
+                    # beginning of a file, which gets attached to the first
+                    # column header when headers are present in the first
+                    # row.
+                    # Fixes Issue 2514
+                    try:
+                        ini_col = to_text_string(cols[0], encoding='utf-8-sig')
+                    except:
+                        ini_col = to_text_string(cols[0])
+                    cols = [ini_col] + [to_text_string(c) for c in cols[1:]]
+                else:
+                    cols = [to_text_string(c) for c in cols]
+                display = 'Column names: ' + ', '.join(list(cols))
+            else:
+                display = 'Dataframe'
         elif isinstance(value, NavigableString):
             # Fixes Issue 2448
             display = to_text_string(value)
         elif isinstance(value, DatetimeIndex):
-            display = value.summary()
+            if recursion == 0:
+                display = value.summary()
+            else:
+                display = 'DatetimeIndex'
         elif is_binary_string(value):
             try:
                 display = to_text_string(value, 'utf8')
@@ -365,14 +380,15 @@ def value_to_display(value, minmax=False, recursion=0):
                 display = value
         elif is_text_string(value):
             display = value
-        elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
-          isinstance(value, datetime.date) or \
-          isinstance(value, numeric_numpy_types):
+        elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
+              isinstance(value, datetime.date) or
+              isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:
-            # Note: Don't trust on repr's. They can be inefficient and
-            # so freeze Spyder quite easily
-            display = default_display(value)
+            if recursion == 0:
+                display = default_display(value)
+            else:
+                display = default_display(value, with_module=False)
     except:
         display = default_display(value)
 
@@ -386,7 +402,6 @@ def value_to_display(value, minmax=False, recursion=0):
         set_printoptions(threshold=np_threshold)
 
     return display
-
 
 
 def display_to_value(value, default_value, ignore_errors=True):
