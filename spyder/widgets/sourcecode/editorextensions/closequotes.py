@@ -13,6 +13,32 @@ from qtpy.QtGui import QTextCursor
 from spyder.api.editorextension import EditorExtension
 
 
+def unmatched_quotes_in_line(text):
+    """Return whether a string has open quotes.
+    This simply counts whether the number of quote characters of either
+    type in the string is odd.
+
+    Take from the IPython project (in IPython/core/completer.py in v0.13)
+    Spyder team: Add some changes to deal with escaped quotes
+
+    - Copyright (C) 2008-2011 IPython Development Team
+    - Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
+    - Copyright (C) 2001 Python Software Foundation, www.python.org
+
+    Distributed under the terms of the BSD License.
+    """
+    # We check " first, then ', so complex cases with nested quotes will
+    # get the " to take precedence.
+    text = text.replace("\\'", "")
+    text = text.replace('\\"', '')
+    if text.count('"') % 2:
+        return '"'
+    elif text.count("'") % 2:
+        return "'"
+    else:
+        return ''
+
+
 class QuoteEditorExtension(EditorExtension):
     """"""
 
@@ -46,16 +72,16 @@ class QuoteEditorExtension(EditorExtension):
         if self.editor.has_selected_text():
             text = ''.join([char, self.editor.get_selected_text(), char])
             self.editor.insert_text(text)
-        elif self.editor.__in_comment():
+        elif self.editor.in_comment():
             self.editor.insert_text(char)
         elif len(trailing_text) > 0 and not \
-                self.editor.__unmatched_quotes_in_line(line_to_cursor) == char:
+                unmatched_quotes_in_line(line_to_cursor) == char:
             self.editor.insert_text(char)
-        elif self.editor.__unmatched_quotes_in_line(line_text) and \
+        elif unmatched_quotes_in_line(line_text) and \
                 (not last_three == 3*char):
             self.editor.insert_text(char)
         # Move to the right if we are before a quote
-        elif self.editor.__next_char() == char:
+        elif self.editor.next_char() == char:
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor, 1)
             cursor.clearSelection()

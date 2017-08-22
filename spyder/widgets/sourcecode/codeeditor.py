@@ -2248,39 +2248,14 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return True
 
-    def __unmatched_quotes_in_line(self, text):
-        """Return whether a string has open quotes.
-        This simply counts whether the number of quote characters of either
-        type in the string is odd.
-
-        Take from the IPython project (in IPython/core/completer.py in v0.13)
-        Spyder team: Add some changes to deal with escaped quotes
-
-        - Copyright (C) 2008-2011 IPython Development Team
-        - Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
-        - Copyright (C) 2001 Python Software Foundation, www.python.org
-
-        Distributed under the terms of the BSD License.
-        """
-        # We check " first, then ', so complex cases with nested quotes will
-        # get the " to take precedence.
-        text = text.replace("\\'", "")
-        text = text.replace('\\"', '')
-        if text.count('"') % 2:
-            return '"'
-        elif text.count("'") % 2:
-            return "'"
-        else:
-            return ''
-
-    def __next_char(self):
+    def next_char(self):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.NextCharacter,
                             QTextCursor.KeepAnchor)
         next_char = to_text_string(cursor.selectedText())
         return next_char
 
-    def __in_comment(self):
+    def in_comment(self):
         if self.highlighter:
             current_color = self.__get_current_color()
             comment_color = self.highlighter.get_color_name('comment')
