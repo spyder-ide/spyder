@@ -282,7 +282,7 @@ def value_to_display(value, minmax=False):
                     display = repr(value)
             else:
                 display = repr(value)
-        elif isinstance(value, (list, tuple, dict, set)):
+        elif any([type(value) == t for t in [list, tuple, dict, set]]):
             display = CollectionsRepr.repr(value)
         elif isinstance(value, Image):
             display = '%s  Mode: %s' % (address(value), value.mode)
