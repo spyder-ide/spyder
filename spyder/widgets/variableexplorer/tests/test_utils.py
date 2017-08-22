@@ -30,6 +30,7 @@ def generate_complex_object():
 
 
 COMPLEX_OBJECT = generate_complex_object()
+DF = pd.DataFrame([1,2,3])
 PANEL = pd.Panel({0: pd.DataFrame([1,2]), 1:pd.DataFrame([3,4])})
 
 
@@ -76,6 +77,40 @@ def test_default_display():
     # Display of Panel
     assert (value_to_display(PANEL) ==
             'Panel object of pandas.core.panel module')
+
+
+def test_list_display():
+    """Tests for display of lists."""
+    long_list = list(range(100))
+
+    # Simple list
+    assert value_to_display([1, 2, 3]) == '[1, 2, 3]'
+
+    # Long list
+    assert (value_to_display(long_list) ==
+            '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...]')
+
+    # Short list of lists
+    assert (value_to_display([long_list] * 3) ==
+            '[[0, 1, 2, 3, 4, ...], [0, 1, 2, 3, 4, ...], [0, 1, 2, 3, 4, ...]]')
+
+    # Long list of lists
+    result = '[' + ''.join('[0, 1, 2, 3, 4, ...], '*10)[:-2] + ']'
+    assert value_to_display([long_list] * 10) == result[:70] + ' ...'
+
+    # Multiple level lists
+    assert (value_to_display([[1, 2, 3, [4], 5]] + long_list) ==
+            '[[1, 2, 3, [...], 5], 0, 1, 2, 3, 4, 5, 6, 7, 8, ...]')
+    assert value_to_display([1, 2, [DF]]) == '[1, 2, [Dataframe]]'
+    assert value_to_display([1, 2, [[DF], PANEL]]) == '[1, 2, [[...], Panel]]'
+
+    # List of complex object
+    assert value_to_display([COMPLEX_OBJECT]) == '[defaultdict]'
+
+    # List of composed objects
+    li = [COMPLEX_OBJECT, PANEL, 1, {1:2, 3:4}, DF]
+    result = '[defaultdict, Panel, 1, {1:2, 3:4}, Dataframe]'
+    assert value_to_display(li) == result
 
 
 if __name__ == "__main__":
