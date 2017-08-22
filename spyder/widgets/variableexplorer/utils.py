@@ -253,7 +253,7 @@ def default_display(value, with_module=True):
         name = object_type.__name__
         module = object_type.__module__
         if with_module:
-            return name + ' of ' + module + ' module'
+            return name + ' object of ' + module + ' module'
         else:
             return name
     except:
