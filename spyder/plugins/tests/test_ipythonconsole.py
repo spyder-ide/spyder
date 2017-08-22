@@ -426,7 +426,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
@@ -452,7 +452,7 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
