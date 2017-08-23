@@ -13,7 +13,8 @@ from spyder.config.gui import get_color_scheme
 
 # Third party imports
 from pygments.style import Style
-from pygments.token import Name, Keyword, Comment, String, Number, Punctuation
+from pygments.token import (Name, Keyword, Comment, String, Number,
+                            Punctuation, Operator)
 
 from qtconsole.styles import dark_color
 
@@ -158,7 +159,7 @@ def create_pygments_dict(color_scheme_name):
                         Comment: comment_token.strip(),
                         String: string_token.strip(),
                         Number: number_token.strip(),
-                        Punctuation: font_token.strip()}
+                        Punctuation: font_token.strip(),
 
     return syntax_style_dic
 
