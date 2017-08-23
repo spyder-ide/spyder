@@ -79,6 +79,35 @@ def test_selected_text(qtbot, editor_close_quotes):
     assert editor.toPlainText() == '"""some""" text'
 
 
+def test_selected_text_multiple_lines(qtbot, editor_close_quotes):
+    editor = editor_close_quotes
+    text = ('some text\n'
+            '\n'
+            'some text')
+    editor.set_text(text)
+
+    # select until second some
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 4)
+    cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor, 2)
+    editor.setTextCursor(cursor)
+
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == ('"some text\n'
+                                    '\n'
+                                    'some" text')
+
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == ('""some text\n'
+                                    '\n'
+                                    'some"" text')
+
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == ('"""some text\n'
+                                    '\n'
+                                    'some""" text')
+
+
 def test_activate_deactivate(qtbot, editor_close_quotes):
     editor = editor_close_quotes
     quote_extension = editor.editor_extensions.get(QuoteEditorExtension)
