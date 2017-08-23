@@ -70,8 +70,13 @@ class QuoteEditorExtension(EditorExtension):
         trailing_text = self.editor.get_text('cursor', 'eol').strip()
 
         if self.editor.has_selected_text():
-            text = ''.join([char, self.editor.get_selected_text(), char])
-            self.editor.insert_text(text)
+            text = self.editor.get_selected_text()
+            self.editor.insert_text("{0}{1}{0}".format(char, text))
+            # keep text selected, for inserting multiple quotes
+            cursor.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor, 1)
+            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
+                                len(text))
+            self.editor.setTextCursor(cursor)
         elif self.editor.in_comment():
             self.editor.insert_text(char)
         elif len(trailing_text) > 0 and not \

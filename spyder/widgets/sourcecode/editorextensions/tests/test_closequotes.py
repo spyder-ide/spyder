@@ -72,6 +72,12 @@ def test_selected_text(qtbot, editor_close_quotes):
     qtbot.keyClicks(editor, '"')
     assert editor.toPlainText() == '"some" text'
 
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == '""some"" text'
+
+    qtbot.keyClicks(editor, '"')
+    assert editor.toPlainText() == '"""some""" text'
+
 
 def test_activate_deactivate(qtbot, editor_close_quotes):
     editor = editor_close_quotes
