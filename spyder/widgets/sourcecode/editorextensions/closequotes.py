@@ -3,9 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-"""
-This module contains the close quotes editor extension
-"""
+"""This module contains the close quotes editor extension."""
 
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
@@ -15,6 +13,7 @@ from spyder.api.editorextension import EditorExtension
 
 def unmatched_quotes_in_line(text):
     """Return whether a string has open quotes.
+
     This simply counts whether the number of quote characters of either
     type in the string is odd.
 
@@ -59,7 +58,7 @@ class QuoteEditorExtension(EditorExtension):
             event.accept()
 
     def _autoinsert_quotes(self, key):
-        """Control how to automatically insert quotes in various situations"""
+        """Control how to automatically insert quotes in various situations."""
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
 
         line_text = self.editor.get_text('sol', 'eol')

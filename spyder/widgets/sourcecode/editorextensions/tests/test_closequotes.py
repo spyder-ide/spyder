@@ -3,9 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 #
-'''
-Tests for close quotes.
-'''
+"""Tests for close quotes."""
 
 # Third party imports
 import pytest
@@ -23,6 +21,7 @@ from spyder.widgets.sourcecode.editorextensions.closequotes import (
 # -----------------------------------------------------------------------------
 @pytest.fixture
 def editor_close_quotes():
+    """Set up Editor with close quotes activated."""
     app = qapplication()
     editor = CodeEditor(parent=None)
     kwargs = {}
@@ -51,7 +50,7 @@ def editor_close_quotes():
     ])
 def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
                       cursor_column):
-    """"""
+    """Test insertion of extra quotes."""
     editor = editor_close_quotes
 
     qtbot.keyClicks(editor, text)
@@ -61,6 +60,7 @@ def test_close_quotes(qtbot, editor_close_quotes, text, expected_text,
 
 
 def test_selected_text(qtbot, editor_close_quotes):
+    """Test insert surronding quotes to selected text."""
     editor = editor_close_quotes
     editor.set_text('some text')
 
@@ -80,6 +80,7 @@ def test_selected_text(qtbot, editor_close_quotes):
 
 
 def test_selected_text_multiple_lines(qtbot, editor_close_quotes):
+    """Test insert surronding quotes to multiple lines selected text."""
     editor = editor_close_quotes
     text = ('some text\n'
             '\n'
@@ -109,6 +110,7 @@ def test_selected_text_multiple_lines(qtbot, editor_close_quotes):
 
 
 def test_activate_deactivate(qtbot, editor_close_quotes):
+    """Test activating/desctivating close quotes editor extension."""
     editor = editor_close_quotes
     quote_extension = editor.editor_extensions.get(QuoteEditorExtension)
 

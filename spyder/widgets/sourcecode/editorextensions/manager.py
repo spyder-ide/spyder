@@ -7,6 +7,7 @@
 
 """
 This module contains the editor extensions controller.
+
 Adapted from:
 https://github.com/pyQode/pyqode.core/raw/master/pyqode/core/managers/modes.py
 """
@@ -16,17 +17,16 @@ from spyder.config.base import debug_print
 
 
 class EditorExtensionsManager(Manager):
-    """
-    Manages the list of editor extensions of the CodeEdit widget.
-    """
+    """Manages the list of editor extensions of the CodeEdit widget."""
 
     def __init__(self, editor):
+        """Initialize and add a reference to the editor."""
         super(EditorExtensionsManager, self).__init__(editor)
         self._extensions = {}
 
     def append(self, extension):
         """
-        Adds a extension to the editor.
+        Add a extension to the editor.
 
         :param extension: The extension instance to append.
 
@@ -38,7 +38,7 @@ class EditorExtensionsManager(Manager):
 
     def remove(self, name_or_klass):
         """
-        Removes a extension from the editor.
+        Remove a extension from the editor.
 
         :param name_or_klass: The name (or class) of the extension to remove.
         :returns: The removed extension.
@@ -51,9 +51,9 @@ class EditorExtensionsManager(Manager):
 
     def clear(self):
         """
-        Removes all extensions from the editor. All extensions are removed from
-        list and deleted.
+        Remove all extensions from the editor.
 
+        All extensions are removed fromlist and deleted.
         """
         while len(self._extensions):
             key = sorted(list(self._extensions.keys()))[0]
@@ -61,7 +61,7 @@ class EditorExtensionsManager(Manager):
 
     def get(self, name_or_klass):
         """
-        Gets a extension by name (or class)
+        Get a extension by name (or class).
 
         :param name_or_klass: The name or the class of the extension to get
         :type name_or_klass: str or type
@@ -73,22 +73,23 @@ class EditorExtensionsManager(Manager):
 
     def keys(self):
         """
-        Returns the list of the names of the installed extensions.
+        Return the list of the names of the installed extensions.
         """
         return self._extensions.keys()
 
     def values(self):
         """
-        Returns the list of installed extensions.
+        Return the list of installed extensions.
         """
         return self._extensions.values()
 
     def __len__(self):
+        """Return the amount of installed extensions."""
         return len(list(self._extensions.values()))
 
     def __iter__(self):
         """
-        Returns the list of extensions.
+        Return the list of extensions.
 
         :return:
         """
