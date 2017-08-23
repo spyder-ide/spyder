@@ -24,11 +24,11 @@ class EditorExtensionsManager(Manager):
         super(EditorExtensionsManager, self).__init__(editor)
         self._extensions = {}
 
-    def append(self, extension):
+    def add(self, extension):
         """
         Add a extension to the editor.
 
-        :param extension: The extension instance to append.
+        :param extension: The extension instance to add.
 
         """
         debug_print('adding extension {}'.format(extension.name))

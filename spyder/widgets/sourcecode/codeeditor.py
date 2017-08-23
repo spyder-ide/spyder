@@ -433,7 +433,7 @@ class CodeEditor(TextEditBaseWidget):
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
 
-        self.editor_extensions.append(CloseQuotesExtension())
+        self.editor_extensions.add(CloseQuotesExtension())
 
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
