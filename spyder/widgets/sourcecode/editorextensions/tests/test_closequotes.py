@@ -14,7 +14,7 @@ from spyder.utils.qthelpers import qapplication
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.utils.editor import TextHelper
 from spyder.widgets.sourcecode.editorextensions.closequotes import (
-        QuoteEditorExtension)
+        CloseQuotesExtension)
 
 
 # --- Fixtures
@@ -112,7 +112,7 @@ def test_selected_text_multiple_lines(qtbot, editor_close_quotes):
 def test_activate_deactivate(qtbot, editor_close_quotes):
     """Test activating/desctivating close quotes editor extension."""
     editor = editor_close_quotes
-    quote_extension = editor.editor_extensions.get(QuoteEditorExtension)
+    quote_extension = editor.editor_extensions.get(CloseQuotesExtension)
 
     qtbot.keyClicks(editor, '"')
     assert editor.toPlainText() == '""'

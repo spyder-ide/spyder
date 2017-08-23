@@ -70,7 +70,7 @@ from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
 from spyder.widgets.sourcecode.editorextensions.manager import (
         EditorExtensionsManager)
 from spyder.widgets.sourcecode.editorextensions.closequotes import (
-        QuoteEditorExtension)
+        CloseQuotesExtension)
 
 from spyder.api.panel import Panel
 
@@ -433,7 +433,7 @@ class CodeEditor(TextEditBaseWidget):
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
 
-        self.editor_extensions.append(QuoteEditorExtension())
+        self.editor_extensions.append(CloseQuotesExtension())
 
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
@@ -699,7 +699,7 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_quotes_enabled(self, enable):
         """Enable/disable automatic quote insertion feature"""
         self.close_quotes_enabled = enable
-        quote_extension = self.editor_extensions.get(QuoteEditorExtension)
+        quote_extension = self.editor_extensions.get(CloseQuotesExtension)
         if quote_extension is not None:
             quote_extension.enabled = enable
 

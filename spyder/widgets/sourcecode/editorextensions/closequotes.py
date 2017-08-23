@@ -38,7 +38,7 @@ def unmatched_quotes_in_line(text):
         return ''
 
 
-class QuoteEditorExtension(EditorExtension):
+class CloseQuotesExtension(EditorExtension):
     """Editor Extension for insert closing quotes automatically."""
 
     def on_state_changed(self, state):
