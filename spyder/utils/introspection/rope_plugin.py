@@ -81,6 +81,9 @@ class RopePlugin(IntrospectionPlugin):
         source_code = info['source_code']
         offset = info['position']
 
+        # Set python path into rope project
+        self.project.prefs.set('python_path', info['sys_path'])
+
         # Prevent Rope from returning import completions because
         # it can't handle them. Only Jedi can do it!
         lines = sourcecode.split_source(source_code[:offset])
@@ -123,6 +126,9 @@ class RopePlugin(IntrospectionPlugin):
         filename = info['filename']
         source_code = info['source_code']
         offset = info['position']
+
+        # Set python path into rope project
+        self.project.prefs.set('python_path', info['sys_path'])
 
         if PY2:
             filename = filename.encode('utf-8')
@@ -214,6 +220,9 @@ class RopePlugin(IntrospectionPlugin):
         filename = info['filename']
         source_code = info['source_code']
         offset = info['position']
+
+        # Set python path into rope project
+        self.project.prefs.set('python_path', info['sys_path'])
 
         if PY2:
             filename = filename.encode('utf-8')
