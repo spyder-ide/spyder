@@ -13,7 +13,7 @@ from qtpy.QtGui import QTextCursor
 from spyder.utils.qthelpers import qapplication
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.utils.editor import TextHelper
-from spyder.widgets.sourcecode.editorextensions.closequotes import (
+from spyder.widgets.sourcecode.extensions.closequotes import (
         CloseQuotesExtension)
 
 

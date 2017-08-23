@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.widgets.sourcecode.editorextensions
-==========================================
+spyder.widgets.sourcecode.extensions
+====================================
 
 Editor Extensions classes,and manager.
 """
