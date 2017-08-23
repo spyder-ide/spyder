@@ -160,6 +160,7 @@ def create_pygments_dict(color_scheme_name):
                         String: string_token.strip(),
                         Number: number_token.strip(),
                         Punctuation: font_token.strip(),
+                        Operator.Word: keyword_token.strip()}
 
     return syntax_style_dic
 
