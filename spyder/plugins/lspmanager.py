@@ -585,6 +585,7 @@ class LSPManagerConfigPage(PluginConfigPage):
     def apply_changes(self):
         self.table.save_servers()
         # TODO: Reset Manager
+        self.plugin.update_server_list()
 
 
 class LSPManager(SpyderPluginWidget):
@@ -612,8 +613,9 @@ class LSPManager(SpyderPluginWidget):
             language_client = self.clients[language]
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
-                port = select_port(default_port=config['port'])
-                config['port'] = port
+                if not config['external']:
+                    port = select_port(default_port=config['port'])
+                    config['port'] = port
                 language_client['instance'] = LSPClient(
                     config['args'], config, config['external'],
                     language=language)
@@ -628,6 +630,23 @@ class LSPManager(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         for language in self.clients:
             self.close_client(language)
+
+    def update_server_list(self):
+        for language in CONF.options(self.CONF_SECTION):
+            config = {'status': self.STOPPED,
+                      'config': self.get_option(language),
+                      'instance': None}
+            if language not in self.clients:
+                self.clients[language] = config
+            else:
+                print(self.clients[language]['config'] != config['config'])
+                if self.clients[language]['config'] != config['config']:
+                    if self.clients[language]['status'] == self.STOPPED:
+                        self.clients[language] = config
+                    elif self.clients[language]['status'] == self.RUNNING:
+                        self.close_client(language)
+                        self.clients[language] = config
+                        self.start_lsp_client(language)
 
     def update_client_status(self, active_set):
         for language in self.clients:

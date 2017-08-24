@@ -1736,7 +1736,7 @@ class Editor(SpyderPluginWidget):
 
     @Slot(str)
     def report_open_file(self, language):
-        # print(language)
+        print(language)
         self.main.lspmanager.start_lsp_client(language.lower())
 
     @Slot()

@@ -628,7 +628,8 @@ DEFAULTS = [
                     'cmd': 'pyls',
                     'args': '--host %(host)s --port %(port)s --tcp',
                     'host': '127.0.0.1',
-                    'port': 2087
+                    'port': 2087,
+                    'external': False
                 }
             })
             ]
