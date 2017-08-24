@@ -68,7 +68,7 @@ def test_check_uncheck_path(qtbot):
 
 
 @patch.object(QMessageBox, 'question', return_value=QMessageBox.Yes)
-def test_synchronize_with_PYTHONPATH_clearIsTrue(qtbot):
+def test_synchronize_with_PYTHONPATH(qtbot):
     pathmanager = setup_pathmanager(qtbot, None,
                                     pathlist=['path1', 'path2', 'path3'],
                                     ro_pathlist=['path4', 'path5', 'path6'])
