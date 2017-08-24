@@ -9,6 +9,7 @@ Tests for pathmanager.py
 """
 # Standard library imports
 import sys
+import os
 # Standard library imports
 try:
     from unittest.mock import patch
@@ -24,7 +25,6 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.py3compat import PY3
 from spyder.widgets.pathmanager import PathManager
-from spyder.utils.environ import (get_user_env, set_user_env, listdict2envdict)
 
 
 @pytest.fixture
@@ -69,9 +69,15 @@ def test_check_uncheck_path(qtbot):
 
 @patch.object(QMessageBox, 'question', return_value=QMessageBox.Yes)
 def test_synchronize_with_PYTHONPATH(qtbot):
+    if os.name != 'nt':
+        return
+
     pathmanager = setup_pathmanager(qtbot, None,
                                     pathlist=['path1', 'path2', 'path3'],
                                     ro_pathlist=['path4', 'path5', 'path6'])
+
+    from spyder.utils.environ import (get_user_env, set_user_env,
+                                      listdict2envdict)
 
     # Store PYTHONPATH original state
     env = get_user_env()
