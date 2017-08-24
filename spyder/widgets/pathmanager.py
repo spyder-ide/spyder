@@ -80,7 +80,12 @@ class PathManager(QDialog):
         
         self.update_list()
         self.refresh()
-        
+
+    @property
+    def active_pathlist(self):
+        return [path for path in self.pathlist
+                if path not in self.not_active_pathlist]
+
     def _add_widgets_to_layout(self, layout, widgets):
         layout.setAlignment(Qt.AlignLeft)
         for widget in widgets:
@@ -165,17 +170,17 @@ class PathManager(QDialog):
                                           listdict2envdict)
         env = get_user_env()
         if remove:
-            ppath = self.pathlist+self.ro_pathlist
+            ppath = self.active_pathlist+self.ro_pathlist
         else:
             ppath = env.get('PYTHONPATH', [])
             if not isinstance(ppath, list):
                 ppath = [ppath]
             ppath = [path for path in ppath
-                     if path not in (self.pathlist+self.ro_pathlist)]
-            ppath.extend(self.pathlist+self.ro_pathlist)
+                     if path not in (self.active_pathlist+self.ro_pathlist)]
+            ppath.extend(self.active_pathlist+self.ro_pathlist)
         env['PYTHONPATH'] = ppath
-        set_user_env( listdict2envdict(env), parent=self )
-        
+        set_user_env(listdict2envdict(env), parent=self)
+
     def get_path_list(self):
         """Return path list (does not include the read-only path list)"""
         return self.pathlist
