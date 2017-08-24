@@ -69,12 +69,13 @@ def test_check_uncheck_path(qtbot):
 
 @patch.object(QMessageBox, 'question', return_value=QMessageBox.Yes)
 def test_synchronize_with_PYTHONPATH_clearIsTrue(qtbot):
-    env = get_user_env()
-    original_pathlist = env['PYTHONPATH']
-
     pathmanager = setup_pathmanager(qtbot, None,
                                     pathlist=['path1', 'path2', 'path3'],
                                     ro_pathlist=['path4', 'path5', 'path6'])
+
+    # Store PYTHONPATH original state
+    env = get_user_env()
+    original_pathlist = env['PYTHONPATH']
 
     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list
     pathmanager.synchronize()
@@ -90,7 +91,7 @@ def test_synchronize_with_PYTHONPATH_clearIsTrue(qtbot):
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 
-    # Restore 'PYTHONPATH' to its original state
+    # Restore PYTHONPATH to its original state
     env['PYTHONPATH'] = original_pathlist
     set_user_env(listdict2envdict(env))
 
