@@ -396,7 +396,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                        'pylab/inline/figure_format', default=0)
         resolution_spin = self.create_spinbox(
                         _("Resolution:")+"  ", " "+_("dpi"),
-                        'pylab/inline/resolution', min_=50, max_=150, step=0.1,
+                        'pylab/inline/resolution', min_=50, max_=999, step=0.1,
                         tip=_("Only used when the format is PNG. Default is "
                               "72"))
         width_spin = self.create_spinbox(
