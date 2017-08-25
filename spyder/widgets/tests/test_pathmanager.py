@@ -24,14 +24,14 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.py3compat import PY3
 from spyder.widgets import pathmanager as pathmanager_mod
-from spyder.widgets.pathmanager import PathManager
 
 
 @pytest.fixture
 def setup_pathmanager(qtbot, parent=None, pathlist=None, ro_pathlist=None,
                       sync=True):
     """Set up PathManager."""
-    widget = PathManager(None, pathlist=pathlist, ro_pathlist=ro_pathlist)
+    widget = pathmanager_mod.PathManager(None, pathlist=pathlist,
+                                         ro_pathlist=ro_pathlist)
     qtbot.addWidget(widget)
     return widget
 
