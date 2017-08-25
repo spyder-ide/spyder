@@ -20,10 +20,10 @@ except ImportError:
 import pytest
 from qtpy import PYQT4
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.py3compat import PY3
+from spyder.widgets import pathmanager as pathmanager_mod
 from spyder.widgets.pathmanager import PathManager
 
 
@@ -67,7 +67,8 @@ def test_check_uncheck_path(qtbot):
     assert pathmanager.not_active_pathlist == []
 
 
-@patch.object(QMessageBox, 'question', return_value=QMessageBox.Yes)
+@patch.object(pathmanager_mod.QMessageBox, 'question',
+              return_value=pathmanager_mod.QMessageBox.Yes)
 def test_synchronize_with_PYTHONPATH(qtbot):
     if os.name != 'nt':
         return
@@ -104,3 +105,4 @@ def test_synchronize_with_PYTHONPATH(qtbot):
 
 if __name__ == "__main__":
     pytest.main([os.path.basename(__file__)])
+    # pytest.main()
