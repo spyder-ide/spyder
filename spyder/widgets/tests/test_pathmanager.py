@@ -10,11 +10,6 @@ Tests for pathmanager.py
 # Standard library imports
 import sys
 import os
-# Standard library imports
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch  # Python 2
 
 # Test library imports
 import pytest
@@ -67,9 +62,7 @@ def test_check_uncheck_path(qtbot):
     assert pathmanager.not_active_pathlist == []
 
 
-@patch.object(pathmanager_mod.QMessageBox, 'question',
-              return_value=pathmanager_mod.QMessageBox.Yes)
-def test_synchronize_with_PYTHONPATH(qtbot):
+def test_synchronize_with_PYTHONPATH(qtbot, mocker):
     if os.name != 'nt':
         return
 
@@ -84,6 +77,11 @@ def test_synchronize_with_PYTHONPATH(qtbot):
     env = get_user_env()
     original_pathlist = env.get('PYTHONPATH', [])
 
+    # Mock the dialog window and answer "Yes" to clear contents of PYTHONPATH
+    # before adding Spyder's path list
+    mocker.patch.object(pathmanager_mod.QMessageBox, 'question',
+                        return_value=pathmanager_mod.QMessageBox.Yes)
+
     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list
     pathmanager.synchronize()
     expected_pathlist = ['path1', 'path2', 'path3', 'path4', 'path5', 'path6']
@@ -95,6 +93,19 @@ def test_synchronize_with_PYTHONPATH(qtbot):
     pathmanager.listwidget.item(1).setCheckState(Qt.Unchecked)
     pathmanager.synchronize()
     expected_pathlist = ['path1', 'path3', 'path4', 'path5', 'path6']
+    env = get_user_env()
+    assert env['PYTHONPATH'] == expected_pathlist
+
+    # Mock the dialog window and answer "No" to clear contents of PYTHONPATH
+    # before adding Spyder's path list
+    mocker.patch.object(pathmanager_mod.QMessageBox, 'question',
+                        return_value=pathmanager_mod.QMessageBox.No)
+
+    # Uncheck 'path3' and assert that it is kept in PYTHONPATH when it
+    # is synchronized with Spyder's path list
+    pathmanager.listwidget.item(2).setCheckState(Qt.Unchecked)
+    pathmanager.synchronize()
+    expected_pathlist = ['path3', 'path1', 'path4', 'path5', 'path6']
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 

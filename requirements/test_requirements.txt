@@ -1,6 +1,7 @@
 mock
 pytest
 pytest-qt
+pytest-mock
 pytest-cov
 pytest-timeout
 pandas

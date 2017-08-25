@@ -13,7 +13,7 @@ environment:
       rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
       qtawesome pickleshare pyzmq chardet mock pandas pytest
       pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi
-    PIP_DEPENDENCIES: "pytest-qt pytest-timeout flaky"
+    PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky"
 
   matrix:
     - PYTHON_VERSION: "2.7"
