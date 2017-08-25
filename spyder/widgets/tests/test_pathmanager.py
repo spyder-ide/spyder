@@ -81,7 +81,7 @@ def test_synchronize_with_PYTHONPATH(qtbot):
 
     # Store PYTHONPATH original state
     env = get_user_env()
-    original_pathlist = env['PYTHONPATH']
+    original_pathlist = env.get('PYTHONPATH', [])
 
     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list
     pathmanager.synchronize()
@@ -103,5 +103,4 @@ def test_synchronize_with_PYTHONPATH(qtbot):
 
 
 if __name__ == "__main__":
-    import os
     pytest.main([os.path.basename(__file__)])
