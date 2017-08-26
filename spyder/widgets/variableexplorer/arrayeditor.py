@@ -244,7 +244,11 @@ class ArrayModel(QAbstractTableModel):
     def get_value(self, index):
         i = index.row()
         j = index.column()
-        return self.changes.get((i, j), self._data[i, j])
+        if len(self._data.shape) == 1:
+            value = self._data[j]
+        else:
+            value = self._data[i, j]
+        return self.changes.get((i, j), value)
 
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
