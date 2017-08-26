@@ -140,12 +140,12 @@ def test_arrayeditor_edit_1d_array(qtbot):
 
 
 def test_arrayeditor_edit_2d_array(qtbot):
-    arr = np.random.rand(3, 3)
+    arr = np.ones((3, 3))
     exp_arr = arr.copy()
     exp_arr[1, 1] = 3
     exp_arr[2, 2] = 0
     dlg = ArrayEditor()
-    assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
+    assert dlg.setup_and_check(arr, '2D array', xlabels=None, ylabels=None)
     dlg.show()
     qtbot.waitForWindowShown(dlg)
     view = dlg.arraywidget.view
