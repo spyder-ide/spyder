@@ -210,7 +210,7 @@ def test_get_syspath(ipyconsole, qtbot):
         pass
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_browse_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
@@ -284,7 +284,7 @@ def test_read_stderr(ipyconsole, qtbot):
     assert content == client._read_stderr()
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(True, reason="It times out too much (to check later)")
 def test_values_dbg(ipyconsole, qtbot):
     """
@@ -329,7 +329,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_plot_magic_dbg(ipyconsole, qtbot):
     """Test our plot magic while debugging"""
