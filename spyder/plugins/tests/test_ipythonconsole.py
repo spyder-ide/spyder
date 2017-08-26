@@ -302,7 +302,7 @@ def test_values_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Get value
     qtbot.keyClicks(control, '!aa = 10')
@@ -348,7 +348,7 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Test reset magic
     qtbot.keyClicks(control, '%plot plt.plot(range(10))')
@@ -444,11 +444,11 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
         shell.execute('1/0')
 
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Test Ctrl+C
     qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
-    qtbot.wait(3000)
+    qtbot.wait(2000)
     assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
 
 
@@ -470,7 +470,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
         shell.execute('1/0')
 
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Test clear magic
     shell.clear_console()
