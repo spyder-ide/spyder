@@ -141,9 +141,7 @@ def test_arrayeditor_edit_1d_array(qtbot):
 
 def test_arrayeditor_edit_2d_array(qtbot):
     arr = np.ones((3, 3))
-    exp_arr = arr.copy()
-    exp_arr[1, 1] = 3
-    exp_arr[2, 2] = 0
+    diff_arr = arr.copy()
     dlg = ArrayEditor()
     assert dlg.setup_and_check(arr, '2D array', xlabels=None, ylabels=None)
     dlg.show()
@@ -159,7 +157,7 @@ def test_arrayeditor_edit_2d_array(qtbot):
     qtbot.keyPress(view, Qt.Key_Left)
     qtbot.keyPress(view, Qt.Key_Return)
 
-    assert np.sum(exp_arr == dlg.get_value()) == 9
+    assert np.sum(diff_arr != dlg.get_value()) == 2
 
 
 if __name__ == "__main__":
