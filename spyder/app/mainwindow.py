@@ -229,6 +229,7 @@ def get_focus_python_shell():
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
+    CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     BOOKMARKS = (
@@ -2556,6 +2557,11 @@ class MainWindow(QMainWindow):
 
         self.apply_panes_settings()
         self.apply_statusbar_settings()
+
+        if CONF.get('main', 'use_custom_cursor_blinking'):
+            qapp.setCursorFlashTime(CONF.get('main', 'custom_cursor_blinking'))
+        else:
+            qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
 
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
