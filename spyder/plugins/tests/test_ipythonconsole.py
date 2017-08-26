@@ -74,10 +74,24 @@ def ipyconsole(request):
     return console
 
 
+@pytest.fixture
+def ipyconsole_stderr(request):
+    console = IPythonConsole(None, testing=True,
+                             test_dir=osp.join(TEMP_DIRECTORY, u'測試',
+                                               u'اختبار'))
+    console.create_new_client()
+    def close_console():
+        console.closing_plugin()
+        console.close()
+    request.addfinalizer(close_console)
+    console.show()
+    return console
+
+
 #==============================================================================
 # Tests
 #==============================================================================
-def test_console_stderr_file(ipyconsole, qtbot):
+def test_console_stderr_file(ipyconsole_stderr, qtbot):
     """Test a the creation of a console with a stderr file in ascii dir."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
@@ -85,7 +99,8 @@ def test_console_stderr_file(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Create a new client with s stderr file in a non-ascii dir
-    ipyconsole.create_new_client(testing=True)
+    ipyconsole.create_new_client(stderr_dir=osp.join(TEMP_DIRECTORY, u'測試',
+                                                     u'اختبار'))
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)

@@ -96,7 +96,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
                  external_kernel=False, given_name=None,
-                 testing=False):
+                 stderr_dir=TEMPDIR):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -114,7 +114,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_icon = ima.icon('stop')
         self.history = []
         self.allow_rename = True
-        self.testing = testing
+        self.stderr_dir = stderr_dir
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -165,10 +165,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Filename to save kernel stderr output."""
         if self.connection_file is not None:
             stderr_file = self.kernel_id + '.stderr'
-            if not self.testing:
-                stderr_file = osp.join(TEMPDIR, stderr_file)
-            else:
-                stderr_file = osp.join(TEMPDIR, u'測試', u'اختبار', stderr_file)
+            stderr_file = osp.join(self.stderr_dir, stderr_file)
             return stderr_file
 
     def configure_shellwidget(self, give_focus=True):

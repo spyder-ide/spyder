@@ -590,7 +590,7 @@ class IPythonConsole(SpyderPluginWidget):
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
-    def __init__(self, parent, testing=False):
+    def __init__(self, parent, testing=False, test_dir=programs.TEMPDIR):
         """Ipython Console constructor."""
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
@@ -619,8 +619,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create temp dir on testing to save kernel errors
         if self.testing:
-            if not osp.isdir(osp.join(programs.TEMPDIR, u'測試', u'اختبار')):
-                os.makedirs(osp.join(programs.TEMPDIR, u'測試', u'اختبار'))
+            if not osp.isdir(osp.join(test_dir)):
+                os.makedirs(osp.join(test_dir))
 
 
         layout = QVBoxLayout()
@@ -933,7 +933,8 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
-    def create_new_client(self, give_focus=True, filename='', testing=False):
+    def create_new_client(self, give_focus=True, filename='',
+                          stderr_dir=programs.TEMPDIR):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -945,7 +946,8 @@ class IPythonConsole(SpyderPluginWidget):
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              menu_actions=self.menu_actions, testing=testing)
+                              menu_actions=self.menu_actions,
+                              stderr_dir=stderr_dir)
         self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:
