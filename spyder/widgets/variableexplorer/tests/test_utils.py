@@ -113,5 +113,41 @@ def test_list_display():
     assert value_to_display(li) == result
 
 
+def test_dict_display():
+    """Tests for display of dicts."""
+    long_list = list(range(100))
+    long_dict = dict(zip(list(range(100)), list(range(100))))
+
+    # Simple dict
+    assert value_to_display({0:0, 'a':'b'}) == "{0:0, 'a':'b'}"
+
+    # Long dict
+    assert (value_to_display(long_dict) ==
+            '{0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, ...}')
+
+    # Short list of lists
+    assert (value_to_display({1:long_dict, 2:long_dict}) ==
+            '{1:{0:0, 1:1, 2:2, 3:3, 4:4, ...}, 2:{0:0, 1:1, 2:2, 3:3, 4:4, ...}}')
+
+    # Long dict of dicts
+    result = ('{(0, 0, 0, 0, 0, ...):[0, 1, 2, 3, 4, ...], '
+               '(1, 1, 1, 1, 1, ...):[0, 1, 2, 3, 4, ...]}')
+    assert value_to_display({(0,)*100:long_list, (1,)*100:long_list}) == result[:70] + ' ...'
+
+    # Multiple level dicts
+    assert (value_to_display({0: {1:1, 2:2, 3:3, 4:{0:0}, 5:5}, 1:1}) ==
+            '{0:{1:1, 2:2, 3:3, 4:{...}, 5:5}, 1:1}')
+    assert value_to_display({0:0, 1:1, 2:2, 3:DF}) == '{0:0, 1:1, 2:2, 3:Dataframe}'
+    assert value_to_display({0:0, 1:1, 2:[[DF], PANEL]}) == '{0:0, 1:1, 2:[[...], Panel]}'
+
+    # Dict of complex object
+    assert value_to_display({0:COMPLEX_OBJECT}) == '{0:defaultdict}'
+
+    # Dict of composed objects
+    li = {0:COMPLEX_OBJECT, 1:PANEL, 2:2, 3:{0:0, 1:1}, 4:DF}
+    result = '{0:defaultdict, 1:Panel, 2:2, 3:{0:0, 1:1}, 4:Dataframe}'
+    assert value_to_display(li) == result
+
+
 if __name__ == "__main__":
     pytest.main()
