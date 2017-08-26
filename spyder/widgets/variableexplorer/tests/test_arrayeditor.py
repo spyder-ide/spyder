@@ -120,6 +120,47 @@ def test_arrayeditor_with_3d_array(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
 
 
+def test_arrayeditor_edit_1d_array(qtbot):
+    exp_arr = np.array([1, 0, 2, 3, 4])
+    arr = np.arange(0, 5)
+    dlg = ArrayEditor()
+    assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
+    dlg.show()
+    qtbot.waitForWindowShown(dlg)
+    view = dlg.arraywidget.view
+
+    qtbot.keyPress(view, Qt.Key_Down)
+    qtbot.keyPress(view, Qt.Key_Up)
+    qtbot.keyClicks(view, '1')
+    qtbot.keyPress(view, Qt.Key_Down)
+    qtbot.keyClicks(view, '0')
+    qtbot.keyPress(view, Qt.Key_Down)
+    qtbot.keyPress(view, Qt.Key_Return)
+    assert np.sum(exp_arr == dlg.get_value()) == 5
+
+
+def test_arrayeditor_edit_2d_array(qtbot):
+    arr = np.random.rand(3, 3)
+    exp_arr = arr.copy()
+    exp_arr[1, 1] = 3
+    exp_arr[2, 2] = 0
+    dlg = ArrayEditor()
+    assert dlg.setup_and_check(arr, '1D array', xlabels=None, ylabels=None)
+    dlg.show()
+    qtbot.waitForWindowShown(dlg)
+    view = dlg.arraywidget.view
+
+    qtbot.keyPress(view, Qt.Key_Down)
+    qtbot.keyPress(view, Qt.Key_Right)
+    qtbot.keyClicks(view, '3')
+    qtbot.keyPress(view, Qt.Key_Down)
+    qtbot.keyPress(view, Qt.Key_Right)
+    qtbot.keyClicks(view, '0')
+    qtbot.keyPress(view, Qt.Key_Left)
+    qtbot.keyPress(view, Qt.Key_Return)
+
+    assert np.sum(exp_arr == dlg.get_value()) == 9
+
+
 if __name__ == "__main__":
     pytest.main()
-
