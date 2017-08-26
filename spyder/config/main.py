@@ -93,6 +93,7 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
+              'use_custom_cursor_blinking': False,
               'show_internal_console_if_traceback': False,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
