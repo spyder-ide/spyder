@@ -448,7 +448,7 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
 
     # Test Ctrl+C
     qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
-    qtbot.wait(500)
+    qtbot.wait(3000)
     assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
 
 
