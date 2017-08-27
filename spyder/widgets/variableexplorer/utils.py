@@ -387,7 +387,7 @@ def value_to_display(value, minmax=False, level=0):
                 display = value
             if level > 0:
                 display = (to_binary_string("'") + display +
-                           to_binary_string('"'))
+                           to_binary_string("'"))
         elif is_text_string(value):
             display = value
             if level > 0:
