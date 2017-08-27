@@ -155,6 +155,8 @@ class EditorConfigPage(PluginConfigPage):
                 self.get_option('occurrence_highlighting'))
 
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
+        scroll_past_end_box = newcb(_("Scroll past the end"),
+                                     'scroll_past_end')
 
         display_layout = QGridLayout()
         display_layout.addWidget(linenumbers_box, 0, 0)
@@ -168,6 +170,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(occurrence_spin.spinbox, 5, 1)
         display_layout.addWidget(occurrence_spin.slabel, 5, 2)
         display_layout.addWidget(wrap_mode_box, 6, 0)
+        display_layout.addWidget(scroll_past_end_box, 7, 0)
         display_h_layout = QHBoxLayout()
         display_h_layout.addLayout(display_layout)
         display_h_layout.addStretch(1)
@@ -992,9 +995,14 @@ class Editor(SpyderPluginWidget):
                                                toggled=self.toggle_show_blanks)
         self.showblanks_action.setChecked(CONF.get('editor', 'blank_spaces'))
 
+        self.scrollpastend_action = create_action(self, _("Scroll past the end"),
+                                             toggled=self.toggle_scroll_past_end)
+        self.scrollpastend_action.setChecked(CONF.get('editor', 'scroll_past_end'))
+
         showindentguides_action = create_action(self, _("Show indent guides."),
                                                toggled=self.toggle_show_indent_guides)
         showindentguides_action.setChecked(CONF.get('editor', 'indent_guides'))
+
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
@@ -1114,6 +1122,7 @@ class Editor(SpyderPluginWidget):
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [eol_menu,
                                self.showblanks_action,
+                               self.scrollpastend_action,
                                showindentguides_action,
                                trailingspaces_action,
                                fixindentation_action,
@@ -1264,6 +1273,7 @@ class Editor(SpyderPluginWidget):
             ('set_realtime_analysis_enabled',       'realtime_analysis'),
             ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_blanks_enabled',                  'blank_spaces'),
+            ('set_scrollpastend_enabled',           'scroll_past_end'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
@@ -1833,7 +1843,7 @@ class Editor(SpyderPluginWidget):
              processevents=True):
         """
         Load a text file
-        editorwindow: load in this editorwindow (useful when clicking on 
+        editorwindow: load in this editorwindow (useful when clicking on
         outline explorer with multiple editor windows)
         processevents: determines if processEvents() should be called at the
         end of this method (set to False to prevent keyboard events from
@@ -2190,6 +2200,12 @@ class Editor(SpyderPluginWidget):
                 editorstack.set_blanks_enabled(checked)
 
     @Slot(bool)
+    def toggle_scroll_past_end(self, checked):
+        if self.editorstacks:
+            for editorstack in self.editorstacks:
+                editorstack.set_scrollpastend_enabled(checked)
+
+    @Slot(bool)
     def toggle_show_indent_guides(self, checked):
         if self.editorstacks:
             for editorstack in self.editorstacks:
@@ -2542,6 +2558,8 @@ class Editor(SpyderPluginWidget):
             linenb_o = self.get_option(linenb_n)
             blanks_n = 'blank_spaces'
             blanks_o = self.get_option(blanks_n)
+            scrollpastend_n = 'scroll_past_end'
+            scrollpastend_o = self.get_option(scrollpastend_n)
             edgeline_n = 'edge_line'
             edgeline_o = self.get_option(edgeline_n)
             edgelinecols_n = 'edge_line_columns'
@@ -2611,6 +2629,9 @@ class Editor(SpyderPluginWidget):
                 if blanks_n in options:
                     editorstack.set_blanks_enabled(blanks_o)
                     self.showblanks_action.setChecked(blanks_o)
+                if scrollpastend_n in options:
+                    editorstack.set_scrollpastend_enabled(scrollpastend_o)
+                    self.scrollpastend_action.setChecked(scrollpastend_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:
