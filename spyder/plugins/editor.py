@@ -2757,6 +2757,8 @@ class Editor(SpyderPluginWidget):
         layout settings.
         """
         layout = self.get_option('layout_settings', None)
+        if layout is None:
+            return filenames
         splitsettings = layout.get('splitsettings')
         index_first_file = 0
         reordered_splitsettings = []

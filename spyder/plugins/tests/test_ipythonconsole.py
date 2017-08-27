@@ -15,13 +15,13 @@ from flaky import flaky
 from ipykernel.serialize import serialize_object
 from pygments.token import Name
 import pytest
-from qtpy import PYQT5, PYQT_VERSION
+from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
 
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, PY3
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
 from spyder.utils.environ import listdict2envdict
@@ -210,7 +210,7 @@ def test_get_syspath(ipyconsole, qtbot):
         pass
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_browse_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
@@ -284,7 +284,7 @@ def test_read_stderr(ipyconsole, qtbot):
     assert content == client._read_stderr()
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(True, reason="It times out too much (to check later)")
 def test_values_dbg(ipyconsole, qtbot):
     """
@@ -302,7 +302,7 @@ def test_values_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Get value
     qtbot.keyClicks(control, '!aa = 10')
@@ -329,7 +329,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_plot_magic_dbg(ipyconsole, qtbot):
     """Test our plot magic while debugging"""
@@ -348,7 +348,7 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Test reset magic
     qtbot.keyClicks(control, '%plot plt.plot(range(10))')
@@ -426,7 +426,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
@@ -444,15 +444,15 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
         shell.execute('1/0')
 
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Test Ctrl+C
     qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
-    qtbot.wait(500)
+    qtbot.wait(2000)
     assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
 
 
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     """
@@ -470,7 +470,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
         shell.execute('1/0')
 
     shell.execute('%debug')
-    qtbot.wait(500)
+    qtbot.wait(1000)
 
     # Test clear magic
     shell.clear_console()
@@ -563,7 +563,8 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
+                    reason="It segfaults frequently")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
     Test that a new client is created using the connection file
