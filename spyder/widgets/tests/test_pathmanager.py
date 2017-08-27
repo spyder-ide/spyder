@@ -76,7 +76,7 @@ def test_synchronize_with_PYTHONPATH(qtbot, mocker):
     # Store PYTHONPATH original state
     env = get_user_env()
     original_pathlist = env.get('PYTHONPATH', [])
-
+    return
     # Mock the dialog window and answer "Yes" to clear contents of PYTHONPATH
     # before adding Spyder's path list
     mocker.patch.object(pathmanager_mod.QMessageBox, 'question',
