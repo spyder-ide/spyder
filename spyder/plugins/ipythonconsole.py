@@ -53,6 +53,7 @@ from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.programs import TEMPDIR
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
@@ -590,7 +591,7 @@ class IPythonConsole(SpyderPluginWidget):
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
-    def __init__(self, parent, testing=False, test_dir=programs.TEMPDIR):
+    def __init__(self, parent, testing=False, test_dir=TEMPDIR):
         """Ipython Console constructor."""
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
@@ -612,6 +613,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
         self.testing = testing
+        self.test_dir = test_dir
 
         # Initialize plugin
         if not self.testing:
@@ -933,8 +935,7 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
-    def create_new_client(self, give_focus=True, filename='',
-                          stderr_dir=programs.TEMPDIR):
+    def create_new_client(self, give_focus=True, filename=''):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -946,8 +947,9 @@ class IPythonConsole(SpyderPluginWidget):
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              menu_actions=self.menu_actions,
-                              stderr_dir=stderr_dir)
+                              menu_actions=self.menu_actions)
+        if self.testing:
+            client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:

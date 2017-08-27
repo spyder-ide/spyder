@@ -64,23 +64,11 @@ def get_console_background_color(style_sheet):
 #==============================================================================
 @pytest.fixture
 def ipyconsole(request):
-    console = IPythonConsole(None, testing=True)
+    try:
+        console = IPythonConsole(None, testing=True, test_dir=request.param)
+    except AttributeError:
+        console = IPythonConsole(None, testing=True)
     console.create_new_client()
-    def close_console():
-        console.closing_plugin()
-        console.close()
-    request.addfinalizer(close_console)
-    console.show()
-    return console
-
-
-@pytest.fixture
-def ipyconsole_stderr(request):
-    console = IPythonConsole(None, testing=True,
-                             test_dir=osp.join(TEMP_DIRECTORY, u'測試',
-                                               u'اختبار'))
-    console.create_new_client()
-
     def close_console():
         console.closing_plugin()
         console.close()
@@ -92,18 +80,18 @@ def ipyconsole_stderr(request):
 #==============================================================================
 # Tests
 #==============================================================================
-def test_console_stderr_file(ipyconsole_stderr, qtbot):
+@pytest.mark.parametrize('ipyconsole', [osp.join(TEMP_DIRECTORY, u'測試',
+                                                 u'اختبار')], indirect=True)
+def test_console_stderr_file(ipyconsole, qtbot):
     """Test a the creation of a console with a stderr file in ascii dir."""
     # Wait until the window is fully up
-    shell = ipyconsole_stderr.get_current_shellwidget()
+    shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
     # Create a new client with s stderr file in a non-ascii dir
-    ipyconsole_stderr.create_new_client(stderr_dir=osp.join(TEMP_DIRECTORY,
-                                                            u'測試',
-                                                            u'اختبار'))
-    shell = ipyconsole_stderr.get_current_shellwidget()
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
