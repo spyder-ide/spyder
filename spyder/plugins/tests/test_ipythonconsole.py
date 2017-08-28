@@ -64,7 +64,10 @@ def get_console_background_color(style_sheet):
 #==============================================================================
 @pytest.fixture
 def ipyconsole(request):
-    console = IPythonConsole(None, testing=True)
+    try:
+        console = IPythonConsole(None, testing=True, test_dir=request.param)
+    except AttributeError:
+        console = IPythonConsole(None, testing=True)
     console.create_new_client()
     def close_console():
         console.closing_plugin()
@@ -77,6 +80,27 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@pytest.mark.parametrize('ipyconsole', [osp.join(TEMP_DIRECTORY, u'測試',
+                                                 u'اختبار')], indirect=True)
+def test_console_stderr_file(ipyconsole, qtbot):
+    """Test a the creation of a console with a stderr file in ascii dir."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create a new client with s stderr file in a non-ascii dir
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 1')
+
+    # Assert we get the a value correctly
+    assert shell.get_value('a') == 1
+
+
 @flaky(max_runs=3)
 def test_console_import_namespace(ipyconsole, qtbot):
     """Test an import of the form 'from foo import *'."""
