@@ -600,6 +600,7 @@ class LSPManager(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
         self.lsp_plugins = {}
         self.clients = {}
+        self.requests = {}
         for option in CONF.options(self.CONF_SECTION):
             self.clients[option] = {'status': self.STOPPED,
                                     'config': self.get_option(option),
@@ -609,15 +610,17 @@ class LSPManager(SpyderPluginWidget):
         self.lsp_plugins[type] = sig
 
     def start_lsp_client(self, language):
+        started = False
         if language in self.clients:
             language_client = self.clients[language]
+            started = language_client['status'] == self.RUNNING
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
                 if not config['external']:
                     port = select_port(default_port=config['port'])
                     config['port'] = port
                 language_client['instance'] = LSPClient(
-                    config['args'], config, config['external'],
+                    self, config['args'], config, config['external'],
                     language=language)
 
                 for plugin in self.lsp_plugins:
@@ -626,6 +629,7 @@ class LSPManager(SpyderPluginWidget):
 
                 language_client['instance'].start()
                 language_client['status'] = self.RUNNING
+        return started
 
     def closing_plugin(self, cancelable=False):
         for language in self.clients:
@@ -661,3 +665,8 @@ class LSPManager(SpyderPluginWidget):
                 language_client['instance'].exit()
                 language_client['instance'].stop()
                 language_client['status'] = self.STOPPED
+
+    def send_request(self, language, request, params):
+        client = self.clients[language]['instance']
+        _id = client.perform_request(request, params)
+        self.requests[_id] = request['uid']

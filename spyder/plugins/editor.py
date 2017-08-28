@@ -394,6 +394,7 @@ class Editor(SpyderPluginWidget):
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
     sig_lsp_notification = Signal(dict, str)
+    sig_introspection_ready = Signal(str)
 
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
@@ -575,10 +576,29 @@ class Editor(SpyderPluginWidget):
         except AttributeError:
             pass
 
+    @Slot(str)
+    def report_open_file(self, language):
+        """Request to start a LSP server to attend a language."""
+        stat = self.main.lspmanager.start_lsp_client(language.lower())
+        if stat:
+            self.lsp_server_ready(
+                language.lower(), self.lsp_editor_settings[language.lower()])
+
+    @Slot(dict, str)
     def document_server_settings(self, settings, language):
         """Update LSP server settings for textDocument requests."""
         self.lsp_editor_settings[language] = settings
         print(self.lsp_editor_settings)
+        self.lsp_server_ready(language, self.lsp_editor_settings[language])
+
+    def lsp_server_ready(self, language, configuration):
+        """Notify all stackeditors about LSP server availability."""
+        for editorstack in self.editorstacks:
+            editorstack.notify_server_ready(language, configuration)
+
+    def send_lsp_request(self, language, request, params):
+        self.main.lspmanager.send_request(language, request, params)
+
 
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -1343,6 +1363,7 @@ class Editor(SpyderPluginWidget):
                                                 self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
             self.update_active_languages)
+        editorstack.perform_lsp_request.connect(self.send_lsp_request)
         editorstack.analysis_results_changed.connect(
                                                  self.analysis_results_changed)
         editorstack.todo_results_changed.connect(self.todo_results_changed)
@@ -1734,10 +1755,6 @@ class Editor(SpyderPluginWidget):
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts(editor)
 
-    @Slot(str)
-    def report_open_file(self, language):
-        print(language)
-        self.main.lspmanager.start_lsp_client(language.lower())
 
     @Slot()
     @Slot(str)

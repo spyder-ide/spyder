@@ -7,11 +7,7 @@
 """Spyder Language Server Protocol Client method providers."""
 
 from spyder.utils.code_analysis.lsp_providers.document import DocumentProvider
-from spyder.utils.code_analysis import LSPRequestTypes
-from spyder.utils.code_analysis.decorators import handles
 
 
 class LSPMethodProviderMixIn(DocumentProvider):
-    @handles(LSPRequestTypes.INITIALIZE)
-    def initialize_resp(self):
-        print('This does not make sense!')
+    pass

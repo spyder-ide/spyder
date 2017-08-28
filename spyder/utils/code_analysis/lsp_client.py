@@ -60,11 +60,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                         '--server-port %(port)s '
                         '--server %(cmd)s')
 
-    def __init__(self, server_args_fmt='',
+    def __init__(self, parent, server_args_fmt='',
                  server_settings={}, external_server=False,
                  folder=getcwd(), language='python'):
         QObject.__init__(self)
         # LSPMethodProviderMixIn.__init__(self)
+        self.manager = parent
         self.zmq_socket = None
         self.zmq_port = None
         self.transport_client = None
@@ -150,6 +151,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         debug_print('')
         self.zmq_socket.send_pyobj(msg)
         self.request_seq += 1
+        return str(msg['id'])
 
     @Slot()
     def on_msg_received(self):
@@ -178,6 +180,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 return
+
+    def perform_request(self, method, params):
+        if method in self.sender_registry:
+            handler_name = self.sender_registry[method]
+            handler = getattr(self, handler_name)
+            _id = handler(params)
+            return _id
 
     # ------ Spyder plugin registration --------------------------------
     def register_plugin_type(self, plugin_type, notification_sig):

@@ -435,6 +435,7 @@ class EditorStack(QWidget):
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
+    perform_lsp_request = Signal(str, str, dict)
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -1406,6 +1407,14 @@ class EditorStack(QWidget):
                 self.tabs.widget(index).language.lower())
         return set(languages)
 
+    def notify_server_ready(self, language, config):
+        """Notify language server availability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            print(editor.language.lower(), language)
+            if editor.language.lower() == language:
+                editor.start_lsp_services(config)
+
     def close_all_files(self):
         """Close all opened scripts"""
         while self.close_file():
@@ -2018,6 +2027,9 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
+        editor.sig_perform_lsp_request.connect(
+            lambda lang, method, params: self.perform_lsp_request.emit(
+                lang, method, params))
         editor.modificationChanged.connect(
                      lambda state: self.modification_changed(state,
                                                     editor_id=id(editor)))

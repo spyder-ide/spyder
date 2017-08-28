@@ -25,6 +25,7 @@ import re
 import sre_constants
 import sys
 import time
+import uuid
 
 # Third party imports
 from qtpy import is_pyqt46
@@ -67,6 +68,8 @@ from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.widgets.sourcecode.folding import IndentFoldDetector
 from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
+from spyder.widgets.sourcecode.utils.lsp import request
+from spyder.utils.code_analysis import LSPRequestTypes, TextDocumentSyncKind
 from spyder.api.panel import Panel
 
 try:
@@ -250,6 +253,10 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
 
+    # LSP Signals
+    sig_perform_lsp_request = Signal(str, str, dict)
+    lsp_response_signal = Signal(str, dict)
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -425,6 +432,28 @@ class CodeEditor(TextEditBaseWidget):
 
         self.verticalScrollBar().valueChanged.connect(
                                        lambda value: self.rehighlight_cells())
+
+        # Language Server
+        self.lsp_requests = {}
+        self.filename = None
+        self.lsp_ready = False
+        self.text_version = 0
+        self.save_include_text = True
+        self.open_close_notifications = True
+        self.sync_mode = TextDocumentSyncKind.FULL
+        self.will_save_notify = True
+        self.will_save_until_notify = True
+        self.enable_hover = False
+        self.auto_completion_characters = []
+        self.signature_completion_characters = []
+        self.lsp_go_to_definition_enabled = False
+        self.find_references_enabled = False
+        self.highlight_enabled = False
+        self.formatting_enabled = False
+        self.range_formatting_enabled = False
+        self.formatting_characters = []
+        self.rename_support = False
+
 
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
@@ -636,6 +665,7 @@ class CodeEditor(TextEditBaseWidget):
         self.linenumberarea.setup_margins(linenumbers, markers)
 
         # Lexer
+        self.filename = filename
         self.set_language(language, filename)
 
         # Highlight current cell
@@ -667,6 +697,67 @@ class CodeEditor(TextEditBaseWidget):
         # Class/Function dropdown will be disabled if we're not in a Python file.
         self.classfuncdropdown.setVisible(show_class_func_dropdown
                                           and self.is_python_like())
+
+    # ------------- LSP-related methods ---------------------------------------
+
+    def emit_request(self, method, params, requires_response):
+        """Send request to LSP manager."""
+        uid = uuid.uuid4()
+        params['uuid'] = uid
+        params['response_sig'] = self.lsp_response_signal
+        if requires_response:
+            self.lsp_requests[uid] = method
+        self.sig_perform_lsp_request.emit(
+            self.language.lower(), method, params)
+
+    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
+    def document_did_open(self):
+        """Send textDocument/didOpen request to server."""
+        params = {
+            'file': self.filename,
+            'language': self.language,
+            'version': self.text_version,
+            'text': self.toPlainText()
+        }
+        return params
+
+    def start_lsp_services(self, config):
+        """Start LSP integration if it wasn't done before."""
+        print('Initialize')
+        if not self.lsp_ready:
+            self.parse_lsp_config(config)
+            self.lsp_ready = True
+            self.document_did_open()
+            # self.sig_perform_lsp_request.emit()
+
+    def parse_lsp_config(self, config):
+        """Parse and load LSP server editor capabilites."""
+        sync_options = config['textDocumentSync']
+        completion_options = config['completionProvider']
+        signature_options = config['signatureHelpProvider']
+        range_formatting_options = config['documentOnTypeFormattingProvider']
+        self.open_close_notifications = sync_options['openClose']
+        self.sync_mode = sync_options['change']
+        self.will_save_notify = sync_options['willSave']
+        self.will_save_until_notify = sync_options['willSaveWaitUntil']
+        self.save_include_text = sync_options['save']['includeText']
+        self.enable_hover = config['hoverProvider']
+        self.auto_completion_characters = (
+            completion_options['triggerCharacters'])
+        self.signature_completion_characters = (
+            signature_options['triggerCharacters'])
+        self.lsp_go_to_definition_enabled = config['definitionProvider']
+        self.find_references_enabled = config['referencesProvider']
+        self.highlight_enabled = config['documentHighlightProvider']
+        self.formatting_enabled = config['documentFormattingProvider']
+        self.range_formatting_enabled = (
+            config['documentRangeFormattingProvider'])
+        self.formatting_characters.append(
+            range_formatting_options['firstTriggerCharacter'])
+        self.formatting_characters += (
+            range_formatting_options['moreTriggerCharacter'])
+
+    # -------------------------------------------------------------------------
 
     def set_tab_mode(self, enable):
         """
@@ -1274,6 +1365,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_text_from_file(self, filename, language=None):
         """Set the text of the editor from file *fname*"""
+        self.filename = filename
         text, _enc = encoding.read(filename)
         if language is None:
             language = get_file_language(filename, text)
