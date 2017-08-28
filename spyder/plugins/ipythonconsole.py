@@ -52,6 +52,7 @@ from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.programs import TEMPDIR
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
@@ -589,7 +590,7 @@ class IPythonConsole(SpyderPluginWidget):
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
-    def __init__(self, parent, testing=False):
+    def __init__(self, parent, testing=False, test_dir=TEMPDIR):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -608,6 +609,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
         self.testing = testing
+        self.test_dir = test_dir
 
         # Initialize plugin
         if not self.testing:
@@ -615,8 +617,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create temp dir on testing to save kernel errors
         if self.testing:
-            if not osp.isdir(programs.TEMPDIR):
-                os.mkdir(programs.TEMPDIR)
+            if not osp.isdir(osp.join(test_dir)):
+                os.makedirs(osp.join(test_dir))
+
 
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
@@ -934,6 +937,8 @@ class IPythonConsole(SpyderPluginWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions)
+        if self.testing:
+            client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:
