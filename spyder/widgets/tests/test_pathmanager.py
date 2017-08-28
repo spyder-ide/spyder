@@ -62,14 +62,14 @@ def test_check_uncheck_path(qtbot):
     assert pathmanager.not_active_pathlist == []
 
 
+@pytest.mark.skipif(os.name != 'nt',
+                    reason="This feature is not applicable for Unix systems")
 def test_synchronize_with_PYTHONPATH(qtbot, mocker):
-    if os.name != 'nt':
-        return
-
     pathmanager = setup_pathmanager(qtbot, None,
                                     pathlist=['path1', 'path2', 'path3'],
                                     ro_pathlist=['path4', 'path5', 'path6'])
 
+    # Import here to prevent an ImportError when testing on unix systems
     from spyder.utils.environ import (get_user_env, set_user_env,
                                       listdict2envdict)
 
@@ -116,4 +116,3 @@ def test_synchronize_with_PYTHONPATH(qtbot, mocker):
 
 if __name__ == "__main__":
     pytest.main([os.path.basename(__file__)])
-    # pytest.main()
