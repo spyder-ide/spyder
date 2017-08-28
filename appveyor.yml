@@ -12,7 +12,7 @@ environment:
     CONDA_DEPENDENCIES: >
       rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
       qtawesome pickleshare pyzmq chardet mock pandas pytest
-      pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi
+      pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi pywin32
     PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky"
 
   matrix:
