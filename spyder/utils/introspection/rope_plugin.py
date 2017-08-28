@@ -96,7 +96,7 @@ class RopePlugin(IntrospectionPlugin):
             if PY2:
                 filename = filename.encode('utf-8')
             else:
-                #TODO: test if this is working without any further change in
+                # TODO: test if this is working without any further change in
                 # Python 3 with a user account containing unicode characters
                 pass
         try:
@@ -135,7 +135,7 @@ class RopePlugin(IntrospectionPlugin):
             if PY2:
                 filename = filename.encode('utf-8')
             else:
-                #TODO: test if this is working without any further change in
+                # TODO: test if this is working without any further change in
                 # Python 3 with a user account containing unicode characters
                 pass
         try:
@@ -229,7 +229,7 @@ class RopePlugin(IntrospectionPlugin):
             if PY2:
                 filename = filename.encode('utf-8')
             else:
-                #TODO: test if this is working without any further change in
+                # TODO: test if this is working without any further change in
                 # Python 3 with a user account containing unicode characters
                 pass
         try:
