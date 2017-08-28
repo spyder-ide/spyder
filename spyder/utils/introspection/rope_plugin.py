@@ -92,12 +92,13 @@ class RopePlugin(IntrospectionPlugin):
           and not ';' in last_line:
             return []
 
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
+        if filename is not None:
+            if PY2:
+                filename = filename.encode('utf-8')
+            else:
+                #TODO: test if this is working without any further change in
+                # Python 3 with a user account containing unicode characters
+                pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
@@ -130,12 +131,13 @@ class RopePlugin(IntrospectionPlugin):
         # Set python path into rope project
         self.project.prefs.set('python_path', info['sys_path'])
 
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
+        if filename is not None:
+            if PY2:
+                filename = filename.encode('utf-8')
+            else:
+                #TODO: test if this is working without any further change in
+                # Python 3 with a user account containing unicode characters
+                pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
@@ -223,13 +225,13 @@ class RopePlugin(IntrospectionPlugin):
 
         # Set python path into rope project
         self.project.prefs.set('python_path', info['sys_path'])
-
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
+        if filename is not None:
+            if PY2:
+                filename = filename.encode('utf-8')
+            else:
+                #TODO: test if this is working without any further change in
+                # Python 3 with a user account containing unicode characters
+                pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
