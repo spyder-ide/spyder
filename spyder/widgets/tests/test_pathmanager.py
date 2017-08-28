@@ -19,6 +19,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.py3compat import PY3
 from spyder.widgets import pathmanager as pathmanager_mod
+from spyder.utils.programs import is_module_installed
 
 
 @pytest.fixture
@@ -62,8 +63,9 @@ def test_check_uncheck_path(qtbot):
     assert pathmanager.not_active_pathlist == []
 
 
-@pytest.mark.skipif(os.name != 'nt',
-                    reason="This feature is not applicable for Unix systems")
+@pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
+                    reason=("This feature is not applicable for Unix "
+                            "systems and pywin32 is needed"))
 def test_synchronize_with_PYTHONPATH(qtbot, mocker):
     pathmanager = setup_pathmanager(qtbot, None,
                                     pathlist=['path1', 'path2', 'path3'],
