@@ -167,6 +167,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             if self.stderr_dir is not None:
                 stderr_file = osp.join(self.stderr_dir, stderr_file)
             else:
+                if not osp.exists(TEMPDIR):
+                    os.makedirs(TEMPDIR)
                 stderr_file = osp.join(TEMPDIR, stderr_file)
             return stderr_file
 
