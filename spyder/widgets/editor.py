@@ -746,6 +746,12 @@ class EditorStack(QWidget):
     def closeEvent(self, event):
         self.threadmanager.close_all_threads()
         self.analysis_timer.timeout.disconnect(self.analyze_script)
+
+        # Remove editor references from the outline explorer settings
+        if self.outlineexplorer is not None:
+            for finfo in self.data:
+                self.outlineexplorer.remove_editor(finfo.editor)
+
         QWidget.closeEvent(self, event)
         if is_pyqt46:
             self.destroyed.emit()
@@ -2012,10 +2018,6 @@ class EditorStack(QWidget):
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
-        if self.outlineexplorer is not None:
-            # Removing editor reference from outline explorer settings:
-            editor.destroyed.connect(lambda obj=editor:
-                                     self.outlineexplorer.remove_editor(obj))
 
         self.find_widget.set_editor(editor)
 
