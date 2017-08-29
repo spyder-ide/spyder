@@ -479,9 +479,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if i_item is root_item:
                 #XXX: not working anymore!!!
                 for editor, _id in list(self.editor_ids.items()):
-                    if _id == editor_id and editor.parent() is parent:
-                        self.current_editor = editor
-                        break
+                    try:
+                        if _id == editor_id and editor.parent() is parent:
+                            self.current_editor = editor
+                            break
+                    except RuntimeError:
+                        # This editor has been deleted, continue to the next
+                        # one in the list.
+                        continue
                 break
 
     def clicked(self, item):
