@@ -289,6 +289,7 @@ class RunConfigOptions(QWidget):
         self.cwd_radio.setChecked(self.runconf.cw_dir)
         self.fixed_dir_radio.setChecked(self.runconf.fixed_dir)
         self.dir = self.runconf.dir
+        self.wd_edit.setText(self.dir)
 
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
