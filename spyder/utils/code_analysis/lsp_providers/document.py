@@ -23,8 +23,8 @@ def path_as_uri(path):
 
 
 class DocumentProvider:
-    @handles(LSPRequestTypes.DOCUMENT_DID_OPEN)
-    def document_open_response(self, response):
+    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    def process_document_diagnostics(self, response):
         pass
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)

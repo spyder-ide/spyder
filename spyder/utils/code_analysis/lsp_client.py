@@ -169,7 +169,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 self.handler_registry[resp['method']])
                             handler = getattr(self, handler_name)
                             handler(resp['params'])
-                        self.request_seq = resp['id']
+                        if 'id' in self.request_seq:
+                            self.request_seq = resp['id']
                 elif 'result' in resp:
                     req_id = resp['id']
                     if req_id in self.req_status:
