@@ -133,8 +133,8 @@ def main_window(request):
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name != 'nt' or not PY2,
-                    reason="It times out on Linux and Python 3")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It times out in our CIs")
 @pytest.mark.timeout(timeout=60, method='thread')
 @pytest.mark.use_introspection
 def test_calltip(main_window, qtbot):
@@ -166,6 +166,8 @@ def test_calltip(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run locally")
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
     CONF.set('run', 'configurations', [])
@@ -457,8 +459,8 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(True, #os.name == 'nt' or PYQT_WHEEL,
-                    reason="It times out sometimes on Windows and using PyQt wheels")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It times out in our CIs")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
@@ -676,8 +678,7 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT_WHEEL,
-                    reason="It times out sometimes on PyQt wheels")
+@pytest.mark.skipif(PYQT_WHEEL, reason="It times out sometimes on PyQt wheels")
 def test_close_when_file_is_changed(main_window, qtbot):
     """Test closing spyder when there is a file with modifications open."""
     # Wait until the window is fully up
