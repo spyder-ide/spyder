@@ -333,7 +333,7 @@ class TabSwitcherWidget(QListWidget):
 
     def __init__(self, parent, stack_history, tabs):
         QListWidget.__init__(self, parent)
-        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint | Qt.Dialog)
 
         self.editor = parent
         self.stack_history = stack_history
@@ -383,11 +383,10 @@ class TabSwitcherWidget(QListWidget):
 
     def set_dialog_position(self):
         """Positions the tab switcher in the top-center of the editor."""
-        parent = self.parent()
-        left = parent.geometry().width()/2 - self.width()/2
-        top = 0
+        left = self.editor.geometry().width()/2 - self.width()/2
+        top = self.editor.tabs.tabBar().geometry().height()
 
-        self.move(left, top + self.tabs.tabBar().geometry().height())
+        self.move(self.editor.mapToGlobal(QPoint(left, top)))
 
 
 class EditorStack(QWidget):
