@@ -586,10 +586,15 @@ class IPythonConsole(SpyderPluginWidget):
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    
+
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
+
+    # Error messages
+    permission_error_msg = _("The directory {} is not writable and it is "
+                             "required to create IPython consoles. Please "
+                             "make it writable.")
 
     def __init__(self, parent, testing=False, test_dir=TEMPDIR):
         """Ipython Console constructor."""
@@ -953,9 +958,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:
-            error_msg = _("The directory {} is not writable and it is "
-                          "required to create IPython consoles. Please make "
-                          "it writable.").format(jupyter_runtime_dir())
+            error_msg = self.permission_error_msg.format(jupyter_runtime_dir())
             client.show_kernel_error(error_msg)
             return
 
@@ -998,7 +1001,13 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        stderr_file = client.stderr_file
+        try:
+            stderr_file = client.stderr_file
+        except PermissionError:
+            error_msg = self.permission_error_msg.format(TEMPDIR)
+            client.show_kernel_error(error_msg)
+            return
+
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
         # An error occurred if this is True
