@@ -408,6 +408,13 @@ class TabSwitcherWidget(QListWidget):
                         self.item_selected()
         event.accept()
 
+    def keyPressEvent(self, event):
+        """Reimplement Qt method to allow cyclic behavior."""
+        if event.key() == Qt.Key_Down:
+            self.select_row(1)
+        elif event.key() == Qt.Key_Up:
+            self.select_row(-1)
+
 
 class EditorStack(QWidget):
     reset_statusbar = Signal()
