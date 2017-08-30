@@ -349,12 +349,16 @@ class TabSwitcherWidget(QListWidget):
         self.set_dialog_position()
         self.setCurrentRow(0)
 
+        config_shortcut(lambda: self.select_row(-1), context='Editor',
+                        name='Go to previous file', parent=self)
+        config_shortcut(lambda: self.select_row(1), context='Editor',
+                        name='Go to next file', parent=self)
+
     def load_data(self):
         """Fill ListWidget with the tabs texts.
 
         Add elements in inverse order of stack_history.
         """
-
         for index in reversed(self.stack_history):
             text = self.tabs.tabText(index)
             text = text.replace('&', '')
@@ -387,6 +391,22 @@ class TabSwitcherWidget(QListWidget):
         top = self.editor.tabs.tabBar().geometry().height()
 
         self.move(self.editor.mapToGlobal(QPoint(left, top)))
+
+    def keyReleaseEvent(self, event):
+        """Reimplement Qt method.
+
+        Handle "most recent used" tab behavior,
+        When ctrl is released and tab_switcher is visible, tab will be changed.
+        """
+        if self.isVisible():
+            qsc = get_shortcut(context='Editor', name='Go to next file')
+
+            for key in qsc.split('+'):
+                key = key.lower()
+                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
+                   (key == 'alt' and event.key() == Qt.Key_Alt)):
+                        self.item_selected()
+        event.accept()
 
 
 class EditorStack(QWidget):
@@ -1695,12 +1715,11 @@ class EditorStack(QWidget):
             True: move to next file
             False: move to previous file
         """
-        if self.tabs_switcher is None or not self.tabs_switcher.isVisible():
-            self.tabs_switcher = TabSwitcherWidget(self, self.stack_history,
-                                                   self.tabs)
-            self.tabs_switcher.show()
-
+        self.tabs_switcher = TabSwitcherWidget(self, self.stack_history,
+                                               self.tabs)
+        self.tabs_switcher.show()
         self.tabs_switcher.select_row(1 if forward else -1)
+        self.tabs_switcher.setFocus()
 
     def focus_changed(self):
         """Editor focus has changed"""
@@ -2198,25 +2217,6 @@ class EditorStack(QWidget):
             if editor is not None:
                 editor.insert_text( source.text() )
         event.acceptProposedAction()
-
-    def keyReleaseEvent(self, event):
-        """Reimplement Qt method.
-
-        Handle "most recent used" tab behavior,
-        When ctrl is released and tab_switcher is visible, tab will be changed.
-        """
-        if self.tabs_switcher is not None and self.tabs_switcher.isVisible():
-            qsc = get_shortcut(context='Editor', name='Go to next file')
-
-            for key in qsc.split('+'):
-                key = key.lower()
-                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
-                   (key == 'alt' and event.key() == Qt.Key_Alt)):
-                        self.tabs_switcher.item_selected()
-                        self.tabs_switcher = None
-                        return
-
-        super(EditorStack, self).keyReleaseEvent(event)
 
 
 class EditorSplitter(QSplitter):
