@@ -371,10 +371,13 @@ class TabSwitcherWidget(QListWidget):
             item = self.currentItem()
 
         # stack history is in inverse order
-        index = self.stack_history[-(self.currentRow()+1)]
-
-        self.editor.set_stack_index(index)
-        self.editor.current_changed(index)
+        try:
+            index = self.stack_history[-(self.currentRow()+1)]
+        except IndexError:
+            pass
+        else:
+            self.editor.set_stack_index(index)
+            self.editor.current_changed(index)
         self.hide()
 
     def select_row(self, steps):
