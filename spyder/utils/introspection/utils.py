@@ -35,13 +35,15 @@ class CodeInfo(object):
                                  re.UNICODE)
 
     def __init__(self, name, source_code, position, filename=None,
-            is_python_like=False, in_comment_or_string=False, **kwargs):
+                 is_python_like=False, in_comment_or_string=False,
+                 sys_path=None, **kwargs):
         self.__dict__.update(kwargs)
         self.name = name
         self.filename = filename
         self.source_code = source_code
         self.is_python_like = is_python_like
         self.in_comment_or_string = in_comment_or_string
+        self.sys_path = sys_path
 
         self.position = position
 
