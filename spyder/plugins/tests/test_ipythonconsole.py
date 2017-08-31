@@ -82,6 +82,7 @@ def ipyconsole(request):
 #==============================================================================
 @pytest.mark.parametrize('ipyconsole', [osp.join(TEMP_DIRECTORY, u'測試',
                                                  u'اختبار')], indirect=True)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_console_stderr_file(ipyconsole, qtbot):
     """Test a the creation of a console with a stderr file in ascii dir."""
     # Wait until the window is fully up
@@ -102,6 +103,7 @@ def test_console_stderr_file(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_console_import_namespace(ipyconsole, qtbot):
     """Test an import of the form 'from foo import *'."""
     # Wait until the window is fully up
@@ -309,7 +311,8 @@ def test_read_stderr(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(True, reason="It times out too much (to check later)")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It times out in our CIs")
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -451,7 +454,7 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(PYQT5, reason="It times out frequently in PyQt5")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
     Test that Ctrl+C works while debugging
