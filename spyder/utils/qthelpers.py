@@ -311,7 +311,10 @@ def add_actions(target, actions, insert_before=None):
                     except RuntimeError:
                         continue
             if insert_before is None:
-                target.addAction(action)
+                try:
+                    target.addAction(action)
+                except RuntimeError:
+                    continue
             else:
                 target.insertAction(insert_before, action)
         previous_action = action
