@@ -1252,10 +1252,13 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        self.filenames.pop(index)
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-        self.update_tabs_text()
+        try:
+            self.filenames.pop(index)
+            self.update_tabs_text()
+        except IndexError:
+            pass
         self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
@@ -1430,7 +1433,10 @@ class IPythonConsole(SpyderPluginWidget):
             self.dockwidget.raise_()
         self.activateWindow()
         widget.get_control().setFocus()
-        self.update_tabs_text()
+        try:
+            self.update_tabs_text()
+        except IndexError:
+            pass
         
     def move_tab(self, index_from, index_to):
         """
