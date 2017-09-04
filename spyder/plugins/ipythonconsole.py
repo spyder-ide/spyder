@@ -1252,15 +1252,20 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        if not self.tabwidget.count() and self.create_new_client_if_empty:
-            self.create_new_client()
+
         # This is needed to prevent that hanged consoles make reference
         # to an index that doesn't exist. See issue 4881
         try:
             self.filenames.pop(index)
         except IndexError:
             pass
+
         self.update_tabs_text()
+
+        # Create a new client if the console is about to become empty
+        if not self.tabwidget.count() and self.create_new_client_if_empty:
+            self.create_new_client()
+
         self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
