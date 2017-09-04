@@ -1533,7 +1533,7 @@ class EditorStack(QWidget):
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
                                         str(error)),
-                      self)
+                    parent=self)
             self.msgbox.exec_()
             return False
 
@@ -1626,7 +1626,7 @@ class EditorStack(QWidget):
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
                                         str(error)),
-                      self)
+                    parent=self)
                 self.msgbox.exec_()
         else:
             return False
