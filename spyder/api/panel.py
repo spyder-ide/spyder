@@ -13,15 +13,15 @@ from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 from qtpy.QtCore import Qt
 
-from spyder.api.mode import Mode
+from spyder.api.editorextension import EditorExtension
 from spyder.config.base import debug_print
 
 
-class Panel(QWidget, Mode):
+class Panel(QWidget, EditorExtension):
     """
     Base class for editor panels.
 
-    A panel is a mode and a QWidget.
+    A panel is a editor extension and a QWidget.
 
     .. note:: Use enabled to disable panel actions and setVisible to change the
         visibility of the panel.
@@ -61,7 +61,7 @@ class Panel(QWidget, Mode):
         self._scrollable = value
 
     def __init__(self, dynamic=False):
-        Mode.__init__(self)
+        EditorExtension.__init__(self)
         QWidget.__init__(self)
         # Specifies whether the panel is dynamic. A dynamic panel is a panel
         # that will be shown/hidden depending on the context.
@@ -79,7 +79,7 @@ class Panel(QWidget, Mode):
 
     def on_install(self, editor):
         """
-        Extends :meth:`spyder.api.Mode.on_install` method to set the
+        Extends :meth:`spyder.api.EditorExtension.on_install` method to set the
         editor instance as the parent widget.
 
         .. warning:: Don't forget to call **super** if you override this
@@ -88,7 +88,7 @@ class Panel(QWidget, Mode):
         :param editor: editor instance
         :type editor: spyder.widgets.sourcecode.CodeEditor
         """
-        Mode.on_install(self, editor)
+        EditorExtension.on_install(self, editor)
         self.setParent(editor)
         self.setPalette(QApplication.instance().palette())
         self.setFont(QApplication.instance().font())

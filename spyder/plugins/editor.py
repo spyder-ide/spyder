@@ -2449,8 +2449,13 @@ class Editor(SpyderPluginWidget):
         self.run_file(debug=True)
         # Fixes 2034
         editor = self.get_current_editor()
-        if editor.get_breakpoints():
+        breakpoints = editor.get_breakpoints()
+        if breakpoints:
             time.sleep(0.5)
+            if editor.get_cursor_line_number() == breakpoints[0][0]:
+                # Not need to execute any code because the first breakpoint
+                # is set in the first line with code
+                return
             self.debug_command('continue')
 
     @Slot()
