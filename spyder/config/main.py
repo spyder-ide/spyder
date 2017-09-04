@@ -217,7 +217,7 @@ DEFAULTS = [
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'show_tab_bar': True,
-              'show_class_func_dropdown': True,
+              'show_class_func_dropdown': False,
               'max_recent_files': 20,
               'save_all_before_run': True,
               'focus_to_editor': True,
@@ -636,7 +636,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '40.2.0'
+CONF_VERSION = '40.3.0'
 
 # Main configuration instance
 try:

@@ -606,7 +606,7 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500, show_class_func_dropdown=True,
+                     occurrence_timeout=1500, show_class_func_dropdown=False,
                      indent_guides=False):
         
         # Code completion and calltips
