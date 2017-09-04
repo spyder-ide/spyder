@@ -8,7 +8,7 @@
 This module contains the edge line panel
 """
 
-from qtpy.QtCore import Qt, QRect, QPoint
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QPainter, QColor
 
 from spyder.py3compat import is_text_string
@@ -61,19 +61,13 @@ class EdgeLine(Panel):
         """
         self.color = self.editor.highlighter.get_color_name('comment')
 
-    def set_geometry(self, cr):
-        """Calculate and set geometry of edge line panel.
+    def geometry(self):
+        """Calculate the geometry of edge line panel.
             start --> fist line position
             width --> max position - min position
         """
-        width = self.editor.fontMetrics().width('9'*(max(self.columns) - min(self.columns))) + 1
-        offset = self.editor.contentOffset()
-        x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
-            .translated(offset.x(), offset.y()).left() \
-            +self.editor.fontMetrics().width('9'*min(self.columns)) + self.editor.document().documentMargin()
+        x = self.editor.fontMetrics().width('9'*min(self.columns))
+        width = self.editor.fontMetrics().width('9'*(max(self.columns)
+                                                - min(self.columns))) + 1
 
-        top_left = QPoint(x, cr.top())
-        top_left = self.editor.calculate_real_position(top_left)
-        bottom_right = QPoint(top_left.x() + width, cr.bottom())
-
-        self.setGeometry(QRect(top_left, bottom_right))
+        return x, 0, width, None
