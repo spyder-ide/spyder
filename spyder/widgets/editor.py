@@ -462,6 +462,8 @@ class EditorStack(QWidget):
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
+    sig_prev_warning = Signal()
+    sig_next_warning = Signal()
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -510,16 +512,16 @@ class EditorStack(QWidget):
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
-        
+
         if sys.platform == 'darwin':
            text=_("Show in Finder")
         else:
            text= _("Show in external file explorer")
         external_fileexp_action = create_action(self, text,
                                 triggered=self.show_in_external_file_explorer)
-                
+
         actions.append(external_fileexp_action)
-        
+
         self.menu_actions = actions + [None, fileswitcher_action,
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
@@ -696,6 +698,14 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="re-run last cell",
                                       parent=self)
+        prev_warning = config_shortcut(lambda: self.sig_prev_warning.emit(),
+                                       context="Editor",
+                                       name="Previous warning",
+                                       parent=self)
+        next_warning = config_shortcut(lambda: self.sig_next_warning.emit(),
+                                       context="Editor",
+                                       name="Next warning",
+                                       parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -703,7 +713,8 @@ class EditorStack(QWidget):
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell]
+                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+                prev_warning, next_warning]
 
     def get_shortcut_data(self):
         """
@@ -814,10 +825,10 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg.is_visible = True
 
     @Slot()
-    def open_symbolfinder_dlg(self): 
+    def open_symbolfinder_dlg(self):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
-        
+
     def update_fileswitcher_dlg(self):
         """Synchronize file list dialog box with editor widget tabs"""
         if self.fileswitcher_dlg:
@@ -1346,7 +1357,7 @@ class EditorStack(QWidget):
             else:
                 self.stack_history.remove_and_append(index)
 
-            return editor  
+            return editor
 
     def is_file_opened(self, filename=None):
         if filename is None:
@@ -1433,19 +1444,19 @@ class EditorStack(QWidget):
         n = self.get_stack_count()
         for i in range(num, n-1):
             self.close_file(num+1)
-    
+
     def close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
         for i in range(0, self.get_stack_count()-1  ):
             self.close_file(0)
-            
+
     def add_last_closed_file(self, fname):
         """Add to last closed file list."""
         if fname in self.last_closed_files:
             self.last_closed_files.remove(fname)
         self.last_closed_files.insert(0, fname)
-        if len(self.last_closed_files) > 10: 
+        if len(self.last_closed_files) > 10:
             self.last_closed_files.pop(-1)
 
     def get_last_closed_files(self):
@@ -1849,7 +1860,7 @@ class EditorStack(QWidget):
                           "your changes?") % name,
                         QMessageBox.Yes | QMessageBox.No,
                         self)
-                    answer = self.msgbox.exec_()  
+                    answer = self.msgbox.exec_()
                     if answer == QMessageBox.Yes:
                         self.reload(index)
                     else:
@@ -1959,7 +1970,7 @@ class EditorStack(QWidget):
                       ) % osp.basename(filename),
                     QMessageBox.Yes | QMessageBox.No,
                     self)
-            answer = self.msgbox.exec_()  
+            answer = self.msgbox.exec_()
             if answer != QMessageBox.Yes:
                 return
         self.reload(index)
@@ -2151,7 +2162,7 @@ class EditorStack(QWidget):
     #------ Run
     def run_selection(self):
         """
-        Run selected text or current line in console. 
+        Run selected text or current line in console.
 
         If some text is selected, then execute that text in console.
 
@@ -2548,7 +2559,7 @@ class EditorMainWindow(QMainWindow):
     def add_toolbars_to_menu(self, menu_title, actions):
         """Add toolbars to a menu."""
         # Six is the position of the view menu in menus list
-        # that you can find in plugins/editor.py setup_other_windows. 
+        # that you can find in plugins/editor.py setup_other_windows.
         view_menu = self.menus[6]
         if actions == self.toolbars and view_menu:
             toolbars = []
@@ -2560,7 +2571,7 @@ class EditorMainWindow(QMainWindow):
     def load_toolbars(self):
         """Loads the last visible toolbars from the .ini file."""
         toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
-        if toolbars_names:            
+        if toolbars_names:
             dic = {}
             for toolbar in self.toolbars:
                 dic[toolbar.objectName()] = toolbar
