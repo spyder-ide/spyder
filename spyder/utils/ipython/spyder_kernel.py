@@ -207,10 +207,6 @@ class SpyderKernel(IPythonKernel):
         return iofunctions.save(data, filename)
 
     # --- For Pdb
-    def get_pdb_step(self):
-        """Return info about pdb current frame"""
-        return self._pdb_step
-
     def publish_pdb_state(self):
         """
         Publish Variable Explorer state and Pdb step through
