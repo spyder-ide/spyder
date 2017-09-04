@@ -649,16 +649,10 @@ if "SPYDER_EXCEPTHOOK" in os.environ:
 # runfile and debugfile commands
 #==============================================================================
 def _get_globals():
-    """Return current Python interpreter globals namespace"""
-    from __main__ import __dict__ as namespace
-    shell = namespace.get('__ipythonshell__')
-    if shell is not None and hasattr(shell, 'user_ns'):
-        # IPython 0.13+ kernel
-        return shell.user_ns
-    else:
-        # Python interpreter
-        return namespace
-    return namespace
+    """Return current namespace"""
+    from IPython.core.getipython import get_ipython
+    ipython_shell = get_ipython()
+    return ipython_shell.user_ns
 
 
 def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
