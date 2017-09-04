@@ -1241,10 +1241,20 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        self.filenames.pop(index)
+
+        # This is needed to prevent that hanged consoles make reference
+        # to an index that doesn't exist. See issue 4881
+        try:
+            self.filenames.pop(index)
+        except IndexError:
+            pass
+
+        self.update_tabs_text()
+
+        # Create a new client if the console is about to become empty
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-        self.update_tabs_text()
+
         self.sig_update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
@@ -1440,12 +1450,18 @@ class IPythonConsole(SpyderPluginWidget):
 
     def update_tabs_text(self):
         """Update the text from the tabs."""
-        for index, fname in enumerate(self.filenames):
-            client = self.clients[index]
-            if fname:
-                self.rename_client_tab(client, self.disambiguate_fname(fname))
-            else:
-                self.rename_client_tab(client, None)
+        # This is needed to prevent that hanged consoles make reference
+        # to an index that doesn't exist. See issue 4881
+        try:
+            for index, fname in enumerate(self.filenames):
+                client = self.clients[index]
+                if fname:
+                    self.rename_client_tab(client,
+                                           self.disambiguate_fname(fname))
+                else:
+                    self.rename_client_tab(client, None)
+        except IndexError:
+            pass
 
     def rename_client_tab(self, client, given_name):
         """Rename client's tab"""
