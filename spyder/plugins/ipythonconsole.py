@@ -911,7 +911,7 @@ class IPythonConsole(SpyderPluginWidget):
         if shellwidget is not None:
             shellwidget.get_cwd()
 
-    def wait_shell_is_ready(self, shell, timeout=3000):
+    def wait_shell_is_ready(self, shell, timeout=15000):
         """Wait until console It's ready and banner is correctly displayed.
 
         shell (ShellWidget)
