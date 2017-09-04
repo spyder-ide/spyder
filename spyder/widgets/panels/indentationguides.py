@@ -65,7 +65,7 @@ class IndentationGuide(Panel):
         """Calculate and set geometry of indentation guides panel."""
         offset = self.editor.contentOffset()
         x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
-            .translated(offset.x(), offset.y()).left() + 5
+            .translated(offset.x(), offset.y()).left() + self.editor.document().documentMargin()
 
         top_left = QPoint(x, cr.top())
         top_left = self.editor.calculate_real_position(top_left)

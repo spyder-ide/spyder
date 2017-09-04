@@ -70,7 +70,7 @@ class EdgeLine(Panel):
         offset = self.editor.contentOffset()
         x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
-            +self.editor.fontMetrics().width('9'*min(self.columns))+5
+            +self.editor.fontMetrics().width('9'*min(self.columns)) + self.editor.document().documentMargin()
 
         top_left = QPoint(x, cr.top())
         top_left = self.editor.calculate_real_position(top_left)
