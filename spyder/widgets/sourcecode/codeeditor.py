@@ -1430,7 +1430,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.__show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
 
     def go_to_previous_warning(self):
@@ -1447,7 +1447,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.__show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
 
 
