@@ -222,6 +222,16 @@ class SpyderKernel(IPythonKernel):
                          step = self._pdb_step)
             publish_data({'__spy_pdb_state__': state})
 
+    def pdb_continue(self):
+        """
+        Tell the console to run 'continue' after entering a
+        Pdb session to get to the first breakpoint.
+
+        Fixes issue 2034
+        """
+        if self._pdb_obj:
+            publish_data({'__spy_pdb_continue__': True})
+
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""

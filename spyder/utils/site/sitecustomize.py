@@ -314,6 +314,7 @@ except:
 class SpyderPdb(pdb.Pdb):
 
     send_initial_notification = True
+    starting = True
 
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
@@ -341,7 +342,7 @@ class SpyderPdb(pdb.Pdb):
             return
 
         from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
+        kernel = get_ipython().kernel
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -352,18 +353,31 @@ class SpyderPdb(pdb.Pdb):
                 pass
         lineno = frame.f_lineno
 
+        # Jump to first breakpoint.
+        # Fixes issue 2034
+        if self.starting:
+            # Only run this after a Pdb session is created
+            self.starting = False
+
+            # Get all breakpoints for the file we're going to debug
+            breaks = self.get_file_breaks(frame.f_code.co_filename)
+
+            # Do 'continue' if the first breakpoint is *not* placed
+            # where the debugger is going to land.
+            # Fixes issue 4681
+            if breaks and lineno != breaks[0] and osp.isfile(fname):
+                kernel.pdb_continue()
+
         # Set step of the current frame (if any)
         step = {}
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname):
-                if ipython_shell:
-                    step = dict(fname=fname, lineno=lineno)
+                step = dict(fname=fname, lineno=lineno)
 
         # Publish Pdb state so we can update the Variable Explorer
         # and the Editor on the Spyder side
-        if ipython_shell:
-            ipython_shell.kernel._pdb_step = step
-            ipython_shell.kernel.publish_pdb_state()
+        kernel._pdb_step = step
+        kernel.publish_pdb_state()
 
 pdb.Pdb = SpyderPdb
 
