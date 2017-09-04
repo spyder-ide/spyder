@@ -54,8 +54,14 @@ def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
         # Is this a Spyder plugin?
         if not name.startswith(PLUGIN_PREFIX):
             continue
+
         # Ensure right type of plugin
         if is_io != name.startswith(IO_PREFIX):
+            continue
+
+        # Skip names that end in certain suffixes
+        forbidden_suffixes = ['dist-info', 'egg.info', 'egg-link']
+        if any([name.endswith(s) for s in forbidden_suffixes]):
             continue
 
         # Import the plugin
