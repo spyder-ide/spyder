@@ -1,0 +1,7 @@
+[python_function]
+    prefix = 'func'
+    language = 'python'
+    content = """
+def ${1:function}():
+    ${2:pass}
+"""

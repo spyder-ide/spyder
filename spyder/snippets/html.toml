@@ -1,0 +1,4 @@
+[html_boilerplate]
+    prefix = 'html'
+    language = 'html'
+    content = """<html><html>"""
