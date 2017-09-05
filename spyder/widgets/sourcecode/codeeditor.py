@@ -2362,6 +2362,11 @@ class CodeEditor(TextEditBaseWidget):
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
 
+    def focusOutEvent(self, event):
+        """Override Qt method."""
+        self.scrollflagarea.altReleaseEvent(event)
+        super(CodeEditor, self).focusOutEvent(event)
+
     def keyReleaseEvent(self, event):
         """Override Qt method."""
         if event.key() == Qt.Key_Alt:
