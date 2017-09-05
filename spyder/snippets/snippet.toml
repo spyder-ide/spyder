@@ -1,0 +1,9 @@
+[spyder_snippet]
+    prefix = 'snippet'
+    language = 'toml'
+    content = """
+[${1:name}]
+    prefix = '${1:prefix}'
+    language = '${1:python}'
+    body = "${1:import antigravity}"
+"""
