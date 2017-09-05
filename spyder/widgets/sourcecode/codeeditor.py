@@ -2364,12 +2364,20 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
+        if event.key() == Qt.Key_Alt:
+            self.scrollflagarea.altReleaseEvent(event)
+            return
+
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+        if event.key() == Qt.Key_Alt:
+            self.scrollflagarea.altPressEvent(event)
+            return
+
         event.ignore()
         self.key_pressed.emit(event)
         key = event.key()
@@ -2578,6 +2586,10 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
+        if event.modifiers() & Qt.AltModifier:
+            self.scrollflagarea.mouseMoveEvent(event)
+            return
+
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
@@ -2644,6 +2656,10 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
+        if event.modifiers() & Qt.AltModifier:
+            self.scrollflagarea.mousePressEvent(event)
+            return
+
         if event.button() == Qt.LeftButton\
            and (event.modifiers() & Qt.ControlModifier):
             TextEditBaseWidget.mousePressEvent(self, event)
