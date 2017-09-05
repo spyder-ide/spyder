@@ -71,6 +71,7 @@ from spyder.widgets.sourcecode.extensions.manager import (
 from spyder.widgets.sourcecode.extensions.closequotes import (
         CloseQuotesExtension)
 from spyder.widgets.sourcecode.api.decoration import TextDecoration
+from spyder.widgets.sourcecode.extensions.snippets import SnippetsExtension
 from spyder.api.panel import Panel
 
 try:
@@ -459,6 +460,7 @@ class CodeEditor(TextEditBaseWidget):
         self.editor_extensions = EditorExtensionsManager(self)
 
         self.editor_extensions.add(CloseQuotesExtension())
+        self.editor_extensions.add(SnippetsExtension())
 
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
