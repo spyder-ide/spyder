@@ -1214,7 +1214,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         self.scrollpastend_enabled = state
         self.setCenterOnScroll(state)
-        self.update()
+        self.setDocument(self.document())
 
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""
