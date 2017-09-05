@@ -9,10 +9,11 @@ This module contains the edge line panel
 """
 
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QPainter, QColor
+from qtpy.QtGui import QPainter, QColor, QPen
 
 from spyder.py3compat import is_text_string
 from spyder.api.panel import Panel
+
 
 class EdgeLine(Panel):
     """Source code editor's edge line (default: 79 columns, PEP8)"""
@@ -29,13 +30,12 @@ class EdgeLine(Panel):
         painter = QPainter(self)
         size = self.size()
 
-        offsets = [col - min(self.columns) for col in self.columns]
-        for offset in offsets:
-            color = QColor(self.color)
-            color.setAlphaF(.5)
-            painter.setPen(color)
+        color = QColor(self.color)
+        color.setAlphaF(.5)
+        painter.setPen(color)
 
-            x = self.editor.fontMetrics().width(offset * '9')
+        for column in self.columns:
+            x = self.editor.fontMetrics().width(column * '9')
             painter.drawLine(x, 0, x, size.height())
 
     # --- Other methods
@@ -60,14 +60,3 @@ class EdgeLine(Panel):
         Set edgeline color using syntax highlighter color for comments
         """
         self.color = self.editor.highlighter.get_color_name('comment')
-
-    def geometry(self):
-        """Calculate the geometry of edge line panel.
-            start --> fist line position
-            width --> max position - min position
-        """
-        x = self.editor.fontMetrics().width('9'*min(self.columns))
-        width = self.editor.fontMetrics().width('9'*(max(self.columns)
-                                                - min(self.columns))) + 1
-
-        return x, 0, width, None
