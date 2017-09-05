@@ -51,12 +51,13 @@ class SnippetsExtension(EditorExtension):
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
         prefix = cursor.selectedText()
 
-        snippet_text = self.snippet_manager.search_snippet(prefix)
+        snippet = self.snippet_manager.search_snippet(prefix)
 
-        if snippet_text is not None:
+        if snippet is not None:
             cursor.removeSelectedText()
-            cursor.insertText(snippet_text)
-            debug_print("Inserted snippet:{} {}".format(prefix, snippet_text))
+            cursor.insertText(snippet.content)
+            debug_print("Inserted snippet:{} {}".format(prefix,
+                                                        snippet.content))
             self.snipped_in_progress = True
             return True
         else:
