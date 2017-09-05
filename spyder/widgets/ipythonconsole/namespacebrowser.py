@@ -189,6 +189,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if pdb_state is not None and isinstance(pdb_state, dict):
             self.refresh_from_pdb(pdb_state)
 
+        # Run Pdb continue to get to the first breakpoint
+        # Fixes 2034
+        pdb_continue = data.get('__spy_pdb_continue__', None)
+        if pdb_continue:
+            self.write_to_stdin('continue')
+
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):
         """
