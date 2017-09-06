@@ -1,9 +1,11 @@
 [spyder_snippet]
     prefix = 'snippet'
     language = 'toml'
-    content = """
+    content = '''
 [${1:name}]
     prefix = '${1:prefix}'
     language = '${1:python}'
-    body = "${1:import antigravity}"
-"""
+    # if you are going to use multiline use single triple quotes
+    # double quotes trim all white space.
+    body = '${1:import antigravity}'
+'''
