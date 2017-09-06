@@ -470,8 +470,8 @@ def get_type_string(item):
     """Return type string of an object."""
     if isinstance(item, DataFrame):
         return "DataFrame"
-    if isinstance(item, DatetimeIndex):
-        return "Index"
+    if isinstance(item, Index):
+        return type(item).__name__
     if isinstance(item, Series):
         return "Series"
     found = re.findall(r"<(?:type|class) '(\S*)'>",
