@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QMenu, QMessageBox, QPushButton, QTableView,
                             QHeaderView)
 
-from pandas import DataFrame, DatetimeIndex, Series
+from pandas import DataFrame, Index, Series
 import numpy as np
 
 # Local imports
@@ -658,7 +658,7 @@ class DataFrameEditor(QDialog):
         """
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise.
-        Supported types for data are DataFrame, Series and DatetimeIndex.
+        Supported types for data are DataFrame, Series and Index.
         """
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -670,7 +670,7 @@ class DataFrameEditor(QDialog):
         if isinstance(data, Series):
             self.is_series = True
             data = data.to_frame()
-        elif isinstance(data, DatetimeIndex):
+        elif isinstance(data, Index):
             data = DataFrame(data)
 
         self.setWindowTitle(title)
