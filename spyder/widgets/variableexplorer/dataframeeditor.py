@@ -678,7 +678,21 @@ class DataFrameHeader(QAbstractTableModel):
         if self.axis == orient_axis and self.model.header_shape[0] > 1:
             header = section
         else:
-            header = to_text_string(self.model.header(self.axis, section))
+            header = self.model.header(self.axis, section)
+            if isinstance(header, TEXT_TYPES):
+                # Get the proper encoding of the text in the header.
+                # Fixes Issue 3896
+                if not PY2:
+                    try:
+                        header = header.encode('utf-8')
+                        coding = 'utf-8-sig'
+                    except:
+                        header = header.encode('utf-8')
+                        coding = encoding.get_coding(header)
+                else:
+                    coding = encoding.get_coding(header)
+                return to_text_string(header, encoding=coding)
+            header = to_text_string(header)
         return header
 
     def data(self, index, role):

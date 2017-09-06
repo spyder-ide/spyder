@@ -66,18 +66,16 @@ def test_header_encoding():
     editor.setup_and_check(df)
     header = editor.table_header.model()
     assert header.headerData(0, Qt.Horizontal,
-                             Qt.DisplayRole) == "Index"
-    assert header.headerData(1, Qt.Horizontal,
                              Qt.DisplayRole) == "Unnamed: 0"
-    assert header.headerData(2, Qt.Horizontal,
+    assert header.headerData(1, Qt.Horizontal,
                              Qt.DisplayRole) == "Unieke_Idcode"
-    assert header.headerData(3, Qt.Horizontal,
+    assert header.headerData(2, Qt.Horizontal,
                              Qt.DisplayRole) == "a"
-    assert header.headerData(4, Qt.Horizontal,
+    assert header.headerData(3, Qt.Horizontal,
                              Qt.DisplayRole) == "b"
-    assert header.headerData(5, Qt.Horizontal,
+    assert header.headerData(4, Qt.Horizontal,
                              Qt.DisplayRole) == "c"
-    assert header.headerData(6, Qt.Horizontal,
+    assert header.headerData(5, Qt.Horizontal,
                              Qt.DisplayRole) == "d"
 
 
