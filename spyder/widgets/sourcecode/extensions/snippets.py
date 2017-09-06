@@ -20,7 +20,7 @@ class SnippetsExtension(EditorExtension):
         """Init editor extension, and the snippets manager"""
         super(SnippetsExtension, self).__init__()
         self.snippet_manager = SnippetManager()
-        self.snipped_in_progress = False
+        self.snippet = None  # Snippet in progress
 
     def on_state_changed(self, state):
         """Connect/disconnect key_pressed signal."""
@@ -35,7 +35,7 @@ class SnippetsExtension(EditorExtension):
 
         key = event.key()
         if key == Qt.Key_Tab and self.enabled:
-            if self.snipped_in_progress:
+            if self.snippet is not None:
                 self._continue_snippet()
                 event.accept()
             else:
@@ -51,18 +51,27 @@ class SnippetsExtension(EditorExtension):
         cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
         prefix = cursor.selectedText()
 
-        snippet = self.snippet_manager.search_snippet(prefix)
+        self.snippet = self.snippet_manager.search_snippet(prefix)
 
-        if snippet is not None:
+        if self.snippet is not None:
             cursor.removeSelectedText()
-            cursor.insertText(snippet.content)
+            cursor.insertText(self.snippet.text())
             debug_print("Inserted snippet:{} {}".format(prefix,
-                                                        snippet.content))
-            self.snipped_in_progress = True
+                        self.snippet.content))
+            self._select_variables()
             return True
         else:
             cursor.movePosition(QTextCursor.EndOfWord)
             return False
 
+    def _select_variables(self):
+        if self.snippet is None:
+            return
+
+        for variable in self.snippet.variables_position():
+            pass
+        else:
+            self.snippet = None
+
     def _continue_snippet(self):
-        pass
+        self.snippet = None
