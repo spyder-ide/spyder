@@ -20,12 +20,14 @@ regex_variables = re.compile(r'\$\{(\d+)\:(\w*)\}')
 
 class Snippet():
     def __init__(self, name, **kwargs):
+        """Create a Snippet object."""
         self.name = name
         self.content = kwargs['content']
         self.prefix = kwargs['prefix']
         self.language = kwargs['language']
 
     def text(self):
+        """Return content with variables defaults replaced."""
         return re.sub(regex_variables, r'\2', self.content)
 
     def variables_position(self):
@@ -45,6 +47,7 @@ class Snippet():
             yield position, len(match.group(2))
 
     def to_toml(self):
+        """Dump the contents to a toml formated str."""
         snippet = {self.name: {'prefix': self.prefix,
                                'language': self.language,
                                'content': self.content}}
@@ -59,11 +62,19 @@ class Snippet():
 
 class SnippetManager():
     def __init__(self):
+        """Create an snippets manager, and load snippets from config."""
         self.snippets = {}
         self.path = get_conf_path("snippets")
         self.load_snippets()
 
     def load_snippets(self):
+        """
+        Load snippets from the path specified in the configurations.
+
+        Return the amount of loaded snippets.
+
+        TODO: Validate that snnipets have unique prefix.
+        """
         if not os.path.isdir(self.path):
             return
         amount_snippets = 0
@@ -75,7 +86,9 @@ class SnippetManager():
             amount_snippets += len(snippets)
         return amount_snippets
 
-    def load_snippet_file(self, fname):
+    @staticmethod
+    def load_snippet_file(fname):
+        """Load an snipped file."""
         snippets = {}
 
         with codecs.open(fname, encoding='utf-8') as f:
@@ -90,10 +103,15 @@ class SnippetManager():
         return snippets
 
     def search_snippet(self, prefix):
+        """
+        Search and return an snippet by its prefix.
+
+        Return None if the snippet does not exist.
+        """
         return self.snippets.get(prefix)
 
     def save_snippet(self, snippet, file_name=None):
-
+        """Save an snippet in the configuration path."""
         if file_name is None:
             file_name = '{}.toml'.format(snippet.prefix)
 
