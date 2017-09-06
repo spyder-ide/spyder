@@ -169,7 +169,7 @@ class DataFrameModel(QAbstractTableModel):
             return ax.names[level]
         if ax.name:
             return ax.name
-        return '    '
+        return ''
 
     def max_min_col_update(self):
         """
@@ -675,8 +675,11 @@ class DataFrameHeader(QAbstractTableModel):
         if self.axis == 1 and self._shape[1] <= 1:
             return None
         orient_axis = 0 if orientation == Qt.Horizontal else 1
-        return section if self.axis == orient_axis else \
-            self.model.name(self.axis, section)
+        if self.axis == orient_axis and self.model.header_shape[0] > 1:
+            header = section
+        else:
+            header = to_text_string(self.model.header(self.axis, section))
+        return header
 
     def data(self, index, role):
         if not index.isValid() or \

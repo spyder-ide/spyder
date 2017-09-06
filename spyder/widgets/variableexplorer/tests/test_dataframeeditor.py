@@ -49,6 +49,38 @@ def bgcolor(dfm, i, j):
 # --- Tests
 # -----------------------------------------------------------------------------
 
+def test_header_bom():
+    df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    header = editor.table_header.model()
+    assert header.headerData(0, Qt.Horizontal,
+                             Qt.DisplayRole) == "Date (MMM-YY)"
+
+
+@pytest.mark.skipif(is_module_installed('pandas', '<0.19'),
+                    reason="It doesn't work for Pandas 0.19-")
+def test_header_encoding():
+    df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    header = editor.table_header.model()
+    assert header.headerData(0, Qt.Horizontal,
+                             Qt.DisplayRole) == "Index"
+    assert header.headerData(1, Qt.Horizontal,
+                             Qt.DisplayRole) == "Unnamed: 0"
+    assert header.headerData(2, Qt.Horizontal,
+                             Qt.DisplayRole) == "Unieke_Idcode"
+    assert header.headerData(3, Qt.Horizontal,
+                             Qt.DisplayRole) == "a"
+    assert header.headerData(4, Qt.Horizontal,
+                             Qt.DisplayRole) == "b"
+    assert header.headerData(5, Qt.Horizontal,
+                             Qt.DisplayRole) == "c"
+    assert header.headerData(6, Qt.Horizontal,
+                             Qt.DisplayRole) == "d"
+
+
 def test_dataframemodel_basic():
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
