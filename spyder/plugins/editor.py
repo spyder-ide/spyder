@@ -113,8 +113,9 @@ class EditorConfigPage(PluginConfigPage):
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
-        showclassfuncdropdown_box = newcb(_("Show Class/Function Dropdown"),
-                                          'show_class_func_dropdown')
+        showclassfuncdropdown_box = newcb(
+                _("Show selector for classes and functions"),
+                'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show Indent Guides"),
                                       'indent_guides')
 
@@ -995,6 +996,13 @@ class Editor(SpyderPluginWidget):
         showindentguides_action = create_action(self, _("Show indent guides."),
                                                toggled=self.toggle_show_indent_guides)
         showindentguides_action.setChecked(CONF.get('editor', 'indent_guides'))
+
+        show_classfunc_dropdown_action = create_action(
+                self, _("Show selector for classes and functions."),
+                toggled=self.toggle_show_classfunc_dropdown)
+        show_classfunc_dropdown_action.setChecked(
+                CONF.get('editor', 'show_class_func_dropdown'))
+
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
@@ -1115,6 +1123,7 @@ class Editor(SpyderPluginWidget):
         source_menu_actions = [eol_menu,
                                self.showblanks_action,
                                showindentguides_action,
+                               show_classfunc_dropdown_action,
                                trailingspaces_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
@@ -1238,7 +1247,7 @@ class Editor(SpyderPluginWidget):
             self.set_last_focus_editorstack(self, editorstack)
             editorstack.set_closable( len(self.editorstacks) > 1 )
             if self.outlineexplorer is not None:
-                editorstack.set_outlineexplorer(self.outlineexplorer)
+                editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
             editorstack.set_find_widget(self.find_widget)
             editorstack.reset_statusbar.connect(self.readwrite_status.hide)
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
@@ -1472,13 +1481,15 @@ class Editor(SpyderPluginWidget):
     def get_current_editorstack(self, editorwindow=None):
         if self.editorstacks is not None:
             if len(self.editorstacks) == 1:
-                return self.editorstacks[0]
+                editorstack = self.editorstacks[0]
             else:
                 editorstack = self.__get_focus_editorstack()
                 if editorstack is None or editorwindow is not None:
-                    return self.get_last_focus_editorstack(editorwindow)
-                return editorstack
-        
+                    editorstack = self.get_last_focus_editorstack(editorwindow)
+                    if editorstack is None:
+                        editorstack = self.editorstacks[0]
+            return editorstack
+
     def get_current_editor(self):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
@@ -2195,6 +2206,12 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.set_indent_guides(checked)
 
+    @Slot(bool)
+    def toggle_show_classfunc_dropdown(self, checked):
+        if self.editorstacks:
+            for editorstack in self.editorstacks:
+                editorstack.set_classfunc_dropdown_visible(checked)
+
     @Slot()
     def remove_trailing_spaces(self):
         editorstack = self.get_current_editorstack()
@@ -2431,16 +2448,6 @@ class Editor(SpyderPluginWidget):
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
-        # Fixes 2034
-        editor = self.get_current_editor()
-        breakpoints = editor.get_breakpoints()
-        if breakpoints:
-            time.sleep(0.5)
-            if editor.get_cursor_line_number() == breakpoints[0][0]:
-                # Not need to execute any code because the first breakpoint
-                # is set in the first line with code
-                return
-            self.debug_command('continue')
 
     @Slot()
     def re_run_file(self):

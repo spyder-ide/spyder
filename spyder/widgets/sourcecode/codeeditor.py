@@ -606,7 +606,7 @@ class CodeEditor(TextEditBaseWidget):
                      close_parentheses=True, close_quotes=False,
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
-                     occurrence_timeout=1500, show_class_func_dropdown=True,
+                     occurrence_timeout=1500, show_class_func_dropdown=False,
                      indent_guides=False):
         
         # Code completion and calltips
@@ -1430,7 +1430,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.__show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
 
     def go_to_previous_warning(self):
@@ -1447,7 +1447,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.__show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
 
 
@@ -2564,9 +2564,10 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
         elif not event.isAccepted():
             TextEditBaseWidget.keyPressEvent(self, event)
-            event.accept()
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+        # Accept event to avoid it being handled by the parent
+        event.accept()
 
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
