@@ -262,7 +262,7 @@ the sympy module (e.g. plot)
                 # namespacebrowser table when the reset is done silently. When
                 # silent is False, something is written in the console,
                 # which trigger a refresh of the variable table automatically.
-                # See PR #4885 
+                # See PR #4885
             else:
                 self.execute("%reset -f")
 
