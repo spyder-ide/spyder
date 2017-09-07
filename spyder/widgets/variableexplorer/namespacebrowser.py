@@ -36,7 +36,7 @@ from spyder.utils.iofuncs import iofunctions
 from spyder.utils.misc import fix_reference_name
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, create_plugin_layout)
 from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
@@ -148,7 +148,6 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_files_dropped.connect(self.import_data)
 
         # Setup layout
-        layout = QVBoxLayout()
         blayout = QHBoxLayout()
         toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
                                      exclude_capitalized, exclude_unsupported)
@@ -171,10 +170,9 @@ class NamespaceBrowser(QWidget):
 
         blayout.addStretch()
         blayout.addWidget(options_button)
-        layout.addLayout(blayout)
-        layout.addWidget(self.editor)
+
+        layout = create_plugin_layout(blayout, self.editor)
         self.setLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
 
         self.sig_option_changed.connect(self.option_changed)
         

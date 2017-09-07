@@ -52,11 +52,14 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         exclude_regexp = self.get_option('exclude_regexp')
         in_python_path = self.get_option('in_python_path')
         more_options = self.get_option('more_options')
+        case_sensitive = self.get_option('case_sensitive')
+        path_history = self.get_option('path_history', [])
         FindInFilesWidget.__init__(self, parent,
-                                   search_text, search_text_regexp, search_path,
-                                   exclude, exclude_idx, exclude_regexp,
-                                   supported_encodings,
-                                   in_python_path, more_options)
+                                   search_text, search_text_regexp,
+                                   search_path, exclude, exclude_idx,
+                                   exclude_regexp, supported_encodings,
+                                   in_python_path, more_options,
+                                   case_sensitive, path_history)
         SpyderPluginMixin.__init__(self, parent)
         
         # Initialize plugin
@@ -156,13 +159,15 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.closing_widget()  # stop search thread and clean-up
         options = self.find_options.get_options(all=True)
         if options is not None:
-            search_text, text_re, search_path, \
-            exclude, exclude_idx, exclude_re, \
-            in_python_path, more_options = options
+            (search_text, text_re, search_path,
+             exclude, exclude_idx, exclude_re,
+             in_python_path, more_options, case_sensitive,
+             path_history) = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
             search_path = search_path[:hist_limit]
             exclude = exclude[:hist_limit]
+            path_history = path_history[-hist_limit:]
             self.set_option('search_text', search_text)
             self.set_option('search_text_regexp', text_re)
             self.set_option('search_path', search_path)
@@ -171,6 +176,8 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
             self.set_option('exclude_regexp', exclude_re)
             self.set_option('in_python_path', in_python_path)
             self.set_option('more_options', more_options)
+            self.set_option('case_sensitive', case_sensitive)
+            self.set_option('path_history', path_history)
         return True
 
 

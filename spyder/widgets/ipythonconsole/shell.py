@@ -15,6 +15,7 @@ import uuid
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.main import CONF
+from qtpy import PYQT4
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
@@ -282,10 +283,10 @@ the sympy module (e.g. plot)
         reset_namespace = config_shortcut(lambda: self.reset_namespace(),
                                           context='ipython_console',
                                           name='reset namespace', parent=self)
-        array_inline = config_shortcut(lambda: self.enter_array_inline(),
+        array_inline = config_shortcut(self._control.enter_array_inline,
                                        context='array_builder',
                                        name='enter array inline', parent=self)
-        array_table = config_shortcut(lambda: self.enter_array_table(),
+        array_table = config_shortcut(self._control.enter_array_table,
                                       context='array_builder',
                                       name='enter array table', parent=self)
 
@@ -352,13 +353,15 @@ the sympy module (e.g. plot)
                 data = reply.get('data')
                 if 'get_namespace_view' in method:
                     if data is not None and 'text/plain' in data:
-                        view = ast.literal_eval(data['text/plain'])
+                        literal = ast.literal_eval(data['text/plain'])
+                        view = ast.literal_eval(literal)
                     else:
                         view = None
                     self.sig_namespace_view.emit(view)
                 elif 'get_var_properties' in method:
                     if data is not None and 'text/plain' in data:
-                        properties = ast.literal_eval(data['text/plain'])
+                        literal = ast.literal_eval(data['text/plain'])
+                        properties = ast.literal_eval(literal)
                     else:
                         properties = None
                     self.sig_var_properties.emit(properties)
@@ -427,17 +430,18 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    def capture_dir_change(self, command):
-        """
-        Capture dir change magic for synchronization with working directory.
-        """
-        try:
-            if command.startswith('%cd') or command.split()[0] == 'cd':
-                self.get_cwd()
-        except IndexError:
-            pass
-
     #---- Private methods (overrode by us) ---------------------------------
+    def _handle_error(self, msg):
+        """
+        Reimplemented to reset the prompt if the error comes after the reply
+        """
+        # In pyqt4, if super does not has _handle_error, disregard the error
+        if PYQT4:
+            if not hasattr(super(ShellWidget, self), '_handle_error'):
+                return
+        super(ShellWidget, self)._handle_error(msg)
+        self._show_interpreter_prompt()
+
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(ShellWidget, self)._context_menu_make(pos)

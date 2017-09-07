@@ -110,8 +110,10 @@ class SpyderKernel(IPythonKernel):
         settings = self.namespace_view_settings
         if settings:
             ns = self._get_current_namespace()
-            view = make_remote_view(ns, settings, EXCLUDED_NAMES)
+            view = repr(make_remote_view(ns, settings, EXCLUDED_NAMES))
             return view
+        else:
+            return repr(None)
 
     def get_var_properties(self):
         """
@@ -138,9 +140,9 @@ class SpyderKernel(IPythonKernel):
                     'array_ndim': self._get_array_ndim(value)
                 }
 
-            return properties
+            return repr(properties)
         else:
-            return {}
+            return repr(None)
 
     def get_value(self, name):
         """Get the value of a variable"""
@@ -205,10 +207,6 @@ class SpyderKernel(IPythonKernel):
         return iofunctions.save(data, filename)
 
     # --- For Pdb
-    def get_pdb_step(self):
-        """Return info about pdb current frame"""
-        return self._pdb_step
-
     def publish_pdb_state(self):
         """
         Publish Variable Explorer state and Pdb step through
@@ -219,6 +217,16 @@ class SpyderKernel(IPythonKernel):
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
             publish_data({'__spy_pdb_state__': state})
+
+    def pdb_continue(self):
+        """
+        Tell the console to run 'continue' after entering a
+        Pdb session to get to the first breakpoint.
+
+        Fixes issue 2034
+        """
+        if self._pdb_obj:
+            publish_data({'__spy_pdb_continue__': True})
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):

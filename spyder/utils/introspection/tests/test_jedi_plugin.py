@@ -8,6 +8,8 @@
 from textwrap import dedent
 
 import pytest
+import os
+import os.path as osp
 
 from spyder.utils.introspection.manager import CodeInfo
 from spyder.utils.introspection import jedi_plugin
@@ -26,6 +28,8 @@ try:
     import matplotlib
 except ImportError:
     matplotlib = None
+
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 p = jedi_plugin.JediPlugin()
 p.load_plugin()
@@ -96,6 +100,14 @@ def test_matplotlib_fig_returns():
     completions = p.get_completions(CodeInfo('completions', source_code,
                                              len(source_code)))
     assert ('add_axes', 'function') in completions
+
+
+def test_completions_custom_path():
+    source_code = dedent('import test_')
+    completions = p.get_completions(CodeInfo('completions', source_code,
+                                             len(source_code),
+                                             sys_path=[LOCATION]))
+    assert ('test_jedi_plugin', 'module') in completions
 
 
 if __name__ == '__main__':

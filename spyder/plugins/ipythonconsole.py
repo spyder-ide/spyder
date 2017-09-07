@@ -53,6 +53,7 @@ from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
+from spyder.utils.programs import TEMPDIR
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.ipythonconsole import ClientWidget
@@ -404,7 +405,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                        'pylab/inline/figure_format', default=0)
         resolution_spin = self.create_spinbox(
                         _("Resolution:")+"  ", " "+_("dpi"),
-                        'pylab/inline/resolution', min_=50, max_=150, step=0.1,
+                        'pylab/inline/resolution', min_=50, max_=999, step=0.1,
                         tip=_("Only used when the format is PNG. Default is "
                               "72"))
         width_spin = self.create_spinbox(
@@ -592,12 +593,17 @@ class IPythonConsole(SpyderPluginWidget):
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    
+
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
 
-    def __init__(self, parent, testing=False):
+    # Error messages
+    permission_error_msg = _("The directory {} is not writable and it is "
+                             "required to create IPython consoles. Please "
+                             "make it writable.")
+
+    def __init__(self, parent, testing=False, test_dir=TEMPDIR):
         """Ipython Console constructor."""
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
@@ -619,6 +625,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
         self.testing = testing
+        self.test_dir = test_dir
 
         # Initialize plugin
         if not self.testing:
@@ -626,8 +633,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create temp dir on testing to save kernel errors
         if self.testing:
-            if not osp.isdir(programs.TEMPDIR):
-                os.mkdir(programs.TEMPDIR)
+            if not osp.isdir(osp.join(test_dir)):
+                os.makedirs(osp.join(test_dir))
+
 
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
@@ -817,7 +825,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.currentChanged.connect(self.update_working_directory)
 
         self.explorer.open_interpreter.connect(self.create_client_from_path)
+        self.explorer.run.connect(lambda fname: self.run_script(
+            fname, osp.dirname(fname), '', False, False, False, True))
         self.projects.open_interpreter.connect(self.create_client_from_path)
+        self.projects.run.connect(lambda fname: self.run_script(
+            fname, osp.dirname(fname), '', False, False, False, True))
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -948,12 +960,12 @@ class IPythonConsole(SpyderPluginWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions)
+        if self.testing:
+            client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
 
         if cf is None:
-            error_msg = _("The directory {} is not writable and it is "
-                          "required to create IPython consoles. Please make "
-                          "it writable.").format(jupyter_runtime_dir())
+            error_msg = self.permission_error_msg.format(jupyter_runtime_dir())
             client.show_kernel_error(error_msg)
             return
 
@@ -996,7 +1008,13 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        stderr_file = client.stderr_file
+        try:
+            stderr_file = client.stderr_file
+        except PermissionError:
+            error_msg = self.permission_error_msg.format(TEMPDIR)
+            client.show_kernel_error(error_msg)
+            return
+
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
         # An error occurred if this is True
@@ -1215,6 +1233,9 @@ class IPythonConsole(SpyderPluginWidget):
         if index is not None:
             client = self.tabwidget.widget(index)
 
+        # Close client
+        client.stop_button_click_handler()
+
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not self.mainwindow_close and not force:
@@ -1238,10 +1259,20 @@ class IPythonConsole(SpyderPluginWidget):
         # Note: client index may have changed after closing related widgets
         self.tabwidget.removeTab(self.tabwidget.indexOf(client))
         self.clients.remove(client)
-        self.filenames.pop(index)
+
+        # This is needed to prevent that hanged consoles make reference
+        # to an index that doesn't exist. See issue 4881
+        try:
+            self.filenames.pop(index)
+        except IndexError:
+            pass
+
+        self.update_tabs_text()
+
+        # Create a new client if the console is about to become empty
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
-        self.update_tabs_text()
+
         self.update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
@@ -1437,12 +1468,18 @@ class IPythonConsole(SpyderPluginWidget):
 
     def update_tabs_text(self):
         """Update the text from the tabs."""
-        for index, fname in enumerate(self.filenames):
-            client = self.clients[index]
-            if fname:
-                self.rename_client_tab(client, self.disambiguate_fname(fname))
-            else:
-                self.rename_client_tab(client, None)
+        # This is needed to prevent that hanged consoles make reference
+        # to an index that doesn't exist. See issue 4881
+        try:
+            for index, fname in enumerate(self.filenames):
+                client = self.clients[index]
+                if fname:
+                    self.rename_client_tab(client,
+                                           self.disambiguate_fname(fname))
+                else:
+                    self.rename_client_tab(client, None)
+        except IndexError:
+            pass
 
     def rename_client_tab(self, client, given_name):
         """Rename client's tab"""

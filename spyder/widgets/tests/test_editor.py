@@ -17,11 +17,13 @@ except ImportError:
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.utils.fixtures import setup_editor
 from spyder.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
+from spyder.py3compat import PY2
 
 # Qt Test Fixtures
 #--------------------------------
@@ -79,8 +81,132 @@ def editor_cells_bot(base_editor_bot):
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor, qtbot
 
+
 # Tests
 #-------------------------------
+def test_find_number_matches(qtbot):
+    """Test for number matches in find/replace."""
+    editor_stack, editor = setup_editor(qtbot)
+    editor_stack.find_widget.case_button.setChecked(True)
+    text = ' test \nTEST \nTest \ntesT '
+    editor.set_text(text)
+
+    editor_stack.find_widget.search_text.add_text('test')
+    editor_stack.find_widget.find(changed=False, forward=True,
+                                  rehighlight=False,
+                                  multiline_replace_check=False)
+    editor_text = editor_stack.find_widget.number_matches_text.text()
+    assert editor_text == '1 of 1'
+
+    editor_stack.find_widget.search_text.add_text('fail')
+    editor_stack.find_widget.find(changed=False, forward=True,
+                                  rehighlight=False,
+                                  multiline_replace_check=False)
+    editor_text = editor_stack.find_widget.number_matches_text.text()
+    assert editor_text == 'no matches'
+
+
+def test_move_current_line_up(editor_bot):
+    editor_stack, editor, qtbot = editor_bot
+        
+    # Move second line up when nothing is selected.
+    editor.go_to_line(2)
+    editor.move_line_up()
+    expected_new_text = ('print(a)\n'
+                         'a = 1\n'
+                         '\n'
+                         'x = 2\n')
+    assert editor.toPlainText() == expected_new_text
+    
+    # Move line up when already at the top.
+    editor.move_line_up()
+    assert editor.toPlainText() == expected_new_text
+    
+    # Move fourth line up when part of the line is selected.
+    editor.go_to_line(4)    
+    editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
+    for i in range(2):
+        editor.moveCursor(QTextCursor.Right, QTextCursor.KeepAnchor)
+    editor.move_line_up()
+    expected_new_text = ('print(a)\n'
+                         'a = 1\n'                         
+                         'x = 2\n'
+                         '\n')
+    assert editor.toPlainText()[:] == expected_new_text
+    
+def test_move_current_line_down(editor_bot):
+    editor_stack, editor, qtbot = editor_bot
+        
+    # Move fourth line down when nothing is selected.
+    editor.go_to_line(4)
+    editor.move_line_down()
+    expected_new_text = ('a = 1\n'
+                         'print(a)\n'
+                         '\n'
+                         '\n'
+                         'x = 2')
+    assert editor.toPlainText() == expected_new_text
+    
+    # Move line down when already at the bottom.
+    editor.move_line_down()
+    assert editor.toPlainText() == expected_new_text
+        
+    # Move first line down when part of the line is selected.
+    editor.go_to_line(1)
+    editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
+    for i in range(2):
+        editor.moveCursor(QTextCursor.Right, QTextCursor.KeepAnchor)
+    editor.move_line_down()
+    expected_new_text = ('print(a)\n'
+                         'a = 1\n'
+                         '\n'
+                         '\n'
+                         'x = 2')
+    assert editor.toPlainText() == expected_new_text
+    
+def test_move_multiple_lines_up(editor_bot):
+    editor_stack, editor, qtbot = editor_bot
+    
+    # Move second and third lines up.
+    editor.go_to_line(2)
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
+    editor.setTextCursor(cursor)
+    editor.move_line_up()
+    
+    expected_new_text = ('print(a)\n'
+                         '\n'
+                         'a = 1\n'
+                         'x = 2\n')
+    assert editor.toPlainText() == expected_new_text     
+ 
+    # Move first and second lines up (to test already at top condition).
+    editor.move_line_up()
+    assert editor.toPlainText() == expected_new_text
+
+def test_move_multiple_lines_down(editor_bot):
+    editor_stack, editor, qtbot = editor_bot
+    
+    # Move third and fourth lines down.
+    editor.go_to_line(3)
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
+    editor.setTextCursor(cursor)
+    editor.move_line_down()
+    
+    expected_new_text = ('a = 1\n'
+                         'print(a)\n'
+                         '\n'
+                         '\n'
+                         'x = 2')
+    assert editor.toPlainText() == expected_new_text
+    
+    # Move fourht and fifth lines down (to test already at bottom condition).
+    editor.move_line_down()
+    assert editor.toPlainText() == expected_new_text
+    
 def test_run_top_line(editor_bot):
     editor_stack, editor, qtbot = editor_bot
     editor.go_to_line(1) # line number is one based
@@ -185,6 +311,21 @@ def test_replace_enter_press(editor_find_replace_bot):
     assert editor.get_cursor_line_column() == (3,4)
 
 
+def test_selection_replace_plain_regex(editor_find_replace_bot):
+    """Test that regex reserved characters are displayed as plain text."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    expected_new_text = ('.\\[()]*test bacon\n'
+                         'spam sausage\n'
+                         'spam egg')
+    old_text = editor.toPlainText()
+    finder.show()
+    finder.show_replace()
+    qtbot.keyClicks(finder.search_text, 'spam')
+    qtbot.keyClicks(finder.replace_text, '.\[()]*test')
+    qtbot.keyPress(finder.replace_text, Qt.Key_Return)
+    text = editor.toPlainText()[0:-1]
+    assert editor.toPlainText()[0:-1] == expected_new_text
+
 def test_advance_cell(editor_cells_bot):
     editor_stack, editor, qtbot = editor_cells_bot
 
@@ -208,6 +349,50 @@ def test_advance_cell(editor_cells_bot):
     # advance to 3rd cell
     editor_stack.advance_cell()
     assert editor.get_cursor_line_column() == (6, 0)
+
+
+@pytest.mark.skipif(PY2, reason="Python2 does not support unicode very well")
+def test_get_current_word(base_editor_bot):
+    """Test getting selected valid python word."""
+    editor_stack, qtbot = base_editor_bot
+    text = ('some words with non-ascii  characters\n'
+            'niño\n'
+            'garçon\n'
+            'α alpha greek\n'
+            '123valid_python_word')
+    finfo = editor_stack.new('foo.py', 'utf-8', text)
+    qtbot.addWidget(editor_stack)
+    editor = finfo.editor
+    editor.go_to_line(1)
+
+    # Select some
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'some' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'some'
+
+    # Select niño
+    editor.go_to_line(2)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'niño' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'niño'
+
+    # Select garçon
+    editor.go_to_line(3)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'garçon' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'garçon'
+
+    # Select α
+    editor.go_to_line(4)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert 'α' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'α'
+
+    # Select valid_python_word, should search first valid python word
+    editor.go_to_line(5)
+    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+    assert '123valid_python_word' == editor.textCursor().selectedText()
+    assert editor.get_current_word() == 'valid_python_word'
 
 
 if __name__ == "__main__":

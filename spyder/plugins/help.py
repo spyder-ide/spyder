@@ -32,7 +32,7 @@ from spyder.utils import programs
 from spyder.utils.help.sphinxify import (CSS_PATH, generate_context,
                                          sphinxify, usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, create_plugin_layout)
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
@@ -448,9 +448,8 @@ class Help(SpyderPluginWidget):
         self.source_changed()
 
         # Main layout
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(layout_edit)
+        layout = create_plugin_layout(layout_edit)
+        # we have two main widgets, but only one of them is shown at a time
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)
         self.setLayout(layout)

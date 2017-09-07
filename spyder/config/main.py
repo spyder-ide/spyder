@@ -93,6 +93,7 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
+              'use_custom_cursor_blinking': False,
               'show_internal_console_if_traceback': False,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
@@ -167,8 +168,8 @@ DEFAULTS = [
             ('variable_explorer',
              {
               'check_all': CHECK_ALL,
-              'dataframe_format': '.3g', # no percent sign to avoid problems
-                                         # with ConfigParser's interpolation
+              'dataframe_format': '.6g',  # No percent sign to avoid problems
+                                          # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
@@ -277,6 +278,7 @@ DEFAULTS = [
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
               'in_python_path': False,
               'more_options': False,
+              'case_sensitive': True
               }),
             ('workingdir',
              {
@@ -633,7 +635,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '40.0.0'
+CONF_VERSION = '40.1.0'
 
 # Main configuration instance
 try:

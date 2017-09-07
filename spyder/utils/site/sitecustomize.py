@@ -196,6 +196,21 @@ except:
 
 
 #==============================================================================
+# Prevent subprocess.Popen calls to create visible console windows on Windows.
+# See issue #4932
+#==============================================================================
+if os.name == 'nt':
+    import subprocess
+    creation_flag = 0x08000000  # CREATE_NO_WINDOW
+
+    class SubprocessPopen(subprocess.Popen):
+        def __init__(self, *args, **kwargs):
+            kwargs['creationflags'] = creation_flag
+            super(SubprocessPopen, self).__init__(*args, **kwargs)
+
+    subprocess.Popen = SubprocessPopen
+
+#==============================================================================
 # Importing user's sitecustomize
 #==============================================================================
 try:
@@ -226,7 +241,6 @@ if os.environ["QT_API"] == 'pyqt':
             sip.setapi(qtype, 2)
     except:
         pass
-
 
 #==============================================================================
 # This prevents a kernel crash with the inline backend in our IPython
@@ -300,6 +314,7 @@ except:
 class SpyderPdb(pdb.Pdb):
 
     send_initial_notification = True
+    starting = True
 
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
@@ -327,7 +342,7 @@ class SpyderPdb(pdb.Pdb):
             return
 
         from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
+        kernel = get_ipython().kernel
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -338,18 +353,31 @@ class SpyderPdb(pdb.Pdb):
                 pass
         lineno = frame.f_lineno
 
+        # Jump to first breakpoint.
+        # Fixes issue 2034
+        if self.starting:
+            # Only run this after a Pdb session is created
+            self.starting = False
+
+            # Get all breakpoints for the file we're going to debug
+            breaks = self.get_file_breaks(frame.f_code.co_filename)
+
+            # Do 'continue' if the first breakpoint is *not* placed
+            # where the debugger is going to land.
+            # Fixes issue 4681
+            if breaks and lineno != breaks[0] and osp.isfile(fname):
+                kernel.pdb_continue()
+
         # Set step of the current frame (if any)
         step = {}
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname):
-                if ipython_shell:
-                    step = dict(fname=fname, lineno=lineno)
+                step = dict(fname=fname, lineno=lineno)
 
         # Publish Pdb state so we can update the Variable Explorer
         # and the Editor on the Spyder side
-        if ipython_shell:
-            ipython_shell.kernel._pdb_step = step
-            ipython_shell.kernel.publish_pdb_state()
+        kernel._pdb_step = step
+        kernel.publish_pdb_state()
 
 pdb.Pdb = SpyderPdb
 
@@ -438,10 +466,8 @@ def reset(self):
     self._old_Pdb_reset()
 
     from IPython.core.getipython import get_ipython
-    ipython_shell = get_ipython()
-    if ipython_shell:
-        ipython_shell.kernel._register_pdb_session(self)
-
+    kernel = get_ipython().kernel
+    kernel._register_pdb_session(self)
     self.set_spyder_breakpoints()
 
 
@@ -567,8 +593,7 @@ def clear_post_mortem():
     """
     from IPython.core.getipython import get_ipython
     ipython_shell = get_ipython()
-    if ipython_shell:
-        ipython_shell.set_custom_exc((), None)
+    ipython_shell.set_custom_exc((), None)
 
 
 def post_mortem_excepthook(type, value, tb):
@@ -624,16 +649,10 @@ if "SPYDER_EXCEPTHOOK" in os.environ:
 # runfile and debugfile commands
 #==============================================================================
 def _get_globals():
-    """Return current Python interpreter globals namespace"""
-    from __main__ import __dict__ as namespace
-    shell = namespace.get('__ipythonshell__')
-    if shell is not None and hasattr(shell, 'user_ns'):
-        # IPython 0.13+ kernel
-        return shell.user_ns
-    else:
-        # Python interpreter
-        return namespace
-    return namespace
+    """Return current namespace"""
+    from IPython.core.getipython import get_ipython
+    ipython_shell = get_ipython()
+    return ipython_shell.user_ns
 
 
 def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
