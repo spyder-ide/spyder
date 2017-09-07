@@ -1238,7 +1238,7 @@ class Editor(SpyderPluginWidget):
             self.set_last_focus_editorstack(self, editorstack)
             editorstack.set_closable( len(self.editorstacks) > 1 )
             if self.outlineexplorer is not None:
-                editorstack.set_outlineexplorer(self.outlineexplorer)
+                editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
             editorstack.set_find_widget(self.find_widget)
             editorstack.reset_statusbar.connect(self.readwrite_status.hide)
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
@@ -1472,13 +1472,15 @@ class Editor(SpyderPluginWidget):
     def get_current_editorstack(self, editorwindow=None):
         if self.editorstacks is not None:
             if len(self.editorstacks) == 1:
-                return self.editorstacks[0]
+                editorstack = self.editorstacks[0]
             else:
                 editorstack = self.__get_focus_editorstack()
                 if editorstack is None or editorwindow is not None:
-                    return self.get_last_focus_editorstack(editorwindow)
-                return editorstack
-        
+                    editorstack = self.get_last_focus_editorstack(editorwindow)
+                    if editorstack is None:
+                        editorstack = self.editorstacks[0]
+            return editorstack
+
     def get_current_editor(self):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
