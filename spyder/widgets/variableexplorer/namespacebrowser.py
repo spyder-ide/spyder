@@ -182,7 +182,7 @@ class NamespaceBrowser(QWidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
-        shellwidget.sig_namespace_reseted.connect(self.refresh_table)
+        shellwidget.sig_namespace_reseted_silently.connect(self.refresh_table)
 
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported):

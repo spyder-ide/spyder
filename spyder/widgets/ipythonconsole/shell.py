@@ -42,7 +42,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
     sig_show_env = Signal(object)
-    sig_namespace_reseted = Signal()
+    sig_namespace_reseted_silently = Signal()
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
@@ -257,7 +257,12 @@ the sympy module (e.g. plot)
         else:
             if silent:
                 self.silent_execute("%reset -f")
-                self.sig_namespace_reseted.emit()
+                self.sig_namespace_reseted_silently.emit()
+                # This signal is needed to force a refresh of the
+                # namespacebrowser table when the reset is done silently. When
+                # silent is False, something is written in the console,
+                # which trigger a refresh of the variable table automatically.
+                # See PR #4885 
             else:
                 self.execute("%reset -f")
 
