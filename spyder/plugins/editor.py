@@ -113,8 +113,9 @@ class EditorConfigPage(PluginConfigPage):
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
-        showclassfuncdropdown_box = newcb(_("Show Class/Function Dropdown"),
-                                          'show_class_func_dropdown')
+        showclassfuncdropdown_box = newcb(
+                _("Show selector for classes and functions"),
+                'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show Indent Guides"),
                                       'indent_guides')
 
@@ -997,7 +998,7 @@ class Editor(SpyderPluginWidget):
         showindentguides_action.setChecked(CONF.get('editor', 'indent_guides'))
 
         show_classfunc_dropdown_action = create_action(
-                self, _("Show class function dropdown."),
+                self, _("Show selector for classes and functions."),
                 toggled=self.toggle_show_classfunc_dropdown)
         show_classfunc_dropdown_action.setChecked(
                 CONF.get('editor', 'show_class_func_dropdown'))
