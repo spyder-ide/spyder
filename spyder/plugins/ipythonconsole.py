@@ -935,13 +935,13 @@ class IPythonConsole(SpyderPluginWidget):
                 pass
             else:
                 if not current_client:
+                    # wait until console it's ready before executing code
+                    self.wait_shell_is_ready(sw)
                     # Clear console and reset namespace for
                     # dedicated clients
                     sw.silent_execute(
                         'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(force=True)
-                    # wait until console it's ready before executing code
-                    self.wait_shell_is_ready(sw)
                 elif current_client and clear_variables:
                     sw.reset_namespace(force=True)
                 sw.execute(to_text_string(to_text_string(lines)))
