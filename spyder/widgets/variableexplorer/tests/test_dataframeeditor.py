@@ -49,7 +49,9 @@ def bgcolor(dfm, i, j):
 # --- Tests
 # -----------------------------------------------------------------------------
 
+
 def test_header_bom():
+    "Test for BOM data in the headers."
     df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
@@ -61,6 +63,7 @@ def test_header_bom():
 @pytest.mark.skipif(is_module_installed('pandas', '<0.19'),
                     reason="It doesn't work for Pandas 0.19-")
 def test_header_encoding():
+    "Test for header encoding handling."
     df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)

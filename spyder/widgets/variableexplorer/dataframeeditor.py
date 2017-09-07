@@ -264,7 +264,7 @@ class DataFrameModel(QAbstractTableModel):
         except:
             try:
                 value = self.df.iloc[row, column]
-            except:
+            except IndexError:
                 value = None
         return value
 
@@ -581,12 +581,12 @@ class DataFrameHeader(QAbstractTableModel):
     """
     Data Frame Header/Index class.
 
-    Taken from gtabview project (Header4ExtModel). 
+    Taken from gtabview project (Header4ExtModel).
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
     """
 
-    COLUMN_INDEX = -1 # Makes reference to the index of the table.
+    COLUMN_INDEX = -1  # Makes reference to the index of the table.
 
     def __init__(self, model, axis, palette):
         super(DataFrameHeader, self).__init__()
@@ -686,8 +686,7 @@ class DataFrameHeader(QAbstractTableModel):
                     try:
                         header = header.encode('utf-8')
                         coding = 'utf-8-sig'
-                    except:
-                        header = header.encode('utf-8')
+                    except UnicodeEncodeError:
                         coding = encoding.get_coding(header)
                 else:
                     coding = encoding.get_coding(header)
@@ -700,8 +699,8 @@ class DataFrameHeader(QAbstractTableModel):
            index.row() >= self._shape[0] or \
            index.column() >= self._shape[1]:
             return None
-        row, col = (index.row(), index.column()) if self.axis == 0 \
-                   else (index.column(), index.row())
+        row, col = ((index.row(), index.column()) if self.axis == 0
+                    else (index.column(), index.row()))
         if role == Qt.BackgroundRole:
             prev = self.model.header(self.axis, col - 1, row) if col else None
             cur = self.model.header(self.axis, col, row)
@@ -746,7 +745,8 @@ class DataFrameLevel(QAbstractTableModel):
                 return Qt.AlignCenter | Qt.AlignBottom
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
-        if role != Qt.DisplayRole: return None
+        if role != Qt.DisplayRole:
+            return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
             return 'Index'
         elif self.model.header_shape[0] <= 1:
@@ -890,14 +890,14 @@ class DataFrameEditor(QDialog):
         self.layout.addWidget(self.hscroll, 2, 0, 2, 2)
         self.layout.addWidget(self.vscroll, 0, 2, 2, 2)
 
-         # autosize columns on-demand
+        # autosize columns on-demand
         self._autosized_cols = set()
         self._max_autosize_ms = None
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
-        self.min_trunc = avg_width * 8 # Minimum size for columns
-        self.max_width = avg_width * 64 # Maximum size for columns
+        self.min_trunc = avg_width * 8  # Minimum size for columns
+        self.max_width = avg_width * 64  # Maximum size for columns
 
         self.setLayout(self.layout)
         self.setMinimumSize(400, 300)
@@ -1006,7 +1006,8 @@ class DataFrameEditor(QDialog):
     def setModel(self, model, relayout=True):
         self._model = model
         sel_model = self.dataTable.selectionModel()
-        sel_model.currentColumnChanged.connect(self._resizeCurrentColumnToContents)
+        sel_model.currentColumnChanged.connect(
+                self._resizeCurrentColumnToContents)
 
         self._reset_model(self.table_level, DataFrameLevel(model,
                                                            self.palette(),
@@ -1018,7 +1019,8 @@ class DataFrameEditor(QDialog):
                                                             1,
                                                             self.palette()))
         # Needs to be called after setting all table models
-        if relayout: self._update_layout()
+        if relayout:
+            self._update_layout()
 
     def setCurrentIndex(self, y, x):
         self.dataTable.selectionModel().setCurrentIndex(
