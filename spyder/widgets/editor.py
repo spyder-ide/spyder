@@ -554,7 +554,7 @@ class EditorStack(QWidget):
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width_spaces = 4
-        self.show_class_func_dropdown = True
+        self.show_class_func_dropdown = False
         self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
