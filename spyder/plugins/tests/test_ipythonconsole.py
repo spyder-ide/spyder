@@ -454,7 +454,8 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(PYQT5, reason="It times out frequently in PyQt5")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or PYQT5,
+                    reason="It fails frequently in PyQt5 and our CIs")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
     Test that Ctrl+C works while debugging
