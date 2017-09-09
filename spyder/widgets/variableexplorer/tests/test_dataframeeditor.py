@@ -17,7 +17,7 @@ except ImportError:
 import os
 
 # Third party imports
-from pandas import DataFrame, date_range, read_csv
+from pandas import DataFrame, date_range, MultiIndex, read_csv
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt
 import numpy
@@ -28,7 +28,6 @@ from spyder.utils.programs import is_module_installed
 from spyder.widgets.variableexplorer import dataframeeditor
 from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
-from spyder.py3compat import PY2
 
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -46,12 +45,65 @@ def data(dfm, i, j):
 def bgcolor(dfm, i, j):
     return dfm.get_bgcolor(dfm.createIndex(i, j))
 
+
+def data_header(dfh, i, j, role=Qt.DisplayRole):
+    return dfh.data(dfh.createIndex(i, j), role)
+
+
 # --- Tests
 # -----------------------------------------------------------------------------
 
 
+def test_dataframe_simpleindex():
+    """Test to validate proper creation and handling of a simpleindex."""
+    df = DataFrame(numpy.random.randn(6, 6))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    header = editor.table_header.model()
+    assert header.headerData(0, Qt.Horizontal,
+                             Qt.DisplayRole) == "0"
+    assert header.headerData(1, Qt.Horizontal,
+                             Qt.DisplayRole) == "1"
+    assert header.headerData(5, Qt.Horizontal,
+                             Qt.DisplayRole) == "5"
+
+
+def test_dataframe_simpleindex_custom_columns():
+    """Test to validate proper creation and handling of custom simpleindex."""
+    df = DataFrame(numpy.random.randn(10, 5),
+                   columns=['a', 'b', 'c', 'd', 'e'])
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    header = editor.table_header.model()
+    assert header.headerData(0, Qt.Horizontal,
+                             Qt.DisplayRole) == "a"
+    assert header.headerData(1, Qt.Horizontal,
+                             Qt.DisplayRole) == "b"
+    assert header.headerData(4, Qt.Horizontal,
+                             Qt.DisplayRole) == "e"
+
+
+def test_dataframe_multiindex():
+    """Test to validate proper creation and handling of a multiindex."""
+    arrays = [numpy.array(['bar', 'bar', 'baz', 'baz',
+                           'foo', 'foo', 'qux', 'qux']),
+              numpy.array(['one', 'two', 'one', 'two',
+                           'one', 'two', 'one', 'two'])]
+    tuples = list(zip(*arrays))
+    index = MultiIndex.from_tuples(tuples, names=['first', 'second'])
+    df = DataFrame(numpy.random.randn(6, 6), index=index[:6],
+                   columns=index[:6])
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    header = editor.table_header.model()
+    assert header.headerData(0, Qt.Horizontal,
+                             Qt.DisplayRole) == 0
+    assert data_header(header, 0, 0) == 'bar'
+    assert data_header(header, 0, 1) == 'foo'
+
+
 def test_header_bom():
-    "Test for BOM data in the headers."
+    """Test for BOM data in the headers."""
     df = read_csv(os.path.join(FILES_PATH, 'issue_2514.csv'))
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
@@ -63,7 +115,7 @@ def test_header_bom():
 @pytest.mark.skipif(is_module_installed('pandas', '<0.19'),
                     reason="It doesn't work for Pandas 0.19-")
 def test_header_encoding():
-    "Test for header encoding handling."
+    """Test for header encoding handling."""
     df = read_csv(os.path.join(FILES_PATH, 'issue_3896.csv'))
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
