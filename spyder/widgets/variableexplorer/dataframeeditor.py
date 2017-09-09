@@ -675,7 +675,7 @@ class DataFrameHeader(QAbstractTableModel):
         if self.axis == 1 and self._shape[1] <= 1:
             return None
         orient_axis = 0 if orientation == Qt.Horizontal else 1
-        if self.axis == orient_axis and self.model.header_shape[0] > 1:
+        if self.model.header_shape[orient_axis] > 1:
             header = section
         else:
             header = self.model.header(self.axis, section)
