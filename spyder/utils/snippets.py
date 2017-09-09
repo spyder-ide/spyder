@@ -35,16 +35,15 @@ class Snippet():
         Return the position and lenght of the next variable.
 
         Return:
-            position: position of the variable relative to the
-                end of last match.
-            lenght: lenght of current variable.
+            start (line, column)
+            lenght: lenght of the default value for the variable.
         """
         position = 0
-        lenght = 0
+        lenght_diff = 0
         for match in re.finditer(regex_variables, self.content):
-            position = match.start() - (position + lenght)
-            lenght = len(match.group())
-            yield position, len(match.group(2))
+            position = match.start() - (lenght_diff)
+            lenght_diff = len(match.group()) - len(match.group(2))
+            yield (position, len(match.group(2)))
 
     def to_toml(self):
         """Dump the contents to a toml formated str."""

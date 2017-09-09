@@ -59,7 +59,7 @@ def test_snippet():
 
     assert snippet.text() == "class SomeClass():\n    pass"
 
-    assert list(snippet.variables_position()) == [(6, 9), (8, 4)]
+    assert list(snippet.variables_position()) == [(6, 9), (23, 4)]
 
 
 def test_snippets_manager(snippet_manager):
