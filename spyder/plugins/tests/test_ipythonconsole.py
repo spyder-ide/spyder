@@ -511,7 +511,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.wait(500)
     assert shell.get_value('bb') == 10
 
-    shell.reset_namespace(force=True)
+    shell.reset_namespace(warning=False, silent=True)
     qtbot.wait(1000)
 
     qtbot.keyClicks(control, '!bb')
