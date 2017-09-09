@@ -8,9 +8,11 @@
 
 # Standard library imports
 import os
+import os.path as osp
 import errno
 import codecs
 import re
+from distutils.dir_util import copy_tree
 from collections import namedtuple
 
 from spyder.config.base import debug_print, get_conf_path
@@ -90,7 +92,18 @@ class SnippetManager():
         """Create an snippets manager, and load snippets from config."""
         self.snippets = {}
         self.path = get_conf_path("snippets")
+        self.copy_included_snippets()
         self.load_snippets()
+
+    def copy_included_snippets(self):
+        """Copy included snippets into the configurations.
+
+        If directory isn't empty do not overwrite.
+        #TODO It should be improved to allow snippets to be updated.
+        """
+        if not os.listdir(self.path):
+            path = osp.join(osp.dirname(__file__), 'snippets')
+            copy_tree(path, self.path)
 
     def load_snippets(self):
         """
