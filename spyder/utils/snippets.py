@@ -84,8 +84,6 @@ class SnippetManager():
         Load snippets from the path specified in the configurations.
 
         Return the amount of loaded snippets.
-
-        TODO: Validate that snnipets have unique prefix.
         """
         if not os.path.isdir(self.path):
             return
@@ -98,8 +96,7 @@ class SnippetManager():
             amount_snippets += len(snippets)
         return amount_snippets
 
-    @staticmethod
-    def load_snippet_file(fname):
+    def load_snippet_file(self, fname):
         """Load an snipped file."""
         snippets = {}
 
@@ -111,7 +108,13 @@ class SnippetManager():
             else:
                 for name, snippet in dict_snippets.items():
                     try:
-                        snippets[snippet['prefix']] = Snippet(name, **snippet)
+                        prefix = snippet['prefix']
+                        if prefix in snippets or prefix in self.snippets:
+                            debug_print(
+                                'Duplicated snippet, overwriting: {}'.format(
+                                    prefix))
+
+                        snippets[prefix] = Snippet(name, **snippet)
                         debug_print('Load snippet: {}'.format(snippet))
                     except KeyError as e:
                         debug_print(
