@@ -101,7 +101,7 @@ class SnippetManager():
         If directory isn't empty do not overwrite.
         #TODO It should be improved to allow snippets to be updated.
         """
-        if not os.listdir(self.path):
+        if not os.path.exists(self.path) or not os.listdir(self.path):
             path = osp.join(osp.dirname(__file__), 'snippets')
             copy_tree(path, self.path)
 
