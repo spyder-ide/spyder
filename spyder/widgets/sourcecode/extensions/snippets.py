@@ -89,7 +89,7 @@ class SnippetsExtension(EditorExtension):
         if self.snippet is None:
             return
         cursor = self.editor.textCursor()
-        variables = list(self.snippet.variables_position())
+        variables = self.snippet.variables_position
 
         if not variables:
             self.snippet = None
@@ -104,7 +104,6 @@ class SnippetsExtension(EditorExtension):
             self._decorate_selection(cursor)
 
         # select first variable
-        self.variables = self.snippet.variables_position()
         self._select_next_variable()
 
     def _select_next_variable(self):

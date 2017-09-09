@@ -25,11 +25,13 @@ class Snippet():
         self.content = kwargs['content']
         self.prefix = kwargs['prefix']
         self.language = kwargs['language']
+        self._variables_position = None
 
     def text(self):
         """Return content with variables defaults replaced."""
         return re.sub(regex_variables, r'\2', self.content)
 
+    @property
     def variables_position(self):
         """
         Return the position and lenght of the next variable.
@@ -38,12 +40,17 @@ class Snippet():
             start (line, column)
             lenght: lenght of the default value for the variable.
         """
-        position = 0
-        lenght_diff = 0
-        for match in re.finditer(regex_variables, self.content):
-            position = match.start() - (lenght_diff)
-            lenght_diff = len(match.group()) - len(match.group(2))
-            yield (position, len(match.group(2)))
+        if self._variables_position is None:
+            self._variables_position = []
+            position = 0
+            lenght_diff = 0
+            for match in re.finditer(regex_variables, self.content):
+                position = match.start() - (lenght_diff)
+                lenght_default = len(match.group(2))
+                lenght_diff = len(match.group()) - lenght_default
+                self._variables_position.append((position, lenght_default))
+
+        return self._variables_position
 
     def to_toml(self):
         """Dump the contents to a toml formated str."""
