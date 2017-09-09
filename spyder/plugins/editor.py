@@ -996,9 +996,10 @@ class Editor(SpyderPluginWidget):
                                                toggled=self.toggle_show_blanks)
         self.showblanks_action.setChecked(CONF.get('editor', 'blank_spaces'))
 
-        self.scrollpastend_action = create_action(self,
-                                          _("Scroll past the end"),
-                                          toggled=self.toggle_scroll_past_end)
+        self.scrollpastend_action = create_action(
+                                        self,
+                                        _("Scroll past the end"),
+                                        toggled=self.toggle_scroll_past_end)
         self.scrollpastend_action.setChecked(CONF.get('editor',
                                              'scroll_past_end'))
 
