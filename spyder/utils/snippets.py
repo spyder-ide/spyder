@@ -26,10 +26,14 @@ class Snippet():
         self.prefix = kwargs['prefix']
         self.language = kwargs['language']
         self._variables_position = None
+        self._text = None
 
+    @property
     def text(self):
         """Return content with variables defaults replaced."""
-        return re.sub(regex_variables, r'\2', self.content)
+        if self._text is None:
+            self._text = re.sub(regex_variables, r'\2', self.content)
+        return self._text
 
     @property
     def variables_position(self):

@@ -69,7 +69,7 @@ class SnippetsExtension(EditorExtension):
 
         if self.snippet is not None:
             cursor.removeSelectedText()
-            cursor.insertText(self.snippet.text())
+            cursor.insertText(self.snippet.text)
             debug_print("Inserted snippet:{} {}".format(prefix,
                         self.snippet.content))
             self._decorate_variables(position)
