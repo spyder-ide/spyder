@@ -58,6 +58,20 @@ def snippet_manager(snippets_dir, monkeypatch):
     return SnippetManager()
 
 
+@pytest.fixture
+def snippet_manager_distibuted_snippets(tmpdir_factory, monkeypatch):
+    """
+    Fixture for SnippetManager with snippets distributed with spyder.
+
+    Load with a tmp configuration path, and snippets present in utils/snippets.
+    """
+    dirname = str(tmpdir_factory.mktemp('snippets'))
+    monkeypatch.setattr('spyder.utils.snippets.get_conf_path',
+                        lambda *args: dirname)
+
+    return SnippetManager()
+
+
 def test_snippet():
     """Test Snippet class."""
     content = ('class ${1:SomeClass}():\n' '    ${2:pass}')
@@ -88,6 +102,17 @@ def test_save_snippet(snippet_manager):
     fcopy = os.path.join(snippet_manager.path, "copy_snippet.toml")
     snippet_copy = snippet_manager.load_snippet_file(fcopy)['test']
     assert snippet_copy == test_snippet
+
+
+def test_with_distributed_snippets(snippet_manager_distibuted_snippets):
+    """Test SnippetManager, loading an searching an snippet."""
+    snippet_manager = snippet_manager_distibuted_snippets
+
+    assert snippet_manager.search_snippet("not_exist") is None
+
+    test_snippet = snippet_manager.search_snippet("func")
+    assert isinstance(test_snippet, Snippet)
+    assert test_snippet.language == 'python'
 
 
 if __name__ == '__main__':
