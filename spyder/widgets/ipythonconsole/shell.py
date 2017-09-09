@@ -43,7 +43,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
     sig_show_env = Signal(object)
-    sig_namespace_reseted_silently = Signal()
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
@@ -223,16 +222,15 @@ the sympy module (e.g. plot)
         else:
             self.execute("%clear")
 
-    def reset_namespace(self, warning=None, silent=True):
+    def _reset_namespace(self):
+        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
+        self.reset_namespace(silent=True, warning=warning)
+
+    def reset_namespace(self, warning=False, silent=True):
         """Reset the namespace by removing all names defined by the user."""
         reset_str = _("Reset IPython namespace")
         warn_str = _("All user-defined variables will be removed."
                      "<br>Are you sure you want to reset the namespace?")
-
-        if warning is None:
-            section = 'ipython_console'
-            option = 'show_reset_namespace_warning'
-            warning = CONF.get(section, option)
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
@@ -248,7 +246,8 @@ the sympy module (e.g. plot)
             answer = box.exec_()
 
             # Update checkbox based on user interaction
-            CONF.set(section, option, not box.is_checked())
+            CONF.set('ipython_console', 'show_reset_namespace_warning',
+                     not box.is_checked())
 
             if answer != QMessageBox.Yes:
                 return
@@ -258,12 +257,7 @@ the sympy module (e.g. plot)
         else:
             if silent:
                 self.silent_execute("%reset -f")
-                self.sig_namespace_reseted_silently.emit()
-                # This signal is needed to force a refresh of the
-                # namespacebrowser table when the reset is done silently. When
-                # silent is False, something is written in the console,
-                # which trigger a refresh of the variable table automatically.
-                # See PR #4885
+                self.refresh_namespacebrowser()
             else:
                 self.execute("%reset -f")
 
@@ -280,7 +274,7 @@ the sympy module (e.g. plot)
         new_tab = config_shortcut(lambda: self.new_client.emit(),
                                   context='ipython_console', name='new tab',
                                   parent=self)
-        reset_namespace = config_shortcut(lambda: self.reset_namespace(),
+        reset_namespace = config_shortcut(lambda: self._reset_namespace(),
                                           context='ipython_console',
                                           name='reset namespace', parent=self)
         array_inline = config_shortcut(self._control.enter_array_inline,

@@ -29,6 +29,7 @@ except ImportError:
 
 # Local imports
 from spyder.config.base import _, get_supported_types
+from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, getcwd, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -180,7 +181,6 @@ class NamespaceBrowser(QWidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
-        shellwidget.sig_namespace_reseted_silently.connect(self.refresh_table)
 
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported):
@@ -456,7 +456,8 @@ class NamespaceBrowser(QWidget):
 
     @Slot()
     def reset_namespace(self):
-        self.shellwidget.reset_namespace(silent=True)
+        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
+        self.shellwidget.reset_namespace(silent=True, warning=warning)
 
     @Slot()
     def save_data(self, filename=None):
