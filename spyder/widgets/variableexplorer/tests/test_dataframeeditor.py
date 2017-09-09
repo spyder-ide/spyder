@@ -99,7 +99,17 @@ def test_dataframe_multiindex():
     assert header.headerData(0, Qt.Horizontal,
                              Qt.DisplayRole) == 0
     assert data_header(header, 0, 0) == 'bar'
-    assert data_header(header, 0, 1) == 'foo'
+    assert data_header(header, 1, 0) == 'one'
+    assert data_header(header, 0, 1) == 'bar'
+    assert data_header(header, 1, 1) == 'two'
+    assert data_header(header, 0, 2) == 'baz'
+    assert data_header(header, 1, 2) == 'one'
+    assert data_header(header, 0, 3) == 'baz'
+    assert data_header(header, 1, 3) == 'two'
+    assert data_header(header, 0, 4) == 'foo'
+    assert data_header(header, 1, 4) == 'one'
+    assert data_header(header, 0, 5) == 'foo'
+    assert data_header(header, 1, 5) == 'two'
 
 
 def test_header_bom():
