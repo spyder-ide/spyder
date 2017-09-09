@@ -848,7 +848,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 
     # Assert that the prompt appear
     shell.clear_console()
-    assert 'In [3]:' in control.toPlainText()
+    assert 'In [2]:' in control.toPlainText()
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
