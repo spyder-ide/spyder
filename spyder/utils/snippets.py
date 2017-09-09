@@ -90,7 +90,7 @@ class SnippetManager():
         """Load an snipped file."""
         snippets = {}
 
-        with codecs.open(fname, encoding='utf-8') as f:
+        with codecs.open(fname) as f:
             try:
                 dict_snippets = toml.load(f)
             except toml.TomlDecodeError:
