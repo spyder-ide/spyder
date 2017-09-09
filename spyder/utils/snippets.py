@@ -40,21 +40,21 @@ class Snippet():
     @property
     def variables(self):
         """
-        Return the position and lenght of the next variable.
+        Return the position and length of the next variable.
 
         Return:
             start (line, column)
-            lenght: lenght of the default value for the variable.
+            length: length of the default value for the variable.
         """
         if self._variables_position is None:
             self._variables_position = []
             position = 0
-            lenght_diff = 0
+            length_diff = 0
             for match in re.finditer(regex_variables, self.content):
-                position = match.start() - (lenght_diff)
-                lenght_default = len(match.group(2))
-                lenght_diff = len(match.group()) - lenght_default
-                self._variables_position.append(Variable(position, lenght_default))
+                position = match.start() - (length_diff)
+                length_default = len(match.group(2))
+                length_diff = len(match.group()) - length_default
+                self._variables_position.append(Variable(position, length_default))
 
         return self._variables_position
 
