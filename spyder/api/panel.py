@@ -11,7 +11,7 @@ Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/p
 """
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtGui import QBrush, QColor, QPen, QPainter
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QPoint, QRect
 
 from spyder.api.editorextension import EditorExtension
 from spyder.config.base import debug_print
@@ -124,3 +124,35 @@ class Panel(QWidget, EditorExtension):
         super(Panel, self).setVisible(visible)
         if self.editor:
             self.editor.panels.refresh()
+
+    def geometry(self):
+        """Return geometry dimentions for floating Panels.
+
+        Note: If None is returned It'll use editor contentsRect dimentions.
+
+        returns: x0, y0, height width.
+        """
+        return 0, 0, None, None
+
+    def set_geometry(self, crect):
+        """Set geometry for floating panels.
+
+        Normally you don't need to override this method, you should override
+        `geometry` instead.
+        """
+        x0, y0, width, height = self.geometry()
+
+        if width is None:
+            width = crect.width()
+        if height is None:
+            height = crect.height()
+
+        # Calculate editor coordinates with their offsets
+        offset = self.editor.contentOffset()
+        x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock())\
+            .translated(offset.x(), offset.y()).left() \
+            + self.editor.document().documentMargin() \
+            + self.editor.panels.margin_size(Panel.Position.LEFT)
+        y = crect.top() + self.editor.panels.margin_size(Panel.Position.TOP)
+
+        self.setGeometry(QRect(x+x0, y+y0, width, height))
