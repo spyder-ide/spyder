@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Snippet support to codeEditor"""
+"""Snippet utilities for CodeEditor extension."""
 
 # Standard library imports
 import os
@@ -21,8 +21,14 @@ Variable = namedtuple('Variable', 'start length')
 
 
 class Snippet():
+    """Snippet Class."""
+
     def __init__(self, name, **kwargs):
-        """Create a Snippet object."""
+        """
+        Create an Snippet object.
+
+        content, prefix, and language arguments are required.
+        """
         self.name = name
         self.content = kwargs['content']
         self.prefix = kwargs['prefix']
@@ -43,8 +49,7 @@ class Snippet():
         Return the position and length of the next variable.
 
         Return:
-            start (line, column)
-            length: length of the default value for the variable.
+            namedtuple Variable: (start, length of the default value)
         """
         if self._variables_position is None:
             self._variables_position = []
@@ -67,13 +72,20 @@ class Snippet():
         return toml.dumps(snippet)
 
     def __str__(self):
+        """Format name and content for printing."""
         return "[{}]\n{}".format(self.name, self.content)
 
     def __eq__(self, other):
+        """If atributes are equal snippets are equal."""
         return self.__dict__ == other.__dict__
 
 
 class SnippetManager():
+    """Manages the collection of Snippets added to the CodeEditor.
+
+    This class is added to the SnippetEditorExtension.
+    """
+
     def __init__(self):
         """Create an snippets manager, and load snippets from config."""
         self.snippets = {}
@@ -98,7 +110,7 @@ class SnippetManager():
         return amount_snippets
 
     def load_snippet_file(self, fname):
-        """Load an snipped file."""
+        """Load an snippet file."""
         snippets = {}
 
         with codecs.open(fname) as f:

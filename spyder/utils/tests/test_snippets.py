@@ -3,7 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 
-"""Tests for snippets.py"""
+"""Tests for snippets utils."""
 
 import pytest
 import os
@@ -59,7 +59,7 @@ def snippet_manager(snippets_dir, monkeypatch):
 
 
 def test_snippet():
-    """Test Snippet class"""
+    """Test Snippet class."""
     content = ('class ${1:SomeClass}():\n' '    ${2:pass}')
     snippet = Snippet('test',
                       language="python",

@@ -19,7 +19,7 @@ class SnippetsExtension(EditorExtension):
     """Editor Extension for insert snippets."""
 
     def __init__(self):
-        """Init editor extension, and the snippets manager"""
+        """Init editor extension, and the snippets manager."""
         super(SnippetsExtension, self).__init__()
         self.snippet_manager = SnippetManager()
 

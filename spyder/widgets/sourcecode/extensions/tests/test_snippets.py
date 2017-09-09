@@ -15,9 +15,9 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.sourcecode.extensions.snippets import SnippetsExtension
 
 # imports from snippet tests
-from spyder.utils.tests.test_snippets import (snippet_manager, snippet_test_result,
+from spyder.utils.tests.test_snippets import (snippet_manager,
+                                              snippet_test_result,
                                               snippets_dir)
-
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
