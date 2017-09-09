@@ -15,8 +15,8 @@ from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.sourcecode.extensions.snippets import SnippetsExtension
 
 # imports from snippet tests
-from spyder.utils.tests.test_snippets import (snippet_manager, snippet_result,
-                                              snippet_file)
+from spyder.utils.tests.test_snippets import (snippet_manager, snippet_test_result,
+                                              snippets_dir)
 
 
 # --- Fixtures
@@ -49,7 +49,7 @@ def test_snippet(qtbot, editor_snippets):
     with qtbot.waitSignal(editor.textChanged, timeout=2000):
         qtbot.keyPress(editor, Qt.Key_Tab)
 
-    assert editor.toPlainText().strip() == snippet_result
+    assert editor.toPlainText().strip() == snippet_test_result
 
     # replace the variables
     qtbot.keyClicks(editor, '10')

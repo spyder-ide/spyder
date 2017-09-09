@@ -10,7 +10,7 @@ import os
 
 from spyder.utils.snippets import Snippet, SnippetManager
 
-snippet_text = """
+snippet_test = """
 [test_snippet]
     prefix = 'test'
     language = 'python'
@@ -20,31 +20,40 @@ for i in range(${1:repetitions}):
 '''
 """
 
-snippet_result = "for i in range(repetitions):\n    pass"
+snippet_test_result = "for i in range(repetitions):\n    pass"
+
+bad_snippet = """
+[test_snippet]
+    prefix = 'test2'
+    language = 'python'
+"""
+
 
 @pytest.fixture
-def snippet_file(tmpdir_factory):
+def snippets_dir(tmpdir_factory):
     """
     Fixture for create a temporary snippet file.
 
     Returns:
         str: Path of temporary snippet file.
     """
-    snippet_file = tmpdir_factory.mktemp('snippets').join("test_snippet.toml")
-    snippet_file.write(snippet_text)
-    return str(snippet_file)
+    dir_ = tmpdir_factory.mktemp('snippets')
+    for fname, text in [["test_snippet.toml", snippet_test],
+                        ["bad_snippet.toml", bad_snippet]]:
+        snippet_file = dir_.join(fname)
+        snippet_file.write(text)
+    return str(dir_)
 
 
 @pytest.fixture
-def snippet_manager(snippet_file, monkeypatch):
+def snippet_manager(snippets_dir, monkeypatch):
     """
     Fixture for SnippetManager.
 
     Load with a tmp configuration path, and a test snippet.
     """
-    dirname = os.path.dirname(snippet_file)
     monkeypatch.setattr('spyder.utils.snippets.get_conf_path',
-                        lambda *args: dirname)
+                        lambda *args: snippets_dir)
 
     return SnippetManager()
 
@@ -63,7 +72,7 @@ def test_snippet():
 
 
 def test_snippets_manager(snippet_manager):
-    """Test SnnipetManager, loading an searching an snippet."""
+    """Test SnippetManager, loading an searching an snippet."""
     assert snippet_manager.search_snippet("not_exist") is None
 
     test_snippet = snippet_manager.search_snippet("test")

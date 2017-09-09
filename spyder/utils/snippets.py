@@ -97,8 +97,13 @@ class SnippetManager():
                 debug_print('Malformed snippet: {}'.format(fname))
             else:
                 for name, snippet in dict_snippets.items():
-                    snippets[snippet['prefix']] = Snippet(name, **snippet)
-                    debug_print('Load snippet: {}'.format(snippet))
+                    try:
+                        snippets[snippet['prefix']] = Snippet(name, **snippet)
+                        debug_print('Load snippet: {}'.format(snippet))
+                    except KeyError as e:
+                        debug_print(
+                            'Error while loading snippet: {}, {}'.format(
+                                snippet, e))
         return snippets
 
     def search_snippet(self, prefix):
