@@ -577,10 +577,12 @@ class DataFrameView(QTableView):
         clipboard.setText(contents)
 
 
-class DataFrameHeader(QAbstractTableModel):
+class DataFrameHeaderModel(QAbstractTableModel):
     """
     Data Frame Header/Index class.
 
+    This class is the model for the horizontal header and vertical index
+    of the DataFrameEditor.
     Taken from gtabview project (Header4ExtModel).
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
@@ -589,7 +591,7 @@ class DataFrameHeader(QAbstractTableModel):
     COLUMN_INDEX = -1  # Makes reference to the index of the table.
 
     def __init__(self, model, axis, palette):
-        super(DataFrameHeader, self).__init__()
+        super(DataFrameHeaderModel, self).__init__()
         self.model = model
         self.axis = axis
         self._palette = palette
@@ -712,9 +714,13 @@ class DataFrameHeader(QAbstractTableModel):
         return to_text_string(self.model.header(self.axis, col, row))
 
 
-class DataFrameLevel(QAbstractTableModel):
+class DataFrameLevelModel(QAbstractTableModel):
     """
     Data Frame level class.
+
+    This class model the levels in the DataFrameEditor. When using multiindex
+    this model creates the labels for the index/header as Index i for each
+    section in the index/header
 
     Taken from the gtabview project(Level4ExtModel).
     For more information please see:
@@ -722,7 +728,7 @@ class DataFrameLevel(QAbstractTableModel):
     """
 
     def __init__(self, model, palette, font):
-        super(DataFrameLevel, self).__init__()
+        super(DataFrameLevelModel, self).__init__()
         self.model = model
         self._background = palette.dark().color()
         if self._background.lightness() > 127:
@@ -828,6 +834,7 @@ class DataFrameEditor(QDialog):
         self.hscroll = QScrollBar(Qt.Horizontal)
         self.vscroll = QScrollBar(Qt.Vertical)
 
+        # Create the view for the level
         self.table_level = QTableView()
         self.table_level.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table_level.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -842,6 +849,8 @@ class DataFrameEditor(QDialog):
         self.table_level.setContentsMargins(0, 0, 0, 0)
         self.table_level.horizontalHeader().sectionClicked.connect(
                                                             self.sortByIndex)
+
+        # Create the view for the horizontal header
         self.table_header = QTableView()
         self.table_header.verticalHeader().hide()
         self.table_header.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -855,6 +864,7 @@ class DataFrameEditor(QDialog):
         self.table_header.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.table_header, 0, 1)
 
+        # Create the view for the vertical index
         self.table_index = QTableView()
         self.table_index.horizontalHeader().hide()
         self.table_index.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -869,6 +879,7 @@ class DataFrameEditor(QDialog):
         self.layout.addWidget(self.table_index, 1, 0)
         self.table_index.setContentsMargins(0, 0, 0, 0)
 
+        # Create the model and view of the data
         self.dataModel = DataFrameModel(data, parent=self)
         self.dataTable = DataFrameView(self, self.dataModel,
                                        self.table_header.horizontalHeader(),
@@ -1004,20 +1015,26 @@ class DataFrameEditor(QDialog):
         self._max_autosize_ms = limit_ms
 
     def setModel(self, model, relayout=True):
+        """Set the model for the for data, header/index and level views."""
         self._model = model
         sel_model = self.dataTable.selectionModel()
         sel_model.currentColumnChanged.connect(
                 self._resizeCurrentColumnToContents)
 
-        self._reset_model(self.table_level, DataFrameLevel(model,
-                                                           self.palette(),
-                                                           self.font()))
-        self._reset_model(self.table_header, DataFrameHeader(model,
-                                                             0,
-                                                             self.palette()))
-        self._reset_model(self.table_index, DataFrameHeader(model,
+        # Asociate the models (level, vertical index and horizontal header)
+        # with its corresponding view.
+        self._reset_model(self.table_level, DataFrameLevelModel(model,
+                                                                self.palette(),
+                                                                self.font()))
+        self._reset_model(self.table_header, DataFrameHeaderModel(
+                                                            model,
+                                                            0,
+                                                            self.palette()))
+        self._reset_model(self.table_index, DataFrameHeaderModel(
+                                                            model,
                                                             1,
                                                             self.palette()))
+
         # Needs to be called after setting all table models
         if relayout:
             self._update_layout()
