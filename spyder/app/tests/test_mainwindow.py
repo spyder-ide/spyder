@@ -846,11 +846,9 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(500)
 
-    # Wait until the prompt appear
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    control = shell._control
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    # Assert that the prompt appear
+    shell.clear_console()
+    assert 'In [3]:' in control.toPlainText()
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
