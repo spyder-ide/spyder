@@ -51,6 +51,12 @@ def test_snippet(qtbot, editor_snippets):
 
     assert editor.toPlainText().strip() == snippet_result
 
+    # replace the variables
+    qtbot.keyClicks(editor, '10')
+    qtbot.keyPress(editor, Qt.Key_Tab)
+    qtbot.keyClicks(editor, 'print(i)')
+    assert editor.toPlainText().strip() == "for i in range(10):\n    print(i)"
+
 
 if __name__ == '__main__':
     pytest.main()
