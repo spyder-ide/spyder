@@ -54,7 +54,8 @@ class Snippet():
                 position = match.start() - (length_diff)
                 length_default = len(match.group(2))
                 length_diff = len(match.group()) - length_default
-                self._variables_position.append(Variable(position, length_default))
+                self._variables_position.append(
+                    Variable(position, length_default))
 
         return self._variables_position
 
