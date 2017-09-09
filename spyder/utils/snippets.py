@@ -11,11 +11,13 @@ import os
 import errno
 import codecs
 import re
+from collections import namedtuple
 
 from spyder.config.base import debug_print, get_conf_path
 from spyder.utils.external import toml
 
 regex_variables = re.compile(r'\$\{(\d+)\:(\w*)\}')
+Variable = namedtuple('Variable', 'start length')
 
 
 class Snippet():
@@ -36,7 +38,7 @@ class Snippet():
         return self._text
 
     @property
-    def variables_position(self):
+    def variables(self):
         """
         Return the position and lenght of the next variable.
 
@@ -52,7 +54,7 @@ class Snippet():
                 position = match.start() - (lenght_diff)
                 lenght_default = len(match.group(2))
                 lenght_diff = len(match.group()) - lenght_default
-                self._variables_position.append((position, lenght_default))
+                self._variables_position.append(Variable(position, lenght_default))
 
         return self._variables_position
 

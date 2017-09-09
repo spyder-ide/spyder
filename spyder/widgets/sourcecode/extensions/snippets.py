@@ -89,18 +89,18 @@ class SnippetsExtension(EditorExtension):
         if self.snippet is None:
             return
         cursor = self.editor.textCursor()
-        variables = self.snippet.variables_position
+        variables = self.snippet.variables
 
         if not variables:
             self.snippet = None
             return
 
         # Decorate variables
-        for start, length in variables:
+        for variable in variables:
             cursor.setPosition(position)
-            cursor.movePosition(QTextCursor.Right, n=start)
+            cursor.movePosition(QTextCursor.Right, n=variable.start)
             cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
-                                length)
+                                variable.length)
             self._decorate_selection(cursor)
 
         # select first variable
