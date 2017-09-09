@@ -29,6 +29,7 @@ except ImportError:
 
 # Local imports
 from spyder.config.base import _, get_supported_types
+from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, getcwd, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -199,8 +200,12 @@ class NamespaceBrowser(QWidget):
                                            text=_("Save data as..."),
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
+        reset_namespace_button = create_toolbutton(
+                self, text=_("Reset the namespace"),
+                icon=ima.icon('editclear'), triggered=self.reset_namespace)
 
-        toolbar += [load_button, self.save_button, save_as_button]
+        toolbar += [load_button, self.save_button, save_as_button,
+                    reset_namespace_button]
         
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
@@ -448,7 +453,12 @@ class NamespaceBrowser(QWidget):
                                        "<br><br>Error message:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
-            
+
+    @Slot()
+    def reset_namespace(self):
+        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
+        self.shellwidget.reset_namespace(silent=True, warning=warning)
+
     @Slot()
     def save_data(self, filename=None):
         """Save data"""
