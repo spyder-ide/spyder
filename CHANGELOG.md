@@ -5,7 +5,7 @@
 ### New features
 
 * Add a button to the Variable Explorer to remove to remove all variables at
-  once
+  once.
 
 ### Bugs fixed
 
