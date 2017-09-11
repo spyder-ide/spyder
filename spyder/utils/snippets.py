@@ -126,7 +126,7 @@ class SnippetManager():
         """Load an snippet file."""
         snippets = {}
 
-        with codecs.open(fname) as f:
+        with open(fname) as f:
             try:
                 dict_snippets = toml.load(f)
             except toml.TomlDecodeError:
