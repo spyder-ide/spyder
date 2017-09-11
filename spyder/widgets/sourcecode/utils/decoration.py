@@ -50,6 +50,21 @@ class TextDecorationsManager(Manager):
         except ValueError:
             return False
 
+    def extend(self, decorations):
+        """
+        Adds several text decorations on a CodeEditor instance.
+
+        Args:
+            decorations (list of spyder.api.TextDecoration)
+        Returns:
+            int: Amount of decorations added.
+        """
+        decorations_added = 0
+        for decoration in decorations:
+            if self.append(decoration):
+                decorations_added += 1
+        return decorations_added
+
     def clear(self):
         """Removes all text decoration from the editor."""
         self._decorations[:] = []
