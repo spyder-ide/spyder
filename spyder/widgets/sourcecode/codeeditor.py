@@ -2869,4 +2869,5 @@ if __name__ == '__main__':
         fname = sys.argv[1]
     else:
         fname = __file__
+    fname = "C:\\users\\jsgosselin\\Desktop\\test_scrollbar.py"
     test(fname)

@@ -34,13 +34,16 @@ class ScrollFlagArea(Panel):
 
     @property
     def addline_height(self):
+        # This correspond to the height of the scroll bar line increase
+        # indicator (upper arrow button at the top of the scroll bar). The
+        # height of the scroll bar line decrease indicator is assumed to be
+        # equal to the one of the increase indicator.
         style = self.style()
         opt = QStyleOptionSlider()
         QScrollBar().initStyleOption(opt)
         addline_rect = style.subControlRect(QStyle.CC_ScrollBar, opt,
                                             QStyle.SC_ScrollBarAddLine, self)
         return addline_rect.height()
-        
 
     def sizeHint(self):
         """Override Qt method"""
@@ -56,13 +59,12 @@ class ScrollFlagArea(Panel):
         # Filling the whole painting area
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
-        block = self.editor.document().firstBlock()
 
         # Painting warnings and todos
-        for line_number in range(1, self.editor.document().blockCount()+1):
+        block = self.editor.document().firstBlock()
+        for line_number in range(self.editor.document().blockCount()+1):
             data = block.userData()
             if data:
-                position = self.value_to_position(line_number)
                 if data.code_analysis:
                     # Warnings
                     color = self.editor.warning_color
@@ -71,30 +73,28 @@ class ScrollFlagArea(Panel):
                             color = self.editor.error_color
                             break
                     self.set_painter(painter, color)
-                    painter.drawRect(make_flag(position))
+                    painter.drawRect(make_flag(line_number))
                 if data.todo:
-                    # TODOs
+                    # Painting the todos
                     self.set_painter(painter, self.editor.todo_color)
-                    painter.drawRect(make_flag(position))
+                    painter.drawRect(make_flag(line_number))
                 if data.breakpoint:
-                    # Breakpoints
+                    # Painting the breakpoints
                     self.set_painter(painter, self.editor.breakpoint_color)
-                    painter.drawRect(make_flag(position))
+                    painter.drawRect(make_flag(line_number))
             block = block.next()
 
-        # Occurrences
+        # Painting the occurrences
         if self.editor.occurrences:
             self.set_painter(painter, self.editor.occurrence_color)
             for line_number in self.editor.occurrences:
-                position = self.value_to_position(line_number)
-                painter.drawRect(make_flag(position))
+                painter.drawRect(make_flag(line_number))
 
-        # Found results
+        # Painting the found results
         if self.editor.found_results:
             self.set_painter(painter, self.editor.found_results_color)
             for line_number in self.editor.found_results:
-                position = self.value_to_position(line_number)
-                painter.drawRect(make_flag(position))
+                painter.drawRect(make_flag(line_number))
 
         # Painting the slider range
         cursor_pos = self.mapFromGlobal(QCursor().pos())
@@ -109,9 +109,15 @@ class ScrollFlagArea(Panel):
             painter.drawRect(self.make_slider_range(cursor_pos))
 
     def enterEvent(self, event):
+        """Override Qt method"""
         self.update()
 
     def leaveEvent(self, event):
+        """Override Qt method"""
+        self.update()
+
+    def mouseMoveEvent(self, event):
+        """Override Qt method"""
         self.update()
 
     def altPressEvent(self, event):
@@ -120,9 +126,6 @@ class ScrollFlagArea(Panel):
 
     def altReleaseEvent(self, event):
         self.__altmodif = False
-        self.update()
-
-    def mouseMoveEvent(self, event):
         self.update()
 
     def mousePressEvent(self, event):
@@ -150,12 +153,24 @@ class ScrollFlagArea(Panel):
         """Convert position to value"""
         offset = self.addline_height if self.slider else 1
         vsb = self.editor.verticalScrollBar()
-        return vsb.minimum()+max([0, (y-offset)/self.get_scale_factor()])
+        return vsb.minimum() + max([0, (y-offset)/self.get_scale_factor()])
 
-    def make_flag_qrect(self, position):
+    def make_flag_qrect(self, value):
         """Make flag QRect"""
-        return QRect(self.FLAGS_DX/2, position-self.FLAGS_DY/2,
-                     self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
+        if self.slider:
+            position = self.value_to_position(value)
+            return QRect(self.FLAGS_DX/2, position-self.FLAGS_DY/2,
+                         self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
+        else:
+            # When there is no vertical scrollbar, the flags are vertically
+            # aligned with the middle of their corresponding text block.
+            block = self.editor.document().findBlockByLineNumber(value)
+            top = self.editor.blockBoundingGeometry(block).translated(
+                      self.editor.contentOffset()).top()
+            bottom = top + self.editor.blockBoundingRect(block).height()
+            middle = (top + bottom)/2
+            return QRect(self.FLAGS_DX/2, middle-self.FLAGS_DY/2,
+                         self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
 
     def make_slider_range(self, cursor_pos):
         """Make slider range QRect"""
