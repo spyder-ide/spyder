@@ -34,7 +34,7 @@ from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyder.widgets.sourcecode.api.decoration import TextDecoration
-
+from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
 
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
@@ -280,6 +280,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.last_cursor_cell = None
 
+        self.decorations = TextDecorationsManager(self)
+
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()
@@ -346,19 +348,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         for key, extra in list(self.extra_selections_dict.items()):
             extra_selections.extend(extra)
-        try:
-            self.decorations.extend(extra_selections)
-        except AttributeError:
-            self.setExtraSelections(extra_selections)
+        self.decorations.extend(extra_selections)
 
     def clear_extra_selections(self, key):
-        try:
-            for decoration in self.extra_selections_dict.get(key, []):
-                self.decorations.remove(decoration)
-            self.extra_selections_dict[key] = []
-        except AttributeError:
-            self.extra_selections_dict[key] = []
-            self.update_extra_selections()
+        for decoration in self.extra_selections_dict.get(key, []):
+            self.decorations.remove(decoration)
+        self.extra_selections_dict[key] = []
 
     def changed(self):
         """Emit changed signal"""
