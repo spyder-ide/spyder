@@ -350,7 +350,7 @@ class FoldingPanel(Panel):
     def _decorate_block(self, start, end):
         color = self._get_scope_highlight_color()
         d = TextDecoration(self.editor.document(),
-                           start_line=start, end_line=end+1)
+                           start_line=start, end_line=end+1, draw_order=1)
         d.set_background(color)
         d.set_full_width(True, clear=False)
         self.editor.decorations.append(d)
@@ -433,7 +433,7 @@ class FoldingPanel(Panel):
         Add fold decorations (boxes arround a folded block in the editor
         widget).
         """
-        deco = TextDecoration(block)
+        deco = TextDecoration(block, draw_order=1)
         deco.signals.clicked.connect(self._on_fold_deco_clicked)
         deco.tooltip = region.text(max_lines=25)
         deco.draw_order = 1

@@ -330,21 +330,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         return self.extra_selections_dict.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
+        # current line has to be highlighted first
+        draw_orders = {'current_cell': 0,
+                       # draw order = 1 is used in codefolding
+                       'current_line': 2}
+        draw_order = draw_orders.get(key,  5)
+        for selection in extra_selections:
+            selection.draw_order = draw_order
         self.extra_selections_dict[key] = extra_selections
 
     def update_extra_selections(self):
         extra_selections = []
 
-        # Python 3 compatibility (weird): current line has to be
-        # highlighted first
-        if 'current_cell' in self.extra_selections_dict:
-            extra_selections.extend(self.extra_selections_dict['current_cell'])
-        if 'current_line' in self.extra_selections_dict:
-            extra_selections.extend(self.extra_selections_dict['current_line'])
-
         for key, extra in list(self.extra_selections_dict.items()):
-            if not (key == 'current_line' or key == 'current_cell'):
-                extra_selections.extend(extra)
+            extra_selections.extend(extra)
         try:
             self.decorations.extend(extra_selections)
         except AttributeError:
