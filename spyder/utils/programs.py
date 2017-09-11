@@ -21,6 +21,7 @@ import tempfile
 
 # Local imports
 from spyder.utils import encoding
+from spyder.utils.misc import get_python_executable
 from spyder.py3compat import PY2, is_text_string, to_text_string
 
 
@@ -265,7 +266,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         fname = '"' + fname + '"'
         wdir = wdir.replace('/', '\\')
     
-    p_args = ['python']
+    p_args = [get_python_executable()]
     p_args += get_python_args(fname, python_args, interact, debug, args)
     
     if os.name == 'nt':
