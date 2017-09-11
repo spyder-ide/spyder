@@ -1732,8 +1732,13 @@ class EditorStack(QWidget):
 
         self.update_plugin_title.emit()
         if editor is not None:
-            self.current_file_changed.emit(self.data[index].filename,
+            # Needed in order to handle the close of files open in a directory
+            # that has been renamed. See issue 5157
+            try:
+                self.current_file_changed.emit(self.data[index].filename,
                                            editor.get_position('cursor'))
+            except IndexError:
+                pass
 
     def _get_previous_file_index(self):
         if len(self.stack_history) > 1:

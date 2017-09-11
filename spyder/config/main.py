@@ -145,6 +145,7 @@ DEFAULTS = [
               'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': False,
+              'show_reset_namespace_warning': True,
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
