@@ -38,7 +38,7 @@ from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout)
+                            QToolTip, QVBoxLayout)
 from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
@@ -71,7 +71,7 @@ from spyder.widgets.sourcecode.extensions.manager import (
         EditorExtensionsManager)
 from spyder.widgets.sourcecode.extensions.closequotes import (
         CloseQuotesExtension)
-
+from spyder.widgets.sourcecode.api.decoration import TextDecoration
 from spyder.api.panel import Panel
 
 try:
@@ -941,7 +941,7 @@ class CodeEditor(TextEditBaseWidget):
                         underline_style=QTextCharFormat.SpellCheckUnderline,
                         update=False):
         extra_selections = self.get_extra_selections(key)
-        selection = QTextEdit.ExtraSelection()
+        selection = TextDecoration(cursor)
         if foreground_color is not None:
             selection.format.setForeground(foreground_color)
         if background_color is not None:
@@ -953,7 +953,6 @@ class CodeEditor(TextEditBaseWidget):
                                          to_qvariant(underline_color))
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
-        selection.cursor = cursor
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
         if update:
@@ -1011,9 +1010,8 @@ class CodeEditor(TextEditBaseWidget):
         self.found_results = []
         for match in regobj.finditer(text):
             pos1, pos2 = match.span()
-            selection = QTextEdit.ExtraSelection()
+            selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
-            selection.cursor = self.textCursor()
             selection.cursor.setPosition(pos1)
             self.found_results.append(selection.cursor.blockNumber())
             selection.cursor.setPosition(pos2, QTextCursor.KeepAnchor)
