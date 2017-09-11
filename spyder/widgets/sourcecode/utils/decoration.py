@@ -30,16 +30,7 @@ class TextDecorationsManager(Manager):
         """
         if decoration not in self._decorations:
             self._decorations.append(decoration)
-
-            # order decorations acording draw_order, and selection lenght
-            # highest draw_orde will appear on top of the lowest values.
-            # if draw_order is equal,smaller selections are draw in top of
-            # bigger selections
-            self._decorations = sorted(
-                self._decorations,
-                key=lambda sel: (sel.draw_order,
-                                 -(sel.cursor.selectionEnd()
-                                   - sel.cursor.selectionStart())))
+            self._order_decorations()
             self.editor.setExtraSelections(self._decorations)
             return True
         return False
@@ -86,3 +77,19 @@ class TextDecorationsManager(Manager):
 
     def __len__(self):
         return len(self._decorations)
+
+    def _order_decorations(self):
+        """Order decorations according draw_order and size of selection.
+
+        Highest draw_order will appear on top of the lowest values.
+
+        If draw_order is equal,smaller selections are draw in top of
+        bigger selections.
+        """
+        def order_function(sel):
+            end = sel.cursor.selectionEnd()
+            start = sel.cursor.selectionStart()
+            return sel.draw_order, -(end - start)
+
+        self._decorations = sorted(self._decorations,
+                                   key=order_function)
