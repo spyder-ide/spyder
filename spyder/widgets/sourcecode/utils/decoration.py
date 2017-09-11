@@ -58,11 +58,11 @@ class TextDecorationsManager(Manager):
         Returns:
             int: Amount of decorations added.
         """
-        decorations_added = 0
-        for decoration in decorations:
-            if self.append(decoration):
-                decorations_added += 1
-        return decorations_added
+        not_repeated = set(decorations) - set(self._decorations)
+        self._decorations.extend(list(not_repeated))
+        self._order_decorations()
+        self.editor.setExtraSelections(self._decorations)
+        return len(not_repeated)
 
     def clear(self):
         """Removes all text decoration from the editor."""
