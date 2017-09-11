@@ -337,6 +337,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         draw_order = draw_orders.get(key,  5)
         for selection in extra_selections:
             selection.draw_order = draw_order
+
+        self.clear_extra_selections(key)
         self.extra_selections_dict[key] = extra_selections
 
     def update_extra_selections(self):
