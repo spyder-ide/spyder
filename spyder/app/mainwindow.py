@@ -871,7 +871,7 @@ class MainWindow(QMainWindow):
 
         # IPython console
         self.set_splash(_("Loading IPython console..."))
-        from spyder.plugins.ipythonconsole import IPythonConsole
+        from spyder.plugins.ipythonconsole.plugin import IPythonConsole
         self.ipyconsole = IPythonConsole(self)
         self.ipyconsole.register_plugin()
 
