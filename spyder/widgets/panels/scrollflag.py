@@ -9,8 +9,7 @@ This module contains the Scroll Flag panel
 
 from qtpy.QtCore import QSize, Qt, QRect
 from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
-from qtpy.QtWidgets import (QScrollBar, QStyle, QStyleOptionSlider,
-                            QApplication)
+from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 from spyder.api.panel import Panel
 
@@ -29,24 +28,23 @@ class ScrollFlagArea(Panel):
 
     @property
     def slider(self):
+        """This property holds whether the vertical scrollbar is visible."""
         return self.editor.verticalScrollBar().isVisible()
 
     @property
     def offset(self):
-        return self.addline_height if self.slider else 1
-
-    @property
-    def addline_height(self):
-        # This corresponds to the height of the scroll bar line increase
-        # indicator (upper arrow button at the top of the scroll bar). The
-        # height of the scroll bar line decrease indicator is assumed to be
-        # equal to the one of the increase indicator.
-        style = self.style()
+        """This property holds the vertical offset of the scroll flag area
+        relative to the top of the text editor."""
+        vsb = self.editor.verticalScrollBar()
+        style = vsb.style()
         opt = QStyleOptionSlider()
-        QScrollBar().initStyleOption(opt)
-        addline_rect = style.subControlRect(QStyle.CC_ScrollBar, opt,
-                                            QStyle.SC_ScrollBarAddLine, self)
-        return addline_rect.height()
+        vsb.initStyleOption(opt)
+
+        # Get the area in which the slider handle may move.
+        groove_rect = style.subControlRect(
+                QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
+
+        return groove_rect.y()
 
     def sizeHint(self):
         """Override Qt method"""
@@ -59,17 +57,17 @@ class ScrollFlagArea(Panel):
         """
         make_flag = self.make_flag_qrect
 
-        # Filling the whole painting area
+        # Fill the whole painting area
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
-        # Painting warnings and todos
+        # Paint warnings and todos
         block = self.editor.document().firstBlock()
         for line_number in range(self.editor.document().blockCount()+1):
             data = block.userData()
             if data:
                 if data.code_analysis:
-                    # Warnings
+                    # Paint the warnings
                     color = self.editor.warning_color
                     for _message, error in data.code_analysis:
                         if error:
@@ -78,28 +76,28 @@ class ScrollFlagArea(Panel):
                     self.set_painter(painter, color)
                     painter.drawRect(make_flag(line_number))
                 if data.todo:
-                    # Painting the todos
+                    # Paint the todos
                     self.set_painter(painter, self.editor.todo_color)
                     painter.drawRect(make_flag(line_number))
                 if data.breakpoint:
-                    # Painting the breakpoints
+                    # Paint the breakpoints
                     self.set_painter(painter, self.editor.breakpoint_color)
                     painter.drawRect(make_flag(line_number))
             block = block.next()
 
-        # Painting the occurrences
+        # Paint the occurrences
         if self.editor.occurrences:
             self.set_painter(painter, self.editor.occurrence_color)
             for line_number in self.editor.occurrences:
                 painter.drawRect(make_flag(line_number))
 
-        # Painting the found results
+        # Paint the found results
         if self.editor.found_results:
             self.set_painter(painter, self.editor.found_results_color)
             for line_number in self.editor.found_results:
                 painter.drawRect(make_flag(line_number))
 
-        # Painting the slider range
+        # Paint the slider range
         alt = QApplication.queryKeyboardModifiers() & Qt.AltModifier
         cursor_pos = self.mapFromGlobal(QCursor().pos())
         if ((self.rect().contains(cursor_pos) or alt) and self.slider):
@@ -126,57 +124,86 @@ class ScrollFlagArea(Panel):
     def mousePressEvent(self, event):
         """Override Qt method"""
         vsb = self.editor.verticalScrollBar()
-        value = self.position_to_value(event.pos().y())+0.5
+        value = self.position_to_value(event.pos().y())
         vsb.setValue(value-vsb.pageStep()/2)
+
+    def get_scrollbar_position_height(self):
+        """Return the pixel span height of the scrollbar area in which
+        the slider handle may move"""
+        vsb = self.editor.verticalScrollBar()
+        style = vsb.style()
+        opt = QStyleOptionSlider()
+        vsb.initStyleOption(opt)
+
+        # Get the area in which the slider handle may move.
+        groove_rect = style.subControlRect(
+                QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
+
+        return float(groove_rect.height())
+
+    def get_scrollbar_value_height(self):
+        """Return the value span height of the scrollbar"""
+        vsb = self.editor.verticalScrollBar()
+        return vsb.maximum()-vsb.minimum()+vsb.pageStep()
 
     def get_scale_factor(self):
         """Return scrollbar's scale factor:
         ratio between pixel span height and value span height"""
-        vsb = self.editor.verticalScrollBar()
-        position_height = vsb.height()-2*self.offset
-        value_height = vsb.maximum()-vsb.minimum()+vsb.pageStep()
-        return float(position_height)/value_height
+        return (self.get_scrollbar_position_height() /
+                self.get_scrollbar_value_height())
 
     def value_to_position(self, y):
-        """Convert value to position"""
+        """Convert value to position in pixels"""
         vsb = self.editor.verticalScrollBar()
         return (y-vsb.minimum())*self.get_scale_factor()+self.offset
 
     def position_to_value(self, y):
-        """Convert position to value"""
+        """Convert position in pixels to value"""
         vsb = self.editor.verticalScrollBar()
-        return vsb.minimum() + max([0, (y-self.offset)/self.get_scale_factor()])
+        return vsb.minimum()+max([0, (y-self.offset)/self.get_scale_factor()])
 
     def make_flag_qrect(self, value):
         """Make flag QRect"""
         if self.slider:
             position = self.value_to_position(value+0.5)
+            # The 0.5 offset is used to align the flags with the center of
+            # their corresponding text edit block before scaling.
+
             return QRect(self.FLAGS_DX/2, position-self.FLAGS_DY/2,
                          self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
         else:
-            # When there is no vertical scrollbar, the flags are vertically
-            # aligned with the middle of their corresponding text block.
+            # When the vertical scrollbar is not visible, the flags are
+            # vertically aligned with the center of their corresponding
+            # text block with no scaling.
             block = self.editor.document().findBlockByLineNumber(value)
             top = self.editor.blockBoundingGeometry(block).translated(
                       self.editor.contentOffset()).top()
             bottom = top + self.editor.blockBoundingRect(block).height()
             middle = (top + bottom)/2
+
             return QRect(self.FLAGS_DX/2, middle-self.FLAGS_DY/2,
                          self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
 
     def make_slider_range(self, cursor_pos):
         """Make slider range QRect"""
-        vsb = self.editor.verticalScrollBar()
-        max_value = (self.position_to_value(self.height()-self.offset) -
-                     vsb.pageStep()/2)
-        min_value = (self.position_to_value(self.offset) +
-                     vsb.pageStep()/2)
-        cursor_y = self.position_to_value(cursor_pos.y())
-        cursor_y = max(min_value, min(max_value, cursor_y))
-        pos1 = self.value_to_position(cursor_y-vsb.pageStep()/2)
-        pos2 = self.value_to_position(cursor_y+vsb.pageStep()/2)
+        # The slider range indicator position follows the mouse vertical
+        # position while its height corresponds to the part of the file that
+        # is currently visible on screen.
 
-        return QRect(1, pos1, self.WIDTH-2, pos2-pos1-2)
+        vsb = self.editor.verticalScrollBar()
+        groove_height = self.get_scrollbar_position_height()
+        slider_height = self.value_to_position(vsb.pageStep())
+
+        # Calcul the minimum and maximum y-value to constraint the slider
+        # range indicator position to the height span of the scrollbar area
+        # where the slider may move.
+        min_ypos = self.offset
+        max_ypos = groove_height + self.offset - slider_height
+
+        # Determine the bounded y-position of the slider rect.
+        slider_y = max(min_ypos, min(max_ypos, cursor_pos.y()-slider_height/2))
+
+        return QRect(1, slider_y, self.WIDTH-2, slider_height)
 
     def wheelEvent(self, event):
         """Override Qt method"""
