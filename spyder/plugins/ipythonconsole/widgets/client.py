@@ -52,11 +52,9 @@ from spyder.plugins.variableexplorer.widgets.viewers.collections import (
 # Using the same css file from the Help plugin for now. Maybe
 # later it'll be a good idea to create a new one.
 PLUGINS_PATH = get_module_source_path('spyder', 'plugins')
-UTILS_PATH = osp.join(PLUGINS_PATH, 'ipythonconsole', 'utils')
-HELP_UTILS_PATH = osp.join(PLUGINS_PATH, 'help', 'utils')
 
-CSS_PATH = osp.join(HELP_UTILS_PATH, 'static', 'css')
-TEMPLATES_PATH = osp.join(UTILS_PATH, 'templates')
+CSS_PATH = osp.join(PLUGINS_PATH, 'help', 'utils', 'static', 'css')
+TEMPLATES_PATH = osp.join(PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
