@@ -53,7 +53,8 @@ class SpyderKernelSpec(KernelSpec):
                 pyexec = pyexec_w
 
         # Command used to start kernels
-        utils_path = osp.join(self.spy_path, 'utils', 'ipython')
+        utils_path = osp.join(self.spy_path, 'plugins', 'ipythonconsole',
+                              'utils')
         kernel_cmd = [
             pyexec,
             osp.join("%s" % utils_path, "start_kernel.py"),
