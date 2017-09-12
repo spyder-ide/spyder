@@ -9,8 +9,7 @@ This module contains the Scroll Flag panel
 
 from qtpy.QtCore import QSize, Qt, QRect
 from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
-from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication,
-                            QScrollBar)
+from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 from spyder.api.panel import Panel
 
@@ -26,8 +25,6 @@ class ScrollFlagArea(Panel):
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.scrollable = True
         self.setMouseTracking(True)
-        self.scrollbar = QScrollBar()
-        editor.setVerticalScrollBar(self.scrollbar)
 
     @property
     def slider(self):
@@ -38,9 +35,10 @@ class ScrollFlagArea(Panel):
     def offset(self):
         """This property holds the vertical offset of the scroll flag area
         relative to the top of the text editor."""
-        style = self.scrollbar.style()
+        vsb = self.editor.verticalScrollBar()
+        style = vsb.style()
         opt = QStyleOptionSlider()
-        self.scrollbar.initStyleOption(opt)
+        vsb.initStyleOption(opt)
 
         # Get the area in which the slider handle may move.
         groove_rect = style.subControlRect(
@@ -132,9 +130,10 @@ class ScrollFlagArea(Panel):
     def get_scrollbar_position_height(self):
         """Return the pixel span height of the scrollbar area in which
         the slider handle may move"""
-        style = self.scrollbar.style()
+        vsb = self.editor.verticalScrollBar()
+        style = vsb.style()
         opt = QStyleOptionSlider()
-        self.scrollbar.initStyleOption(opt)
+        vsb.initStyleOption(opt)
 
         # Get the area in which the slider handle may move.
         groove_rect = style.subControlRect(
