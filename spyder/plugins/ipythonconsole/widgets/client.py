@@ -40,7 +40,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
-from spyder.widgets.ipythonconsole import ShellWidget
+from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.plugins.variableexplorer.widgets.viewers.collections import (
         CollectionsEditor)

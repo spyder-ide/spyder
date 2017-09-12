@@ -1971,7 +1971,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         from spyder.widgets.shell import ShellBaseWidget
         from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
-        from spyder.widgets.ipythonconsole import ControlWidget
+        from spyder.plugins.ipythonconsole.widgets import ControlWidget
 
         # if focused widget isn't valid try the last focused
         if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,

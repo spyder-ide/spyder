@@ -54,7 +54,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.ipythonconsole import ClientWidget
+from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.widgets.tabs import Tabs
 
 
