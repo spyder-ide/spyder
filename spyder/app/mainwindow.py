@@ -208,7 +208,7 @@ def get_focus_python_shell():
     """Extract and return Python shell from widget
     Return None if *widget* is not a Python shell (e.g. IPython kernel)"""
     widget = QApplication.focusWidget()
-    from spyder.widgets.shell import PythonShellWidget
+    from spyder.plugins.console.widgets.shell import PythonShellWidget
     from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
     if isinstance(widget, PythonShellWidget):
         return widget
@@ -794,7 +794,7 @@ class MainWindow(QMainWindow):
 
         # Internal console plugin
         self.debug_print("  ..plugin: internal console")
-        from spyder.plugins.console import Console
+        from spyder.plugins.console.plugin import Console
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
@@ -1969,7 +1969,7 @@ class MainWindow(QMainWindow):
         Returns tuple (widget, properties) where properties is a tuple of
         booleans: (is_console, not_readonly, readwrite_editor)"""
         widget = QApplication.focusWidget()
-        from spyder.widgets.shell import ShellBaseWidget
+        from spyder.plugins.console.widgets.shell import ShellBaseWidget
         from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
         from spyder.widgets.ipythonconsole import ControlWidget
 
