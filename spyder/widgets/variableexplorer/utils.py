@@ -83,11 +83,11 @@ def get_numpy_dtype(obj):
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
     try:
-        from pandas import DataFrame, DatetimeIndex, Series
+        from pandas import DataFrame, Index, Series
     except:
-        DataFrame = DatetimeIndex = Series = FakeObject
+        DataFrame = Index = Series = FakeObject
 else:
-    DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
+    DataFrame = Index = Series = FakeObject      # analysis:ignore
 
 
 #==============================================================================
@@ -135,7 +135,7 @@ def get_size(item):
         return item.shape
     elif isinstance(item, Image):
         return item.size
-    if isinstance(item, (DataFrame, DatetimeIndex, Series)):
+    if isinstance(item, (DataFrame, Index, Series)):
         return item.shape
     else:
         return 1
@@ -191,7 +191,7 @@ COLORS = {
            matrix,
            DataFrame,
            Series,
-           DatetimeIndex):    ARRAY_COLOR,
+           Index):            ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -375,11 +375,11 @@ def value_to_display(value, minmax=False, level=0):
             display = to_text_string(value)
             if level > 0:
                 display = u"'" + display + u"'"
-        elif isinstance(value, DatetimeIndex):
+        elif isinstance(value, Index):
             if level == 0:
                 display = value.summary()
             else:
-                display = 'DatetimeIndex'
+                display = 'Index'
         elif is_binary_string(value):
             try:
                 display = to_text_string(value, 'utf8')
@@ -470,8 +470,8 @@ def get_type_string(item):
     """Return type string of an object."""
     if isinstance(item, DataFrame):
         return "DataFrame"
-    if isinstance(item, DatetimeIndex):
-        return "DatetimeIndex"
+    if isinstance(item, Index):
+        return type(item).__name__
     if isinstance(item, Series):
         return "Series"
     found = re.findall(r"<(?:type|class) '(\S*)'>",

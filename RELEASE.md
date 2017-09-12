@@ -1,5 +1,7 @@
 To release a new version of Spyder you need to follow these steps:
 
+* Close the current milestone on Github
+
 * git pull or git fetch/merge
 
 * git clean -xfdi

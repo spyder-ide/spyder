@@ -1,34 +1,27 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.2 is released!
+**Subject**: [ANN] Spyder 3.2.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.2** has been released and is available for
+I'm pleased to announce that Spyder **3.2.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three weeks after version 3.2.1 and it adds the following new
+This release comes one week after version 3.2.2 and it adds the following new
 features:
 
-* A button to Find in Files to make searches case sensitive.
-* An option to set cursor blinking speed in miliseconds in
-  `Preferences > General > Interface > Cursor blinking`.
-* Checkboxes to the PYTHONPATH manager to enable/disable paths.
-* Extend Find in Files to select other search directories.
-* Show the number of matches in the Find/Replace widget.
+* A button to the Variable Explorer to remove to remove all variables at
+  once.
 
-It also fixes several important problems:
+It also fixes one critical problem:
 
-* Lack of autocompletion in the Editor when using projects on
-  Windows.
-* Slowness in the IPython console when complex objects are shown in
-  the Variable Explorer.
-* Disappearance of the prompt in the IPython console after errors.
+* An AttributeError when running code in the IPython console while using
+  old versions of the qtconsole package.
 
-In this release we fixed 31 issues and merged 39 pull requests that amount
-to more than 200 commits. For a full list of fixes, please see our
+In this release we fixed 10 issues and merged 9 pull requests that amount
+to almost 40 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
