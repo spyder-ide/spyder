@@ -954,7 +954,7 @@ class CodeEditor(TextEditBaseWidget):
         """Clear occurrence markers"""
         self.occurrences = []
         self.clear_extra_selections('occurrences')
-        self.scrollflagarea.update()
+        self.flags_changed.emit()
 
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
@@ -1011,7 +1011,7 @@ class CodeEditor(TextEditBaseWidget):
             # for PyQt4... this must be related to a different behavior for
             # the QTextDocument.find function between those two libraries
             self.occurrences.pop(-1)
-        self.scrollflagarea.update()
+        self.flags_changed.emit()
 
     #-----highlight found results (find/replace widget)
     def highlight_found_results(self, pattern, words=False, regexp=False):
@@ -1045,7 +1045,7 @@ class CodeEditor(TextEditBaseWidget):
         """Clear found results highlighting"""
         self.found_results = []
         self.clear_extra_selections('find')
-        self.scrollflagarea.update()
+        self.flags_changed.emit()
 
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
@@ -1158,7 +1158,7 @@ class CodeEditor(TextEditBaseWidget):
                 data.breakpoint = False
         block.setUserData(data)
         self.linenumberarea.update()
-        self.scrollflagarea.update()
+        self.flags_changed.emit()
         self.breakpoints_changed.emit()
 
     def get_breakpoints(self):
@@ -1372,7 +1372,7 @@ class CodeEditor(TextEditBaseWidget):
         # When the new code analysis results are empty, it is necessary
         # to update manually the scrollflag and linenumber areas (otherwise,
         # the old flags will still be displayed):
-        self.scrollflagarea.update()
+        self.flags_changed.emit()
         self.linenumberarea.update()
 
     def process_code_analysis(self, check_results):
@@ -1503,7 +1503,7 @@ class CodeEditor(TextEditBaseWidget):
                 data = BlockUserData(self)
             data.todo = message
             block.setUserData(data)
-        self.scrollflagarea.update()
+        self.flags_changed.emit()
 
 
     #------Comments/Indentation

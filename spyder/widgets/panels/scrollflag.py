@@ -31,6 +31,7 @@ class ScrollFlagArea(Panel):
         editor.key_released.connect(self.keyReleaseEvent)
         editor.alt_left_mouse_pressed.connect(self.mousePressEvent)
         editor.alt_mouse_moved_over.connect(self.mouseMoveEvent)
+        editor.flags_changed.connect(self.update)
 
     @property
     def slider(self):
