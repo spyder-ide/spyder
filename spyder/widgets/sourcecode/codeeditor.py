@@ -31,7 +31,7 @@ from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
-                        QKeySequence, QPaintEvent, QPainter,
+                        QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
@@ -251,6 +251,20 @@ class CodeEditor(TextEditBaseWidget):
 
     #: Signal emitted when a key is pressed
     key_pressed = Signal(QKeyEvent)
+
+    #: Signal emitted when a key is released
+    key_released = Signal(QKeyEvent)
+
+    #: Signal emitted when the alt key is pressed and the left button of the 
+    #  mouse is clicked
+    alt_left_mouse_pressed = Signal(QMouseEvent)
+
+    #: Signal emitted when the alt key is pressed and the cursor move over
+    #  the editor rect
+    alt_mouse_moved_over = Signal(QMouseEvent)
+
+    #: Signal emitted when the flags needs to be updated in the scrollflagarea
+    flags_changed = Signal()
 
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
@@ -2374,25 +2388,15 @@ class CodeEditor(TextEditBaseWidget):
                     (self.copy_action, None, selectall_action,
                      self.gotodef_action))
 
-    def focusOutEvent(self, event):
-        """Override Qt method."""
-        self.scrollflagarea.update()
-        super(CodeEditor, self).focusOutEvent(event)
-
     def keyReleaseEvent(self, event):
         """Override Qt method."""
-        if event.key() == Qt.Key_Alt:
-            self.scrollflagarea.update()
-
+        self.key_released.emit(event)
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
-        if event.key() == Qt.Key_Alt:
-            self.scrollflagarea.update()
-
         event.ignore()
         self.key_pressed.emit(event)
         key = event.key()
@@ -2602,8 +2606,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
-        if event.modifiers() & Qt.AltModifier:
-            self.scrollflagarea.mouseMoveEvent(event)
+        cursor_pos = self.mapFromGlobal(QCursor().pos())
+        alt = event.modifiers() & Qt.AltModifier
+        if self.rect().contains(cursor_pos) and alt:
+            self.alt_mouse_moved_over.emit(event)
+            event.accept()
             return
 
         if self.has_selected_text():
@@ -2672,15 +2679,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if event.modifiers() & Qt.AltModifier:
-            self.scrollflagarea.mousePressEvent(event)
-            return
-
-        if event.button() == Qt.LeftButton\
-           and (event.modifiers() & Qt.ControlModifier):
+        ctrl = event.modifiers() & Qt.ControlModifier
+        alt = event.modifiers() & Qt.AltModifier
+        if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(event.pos())
             self.go_to_definition_from_cursor(cursor)
+        elif event.button() == Qt.LeftButton and alt:
+            self.alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
 
@@ -2873,4 +2879,5 @@ if __name__ == '__main__':
         fname = sys.argv[1]
     else:
         fname = __file__
+    fname = "C:\\users\\jsgosselin\\Desktop\\test_scrollbar.py"
     test(fname)

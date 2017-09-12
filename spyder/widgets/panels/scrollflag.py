@@ -26,6 +26,12 @@ class ScrollFlagArea(Panel):
         self.scrollable = True
         self.setMouseTracking(True)
 
+        editor.focus_changed.connect(self.update)
+        editor.key_pressed.connect(self.keyPressEvent)
+        editor.key_released.connect(self.keyReleaseEvent)
+        editor.alt_left_mouse_pressed.connect(self.mousePressEvent)
+        editor.alt_mouse_moved_over.connect(self.mouseMoveEvent)
+
     @property
     def slider(self):
         """This property holds whether the vertical scrollbar is visible."""
@@ -126,6 +132,16 @@ class ScrollFlagArea(Panel):
         vsb = self.editor.verticalScrollBar()
         value = self.position_to_value(event.pos().y())
         vsb.setValue(value-vsb.pageStep()/2)
+
+    def keyReleaseEvent(self, event):
+        """Override Qt method."""
+        if event.key() == Qt.Key_Alt:
+            self.update()
+
+    def keyPressEvent(self, event):
+        """Override Qt method"""
+        if event.key() == Qt.Key_Alt:
+            self.update()
 
     def get_scrollbar_position_height(self):
         """Return the pixel span height of the scrollbar area in which
