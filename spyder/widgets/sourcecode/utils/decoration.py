@@ -21,19 +21,31 @@ class TextDecorationsManager(Manager):
         super(TextDecorationsManager, self).__init__(editor)
         self._decorations = []
 
-    def append(self, decoration):
+    def add(self, decorations):
         """
-        Adds a text decoration on a CodeEditor instance
+        Add text decorations on a CodeEditor instance.
 
-        :param decoration: Text decoration to add
-        :type decoration: spyder.api.TextDecoration
+        Don't add duplicated decorations, and order decorations according
+        draw_order and the size of the selection.
+
+        Args:
+            decorations (sourcecode.api.TextDecoration) (could be a list)
+        Returns:
+            int: Amount of decorations added.
         """
-        if decoration not in self._decorations:
-            self._decorations.append(decoration)
+        added = 0
+        if isinstance(decorations, list):
+            not_repeated = set(decorations) - set(self._decorations)
+            self._decorations.extend(list(not_repeated))
+            added = len(not_repeated)
+        elif decorations not in self._decorations:
+            self._decorations.append(decorations)
+            added = 1
+
+        if added > 0:
             self._order_decorations()
             self.editor.setExtraSelections(self._decorations)
-            return True
-        return False
+        return added
 
     def remove(self, decoration):
         """
@@ -48,21 +60,6 @@ class TextDecorationsManager(Manager):
             return True
         except ValueError:
             return False
-
-    def extend(self, decorations):
-        """
-        Adds several text decorations on a CodeEditor instance.
-
-        Args:
-            decorations (list of spyder.api.TextDecoration)
-        Returns:
-            int: Amount of decorations added.
-        """
-        not_repeated = set(decorations) - set(self._decorations)
-        self._decorations.extend(list(not_repeated))
-        self._order_decorations()
-        self.editor.setExtraSelections(self._decorations)
-        return len(not_repeated)
 
     def clear(self):
         """Removes all text decoration from the editor."""

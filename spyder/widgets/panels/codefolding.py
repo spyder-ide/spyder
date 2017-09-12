@@ -353,7 +353,7 @@ class FoldingPanel(Panel):
                            start_line=start, end_line=end+1, draw_order=1)
         d.set_background(color)
         d.set_full_width(True, clear=False)
-        self.editor.decorations.append(d)
+        self.editor.decorations.add(d)
         self._scope_decos.append(d)
 
     def _highlight_block(self, block):
@@ -444,7 +444,7 @@ class FoldingPanel(Panel):
         deco.set_background(self._get_scope_highlight_color())
         deco.set_foreground(QColor('#808080'))
         self._block_decos.append(deco)
-        self.editor.decorations.append(deco)
+        self.editor.decorations.add(deco)
 
     def toggle_fold_trigger(self, block):
         """
@@ -556,7 +556,7 @@ class FoldingPanel(Panel):
                 deco.set_outline(drift_color(
                     self._get_scope_highlight_color(), 110))
                 deco.set_background(self._get_scope_highlight_color())
-                self.editor.decorations.append(deco)
+                self.editor.decorations.add(deco)
         self._prev_cursor = cursor
 
     def _refresh_editor_and_scrollbars(self):

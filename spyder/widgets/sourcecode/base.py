@@ -348,7 +348,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         for key, extra in list(self.extra_selections_dict.items()):
             extra_selections.extend(extra)
-        self.decorations.extend(extra_selections)
+        self.decorations.add(extra_selections)
 
     def clear_extra_selections(self, key):
         for decoration in self.extra_selections_dict.get(key, []):
