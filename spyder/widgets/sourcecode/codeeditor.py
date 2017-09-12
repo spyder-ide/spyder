@@ -255,7 +255,7 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when a key is released
     key_released = Signal(QKeyEvent)
 
-    #: Signal emitted when the alt key is pressed and the left button of the 
+    #: Signal emitted when the alt key is pressed and the left button of the
     #  mouse is clicked
     alt_left_mouse_pressed = Signal(QMouseEvent)
 
