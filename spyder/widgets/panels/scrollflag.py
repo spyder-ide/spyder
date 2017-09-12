@@ -9,7 +9,8 @@ This module contains the Scroll Flag panel
 
 from qtpy.QtCore import QSize, Qt, QRect
 from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
-from qtpy.QtWidgets import QScrollBar, QStyle, QStyleOptionSlider
+from qtpy.QtWidgets import (QScrollBar, QStyle, QStyleOptionSlider,
+                            QApplication)
 
 from spyder.api.panel import Panel
 
@@ -24,8 +25,6 @@ class ScrollFlagArea(Panel):
         Panel.__init__(self, editor)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.scrollable = True
-
-        self.__altmodif = False
         self.setMouseTracking(True)
 
     @property
@@ -33,8 +32,12 @@ class ScrollFlagArea(Panel):
         return self.editor.verticalScrollBar().isVisible()
 
     @property
+    def offset(self):
+        return self.addline_height if self.slider else 1
+
+    @property
     def addline_height(self):
-        # This correspond to the height of the scroll bar line increase
+        # This corresponds to the height of the scroll bar line increase
         # indicator (upper arrow button at the top of the scroll bar). The
         # height of the scroll bar line decrease indicator is assumed to be
         # equal to the one of the increase indicator.
@@ -97,9 +100,9 @@ class ScrollFlagArea(Panel):
                 painter.drawRect(make_flag(line_number))
 
         # Painting the slider range
+        alt = QApplication.queryKeyboardModifiers() & Qt.AltModifier
         cursor_pos = self.mapFromGlobal(QCursor().pos())
-        if ((self.rect().contains(cursor_pos) or self.__altmodif) and
-           self.slider):
+        if ((self.rect().contains(cursor_pos) or alt) and self.slider):
             pen_color = QColor(Qt.gray)
             pen_color.setAlphaF(.85)
             painter.setPen(pen_color)
@@ -120,45 +123,34 @@ class ScrollFlagArea(Panel):
         """Override Qt method"""
         self.update()
 
-    def altPressEvent(self, event):
-        self.__altmodif = True
-        self.update()
-
-    def altReleaseEvent(self, event):
-        self.__altmodif = False
-        self.update()
-
     def mousePressEvent(self, event):
         """Override Qt method"""
         vsb = self.editor.verticalScrollBar()
-        value = self.position_to_value(event.pos().y()-1)
-        vsb.setValue(value-.5*vsb.pageStep())
+        value = self.position_to_value(event.pos().y())+0.5
+        vsb.setValue(value-vsb.pageStep()/2)
 
     def get_scale_factor(self):
         """Return scrollbar's scale factor:
         ratio between pixel span height and value span height"""
-        delta = self.addline_height if self.slider else 1
         vsb = self.editor.verticalScrollBar()
-        position_height = vsb.height()-2*delta-1
+        position_height = vsb.height()-2*self.offset
         value_height = vsb.maximum()-vsb.minimum()+vsb.pageStep()
         return float(position_height)/value_height
 
     def value_to_position(self, y):
         """Convert value to position"""
-        offset = self.addline_height if self.slider else 1
         vsb = self.editor.verticalScrollBar()
-        return (y-vsb.minimum())*self.get_scale_factor()+offset
+        return (y-vsb.minimum())*self.get_scale_factor()+self.offset
 
     def position_to_value(self, y):
         """Convert position to value"""
-        offset = self.addline_height if self.slider else 1
         vsb = self.editor.verticalScrollBar()
-        return vsb.minimum() + max([0, (y-offset)/self.get_scale_factor()])
+        return vsb.minimum() + max([0, (y-self.offset)/self.get_scale_factor()])
 
     def make_flag_qrect(self, value):
         """Make flag QRect"""
         if self.slider:
-            position = self.value_to_position(value)
+            position = self.value_to_position(value+0.5)
             return QRect(self.FLAGS_DX/2, position-self.FLAGS_DY/2,
                          self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
         else:
@@ -175,16 +167,16 @@ class ScrollFlagArea(Panel):
     def make_slider_range(self, cursor_pos):
         """Make slider range QRect"""
         vsb = self.editor.verticalScrollBar()
-        max_val = (self.position_to_value(self.height()-self.addline_height) -
-                   vsb.pageStep()/2)
-        min_val = (self.position_to_value(self.addline_height) +
-                   vsb.pageStep()/2)
+        max_value = (self.position_to_value(self.height()-self.offset) -
+                     vsb.pageStep()/2)
+        min_value = (self.position_to_value(self.offset) +
+                     vsb.pageStep()/2)
         cursor_y = self.position_to_value(cursor_pos.y())
-        cursor_y = max(min_val, min(max_val, cursor_y))
+        cursor_y = max(min_value, min(max_value, cursor_y))
         pos1 = self.value_to_position(cursor_y-vsb.pageStep()/2)
         pos2 = self.value_to_position(cursor_y+vsb.pageStep()/2)
 
-        return QRect(1, pos1, self.WIDTH-2, pos2-pos1+1)
+        return QRect(1, pos1, self.WIDTH-2, pos2-pos1-2)
 
     def wheelEvent(self, event):
         """Override Qt method"""

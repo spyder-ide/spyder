@@ -2370,14 +2370,13 @@ class CodeEditor(TextEditBaseWidget):
 
     def focusOutEvent(self, event):
         """Override Qt method."""
-        self.scrollflagarea.altReleaseEvent(event)
+        self.scrollflagarea.update()
         super(CodeEditor, self).focusOutEvent(event)
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
         if event.key() == Qt.Key_Alt:
-            self.scrollflagarea.altReleaseEvent(event)
-            return
+            self.scrollflagarea.update()
 
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
@@ -2386,8 +2385,7 @@ class CodeEditor(TextEditBaseWidget):
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         if event.key() == Qt.Key_Alt:
-            self.scrollflagarea.altPressEvent(event)
-            return
+            self.scrollflagarea.update()
 
         event.ignore()
         self.key_pressed.emit(event)
