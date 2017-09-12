@@ -17,7 +17,7 @@ from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
-from spyder.utils.ipython.style import create_qss_style, create_style_class
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.plugins.ipythonconsole.widgets import (ControlWidget,
                                                    DebuggingWidget,
                                                    HelpWidget,

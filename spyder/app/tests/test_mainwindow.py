@@ -29,7 +29,7 @@ from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2
-from spyder.utils.ipython.kernelspec import SpyderKernelSpec
+from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
 from spyder.utils.test import close_save_message_box
 

@@ -33,7 +33,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.ipython.style import create_qss_style
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,

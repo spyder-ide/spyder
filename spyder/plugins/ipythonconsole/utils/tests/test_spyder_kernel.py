@@ -15,7 +15,7 @@ import pytest
 from spyder.config.main import CONF
 from spyder.py3compat import PY2, is_binary_string
 from spyder.utils.encoding import to_fs_from_unicode
-from spyder.utils.ipython.kernelspec import SpyderKernelSpec
+from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 
 
 @pytest.mark.skipif(os.name != 'nt' or not PY2,
