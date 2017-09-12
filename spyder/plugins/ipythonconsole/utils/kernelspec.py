@@ -72,7 +72,8 @@ class SpyderKernelSpec(KernelSpec):
         #    system to configure kernels started by exterrnal interpreters
         # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
         #    manager
-        sc_path = osp.join(self.spy_path, 'utils', 'site')
+        sc_path = osp.join(self.spy_path, 'plugins', 'ipythonconsole', 'utils',
+                           'site')
         spy_pythonpath = CONF.get('main', 'spyder_pythonpath', default=[])
 
         default_interpreter = CONF.get('main_interpreter', 'default')
