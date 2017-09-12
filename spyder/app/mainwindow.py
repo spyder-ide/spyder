@@ -808,7 +808,7 @@ class MainWindow(QMainWindow):
 
         # Working directory plugin
         self.debug_print("  ..plugin: working directory")
-        from spyder.plugins.workingdirectory import WorkingDirectory
+        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
         self.toolbarslist.append(self.workingdirectory.toolbar)
