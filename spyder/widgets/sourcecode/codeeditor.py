@@ -38,7 +38,7 @@ from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout)
+                            QTextEdit, QToolTip, QVBoxLayout, QScrollBar)
 from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
@@ -340,6 +340,7 @@ class CodeEditor(TextEditBaseWidget):
         self.highlight_current_line_enabled = False
 
         # Scrollbar flag area
+        self.setVerticalScrollBar(QScrollBar())
         self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
                                                    Panel.Position.RIGHT)
         self.scrollflagarea.hide()
