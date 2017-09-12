@@ -319,15 +319,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Extra selections
-    def extra_selection_length(self, key):
-        selection = self.get_extra_selections(key)
-        if selection:
-            cursor = self.extra_selections_dict[key][0].cursor
-            selection_length = cursor.selectionEnd() - cursor.selectionStart()
-            return selection_length
-        else:
-            return 0
-
     def get_extra_selections(self, key):
         """Return editor extra selections.
 
