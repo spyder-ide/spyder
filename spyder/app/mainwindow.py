@@ -894,7 +894,7 @@ class MainWindow(QMainWindow):
 
         # Project explorer widget
         self.set_splash(_("Loading project explorer..."))
-        from spyder.plugins.projects import Projects
+        from spyder.plugins.projects.plugin import Projects
         self.projects = Projects(self)
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
