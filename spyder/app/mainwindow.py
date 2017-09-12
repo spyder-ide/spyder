@@ -334,11 +334,11 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.plugins.configdialog import (MainConfigPage, 
+        from spyder.preferences.configdialog import (MainConfigPage,
                                                  ColorSchemeConfigPage)
-        from spyder.plugins.shortcuts import ShortcutsConfigPage
-        from spyder.plugins.runconfig import RunConfigPage
-        from spyder.plugins.maininterpreter import MainInterpreterConfigPage
+        from spyder.preferences.shortcuts import ShortcutsConfigPage
+        from spyder.preferences.runconfig import RunConfigPage
+        from spyder.preferences.maininterpreter import MainInterpreterConfigPage
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
                               ColorSchemeConfigPage, MainInterpreterConfigPage,
                               RunConfigPage]
@@ -346,7 +346,7 @@ class MainWindow(QMainWindow):
         self.prefs_dialog_size = None
 
         # Quick Layouts and Dialogs
-        from spyder.plugins.layoutdialog import (LayoutSaveDialog,
+        from spyder.preferences.layoutdialog import (LayoutSaveDialog,
                                                  LayoutSettingsDialog)
         self.dialog_layout_save = LayoutSaveDialog
         self.dialog_layout_settings = LayoutSettingsDialog
@@ -2565,7 +2565,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def edit_preferences(self):
         """Edit Spyder preferences"""
-        from spyder.plugins.configdialog import ConfigDialog
+        from spyder.preferences.configdialog import ConfigDialog
         dlg = ConfigDialog(self)
         dlg.size_change.connect(self.set_prefs_size)
         if self.prefs_dialog_size is not None:

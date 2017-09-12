@@ -48,7 +48,7 @@ from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
-from spyder.plugins.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
+from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
                                       get_run_configuration,
                                       RunConfigDialog, RunConfigOneDialog)
 

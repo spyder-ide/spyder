@@ -27,7 +27,7 @@ from spyder.app.cli_options import get_options
 from spyder.app.mainwindow import initialize, run_spyder
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
-from spyder.plugins.runconfig import RunConfiguration
+from spyder.preferences.runconfig import RunConfiguration
 from spyder.py3compat import PY2
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
