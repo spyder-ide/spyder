@@ -203,7 +203,7 @@ class Projects(SpyderPluginWidget):
 
     def edit_project_preferences(self):
         """Edit Spyder active project preferences"""
-        from spyder.plugins.projects.widgets.configdialog import ProjectPreferences
+        from spyder.plugins.projects.confpage import ProjectPreferences
         if self.project_active:
             active_project = self.project_list[0]
             dlg = ProjectPreferences(self, active_project)

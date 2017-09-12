@@ -16,7 +16,7 @@ import tempfile
 import pytest
 
 # Local imports
-from spyder.plugins.projects.widgets.configdialog import (EmptyProject,
+from spyder.plugins.projects.confpage import (EmptyProject,
                                                   ProjectPreferences)
 
 @pytest.fixture
