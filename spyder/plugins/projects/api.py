@@ -5,7 +5,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
-"""Project types"""
+"""Project API"""
 
 import os
 import os.path as osp
