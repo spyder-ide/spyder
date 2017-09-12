@@ -71,15 +71,6 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/plugins/*/plugin.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/ipython/start_kernel.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/utils/ipython/spyder_kernel.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/utils/site/sitecustomize.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
@@ -104,12 +95,32 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == spyder/plugins/ipythonconsole/widgets/__init__.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/ipythonconsole/utils/start_kernel.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/ipythonconsole/utils/spyder_kernel.py ]]; then
+        continue
+    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1
     fi
 done
 
+
+# Depth 5
+for f in spyder/*/*/*/*/*.py; do
+    if [[ $f == *test*/*.* ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/ipythonconsole/utils/site/sitecustomize.py ]]; then
+        continue
+    fi
+    python "$f"
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+done
 
 # Spyderplugins
 for f in spyder_*/widgets/*.py; do
