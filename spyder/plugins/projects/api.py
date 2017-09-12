@@ -12,7 +12,7 @@ import os.path as osp
 
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.plugins.projects.widgets.config import (ProjectConfig, CODESTYLE,
+from spyder.plugins.projects.utils.config import (ProjectConfig, CODESTYLE,
                                             CODESTYLE_DEFAULTS,
                                             CODESTYLE_VERSION, WORKSPACE,
                                             WORKSPACE_DEFAULTS,

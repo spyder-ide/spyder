@@ -14,7 +14,7 @@ from spyder.preferences.configdialog import ConfigDialog, GeneralConfigPage
 from spyder.utils.qthelpers import get_icon
 from spyder.config.user import NoDefault
 from spyder.plugins.projects.widgets import EmptyProject
-from spyder.plugins.projects.widgets.config import (WORKSPACE, VCS, ENCODING,
+from spyder.plugins.projects.utils.config import (WORKSPACE, VCS, ENCODING,
                                             CODESTYLE)
 
 
