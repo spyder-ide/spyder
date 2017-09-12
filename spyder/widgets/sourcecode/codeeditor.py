@@ -339,8 +339,13 @@ class CodeEditor(TextEditBaseWidget):
 
         self.highlight_current_line_enabled = False
 
-        # Scrollbar flag area
+        # Vertical scrollbar
+        # This is required to avoid a "RuntimeError: no access to protected
+        # functions or signals for objects not created from Python" in
+        # Linux Ubuntu. See PR #5215.
         self.setVerticalScrollBar(QScrollBar())
+
+        # Scrollbar flag area
         self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
                                                    Panel.Position.RIGHT)
         self.scrollflagarea.hide()
