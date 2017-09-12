@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Collections (i.e. dictionary, list and tuple) editor widget and dialog
+Collections (i.e. dictionary, list, set and tuple) editor widget and dialog
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -144,6 +144,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif isinstance(data, list):
             self.keys = list(range(len(data)))
             self.title += _("List")
+        elif isinstance(data, set):
+            self.keys = list(range(len(data)))
+            self.title += _("Set")
+            self._data = list(data)
         elif isinstance(data, dict):
             self.keys = list(data.keys())
             self.title += _("Dictionary")
@@ -420,7 +424,8 @@ class CollectionsDelegate(QItemDelegate):
             val_type = index.model().types[index.row()]
         except:
             return False
-        if val_type in ['list', 'tuple', 'dict'] and int(val_size) > 1e5:
+        if val_type in ['list', 'set', 'tuple', 'dict'] and \
+                int(val_size) > 1e5:
             return True
         else:
             return False
@@ -449,10 +454,10 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
-        readonly = isinstance(value, tuple) or self.parent().readonly \
+        readonly = isinstance(value, (tuple, set)) or self.parent().readonly \
                    or not is_known_type(value)
         #---editor = CollectionsEditor
-        if isinstance(value, (list, tuple, dict)):
+        if isinstance(value, (list, set, tuple, dict)):
             editor = CollectionsEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -753,7 +758,7 @@ class BaseTableView(QTableView):
         raise NotImplementedError
         
     def is_list(self, key):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a set or a tuple"""
         raise NotImplementedError
         
     def get_len(self, key):
@@ -1155,7 +1160,7 @@ class CollectionsEditorTableView(BaseTableView):
                  names=False, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
-        self.readonly = readonly or isinstance(data, tuple)
+        self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
                                 else CollectionsModel
         self.model = CollectionsModelClass(self, data, title, names=names,
@@ -1188,9 +1193,9 @@ class CollectionsEditorTableView(BaseTableView):
         self.set_data(data)
         
     def is_list(self, key):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a set or a tuple"""
         data = self.model.get_data()
-        return isinstance(data[key], (tuple, list))
+        return isinstance(data[key], (tuple, list, set))
         
     def get_len(self, key):
         """Return sequence length"""
@@ -1254,7 +1259,7 @@ class CollectionsEditorTableView(BaseTableView):
         """Refresh context menu"""
         data = self.model.get_data()
         index = self.currentIndex()
-        condition = (not isinstance(data, tuple)) and index.isValid() \
+        condition = (not isinstance(data, (tuple, set))) and index.isValid() \
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
@@ -1312,6 +1317,9 @@ class CollectionsEditor(QDialog):
         elif isinstance(data, (tuple, list)):
             # list, tuple
             self.data_copy = data[:]
+            datalen = len(data)
+        elif isinstance(data, set):
+            self.data_copy = list(data)
             datalen = len(data)
         else:
             # unknown object
@@ -1425,7 +1433,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.shellwidget.refresh_namespacebrowser()
 
     def is_list(self, name):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a tuple or a set"""
         return self.var_properties[name]['is_list']
 
     def is_dict(self, name):

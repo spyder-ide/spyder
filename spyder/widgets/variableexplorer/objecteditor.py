@@ -107,7 +107,7 @@ def oedit(obj, modal=True, namespace=None):
     The object 'obj' is a container
     
     Supported container types:
-    dict, list, tuple, str/unicode or numpy.array
+    dict, list, set, tuple, str/unicode or numpy.array
     
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)

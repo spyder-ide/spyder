@@ -380,7 +380,7 @@ def get_supported_types():
     If you update this list, don't forget to update doc/variablexplorer.rst
     """
     from datetime import date
-    editable_types = [int, float, complex, list, dict, tuple, date
+    editable_types = [int, float, complex, list, set, dict, tuple, date
                       ] + list(TEXT_TYPES) + list(INT_TYPES)
     try:
         from numpy import ndarray, matrix, generic

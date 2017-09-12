@@ -62,6 +62,7 @@ supported are:
 #. Floats
 #. Complex numbers
 #. Lists
+#. Sets
 #. Dictionaries
 #. Tuples
 #. Strings
