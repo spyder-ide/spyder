@@ -32,7 +32,7 @@ from spyder.utils import programs
 from spyder.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
 from spyder.utils.misc import get_error_match
 from spyder.utils.qthelpers import create_action
-from spyder.widgets.shell import PythonShellWidget
+from spyder.plugins.console.widgets.shell import PythonShellWidget
 from spyder.plugins.variableexplorer.widgets.viewers.object import oedit
 # TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyder/widgets

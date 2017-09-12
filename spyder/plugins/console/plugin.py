@@ -30,7 +30,7 @@ from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     DialogManager, mimedata2url)
-from spyder.widgets.internalshell import InternalShell
+from spyder.plugins.console.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.variableexplorer.widgets.viewers.collections import (
         CollectionsEditor)
