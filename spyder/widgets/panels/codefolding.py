@@ -348,6 +348,15 @@ class FoldingPanel(Panel):
         return color
 
     def _decorate_block(self, start, end):
+        """
+        Create a decoration and addedit to the editor.
+
+        NOTE: codefolding decorations will have draw_order=1
+
+        Args:
+            start (int) start line of the decoration
+            end (int) end line of the decoration
+        """
         color = self._get_scope_highlight_color()
         d = TextDecoration(self.editor.document(),
                            start_line=start, end_line=end+1, draw_order=1)

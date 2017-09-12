@@ -329,9 +329,28 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             return 0
 
     def get_extra_selections(self, key):
+        """Return editor extra selections.
+
+        Args:
+            key (str) name of the extra selections group
+
+        Returns:
+            list of sourcecode.api.TextDecoration.
+        """
         return self.extra_selections_dict.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
+        """Set extra selections for a key.
+
+        Also assign draw orders to leave current_cell and current_line
+        in the backgrund (and avoid them to cover other decorations)
+
+        NOTE: This will remove previous decorations added to  the same key.
+
+        Args:
+            key (str) name of the extra selections group.
+            extra_selections (list of sourcecode.api.TextDecoration).
+        """
         # current line has to be highlighted first
         draw_orders = {'current_cell': 0,
                        # draw order = 1 is used in codefolding
@@ -344,6 +363,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.extra_selections_dict[key] = extra_selections
 
     def update_extra_selections(self):
+        """Add extra selections to DecorationsManager.
+
+        TODO: This method could be remove it and decorations could be
+        added/removed in set_extra_selections/clear_extra_selections.
+        """
         extra_selections = []
 
         for key, extra in list(self.extra_selections_dict.items()):
@@ -351,6 +375,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.decorations.add(extra_selections)
 
     def clear_extra_selections(self, key):
+        """Remove decorations added through set_extra_selections.
+
+        Args:
+            key (str) name of the extra selections group.
+        """
         for decoration in self.extra_selections_dict.get(key, []):
             self.decorations.remove(decoration)
         self.extra_selections_dict[key] = []
