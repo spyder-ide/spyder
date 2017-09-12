@@ -794,7 +794,7 @@ class MainWindow(QMainWindow):
 
         # Internal console plugin
         self.debug_print("  ..plugin: internal console")
-        from spyder.plugins.console import Console
+        from spyder.plugins.console.plugin import Console
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
                             multithreaded=self.multithreaded,
