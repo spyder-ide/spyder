@@ -11,7 +11,7 @@ import os
 import os.path as osp
 
 from spyder.config.base import _
-from spyder.plugins.projects.widgets.type import EmptyProject
+from spyder.plugins.projects.api import EmptyProject
 
 
 class PythonProject(EmptyProject):

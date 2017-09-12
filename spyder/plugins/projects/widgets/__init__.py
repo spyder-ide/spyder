@@ -8,7 +8,7 @@
 """Projects"""
 
 # Local imports
-from spyder.plugins.projects.widgets.type import EmptyProject
+from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.projects.widgets.type.python import PythonProject
 
 
