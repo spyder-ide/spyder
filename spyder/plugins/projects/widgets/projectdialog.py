@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QVBoxLayout, QLabel, QLineEdit, QPushButton,
 from spyder.config.base import _, get_home_dir
 from spyder.utils.qthelpers import get_std_icon
 from spyder.py3compat import to_text_string
-from spyder.widgets.projects import get_available_project_types
+from spyder.plugins.projects.widgets import get_available_project_types
 
 
 def is_writable(path):

@@ -12,7 +12,7 @@ Tests for projectdialog.py
 import pytest
 
 # Local imports
-from spyder.widgets.projects.projectdialog import ProjectDialog
+from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 
 @pytest.fixture
 def setup_projects_dialog(qtbot):

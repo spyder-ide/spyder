@@ -8,8 +8,8 @@
 """Projects"""
 
 # Local imports
-from spyder.widgets.projects.type import EmptyProject
-from spyder.widgets.projects.type.python import PythonProject
+from spyder.plugins.projects.widgets.type import EmptyProject
+from spyder.plugins.projects.widgets.type.python import PythonProject
 
 
 def get_available_project_types():
