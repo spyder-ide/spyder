@@ -30,7 +30,8 @@ class ScrollFlagArea(Panel):
         editor.key_pressed.connect(self.keyPressEvent)
         editor.key_released.connect(self.keyReleaseEvent)
         editor.alt_left_mouse_pressed.connect(self.mousePressEvent)
-        editor.alt_mouse_moved_over.connect(self.mouseMoveEvent)
+        editor.alt_mouse_moved.connect(self.mouseMoveEvent)
+        editor.leave_out.connect(self.update)
         editor.flags_changed.connect(self.update)
 
     @property
@@ -107,7 +108,14 @@ class ScrollFlagArea(Panel):
         # Paint the slider range
         alt = QApplication.queryKeyboardModifiers() & Qt.AltModifier
         cursor_pos = self.mapFromGlobal(QCursor().pos())
-        if ((self.rect().contains(cursor_pos) or alt) and self.slider):
+        is_over_self = self.rect().contains(cursor_pos)
+        is_over_editor = self.editor.rect().contains(
+                self.editor.mapFromGlobal(QCursor().pos()))
+        # We use QRect.contains instead of QWidget.underMouse method to
+        # determined if the cursor is over the editor or the flag scrollbar
+        # because the later gives a wrong result when a mouse button
+        # is pressed.
+        if ((is_over_self or (alt and is_over_editor)) and self.slider):
             pen_color = QColor(Qt.gray)
             pen_color.setAlphaF(.85)
             painter.setPen(pen_color)

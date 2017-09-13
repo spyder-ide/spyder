@@ -259,11 +259,14 @@ class CodeEditor(TextEditBaseWidget):
     #  mouse is clicked
     alt_left_mouse_pressed = Signal(QMouseEvent)
 
-    #: Signal emitted when the alt key is pressed and the cursor move over
-    #  the editor rect
-    alt_mouse_moved_over = Signal(QMouseEvent)
+    #: Signal emitted when the alt key is pressed and the cursor moves over
+    #  the editor
+    alt_mouse_moved = Signal(QMouseEvent)
 
-    #: Signal emitted when the flags needs to be updated in the scrollflagarea
+    #: Signal emitted when the cursor leaves the editor
+    leave_out = Signal()
+
+    #: Signal emitted when the flags need to be updated in the scrollflagarea
     flags_changed = Signal()
 
     #: Signal emitted when a new text is set on the widget
@@ -2606,10 +2609,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
-        cursor_pos = self.mapFromGlobal(QCursor().pos())
-        alt = event.modifiers() & Qt.AltModifier
-        if self.rect().contains(cursor_pos) and alt:
-            self.alt_mouse_moved_over.emit(event)
+        if event.modifiers() & Qt.AltModifier:
+            self.alt_mouse_moved.emit(event)
             event.accept()
             return
 
@@ -2654,6 +2655,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def leaveEvent(self, event):
         """If cursor has not been restored yet, do it now"""
+        self.leave_out.emit()
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
