@@ -154,6 +154,7 @@ def test():
     image = Image.fromarray(data)
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],
+               'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
                'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
                'float': 1.2233,
                'array': np.random.rand(10, 10),
