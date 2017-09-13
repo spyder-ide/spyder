@@ -293,6 +293,9 @@ class CodeEditor(TextEditBaseWidget):
         # Blanks enabled
         self.blanks_enabled = False
 
+        # Scrolling past the end of the document
+        self.scrollpastend_enabled = False
+
         self.background = QColor('white')
         self.decorations = TextDecorationsManager(self)
 
@@ -607,8 +610,8 @@ class CodeEditor(TextEditBaseWidget):
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
                      occurrence_timeout=1500, show_class_func_dropdown=False,
-                     indent_guides=False):
-        
+                     indent_guides=False, scroll_past_end=False):
+
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -638,6 +641,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
+
+        # Scrolling past the end
+        self.set_scrollpastend_enabled(scroll_past_end)
 
         # Line number area
         if cloned_from:
@@ -1200,6 +1206,15 @@ class CodeEditor(TextEditBaseWidget):
         self.document().setDefaultTextOption(option)
         # Rehighlight to make the spaces less apparent.
         self.rehighlight()
+
+    def set_scrollpastend_enabled(self, state):
+        """
+        Allow user to scroll past the end of the document to have the last
+        line on top of the screen
+        """
+        self.scrollpastend_enabled = state
+        self.setCenterOnScroll(state)
+        self.setDocument(self.document())
 
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""
