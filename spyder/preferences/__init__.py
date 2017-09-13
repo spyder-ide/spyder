@@ -5,5 +5,5 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder general preferences.
+Spyder preference dialogs and widgets.
 """
