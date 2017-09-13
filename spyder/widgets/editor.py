@@ -462,6 +462,8 @@ class EditorStack(QWidget):
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
+    sig_prev_warning = Signal()
+    sig_next_warning = Signal()
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -696,6 +698,14 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="re-run last cell",
                                       parent=self)
+        prev_warning = config_shortcut(lambda: self.sig_prev_warning.emit(),
+                                       context="Editor",
+                                       name="Previous warning",
+                                       parent=self)
+        next_warning = config_shortcut(lambda: self.sig_next_warning.emit(),
+                                       context="Editor",
+                                       name="Next warning",
+                                       parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -703,7 +713,8 @@ class EditorStack(QWidget):
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell]
+                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+                prev_warning, next_warning]
 
     def get_shortcut_data(self):
         """

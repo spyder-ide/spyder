@@ -1,5 +1,47 @@
 # History of changes
 
+## Version 3.2.3 (2017-09-11)
+
+### New features
+
+* Add a button to the Variable Explorer to remove to remove all variables at
+  once.
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 5167](https://github.com/spyder-ide/spyder/issues/5167) - AttributeError when using outline and split code 
+* [Issue 5165](https://github.com/spyder-ide/spyder/issues/5165) - 'Execute in external system terminal' unwantedly uses python2 on ubuntu16.04
+* [Issue 5158](https://github.com/spyder-ide/spyder/issues/5158) - AttributeError: 'super' object has no attribute '_handle_error' in IPython console
+* [Issue 5157](https://github.com/spyder-ide/spyder/issues/5157) - Renaming file containing folders yields IndexError.
+* [Issue 5144](https://github.com/spyder-ide/spyder/issues/5144) - pip created executable name changes between versions
+* [Issue 5114](https://github.com/spyder-ide/spyder/issues/5114) - KeyboardInterrupt error in waitingspinner
+* [Issue 4680](https://github.com/spyder-ide/spyder/issues/4680) - Debug: "Run Current Line" past the end of a script doesn't exit the debugger
+* [Issue 4313](https://github.com/spyder-ide/spyder/issues/4313) - "unblockcomment" incompatible with "automatically remove trailing spaces"
+* [Issue 3390](https://github.com/spyder-ide/spyder/issues/3390) - RuntimeError when using outline and split code editor
+* [Issue 313](https://github.com/spyder-ide/spyder/issues/313) - Variable Explorer: Add a button to remove all variables at once
+
+In this release 10 issues were closed
+
+**Pull requests**
+
+* [PR 5181](https://github.com/spyder-ide/spyder/pull/5181) - PR: Use get_python_executable to run in external terminals
+* [PR 5166](https://github.com/spyder-ide/spyder/pull/5166) - PR: Fix RuntimeError and AttributeError when using outline and split code editor
+* [PR 5164](https://github.com/spyder-ide/spyder/pull/5164) - PR: Stop creating universal wheels
+* [PR 5163](https://github.com/spyder-ide/spyder/pull/5163) - PR: Add handling for IndexError in the Editor when renaming folder containing file
+* [PR 5162](https://github.com/spyder-ide/spyder/pull/5162) - PR: Don't use super in _handle_error method of IPython console
+* [PR 5129](https://github.com/spyder-ide/spyder/pull/5129) - PR: Avoid KeyboardInterrupt to raise an error in waitingspinner
+* [PR 5089](https://github.com/spyder-ide/spyder/pull/5089) - PR: Exit the debugger if we are about to enter to sitecustomize.py
+* [PR 5017](https://github.com/spyder-ide/spyder/pull/5017) - PR: Fix unblock comments
+* [PR 4885](https://github.com/spyder-ide/spyder/pull/4885) - PR: Add a button in the Variable Explorer toolbar to reset namespace
+
+In this release 9 pull requests were merged
+
+
+----
+
+
 ## Version 3.2.2 (2017-09-05)
 
 ### New features

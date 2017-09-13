@@ -54,7 +54,7 @@ Supported types
 The variable explorer can't show all types of objects. The ones currently
 supported are:
 
-#. `Pandas` DataFrame, TimeSeries and DatetimeIndex objects
+#. `Pandas` DataFrame, TimeSeries and Index objects
 #. `NumPy` arrays and matrices
 #. `PIL/Pillow` images
 #. `datetime` dates

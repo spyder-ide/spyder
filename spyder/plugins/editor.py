@@ -887,11 +887,21 @@ class Editor(SpyderPluginWidget):
         self.previous_warning_action = create_action(self,
                 _("Previous warning/error"), icon=ima.icon('prev_wng'),
                 tip=_("Go to previous code analysis warning/error"),
-                triggered=self.go_to_previous_warning)
+                triggered=self.go_to_previous_warning,
+                context=Qt.WidgetShortcut)
+        self.register_shortcut(self.previous_warning_action,
+                               context="Editor",
+                               name="Previous warning",
+                               add_sc_to_tip=True)
         self.next_warning_action = create_action(self,
                 _("Next warning/error"), icon=ima.icon('next_wng'),
                 tip=_("Go to next code analysis warning/error"),
-                triggered=self.go_to_next_warning)
+                triggered=self.go_to_next_warning,
+                context=Qt.WidgetShortcut)
+        self.register_shortcut(self.next_warning_action,
+                               context="Editor",
+                               name="Next warning",
+                               add_sc_to_tip=True)
         
         self.previous_edit_cursor_action = create_action(self,
                 _("Last edit location"), icon=ima.icon('last_edit_location'),
@@ -1356,6 +1366,8 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
+        editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
+        editorstack.sig_next_warning.connect(self.go_to_next_warning)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""

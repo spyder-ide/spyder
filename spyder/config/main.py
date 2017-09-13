@@ -396,6 +396,8 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/previous warning': "Ctrl+Alt+Shift+,",
+              'editor/next warning': "Ctrl+Alt+Shift+.",
               'editor/zoom in 1': "Ctrl++",
               'editor/zoom in 2': "Ctrl+=",
               'editor/zoom out': "Ctrl+-",
