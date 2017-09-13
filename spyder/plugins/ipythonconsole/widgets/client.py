@@ -33,14 +33,14 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.ipython.style import create_qss_style
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
                                     MENU_SEPARATOR)
 from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
-from spyder.widgets.ipythonconsole import ShellWidget
+from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.mixins import SaveHistoryMixin
 from spyder.plugins.variableexplorer.widgets.viewers.collections import (
         CollectionsEditor)
@@ -51,9 +51,10 @@ from spyder.plugins.variableexplorer.widgets.viewers.collections import (
 #-----------------------------------------------------------------------------
 # Using the same css file from the Help plugin for now. Maybe
 # later it'll be a good idea to create a new one.
-UTILS_PATH = get_module_source_path('spyder', 'utils')
-CSS_PATH = osp.join(UTILS_PATH, 'help', 'static', 'css')
-TEMPLATES_PATH = osp.join(UTILS_PATH, 'ipython', 'templates')
+PLUGINS_PATH = get_module_source_path('spyder', 'plugins')
+
+CSS_PATH = osp.join(PLUGINS_PATH, 'help', 'utils', 'static', 'css')
+TEMPLATES_PATH = osp.join(PLUGINS_PATH, 'ipythonconsole', 'assets', 'templates')
 
 BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()

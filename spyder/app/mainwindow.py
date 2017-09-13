@@ -871,7 +871,7 @@ class MainWindow(QMainWindow):
 
         # IPython console
         self.set_splash(_("Loading IPython console..."))
-        from spyder.plugins.ipythonconsole import IPythonConsole
+        from spyder.plugins.ipythonconsole.plugin import IPythonConsole
         self.ipyconsole = IPythonConsole(self)
         self.ipyconsole.register_plugin()
 
@@ -1971,7 +1971,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         from spyder.plugins.console.widgets.shell import ShellBaseWidget
         from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
-        from spyder.widgets.ipythonconsole import ControlWidget
+        from spyder.plugins.ipythonconsole.widgets import ControlWidget
 
         # if focused widget isn't valid try the last focused
         if not isinstance(widget, (ShellBaseWidget, TextEditBaseWidget,

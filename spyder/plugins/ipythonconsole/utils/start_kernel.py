@@ -209,7 +209,7 @@ def main():
     from ipykernel.kernelapp import IPKernelApp
 
     if not IS_EXT_INTERPRETER:
-        from spyder.utils.ipython.spyder_kernel import SpyderKernel
+        from spyder.plugins.ipythonconsole.utils.spyder_kernel import SpyderKernel
     else:
         # We add "spyder" to sys.path for external interpreters,
         # so this works!

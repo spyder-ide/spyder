@@ -22,10 +22,10 @@ from qtpy.QtWidgets import QApplication
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.py3compat import PY2
-from spyder.plugins.ipythonconsole import (IPythonConsole,
-                                           KernelConnectionDialog)
+from spyder.plugins.ipythonconsole.plugin import (IPythonConsole,
+                                                  KernelConnectionDialog)
 from spyder.utils.environ import listdict2envdict
-from spyder.utils.ipython.style import create_style_class
+from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.test import close_message_box
 from spyder.plugins.variableexplorer.widgets.viewers.collections import (
         CollectionsEditor)

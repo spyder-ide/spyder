@@ -47,14 +47,14 @@ from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import is_string, PY2, to_text_string
-from spyder.utils.ipython.kernelspec import SpyderKernelSpec
-from spyder.utils.ipython.style import create_qss_style
+from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.ipythonconsole import ClientWidget
+from spyder.plugins.ipythonconsole.widgets import ClientWidget
 from spyder.widgets.tabs import Tabs
 
 

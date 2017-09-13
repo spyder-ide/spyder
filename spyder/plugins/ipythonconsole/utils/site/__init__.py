@@ -5,8 +5,8 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.utils.site
-=================
+spyder.plugins.ipythonconsole.utils.site
+========================================
 
 Site packages for Spyder consoles
 
