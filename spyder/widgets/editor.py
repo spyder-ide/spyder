@@ -1723,12 +1723,11 @@ class EditorStack(QWidget):
                 pass
 
     def _get_previous_file_index(self):
-        if len(self.stack_history) > 1:
-            last = len(self.stack_history)-1
-            w_id = self.stack_history.pop(last)
-            self.stack_history.insert(0, w_id)
-
-            return self.stack_history[last]
+        """Return the penultimate element of the stack history."""
+        try:
+            return self.stack_history[-2]
+        except IndexError:
+            return None
 
     def tab_navigation_mru(self, forward=True):
         """
