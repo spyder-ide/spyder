@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins.configdialog import GeneralConfigPage
+from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_python_executable

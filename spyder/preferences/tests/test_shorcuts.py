@@ -14,7 +14,7 @@ import os
 import pytest
 
 # Local imports
-from spyder.plugins.shortcuts import ShortcutsTable
+from spyder.preferences.shortcuts import ShortcutsTable
 
 @pytest.fixture
 def setup_shorcuts(qtbot):

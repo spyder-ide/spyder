@@ -12,7 +12,7 @@ Tests for layoutdialog.py
 import pytest
 
 # Local imports
-from spyder.plugins.layoutdialog import LayoutSettingsDialog, LayoutSaveDialog
+from spyder.preferences.layoutdialog import LayoutSettingsDialog, LayoutSaveDialog
 
 @pytest.fixture
 def setup_layout_settings_dialog(qtbot, parent, names, order, active):
