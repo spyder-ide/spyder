@@ -18,108 +18,17 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Signal, Slot
-from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
-                            QToolBar, QVBoxLayout)
+from qtpy.QtWidgets import QToolBar
 
 # Local imports
 from spyder.config.base import _, get_conf_path, get_home_dir
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import to_text_string, getcwd
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.comboboxes import PathComboBox
-
-
-class WorkingDirectoryConfigPage(PluginConfigPage):
-    def setup_page(self):
-        about_label = QLabel(_("The <b>current working directory</b> is "
-                    "the working directory for IPython consoles "
-                    "and the current directory for the File Explorer."))
-        about_label.setWordWrap(True)
-
-        startup_group = QGroupBox(_("Startup"))
-        startup_bg = QButtonGroup(startup_group)
-        startup_label = QLabel(_("At startup, the current working "
-                                 "directory is:"))
-        startup_label.setWordWrap(True)
-        lastdir_radio = self.create_radiobutton(
-                                _("The current project directory "
-                                  "or user home directory "
-                                  "(if no project is active)"),
-                                'startup/use_project_or_home_directory',
-                                True,
-                                _("At startup,"),  # TODO
-                                button_group=startup_bg)
-        thisdir_radio = self.create_radiobutton(
-                                _("the following directory:"),
-                                'startup/use_fixed_directory', False,
-                                _("At startup, the current working "
-                                  "directory will be the specified path"),
-                                button_group=startup_bg)
-        thisdir_bd = self.create_browsedir("", 'startup/fixed_directory',
-                                           getcwd())
-        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
-        lastdir_radio.toggled.connect(thisdir_bd.setDisabled)
-        thisdir_layout = QHBoxLayout()
-        thisdir_layout.addWidget(thisdir_radio)
-        thisdir_layout.addWidget(thisdir_bd)
-
-        startup_layout = QVBoxLayout()
-        startup_layout.addWidget(startup_label)
-        startup_layout.addWidget(lastdir_radio)
-        startup_layout.addLayout(thisdir_layout)
-        startup_group.setLayout(startup_layout)
-
-        # Console Directory
-
-        console_group = QGroupBox(_("Console directory"))
-        console_label = QLabel(_("The working directory for new consoles is:"))
-        console_label.setWordWrap(True)
-        console_bg = QButtonGroup(console_group)
-        console_project_radio = self.create_radiobutton(
-                                _("The current project directory "
-                                  "or user home directory "
-                                  "(if no project is active)"),
-                                'console/use_project_or_home_directory',
-                                True,
-                                button_group=console_bg)
-        console_cwd_radio = self.create_radiobutton(
-                                _("The current working directory"),
-                                'console/use_cwd',
-                                False,
-                                button_group=console_bg)
-
-        console_dir_radio = self.create_radiobutton(
-                                _("the following directory:"),
-                                'console/use_fixed_directory', False,
-                                _("The directory when a new console "
-                                  "is open will be the specified path"),
-                                button_group=console_bg)
-        console_dir_bd = self.create_browsedir("", 'console/fixed_directory',
-                                               getcwd())
-        console_dir_radio.toggled.connect(console_dir_bd.setEnabled)
-        console_project_radio.toggled.connect(console_dir_bd.setDisabled)
-        console_cwd_radio.toggled.connect(console_dir_bd.setDisabled)
-        console_dir_layout = QHBoxLayout()
-        console_dir_layout.addWidget(console_dir_radio)
-        console_dir_layout.addWidget(console_dir_bd)
-
-        console_layout = QVBoxLayout()
-        console_layout.addWidget(console_label)
-        console_layout.addWidget(console_project_radio)
-        console_layout.addWidget(console_cwd_radio)
-        console_layout.addLayout(console_dir_layout)
-        console_group.setLayout(console_layout)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(about_label)
-        vlayout.addSpacing(10)
-        vlayout.addWidget(startup_group)
-        vlayout.addWidget(console_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
+from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
 
 
 class WorkingDirectory(SpyderPluginWidget):
