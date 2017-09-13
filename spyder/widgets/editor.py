@@ -304,7 +304,12 @@ class StackHistory(MutableSequence):
         return len(self.history)
 
     def __getitem__(self, i):
-        return self.id_list.index(self.history[i])
+        self._update_id_list()
+        try:
+            return self.id_list.index(self.history[i])
+        except ValueError:
+            self.refresh
+            raise IndexError
 
     def __delitem__(self, i):
         del self.history[i]
