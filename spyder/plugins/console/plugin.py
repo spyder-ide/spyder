@@ -32,8 +32,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     DialogManager, mimedata2url)
 from spyder.plugins.console.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
-        CollectionsEditor)
+from spyder.plugins.variableexplorer.widgets.viewers.iterables import (
+        IterablesEditor)
 from spyder.api.plugins  import SpyderPluginWidget
 from spyder.py3compat import getcwd, to_text_string
 
@@ -264,7 +264,7 @@ class Console(SpyderPluginWidget):
     @Slot()
     def show_syspath(self):
         """Show sys.path"""
-        editor = CollectionsEditor()
+        editor = IterablesEditor()
         editor.setup(sys.path, title="sys.path", readonly=True,
                      width=600, icon=ima.icon('syspath'))
         self.dialog_manager.show(editor)

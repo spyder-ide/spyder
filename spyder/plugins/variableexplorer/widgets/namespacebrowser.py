@@ -30,8 +30,8 @@ from spyder.utils.misc import fix_reference_name
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
-    RemoteCollectionsEditorTableView)
+from spyder.plugins.variableexplorer.widgets.viewers.iterables import (
+    RemoteIterablesEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.utils import REMOTE_SETTINGS
 
@@ -103,7 +103,7 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
             return
 
-        self.editor = RemoteCollectionsEditorTableView(
+        self.editor = RemoteIterablesEditorTableView(
                         self,
                         data=None,
                         minmax=minmax,

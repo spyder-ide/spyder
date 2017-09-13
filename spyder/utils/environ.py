@@ -17,8 +17,8 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 # Local imports
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
-        CollectionsEditor)
+from spyder.plugins.variableexplorer.widgets.viewers.iterables import (
+        IterablesEditor)
 
 
 def envdict2listdict(envdict):
@@ -38,7 +38,7 @@ def listdict2envdict(listdict):
     return listdict
 
 
-class RemoteEnvDialog(CollectionsEditor):
+class RemoteEnvDialog(IterablesEditor):
     """Remote process environment variables dialog."""
 
     def __init__(self, environ, parent=None):
@@ -98,7 +98,7 @@ try:
                           "Please restart this Windows <i>session</i> "
                           "(not the computer) for changes to take effect."))
 
-    class WinUserEnvDialog(CollectionsEditor):
+    class WinUserEnvDialog(IterablesEditor):
         """Windows User Environment Variables Editor"""
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)

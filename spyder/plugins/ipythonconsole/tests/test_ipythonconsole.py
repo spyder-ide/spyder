@@ -27,8 +27,8 @@ from spyder.plugins.ipythonconsole.plugin import (IPythonConsole,
 from spyder.utils.environ import listdict2envdict
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.test import close_message_box
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
-        CollectionsEditor)
+from spyder.plugins.variableexplorer.widgets.viewers.iterables import (
+        IterablesEditor)
 
 
 #==============================================================================
@@ -154,7 +154,7 @@ def test_get_env(ipyconsole, qtbot):
     # Get env contents from the generated widget
     top_level_widgets = QApplication.topLevelWidgets()
     for w in top_level_widgets:
-        if isinstance(w, CollectionsEditor):
+        if isinstance(w, IterablesEditor):
             env_contents = w.get_value()
             qtbot.keyClick(w, Qt.Key_Enter)
 
@@ -182,7 +182,7 @@ def test_get_syspath(ipyconsole, qtbot):
     # Get sys.path contents from the generated widget
     top_level_widgets = QApplication.topLevelWidgets()
     for w in top_level_widgets:
-        if isinstance(w, CollectionsEditor):
+        if isinstance(w, IterablesEditor):
             syspath_contents = w.get_value()
             qtbot.keyClick(w, Qt.Key_Enter)
 
