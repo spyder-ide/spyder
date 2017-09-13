@@ -218,7 +218,7 @@ class ScrollFlagArea(Panel):
 
         vsb = self.editor.verticalScrollBar()
         groove_height = self.get_scrollbar_position_height()
-        slider_height = self.value_to_position(vsb.pageStep())
+        slider_height = self.value_to_position(vsb.pageStep())-self.offset
 
         # Calcul the minimum and maximum y-value to constraint the slider
         # range indicator position to the height span of the scrollbar area
