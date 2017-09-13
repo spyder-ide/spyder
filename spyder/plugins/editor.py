@@ -1214,10 +1214,16 @@ class Editor(SpyderPluginWidget):
                 if win.isAncestorOf(editorstack):
                     self.set_last_focus_editorstack(win, editorstack)
 
-    #------ Handling editorstacks
+    # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
+        if len(self.editorstacks) > 1 and self.main is not None:
+            # The first editostack is registered automatically with Spyder's
+            # main window through the `register_plugin` method. Only additional
+            # editors added by splitting need to be registered.
+            self.main.fileswitcher.sig_goto_file.connect(
+                    editorstack.set_stack_index)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
