@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Collections (i.e. dictionary, list and tuple) editor widget and dialog
+Iterables (i.e. dictionary, list and tuple) editor widget and dialog
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -98,8 +98,8 @@ class ProxyObject(object):
             pass
 
 
-class ReadOnlyCollectionsModel(QAbstractTableModel):
-    """CollectionsEditor Read-Only Table Model"""
+class ReadOnlyIterablesModel(QAbstractTableModel):
+    """IterablesEditor Read-Only Table Model"""
     ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False,
@@ -342,7 +342,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def flags(self, index):
         """Overriding method flags"""
-        # This method was implemented in CollectionsModel only, but to enable
+        # This method was implemented in IterablesModel only, but to enable
         # tuple exploration (even without editing), this method was moved here
         if not index.isValid():
             return Qt.ItemIsEnabled
@@ -353,8 +353,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class CollectionsModel(ReadOnlyCollectionsModel):
-    """Collections Table Model"""
+class IterablesModel(ReadOnlyIterablesModel):
+    """Iterables Table Model"""
 
     def set_value(self, index, value):
         """Set value"""
@@ -367,7 +367,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
         """Background color depending on value"""
         value = self.get_value(index)
         if index.column() < 3:
-            color = ReadOnlyCollectionsModel.get_bgcolor(self, index)
+            color = ReadOnlyIterablesModel.get_bgcolor(self, index)
         else:
             if self.remote:
                 color_name = value['color']
@@ -390,8 +390,8 @@ class CollectionsModel(ReadOnlyCollectionsModel):
         return True
 
 
-class CollectionsDelegate(QItemDelegate):
-    """CollectionsEditor Item Delegate"""
+class IterablesDelegate(QItemDelegate):
+    """IterablesEditor Item Delegate"""
 
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -453,9 +453,9 @@ class CollectionsDelegate(QItemDelegate):
         key = index.model().get_key(index)
         readonly = isinstance(value, tuple) or self.parent().readonly \
                    or not is_known_type(value)
-        #---editor = CollectionsEditor
+        #---editor = IterablesEditor
         if isinstance(value, (list, tuple, dict)):
-            editor = CollectionsEditor()
+            editor = IterablesEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -525,9 +525,9 @@ class CollectionsDelegate(QItemDelegate):
             # act doesn't exist anymore.
             # editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
-        #---editor = CollectionsEditor for an arbitrary object
+        #---editor = IterablesEditor for an arbitrary object
         else:
-            editor = CollectionsEditor()
+            editor = IterablesEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -643,7 +643,7 @@ class CollectionsDelegate(QItemDelegate):
 
 
 class BaseTableView(QTableView):
-    """Base collection editor table view"""
+    """Base iIterable editor table view"""
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
@@ -1151,19 +1151,19 @@ class BaseTableView(QTableView):
                                 _("Nothing to be imported from clipboard."))
 
 
-class CollectionsEditorTableView(BaseTableView):
-    """CollectionsEditor table view"""
+class IterablesEditorTableView(BaseTableView):
+    """IterablesEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
                  names=False, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
-        CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
-                                else CollectionsModel
-        self.model = CollectionsModelClass(self, data, title, names=names,
+        IterablesModelClass = ReadOnlyIterablesModel if self.readonly \
+                                else IterablesModel
+        self.model = IterablesModelClass(self, data, title, names=names,
                                            minmax=minmax)
         self.setModel(self.model)
-        self.delegate = CollectionsDelegate(self)
+        self.delegate = IterablesDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1269,14 +1269,14 @@ class CollectionsEditorTableView(BaseTableView):
         self.dictfilter = dictfilter
 
 
-class CollectionsEditorWidget(QWidget):
+class IterablesEditorWidget(QWidget):
     """Dictionary Editor Widget"""
     def __init__(self, parent, data, readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
         if remote:
-            self.editor = RemoteCollectionsEditorTableView(self, data, readonly)
+            self.editor = RemoteIterablesEditorTableView(self, data, readonly)
         else:
-            self.editor = CollectionsEditorTableView(self, data, readonly,
+            self.editor = IterablesEditorTableView(self, data, readonly,
                                                      title)
         layout = QVBoxLayout()
         layout.addWidget(self.editor)
@@ -1291,8 +1291,8 @@ class CollectionsEditorWidget(QWidget):
         return self.editor.model.title
 
 
-class CollectionsEditor(QDialog):
-    """Collections Editor Dialog"""
+class IterablesEditor(QDialog):
+    """Iterables Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
@@ -1321,7 +1321,7 @@ class CollectionsEditor(QDialog):
             import copy
             self.data_copy = copy.deepcopy(data)
             datalen = len(get_object_attrs(data))
-        self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
+        self.widget = IterablesEditorWidget(self, self.data_copy, title=title,
                                               readonly=readonly, remote=remote)
 
         layout = QVBoxLayout()
@@ -1358,12 +1358,12 @@ class CollectionsEditor(QDialog):
 
 
 #==============================================================================
-# Remote versions of CollectionsDelegate and CollectionsEditorTableView
+# Remote versions of IterablesDelegate and IterablesEditorTableView
 #==============================================================================
-class RemoteCollectionsDelegate(CollectionsDelegate):
-    """CollectionsEditor Item Delegate"""
+class RemoteIterablesDelegate(IterablesDelegate):
+    """IterablesEditor Item Delegate"""
     def __init__(self, parent=None):
-        CollectionsDelegate.__init__(self, parent)
+        IterablesDelegate.__init__(self, parent)
 
     def get_value(self, index):
         if index.isValid():
@@ -1376,7 +1376,7 @@ class RemoteCollectionsDelegate(CollectionsDelegate):
             self.parent().new_value(name, value)
 
 
-class RemoteCollectionsEditorTableView(BaseTableView):
+class RemoteIterablesEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, minmax=False, shellwidget=None,
                  remote_editing=False, dataframe_format=None):
@@ -1389,13 +1389,13 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.model = None
         self.delegate = None
         self.readonly = False
-        self.model = CollectionsModel(self, data, names=True,
+        self.model = IterablesModel(self, data, names=True,
                                       minmax=minmax,
                                       dataframe_format=dataframe_format,
                                       remote=True)
         self.setModel(self.model)
 
-        self.delegate = RemoteCollectionsDelegate(self)
+        self.delegate = RemoteIterablesDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1548,18 +1548,18 @@ def get_test_data():
 
 
 def editor_test():
-    """Collections editor test"""
+    """Iterables editor test"""
     from spyder.utils.qthelpers import qapplication
 
     app = qapplication()             #analysis:ignore
-    dialog = CollectionsEditor()
+    dialog = IterablesEditor()
     dialog.setup(get_test_data())
     dialog.show()
     app.exec_()
 
 
 def remote_editor_test():
-    """Remote collections editor test"""
+    """Remote iIterables editor test"""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
@@ -1572,7 +1572,7 @@ def remote_editor_test():
         settings[name] = CONF.get('variable_explorer', name)
 
     remote = make_remote_view(get_test_data(), settings)
-    dialog = CollectionsEditor()
+    dialog = IterablesEditor()
     dialog.setup(remote, remote=True)
     dialog.show()
     app.exec_()
