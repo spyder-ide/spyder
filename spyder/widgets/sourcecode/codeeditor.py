@@ -1512,7 +1512,7 @@ class CodeEditor(TextEditBaseWidget):
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 if (self.get_character(cursor.position()) == ' '
-                    and '#' in prefix):
+                        and '#' in prefix):
                     cursor.movePosition(QTextCursor.NextWord)
                 cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
@@ -1602,8 +1602,8 @@ class CodeEditor(TextEditBaseWidget):
         if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
                 or line_text.startswith(prefix + ' ') and '#' in prefix):
             cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.MoveAnchor,
-                                    line_text.find(prefix + ' '))
+                                QTextCursor.MoveAnchor,
+                                line_text.find(prefix + ' '))
             if left_spaces and right_number_spaces == 1:
                 cursor.movePosition(QTextCursor.Right,
                                     QTextCursor.KeepAnchor, len(prefix + ' '))
@@ -1612,7 +1612,7 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.Right,
                                     QTextCursor.KeepAnchor, len(prefix))
             cursor.removeSelectedText()
-        # Check for prefix without space 
+        # Check for prefix without space
         elif (prefix.strip() and line_text.lstrip().startswith(prefix)
                 or line_text.startswith(prefix)):
             cursor.movePosition(QTextCursor.Right,
