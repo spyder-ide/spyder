@@ -1305,7 +1305,10 @@ class CollectionsEditor(QDialog):
         else:
             # unknown object
             import copy
-            self.data_copy = copy.deepcopy(data)
+            try:
+                self.data_copy = copy.deepcopy(data)
+            except NotImplementedError:
+                self.data_copy = copy.copy(data)
             datalen = len(get_object_attrs(data))
         self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
                                               readonly=readonly, remote=remote)
