@@ -1584,6 +1584,16 @@ class CodeEditor(TextEditBaseWidget):
                     old_pos = new_pos
                 line_text = to_text_string(cursor.block().text())
                 if (prefix.strip()
+                      and line_text.lstrip().startswith(prefix + '  ')
+                      or line_text.startswith(prefix + '  ')
+                      and '#' in prefix):
+                    cursor.movePosition(QTextCursor.Right,
+                                        QTextCursor.MoveAnchor,
+                                        line_text.find(prefix + ' '))
+                    cursor.movePosition(QTextCursor.Right,
+                                        QTextCursor.KeepAnchor, len(prefix))
+                    cursor.removeSelectedText()
+                elif (prefix.strip()
                       and line_text.lstrip().startswith(prefix + ' ')
                       or line_text.startswith(prefix + ' ')
                       and '#' in prefix):
@@ -1591,7 +1601,8 @@ class CodeEditor(TextEditBaseWidget):
                                         QTextCursor.MoveAnchor,
                                         line_text.find(prefix + ' '))
                     cursor.movePosition(QTextCursor.Right,
-                                        QTextCursor.KeepAnchor, len(prefix + ' '))
+                                        QTextCursor.KeepAnchor,
+                                        len(prefix + ' '))
                     cursor.removeSelectedText()
                 elif (prefix.strip() and line_text.lstrip().startswith(prefix)
                     or line_text.startswith(prefix)):
@@ -1607,8 +1618,17 @@ class CodeEditor(TextEditBaseWidget):
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
             line_text = to_text_string(cursor.block().text())
-            if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
-                or line_text.startswith(prefix + ' ') and '#' in prefix):
+            if (prefix.strip() and line_text.lstrip().startswith(prefix + '  ')
+                or line_text.startswith(prefix + '  ') and '#' in prefix):
+                cursor.movePosition(QTextCursor.Right,
+                                    QTextCursor.MoveAnchor,
+                                    line_text.find(prefix + ' '))
+                cursor.movePosition(QTextCursor.Right,
+                                    QTextCursor.KeepAnchor, len(prefix))
+                cursor.removeSelectedText()
+            elif (prefix.strip()
+                  and line_text.lstrip().startswith(prefix + ' ')
+                  or line_text.startswith(prefix + ' ') and '#' in prefix):
                 cursor.movePosition(QTextCursor.Right,
                                     QTextCursor.MoveAnchor,
                                     line_text.find(prefix + ' '))
