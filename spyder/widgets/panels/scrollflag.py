@@ -26,13 +26,13 @@ class ScrollFlagArea(Panel):
         self.scrollable = True
         self.setMouseTracking(True)
 
-        editor.focus_changed.connect(self.update)
-        editor.key_pressed.connect(self.keyPressEvent)
-        editor.key_released.connect(self.keyReleaseEvent)
-        editor.alt_left_mouse_pressed.connect(self.mousePressEvent)
-        editor.alt_mouse_moved.connect(self.mouseMoveEvent)
-        editor.leave_out.connect(self.update)
-        editor.flags_changed.connect(self.update)
+        editor.sig_focus_changed.connect(self.update)
+        editor.sig_key_pressed.connect(self.keyPressEvent)
+        editor.sig_key_released.connect(self.keyReleaseEvent)
+        editor.sig_alt_left_mouse_pressed.connect(self.mousePressEvent)
+        editor.sig_alt_mouse_moved.connect(self.mouseMoveEvent)
+        editor.sig_leave_out.connect(self.update)
+        editor.sig_flags_changed.connect(self.update)
 
     @property
     def slider(self):
