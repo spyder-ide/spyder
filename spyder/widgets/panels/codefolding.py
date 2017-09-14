@@ -349,7 +349,7 @@ class FoldingPanel(Panel):
 
     def _decorate_block(self, start, end):
         """
-        Create a decoration and addedit to the editor.
+        Create a decoration and add it to the editor.
 
         NOTE: codefolding decorations will have draw_order=1
 
