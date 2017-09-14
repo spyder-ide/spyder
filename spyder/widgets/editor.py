@@ -543,6 +543,7 @@ class EditorStack(QWidget):
         self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.blanks_enabled = False
+        self.scrollpastend_enabled = False
         self.edgeline_enabled = True
         self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
@@ -979,6 +980,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
+
+    def set_scrollpastend_enabled(self, state):
+        self.scrollpastend_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_scrollpastend_enabled(state)
 
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
@@ -2020,6 +2027,7 @@ class EditorStack(QWidget):
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
                 show_blanks=self.blanks_enabled,
+                scroll_past_end=self.scrollpastend_enabled,
                 edge_line=self.edgeline_enabled,
                 edge_line_columns=self.edgeline_columns, language=language,
                 markers=self.has_markers(), font=self.default_font,
