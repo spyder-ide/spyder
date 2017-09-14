@@ -308,7 +308,7 @@ class StackHistory(MutableSequence):
         try:
             return self.id_list.index(self.history[i])
         except ValueError:
-            self.refresh
+            self.refresh()
             raise IndexError
 
     def __delitem__(self, i):
