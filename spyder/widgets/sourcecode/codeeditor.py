@@ -1511,7 +1511,8 @@ class CodeEditor(TextEditBaseWidget):
 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                if self.get_character(cursor.position()) == ' ' and '#' in prefix:
+                if (self.get_character(cursor.position()) == ' '
+                    and '#' in prefix):
                     cursor.movePosition(QTextCursor.NextWord)
                 cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
@@ -1583,66 +1584,57 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     old_pos = new_pos
                 line_text = to_text_string(cursor.block().text())
-                if (prefix.strip()
-                      and line_text.lstrip().startswith(prefix + '  ')
-                      or line_text.startswith(prefix + '  ')
-                      and '#' in prefix):
-                    cursor.movePosition(QTextCursor.Right,
-                                        QTextCursor.MoveAnchor,
-                                        line_text.find(prefix + ' '))
-                    cursor.movePosition(QTextCursor.Right,
-                                        QTextCursor.KeepAnchor, len(prefix))
-                    cursor.removeSelectedText()
-                elif (prefix.strip()
-                      and line_text.lstrip().startswith(prefix + ' ')
-                      or line_text.startswith(prefix + ' ')
-                      and '#' in prefix):
-                    cursor.movePosition(QTextCursor.Right,
-                                        QTextCursor.MoveAnchor,
-                                        line_text.find(prefix + ' '))
-                    cursor.movePosition(QTextCursor.Right,
-                                        QTextCursor.KeepAnchor,
-                                        len(prefix + ' '))
-                    cursor.removeSelectedText()
-                elif (prefix.strip() and line_text.lstrip().startswith(prefix)
-                    or line_text.startswith(prefix)):
-                    cursor.movePosition(QTextCursor.Right,
-                                        QTextCursor.MoveAnchor,
-                                        line_text.find(prefix))
-                    cursor.movePosition(QTextCursor.Right,
-                                        QTextCursor.KeepAnchor, len(prefix))
-                    cursor.removeSelectedText()
+                self._remove_prefix(prefix, cursor, line_text)
                 cursor.movePosition(QTextCursor.PreviousBlock)
             cursor.endEditBlock()
         else:
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
             line_text = to_text_string(cursor.block().text())
-            if (prefix.strip() and line_text.lstrip().startswith(prefix + '  ')
-                or line_text.startswith(prefix + '  ') and '#' in prefix):
-                cursor.movePosition(QTextCursor.Right,
+            self._remove_prefix(prefix, cursor, line_text)
+
+    def _remove_prefix(self, prefix, cursor, line_text):
+        """Handle the remove of the prefix for a single line."""
+        # Handle inserted '# ' with the count of the number of spaces at the
+        # begining of the line.
+        left_spaces = self._even_number_of_spaces(line_text)
+        right_number_spaces = self._number_of_spaces(line_text, group=1)
+        if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
+                or line_text.startswith(prefix + ' ') and '#' in prefix):
+            cursor.movePosition(QTextCursor.Right,
                                     QTextCursor.MoveAnchor,
                                     line_text.find(prefix + ' '))
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.KeepAnchor, len(prefix))
-                cursor.removeSelectedText()
-            elif (prefix.strip()
-                  and line_text.lstrip().startswith(prefix + ' ')
-                  or line_text.startswith(prefix + ' ') and '#' in prefix):
-                cursor.movePosition(QTextCursor.Right,
-                                    QTextCursor.MoveAnchor,
-                                    line_text.find(prefix + ' '))
+            if left_spaces and right_number_spaces == 1:
                 cursor.movePosition(QTextCursor.Right,
                                     QTextCursor.KeepAnchor, len(prefix + ' '))
-                cursor.removeSelectedText()
-            elif (prefix.strip() and line_text.lstrip().startswith(prefix)
-                  or line_text.startswith(prefix)):
-                  cursor.movePosition(QTextCursor.Right,
-                                      QTextCursor.MoveAnchor,
-                                      line_text.find(prefix))
-                  cursor.movePosition(QTextCursor.Right,
-                                      QTextCursor.KeepAnchor, len(prefix))
-                  cursor.removeSelectedText()
+            else:
+                # Handle manual insertion of '#'
+                cursor.movePosition(QTextCursor.Right,
+                                    QTextCursor.KeepAnchor, len(prefix))
+            cursor.removeSelectedText()
+        # Check for prefix without space 
+        elif (prefix.strip() and line_text.lstrip().startswith(prefix)
+                or line_text.startswith(prefix)):
+            cursor.movePosition(QTextCursor.Right,
+                                QTextCursor.MoveAnchor,
+                                line_text.find(prefix))
+            cursor.movePosition(QTextCursor.Right,
+                                QTextCursor.KeepAnchor, len(prefix))
+            cursor.removeSelectedText()
+
+    def _even_number_of_spaces(self, line_text, group=0):
+        """
+        Get if there is a correct indentation from a group of spaces of a line.
+        """
+        spaces = re.findall('\s+', line_text)
+        if len(spaces) - 1 > group:
+            return len(spaces[group]) % 4 == 0
+
+    def _number_of_spaces(self, line_text, group=0):
+        """Get the number of spaces from a group of spaces in a line."""
+        spaces = re.findall('\s+', line_text)
+        if len(spaces) - 1 > group:
+            return len(spaces[group])
 
 
     def fix_indent(self, *args, **kwargs):
