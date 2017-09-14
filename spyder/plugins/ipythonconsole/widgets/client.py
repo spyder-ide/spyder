@@ -42,8 +42,8 @@ from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.mixins import SaveHistoryMixin
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
-        CollectionsEditor)
+from spyder.plugins.variableexplorer.widgets.viewers.iterables import (
+        IterablesEditor)
 
 
 #-----------------------------------------------------------------------------
@@ -475,7 +475,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def show_syspath(self, syspath):
         """Show sys.path contents."""
         if syspath is not None:
-            editor = CollectionsEditor()
+            editor = IterablesEditor()
             editor.setup(syspath, title="sys.path contents", readonly=True,
                          width=600, icon=ima.icon('syspath'))
             self.dialog_manager.show(editor)

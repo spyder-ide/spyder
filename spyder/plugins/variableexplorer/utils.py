@@ -225,7 +225,7 @@ def get_color_name(value):
 
 def is_editable_type(value):
     """Return True if data type is editable with a standard GUI-based editor,
-    like CollectionsEditor, ArrayEditor, QDateEdit or a simple QLineEdit"""
+    like IterablesEditor, ArrayEditor, QDateEdit or a simple QLineEdit"""
     return get_color_name(value) not in (UNSUPPORTED_COLOR, CUSTOM_TYPE_COLOR)
 
 
@@ -425,7 +425,7 @@ def get_human_readable_type(item):
 
 #==============================================================================
 # Globals filter: filter namespace dictionaries (to be edited in
-# CollectionsEditor)
+# IterablesEditor)
 #==============================================================================
 def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""

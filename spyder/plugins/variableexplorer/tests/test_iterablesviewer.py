@@ -18,8 +18,8 @@ import pandas
 import pytest
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
-    CollectionsEditorTableView, CollectionsModel)
+from spyder.plugins.variableexplorer.widgets.viewers.iterables import (
+    IterablesEditorTableView, IterablesModel)
 
 # Helper functions
 def data(cm, i, j):
@@ -31,10 +31,10 @@ def data(cm, i, j):
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.viewers.collections.DataFrameEditor',
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.viewers.iterables.DataFrameEditor',
                         MockDataFrameEditor)
     df = pandas.DataFrame(['foo', 'bar'])
-    editor = CollectionsEditorTableView(None, {'df': df})
+    editor = IterablesEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
     editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
@@ -42,7 +42,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
 
 def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
     df = pandas.DataFrame(['foo', 'bar'])
-    editor = CollectionsEditorTableView(None, {'df': df})
+    editor = IterablesEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
     editor.set_dataframe_format('%10d')
     assert editor.model.dataframe_format == '%10d'
@@ -54,7 +54,7 @@ def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
 
 def test_collectionsmodel_with_two_ints():
     coll = {'x': 1, 'y': 2}
-    cm = CollectionsModel(None, coll)
+    cm = IterablesModel(None, coll)
     assert cm.rowCount() == 2
     assert cm.columnCount() == 4
     # dict is unordered, so first row might be x or y
@@ -77,7 +77,7 @@ def test_collectionsmodel_with_datetimeindex():
     # Regression test for issue #3380
     rng = pandas.date_range('10/1/2016', periods=25, freq='bq')
     coll = {'rng': rng}
-    cm = CollectionsModel(None, coll)
+    cm = IterablesModel(None, coll)
     assert data(cm, 0, 0) == 'rng'
     assert data(cm, 0, 1) == 'DatetimeIndex'
     assert data(cm, 0, 2) == '(25,)' or data(cm, 0, 2) == '(25L,)'
@@ -86,11 +86,11 @@ def test_collectionsmodel_with_datetimeindex():
 def test_shows_dataframeeditor_when_editing_datetimeindex(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.viewers.collections.DataFrameEditor',
+    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.viewers.iterables.DataFrameEditor',
                         MockDataFrameEditor)
     rng = pandas.date_range('10/1/2016', periods=25, freq='bq')
     coll = {'rng': rng}
-    editor = CollectionsEditorTableView(None, coll)
+    editor = IterablesEditorTableView(None, coll)
     editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
     mockDataFrameEditor_instance.show.assert_called_once_with()
 
