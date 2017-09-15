@@ -887,7 +887,10 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
-            self.execute_code(line, current_client, clear_variables)
+            try:
+                self.execute_code(line, current_client, clear_variables)
+            except AttributeError:
+                pass
             self.visibility_changed(True)
             self.raise_()
         else:
@@ -933,7 +936,7 @@ class IPythonConsole(SpyderPluginWidget):
                     sw.reset_namespace(warning=False, silent=True)
                 elif current_client and clear_variables:
                     sw.reset_namespace(warning=False, silent=True)
-                sw.execute(to_text_string(to_text_string(lines)))
+                sw.execute(to_text_string(lines))
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
