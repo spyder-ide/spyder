@@ -33,8 +33,10 @@ from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
-from spyder.widgets.sourcecode.api.decoration import TextDecoration
+from spyder.widgets.sourcecode.api.decoration import (TextDecoration,
+                                                      DRAW_ORDERS)
 from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
+
 
 def insert_text_to(cursor, text, fmt):
     """Helper to print text, taking into account backspaces"""
@@ -342,11 +344,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             key (str) name of the extra selections group.
             extra_selections (list of sourcecode.api.TextDecoration).
         """
-        # current line has to be highlighted first
-        draw_orders = {'current_cell': 0,
-                       # draw order = 1 is used in codefolding
-                       'current_line': 2}
-        draw_order = draw_orders.get(key,  5)
+        # use draw orders to highlight current_cell and current_line first
+        draw_order = DRAW_ORDERS.get(key)
+        if draw_order is None:
+            draw_order = DRAW_ORDERS.get('on_top')
+
         for selection in extra_selections:
             selection.draw_order = draw_order
 
