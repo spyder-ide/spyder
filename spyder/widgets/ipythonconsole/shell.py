@@ -290,7 +290,10 @@ the sympy module (e.g. plot)
     # --- To communicate with the kernel
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
-        self.kernel_client.execute(to_text_string(code), silent=True)
+        try:
+            self.kernel_client.execute(to_text_string(code), silent=True)
+        except AttributeError:
+            pass
 
     def silent_exec_method(self, code):
         """Silently execute a kernel method and save its reply
