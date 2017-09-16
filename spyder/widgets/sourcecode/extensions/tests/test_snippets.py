@@ -52,6 +52,8 @@ def test_snippet(qtbot, editor_snippets):
     assert editor.toPlainText().strip() == snippet_test_result
 
     # replace the variables
+    qtbot.keyClicks(editor, 'i')
+    qtbot.keyPress(editor, Qt.Key_Tab)
     qtbot.keyClicks(editor, '10')
     qtbot.keyPress(editor, Qt.Key_Tab)
     qtbot.keyClicks(editor, 'print(i)')

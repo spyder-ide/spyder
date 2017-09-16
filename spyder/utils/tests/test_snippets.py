@@ -15,8 +15,8 @@ snippet_test = """
     prefix = 'test'
     language = 'python'
     content = '''
-for i in range(${1:repetitions}):
-    ${2:pass}
+for ${1:i} in range(${2:repetitions}):
+    ${3:pass}
 '''
 """
 
