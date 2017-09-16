@@ -60,9 +60,10 @@ class SnippetsExtension(EditorExtension):
         Return True if the snipped was inserted, else False.
         """
         cursor = self.editor.textCursor()
-        cursor.movePosition(QTextCursor.StartOfWord)
         position = cursor.position()
-        cursor.movePosition(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
+        cursor.movePosition(QTextCursor.StartOfWord)
+        start_position = cursor.position()
+        cursor.setPosition(position, QTextCursor.KeepAnchor)
         prefix = cursor.selectedText()
 
         self.snippet = self.snippet_manager.search_snippet(prefix)
@@ -72,7 +73,7 @@ class SnippetsExtension(EditorExtension):
             cursor.insertText(self.snippet.text)
             debug_print("Inserted snippet:{} {}".format(prefix,
                         self.snippet.content))
-            self._decorate_variables(position)
+            self._decorate_variables(start_position)
             return True
         else:
             return False
