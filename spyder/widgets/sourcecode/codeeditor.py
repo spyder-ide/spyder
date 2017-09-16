@@ -1595,16 +1595,25 @@ class CodeEditor(TextEditBaseWidget):
 
     def _remove_prefix(self, prefix, cursor, line_text):
         """Handle the remove of the prefix for a single line."""
-        # Handle inserted '# ' with the count of the number of spaces at the
-        # begining of the line.
-        left_spaces = self._even_number_of_spaces(line_text)
-        right_number_spaces = self._number_of_spaces(line_text, group=1)
+        start_with_space = line_text.startswith(' ')
+        if start_with_space:
+            left_spaces = self._even_number_of_spaces(line_text)
+        else:
+            left_spaces = False
+        if start_with_space:
+            right_number_spaces = self._number_of_spaces(line_text, group=1)
+        else:
+            right_number_spaces = self._number_of_spaces(line_text)
+        # Handle prefix remove for comments with spaces
         if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
                 or line_text.startswith(prefix + ' ') and '#' in prefix):
             cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.MoveAnchor,
-                                line_text.find(prefix + ' '))
-            if left_spaces and right_number_spaces == 1:
+                                line_text.find(prefix))
+            if right_number_spaces == 1 and (left_spaces
+                                             or not start_with_space):
+                # Handle inserted '# ' with the count of the number of spaces
+                # at the right and left of the prefix.
                 cursor.movePosition(QTextCursor.Right,
                                     QTextCursor.KeepAnchor, len(prefix + ' '))
             else:
@@ -1627,13 +1636,13 @@ class CodeEditor(TextEditBaseWidget):
         Get if there is a correct indentation from a group of spaces of a line.
         """
         spaces = re.findall('\s+', line_text)
-        if len(spaces) - 1 > group:
+        if len(spaces) - 1 >= group:
             return len(spaces[group]) % 4 == 0
 
     def _number_of_spaces(self, line_text, group=0):
         """Get the number of spaces from a group of spaces in a line."""
         spaces = re.findall('\s+', line_text)
-        if len(spaces) - 1 > group:
+        if len(spaces) - 1 >= group:
             return len(spaces[group])
 
 
