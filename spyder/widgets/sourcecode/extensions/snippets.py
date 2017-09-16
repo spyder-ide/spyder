@@ -81,7 +81,7 @@ class SnippetsExtension(EditorExtension):
     def _decorate_selection(self, cursor):
         """Add decoration to region selected by the cursor."""
         d = TextDecoration(cursor)
-        d.set_outline(self._get_color())
+        d.set_background(self._get_color())
         self.editor.decorations.add(d)
         self._selection_decos.append(d)
 
