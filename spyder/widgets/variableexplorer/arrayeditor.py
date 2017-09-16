@@ -276,7 +276,7 @@ class ArrayModel(QAbstractTableModel):
             try:
                 hue = (self.hue0 +
                        self.dhue * (float(self.vmax) - self.color_func(value))
-                       /(float(self.vmax) - self.vmin))
+                       / (float(self.vmax) - self.vmin))
                 hue = float(np.abs(hue))
                 color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
                 return to_qvariant(color)
