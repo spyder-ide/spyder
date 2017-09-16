@@ -264,17 +264,24 @@ class ArrayModel(QAbstractTableModel):
             if value is np.ma.masked:
                 return ''
             else:
-                return to_qvariant(self._format % value)
+                try:
+                    return to_qvariant(self._format % value)
+                except TypeError:
+                    self.readonly = True
+                    return repr(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
           and value is not np.ma.masked:
-            hue = self.hue0+\
-                  self.dhue*(float(self.vmax)-self.color_func(value)) \
-                  /(float(self.vmax)-self.vmin) #float convert to handle bool arrays
-            hue = float(np.abs(hue))
-            color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
-            return to_qvariant(color)
+            try:
+                hue = (self.hue0 +
+                       self.dhue * (float(self.vmax) - self.color_func(value))
+                       /(float(self.vmax) - self.vmin))
+                hue = float(np.abs(hue))
+                color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
+                return to_qvariant(color)
+            except TypeError:
+                return to_qvariant()
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
