@@ -40,7 +40,8 @@ class Explorer(SpyderPluginWidget):
                                 self,
                                 name_filters=self.get_option('name_filters'),
                                 show_all=self.get_option('show_all'),
-                                show_icontext=self.get_option('show_icontext'))
+                                show_icontext=self.get_option('show_icontext'),
+                                options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.fileexplorer)
