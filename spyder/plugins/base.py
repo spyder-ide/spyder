@@ -208,6 +208,7 @@ class BasePluginWidget(QWidget):
         self.dockwidget.setFloating(True)
         self.undock_action.setDisabled(True)
 
+
 class PluginMainWindow(QMainWindow):
     """Spyder Plugin MainWindow class."""
     def __init__(self, plugin):

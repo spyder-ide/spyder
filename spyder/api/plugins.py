@@ -95,7 +95,7 @@ class PluginWidget(BasePluginWidget):
         self.create_toggle_view_action()
         self.create_undock_action()
         self.plugin_actions = self.get_plugin_actions() + [None,
-                                                     self.undock_action]
+                                                           self.undock_action]
         self.menu = QMenu(self)
         add_actions(self.menu, self.plugin_actions)
         self.options_button.setMenu(self.menu)
@@ -203,7 +203,7 @@ class PluginWidget(BasePluginWidget):
         """Clear the menu of the plugin and add the actions."""
         self.menu.clear()
         self.plugin_actions = self.get_plugin_actions() + [None,
-                                                     self.undock_action]
+                                                           self.undock_action]
         add_actions(self.menu, self.plugin_actions)
 
 
