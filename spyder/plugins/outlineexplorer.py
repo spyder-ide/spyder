@@ -41,7 +41,8 @@ class OutlineExplorer(SpyderPluginWidget):
                                        show_fullpath=show_fullpath,
                                        fullpath_sorting=fullpath_sorting,
                                        show_all_files=show_all_files,
-                                       show_comments=show_comments)
+                                       show_comments=show_comments,
+                                       options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)

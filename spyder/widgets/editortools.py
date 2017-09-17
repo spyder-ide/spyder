@@ -498,7 +498,7 @@ class OutlineExplorerWidget(QWidget):
     is_visible = Signal()
     
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
-                 show_all_files=True, show_comments=True):
+                 show_all_files=True, show_comments=True, options_button=None):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(self,
@@ -518,9 +518,9 @@ class OutlineExplorerWidget(QWidget):
             btn.setAutoRaise(True)
             btn.setIconSize(QSize(16, 16))
             btn_layout.addWidget(btn)
-        if parent.options_button:
+        if options_button:
             btn_layout.addStretch()
-            btn_layout.addWidget(parent.options_button, Qt.AlignRight)
+            btn_layout.addWidget(options_button, Qt.AlignRight)
 
         layout = create_plugin_layout(btn_layout, self.treewidget)
         self.setLayout(layout)

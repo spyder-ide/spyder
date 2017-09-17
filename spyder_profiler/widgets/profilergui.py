@@ -64,7 +64,7 @@ class ProfilerWidget(QWidget):
     VERSION = '0.0.1'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100):
+    def __init__(self, parent, max_entries=100, options_button=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Profiler")
@@ -138,6 +138,8 @@ class ProfilerWidget(QWidget):
         hlayout1.addWidget(browse_button)
         hlayout1.addWidget(self.start_button)
         hlayout1.addWidget(self.stop_button)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addWidget(self.collapse_button)

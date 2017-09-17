@@ -425,16 +425,13 @@ class Help(SpyderPluginWidget):
         self._update_lock_icon()
 
         # Option menu
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, [self.rich_text_action, self.plain_text_action,
+        self.menu = QMenu(self)
+        add_actions(self.menu, [self.rich_text_action, self.plain_text_action,
                            self.show_source_action, None,
                            self.auto_import_action, None,
                            self.undock_action])
-        options_button.setMenu(menu)
-        layout_edit.addWidget(options_button)
+        self.options_button.setMenu(self.menu)
+        layout_edit.addWidget(self.options_button)
 
         if self.rich_help:
             self.switch_to_rich_text()

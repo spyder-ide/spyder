@@ -140,7 +140,8 @@ class VariableExplorer(SpyderPluginWidget):
         if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)
-            nsb.setup(**self.get_settings())
+            nsb.setup(**self.get_settings(),
+                      options_button=self.options_button)
             nsb.sig_option_changed.connect(self.change_option)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb

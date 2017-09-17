@@ -74,7 +74,8 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, dataframe_format=None):
+              minmax=None, dataframe_format=None, options_button=None,
+              menu=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -121,10 +122,12 @@ class NamespaceBrowser(QWidget):
             blayout.addWidget(widget)
 
         # Options menu
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
+        if not options_button:
+            options_button = create_toolbutton(self, text=_('Options'),
+                                               icon=ima.icon('tooloptions'))
+            options_button.setPopupMode(QToolButton.InstantPopup)
+        if not menu:
+            menu = QMenu(self)
         editor = self.editor
         actions = [self.exclude_private_action, self.exclude_uppercase_action,
                    self.exclude_capitalized_action,
