@@ -15,6 +15,7 @@ from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import add_actions
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
@@ -72,6 +73,7 @@ class VariableExplorer(SpyderPluginWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
+
 
         # Initialize plugin
         self.initialize_plugin()
@@ -138,10 +140,13 @@ class VariableExplorer(SpyderPluginWidget):
         """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self.shellwidgets:
-            nsb = NamespaceBrowser(self)
+            self.options_button.setVisible(True)
+            nsb = NamespaceBrowser(self,
+                                   options_button=self.options_button,
+                                   menu=self.menu,
+                                   actions=self.plugin_actions)
             nsb.set_shellwidget(shellwidget)
-            nsb.setup(**self.get_settings(),
-                      options_button=self.options_button)
+            nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
@@ -193,11 +198,17 @@ class VariableExplorer(SpyderPluginWidget):
         
     def refresh_plugin(self):
         """Refresh widget"""
-        pass
+        self.menu.clear()
+        add_actions(self.menu, self.get_plugin_actions())
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
+        if self.get_focus_widget():
+            actions = self.get_focus_widget().get_actions()
+        else:
+            self.options_button.setVisible(False)
+            actions = []
+        return actions
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

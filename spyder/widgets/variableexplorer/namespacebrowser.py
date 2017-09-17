@@ -44,7 +44,7 @@ class NamespaceBrowser(QWidget):
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
     
-    def __init__(self, parent):
+    def __init__(self, parent, options_button=None, menu=None, actions=None):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
@@ -68,14 +68,16 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.options_button = options_button
+        self.menu = menu
+        self.actions = actions
 
         self.filename = None
 
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, dataframe_format=None, options_button=None,
-              menu=None):
+              minmax=None, dataframe_format=None):
         """
         Setup the namespace browser with provided settings.
 
@@ -122,25 +124,25 @@ class NamespaceBrowser(QWidget):
             blayout.addWidget(widget)
 
         # Options menu
-        if not options_button:
-            options_button = create_toolbutton(self, text=_('Options'),
-                                               icon=ima.icon('tooloptions'))
-            options_button.setPopupMode(QToolButton.InstantPopup)
-        if not menu:
-            menu = QMenu(self)
         editor = self.editor
         actions = [self.exclude_private_action, self.exclude_uppercase_action,
                    self.exclude_capitalized_action,
                    self.exclude_unsupported_action, None]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
-        if self.parent():
-            actions.append(self.parent().undock_action)
-        add_actions(menu, actions)
-        options_button.setMenu(menu)
+        self.actions = actions
+        if not self.options_button:
+            self.options_button = create_toolbutton(
+                                        self, text=_('Options'),
+                                        icon=ima.icon('tooloptions'))
+            self.options_button.setPopupMode(QToolButton.InstantPopup)
+        if not self.menu:
+            self.menu = QMenu(self)
+        add_actions(self.menu, self.actions)
+        self.options_button.setMenu(self.menu)
 
         blayout.addStretch()
-        blayout.addWidget(options_button)
+        blayout.addWidget(self.options_button)
 
         layout = create_plugin_layout(blayout, self.editor)
         self.setLayout(layout)
@@ -151,6 +153,10 @@ class NamespaceBrowser(QWidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
+
+    def get_actions(self):
+        """Get actions of the widget."""
+        return self.actions
 
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported):
