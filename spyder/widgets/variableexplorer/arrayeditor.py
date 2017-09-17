@@ -632,8 +632,16 @@ class ArrayEditor(QDialog):
             return False
         if not is_record_array:
             dtn = data.dtype.name
-            if dtn not in SUPPORTED_FORMATS and not dtn.startswith('str') \
-               and not dtn.startswith('unicode'):
+            if dtn == 'object':
+                # If the array doesn't have shape, we can't display it
+                if data.shape == ():
+                    self.error(_("Object arrays without shape are not supported"))
+                    return False
+                # We don't know what's inside these arrays, so we can't handle
+                # edits
+                self.readonly = readonly = True
+            elif dtn not in SUPPORTED_FORMATS and not dtn.startswith('str') \
+              and not dtn.startswith('unicode'):
                 arr = _("%s arrays") % data.dtype.name
                 self.error(_("%s are currently not supported") % arr)
                 return False
