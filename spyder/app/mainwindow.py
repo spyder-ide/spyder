@@ -3049,7 +3049,6 @@ def main():
                                      or options.reset_config_files
                                      or options.reset_to_defaults
                                      or options.optimize or bool(DEBUG))
-    set_attached_console_visible(True)
     app = initialize()
     if options.reset_config_files:
         # <!> Remove all configuration files!
