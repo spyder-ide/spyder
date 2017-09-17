@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 # Local imports
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
+from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
 
 

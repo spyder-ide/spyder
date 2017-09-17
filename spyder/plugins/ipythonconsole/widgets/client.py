@@ -42,7 +42,7 @@ from spyder.py3compat import to_text_string
 from spyder.widgets.browser import WebView
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.mixins import SaveHistoryMixin
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
+from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
 
 

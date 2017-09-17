@@ -27,7 +27,7 @@ from spyder.plugins.ipythonconsole.plugin import (IPythonConsole,
 from spyder.utils.environ import listdict2envdict
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.test import close_message_box
-from spyder.plugins.variableexplorer.widgets.viewers.collections import (
+from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
 
 

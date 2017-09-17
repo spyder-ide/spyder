@@ -36,7 +36,7 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
-from spyder.plugins.variableexplorer.widgets.viewers.array import get_idx_rect
+from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 
 # Supported Numbers and complex numbers
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
