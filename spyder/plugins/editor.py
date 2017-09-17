@@ -1222,8 +1222,11 @@ class Editor(SpyderPluginWidget):
             # The first editostack is registered automatically with Spyder's
             # main window through the `register_plugin` method. Only additional
             # editors added by splitting need to be registered.
+            # See issue #5057 and PR #5221.
             self.main.fileswitcher.sig_goto_file.connect(
                     editorstack.set_stack_index)
+            self.main.fileswitcher.sig_goto_line.connect(
+                    editorstack.go_to_line)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin

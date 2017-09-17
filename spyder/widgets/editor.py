@@ -807,6 +807,7 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg = FileSwitcher(self, self, self.tabs, self.data,
                                              ima.icon('TextFileIcon'))
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
+        self.fileswitcher_dlg.sig_goto_line.connect(self.go_to_line)
         self.fileswitcher_dlg.setup()
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
@@ -825,10 +826,16 @@ class EditorStack(QWidget):
         """Get the widget with the TabWidget attribute."""
         return self
 
-    def go_to_line(self):
+    def go_to_line(self, line_number=None, instance=None):
         """Go to line dialog"""
         if self.data:
-            self.get_current_editor().exec_gotolinedialog()
+            editor = self.get_current_editor()
+            if line_number is None:
+                editor.exec_gotolinedialog()
+            else:
+                if instance == self:
+                    editor.go_to_line(
+                            min(line_number, editor.get_line_count()))
 
     def set_or_clear_breakpoint(self):
         """Set/clear breakpoint"""
@@ -1148,7 +1155,7 @@ class EditorStack(QWidget):
         return self.tabs.count()
 
     def set_stack_index(self, index, instance=None):
-        if instance == self or instance == None:
+        if instance == self or instance is None:
             self.tabs.setCurrentIndex(index)
 
     def set_tabbar_visible(self, state):

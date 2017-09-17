@@ -223,6 +223,7 @@ class FilesFilterLine(QLineEdit):
 class FileSwitcher(QDialog):
     """A Sublime-like file switcher."""
     sig_goto_file = Signal(int, object)
+    sig_goto_line = Signal(int, object)
 
     # Constants that define the mode in which the list widget is working
     # FILE_MODE is for a list of files, SYMBOL_MODE if for a list of symbols
@@ -554,19 +555,9 @@ class FileSwitcher(QDialog):
             new_cursor.movePosition(pos, QTextCursor.KeepAnchor)
         editor.setTextCursor(cursor)
 
-    def goto_line(self, line_number):
-        """Go to specified line number in current active editor."""
-        if line_number:
-            line_number = int(line_number)
-            editor = self.get_widget()
-            try:
-                editor.go_to_line(min(line_number, editor.get_line_count()))
-            except AttributeError:
-                pass
-
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
-        """Get the list of symbols present in the file."""
+        print("""Get the list of symbols present in the file.""")
         try:
             oedata = self.get_widget().get_outlineexplorer_data()
         except AttributeError:
@@ -589,9 +580,13 @@ class FileSwitcher(QDialog):
                     # current plugin
                     real_index = self.get_stack_index(stack_index,
                                                       plugin_index)
-                    self.sig_goto_file.emit(real_index,
-                                            self.plugin.get_current_tab_manager())
-                    self.goto_line(self.line_number)
+                    self.sig_goto_file.emit(
+                            real_index,
+                            self.plugin.get_current_tab_manager())
+                    if self.line_number is not None:
+                        self.sig_goto_line.emit(
+                                self.line_number,
+                                self.plugin.get_current_tab_manager())
                     try:
                         self.plugin.switch_to_plugin()
                         self.raise_()
@@ -603,7 +598,8 @@ class FileSwitcher(QDialog):
                     pass
             else:
                 line_number = self.filtered_symbol_lines[row]
-                self.goto_line(line_number)
+                self.sig_goto_line.emit(line_number,
+                                        self.plugin.get_current_tab_manager())
 
     def setup_file_list(self, filter_text, current_path):
         """Setup list widget content for file list display."""
@@ -616,6 +612,8 @@ class FileSwitcher(QDialog):
         # Get optional line number
         if trying_for_line_number:
             filter_text, line_number = filter_text.split(':')
+            if line_number == '':
+                line_number = None
             # Get all the available filenames
             scores = get_search_scores('', self.filenames,
                                        template="<b>{0}</b>")
@@ -687,8 +685,10 @@ class FileSwitcher(QDialog):
             self.set_current_row(0)
 
         # If a line number is searched look for it
-        self.line_number = line_number
-        self.goto_line(line_number)
+        if line_number is not None:
+            self.line_number = int(line_number)
+            self.sig_goto_line.emit(self.line_number,
+                                    self.plugin.get_current_tab_manager())
 
     def setup_symbol_list(self, filter_text, current_path):
         """Setup list widget content for symbol list display."""

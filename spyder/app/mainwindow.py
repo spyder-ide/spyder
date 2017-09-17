@@ -2806,14 +2806,16 @@ class MainWindow(QMainWindow):
         """Add a plugin to the File Switcher."""
         if self.fileswitcher is None:
             self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
-            self.fileswitcher.sig_goto_file.connect(
-                    plugin.get_current_tab_manager().set_stack_index
-                )
         else:
             self.fileswitcher.add_plugin(plugin, tabs, data, icon)
-            self.fileswitcher.sig_goto_file.connect(
-                    plugin.get_current_tab_manager().set_stack_index
-                )
+
+        self.fileswitcher.sig_goto_file.connect(
+                plugin.get_current_tab_manager().set_stack_index)
+        try:
+            self.fileswitcher.sig_goto_line.connect(
+                    plugin.get_current_tab_manager().go_to_line)
+        except AttributeError:
+            pass
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
@@ -3047,7 +3049,7 @@ def main():
                                      or options.reset_config_files
                                      or options.reset_to_defaults
                                      or options.optimize or bool(DEBUG))
-
+    set_attached_console_visible(True)
     app = initialize()
     if options.reset_config_files:
         # <!> Remove all configuration files!
