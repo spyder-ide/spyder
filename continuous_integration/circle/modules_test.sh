@@ -127,14 +127,3 @@ for f in spyder/*/*/*/*/*.py; do
         exit 1
     fi
 done
-
-# Spyderplugins
-for f in spyder_*/widgets/*.py; do
-    if [[ $f == *test*/*.* ]]; then
-        continue
-    fi
-    python "$f"
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-done
