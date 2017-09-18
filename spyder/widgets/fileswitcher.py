@@ -405,14 +405,6 @@ class FileSwitcher(QDialog):
                 index = self.paths.index(self.initial_path)
                 self.sig_goto_file.emit(index)
 
-    def set_last_focus_plugin(self, old_plugin, now_plugin):
-        pass
-    
-    def eventFilter(self, src, e):
-        if e.type() == e.FocusIn:
-            print('coucou')
-        return super(FileSwitcher, self).eventFilter(src, e)
-
     def set_dialog_position(self):
         """Positions the file switcher dialog."""
         parent = self.parent()
