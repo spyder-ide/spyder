@@ -74,5 +74,5 @@ except ImportError:
 
 if __name__ == "__main__":
     data = {'a' : [1, 2, 3, 4], 'b' : 4.5}
-    print(save_hdf5(data, "test.h5"))
-    print(load_hdf5("test.h5"))
+    print(save_hdf5(data, "test.h5"))  # spyder: test-skip
+    print(load_hdf5("test.h5"))  # spyder: test-skip
