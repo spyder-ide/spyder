@@ -11,7 +11,7 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import Signal, QEvent, QObject, QRegExp, QSize, Qt
-from qtpy.QtGui import (QIcon, QRegExpValidator, QTextCursor)
+from qtpy.QtGui import QIcon, QRegExpValidator, QTextCursor 
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
                             QListWidget, QListWidgetItem, QVBoxLayout,
                             QMainWindow)
@@ -296,9 +296,10 @@ class FileSwitcher(QDialog):
     @property
     def widgets(self):
         widgets = []
-        for tabs, plugin in self.plugins_tabs:
-            widgets += [(tabs.widget(index), plugin) for
-                        index in range(tabs.count())]
+        for plugin in self.plugins_instances:
+            tabwidget = self.get_plugin_tabwidget(plugin)
+            widgets += [(tabwidget.widget(index), plugin) for
+                        index in range(tabwidget.count())]
         return widgets
 
     @property
@@ -322,14 +323,17 @@ class FileSwitcher(QDialog):
     @property
     def paths(self):
         paths = []
-        for da, icon in self.plugins_data:
+        for plugin in self.plugins_instances:
+            da = self.get_plugin_data(plugin)
             paths += [getattr(td, 'filename', None) for td in da]
+
         return paths
 
     @property
     def filenames(self):
         filenames = []
-        for da, icon in self.plugins_data:
+        for plugin in self.plugins_instances:
+            da = self.get_plugin_data(plugin)
             filenames += [os.path.basename(getattr(td,
                                                    'filename',
                                                    None)) for td in da]
@@ -400,6 +404,14 @@ class FileSwitcher(QDialog):
             if self.initial_widget in self.paths_by_widget:
                 index = self.paths.index(self.initial_path)
                 self.sig_goto_file.emit(index)
+
+    def set_last_focus_plugin(self, old_plugin, now_plugin):
+        pass
+    
+    def eventFilter(self, src, e):
+        if e.type() == e.FocusIn:
+            print('coucou')
+        return super(FileSwitcher, self).eventFilter(src, e)
 
     def set_dialog_position(self):
         """Positions the file switcher dialog."""
@@ -526,21 +538,41 @@ class FileSwitcher(QDialog):
 
         return real_index
 
+    def get_plugin_data(self, plugin):
+        # The data object is named "data" in the editor plugin while it is
+        # named "clients" in the notebook plugin.
+        try:
+            data = plugin.get_current_tab_manager().data
+        except AttributeError:
+            data = plugin.get_current_tab_manager().clients
+
+        return data
+    
+    def get_plugin_tabwidget(self, plugin):
+        # The tab widget is named "tabs" in the editor plugin while it is
+        # named "tabwidget" in the notebook plugin.
+        try:
+            tabwidget = plugin.get_current_tab_manager().tabs
+        except AttributeError:
+            tabwidget = plugin.get_current_tab_manager().tabwidget
+
+        return tabwidget
+
     # --- Helper methods: Widget
     def get_widget(self, index=None, path=None, tabs=None):
         """Get widget by index.
-        
+
         If no tabs and index specified the current active widget is returned.
         """
-        if index and tabs:
+        if (index and tabs) or (path and tabs):
             return tabs.widget(index)
-        elif path and tabs:
-            return tabs.widget(index)
-        elif self.plugin:
-            index = self.plugins_instances.index(self.plugin)
-            return self.plugins_tabs[index][0].currentWidget()
+
+        if self.plugin:
+            tabs = self.get_plugin_tabwidget(self.plugin)
         else:
-            return self.plugins_tabs[0][0].currentWidget()
+            tabs = self.get_plugin_tabwidget(self.plugins_instances[0])
+
+        return tabs.currentWidget()
 
     def set_editor_cursor(self, editor, cursor):
         """Set the cursor of an editor."""
@@ -557,7 +589,7 @@ class FileSwitcher(QDialog):
 
     # --- Helper methods: Outline explorer
     def get_symbol_list(self):
-        print("""Get the list of symbols present in the file.""")
+        """Get the list of symbols present in the file."""
         try:
             oedata = self.get_widget().get_outlineexplorer_data()
         except AttributeError:
@@ -623,7 +655,6 @@ class FileSwitcher(QDialog):
             # "fuzzy" matching
             scores = get_search_scores(filter_text, self.filenames,
                                        template="<b>{0}</b>")
-
 
         # Get max width to determine if shortpaths should be used
         max_width = self.get_item_size(paths)[0]
@@ -759,7 +790,6 @@ class FileSwitcher(QDialog):
 
         # Get optional line or symbol to define mode and method handler
         trying_for_symbol = ('@' in self.filter_text)
-
         if trying_for_symbol:
             self.mode = self.SYMBOL_MODE
             self.setup_symbol_list(filter_text, current_path)
