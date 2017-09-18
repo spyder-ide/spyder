@@ -1,7 +1,7 @@
 # =============================================================================
 # The following statements are required to register this I/O plugin:
 # =============================================================================
-from .dcm import load_dicom
+from .plugin import load_dicom
 
 FORMAT_NAME = "DICOM images"
 FORMAT_EXT  = ".dcm"
