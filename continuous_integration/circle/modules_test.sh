@@ -71,6 +71,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/plugins/*/plugin.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/*/__init__.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
