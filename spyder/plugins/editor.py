@@ -1002,26 +1002,25 @@ class Editor(SpyderPluginWidget):
         trailingspaces_action = create_action(self,
                                       _("Remove trailing spaces"),
                                       triggered=self.remove_trailing_spaces)
-        self.showblanks_action = create_action(self, _("Show blank spaces"),
-                                               toggled=self.toggle_show_blanks)
-        self.showblanks_action.setChecked(CONF.get('editor', 'blank_spaces'))
 
-        self.scrollpastend_action = create_action(
-                                        self,
-                                        _("Scroll past the end"),
-                                        toggled=self.toggle_scroll_past_end)
-        self.scrollpastend_action.setChecked(CONF.get('editor',
-                                             'scroll_past_end'))
+        # Checkable actions
+        self.showblanks_action = self._create_checkable_action(
+                _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
 
-        showindentguides_action = create_action(self, _("Show indent guides."),
-                                               toggled=self.toggle_show_indent_guides)
-        showindentguides_action.setChecked(CONF.get('editor', 'indent_guides'))
+        self.scrollpastend_action = self._create_checkable_action(
+                 _("Scroll past the end"), 'scroll_past_end',
+                 'set_scrollpastend_enabled')
 
-        show_classfunc_dropdown_action = create_action(
-                self, _("Show selector for classes and functions."),
-                toggled=self.toggle_show_classfunc_dropdown)
-        show_classfunc_dropdown_action.setChecked(
-                CONF.get('editor', 'show_class_func_dropdown'))
+        showindentguides_action = self._create_checkable_action(
+                _("Show indent guides."), 'indent_guides', 'set_indent_guides')
+
+        show_classfunc_dropdown_action = self._create_checkable_action(
+                _("Show selector for classes and functions."),
+                'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
+
+        self.checkable_actions = [self.showblanks_action, self.scrollpastend_action,
+                                  showindentguides_action,
+                                  show_classfunc_dropdown_action]
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -2253,30 +2252,6 @@ class Editor(SpyderPluginWidget):
             editor = self.get_current_editor()
             if self.__set_eol_chars:
                 editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
-
-    @Slot(bool)
-    def toggle_show_blanks(self, checked):
-        if self.editorstacks:
-            for editorstack in self.editorstacks:
-                editorstack.set_blanks_enabled(checked)
-
-    @Slot(bool)
-    def toggle_scroll_past_end(self, checked):
-        if self.editorstacks:
-            for editorstack in self.editorstacks:
-                editorstack.set_scrollpastend_enabled(checked)
-
-    @Slot(bool)
-    def toggle_show_indent_guides(self, checked):
-        if self.editorstacks:
-            for editorstack in self.editorstacks:
-                editorstack.set_indent_guides(checked)
-
-    @Slot(bool)
-    def toggle_show_classfunc_dropdown(self, checked):
-        if self.editorstacks:
-            for editorstack in self.editorstacks:
-                editorstack.set_classfunc_dropdown_visible(checked)
 
     @Slot()
     def remove_trailing_spaces(self):
