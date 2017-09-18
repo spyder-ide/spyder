@@ -18,34 +18,34 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: spyder_breakpoints/breakpoints.py:45
+#: spyder/plugins/breakpoints/plugin.py:45
 msgid "Breakpoints"
 msgstr "Точки останова"
 
-#: spyder_breakpoints/breakpoints.py:80
+#: spyder/plugins/breakpoints/plugin.py:80
 msgid "List breakpoints"
 msgstr "Список точек останова"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Condition"
 msgstr "Условие"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "File"
 msgstr "Файл"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Line"
 msgstr "Строка"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:180
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
 msgstr "Очистить все точки останова"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:201
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:201
 msgid "Clear this breakpoint"
 msgstr "Убрать эту точку останова"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:206
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:206
 msgid "Edit this breakpoint"
 msgstr "Редактировать эту точку останова"

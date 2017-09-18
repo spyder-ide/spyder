@@ -16,35 +16,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 
-#: spyder_breakpoints/breakpoints.py:45
+#: spyder/plugins/breakpoints/plugin.py:45
 msgid "Breakpoints"
 msgstr "Puntos de interrupción"
 
-#: spyder_breakpoints/breakpoints.py:80
+#: spyder/plugins/breakpoints/plugin.py:80
 msgid "List breakpoints"
 msgstr "Listar puntos de interrupción"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Condition"
 msgstr "Condición"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "File"
 msgstr "Archivo"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Line"
 msgstr "Línea"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:180
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
 msgstr "Borrar los puntos de todos los archivos"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:201
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:201
 msgid "Clear this breakpoint"
 msgstr "Eliminar este punto"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:206
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:206
 #, fuzzy
 msgid "Edit this breakpoint"
 msgstr "Eliminar este punto"

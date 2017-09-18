@@ -16,34 +16,34 @@ msgstr ""
 "Content-Transfer-Encoding: utf-8\n"
 "Generated-By: pygettext.py 1.5\n"
 
-#: spyder_breakpoints/breakpoints.py:45
+#: spyder/plugins/breakpoints/plugin.py:45
 msgid "Breakpoints"
 msgstr "Points d'arrêt"
 
-#: spyder_breakpoints/breakpoints.py:80
+#: spyder/plugins/breakpoints/plugin.py:80
 msgid "List breakpoints"
 msgstr "Liste des points d'arrêt"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Condition"
 msgstr "Condition"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "File"
 msgstr "Fichier"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Line"
 msgstr "Ligne"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:180
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
 msgstr "Supprimer tous les points d'arrêts"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:201
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:201
 msgid "Clear this breakpoint"
 msgstr "Supprimer ce point d'arrêt"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:206
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:206
 msgid "Edit this breakpoint"
 msgstr "Supprimer ce point d'arrêt"

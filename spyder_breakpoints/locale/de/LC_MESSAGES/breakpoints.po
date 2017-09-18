@@ -17,34 +17,34 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 2.0\n"
 
-#: spyder_breakpoints/breakpoints.py:52
+#: spyder/plugins/breakpoints/plugin.py:52
 msgid "Breakpoints"
 msgstr "Haltepunkte"
 
-#: spyder_breakpoints/breakpoints.py:88
+#: spyder/plugins/breakpoints/plugin.py:88
 msgid "List breakpoints"
 msgstr "Haltepunkte auflisten"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Condition"
 msgstr "Bedingung"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "File"
 msgstr "Datei"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:97
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:97
 msgid "Line"
 msgstr "Zeile"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:180
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:180
 msgid "Clear breakpoints in all files"
 msgstr "Haltepunkte in allen Dateien löschen"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:201
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:201
 msgid "Clear this breakpoint"
 msgstr "Diesen Haltepunkt löschen"
 
-#: spyder_breakpoints/widgets/breakpointsgui.py:206
+#: spyder/plugins/breakpoints/widgets/breakpointsgui.py:206
 msgid "Edit this breakpoint"
 msgstr "Diesen Haltepunkt bearbeiten"
