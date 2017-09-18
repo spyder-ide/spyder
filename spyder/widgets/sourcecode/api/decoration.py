@@ -15,6 +15,22 @@ from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
                         QTextCharFormat)
 
 
+# DRAW_ORDERS are used for make some decorations appear in top of others,
+# and avoid a decoration from overlapping/hiding other decorations.
+#
+# For example, codefolding will appear in front of current cell but behind
+# other decorations.
+#
+# NOTE: If two decorations have the same draw_order smaller decoration will
+# appear in front of the other.
+
+DRAW_ORDERS = {'on_bottom': 0,
+               'current_cell': 1,
+               'codefolding': 2,
+               'current_line': 3,
+               'on_top': 4}
+
+
 class TextDecoration(QTextEdit.ExtraSelection):
     """
     Helper class to quickly create a text decoration.

@@ -115,8 +115,9 @@ class EditorConfigPage(PluginConfigPage):
         interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
-        showclassfuncdropdown_box = newcb(_("Show Class/Function Dropdown"),
-                                          'show_class_func_dropdown')
+        showclassfuncdropdown_box = newcb(
+                _("Show selector for classes and functions"),
+                'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show Indent Guides"),
                                       'indent_guides')
 
@@ -157,6 +158,8 @@ class EditorConfigPage(PluginConfigPage):
                 self.get_option('occurrence_highlighting'))
 
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
+        scroll_past_end_box = newcb(_("Scroll past the end"),
+                                    'scroll_past_end')
 
         display_layout = QGridLayout()
         display_layout.addWidget(linenumbers_box, 0, 0)
@@ -170,6 +173,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(occurrence_spin.spinbox, 5, 1)
         display_layout.addWidget(occurrence_spin.slabel, 5, 2)
         display_layout.addWidget(wrap_mode_box, 6, 0)
+        display_layout.addWidget(scroll_past_end_box, 7, 0)
         display_h_layout = QHBoxLayout()
         display_h_layout.addLayout(display_layout)
         display_h_layout.addStretch(1)
@@ -918,11 +922,21 @@ class Editor(SpyderPluginWidget):
         self.previous_warning_action = create_action(self,
                 _("Previous warning/error"), icon=ima.icon('prev_wng'),
                 tip=_("Go to previous code analysis warning/error"),
-                triggered=self.go_to_previous_warning)
+                triggered=self.go_to_previous_warning,
+                context=Qt.WidgetShortcut)
+        self.register_shortcut(self.previous_warning_action,
+                               context="Editor",
+                               name="Previous warning",
+                               add_sc_to_tip=True)
         self.next_warning_action = create_action(self,
                 _("Next warning/error"), icon=ima.icon('next_wng'),
                 tip=_("Go to next code analysis warning/error"),
-                triggered=self.go_to_next_warning)
+                triggered=self.go_to_next_warning,
+                context=Qt.WidgetShortcut)
+        self.register_shortcut(self.next_warning_action,
+                               context="Editor",
+                               name="Next warning",
+                               add_sc_to_tip=True)
         
         self.previous_edit_cursor_action = create_action(self,
                 _("Last edit location"), icon=ima.icon('last_edit_location'),
@@ -1024,9 +1038,23 @@ class Editor(SpyderPluginWidget):
                                                toggled=self.toggle_show_blanks)
         self.showblanks_action.setChecked(CONF.get('editor', 'blank_spaces'))
 
+        self.scrollpastend_action = create_action(
+                                        self,
+                                        _("Scroll past the end"),
+                                        toggled=self.toggle_scroll_past_end)
+        self.scrollpastend_action.setChecked(CONF.get('editor',
+                                             'scroll_past_end'))
+
         showindentguides_action = create_action(self, _("Show indent guides."),
                                                toggled=self.toggle_show_indent_guides)
         showindentguides_action.setChecked(CONF.get('editor', 'indent_guides'))
+
+        show_classfunc_dropdown_action = create_action(
+                self, _("Show selector for classes and functions."),
+                toggled=self.toggle_show_classfunc_dropdown)
+        show_classfunc_dropdown_action.setChecked(
+                CONF.get('editor', 'show_class_func_dropdown'))
+
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
@@ -1146,7 +1174,9 @@ class Editor(SpyderPluginWidget):
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [eol_menu,
                                self.showblanks_action,
+                               self.scrollpastend_action,
                                showindentguides_action,
+                               show_classfunc_dropdown_action,
                                trailingspaces_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
@@ -1273,7 +1303,7 @@ class Editor(SpyderPluginWidget):
             self.set_last_focus_editorstack(self, editorstack)
             editorstack.set_closable( len(self.editorstacks) > 1 )
             if self.outlineexplorer is not None:
-                editorstack.set_outlineexplorer(self.outlineexplorer)
+                editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
             editorstack.set_find_widget(self.find_widget)
             editorstack.reset_statusbar.connect(self.readwrite_status.hide)
             editorstack.reset_statusbar.connect(self.encoding_status.hide)
@@ -1299,6 +1329,7 @@ class Editor(SpyderPluginWidget):
             ('set_realtime_analysis_enabled',       'realtime_analysis'),
             ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_blanks_enabled',                  'blank_spaces'),
+            ('set_scrollpastend_enabled',           'scroll_past_end'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
@@ -1386,6 +1417,8 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
         editorstack.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
+        editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
+        editorstack.sig_next_warning.connect(self.go_to_next_warning)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1511,13 +1544,15 @@ class Editor(SpyderPluginWidget):
     def get_current_editorstack(self, editorwindow=None):
         if self.editorstacks is not None:
             if len(self.editorstacks) == 1:
-                return self.editorstacks[0]
+                editorstack = self.editorstacks[0]
             else:
                 editorstack = self.__get_focus_editorstack()
                 if editorstack is None or editorwindow is not None:
-                    return self.get_last_focus_editorstack(editorwindow)
-                return editorstack
-        
+                    editorstack = self.get_last_focus_editorstack(editorwindow)
+                    if editorstack is None:
+                        editorstack = self.editorstacks[0]
+            return editorstack
+
     def get_current_editor(self):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
@@ -1877,7 +1912,7 @@ class Editor(SpyderPluginWidget):
              processevents=True):
         """
         Load a text file
-        editorwindow: load in this editorwindow (useful when clicking on 
+        editorwindow: load in this editorwindow (useful when clicking on
         outline explorer with multiple editor windows)
         processevents: determines if processEvents() should be called at the
         end of this method (set to False to prevent keyboard events from
@@ -2234,10 +2269,22 @@ class Editor(SpyderPluginWidget):
                 editorstack.set_blanks_enabled(checked)
 
     @Slot(bool)
+    def toggle_scroll_past_end(self, checked):
+        if self.editorstacks:
+            for editorstack in self.editorstacks:
+                editorstack.set_scrollpastend_enabled(checked)
+
+    @Slot(bool)
     def toggle_show_indent_guides(self, checked):
         if self.editorstacks:
             for editorstack in self.editorstacks:
                 editorstack.set_indent_guides(checked)
+
+    @Slot(bool)
+    def toggle_show_classfunc_dropdown(self, checked):
+        if self.editorstacks:
+            for editorstack in self.editorstacks:
+                editorstack.set_classfunc_dropdown_visible(checked)
 
     @Slot()
     def remove_trailing_spaces(self):
@@ -2475,11 +2522,6 @@ class Editor(SpyderPluginWidget):
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
-        # Fixes 2034
-        editor = self.get_current_editor()
-        if editor.get_breakpoints():
-            time.sleep(0.5)
-            self.debug_command('continue')
 
     @Slot()
     def re_run_file(self):
@@ -2586,6 +2628,8 @@ class Editor(SpyderPluginWidget):
             linenb_o = self.get_option(linenb_n)
             blanks_n = 'blank_spaces'
             blanks_o = self.get_option(blanks_n)
+            scrollpastend_n = 'scroll_past_end'
+            scrollpastend_o = self.get_option(scrollpastend_n)
             edgeline_n = 'edge_line'
             edgeline_o = self.get_option(edgeline_n)
             edgelinecols_n = 'edge_line_columns'
@@ -2655,6 +2699,9 @@ class Editor(SpyderPluginWidget):
                 if blanks_n in options:
                     editorstack.set_blanks_enabled(blanks_o)
                     self.showblanks_action.setChecked(blanks_o)
+                if scrollpastend_n in options:
+                    editorstack.set_scrollpastend_enabled(scrollpastend_o)
+                    self.scrollpastend_action.setChecked(scrollpastend_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:

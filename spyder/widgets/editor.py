@@ -24,15 +24,15 @@ from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
                          QThread, QTimer, Signal, Slot)
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
-                            QMessageBox, QMenu, QSplitter, QVBoxLayout,
-                            QWidget, QListWidget, QListWidgetItem)
+from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
+                            QMainWindow, QMessageBox, QMenu, QSplitter,
+                            QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
 from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter)
+                                 get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
@@ -304,7 +304,12 @@ class StackHistory(MutableSequence):
         return len(self.history)
 
     def __getitem__(self, i):
-        return self.id_list.index(self.history[i])
+        self._update_id_list()
+        try:
+            return self.id_list.index(self.history[i])
+        except ValueError:
+            self.refresh()
+            raise IndexError
 
     def __delitem__(self, i):
         del self.history[i]
@@ -339,7 +344,7 @@ class TabSwitcherWidget(QListWidget):
 
     def __init__(self, parent, stack_history, tabs):
         QListWidget.__init__(self, parent)
-        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint | Qt.Dialog)
 
         self.editor = parent
         self.stack_history = stack_history
@@ -354,6 +359,11 @@ class TabSwitcherWidget(QListWidget):
         self.resize(*size)
         self.set_dialog_position()
         self.setCurrentRow(0)
+
+        config_shortcut(lambda: self.select_row(-1), context='Editor',
+                        name='Go to previous file', parent=self)
+        config_shortcut(lambda: self.select_row(1), context='Editor',
+                        name='Go to next file', parent=self)
 
     def load_data(self):
         """Fill ListWidget with the tabs texts.
@@ -373,10 +383,13 @@ class TabSwitcherWidget(QListWidget):
             item = self.currentItem()
 
         # stack history is in inverse order
-        index = self.stack_history[-(self.currentRow()+1)]
-
-        self.editor.set_stack_index(index)
-        self.editor.current_changed(index)
+        try:
+            index = self.stack_history[-(self.currentRow()+1)]
+        except IndexError:
+            pass
+        else:
+            self.editor.set_stack_index(index)
+            self.editor.current_changed(index)
         self.hide()
 
     def select_row(self, steps):
@@ -389,11 +402,33 @@ class TabSwitcherWidget(QListWidget):
 
     def set_dialog_position(self):
         """Positions the tab switcher in the top-center of the editor."""
-        parent = self.parent()
-        left = parent.geometry().width()/2 - self.width()/2
-        top = 0
+        left = self.editor.geometry().width()/2 - self.width()/2
+        top = self.editor.tabs.tabBar().geometry().height()
 
-        self.move(left, top + self.tabs.tabBar().geometry().height())
+        self.move(self.editor.mapToGlobal(QPoint(left, top)))
+
+    def keyReleaseEvent(self, event):
+        """Reimplement Qt method.
+
+        Handle "most recent used" tab behavior,
+        When ctrl is released and tab_switcher is visible, tab will be changed.
+        """
+        if self.isVisible():
+            qsc = get_shortcut(context='Editor', name='Go to next file')
+
+            for key in qsc.split('+'):
+                key = key.lower()
+                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
+                   (key == 'alt' and event.key() == Qt.Key_Alt)):
+                        self.item_selected()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        """Reimplement Qt method to allow cyclic behavior."""
+        if event.key() == Qt.Key_Down:
+            self.select_row(1)
+        elif event.key() == Qt.Key_Up:
+            self.select_row(-1)
 
 
 class EditorStack(QWidget):
@@ -435,6 +470,8 @@ class EditorStack(QWidget):
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
+    sig_prev_warning = Signal()
+    sig_next_warning = Signal()
     perform_lsp_request = Signal(str, str, dict)
 
     def __init__(self, parent, actions):
@@ -515,6 +552,7 @@ class EditorStack(QWidget):
         self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.blanks_enabled = False
+        self.scrollpastend_enabled = False
         self.edgeline_enabled = True
         self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
@@ -528,7 +566,7 @@ class EditorStack(QWidget):
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width_spaces = 4
-        self.show_class_func_dropdown = True
+        self.show_class_func_dropdown = False
         self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -569,6 +607,10 @@ class EditorStack(QWidget):
 
         # Reference to save msgbox and avoid memory to be freed.
         self.msgbox = None
+
+        # File types and filters used by the Save As dialog
+        self.edit_filetypes = None
+        self.edit_filters = None
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -670,6 +712,14 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="re-run last cell",
                                       parent=self)
+        prev_warning = config_shortcut(lambda: self.sig_prev_warning.emit(),
+                                       context="Editor",
+                                       name="Previous warning",
+                                       parent=self)
+        next_warning = config_shortcut(lambda: self.sig_next_warning.emit(),
+                                       context="Editor",
+                                       name="Next warning",
+                                       parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -677,7 +727,8 @@ class EditorStack(QWidget):
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell]
+                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+                prev_warning, next_warning]
 
     def get_shortcut_data(self):
         """
@@ -749,6 +800,12 @@ class EditorStack(QWidget):
     def closeEvent(self, event):
         self.threadmanager.close_all_threads()
         self.analysis_timer.timeout.disconnect(self.analyze_script)
+
+        # Remove editor references from the outline explorer settings
+        if self.outlineexplorer is not None:
+            for finfo in self.data:
+                self.outlineexplorer.remove_editor(finfo.editor)
+
         QWidget.closeEvent(self, event)
         if is_pyqt46:
             self.destroyed.emit()
@@ -936,6 +993,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
+
+    def set_scrollpastend_enabled(self, state):
+        self.scrollpastend_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_scrollpastend_enabled(state)
 
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
@@ -1354,7 +1417,6 @@ class EditorStack(QWidget):
 
         is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
-            print(self.tabs.widget(index).language)
             finfo = self.data[index]
             self.threadmanager.close_threads(finfo)
             # Removing editor reference from outline explorer settings:
@@ -1374,8 +1436,6 @@ class EditorStack(QWidget):
                 # (if it's not the first editortabwidget)
                 self.close()
 
-            languages = self.poll_open_file_languages()
-            self.active_languages_stats.emit(languages)
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
             self._refresh_outlineexplorer()
@@ -1551,7 +1611,7 @@ class EditorStack(QWidget):
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
                                         str(error)),
-                      self)
+                    parent=self)
             self.msgbox.exec_()
             return False
 
@@ -1568,12 +1628,29 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
+        """Select a name to save a file."""
+        if self.edit_filetypes is None:
+            self.edit_filetypes = get_edit_filetypes()
+        if self.edit_filters is None:
+            self.edit_filters = get_edit_filters()
+
+        # Don't use filters on KDE to not make the dialog incredible
+        # slow
+        # Fixes issue 4156
+        if is_kde_desktop() and not is_anaconda():
+            filters = ''
+            selectedfilter = ''
+        else:
+            filters = self.edit_filters
+            selectedfilter = get_filter(self.edit_filetypes,
+                                        osp.splitext(original_filename)[1])
+
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                       original_filename,
-                                       get_edit_filters(),
-                                       get_filter(get_edit_filetypes(),
-                                           osp.splitext(original_filename)[1]))
+                                    original_filename,
+                                    filters=filters,
+                                    selectedfilter=selectedfilter,
+                                    options=QFileDialog.HideNameFilterDetails)
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -1644,7 +1721,7 @@ class EditorStack(QWidget):
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
                                         str(error)),
-                      self)
+                    parent=self)
                 self.msgbox.exec_()
         else:
             return False
@@ -1719,16 +1796,20 @@ class EditorStack(QWidget):
 
         self.update_plugin_title.emit()
         if editor is not None:
-            self.current_file_changed.emit(self.data[index].filename,
+            # Needed in order to handle the close of files open in a directory
+            # that has been renamed. See issue 5157
+            try:
+                self.current_file_changed.emit(self.data[index].filename,
                                            editor.get_position('cursor'))
+            except IndexError:
+                pass
 
     def _get_previous_file_index(self):
-        if len(self.stack_history) > 1:
-            last = len(self.stack_history)-1
-            w_id = self.stack_history.pop(last)
-            self.stack_history.insert(0, w_id)
-
-            return self.stack_history[last]
+        """Return the penultimate element of the stack history."""
+        try:
+            return self.stack_history[-2]
+        except IndexError:
+            return None
 
     def tab_navigation_mru(self, forward=True):
         """
@@ -1741,12 +1822,11 @@ class EditorStack(QWidget):
             True: move to next file
             False: move to previous file
         """
-        if self.tabs_switcher is None or not self.tabs_switcher.isVisible():
-            self.tabs_switcher = TabSwitcherWidget(self, self.stack_history,
-                                                   self.tabs)
-            self.tabs_switcher.show()
-
+        self.tabs_switcher = TabSwitcherWidget(self, self.stack_history,
+                                               self.tabs)
+        self.tabs_switcher.show()
         self.tabs_switcher.select_row(1 if forward else -1)
+        self.tabs_switcher.setFocus()
 
     def focus_changed(self):
         """Editor focus has changed"""
@@ -1992,6 +2072,7 @@ class EditorStack(QWidget):
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
                 show_blanks=self.blanks_enabled,
+                scroll_past_end=self.scrollpastend_enabled,
                 edge_line=self.edgeline_enabled,
                 edge_line_columns=self.edgeline_columns, language=language,
                 markers=self.has_markers(), font=self.default_font,
@@ -2038,10 +2119,6 @@ class EditorStack(QWidget):
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
-        if self.outlineexplorer is not None:
-            # Removing editor reference from outline explorer settings:
-            editor.destroyed.connect(lambda obj=editor:
-                                     self.outlineexplorer.remove_editor(obj))
 
         self.find_widget.set_editor(editor)
 
@@ -2250,25 +2327,6 @@ class EditorStack(QWidget):
             if editor is not None:
                 editor.insert_text( source.text() )
         event.acceptProposedAction()
-
-    def keyReleaseEvent(self, event):
-        """Reimplement Qt method.
-
-        Handle "most recent used" tab behavior,
-        When ctrl is released and tab_switcher is visible, tab will be changed.
-        """
-        if self.tabs_switcher is not None and self.tabs_switcher.isVisible():
-            qsc = get_shortcut(context='Editor', name='Go to next file')
-
-            for key in qsc.split('+'):
-                key = key.lower()
-                if ((key == 'ctrl' and event.key() == Qt.Key_Control) or
-                   (key == 'alt' and event.key() == Qt.Key_Alt)):
-                        self.tabs_switcher.item_selected()
-                        self.tabs_switcher = None
-                        return
-
-        super(EditorStack, self).keyReleaseEvent(event)
 
 
 class EditorSplitter(QSplitter):

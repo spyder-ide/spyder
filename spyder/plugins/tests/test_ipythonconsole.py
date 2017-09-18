@@ -64,7 +64,10 @@ def get_console_background_color(style_sheet):
 #==============================================================================
 @pytest.fixture
 def ipyconsole(request):
-    console = IPythonConsole(None, testing=True)
+    try:
+        console = IPythonConsole(None, testing=True, test_dir=request.param)
+    except AttributeError:
+        console = IPythonConsole(None, testing=True)
     console.create_new_client()
     def close_console():
         console.closing_plugin()
@@ -77,7 +80,30 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@pytest.mark.parametrize('ipyconsole', [osp.join(TEMP_DIRECTORY, u'測試',
+                                                 u'اختبار')], indirect=True)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_console_stderr_file(ipyconsole, qtbot):
+    """Test a the creation of a console with a stderr file in ascii dir."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create a new client with s stderr file in a non-ascii dir
+    ipyconsole.create_new_client()
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 1')
+
+    # Assert we get the a value correctly
+    assert shell.get_value('a') == 1
+
+
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_console_import_namespace(ipyconsole, qtbot):
     """Test an import of the form 'from foo import *'."""
     # Wait until the window is fully up
@@ -285,7 +311,8 @@ def test_read_stderr(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(True, reason="It times out too much (to check later)")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It times out in our CIs")
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
@@ -427,7 +454,8 @@ def test_mpl_backend_change(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or PYQT5,
+                    reason="It fails frequently in PyQt5 and our CIs")
 def test_ctrl_c_dbg(ipyconsole, qtbot):
     """
     Test that Ctrl+C works while debugging
@@ -483,7 +511,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.wait(500)
     assert shell.get_value('bb') == 10
 
-    shell.reset_namespace(force=True)
+    shell.reset_namespace(warning=False, silent=True)
     qtbot.wait(1000)
 
     qtbot.keyClicks(control, '!bb')

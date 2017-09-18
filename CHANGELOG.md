@@ -1,5 +1,144 @@
 # History of changes
 
+## Version 3.2.3 (2017-09-11)
+
+### New features
+
+* Add a button to the Variable Explorer to remove to remove all variables at
+  once.
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 5167](https://github.com/spyder-ide/spyder/issues/5167) - AttributeError when using outline and split code 
+* [Issue 5165](https://github.com/spyder-ide/spyder/issues/5165) - 'Execute in external system terminal' unwantedly uses python2 on ubuntu16.04
+* [Issue 5158](https://github.com/spyder-ide/spyder/issues/5158) - AttributeError: 'super' object has no attribute '_handle_error' in IPython console
+* [Issue 5157](https://github.com/spyder-ide/spyder/issues/5157) - Renaming file containing folders yields IndexError.
+* [Issue 5144](https://github.com/spyder-ide/spyder/issues/5144) - pip created executable name changes between versions
+* [Issue 5114](https://github.com/spyder-ide/spyder/issues/5114) - KeyboardInterrupt error in waitingspinner
+* [Issue 4680](https://github.com/spyder-ide/spyder/issues/4680) - Debug: "Run Current Line" past the end of a script doesn't exit the debugger
+* [Issue 4313](https://github.com/spyder-ide/spyder/issues/4313) - "unblockcomment" incompatible with "automatically remove trailing spaces"
+* [Issue 3390](https://github.com/spyder-ide/spyder/issues/3390) - RuntimeError when using outline and split code editor
+* [Issue 313](https://github.com/spyder-ide/spyder/issues/313) - Variable Explorer: Add a button to remove all variables at once
+
+In this release 10 issues were closed
+
+**Pull requests**
+
+* [PR 5181](https://github.com/spyder-ide/spyder/pull/5181) - PR: Use get_python_executable to run in external terminals
+* [PR 5166](https://github.com/spyder-ide/spyder/pull/5166) - PR: Fix RuntimeError and AttributeError when using outline and split code editor
+* [PR 5164](https://github.com/spyder-ide/spyder/pull/5164) - PR: Stop creating universal wheels
+* [PR 5163](https://github.com/spyder-ide/spyder/pull/5163) - PR: Add handling for IndexError in the Editor when renaming folder containing file
+* [PR 5162](https://github.com/spyder-ide/spyder/pull/5162) - PR: Don't use super in _handle_error method of IPython console
+* [PR 5129](https://github.com/spyder-ide/spyder/pull/5129) - PR: Avoid KeyboardInterrupt to raise an error in waitingspinner
+* [PR 5089](https://github.com/spyder-ide/spyder/pull/5089) - PR: Exit the debugger if we are about to enter to sitecustomize.py
+* [PR 5017](https://github.com/spyder-ide/spyder/pull/5017) - PR: Fix unblock comments
+* [PR 4885](https://github.com/spyder-ide/spyder/pull/4885) - PR: Add a button in the Variable Explorer toolbar to reset namespace
+
+In this release 9 pull requests were merged
+
+
+----
+
+
+## Version 3.2.2 (2017-09-05)
+
+### New features
+
+* Add a button to Find in Files to make searches case sensitive.
+* Extend Find in Files to select other search directories.
+* Add an option to set cursor blinking speed in miliseconds in
+  `Preferences > General > Interface > Cursor blinking`.
+* Add checkboxes to PYTHONPATH manager to enable/disable paths.
+* Show the number of matches in the Find/Replace widget.
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 5111](https://github.com/spyder-ide/spyder/issues/5111) - Unable to save file in Python
+* [Issue 5074](https://github.com/spyder-ide/spyder/issues/5074) - Editor - Cannot close a (vertical) split after open
+* [Issue 5040](https://github.com/spyder-ide/spyder/issues/5040) - Word operators do not have a color style in the IPython console
+* [Issue 5026](https://github.com/spyder-ide/spyder/issues/5026) - Increase the limit of DPI setting for IPython inline graphics 
+* [Issue 5019](https://github.com/spyder-ide/spyder/issues/5019) - IPython consoles can't start if Spyder temp directory is missing
+* [Issue 5014](https://github.com/spyder-ide/spyder/issues/5014) - BUG: Error editing element of numpy array in variable explorer
+* [Issue 4989](https://github.com/spyder-ide/spyder/issues/4989) - Spyder Issue when using ctrl+P : goto line 
+* [Issue 4981](https://github.com/spyder-ide/spyder/issues/4981) - Unable to start Array builder using keyboard shortcut
+* [Issue 4970](https://github.com/spyder-ide/spyder/issues/4970) - Console slow to close when debugging
+* [Issue 4953](https://github.com/spyder-ide/spyder/issues/4953) - Consistent layout in different panes
+* [Issue 4934](https://github.com/spyder-ide/spyder/issues/4934) - "Replace selection" adds "\." anytime the string to be added contains "."
+* [Issue 4921](https://github.com/spyder-ide/spyder/issues/4921) - IPython: Run Code at Startup - Magics
+* [Issue 4881](https://github.com/spyder-ide/spyder/issues/4881) - Force-stop does not work on hanged progress.
+* [Issue 4879](https://github.com/spyder-ide/spyder/issues/4879) - Run Configuration per file: Working Directory not remembered
+* [Issue 4851](https://github.com/spyder-ide/spyder/issues/4851) - Error when trying to load third-party plugins
+* [Issue 4844](https://github.com/spyder-ide/spyder/issues/4844) - Pressing Ctrl+Tab wanting to switch to another tab raises an IndexError
+* [Issue 4839](https://github.com/spyder-ide/spyder/issues/4839) - Make Spyder remember tab order
+* [Issue 4836](https://github.com/spyder-ide/spyder/issues/4836) - Kernels fail to start because they can't create stderr files in non-ascii accounts on Windows
+* [Issue 4829](https://github.com/spyder-ide/spyder/issues/4829) - SPYDER_DEBUG=3 is failing on Windows
+* [Issue 4819](https://github.com/spyder-ide/spyder/issues/4819) - Find in Files should have ignore case flag
+* [Issue 4814](https://github.com/spyder-ide/spyder/issues/4814) - Extend Find in Files to select other directories
+* [Issue 4684](https://github.com/spyder-ide/spyder/issues/4684) - Array editor: Change default float formatter from %.3f to %.6g
+* [Issue 4681](https://github.com/spyder-ide/spyder/issues/4681) - Debug: If a breakpoint is on the first line of a script the whole script runs
+* [Issue 4504](https://github.com/spyder-ide/spyder/issues/4504) - Exceptions swallow the prompt!
+* [Issue 4444](https://github.com/spyder-ide/spyder/issues/4444) - Add icon to mac dock when running with bootstrap
+* [Issue 4410](https://github.com/spyder-ide/spyder/issues/4410) - Editor autocompletion and help extraction not working in Spyder 3.1.4
+* [Issue 4277](https://github.com/spyder-ide/spyder/issues/4277) - Option to Disable Blinking Cursor
+* [Issue 4221](https://github.com/spyder-ide/spyder/issues/4221) - Spyder stops executing commands if Variable explorer shows complicated objects
+* [Issue 4001](https://github.com/spyder-ide/spyder/issues/4001) - Ctrl+F should show the number of appearances in the file as #current/#total
+* [Issue 3529](https://github.com/spyder-ide/spyder/issues/3529) - Spyder 3 opens a command prompt window when running certain commands
+* [Issue 1105](https://github.com/spyder-ide/spyder/issues/1105) - Add the possibility to disable entries in the PYTHONPATH manager
+
+In this release 31 issues were closed
+
+**Pull requests**
+
+* [PR 5128](https://github.com/spyder-ide/spyder/pull/5128) - PR: Skip package names that end in certain suffixes when loading third-party plugins
+* [PR 5125](https://github.com/spyder-ide/spyder/pull/5125) - PR: Correctly move to first breakpoint after entering debugging
+* [PR 5118](https://github.com/spyder-ide/spyder/pull/5118) - PR: Fix error when creating some error messagebox
+* [PR 5110](https://github.com/spyder-ide/spyder/pull/5110) - PR: Add handling for non existing indexes in IPython Console clients
+* [PR 5109](https://github.com/spyder-ide/spyder/pull/5109) - PR: Add more handling to actions with reference deleted
+* [PR 5094](https://github.com/spyder-ide/spyder/pull/5094) - PR: Deactivate editor actions when Tab Swither is shown
+* [PR 5093](https://github.com/spyder-ide/spyder/pull/5093) - PR: Skip some tests in our CIs
+* [PR 5086](https://github.com/spyder-ide/spyder/pull/5086) - PR: Don't run continue when starting debug if there is a breakpoint in the first line with code.
+* [PR 5079](https://github.com/spyder-ide/spyder/pull/5079) - PR: Create Spyder TEMPDIR if it does not exist when creating new consoles
+* [PR 5078](https://github.com/spyder-ide/spyder/pull/5078) - PR: Fix cwd issues in the "Run > Configuration per file" dialog
+* [PR 5069](https://github.com/spyder-ide/spyder/pull/5069) - PR: Increase waiting time and repetitions for tests that enter debugging
+* [PR 5064](https://github.com/spyder-ide/spyder/pull/5064) - PR: Fix 1D Numpy arrays edition in the Variable Explorer
+* [PR 5051](https://github.com/spyder-ide/spyder/pull/5051) - PR: Make inactive paths to be ignored when Spyder's path list is synchronized with PYTHONPATH on Windows
+* [PR 5048](https://github.com/spyder-ide/spyder/pull/5048) - PR: Increase dpi limit of inline plots
+* [PR 5045](https://github.com/spyder-ide/spyder/pull/5045) - PR: Allow values with '%' in config system
+* [PR 5042](https://github.com/spyder-ide/spyder/pull/5042) - PR: Add a style for word operator tokens in the IPython pygments dictionary
+* [PR 5028](https://github.com/spyder-ide/spyder/pull/5028) - PR: Make value_to_display more robust
+* [PR 5027](https://github.com/spyder-ide/spyder/pull/5027) - PR: Increase tries for a couple of flaky tests
+* [PR 5013](https://github.com/spyder-ide/spyder/pull/5013) - PR: Add test with non-ascii directory for consoles stderr file
+* [PR 5008](https://github.com/spyder-ide/spyder/pull/5008) - PR: Fix setting SPYDER_DEBUG variable on Windows
+* [PR 4993](https://github.com/spyder-ide/spyder/pull/4993) - PR: Fix handling of line count in the fileswitcher
+* [PR 4992](https://github.com/spyder-ide/spyder/pull/4992) - PR: Prevent subprocess.Popen calls to create visible consoles on Windows.
+* [PR 4991](https://github.com/spyder-ide/spyder/pull/4991) - PR: Remove regex escape characters from replacement string on the Find/Replace widget
+* [PR 4990](https://github.com/spyder-ide/spyder/pull/4990) - PR: Fix shortcut to make array builders appear in the IPython Console
+* [PR 4978](https://github.com/spyder-ide/spyder/pull/4978) - PR: Minor fixes in Find in Files
+* [PR 4971](https://github.com/spyder-ide/spyder/pull/4971) - PR: Stop console before closing it
+* [PR 4962](https://github.com/spyder-ide/spyder/pull/4962) - PR: Send Spyder python path to introspection plugins
+* [PR 4961](https://github.com/spyder-ide/spyder/pull/4961) - PR: Reduce row height in shortcut dialog
+* [PR 4957](https://github.com/spyder-ide/spyder/pull/4957) - PR: Clean Spyder config before re-running our tests
+* [PR 4955](https://github.com/spyder-ide/spyder/pull/4955) - PR: Change format in array and dataframe editors
+* [PR 4954](https://github.com/spyder-ide/spyder/pull/4954) - PR: Unify layout for panes and widgets
+* [PR 4914](https://github.com/spyder-ide/spyder/pull/4914) - PR: Display prompt after errors
+* [PR 4880](https://github.com/spyder-ide/spyder/pull/4880) - PR: Preserve order when saving/loading files from a project.
+* [PR 4822](https://github.com/spyder-ide/spyder/pull/4822) - PR: Extend Find in Files to select other search directories
+* [PR 4820](https://github.com/spyder-ide/spyder/pull/4820) - PR: Add a button to Find in Files to make searches case sensitive
+* [PR 4758](https://github.com/spyder-ide/spyder/pull/4758) - PR: Add an option to set cursor blinking speed in miliseconds
+* [PR 4756](https://github.com/spyder-ide/spyder/pull/4756) - PR: Add checkboxes to PYTHONPATH manager to enable/disable paths
+* [PR 4443](https://github.com/spyder-ide/spyder/pull/4443) - PR: Add icon earlier when running application
+* [PR 4060](https://github.com/spyder-ide/spyder/pull/4060) - PR: Show the number of matches in the Find/Replace widget
+
+In this release 39 pull requests were merged
+
+
+----
+
+
 ## Version 3.2.1 (2017-08-13)
 
 ### Bugs fixed

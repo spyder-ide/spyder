@@ -145,6 +145,7 @@ DEFAULTS = [
               'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': False,
+              'show_reset_namespace_warning': True,
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
@@ -196,11 +197,12 @@ DEFAULTS = [
               'edge_line': True,
               'edge_line_columns': '79',
               'indent_guides': False,
+              'scroll_past_end': False,
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
               'close_parentheses': True,
-              'close_quotes': False,
+              'close_quotes': True,
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
@@ -217,7 +219,7 @@ DEFAULTS = [
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'show_tab_bar': True,
-              'show_class_func_dropdown': True,
+              'show_class_func_dropdown': False,
               'max_recent_files': 20,
               'save_all_before_run': True,
               'focus_to_editor': True,
@@ -395,6 +397,8 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/previous warning': "Ctrl+Alt+Shift+,",
+              'editor/next warning': "Ctrl+Alt+Shift+.",
               'editor/zoom in 1': "Ctrl++",
               'editor/zoom in 2': "Ctrl+=",
               'editor/zoom out': "Ctrl+-",
@@ -646,7 +650,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '40.1.0'
+CONF_VERSION = '40.3.0'
 
 # Main configuration instance
 try:
