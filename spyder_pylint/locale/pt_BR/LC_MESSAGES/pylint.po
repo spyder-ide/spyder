@@ -16,143 +16,143 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 1.7.4\n"
 
-#: spyder_pylint/pylint.py:35
+#: spyder/plugins/pylint/plugin.py:35
 msgid "Settings"
 msgstr "Configurações"
 
-#: spyder_pylint/pylint.py:36
+#: spyder/plugins/pylint/plugin.py:36
 msgid "Save file before analyzing it"
 msgstr "Salvar arquivo antes de analisá-lo"
 
-#: spyder_pylint/pylint.py:39 spyder_pylint/pylint.py:160
+#: spyder/plugins/pylint/plugin.py:39 spyder/plugins/pylint/plugin.py:160
 msgid "History"
 msgstr "Histórico"
 
-#: spyder_pylint/pylint.py:40
+#: spyder/plugins/pylint/plugin.py:40
 msgid "The following option will be applied at next startup."
 msgstr ""
 "A seguinte opção será aplicada na próxima vez que o Spyder for iniciado."
 
-#: spyder_pylint/pylint.py:43
+#: spyder/plugins/pylint/plugin.py:43
 msgid "History: "
 msgstr "Histórico:"
 
-#: spyder_pylint/pylint.py:44
+#: spyder/plugins/pylint/plugin.py:44
 msgid " results"
 msgstr " resultados"
 
-#: spyder_pylint/pylint.py:47
+#: spyder/plugins/pylint/plugin.py:47
 msgid "Results"
 msgstr "Resultados"
 
-#: spyder_pylint/pylint.py:48
+#: spyder/plugins/pylint/plugin.py:48
 msgid "Results are stored here:"
 msgstr "Os resultados são armazenados aqui:"
 
-#: spyder_pylint/pylint.py:98 spyder_pylint/widgets/pylintgui.py:83
+#: spyder/plugins/pylint/plugin.py:98 spyder/plugins/pylint/widgets/pylintgui.py:83
 msgid "Static code analysis"
 msgstr "Análise de código"
 
-#: spyder_pylint/pylint.py:115
+#: spyder/plugins/pylint/plugin.py:115
 msgid "History..."
 msgstr "Histórico..."
 
-#: spyder_pylint/pylint.py:117
+#: spyder/plugins/pylint/plugin.py:117
 msgid "Set history maximum entries"
 msgstr "Definir número máximo de entradas para o histórico"
 
-#: spyder_pylint/pylint.py:133
+#: spyder/plugins/pylint/plugin.py:133
 msgid "Run static code analysis"
 msgstr "Executar análise de código"
 
-#: spyder_pylint/pylint.py:161
+#: spyder/plugins/pylint/plugin.py:161
 msgid "Maximum entries"
 msgstr "Número máximo de entradas"
 
-#: spyder_pylint/widgets/pylintgui.py:117
+#: spyder/plugins/pylint/widgets/pylintgui.py:117
 msgid "Results for "
 msgstr "Resultados para "
 
-#: spyder_pylint/widgets/pylintgui.py:122
+#: spyder/plugins/pylint/widgets/pylintgui.py:122
 msgid "Convention"
 msgstr "Convention"
 
-#: spyder_pylint/widgets/pylintgui.py:124
+#: spyder/plugins/pylint/widgets/pylintgui.py:124
 msgid "Refactor"
 msgstr "Refatoração"
 
-#: spyder_pylint/widgets/pylintgui.py:126
+#: spyder/plugins/pylint/widgets/pylintgui.py:126
 msgid "Warning"
 msgstr "Aviso"
 
-#: spyder_pylint/widgets/pylintgui.py:128
-#: spyder_pylint/widgets/pylintgui.py:363
-#: spyder_pylint/widgets/pylintgui.py:391
+#: spyder/plugins/pylint/widgets/pylintgui.py:128
+#: spyder/plugins/pylint/widgets/pylintgui.py:363
+#: spyder/plugins/pylint/widgets/pylintgui.py:391
 msgid "Error"
 msgstr "Erro"
 
-#: spyder_pylint/widgets/pylintgui.py:206
+#: spyder/plugins/pylint/widgets/pylintgui.py:206
 msgid "Analyze"
 msgstr "Analisar"
 
-#: spyder_pylint/widgets/pylintgui.py:207
+#: spyder/plugins/pylint/widgets/pylintgui.py:207
 msgid "Run analysis"
 msgstr "Executar análise"
 
-#: spyder_pylint/widgets/pylintgui.py:211
+#: spyder/plugins/pylint/widgets/pylintgui.py:211
 msgid "Stop"
 msgstr "Parar"
 
-#: spyder_pylint/widgets/pylintgui.py:212
+#: spyder/plugins/pylint/widgets/pylintgui.py:212
 msgid "Stop current analysis"
 msgstr "Parar análise atual"
 
-#: spyder_pylint/widgets/pylintgui.py:218
-#: spyder_pylint/widgets/pylintgui.py:288
+#: spyder/plugins/pylint/widgets/pylintgui.py:218
+#: spyder/plugins/pylint/widgets/pylintgui.py:288
 msgid "Select Python file"
 msgstr "Selecionar arquivo Python"
 
-#: spyder_pylint/widgets/pylintgui.py:224
+#: spyder/plugins/pylint/widgets/pylintgui.py:224
 msgid "Output"
 msgstr "Saída"
 
-#: spyder_pylint/widgets/pylintgui.py:226
+#: spyder/plugins/pylint/widgets/pylintgui.py:226
 msgid "Complete output"
 msgstr "Saída completa"
 
-#: spyder_pylint/widgets/pylintgui.py:260
+#: spyder/plugins/pylint/widgets/pylintgui.py:260
 msgid "Pylint script was not found. Please add \"%s\" to PATH."
 msgstr ""
 "O script do Pylint não foi encontrada. Por favor adicione \"%s\" ao PATH."
 
-#: spyder_pylint/widgets/pylintgui.py:263
+#: spyder/plugins/pylint/widgets/pylintgui.py:263
 msgid "Please install <b>pylint</b>:"
 msgstr "Por favor instale o <b>pylint</b>:"
 
-#: spyder_pylint/widgets/pylintgui.py:289
+#: spyder/plugins/pylint/widgets/pylintgui.py:289
 msgid "Python files"
 msgstr "Arquivos Python"
 
-#: spyder_pylint/widgets/pylintgui.py:326
+#: spyder/plugins/pylint/widgets/pylintgui.py:326
 msgid "Pylint output"
 msgstr "Saída do Pylint"
 
-#: spyder_pylint/widgets/pylintgui.py:364
+#: spyder/plugins/pylint/widgets/pylintgui.py:364
 msgid "Process failed to start"
 msgstr "O processo falhou ao iniciar"
 
-#: spyder_pylint/widgets/pylintgui.py:465
+#: spyder/plugins/pylint/widgets/pylintgui.py:465
 msgid "Source code has not been rated yet."
 msgstr "O código fonte não foi avaliado ainda."
 
-#: spyder_pylint/widgets/pylintgui.py:471
+#: spyder/plugins/pylint/widgets/pylintgui.py:471
 msgid "Analysis did not succeed (see output for more details)."
 msgstr "A análise não foi bem sucedida (veja a saída para mais detalhes)."
 
-#: spyder_pylint/widgets/pylintgui.py:484
+#: spyder/plugins/pylint/widgets/pylintgui.py:484
 msgid "Global evaluation:"
 msgstr "Avaliação global:"
 
-#: spyder_pylint/widgets/pylintgui.py:488
+#: spyder/plugins/pylint/widgets/pylintgui.py:488
 msgid "previous run:"
 msgstr "análise anterior:"
