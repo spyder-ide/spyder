@@ -428,6 +428,7 @@ class Editor(SpyderPluginWidget):
         # (see spyder.py: 'update_edit_menu' method)
         self.search_menu_actions = None #XXX: same thing ('update_search_menu')
         self.stack_menu_actions = None
+        self.checkable_actions = {}
         
         # Initialize plugin
         self.initialize_plugin()
@@ -1004,10 +1005,10 @@ class Editor(SpyderPluginWidget):
                                       triggered=self.remove_trailing_spaces)
 
         # Checkable actions
-        self.showblanks_action = self._create_checkable_action(
+        showblanks_action = self._create_checkable_action(
                 _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
 
-        self.scrollpastend_action = self._create_checkable_action(
+        scrollpastend_action = self._create_checkable_action(
                  _("Scroll past the end"), 'scroll_past_end',
                  'set_scrollpastend_enabled')
 
@@ -1018,9 +1019,11 @@ class Editor(SpyderPluginWidget):
                 _("Show selector for classes and functions."),
                 'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
-        self.checkable_actions = [self.showblanks_action, self.scrollpastend_action,
-                                  showindentguides_action,
-                                  show_classfunc_dropdown_action]
+        self.checkable_actions = {
+                'blank_spaces': showblanks_action,
+                'scroll_past_end': scrollpastend_action,
+                'indent_guides': showindentguides_action,
+                'show_class_func_dropdown': show_classfunc_dropdown_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -1140,8 +1143,8 @@ class Editor(SpyderPluginWidget):
 
         # ---- Source menu/toolbar construction ----
         source_menu_actions = [eol_menu,
-                               self.showblanks_action,
-                               self.scrollpastend_action,
+                               showblanks_action,
+                               scrollpastend_action,
                                showindentguides_action,
                                show_classfunc_dropdown_action,
                                trailingspaces_action,
@@ -2658,23 +2661,13 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_fullpath_sorting_enabled(fpsorting_o)
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
-                if classfuncdropdown_n in options:
-                    editorstack.set_classfunc_dropdown_visible(classfuncdropdown_o)
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
-                if blanks_n in options:
-                    editorstack.set_blanks_enabled(blanks_o)
-                    self.showblanks_action.setChecked(blanks_o)
-                if scrollpastend_n in options:
-                    editorstack.set_scrollpastend_enabled(scrollpastend_o)
-                    self.scrollpastend_action.setChecked(scrollpastend_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:
                     editorstack.set_edgeline_columns(edgelinecols_o)
-                if indentguides_n in options:
-                    editorstack.set_indent_guides(indentguides_o)
                 if wrap_n in options:
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
@@ -2719,6 +2712,12 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_realtime_analysis_enabled(rt_analysis_o)
                 if rta_timeout_n in options:
                     editorstack.set_realtime_analysis_timeout(rta_timeout_o)
+
+            for name, action in self.checkable_actions.items():
+                if name in options:
+                    state = self.get_option(name)
+                    action.setChecked(state)
+                    action.trigger()
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
