@@ -30,7 +30,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, get_conf_path, PYTEST
+from spyder.config.base import _, get_conf_path, PYTEST, debug_print
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -1228,7 +1228,43 @@ class Editor(SpyderPluginWidget):
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
-        
+
+    def _create_checkable_action(self, text, conf_name, editorstack_method):
+        """Helper function to create a checkable action.
+
+        Args:
+            text (str): Text to be displayed in the action.
+            conf_name (str): configuration setting associated with the action
+            editorstack_method (str): name of EditorStack class that will be
+                used to update the changes in each editorstack.
+        """
+        def toogle(checked):
+            self._toggle_checkable_action(checked, editorstack_method,
+                                          conf_name)
+        action = create_action(self, text, toggled=toogle)
+        action.setChecked(CONF.get('editor', conf_name))
+        return action
+
+    @Slot(bool, str, str)
+    def _toggle_checkable_action(self, checked, editorstack_method, conf_name):
+        """Handle the toogle of a checkable action.
+
+        Update editorstacks and the configuration.
+
+        Args:
+            checked (bool): State of the action.
+            editorstack_method (str): name of EditorStack class that will be
+                used to update the changes in each editorstack.
+            conf_name (str): configuration setting associated with the action.
+        """
+        if self.editorstacks:
+            for editorstack in self.editorstacks:
+                try:
+                    editorstack.__getattribute__(editorstack_method)(checked)
+                except AttributeError as e:
+                    debug_print("Error {}".format(str))
+        CONF.set('editor', conf_name, checked)
+
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
