@@ -2100,7 +2100,6 @@ class EditorStack(QWidget):
                 indent_guides=self.indent_guides)
         if cloned_from is None:
             editor.set_text(txt)
-            self.sig_open_file.emit(editor.language)
             editor.document().setModified(False)
         finfo.text_changed_at.connect(
                                     lambda fname, position:
@@ -2108,6 +2107,7 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
+        print("Connecting signal...")
         editor.sig_perform_lsp_request.connect(
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
@@ -2128,6 +2128,9 @@ class EditorStack(QWidget):
         # Needs to reset the highlighting on startup in case the PygmentsSH
         # is in use
         editor.run_pygments_highlighter()
+
+        if cloned_from is None:
+            self.sig_open_file.emit(editor.language)
 
         return finfo
 

@@ -441,6 +441,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Language Server
         self.lsp_requests = {}
+        self.document_opened = False
         self.filename = None
         self.lsp_ready = False
         self.text_version = 0
@@ -716,6 +717,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
+        print(method)
         uid = uuid.uuid4()
         params['uuid'] = uid
         params['response_sig'] = self.lsp_response_signal
@@ -741,8 +743,12 @@ class CodeEditor(TextEditBaseWidget):
         if not self.lsp_ready:
             self.parse_lsp_config(config)
             self.lsp_ready = True
+            self.document_opened = False
+        if not self.document_opened:
+            print(self.filename)
             self.document_did_open()
-            # self.sig_perform_lsp_request.emit()
+            self.document_opened = True
+        # self.sig_perform_lsp_request.emit()
 
     def parse_lsp_config(self, config):
         """Parse and load LSP server editor capabilites."""

@@ -583,6 +583,7 @@ class Editor(SpyderPluginWidget):
     @Slot(str)
     def report_open_file(self, language):
         """Request to start a LSP server to attend a language."""
+        print("Call")
         stat = self.main.lspmanager.start_lsp_client(language.lower())
         if stat:
             self.lsp_server_ready(
@@ -601,6 +602,7 @@ class Editor(SpyderPluginWidget):
             editorstack.notify_server_ready(language, configuration)
 
     def send_lsp_request(self, language, request, params):
+        print(request)
         self.main.lspmanager.send_request(language, request, params)
 
 

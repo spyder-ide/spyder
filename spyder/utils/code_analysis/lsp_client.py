@@ -169,20 +169,22 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 self.handler_registry[resp['method']])
                             handler = getattr(self, handler_name)
                             handler(resp['params'])
-                        if 'id' in self.request_seq:
+                        if 'id' in resp:
                             self.request_seq = resp['id']
                 elif 'result' in resp:
                     req_id = resp['id']
                     if req_id in self.req_status:
                         req_type = self.req_status[req_id]
-                        handler_name = self.handler_registry[req_type]
-                        handler = getattr(self, handler_name)
-                        handler(resp['result'])
+                        if req_type in self.handler_registry:
+                            handler_name = self.handler_registry[req_type]
+                            handler = getattr(self, handler_name)
+                            handler(resp['result'])
             except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 return
 
     def perform_request(self, method, params):
+        print(method)
         if method in self.sender_registry:
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
