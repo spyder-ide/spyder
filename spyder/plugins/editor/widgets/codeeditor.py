@@ -77,6 +77,7 @@ from spyder.plugins.editor.utils.lsp import (
 from spyder.plugins.editor.lsp import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
     )
+from spyder.widgets.panels.debugger import DebuggerPanel
 from spyder.api.panel import Panel
 
 try:
@@ -337,6 +338,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
+
+        # Debugger panel
+        self.panels.register(DebuggerPanel())
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
