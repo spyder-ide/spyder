@@ -461,7 +461,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters = []
         self.rename_support = False
 
-	# Editor Extensions
+        # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
 
         self.editor_extensions.add(CloseQuotesExtension())
