@@ -37,7 +37,7 @@ from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
 from spyder.utils.programs import shell_split
 from spyder.widgets.comboboxes import PythonModulesComboBox
 from spyder.utils.misc import add_pathlist_to_PYTHONPATH
-from spyder.plugins.variableexplorer.widgets.viewers.text import TextEditor
+from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
 try:
