@@ -147,9 +147,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if requires_response:
             self.req_status[self.request_seq] = method
 
-        debug_print('\n[{0}] LSP-Client ===>'.format(self.language))
-        debug_print(msg)
-        debug_print('')
+        # debug_print('\n[{0}] LSP-Client ===>'.format(self.language))
+        # debug_print(msg)
+        # debug_print('')
         self.zmq_socket.send_pyobj(msg)
         self.request_seq += 1
         return str(msg['id'])
@@ -159,6 +159,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.notifier.setEnabled(False)
         while True:
             try:
+                events = self.zmq_socket.poll(1500)
+                print(events)
                 resp = self.zmq_socket.recv_pyobj(flags=zmq.NOBLOCK)
                 debug_print('\n[{0}] LSP-Client <==='.format(self.language))
                 debug_print(resp)
@@ -173,14 +175,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                         if 'id' in resp:
                             self.request_seq = resp['id']
                 elif 'result' in resp:
-                    req_id = resp['id']
-                    if req_id in self.req_status:
-                        req_type = self.req_status[req_id]
-                        if req_type in self.handler_registry:
-                            handler_name = self.handler_registry[req_type]
-                            handler = getattr(self, handler_name)
-                            handler(resp['result'])
-            except zmq.ZMQError:
+                    if resp['result'] is not None:
+                        req_id = resp['id']
+                        if req_id in self.req_status:
+                            req_type = self.req_status[req_id]
+                            if req_type in self.handler_registry:
+                                handler_name = self.handler_registry[req_type]
+                                handler = getattr(self, handler_name)
+                                handler(resp['result'])
+            except zmq.ZMQError as e:
                 self.notifier.setEnabled(True)
                 return
 

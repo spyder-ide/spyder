@@ -79,7 +79,8 @@ class IncomingMessageThread(Thread):
             if content_length > len(body.encode('utf-8')):
                 remaining = content_length - len(body.encode('utf-8'))
                 while remaining > 0:
-                    recv = self.socket.recv(self.CHUNK_BYTE_SIZE)
+                    recv = self.socket.recv(min(
+                        self.CHUNK_BYTE_SIZE, remaining))
                     body += str(recv.decode('utf-8'))
                     remaining -= len(recv)
             if len(body) == 0:

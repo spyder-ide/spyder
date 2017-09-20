@@ -1779,6 +1779,8 @@ class EditorStack(QWidget):
 #            btn.setEnabled(count > 1)
 
         editor = self.get_current_editor()
+        if editor.lsp_ready and not editor.document_opened:
+            editor.document_did_open()
         if index != -1:
             editor.setFocus()
             if DEBUG_EDITOR:
@@ -2136,6 +2138,8 @@ class EditorStack(QWidget):
                 'signal': editor.lsp_response_signal
             }
             self.sig_open_file.emit(options)
+            if self.get_stack_index() == 0:
+                self.current_changed(0)
 
         return finfo
 

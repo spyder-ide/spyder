@@ -729,6 +729,7 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_did_open(self):
         """Send textDocument/didOpen request to server."""
+        self.document_opened = True
         params = {
             'file': self.filename,
             'language': self.language,
@@ -742,7 +743,7 @@ class CodeEditor(TextEditBaseWidget):
         print('Initialize')
         if not self.lsp_ready:
             self.parse_lsp_config(config)
-            self.document_did_open()
+            # self.document_did_open()
             self.lsp_ready = True
         #     self.document_opened = False
         # if not self.document_opened:
