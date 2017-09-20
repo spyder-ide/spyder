@@ -72,7 +72,7 @@ from spyder.widgets.sourcecode.extensions.manager import (
 from spyder.widgets.sourcecode.extensions.closequotes import (
         CloseQuotesExtension)
 from spyder.widgets.sourcecode.api.decoration import TextDecoration
-from spyder.widgets.sourcecode.utils.lsp import request
+from spyder.widgets.sourcecode.utils.lsp import request, handles, class_register
 from spyder.utils.code_analysis import LSPRequestTypes, TextDocumentSyncKind
 from spyder.api.panel import Panel
 
@@ -210,6 +210,7 @@ def get_file_language(filename, text=None):
     return language
 
 
+@class_register
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
 
@@ -460,6 +461,7 @@ class CodeEditor(TextEditBaseWidget):
         self.range_formatting_enabled = False
         self.formatting_characters = []
         self.rename_support = False
+        self.lsp_response_signal.connect(self.handle_response)
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -715,6 +717,13 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP-related methods ---------------------------------------
 
+    @Slot(str, dict)
+    def handle_response(self, method, params):
+        if method in self.handler_registry:
+            handler_name = self.handler_registry[method]
+            handler = getattr(self, handler_name)
+            handler(params)
+
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
         print(method)
@@ -737,6 +746,10 @@ class CodeEditor(TextEditBaseWidget):
             'text': self.toPlainText()
         }
         return params
+
+    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    def linting_diagnostics(self, params):
+        print(params['params'])
 
     def start_lsp_services(self, config):
         """Start LSP integration if it wasn't done before."""

@@ -31,7 +31,13 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_document_diagnostics(self, response):
-        print(response)
+        uri = response['uri']
+        diagnostics = response['diagnostics']
+        callbacks = self.watched_files[uri]
+        for callback in callbacks:
+            callback.emit(
+                LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
+                {'params': diagnostics})
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_open(self, editor_params):
