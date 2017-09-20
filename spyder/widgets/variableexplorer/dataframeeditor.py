@@ -835,68 +835,17 @@ class DataFrameEditor(QDialog):
         self.vscroll = QScrollBar(Qt.Vertical)
 
         # Create the view for the level
-        self.table_level = QTableView()
-        self.table_level.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table_level.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.table_level.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.table_level.setFrameStyle(QFrame.Plain)
-        self.table_level.horizontalHeader().sectionResized.connect(
-                                                        self._index_resized)
-        self.table_level.verticalHeader().sectionResized.connect(
-                                                        self._header_resized)
-        self.table_level.setItemDelegate(QItemDelegate())
-        self.layout.addWidget(self.table_level, 0, 0)
-        self.table_level.setContentsMargins(0, 0, 0, 0)
-        self.table_level.horizontalHeader().sectionClicked.connect(
-                                                            self.sortByIndex)
+        self.create_table_level()
 
         # Create the view for the horizontal header
-        self.table_header = QTableView()
-        self.table_header.verticalHeader().hide()
-        self.table_header.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table_header.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.table_header.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.table_header.setHorizontalScrollMode(QTableView.ScrollPerPixel)
-        self.table_header.setHorizontalScrollBar(self.hscroll)
-        self.table_header.setFrameStyle(QFrame.Plain)
-        self.table_header.horizontalHeader().sectionResized.connect(
-                                                        self._column_resized)
-        self.table_header.setItemDelegate(QItemDelegate())
-        self.layout.addWidget(self.table_header, 0, 1)
+        self.create_table_header()
 
         # Create the view for the vertical index
-        self.table_index = QTableView()
-        self.table_index.horizontalHeader().hide()
-        self.table_index.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table_index.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.table_index.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.table_index.setVerticalScrollMode(QTableView.ScrollPerPixel)
-        self.table_index.setVerticalScrollBar(self.vscroll)
-        self.table_index.setFrameStyle(QFrame.Plain)
-        self.table_index.verticalHeader().sectionResized.connect(
-                                                            self._row_resized)
-        self.table_index.setItemDelegate(QItemDelegate())
-        self.layout.addWidget(self.table_index, 1, 0)
-        self.table_index.setContentsMargins(0, 0, 0, 0)
+        self.create_table_index()
 
         # Create the model and view of the data
         self.dataModel = DataFrameModel(data, parent=self)
-        self.dataTable = DataFrameView(self, self.dataModel,
-                                       self.table_header.horizontalHeader(),
-                                       self.hscroll, self.vscroll)
-        self.dataTable.verticalHeader().hide()
-        self.dataTable.horizontalHeader().hide()
-        self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.dataTable.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.dataTable.setHorizontalScrollMode(QTableView.ScrollPerPixel)
-        self.dataTable.setVerticalScrollMode(QTableView.ScrollPerPixel)
-        self.dataTable.setFrameStyle(QFrame.Plain)
-        self.dataTable.setItemDelegate(QItemDelegate())
-        self.layout.addWidget(self.dataTable, 1, 1)
-        self.setFocusProxy(self.dataTable)
-        self.dataTable.sig_sortByColumn.connect(self._sort_update)
-        self.dataTable.sig_fetch_more_columns.connect(self._fetch_more_columns)
-        self.dataTable.sig_fetch_more_rows.connect(self._fetch_more_rows)
+        self.create_data_table()
 
         self.layout.addWidget(self.hscroll, 2, 0, 2, 2)
         self.layout.addWidget(self.vscroll, 0, 2, 2, 2)
@@ -948,6 +897,73 @@ class DataFrameEditor(QDialog):
         self.resizeColumnsToContents()
 
         return True
+
+    def create_table_level(self):
+        """Create the QTableView that will hold the level model."""
+        self.table_level = QTableView()
+        self.table_level.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_level.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_level.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_level.setFrameStyle(QFrame.Plain)
+        self.table_level.horizontalHeader().sectionResized.connect(
+                                                        self._index_resized)
+        self.table_level.verticalHeader().sectionResized.connect(
+                                                        self._header_resized)
+        self.table_level.setItemDelegate(QItemDelegate())
+        self.layout.addWidget(self.table_level, 0, 0)
+        self.table_level.setContentsMargins(0, 0, 0, 0)
+        self.table_level.horizontalHeader().sectionClicked.connect(
+                                                            self.sortByIndex)
+
+    def create_table_header(self):
+        """Create the QTableView that will hold the header model."""
+        self.table_header = QTableView()
+        self.table_header.verticalHeader().hide()
+        self.table_header.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_header.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_header.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_header.setHorizontalScrollMode(QTableView.ScrollPerPixel)
+        self.table_header.setHorizontalScrollBar(self.hscroll)
+        self.table_header.setFrameStyle(QFrame.Plain)
+        self.table_header.horizontalHeader().sectionResized.connect(
+                                                        self._column_resized)
+        self.table_header.setItemDelegate(QItemDelegate())
+        self.layout.addWidget(self.table_header, 0, 1)
+
+    def create_table_index(self):
+        """Create the QTableView that will hold the index model."""
+        self.table_index = QTableView()
+        self.table_index.horizontalHeader().hide()
+        self.table_index.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_index.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_index.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table_index.setVerticalScrollMode(QTableView.ScrollPerPixel)
+        self.table_index.setVerticalScrollBar(self.vscroll)
+        self.table_index.setFrameStyle(QFrame.Plain)
+        self.table_index.verticalHeader().sectionResized.connect(
+                                                            self._row_resized)
+        self.table_index.setItemDelegate(QItemDelegate())
+        self.layout.addWidget(self.table_index, 1, 0)
+        self.table_index.setContentsMargins(0, 0, 0, 0)
+
+    def create_data_table(self):
+        """Create the QTableView that will hold the data model."""
+        self.dataTable = DataFrameView(self, self.dataModel,
+                                       self.table_header.horizontalHeader(),
+                                       self.hscroll, self.vscroll)
+        self.dataTable.verticalHeader().hide()
+        self.dataTable.horizontalHeader().hide()
+        self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.dataTable.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.dataTable.setHorizontalScrollMode(QTableView.ScrollPerPixel)
+        self.dataTable.setVerticalScrollMode(QTableView.ScrollPerPixel)
+        self.dataTable.setFrameStyle(QFrame.Plain)
+        self.dataTable.setItemDelegate(QItemDelegate())
+        self.layout.addWidget(self.dataTable, 1, 1)
+        self.setFocusProxy(self.dataTable)
+        self.dataTable.sig_sortByColumn.connect(self._sort_update)
+        self.dataTable.sig_fetch_more_columns.connect(self._fetch_more_columns)
+        self.dataTable.sig_fetch_more_rows.connect(self._fetch_more_rows)
 
     def sortByIndex(self, index):
         """Implement a Index sort."""
