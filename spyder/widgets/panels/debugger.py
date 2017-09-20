@@ -23,8 +23,11 @@ class DebuggerPanel(Panel):
         self.setMouseTracking(True)
         self.scrollable = True
 
+        self.line_number_hint = None
+
         # Markers
         self.bp_pixmap = ima.icon('breakpoint_big')
+        self.bp_pixmap_transparent = ima.icon('breakpoint_transparent')
         self.bpc_pixmap = ima.icon('breakpoint_cond_big')
 
     def sizeHint(self):
@@ -59,6 +62,9 @@ class DebuggerPanel(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
         for top, line_number, block in self.editor.visible_blocks:
+            if self.line_number_hint == line_number:
+                self._draw_breakpoint_icon(top, painter, self.bp_pixmap_transparent)
+
             data = block.userData()
             if data is None or not data.breakpoint:
                 continue
@@ -76,6 +82,22 @@ class DebuggerPanel(Panel):
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.editor.add_remove_breakpoint(line_number, edit_condition=shift)
+
+    def mouseMoveEvent(self, event):
+        """Override Qt method.
+
+        Draw semitransparent breakpoint hint.
+        """
+        self.line_number_hint = self.editor.get_linenumber_from_mouse_event(event)
+        self.update()
+
+    def leaveEvent(self, event):
+        """Override Qt method.
+
+        Remove semitransparent breakpoint hint
+        """
+        self.line_number_hint = None
+        self.update()
 
     def wheelEvent(self, event):
         """Override Qt method.
