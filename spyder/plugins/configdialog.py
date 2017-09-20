@@ -23,7 +23,8 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QListView, QListWidget, QListWidgetItem,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget)
+                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
+                            QApplication)
 
 # Local imports
 from spyder.config.base import (_, LANGUAGE_CODES, load_lang_conf,
@@ -862,11 +863,31 @@ class MainConfigPage(GeneralConfigPage):
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
                                           0, 0, 30)
-        margin_box.toggled.connect(margin_spin.setEnabled)
-        margin_spin.setEnabled(self.get_option('use_custom_margin'))
-        margins_layout = QHBoxLayout()
-        margins_layout.addWidget(margin_box)
-        margins_layout.addWidget(margin_spin)
+        margin_box.toggled.connect(margin_spin.spinbox.setEnabled)
+        margin_box.toggled.connect(margin_spin.slabel.setEnabled)
+        margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))
+        margin_spin.slabel.setEnabled(self.get_option('use_custom_margin'))
+        
+        cursor_box = newcb(_("Cursor blinking:"),
+                           'use_custom_cursor_blinking')
+        cursor_spin = self.create_spinbox("", _("ms"), 'custom_cursor_blinking',
+                                          default = QApplication.cursorFlashTime(),
+                                          min_=0, max_=5000, step=100)
+        cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
+        cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
+        cursor_spin.spinbox.setEnabled(
+                self.get_option('use_custom_cursor_blinking'))
+        cursor_spin.slabel.setEnabled(
+                self.get_option('use_custom_cursor_blinking'))
+        
+        margins_cursor_layout = QGridLayout()
+        margins_cursor_layout.addWidget(margin_box, 0, 0)
+        margins_cursor_layout.addWidget(margin_spin.spinbox, 0, 1)
+        margins_cursor_layout.addWidget(margin_spin.slabel, 0, 2)        
+        margins_cursor_layout.addWidget(cursor_box, 1, 0)
+        margins_cursor_layout.addWidget(cursor_spin.spinbox, 1, 1)
+        margins_cursor_layout.addWidget(cursor_spin.slabel, 1, 2)
+        margins_cursor_layout.setColumnStretch(2, 100)
 
         # Layout interface
         comboboxes_layout = QHBoxLayout()
@@ -884,7 +905,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
-        interface_layout.addLayout(margins_layout)
+        interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar
@@ -1228,6 +1249,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 '        print(bar)\n'
                 )
         show_blanks = CONF.get('editor', 'blank_spaces')
+        update_scrollbar = CONF.get('editor', 'scroll_past_end')
         if scheme_name is None:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
@@ -1235,7 +1257,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                          tab_mode=False,
                                          font=get_font(),
                                          show_blanks=show_blanks,
-                                         color_scheme=scheme_name)
+                                         color_scheme=scheme_name,
+                                         scroll_past_end=update_scrollbar)
         self.preview_editor.set_text(text)
         self.preview_editor.set_language('Python')
 

@@ -133,7 +133,7 @@ if os.name == 'nt' and PY2:
         except (ValueError, TypeError):
             # Code page number in locale is not valid
             pass
-    except ImportError:
+    except:
         pass
 
 
@@ -173,7 +173,7 @@ try:
     import pyximport
     HAS_PYXIMPORT = True
     pyx_setup_args = {}
-except ImportError:
+except:
     HAS_PYXIMPORT = False
 
 if HAS_PYXIMPORT:
@@ -181,7 +181,7 @@ if HAS_PYXIMPORT:
     try:
         import numpy
         pyx_setup_args['include_dirs'] = numpy.get_include()
-    except ImportError:
+    except:
         pass
 
     # Setup pyximport and enable Cython files reload
@@ -191,16 +191,31 @@ try:
     # Import cython_inline for runfile function
     from Cython.Build.Inline import cython_inline
     HAS_CYTHON = True
-except ImportError:
+except:
     HAS_CYTHON = False
 
+
+#==============================================================================
+# Prevent subprocess.Popen calls to create visible console windows on Windows.
+# See issue #4932
+#==============================================================================
+if os.name == 'nt':
+    import subprocess
+    creation_flag = 0x08000000  # CREATE_NO_WINDOW
+
+    class SubprocessPopen(subprocess.Popen):
+        def __init__(self, *args, **kwargs):
+            kwargs['creationflags'] = creation_flag
+            super(SubprocessPopen, self).__init__(*args, **kwargs)
+
+    subprocess.Popen = SubprocessPopen
 
 #==============================================================================
 # Importing user's sitecustomize
 #==============================================================================
 try:
     import sitecustomize  #analysis:ignore
-except ImportError:
+except:
     pass
 
 
@@ -227,14 +242,13 @@ if os.environ["QT_API"] == 'pyqt':
     except:
         pass
 
-
 #==============================================================================
 # This prevents a kernel crash with the inline backend in our IPython
 # consoles on Linux and Python 3 (Fixes Issue 2257)
 #==============================================================================
 try:
     import matplotlib
-except (ImportError, UnicodeDecodeError):
+except:
     matplotlib = None   # analysis:ignore
 
 
@@ -271,12 +285,7 @@ unittest.main = IPyTesProgram
 # Pandas adjustments
 #==============================================================================
 try:
-    # Make Pandas recognize our Jupyter consoles as proper qtconsoles
-    # Fixes Issue 2015
-    def in_qtconsole():
-        return True
     import pandas as pd
-    pd.core.common.in_qtconsole = in_qtconsole
 
     # Set Pandas output encoding
     pd.options.display.encoding = 'utf-8'
@@ -295,7 +304,7 @@ try:
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.formats.format',
                             message=".*invalid value encountered in.*")
-except (ImportError, AttributeError):
+except:
     pass
 
 
@@ -305,6 +314,7 @@ except (ImportError, AttributeError):
 class SpyderPdb(pdb.Pdb):
 
     send_initial_notification = True
+    starting = True
 
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
@@ -332,7 +342,7 @@ class SpyderPdb(pdb.Pdb):
             return
 
         from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
+        kernel = get_ipython().kernel
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -343,18 +353,31 @@ class SpyderPdb(pdb.Pdb):
                 pass
         lineno = frame.f_lineno
 
+        # Jump to first breakpoint.
+        # Fixes issue 2034
+        if self.starting:
+            # Only run this after a Pdb session is created
+            self.starting = False
+
+            # Get all breakpoints for the file we're going to debug
+            breaks = self.get_file_breaks(frame.f_code.co_filename)
+
+            # Do 'continue' if the first breakpoint is *not* placed
+            # where the debugger is going to land.
+            # Fixes issue 4681
+            if breaks and lineno != breaks[0] and osp.isfile(fname):
+                kernel.pdb_continue()
+
         # Set step of the current frame (if any)
         step = {}
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname):
-                if ipython_shell:
-                    step = dict(fname=fname, lineno=lineno)
+                step = dict(fname=fname, lineno=lineno)
 
         # Publish Pdb state so we can update the Variable Explorer
         # and the Editor on the Spyder side
-        if ipython_shell:
-            ipython_shell.kernel._pdb_step = step
-            ipython_shell.kernel.publish_pdb_state()
+        kernel._pdb_step = step
+        kernel.publish_pdb_state()
 
 pdb.Pdb = SpyderPdb
 
@@ -414,12 +437,15 @@ def user_return(self, frame, return_value):
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
-    self.setup(frame, traceback)
-    if self.send_initial_notification:
-        self.notify_spyder(frame)
-    self.print_stack_entry(self.stack[self.curindex])
-    self._cmdloop()
-    self.forget()
+    if frame is not None and "sitecustomize.py" in frame.f_code.co_filename:
+        self.run('exit')
+    else:
+        self.setup(frame, traceback)
+        if self.send_initial_notification:
+            self.notify_spyder(frame)
+        self.print_stack_entry(self.stack[self.curindex])
+        self._cmdloop()
+        self.forget()
 
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
@@ -443,10 +469,8 @@ def reset(self):
     self._old_Pdb_reset()
 
     from IPython.core.getipython import get_ipython
-    ipython_shell = get_ipython()
-    if ipython_shell:
-        ipython_shell.kernel._register_pdb_session(self)
-
+    kernel = get_ipython().kernel
+    kernel._register_pdb_session(self)
     self.set_spyder_breakpoints()
 
 
@@ -572,8 +596,7 @@ def clear_post_mortem():
     """
     from IPython.core.getipython import get_ipython
     ipython_shell = get_ipython()
-    if ipython_shell:
-        ipython_shell.set_custom_exc((), None)
+    ipython_shell.set_custom_exc((), None)
 
 
 def post_mortem_excepthook(type, value, tb):
@@ -629,16 +652,10 @@ if "SPYDER_EXCEPTHOOK" in os.environ:
 # runfile and debugfile commands
 #==============================================================================
 def _get_globals():
-    """Return current Python interpreter globals namespace"""
-    from __main__ import __dict__ as namespace
-    shell = namespace.get('__ipythonshell__')
-    if shell is not None and hasattr(shell, 'user_ns'):
-        # IPython 0.13+ kernel
-        return shell.user_ns
-    else:
-        # Python interpreter
-        return namespace
-    return namespace
+    """Return current namespace"""
+    from IPython.core.getipython import get_ipython
+    ipython_shell = get_ipython()
+    return ipython_shell.user_ns
 
 
 def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):

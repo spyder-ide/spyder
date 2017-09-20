@@ -1,30 +1,38 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.1.4 is released!
+**Subject**: [ANN] Spyder 3.2.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.1.4** has been released and is available for
+I'm pleased to announce that Spyder **3.2.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes almost two months after version 3.1.3 and adds compatibility
-with IPython 6 and Jedi 0.10, so everyone is encouraged to update to this version.
+This release comes one week after version 3.2.2 and it adds the following new
+features:
 
-In this release we also fixed 19 issues and merged 37 pull requests that amount
-to almost 200 commits. For a full list of fixes, please see our
-[changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md)
+* A button to the Variable Explorer to remove to remove all variables at
+  once.
+
+It also fixes one critical problem:
+
+* An AttributeError when running code in the IPython console while using
+  old versions of the qtconsole package.
+
+In this release we fixed 10 issues and merged 9 pull requests that amount
+to almost 40 commits. For a full list of fixes, please see our
+[Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
-[Github website](https://github.com/spyder-ide/spyder)
+[Github website](https://github.com/spyder-ide/spyder).
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development and computing environment. Join us to help
 creating your favorite environment!
 
-Enjoy!<br>
-- Carlos
+Enjoy!
+Carlos
 
 
 ----
@@ -98,7 +106,7 @@ Enjoy!<br>
 # Major release to others
 
 **Note**: Leave this free of Markdown because it could go to mailing lists that
-don't support it.
+don't support hmtl.
 
 **Subject**: [ANN] Spyder 3.0 is released!
 

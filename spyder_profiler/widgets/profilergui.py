@@ -19,6 +19,7 @@ import os
 import os.path as osp
 import sys
 import time
+import re
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
@@ -351,6 +352,30 @@ class ProfilerWidget(QWidget):
                                                time.localtime())
         self.datelabel.setText(date_text)
 
+def gettime_s(text):
+    """Parse text and returns a time in seconds
+    
+    The text is of the format 0h : 0.min:0.0s:0 ms:0us:0 ns. 
+    Spaces are not taken into account and any of the specifiers can be ignored"""
+    pattern = '([+-]?\d+\.?\d*) ?([munsecinh]+)'
+    matches = re.findall(pattern, text)
+    if len(matches) == 0:
+        return None
+    time = 0.
+    for res in matches:
+        tmp = float(res[0])
+        if res[1] == 'ns':
+            tmp *= 1e-9
+        elif res[1] == 'us':
+            tmp *= 1e-6
+        elif res[1] == 'ms':
+            tmp *= 1e-3
+        elif res[1] == 'min':
+            tmp *= 60
+        elif res[1] == 'h':
+            tmp *= 3600
+        time += tmp
+    return time
 
 class TreeWidgetItem( QTreeWidgetItem ):
     def __init__(self, parent=None):
@@ -359,10 +384,15 @@ class TreeWidgetItem( QTreeWidgetItem ):
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
         try:
+            if column == 1 or column == 3: #TODO: Hardcoded Column
+                t0 = gettime_s(self.text(column))
+                t1 = gettime_s(otherItem.text(column))
+                if t0 is not None and t1 is not None:
+                    return t0 > t1
+            
             return float( self.text(column) ) > float( otherItem.text(column) )
         except ValueError:
             return self.text(column) > otherItem.text(column)
-
 
 class ProfilerDataTree(QTreeWidget):
     """
@@ -631,8 +661,8 @@ class ProfilerDataTree(QTreeWidget):
         while ancestor:
             if (child_item.data(0, Qt.DisplayRole
                                 ) == ancestor.data(0, Qt.DisplayRole) and
-                child_item.data(4, Qt.DisplayRole
-                                ) == ancestor.data(4, Qt.DisplayRole)):
+                child_item.data(7, Qt.DisplayRole
+                                ) == ancestor.data(7, Qt.DisplayRole)):
                 return True
             else:
                 ancestor = ancestor.parent()

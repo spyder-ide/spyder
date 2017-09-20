@@ -160,7 +160,7 @@ The requirements to run Spyder are:
 * `Qtconsole <http://jupyter.org/qtconsole/stable/>`_ >=4.2.0 -- for an
   enhanced Python interpreter.
 
-* `Rope <http://rope.sourceforge.net/>`_ >=0.10.5 and
+* `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 and
   `Jedi <http://jedi.jedidjah.ch/en/latest/>`_ >=0.9.0 -- for code completion,
   go-to-definition and calltips on the Editor.
 
