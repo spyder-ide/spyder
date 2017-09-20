@@ -750,6 +750,7 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
         print(params['params'])
+        self.process_code_analysis(params['params'])
 
     def start_lsp_services(self, config):
         """Start LSP integration if it wasn't done before."""
@@ -1487,52 +1488,76 @@ class CodeEditor(TextEditBaseWidget):
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
         self.cleanup_code_analysis()
-        if check_results is None:
-            # Not able to compile module
-            return
+        # if check_results is None:
+        #     # Not able to compile module
+        #     return
         self.setUpdatesEnabled(False)
         cursor = self.textCursor()
         document = self.document()
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        for message, line_number in check_results:
-            error = 'syntax' in message
-            # Note: line_number start from 1 (not 0)
-            block = self.document().findBlockByNumber(line_number-1)
+        for diagnostic in check_results:
+            # print(diagnostic)
+            """{u'source': u'pycodestyle',
+                u'range': {
+                    u'start': {u'line': 376, u'character': 0},
+                    u'end': {u'line': 376, u'character': 13}},
+                u'code': u'W293',
+                u'message': u'W293 blank line contains whitespace',
+                u'severity': 2}"""
+            source = diagnostic['source']
+            msg_range = diagnostic['range']
+            start = msg_range['start']
+            end = msg_range['end']
+            code = diagnostic['code']
+            message = diagnostic['message']
+            severity = diagnostic['severity']
+
+            block = self.document().findBlockByNumber(start['line'])
             data = block.userData()
             if not data:
                 data = BlockUserData(self)
-            data.code_analysis.append( (message, error) )
+            data.code_analysis.append((source, code, severity, message))
             block.setUserData(data)
-            refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
-            for ref in refs:
-                # Highlighting found references
-                text = ref[1:-1]
-                # Scanning line number *line* and following lines if continued
-                def is_line_splitted(line_no):
-                    text = to_text_string(
-                                document.findBlockByNumber(line_no).text())
-                    stripped = text.strip()
-                    return stripped.endswith('\\') or stripped.endswith(',') \
-                           or len(stripped) == 0
-                line2 = line_number-1
-                while line2 < self.blockCount()-1 and is_line_splitted(line2):
-                    line2 += 1
-                cursor.setPosition(block.position())
-                cursor.movePosition(QTextCursor.StartOfBlock)
-                regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
-                                 Qt.CaseSensitive)
-                color = self.error_color if error else self.warning_color
-                # Highlighting all occurrences (this is a compromise as pyflakes
-                # do not provide the column number -- see Issue 709 on Spyder's
-                # GoogleCode project website)
-                cursor = document.find(regexp, cursor, flags)
-                if cursor:
-                    while cursor and cursor.blockNumber() <= line2 \
-                          and cursor.blockNumber() >= line_number-1 \
-                          and cursor.position() > 0:
-                        self.__highlight_selection('code_analysis', cursor,
-                                       underline_color=QColor(color))
-                        cursor = document.find(text, cursor, flags)
+
+        # for message, line_number in check_results:
+        #     error = 'syntax' in message
+        #     # Note: line_number start from 1 (not 0)
+        #     block = self.document().findBlockByNumber(line_number-1)
+        #     data = block.userData()
+        #     if not data:
+        #         data = BlockUserData(self)
+        #     data.code_analysis.append( (message, error) )
+        #     block.setUserData(data)
+        #     refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
+        #     for ref in refs:
+        #         # Highlighting found references
+        #         text = ref[1:-1]
+        #         # Scanning line number *line* and following lines if continued
+        #         def is_line_splitted(line_no):
+        #             text = to_text_string(
+        #                         document.findBlockByNumber(line_no).text())
+        #             stripped = text.strip()
+        #             return stripped.endswith('\\') or stripped.endswith(',') \
+        #                    or len(stripped) == 0
+        #         line2 = line_number-1
+        #         while line2 < self.blockCount()-1 and is_line_splitted(line2):
+        #             line2 += 1
+        #         cursor.setPosition(block.position())
+        #         cursor.movePosition(QTextCursor.StartOfBlock)
+        #         regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
+        #                          Qt.CaseSensitive)
+        #         color = self.error_color if error else self.warning_color
+        #         # Highlighting all occurrences (this is a compromise as pyflakes
+        #         # do not provide the column number -- see Issue 709 on Spyder's
+        #         # GoogleCode project website)
+        #         cursor = document.find(regexp, cursor, flags)
+        #         if cursor:
+        #             while cursor and cursor.blockNumber() <= line2 \
+        #                   and cursor.blockNumber() >= line_number-1 \
+        #                   and cursor.position() > 0:
+        #                 self.__highlight_selection('code_analysis', cursor,
+        #                                underline_color=QColor(color))
+        #                 cursor = document.find(text, cursor, flags)
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
@@ -1540,7 +1565,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def show_code_analysis_results(self, line_number, code_analysis):
         """Show warning/error messages"""
-        msglist = [ msg for msg, _error in code_analysis ]
+        msglist = ['{0} [{1}]: {2}'.format(
+            src, code, msg) for src, code, _sev, msg in code_analysis]
         self.show_calltip(_("Code analysis"), msglist,
                           color='#129625', at_line=line_number)
 

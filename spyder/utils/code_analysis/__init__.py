@@ -432,3 +432,11 @@ class LSPRequestTypes:
     DOCUMENT_LINKS = 'textDocument/documentLink'
     DOCUMENT_LINK_RESOLVE = 'documentLink/resolve'
     DOCUMENT_RENAME = 'textDocument/rename'
+
+
+class DiagnosticSeverity:
+    """LSP diagnostic severity levels."""
+    ERROR = 1
+    WARNING = 2
+    INFORMATION = 3
+    HINT = 4
