@@ -580,14 +580,20 @@ class Editor(SpyderPluginWidget):
         except AttributeError:
             pass
 
-    @Slot(str)
-    def report_open_file(self, language):
+    @Slot(dict)
+    def report_open_file(self, options):
         """Request to start a LSP server to attend a language."""
         print("Call")
+        filename = options['filename']
+        print(filename)
+        language = options['language']
+        callback = options['signal']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
         if stat:
             self.lsp_server_ready(
                 language.lower(), self.lsp_editor_settings[language.lower()])
+            self.main.lspmanager.register_file(
+                language.lower(), filename, callback)
 
     @Slot(dict, str)
     def document_server_settings(self, settings, language):

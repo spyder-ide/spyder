@@ -609,6 +609,10 @@ class LSPManager(SpyderPluginWidget):
     def register_plugin_type(self, type, sig):
         self.lsp_plugins[type] = sig
 
+    def register_file(self, language, filename, signal):
+        language_client = self.clients[language]['instance']
+        language_client.register_file(filename, signal)
+
     def start_lsp_client(self, language):
         started = False
         if language in self.clients:

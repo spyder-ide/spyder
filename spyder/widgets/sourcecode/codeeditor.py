@@ -742,12 +742,13 @@ class CodeEditor(TextEditBaseWidget):
         print('Initialize')
         if not self.lsp_ready:
             self.parse_lsp_config(config)
-            self.lsp_ready = True
-            self.document_opened = False
-        if not self.document_opened:
-            print(self.filename)
             self.document_did_open()
-            self.document_opened = True
+            self.lsp_ready = True
+        #     self.document_opened = False
+        # if not self.document_opened:
+        #     print(self.filename)
+        #     self.document_did_open()
+        #     self.document_opened = True
         # self.sig_perform_lsp_request.emit()
 
     def parse_lsp_config(self, config):

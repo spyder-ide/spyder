@@ -25,6 +25,7 @@ LOGGER = logging.getLogger(__name__)
 
 class IncomingMessageThread(Thread):
     """TCP socket consumer."""
+    CHUNK_BYTE_SIZE = 4096
 
     def __init__(self):
         Thread.__init__(self)
@@ -44,7 +45,7 @@ class IncomingMessageThread(Thread):
                     LOGGER.debug('Stopping Thread...')
                     break
             try:
-                recv = self.socket.recv(4096)
+                recv = self.socket.recv(self.CHUNK_BYTE_SIZE)
                 # LOGGER.debug(recv)
                 err, body = self.process_response(recv)
                 if not err and body is not None:
@@ -71,8 +72,18 @@ class IncomingMessageThread(Thread):
                     pass
         elif len(msg_parts) == 2:
             headers, body = msg_parts
+            headers = headers.split('\r\n')
+            content_length_header = next(
+                (x for x in headers if x.startswith('Content-Length')))
+            content_length = int(content_length_header.split(': ')[-1])
+            if content_length > len(body.encode('utf-8')):
+                remaining = content_length - len(body.encode('utf-8'))
+                while remaining > 0:
+                    recv = self.socket.recv(self.CHUNK_BYTE_SIZE)
+                    body += str(recv.decode('utf-8'))
+                    remaining -= len(recv)
             if len(body) == 0:
-                headers = headers.split(';')
+                # headers = headers.split(';')
                 if headers[0].startswith('Content-Length'):
                     self.expect_body = True
                     err = False

@@ -75,6 +75,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.request_seq = 1
         self.req_status = {}
         self.plugin_registry = {}
+        self.watched_files = {}
 
         self.transport_args = [sys.executable,
                                osp.join(LOCATION, 'lsp_transport', 'main.py')]
@@ -112,7 +113,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             stderr_log_file = 'lsp_client_{0}_err.log'.format(
                 datetime.datetime.now().isoformat())
             # self.stdout_log = open(osp.join(getcwd(), stdout_log_file), 'w')
-            # self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
+            self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
 
         self.transport_args = map(str, self.transport_args)
         self.transport_client = subprocess.Popen(self.transport_args,

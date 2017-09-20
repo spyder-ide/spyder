@@ -23,9 +23,15 @@ def path_as_uri(path):
 
 
 class DocumentProvider:
+    def register_file(self, filename, signal):
+        filename = path_as_uri(filename)
+        if filename not in self.watched_files:
+            self.watched_files[filename] = []
+        self.watched_files[filename].append(signal)
+
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_document_diagnostics(self, response):
-        pass
+        print(response)
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_open(self, editor_params):

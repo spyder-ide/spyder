@@ -446,7 +446,7 @@ class EditorStack(QWidget):
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
-    sig_open_file = Signal(str)
+    sig_open_file = Signal(dict)
     sig_close_file = Signal(str, int)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
@@ -2130,7 +2130,12 @@ class EditorStack(QWidget):
         editor.run_pygments_highlighter()
 
         if cloned_from is None:
-            self.sig_open_file.emit(editor.language)
+            options = {
+                'language': editor.language,
+                'filename': editor.filename,
+                'signal': editor.lsp_response_signal
+            }
+            self.sig_open_file.emit(options)
 
         return finfo
 
