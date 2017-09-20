@@ -11,6 +11,7 @@ from qtpy.QtGui import QPainter, QFontMetricsF
 
 from spyder.utils import icon_manager as ima
 from spyder.api.panel import Panel
+from spyder.config.base import debug_print
 
 
 class DebuggerPanel(Panel):
@@ -25,10 +26,10 @@ class DebuggerPanel(Panel):
 
         self.line_number_hint = None
 
-        # Markers
-        self.bp_pixmap = ima.icon('breakpoint_big')
-        self.bp_pixmap_transparent = ima.icon('breakpoint_transparent')
-        self.bpc_pixmap = ima.icon('breakpoint_cond_big')
+        # Diccionary of QIcons to draw in the panel
+        self.icons = {'breakpoint': ima.icon('breakpoint_big'),
+                      'transparent': ima.icon('breakpoint_transparent'),
+                      'condition': ima.icon('breakpoint_cond_big')}
 
     def sizeHint(self):
         """Override Qt method.
@@ -41,17 +42,22 @@ class DebuggerPanel(Panel):
             size_hint.setWidth(16)
         return size_hint
 
-    def _draw_breakpoint_icon(self, top, painter, pixmap):
+    def _draw_breakpoint_icon(self, top, painter, icon_name):
         """Draw the given breakpoint pixmap.
 
         Args:
             top (int): top of the line to draw the breakpoint icon.
             painter (QPainter)
-            pixmap (QIcon): pixmap icon to draw
+            icon_name (srt): key of icon to draw (see: self.icons)
         """
         rect = QRect(0, top, self.sizeHint().width(),
                      self.sizeHint().height())
-        pixmap.paint(painter, rect)
+        try:
+            icon = self.icons[icon_name]
+        except KeyError as e:
+            debug_print("Breakpoint icon doen't exist, {}".format(e))
+        else:
+            icon.paint(painter, rect)
 
     def paintEvent(self, event):
         """Override Qt method.
@@ -63,16 +69,16 @@ class DebuggerPanel(Panel):
 
         for top, line_number, block in self.editor.visible_blocks:
             if self.line_number_hint == line_number:
-                self._draw_breakpoint_icon(top, painter, self.bp_pixmap_transparent)
+                self._draw_breakpoint_icon(top, painter, 'transparent')
 
             data = block.userData()
             if data is None or not data.breakpoint:
                 continue
 
             if data.breakpoint_condition is None:
-                self._draw_breakpoint_icon(top, painter, self.bp_pixmap)
+                self._draw_breakpoint_icon(top, painter, 'breakpoint')
             else:
-                self._draw_breakpoint_icon(top, painter, self.bpc_pixmap)
+                self._draw_breakpoint_icon(top, painter, 'condition')
 
     def mousePressEvent(self, event):
         """Override Qt method
