@@ -2490,7 +2490,7 @@ class MainWindow(QMainWindow):
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""
         active_path = [p for p in self.path if p not in self.not_active_path]
-        return active_path+self.project_path
+        return active_path + self.project_path
 
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
