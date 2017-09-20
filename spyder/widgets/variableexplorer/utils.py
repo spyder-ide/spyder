@@ -129,7 +129,7 @@ def try_to_eval(value):
     
 def get_size(item):
     """Return size of an item of arbitrary type"""
-    if isinstance(item, (list, tuple, dict)):
+    if isinstance(item, (list, set, tuple, dict)):
         return len(item)
     elif isinstance(item, (ndarray, MaskedArray)):
         return item.shape
@@ -183,6 +183,7 @@ COLORS = {
           bool:               "#ff00ff",
           NUMERIC_TYPES:      SCALAR_COLOR,
           list:               "#ffff00",
+          set:                "#008000",
           dict:               "#00ffff",
           tuple:              "#c0c0c0",
           TEXT_TYPES:         "#800000",
@@ -262,8 +263,9 @@ def default_display(value, with_module=True):
 
 
 def collections_display(value, level):
-    """Display for collections (i.e. list, tuple and dict)."""
+    """Display for collections (i.e. list, set, tuple and dict)."""
     is_dict = isinstance(value, dict)
+    is_set = isinstance(value, set)
 
     # Get elements
     if is_dict:
@@ -274,10 +276,10 @@ def collections_display(value, level):
     # Truncate values
     truncate = False
     if level == 1 and len(value) > 10:
-        elements = islice(elements, 10) if is_dict else value[:10]
+        elements = islice(elements, 10) if is_dict or is_set else value[:10]
         truncate = True
     elif level == 2 and len(value) > 5:
-        elements = islice(elements, 5) if is_dict else value[:5]
+        elements = islice(elements, 5) if is_dict or is_set else value[:5]
         truncate = True
 
     # Get display of each element
@@ -300,6 +302,8 @@ def collections_display(value, level):
         display = '{' + display + '}'
     elif isinstance(value, list):
         display = '[' + display + ']'
+    elif isinstance(value, set):
+        display = '{' + display + '}'
     else:
         display = '(' + display + ')'
 
@@ -344,7 +348,7 @@ def value_to_display(value, minmax=False, level=0):
                     display = default_display(value)
             else:
                 display = 'Numpy array'
-        elif any([type(value) == t for t in [list, tuple, dict]]):
+        elif any([type(value) == t for t in [list, set, tuple, dict]]):
             display = collections_display(value, level+1)
         elif isinstance(value, Image):
             if level == 0:
