@@ -336,11 +336,11 @@ class CodeEditor(TextEditBaseWidget):
         # Folding
         self.panels.register(FoldingPanel())
 
-        # Debugger panel
-        self.panels.register(DebuggerPanel())
-
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
+
+        # Debugger panel
+        self.panels.register(DebuggerPanel())
 
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
