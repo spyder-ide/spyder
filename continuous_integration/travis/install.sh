@@ -10,7 +10,7 @@ else
     export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
                                qtawesome pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle"
-    export PIP_DEPENDENCIES="coveralls pytest-qt pytest-timeout flaky"
+    export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky"
 fi
 
 
@@ -25,5 +25,9 @@ source activate test
 
 # We test with pip packages in Python 3.5 and PyQt5
 if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
+    # Install qtconsole from Github
+    pip install git+https://github.com/jupyter/qtconsole.git
+
+    # Install Spyder and its dependencies
     pip install -q -e .[test]
 fi

@@ -11,9 +11,9 @@ environment:
     CONDA_DEPENDENCIES_FLAGS: "--quiet"
     CONDA_DEPENDENCIES: >
       rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
-      qtawesome pickleshare qtpy pyzmq chardet mock pandas pytest
-      pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi
-    PIP_DEPENDENCIES: "pytest-qt pytest-timeout flaky"
+      qtawesome pickleshare pyzmq chardet mock pandas pytest
+      pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi pywin32
+    PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky"
 
   matrix:
     - PYTHON_VERSION: "2.7"
@@ -37,6 +37,10 @@ install:
   - "powershell ci-helpers/appveyor/install-miniconda.ps1"
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "activate test"
+  # Install qtpy and qtconsole from Github
+  - "pip install git+https://github.com/spyder-ide/qtpy.git"
+  - "conda remove -q -y qtconsole"
+  - "pip install git+https://github.com/jupyter/qtconsole.git"
 
 build: false
 

@@ -17,7 +17,8 @@ except ImportError:
 import os
 
 # Third party imports
-from pandas import DataFrame, date_range, MultiIndex, read_csv
+from pandas import (DataFrame, date_range, read_csv, Index, RangeIndex,
+                    DatetimeIndex, MultiIndex, CategoricalIndex)
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt
 import numpy
@@ -48,6 +49,21 @@ def bgcolor(dfm, i, j):
 
 def data_header(dfh, i, j, role=Qt.DisplayRole):
     return dfh.data(dfh.createIndex(i, j), role)
+
+
+def generate_pandas_indexes():
+    """ Creates a dictionnary of many possible pandas indexes """
+    return {
+        'Index': Index(list('ABCDEFGHIJKLMNOPQRST')),
+        'RangeIndex': RangeIndex(0, 20),
+        'Float64Index': Index([i/10 for i in range(20)]),
+        'DatetimeIndex': DatetimeIndex(start='2017-01-01', periods=20,
+                                       freq='D'),
+        'MultiIndex': MultiIndex.from_product(
+            [list('ABCDEFGHIJ'), ('foo', 'bar')], names=['first', 'second']),
+        'CategoricalIndex': CategoricalIndex(list('abcaadaccbbacabacccb'),
+                                             categories=['a', 'b', 'c']),
+        }
 
 
 # --- Tests
@@ -281,16 +297,48 @@ def test_change_format_with_format_not_starting_with_percent(qtbot, monkeypatch)
     with qtbot.assertNotEmitted(editor.sig_option_changed):
         editor.change_format()
 
-def test_dataframeeditor_with_datetimeindex():
-    rng = date_range('20150101', periods=3)
-    editor = DataFrameEditor(None)
-    editor.setup_and_check(rng)
-    dfm = editor.dataModel
-    assert dfm.rowCount() == 3
-    assert dfm.columnCount() == 1
-    assert data(dfm, 0, 0) == '2015-01-01 00:00:00'
-    assert data(dfm, 1, 0) == '2015-01-02 00:00:00'
-    assert data(dfm, 2, 0) == '2015-01-03 00:00:00'
+
+def test_dataframeeditor_with_various_indexes():
+    for rng_name, rng in generate_pandas_indexes().items():
+        editor = DataFrameEditor(None)
+        editor.setup_and_check(rng)
+        dfm = editor.dataModel
+        assert dfm.rowCount() == 20
+        assert dfm.columnCount() == 2
+        assert data(dfm, 0, 0) == '0'
+        assert data(dfm, 1, 0) == '1'
+        assert data(dfm, 2, 0) == '2'
+        assert data(dfm, 19, 0) == '19'
+        if rng_name == "Index":
+            assert data(dfm, 0, 1) == 'A'
+            assert data(dfm, 1, 1) == 'B'
+            assert data(dfm, 2, 1) == 'C'
+            assert data(dfm, 19, 1) == 'T'
+        elif rng_name == "RangeIndex":
+            assert data(dfm, 0, 1) == '0'
+            assert data(dfm, 1, 1) == '1'
+            assert data(dfm, 2, 1) == '2'
+            assert data(dfm, 19, 1) == '19'
+        elif rng_name == "Float64Index":
+            assert data(dfm, 0, 1) == '0'
+            assert data(dfm, 1, 1) == '0.1'
+            assert data(dfm, 2, 1) == '0.2'
+            assert data(dfm, 19, 1) == '1.9'
+        elif rng_name == "DatetimeIndex":
+            assert data(dfm, 0, 1) == '2017-01-01 00:00:00'
+            assert data(dfm, 1, 1) == '2017-01-02 00:00:00'
+            assert data(dfm, 2, 1) == '2017-01-03 00:00:00'
+            assert data(dfm, 19, 1) == '2017-01-20 00:00:00'
+        elif rng_name == "MultiIndex":
+            assert data(dfm, 0, 1) == "('A', 'foo')"
+            assert data(dfm, 1, 1) == "('A', 'bar')"
+            assert data(dfm, 2, 1) == "('B', 'foo')"
+            assert data(dfm, 19, 1) == "('J', 'bar')"
+        elif rng_name == "CategoricalIndex":
+            assert data(dfm, 0, 1) == 'a'
+            assert data(dfm, 1, 1) == 'b'
+            assert data(dfm, 2, 1) == 'c'
+            assert data(dfm, 19, 1) == 'b'
 
 
 if __name__ == "__main__":

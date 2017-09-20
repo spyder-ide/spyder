@@ -322,7 +322,7 @@ class ShortcutEditor(QDialog):
             tip = 'This shortcut is correct!'
         elif warning_type == SEQUENCE_CONFLICT:
             template = '<i>{0}<b>{1}</b></i>'
-            tip_title = _('The new shorcut conflicts with:') + '<br>'
+            tip_title = _('The new shortcut conflicts with:') + '<br>'
             tip_body = ''
             for s in conflicts:
                 tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
@@ -690,6 +690,7 @@ class ShortcutsTable(QTableView):
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
+        self.resizeRowsToContents()
         self.resizeColumnsToContents()
         fm = self.horizontalHeader().fontMetrics()
         names = [fm.width(s.name + ' '*9) for s in self.source_model.shortcuts]

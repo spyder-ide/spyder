@@ -189,9 +189,6 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
-SCIENTIFIC_STARTUP = get_module_source_path('spyder', 'scientific_startup.py')
-
-
 #==============================================================================
 # Image path list
 #==============================================================================
@@ -383,23 +380,23 @@ def get_supported_types():
     If you update this list, don't forget to update doc/variablexplorer.rst
     """
     from datetime import date
-    editable_types = [int, float, complex, list, dict, tuple, date
+    editable_types = [int, float, complex, list, set, dict, tuple, date
                       ] + list(TEXT_TYPES) + list(INT_TYPES)
     try:
         from numpy import ndarray, matrix, generic
         editable_types += [ndarray, matrix, generic]
-    except ImportError:
+    except:
         pass
     try:
-        from pandas import DataFrame, Series, DatetimeIndex
-        editable_types += [DataFrame, Series, DatetimeIndex]
-    except ImportError:
+        from pandas import DataFrame, Series, Index
+        editable_types += [DataFrame, Series, Index]
+    except:
         pass
     picklable_types = editable_types[:]
     try:
         from spyder.pil_patch import Image
         editable_types.append(Image.Image)
-    except ImportError:
+    except:
         pass
     return dict(picklable=picklable_types, editable=editable_types)
 

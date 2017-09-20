@@ -80,8 +80,6 @@ Using one (and only one) of these scientific Python distributions:
 
 ### On Mac OSX:
 
-- Using our DMG installer, which can be found
-  [here](https://github.com/spyder-ide/spyder/releases).
 - Using the [Anaconda Distribution](http://continuum.io/downloads).
 - Through [MacPorts](http://www.macports.org/).
 
@@ -143,7 +141,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Python** 2.7 or 3.3+
 * **PyQt5** 5.2+ or **PyQt4** 4.6+: PyQt5 is recommended.
 * **qtconsole** 4.2.0+: Enhanced Python interpreter.
-* **Rope** 0.10.5+ and **Jedi** 0.9.0+: Editor code completion, calltips
+* **Rope** 0.9.4+ and **Jedi** 0.9.0+: Editor code completion, calltips
   and go-to-definition.
 * **Pyflakes**: Real-time code analysis.
 * **Sphinx**: Rich text mode for the Help pane.

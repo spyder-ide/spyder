@@ -8,12 +8,18 @@ This module contains the Line Number panel
 """
 import sys
 
+from qtpy import QT_VERSION
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QPainter, QColor
 
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
+from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
+
+
+QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")
+
 
 class LineNumberArea(Panel):
     """Line number area (on the left side of the text editor widget)"""
@@ -56,18 +62,20 @@ class LineNumberArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         # This is needed to make that the font size of line numbers
         # be the same as the text one when zooming
-        # See Issue 2296
-        if sys.platform == 'darwin':
-            font = self.editor.font()
-        else:
-            font = painter.font()
+        # See Issue 2296 and 4811
+        font = self.editor.font()
         font_height = self.editor.fontMetrics().height()
 
         active_block = self.editor.textCursor().block()
         active_line_number = active_block.blockNumber() + 1
 
         def draw_pixmap(ytop, pixmap):
-            painter.drawPixmap(0, ytop + (font_height-pixmap.height()) / 2,
+            if not QT55_VERSION:
+                pixmap_height = pixmap.height()
+            else:
+                # scale pixmap height to device independent pixels
+                pixmap_height = pixmap.height() / pixmap.devicePixelRatio()
+            painter.drawPixmap(0, ytop + (font_height-pixmap_height) / 2,
                                pixmap)
 
         for top, line_number, block in self.editor.visible_blocks:

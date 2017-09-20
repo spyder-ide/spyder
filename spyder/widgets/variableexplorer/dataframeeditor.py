@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QHeaderView, QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
 
-from pandas import DataFrame, DatetimeIndex, Series
+from pandas import DataFrame, Index, Series
 import numpy as np
 
 # Local imports
@@ -47,7 +47,7 @@ COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 _bool_false = ['false', '0']
 
 # Default format for data frames with floats
-DEFAULT_FORMAT = '%.3g'
+DEFAULT_FORMAT = '%.6g'
 
 # Limit at which dataframe is considered so large that it is loaded on demand
 LARGE_SIZE = 5e5
@@ -808,7 +808,7 @@ class DataFrameEditor(QDialog):
         """
         Setup DataFrameEditor:
         return False if data is not supported, True otherwise.
-        Supported types for data are DataFrame, Series and DatetimeIndex.
+        Supported types for data are DataFrame, Series and Index.
         """
         self._selection_rec = False
         self._model = None
@@ -825,7 +825,7 @@ class DataFrameEditor(QDialog):
         if isinstance(data, Series):
             self.is_series = True
             data = data.to_frame()
-        elif isinstance(data, DatetimeIndex):
+        elif isinstance(data, Index):
             data = DataFrame(data)
 
         self.setWindowTitle(title)

@@ -302,7 +302,14 @@ class FileSwitcher(QDialog):
 
     @property
     def line_count(self):
-        return [widget.get_line_count() for widget in self.widgets]
+        line_count = []
+        for widget in self.widgets:
+            try:
+                current_line_count = widget[0].get_line_count()
+            except AttributeError:
+                current_line_count = 0
+            line_count.append(current_line_count)
+        return line_count
 
     @property
     def save_status(self):
@@ -609,12 +616,16 @@ class FileSwitcher(QDialog):
         # Get optional line number
         if trying_for_line_number:
             filter_text, line_number = filter_text.split(':')
+            # Get all the available filenames
+            scores = get_search_scores('', self.filenames,
+                                       template="<b>{0}</b>")
         else:
             line_number = None
+            # Get all available filenames and get the scores for
+            # "fuzzy" matching
+            scores = get_search_scores(filter_text, self.filenames,
+                                       template="<b>{0}</b>")
 
-        # Get all available filenames and get the scores for "fuzzy" matching
-        scores = get_search_scores(filter_text, self.filenames,
-                                   template="<b>{0}</b>")
 
         # Get max width to determine if shortpaths should be used
         max_width = self.get_item_size(paths)[0]
@@ -632,7 +643,9 @@ class FileSwitcher(QDialog):
                     text_item += u"<br><i>{0:}</i>".format(short_paths[index])
                 else:
                     text_item += u"<br><i>{0:}</i>".format(paths[index])
-                results.append((score_value, index, text_item))
+                if (trying_for_line_number and self.line_count[index] != 0 or
+                        not trying_for_line_number):
+                    results.append((score_value, index, text_item))
 
         # Sort the obtained scores and populate the list widget
         self.filtered_path = []

@@ -113,6 +113,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_icon = ima.icon('stop')
         self.history = []
         self.allow_rename = True
+        self.stderr_dir = None
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -163,7 +164,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Filename to save kernel stderr output."""
         if self.connection_file is not None:
             stderr_file = self.kernel_id + '.stderr'
-            stderr_file = osp.join(TEMPDIR, stderr_file)
+            if self.stderr_dir is not None:
+                stderr_file = osp.join(self.stderr_dir, stderr_file)
+            else:
+                if not osp.isdir(TEMPDIR):
+                    os.makedirs(TEMPDIR)
+                stderr_file = osp.join(TEMPDIR, stderr_file)
             return stderr_file
 
     def configure_shellwidget(self, give_focus=True):
@@ -206,8 +212,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
 
-        #To sync global working directory
-        self.shellwidget.executing.connect(self.shellwidget.capture_dir_change)
+        # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
@@ -436,7 +441,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = self._read_stderr()
             except:
                 stderr = None
-        except OSError:
+        except (OSError, IOError):
             stderr = None
 
         if stderr:
