@@ -130,7 +130,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         data_type = get_type_string(data)
 
         if coll_filter is not None and not self.remote and \
-          isinstance(data, (tuple, list, dict)):
+          isinstance(data, (tuple, list, dict, set)):
             data = coll_filter(data)
         self.showndata = data
 
@@ -1170,7 +1170,10 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
-    
+
+        if isinstance(data, set):
+            self.horizontalHeader().hideSection(0)
+
     #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
@@ -1192,10 +1195,15 @@ class CollectionsEditorTableView(BaseTableView):
         self.set_data(data)
         
     def is_list(self, key):
-        """Return True if variable is a list, a set or a tuple"""
+        """Return True if variable is a list or a tuple"""
         data = self.model.get_data()
-        return isinstance(data[key], (tuple, list, set))
-        
+        return isinstance(data[key], (tuple, list))
+
+    def is_set(self, key):
+        """Return True if variable is a set"""
+        data = self.model.get_data()
+        return isinstance(data[key], set)
+
     def get_len(self, key):
         """Return sequence length"""
         data = self.model.get_data()
@@ -1309,16 +1317,13 @@ class CollectionsEditor(QDialog):
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
         """Setup editor."""
-        if isinstance(data, dict):
-            # dictionnary
+        if isinstance(data, (dict, set)):
+            # dictionnary, set
             self.data_copy = data.copy()
             datalen = len(data)
         elif isinstance(data, (tuple, list)):
             # list, tuple
             self.data_copy = data[:]
-            datalen = len(data)
-        elif isinstance(data, set):
-            self.data_copy = list(data)
             datalen = len(data)
         else:
             # unknown object
