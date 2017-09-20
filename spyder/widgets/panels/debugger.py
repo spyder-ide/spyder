@@ -25,11 +25,16 @@ class DebuggerPanel(Panel):
         self.scrollable = True
 
         self.line_number_hint = None
+        self._current_line_arrow = None
 
         # Diccionary of QIcons to draw in the panel
         self.icons = {'breakpoint': ima.icon('breakpoint_big'),
                       'transparent': ima.icon('breakpoint_transparent'),
-                      'condition': ima.icon('breakpoint_cond_big')}
+                      'condition': ima.icon('breakpoint_cond_big'),
+                      'arrow': ima.icon('arrow_debugger')}
+
+    def set_current_line_arrow(self, n):
+        self._current_line_arrow = n
 
     def sizeHint(self):
         """Override Qt method.
@@ -70,6 +75,8 @@ class DebuggerPanel(Panel):
         for top, line_number, block in self.editor.visible_blocks:
             if self.line_number_hint == line_number:
                 self._draw_breakpoint_icon(top, painter, 'transparent')
+            if self._current_line_arrow == line_number:
+                self._draw_breakpoint_icon(top, painter, 'arrow')
 
             data = block.userData()
             if data is None or not data.breakpoint:
