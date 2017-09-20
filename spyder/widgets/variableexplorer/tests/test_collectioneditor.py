@@ -25,6 +25,9 @@ from spyder.widgets.variableexplorer.collectionseditor import (
 def data(cm, i, j):
     return cm.data(cm.createIndex(i, j))
 
+def data_table(cm, n_rows, n_cols):
+    return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
+
 # --- Tests
 # -----------------------------------------------------------------------------
 
@@ -94,6 +97,36 @@ def test_shows_dataframeeditor_when_editing_datetimeindex(qtbot, monkeypatch):
     editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
     mockDataFrameEditor_instance.show.assert_called_once_with()
 
+
+def test_sort_collectionsmodel():
+    coll = [1, 3, 2]
+    cm = CollectionsModel(None, coll)
+    assert cm.rowCount() == 3
+    assert cm.columnCount() == 4
+    cm.sort(0) # sort by index
+    assert data_table(cm, 3, 4) == [['0', '1', '2'],
+                                    ['int', 'int', 'int'],
+                                    ['1', '1', '1'],
+                                    ['1', '3', '2']]
+    cm.sort(3) # sort by value
+    assert data_table(cm, 3, 4) == [['0', '2', '1'],
+                                    ['int', 'int', 'int'],
+                                    ['1', '1', '1'],
+                                    ['1', '2', '3']]
+    coll = [[1, 2], 3]
+    cm = CollectionsModel(None, coll)
+    assert cm.rowCount() == 2
+    assert cm.columnCount() == 4
+    cm.sort(1) # sort by type
+    assert data_table(cm, 2, 4) == [['1', '0'],
+                                    ['int', 'list'],
+                                    ['1', '2'],
+                                    ['3', '[1, 2]']]
+    cm.sort(2) # sort by size
+    assert data_table(cm, 2, 4) == [['1', '0'],
+                                    ['int', 'list'],
+                                    ['1', '2'],
+                                    ['3', '[1, 2]']]
 
 if __name__ == "__main__":
     pytest.main()
