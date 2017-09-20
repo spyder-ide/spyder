@@ -41,8 +41,6 @@ class LineNumberArea(Panel):
         self.error_pixmap = ima.icon('error').pixmap(QSize(14, 14))
         self.warning_pixmap = ima.icon('warning').pixmap(QSize(14, 14))
         self.todo_pixmap = ima.icon('todo').pixmap(QSize(14, 14))
-        self.bp_pixmap = ima.icon('breakpoint_big').pixmap(QSize(14, 14))
-        self.bpc_pixmap = ima.icon('breakpoint_cond_big').pixmap(QSize(14, 14))
 
         # Line number area management
         self._margin = True
@@ -107,11 +105,6 @@ class LineNumberArea(Panel):
                         draw_pixmap(top, self.warning_pixmap)
                 if data.todo:
                     draw_pixmap(top, self.todo_pixmap)
-                if data.breakpoint:
-                    if data.breakpoint_condition is None:
-                        draw_pixmap(top, self.bp_pixmap)
-                    else:
-                        draw_pixmap(top, self.bpc_pixmap)
 
     def mouseMoveEvent(self, event):
         """Override Qt method.
@@ -132,15 +125,6 @@ class LineNumberArea(Panel):
         if event.buttons() == Qt.LeftButton:
             self._released = line_number
             self.editor.select_lines(self._pressed, self._released)
-
-    def mouseDoubleClickEvent(self, event):
-        """Override Qt method.
-
-        Add or remove breakpoints.
-        """
-        line_number = self.editor.get_linenumber_from_mouse_event(event)
-        shift = event.modifiers() & Qt.ShiftModifier
-        self.editor.add_remove_breakpoint(line_number, edit_condition=shift)
 
     def mousePressEvent(self, event):
         """Override Qt method
@@ -185,7 +169,6 @@ class LineNumberArea(Panel):
             return self._markers_margin_width
         else:
             return 0
-
 
     def setup_margins(self, linenumbers=True, markers=True):
         """
