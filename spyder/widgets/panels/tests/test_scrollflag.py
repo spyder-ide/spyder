@@ -15,6 +15,7 @@ import pytest
 
 # Local imports
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from qtpy import PYQT4
 
 
 # ---------------------------------------------------------------------------
@@ -128,6 +129,7 @@ def test_flag_painting(editor_bot):
         editor.setTextCursor(cursor)
 
 
+@pytest.mark.skipif(PYQT4, reason="It segfaults frequently")
 def test_range_indicator_visible_on_hover_only(editor_bot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
@@ -199,6 +201,10 @@ def test_range_indicator_alt_modifier_response(editor_bot):
     qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w/2, h/2))
 
     # Hold the alt key and assert that the slider range indicator is visible.
+    # Because it is not possible to simulate the action of holding the alt
+    # key down in pytest-qt, this is done through a flag in the ScrollFlagArea
+    # that is set to True when pressing the alt key and to false when releasing
+    # it. This flag is only used for testing purpose.
     qtbot.keyPress(editor, Qt.Key_Alt)
     qtbot.waitUntil(lambda: sfa._range_indicator_is_visible)
 
