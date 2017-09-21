@@ -127,7 +127,7 @@ class LineNumberArea(Panel):
         check = self._released == -1
         if data and data.code_analysis and check:
             self.editor.show_code_analysis_results(line_number,
-                                                   data.code_analysis)
+                                                   data)
 
         if event.buttons() == Qt.LeftButton:
             self._released = line_number

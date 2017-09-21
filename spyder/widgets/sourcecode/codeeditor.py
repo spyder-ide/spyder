@@ -173,13 +173,15 @@ class GoToLineDialog(QDialog):
 # CodeEditor widget
 #===============================================================================
 class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor):
+    def __init__(self, editor, cursor=None, color=None):
         QTextBlockUserData.__init__(self)
         self.editor = editor
         self.breakpoint = False
         self.breakpoint_condition = None
         self.code_analysis = []
         self.todo = ''
+        self.selection = cursor
+        self.color = color
         self.editor.blockuserdata_list.append(self)
 
     def is_empty(self):
@@ -1498,16 +1500,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setUpdatesEnabled(False)
         cursor = self.textCursor()
         document = self.document()
-        flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
         for diagnostic in check_results:
-            # print(diagnostic)
-            """{u'source': u'pycodestyle',
-                u'range': {
-                    u'start': {u'line': 376, u'character': 0},
-                    u'end': {u'line': 376, u'character': 13}},
-                u'code': u'W293',
-                u'message': u'W293 blank line contains whitespace',
-                u'severity': 2}"""
             source = diagnostic['source']
             msg_range = diagnostic['range']
             start = msg_range['start']
@@ -1517,11 +1510,6 @@ class CodeEditor(TextEditBaseWidget):
             severity = diagnostic['severity']
 
             block = document.findBlockByNumber(start['line'])
-            data = block.userData()
-            if not data:
-                data = BlockUserData(self)
-            data.code_analysis.append((source, code, severity, message))
-            block.setUserData(data)
             error = severity == DiagnosticSeverity.ERROR
             color = self.error_color if error else self.warning_color
             cursor.setPosition(block.position())
@@ -1537,60 +1525,36 @@ class CodeEditor(TextEditBaseWidget):
                 mode=QTextCursor.KeepAnchor)
             color = QColor(color)
             color.setAlpha(50)
-            self.__highlight_selection('code_analysis', cursor,
-                                       background_color=color,
-                                       underline_style=QTextCharFormat.SingleUnderline)
 
-        # for message, line_number in check_results:
-        #     error = 'syntax' in message
-        #     # Note: line_number start from 1 (not 0)
-        #     block = self.document().findBlockByNumber(line_number-1)
-        #     data = block.userData()
-        #     if not data:
-        #         data = BlockUserData(self)
-        #     data.code_analysis.append( (message, error) )
-        #     block.setUserData(data)
-        #     refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
-        #     for ref in refs:
-        #         # Highlighting found references
-        #         text = ref[1:-1]
-        #         # Scanning line number *line* and following lines if continued
-        #         def is_line_splitted(line_no):
-        #             text = to_text_string(
-        #                         document.findBlockByNumber(line_no).text())
-        #             stripped = text.strip()
-        #             return stripped.endswith('\\') or stripped.endswith(',') \
-        #                    or len(stripped) == 0
-        #         line2 = line_number-1
-        #         while line2 < self.blockCount()-1 and is_line_splitted(line2):
-        #             line2 += 1
-        #         cursor.setPosition(block.position())
-        #         cursor.movePosition(QTextCursor.StartOfBlock)
-        #         regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
-        #                          Qt.CaseSensitive)
-        #         color = self.error_color if error else self.warning_color
-        #         # Highlighting all occurrences (this is a compromise as pyflakes
-        #         # do not provide the column number -- see Issue 709 on Spyder's
-        #         # GoogleCode project website)
-        #         cursor = document.find(regexp, cursor, flags)
-        #         if cursor:
-        #             while cursor and cursor.blockNumber() <= line2 \
-        #                   and cursor.blockNumber() >= line_number-1 \
-        #                   and cursor.position() > 0:
-        #                 self.__highlight_selection('code_analysis', cursor,
-        #                                underline_color=QColor(color))
-        #                 cursor = document.find(text, cursor, flags)
+            data = block.userData()
+            if not data:
+                data = BlockUserData(
+                    self, cursor=QTextCursor(cursor), color=color)
+            data.code_analysis.append((source, code, severity, message))
+            block.setUserData(data)
+            block.selection = QTextCursor(cursor)
+            block.color = color
+
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
         self.classfuncdropdown.update()
 
-    def show_code_analysis_results(self, line_number, code_analysis):
+    def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages"""
+        code_analysis = block_data.code_analysis
         msglist = ['{0} [{1}]: {2}'.format(
             src, code, msg) for src, code, _sev, msg in code_analysis]
         self.show_calltip(_("Code analysis"), msglist,
                           color='#129625', at_line=line_number)
+        self.highlight_line_warning(block_data)
+
+    def highlight_line_warning(self, block_data):
+        self.clear_extra_selections('code_analysis')
+        self.__highlight_selection('code_analysis', block_data.selection,
+                                   background_color=block_data.color)
+        self.update_extra_selections()
+        self.linenumberarea.update()
 
     def go_to_next_warning(self):
         """Go to next code analysis warning message
@@ -1607,7 +1571,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data)
         return self.get_position('cursor')
 
     def go_to_previous_warning(self):
@@ -1624,7 +1588,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data)
         return self.get_position('cursor')
 
 
