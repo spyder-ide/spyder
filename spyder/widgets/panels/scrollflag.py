@@ -26,6 +26,11 @@ class ScrollFlagArea(Panel):
         self.scrollable = True
         self.setMouseTracking(True)
 
+        # Define some attributes to be used for unit testing.
+        self._unit_testing = False
+        self._range_indicator_is_visible = False
+        self._alt_key_is_down = False
+
         editor.sig_focus_changed.connect(self.update)
         editor.sig_key_pressed.connect(self.keyPressEvent)
         editor.sig_key_released.connect(self.keyReleaseEvent)
@@ -106,7 +111,10 @@ class ScrollFlagArea(Panel):
                 painter.drawRect(make_flag(line_number))
 
         # Paint the slider range
-        alt = QApplication.queryKeyboardModifiers() & Qt.AltModifier
+        if not self._unit_testing:
+            alt = QApplication.queryKeyboardModifiers() & Qt.AltModifier
+        else:
+            alt = self._alt_key_is_down
         cursor_pos = self.mapFromGlobal(QCursor().pos())
         is_over_self = self.rect().contains(cursor_pos)
         is_over_editor = self.editor.rect().contains(
@@ -123,6 +131,9 @@ class ScrollFlagArea(Panel):
             brush_color.setAlphaF(.5)
             painter.setBrush(QBrush(brush_color))
             painter.drawRect(self.make_slider_range(cursor_pos))
+            self._range_indicator_is_visible = True
+        else:
+            self._range_indicator_is_visible = False
 
     def enterEvent(self, event):
         """Override Qt method"""
@@ -146,11 +157,13 @@ class ScrollFlagArea(Panel):
     def keyReleaseEvent(self, event):
         """Override Qt method."""
         if event.key() == Qt.Key_Alt:
+            self._alt_key_is_down = False
             self.update()
 
     def keyPressEvent(self, event):
         """Override Qt method"""
         if event.key() == Qt.Key_Alt:
+            self._alt_key_is_down = True
             self.update()
 
     def get_scrollbar_position_height(self):
