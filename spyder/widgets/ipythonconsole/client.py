@@ -95,7 +95,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
-                 external_kernel=False, given_name=None):
+                 external_kernel=False, given_name=None,
+                 options_button=None):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -108,7 +109,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.given_name = given_name
 
         # --- Other attrs
-        self.options_button = None
+        self.options_button = options_button
         self.stop_button = None
         self.stop_icon = ima.icon('stop')
         self.history = []
