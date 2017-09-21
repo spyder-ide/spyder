@@ -9,6 +9,8 @@
 Contains the text decorations manager.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/managers/decorations.py
 """
+from qtpy.QtGui import QTextCharFormat
+
 from spyder.api.manager import Manager
 
 
@@ -44,7 +46,7 @@ class TextDecorationsManager(Manager):
 
         if added > 0:
             self._order_decorations()
-            self.editor.setExtraSelections(self._decorations)
+            self.update()
         return added
 
     def remove(self, decoration):
@@ -56,7 +58,7 @@ class TextDecorationsManager(Manager):
         """
         try:
             self._decorations.remove(decoration)
-            self.editor.setExtraSelections(self._decorations)
+            self.update()
             return True
         except ValueError:
             return False
@@ -65,9 +67,25 @@ class TextDecorationsManager(Manager):
         """Removes all text decoration from the editor."""
         self._decorations[:] = []
         try:
-            self.editor.setExtraSelections(self._decorations)
+            self.update()
         except RuntimeError:
             pass
+
+    def update(self):
+        """Update editor extra selections with added decorations.
+
+        NOTE: Update TextDecorations to use editor font, using a different
+        font family and point size could cause unwanted behaviors.
+        """
+        font = self.editor.font()
+        for decoration in self._decorations:
+            try:
+                decoration.format.setFont(
+                        font, QTextCharFormat.FontPropertiesSpecifiedOnly)
+            except TypeError:  # Qt < 5.3
+                decoration.format.setFontFamily(font.family())
+                decoration.format.setFontPointSize(font.pointSize())
+        self.editor.setExtraSelections(self._decorations)
 
     def __iter__(self):
         return iter(self._decorations)
