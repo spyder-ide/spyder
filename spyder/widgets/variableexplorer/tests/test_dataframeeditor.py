@@ -305,7 +305,6 @@ def test_dataframeeditor_with_various_indexes():
         dfm = editor.dataModel
         assert dfm.rowCount() == 20
         assert dfm.columnCount() == 1
-        assert data(dfm, 0, 0) == '0'
         index = editor.table_index.model()
         assert index.headerData(0, Qt.Vertical,
                                  Qt.DisplayRole) == "0"
