@@ -28,7 +28,7 @@ from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
 from qtpy import PYQT5
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot, QEventLoop, QTimer
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
                             QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
@@ -920,6 +920,22 @@ class IPythonConsole(SpyderPluginWidget):
         if shellwidget is not None:
             shellwidget.get_cwd()
 
+    def wait_shell_is_ready(self, shell, timeout=15000):
+        """Wait until console It's ready and banner is correctly displayed.
+
+        shell (ShellWidget)
+        timeout (int) milliseconds
+        """
+        i = 0
+        loop = QEventLoop()
+        timer = QTimer()
+        timer.timeout.connect(loop.quit)
+        timer.start(300)
+        while(shell._prompt_html is None and i*300 < timeout):
+            loop.exec_()
+            i += 1
+        timer.stop()
+
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
@@ -928,9 +944,10 @@ class IPythonConsole(SpyderPluginWidget):
                 pass
             else:
                 if not current_client:
+                    # wait until console it's ready before executing code
+                    self.wait_shell_is_ready(sw)
                     # Clear console and reset namespace for
                     # dedicated clients
-                    sw.silent_execute('%clear')
                     sw.silent_execute(
                         'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(warning=False, silent=True)
