@@ -129,7 +129,6 @@ def test_flag_painting(editor_bot):
         editor.setTextCursor(cursor)
 
 
-@pytest.mark.skipif(PYQT4, reason="It segfaults frequently")
 def test_range_indicator_visible_on_hover_only(editor_bot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
@@ -177,6 +176,7 @@ def test_range_indicator_visible_on_hover_only(editor_bot):
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible)
 
 
+@pytest.mark.skipif(PYQT4, reason="It segfaults frequently")
 def test_range_indicator_alt_modifier_response(editor_bot):
     """Test that the slider range indicator is visible while the alt key is
     held down while the cursor is over the editor, but outside of the
