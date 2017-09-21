@@ -16,7 +16,8 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
                         QLinearGradient, QPen, QPalette, QResizeEvent,
                         QCursor)
 
-from spyder.widgets.sourcecode.api.decoration import TextDecoration
+from spyder.widgets.sourcecode.api.decoration import (TextDecoration,
+                                                      DRAW_ORDERS)
 from spyder.widgets.sourcecode.folding import FoldScope
 from spyder.api.panel import Panel
 from spyder.utils.editor import (TextBlockHelper, TextHelper, DelayJobRunner,
@@ -348,12 +349,20 @@ class FoldingPanel(Panel):
         return color
 
     def _decorate_block(self, start, end):
+        """
+        Create a decoration and add it to the editor.
+
+        Args:
+            start (int) start line of the decoration
+            end (int) end line of the decoration
+        """
         color = self._get_scope_highlight_color()
-        d = TextDecoration(self.editor.document(),
-                           start_line=start, end_line=end+1)
+        draw_order = DRAW_ORDERS.get('codefolding')
+        d = TextDecoration(self.editor.document(), start_line=start,
+                           end_line=end+1, draw_order=draw_order)
         d.set_background(color)
         d.set_full_width(True, clear=False)
-        self.editor.decorations.append(d)
+        self.editor.decorations.add(d)
         self._scope_decos.append(d)
 
     def _highlight_block(self, block):
@@ -433,10 +442,10 @@ class FoldingPanel(Panel):
         Add fold decorations (boxes arround a folded block in the editor
         widget).
         """
-        deco = TextDecoration(block)
+        draw_order = DRAW_ORDERS.get('codefolding')
+        deco = TextDecoration(block, draw_order=draw_order)
         deco.signals.clicked.connect(self._on_fold_deco_clicked)
         deco.tooltip = region.text(max_lines=25)
-        deco.draw_order = 1
         deco.block = block
         deco.select_line()
         deco.set_outline(drift_color(
@@ -444,7 +453,7 @@ class FoldingPanel(Panel):
         deco.set_background(self._get_scope_highlight_color())
         deco.set_foreground(QColor('#808080'))
         self._block_decos.append(deco)
-        self.editor.decorations.append(deco)
+        self.editor.decorations.add(deco)
 
     def toggle_fold_trigger(self, block):
         """
@@ -556,7 +565,7 @@ class FoldingPanel(Panel):
                 deco.set_outline(drift_color(
                     self._get_scope_highlight_color(), 110))
                 deco.set_background(self._get_scope_highlight_color())
-                self.editor.decorations.append(deco)
+                self.editor.decorations.add(deco)
         self._prev_cursor = cursor
 
     def _refresh_editor_and_scrollbars(self):

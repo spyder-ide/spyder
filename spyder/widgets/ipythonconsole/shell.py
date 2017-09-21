@@ -15,7 +15,6 @@ import uuid
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.main import CONF
-from qtpy import PYQT4
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
@@ -290,7 +289,10 @@ the sympy module (e.g. plot)
     # --- To communicate with the kernel
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
-        self.kernel_client.execute(to_text_string(code), silent=True)
+        try:
+            self.kernel_client.execute(to_text_string(code), silent=True)
+        except AttributeError:
+            pass
 
     def silent_exec_method(self, code):
         """Silently execute a kernel method and save its reply
