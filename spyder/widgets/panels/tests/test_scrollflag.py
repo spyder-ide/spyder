@@ -128,25 +128,36 @@ def test_range_indicator_visible_on_hover_only(editor_bot):
     editor.resize(450, 300)
     editor.show()
 
-    # Check that the slider is not visible.
+    # Set a short text in the editor and assert that the slider is not visible.
     editor.set_text(short_code)
     qtbot.waitUntil(lambda: not sfa.slider)
 
+    # Move the mouse cursor to the center of the scrollflagarea and assert
+    # that the slider range indicator remains hidden. The slider range
+    # indicator should remains hidden at all times when the vertical scrollbar
+    # of the editor is not visible.
     x = sfa.width()/2
     y = sfa.height()/2
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
 
     assert sfa._range_indicator_is_visible is False
 
+    # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
     qtbot.waitUntil(lambda: sfa.slider)
 
+    # Move the mouse cursor to the center of the scrollflagarea and assert
+    # that the slider range indicator is now shown. When the vertical scrollbar
+    # of the editor is visible, the slider range indicator should be visible
+    # only when the mouse cursor hover above the scrollflagarea.
     x = sfa.width()/2
     y = sfa.height()/2
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
 
     assert sfa._range_indicator_is_visible is True
 
+    # Move the mouse cursor outside of the scrollflagarea and assert that the
+    # slider range indicator becomes hidden.
     x = editor.width()/2
     y = editor.height()/2
     qtbot.mouseMove(editor, pos=QPoint(x, y), delay=-1)
