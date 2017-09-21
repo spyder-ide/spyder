@@ -305,17 +305,9 @@ def test_dataframeeditor_with_various_indexes():
         dfm = editor.dataModel
         assert dfm.rowCount() == 20
         assert dfm.columnCount() == 1
-        index = editor.table_index.model()
-        assert index.headerData(0, Qt.Vertical,
+        header = editor.table_header.model()
+        assert header.headerData(0, Qt.Horizontal,
                                  Qt.DisplayRole) == "0"
-        assert index.headerData(1, Qt.Vertical,
-                                 Qt.DisplayRole) == "1"
-        assert index.headerData(2, Qt.Vertical,
-                                 Qt.DisplayRole) == "2"
-        assert index.headerData(3, Qt.Vertical,
-                                 Qt.DisplayRole) == "3"
-        assert index.headerData(19, Qt.Vertical,
-                                 Qt.DisplayRole) == "19"
 
         if rng_name == "Index":
             assert data(dfm, 0, 0) == 'A'
