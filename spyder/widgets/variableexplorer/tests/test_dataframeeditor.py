@@ -304,41 +304,50 @@ def test_dataframeeditor_with_various_indexes():
         editor.setup_and_check(rng)
         dfm = editor.dataModel
         assert dfm.rowCount() == 20
-        assert dfm.columnCount() == 2
+        assert dfm.columnCount() == 1
         assert data(dfm, 0, 0) == '0'
-        assert data(dfm, 1, 0) == '1'
-        assert data(dfm, 2, 0) == '2'
-        assert data(dfm, 19, 0) == '19'
+        index = editor.table_index.model()
+        assert index.headerData(0, Qt.Vertical,
+                                 Qt.DisplayRole) == "0"
+        assert index.headerData(1, Qt.Vertical,
+                                 Qt.DisplayRole) == "1"
+        assert index.headerData(2, Qt.Vertical,
+                                 Qt.DisplayRole) == "2"
+        assert index.headerData(3, Qt.Vertical,
+                                 Qt.DisplayRole) == "3"
+        assert index.headerData(19, Qt.Vertical,
+                                 Qt.DisplayRole) == "19"
+
         if rng_name == "Index":
-            assert data(dfm, 0, 1) == 'A'
-            assert data(dfm, 1, 1) == 'B'
-            assert data(dfm, 2, 1) == 'C'
-            assert data(dfm, 19, 1) == 'T'
+            assert data(dfm, 0, 0) == 'A'
+            assert data(dfm, 1, 0) == 'B'
+            assert data(dfm, 2, 0) == 'C'
+            assert data(dfm, 19, 0) == 'T'
         elif rng_name == "RangeIndex":
-            assert data(dfm, 0, 1) == '0'
-            assert data(dfm, 1, 1) == '1'
-            assert data(dfm, 2, 1) == '2'
-            assert data(dfm, 19, 1) == '19'
+            assert data(dfm, 0, 0) == '0'
+            assert data(dfm, 1, 0) == '1'
+            assert data(dfm, 2, 0) == '2'
+            assert data(dfm, 19, 0) == '19'
         elif rng_name == "Float64Index":
-            assert data(dfm, 0, 1) == '0'
-            assert data(dfm, 1, 1) == '0.1'
-            assert data(dfm, 2, 1) == '0.2'
-            assert data(dfm, 19, 1) == '1.9'
+            assert data(dfm, 0, 0) == '0'
+            assert data(dfm, 1, 0) == '0.1'
+            assert data(dfm, 2, 0) == '0.2'
+            assert data(dfm, 19, 0) == '1.9'
         elif rng_name == "DatetimeIndex":
-            assert data(dfm, 0, 1) == '2017-01-01 00:00:00'
-            assert data(dfm, 1, 1) == '2017-01-02 00:00:00'
-            assert data(dfm, 2, 1) == '2017-01-03 00:00:00'
-            assert data(dfm, 19, 1) == '2017-01-20 00:00:00'
+            assert data(dfm, 0, 0) == '2017-01-01 00:00:00'
+            assert data(dfm, 1, 0) == '2017-01-02 00:00:00'
+            assert data(dfm, 2, 0) == '2017-01-03 00:00:00'
+            assert data(dfm, 19, 0) == '2017-01-20 00:00:00'
         elif rng_name == "MultiIndex":
-            assert data(dfm, 0, 1) == "('A', 'foo')"
-            assert data(dfm, 1, 1) == "('A', 'bar')"
-            assert data(dfm, 2, 1) == "('B', 'foo')"
-            assert data(dfm, 19, 1) == "('J', 'bar')"
+            assert data(dfm, 0, 0) == "('A', 'foo')"
+            assert data(dfm, 1, 0) == "('A', 'bar')"
+            assert data(dfm, 2, 0) == "('B', 'foo')"
+            assert data(dfm, 19, 0) == "('J', 'bar')"
         elif rng_name == "CategoricalIndex":
-            assert data(dfm, 0, 1) == 'a'
-            assert data(dfm, 1, 1) == 'b'
-            assert data(dfm, 2, 1) == 'c'
-            assert data(dfm, 19, 1) == 'b'
+            assert data(dfm, 0, 0) == 'a'
+            assert data(dfm, 1, 0) == 'b'
+            assert data(dfm, 2, 0) == 'c'
+            assert data(dfm, 19, 0) == 'b'
 
 
 if __name__ == "__main__":
