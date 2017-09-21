@@ -73,7 +73,8 @@ from spyder.widgets.sourcecode.extensions.closequotes import (
         CloseQuotesExtension)
 from spyder.widgets.sourcecode.api.decoration import TextDecoration
 from spyder.widgets.sourcecode.utils.lsp import request, handles, class_register
-from spyder.utils.code_analysis import LSPRequestTypes, TextDocumentSyncKind
+from spyder.utils.code_analysis import (
+    LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity)
 from spyder.api.panel import Panel
 
 try:
@@ -1060,10 +1061,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
+                        outline_color=None,
                         underline_style=QTextCharFormat.SpellCheckUnderline,
                         update=False):
         extra_selections = self.get_extra_selections(key)
-        selection = TextDecoration(cursor)
+        selection = TextDecoration(cursor, font=self.font())
         if foreground_color is not None:
             selection.format.setForeground(foreground_color)
         if background_color is not None:
@@ -1073,8 +1075,10 @@ class CodeEditor(TextEditBaseWidget):
                                          to_qvariant(underline_style))
             selection.format.setProperty(QTextFormat.TextUnderlineColor,
                                          to_qvariant(underline_color))
-        selection.format.setProperty(QTextFormat.FullWidthSelection,
-                                     to_qvariant(True))
+        if outline_color is not None:
+            selection.set_outline(outline_color)
+        # selection.format.setProperty(QTextFormat.FullWidthSelection,
+                                     # to_qvariant(True))
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
         if update:
@@ -1512,12 +1516,30 @@ class CodeEditor(TextEditBaseWidget):
             message = diagnostic['message']
             severity = diagnostic['severity']
 
-            block = self.document().findBlockByNumber(start['line'])
+            block = document.findBlockByNumber(start['line'])
             data = block.userData()
             if not data:
                 data = BlockUserData(self)
             data.code_analysis.append((source, code, severity, message))
             block.setUserData(data)
+            error = severity == DiagnosticSeverity.ERROR
+            color = self.error_color if error else self.warning_color
+            cursor.setPosition(block.position())
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            cursor.movePosition(
+                QTextCursor.NextCharacter, n=start['character'])
+            block2 = document.findBlockByNumber(end['line'])
+            cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.NextCharacter, n=end['character'],
+                mode=QTextCursor.KeepAnchor)
+            color = QColor(color)
+            color.setAlpha(50)
+            self.__highlight_selection('code_analysis', cursor,
+                                       background_color=color,
+                                       underline_style=QTextCharFormat.SingleUnderline)
 
         # for message, line_number in check_results:
         #     error = 'syntax' in message
