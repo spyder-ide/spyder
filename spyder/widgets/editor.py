@@ -1346,6 +1346,10 @@ class EditorStack(QWidget):
             return self.has_filename(filename)
 
     def get_index_from_filename(self, filename):
+        """
+        Return the position index of a file in the tab bar of the editorstack
+        from its name.
+        """
         filenames = [d.filename for d in self.data]
         return filenames.index(filename)
 
