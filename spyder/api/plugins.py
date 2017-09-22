@@ -71,6 +71,7 @@ class PluginWidget(BasePluginWidget):
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
+        self.menu = QMenu(self)
 
         # NOTE: Don't use the default option of CONF.get to assign a
         # None shortcut to plugins that don't have one. That will mess
@@ -96,7 +97,6 @@ class PluginWidget(BasePluginWidget):
         self.create_undock_action()
         self.plugin_actions = self.get_plugin_actions() + [None,
                                                            self.undock_action]
-        self.menu = QMenu(self)
         add_actions(self.menu, self.plugin_actions)
         self.options_button.setMenu(self.menu)
         self.menu.aboutToShow.connect(self.refresh_actions)

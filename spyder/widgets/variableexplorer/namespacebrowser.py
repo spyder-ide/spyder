@@ -44,7 +44,8 @@ class NamespaceBrowser(QWidget):
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
     
-    def __init__(self, parent, options_button=None, menu=None, actions=None):
+    def __init__(self, parent, options_button=None, menu=None,
+                 plugin_actions=None):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
@@ -70,7 +71,8 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action = None
         self.options_button = options_button
         self.menu = menu
-        self.actions = actions
+        self.actions = None
+        self.plugin_actions = plugin_actions
 
         self.filename = None
 
@@ -130,6 +132,8 @@ class NamespaceBrowser(QWidget):
                    self.exclude_unsupported_action, None]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
+        if self.plugin_actions:
+            actions = actions + self.plugin_actions
         self.actions = actions
         if not self.options_button:
             self.options_button = create_toolbutton(

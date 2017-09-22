@@ -143,8 +143,7 @@ class VariableExplorer(SpyderPluginWidget):
             self.options_button.setVisible(True)
             nsb = NamespaceBrowser(self,
                                    options_button=self.options_button,
-                                   menu=self.menu,
-                                   actions=self.plugin_actions)
+                                   plugin_actions=[self.undock_action])
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
@@ -198,17 +197,11 @@ class VariableExplorer(SpyderPluginWidget):
         
     def refresh_plugin(self):
         """Refresh widget"""
-        self.menu.clear()
-        add_actions(self.menu, self.get_plugin_actions())
+        pass
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        if self.get_focus_widget():
-            actions = self.get_focus_widget().get_actions()
-        else:
-            self.options_button.setVisible(False)
-            actions = []
-        return actions
+        return []
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

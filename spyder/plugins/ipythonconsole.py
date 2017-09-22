@@ -615,7 +615,8 @@ class IPythonConsole(SpyderPluginWidget):
                 os.mkdir(programs.TEMPDIR)
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
+        self.tabwidget = Tabs(self, menu=self.menu, actions=self.menu_actions,
+                              rename_tabs=True,
                               split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':

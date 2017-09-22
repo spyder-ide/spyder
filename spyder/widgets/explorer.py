@@ -1161,7 +1161,7 @@ class ExplorerWidget(QWidget):
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True,
-                 options_button=None):
+                 options_button=None, menu=None):
         QWidget.__init__(self, parent)
 
         # Widgets
@@ -1173,7 +1173,10 @@ class ExplorerWidget(QWidget):
             self.button_menu = options_button
         else:
             self.button_menu = QToolButton(self)
-        self.menu = QMenu(self)
+        if menu:
+            self.menu = menu
+        else:
+            self.menu = QMenu(self)
 
         self.action_widgets = [button_previous, button_next, button_parent,
                                self.button_menu]
