@@ -1346,7 +1346,7 @@ class EditorStack(QWidget):
             return self.has_filename(filename)
         
     def get_index_from_filename(self, filename):
-        filenames = [self.data[i].filename for i in self.data]
+        filenames = [d.filename for d in self.data]
         return filenames.index(filename)
 
     @Slot(int, int)
@@ -1400,13 +1400,14 @@ class EditorStack(QWidget):
             if self.outlineexplorer is not None:
                 self.outlineexplorer.remove_editor(finfo.editor)
 
+            filename = self.data[index].filename
             self.remove_from_data(index)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
             # (see Issue 1094, Issue 1098)
-            self.sig_close_file.emit(str(id(self)), self.data[index].filename)
+            self.sig_close_file.emit(str(id(self)), filename)
 
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
