@@ -942,7 +942,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
-                        underline_style=QTextCharFormat.SpellCheckUnderline,
+                        underline_style=QTextCharFormat.WaveUnderline,
                         update=False):
         extra_selections = self.get_extra_selections(key)
         selection = TextDecoration(cursor)
