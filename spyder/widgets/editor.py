@@ -1353,7 +1353,6 @@ class EditorStack(QWidget):
     def move_editorstack_data(self, start, end):
         """Reorder editorstack.data so it is synchronized with the tab bar when
         tabs are moved."""
-        print(self)
         if start < 0 or end < 0:
             return
         else:
