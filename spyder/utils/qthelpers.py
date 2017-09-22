@@ -311,7 +311,12 @@ def add_actions(target, actions, insert_before=None):
                     except RuntimeError:
                         continue
             if insert_before is None:
-                target.addAction(action)
+                # This is needed in order to ignore adding an action whose
+                # wrapped C/C++ object has been deleted. See issue 5074
+                try:
+                    target.addAction(action)
+                except RuntimeError:
+                    continue
             else:
                 target.insertAction(insert_before, action)
         previous_action = action

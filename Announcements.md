@@ -1,36 +1,38 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.1 is released!
+**Subject**: [ANN] Spyder 3.2.3 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.1** has been released and is available for
+I'm pleased to announce that Spyder **3.2.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three weeks after version 3.2.0 and it fixes several important
-problems:
+This release comes one week after version 3.2.2 and it adds the following new
+features:
 
-* An error when using non-ascii directories to run code in Python 2 and
-  Windows.
-* An error when setting a custom scale factor on HiDPI screens.
-* A blockage in the IPython console when running statements of the form
-  `from foo import *`.
+* A button to the Variable Explorer to remove to remove all variables at
+  once.
 
-In this release we also fixed 22 issues and merged 28 pull requests that amount
-to more than 100 commits. For a full list of fixes, please see our
-[changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md)
+It also fixes one critical problem:
+
+* An AttributeError when running code in the IPython console while using
+  old versions of the qtconsole package.
+
+In this release we fixed 10 issues and merged 9 pull requests that amount
+to almost 40 commits. For a full list of fixes, please see our
+[Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
-[Github website](https://github.com/spyder-ide/spyder)
+[Github website](https://github.com/spyder-ide/spyder).
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development and computing environment. Join us to help
 creating your favorite environment!
 
-Enjoy!<br>
-- Carlos
+Enjoy!
+Carlos
 
 
 ----

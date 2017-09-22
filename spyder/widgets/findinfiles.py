@@ -786,7 +786,6 @@ class FileProgressBar(QWidget):
         self.spinner = QWaitingSpinner(self, centerOnParent=False)
         self.spinner.setNumberOfLines(12)
         self.spinner.setInnerRadius(2)
-        self.spinner.start()
         layout = QHBoxLayout()
         layout.addWidget(self.spinner)
         layout.addWidget(self.status_text)
@@ -803,6 +802,16 @@ class FileProgressBar(QWidget):
 
     def reset(self):
         self.status_text.setText(_("  Searching for files..."))
+
+    def showEvent(self, event):
+        """Override show event to start waiting spinner."""
+        QWidget.showEvent(self, event)
+        self.spinner.start()
+
+    def hideEvent(self, event):
+        """Override hide event to stop waiting spinner."""
+        QWidget.hideEvent(self, event)
+        self.spinner.stop()
 
 
 class FindInFilesWidget(QWidget):

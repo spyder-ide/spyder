@@ -48,7 +48,10 @@ class DefaultsConfig(cp.ConfigParser):
     UserConfig
     """
     def __init__(self, name, subfolder):
-        cp.ConfigParser.__init__(self)
+        if PY2:
+            cp.ConfigParser.__init__(self)
+        else:
+            cp.ConfigParser.__init__(self, interpolation=None)
         self.name = name
         self.subfolder = subfolder
 
