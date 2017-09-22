@@ -39,6 +39,32 @@ class DocumentProvider:
                 LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                 {'params': diagnostics})
 
+    @send_request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
+    def document_changed(self, params):
+        start_line, start_col = params['start']
+        end_line, end_col = params['end']
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file']),
+                'version': params['version']
+            },
+            'contentChanges': [{
+                'range': {
+                    'start': {
+                        'line': start_line,
+                        'character': start_col
+                    },
+                    'end': {
+                        'line': end_line,
+                        'character': end_col
+                    }
+                },
+                # 'rangeLength': params['length'],
+                'text': params['text']
+            }]
+        }
+        return params
+
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_open(self, editor_params):
         params = {

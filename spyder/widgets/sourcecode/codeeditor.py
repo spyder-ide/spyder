@@ -750,27 +750,41 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
+    @request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
+    def document_did_change(self, text):
+        """Send textDocument/didChange request to server."""
+        self.text_version += 1
+        line, column = self.get_cursor_line_column()
+        # print((line, column), text)
+        txt_lines = text.splitlines()
+        end_line = line + len(txt_lines) - 1
+        end_col = len(txt_lines[-1])
+        if end_line == line:
+            end_col += column
+        # print((line, column), (end_line, end_col), text)
+        params = {
+            'file': self.filename,
+            'version': self.text_version,
+            'start': (line, column),
+            'end': (end_line, end_col),
+            'length': len(text),
+            'text': text
+        }
+        return params
+
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
     def linting_diagnostics(self, params):
-        print(params['params'])
+        print(params)
         self.process_code_analysis(params['params'])
 
     def start_lsp_services(self, config):
         """Start LSP integration if it wasn't done before."""
-        print('Initialize')
         if not self.lsp_ready:
             self.parse_lsp_config(config)
-            # self.document_did_open()
             self.lsp_ready = True
-        #     self.document_opened = False
-        # if not self.document_opened:
-        #     print(self.filename)
-        #     self.document_did_open()
-        #     self.document_opened = True
-        # self.sig_perform_lsp_request.emit()
 
     def parse_lsp_config(self, config):
-        """Parse and load LSP server editor capabilites."""
+        """Parse and load LSP server editor capabilities."""
         sync_options = config['textDocumentSync']
         completion_options = config['completionProvider']
         signature_options = config['signatureHelpProvider']
@@ -1441,9 +1455,25 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(clipboard.text())
         if len(text.splitlines()) > 1:
             eol_chars = self.get_line_separator()
-            clipboard.setText( eol_chars.join((text+eol_chars).splitlines()) )
+            text = eol_chars.join((text + eol_chars).splitlines())
+            clipboard.setText(text)
+        self.document_did_change(text)
         # Standard paste
         TextEditBaseWidget.paste(self)
+
+    @Slot()
+    def undo(self):
+        """Reimplement undo to decrease text version number."""
+        if self.document().isUndoAvailable():
+            self.text_version -= 1
+        TextEditBaseWidget.undo(self)
+
+    @Slot()
+    def redo(self):
+        """Reimplement redo to increase text version number."""
+        if self.document().isRedoAvailable():
+            self.text_version += 1
+        TextEditBaseWidget.redo(self)
 
     def get_block_data(self, block):
         """Return block data (from syntax highlighter)"""
@@ -1505,9 +1535,10 @@ class CodeEditor(TextEditBaseWidget):
             msg_range = diagnostic['range']
             start = msg_range['start']
             end = msg_range['end']
-            code = diagnostic['code']
+            code = diagnostic.get('code', 'E')
             message = diagnostic['message']
-            severity = diagnostic['severity']
+            severity = diagnostic.get(
+                'severity', DiagnosticSeverity.ERROR)
 
             block = document.findBlockByNumber(start['line'])
             error = severity == DiagnosticSeverity.ERROR
@@ -2530,19 +2561,22 @@ class CodeEditor(TextEditBaseWidget):
 
         # Handle the Qt Builtin key sequences
         checks = [('SelectAll', 'Select All'),
-                  ('Copy', 'Copy'),
-                  ('Cut', 'Cut'),
-                  ('Paste', 'Paste')]
+                  ('Copy', 'copy'),
+                  ('Cut', 'cut'),
+                  ('Paste', 'paste'),
+                  ('Undo', 'undo'),
+                  ('Redo', 'redo')]
 
         for qname, name in checks:
             seq = getattr(QKeySequence, qname)
-            sc = get_shortcut('editor', name)
-            default = QKeySequence(seq).toString()
-            if event == seq and sc != default:
+            # sc = get_shortcut('editor', name)
+            # default = QKeySequence(seq).toString()
+            # if event == seq:
+            if event == seq:
                 # if we have overridden it, call our action
                 for shortcut in self.shortcuts:
-                    qsc, name, keystr = shortcut.data
-                    if keystr == default:
+                    qsc, _, keystr = shortcut.data
+                    if keystr == name:
                         qsc.activated.emit()
                         event.ignore()
                         return
@@ -2700,6 +2734,9 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
+        if len(text) > 0:
+            # print(self.get_cursor_line_column(), text)
+            self.document_did_change(text)
         # Accept event to avoid it being handled by the parent
         event.accept()
 
