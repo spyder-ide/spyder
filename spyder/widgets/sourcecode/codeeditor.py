@@ -754,21 +754,21 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_change(self, text):
         """Send textDocument/didChange request to server."""
         self.text_version += 1
-        line, column = self.get_cursor_line_column()
-        # print((line, column), text)
-        txt_lines = text.splitlines()
-        end_line = line + len(txt_lines) - 1
-        end_col = len(txt_lines[-1])
-        if end_line == line:
-            end_col += column
+        # line, column = self.get_cursor_line_column()
+        # # print((line, column), text)
+        # txt_lines = text.splitlines()
+        # end_line = line + len(txt_lines) - 1
+        # end_col = len(txt_lines[-1])
+        # if end_line == line:
+        #     end_col += column
         # print((line, column), (end_line, end_col), text)
         params = {
             'file': self.filename,
             'version': self.text_version,
-            'start': (line, column),
-            'end': (end_line, end_col),
-            'length': len(text),
-            'text': text
+            # 'start': (line, column),
+            # 'end': (end_line, end_col),
+            # 'length': len(text),
+            'text': self.toPlainText()
         }
         return params
 
@@ -1457,21 +1457,23 @@ class CodeEditor(TextEditBaseWidget):
             eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
             clipboard.setText(text)
-        self.document_did_change(text)
         # Standard paste
         TextEditBaseWidget.paste(self)
+        self.document_did_change(text)
 
     @Slot()
     def undo(self):
         """Reimplement undo to decrease text version number."""
         if self.document().isUndoAvailable():
             self.text_version -= 1
+            self.document_did_change('')
         TextEditBaseWidget.undo(self)
 
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
         if self.document().isRedoAvailable():
+            self.document_did_change('text')
             self.text_version += 1
         TextEditBaseWidget.redo(self)
 
