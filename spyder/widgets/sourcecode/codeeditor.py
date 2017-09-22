@@ -1522,14 +1522,6 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
             if begins_at_block_start:
-                # Extending selection to prefix:
-                cursor = self.textCursor()
-                start_pos = cursor.selectionStart()
-                end_pos = cursor.selectionEnd()
-                if start_pos < end_pos:
-                    start_pos -= len(prefix)
-                else:
-                    end_pos -= len(prefix)
                 cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
                 cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
                 self.setTextCursor(cursor)
