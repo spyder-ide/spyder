@@ -1344,7 +1344,7 @@ class EditorStack(QWidget):
             return len(self.data) > 0
         else:
             return self.has_filename(filename)
-        
+
     def get_index_from_filename(self, filename):
         filenames = [d.filename for d in self.data]
         return filenames.index(filename)
