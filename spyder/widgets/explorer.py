@@ -46,15 +46,15 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
+
 def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
+    elif os.name == 'nt':
+        subprocess.call(["explorer", "/select,", filename])
     else:
         filename=os.path.dirname(filename)
-        if os.name == 'nt':
-            os.startfile(filename)
-        else:
-            subprocess.call(["xdg-open", filename])
+        subprocess.call(["xdg-open", filename])
 
 def show_in_external_file_explorer(fnames=None):
     """Show files in external file explorer
@@ -191,6 +191,7 @@ class DirView(QTreeView):
         self.fsmodel = None
         self.setup_fs_model()
         self._scrollbar_positions = None
+        self.setSelectionMode(self.ExtendedSelection)
                 
     #---- Model
     def setup_fs_model(self):
@@ -242,7 +243,8 @@ class DirView(QTreeView):
     def get_selected_filenames(self):
         """Return selected filenames"""
         if self.selectionMode() == self.ExtendedSelection:
-            return [self.get_filename(idx) for idx in self.selectedIndexes()]
+            return [self.get_filename(idx) for idx in 
+                    self.selectionModel().selectedRows()]
         else:
             return [self.get_filename(self.currentIndex())]
             
@@ -354,7 +356,8 @@ class DirView(QTreeView):
         rename_action = create_action(self, _("Rename..."),
                                       icon=ima.icon('rename'),
                                       triggered=self.rename)
-        open_action = create_action(self, _("Open"), triggered=self.open)
+        open_external_action = create_action(self, _("Open With OS"), 
+                                             triggered=self.open_external)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
@@ -364,20 +367,22 @@ class DirView(QTreeView):
             actions.append(run_action)
         if only_valid and only_files:
             actions.append(edit_action)
-        else:
-            actions.append(open_action)
+        
         if sys.platform == 'darwin':
             text=_("Show in Finder")
         else:
-            text=_("Show in external file explorer")
+            text=_("Show in Folder")
         external_fileexp_action = create_action(self, text, 
                                 triggered=self.show_in_external_file_explorer)        
-        actions.append(external_fileexp_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
+        if only_files:
+            actions.append(open_external_action)
+        actions.append(external_fileexp_action)
+        actions.append([None])
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
@@ -448,9 +453,6 @@ class DirView(QTreeView):
             actions.append(None)
         if fnames and all([osp.isdir(_fn) for _fn in fnames]):
             actions += self.create_folder_manage_actions(fnames)
-        if actions:
-            actions.append(None)
-        actions += self.common_actions
         return actions
 
     def update_menu(self):
@@ -544,6 +546,14 @@ class DirView(QTreeView):
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
+                
+    @Slot()
+    def open_external(self, fnames=None):
+        """Open files with default application"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        for fname in fnames:
+            self.open_outside_spyder([fname])
         
     def open_outside_spyder(self, fnames):
         """Open file outside Spyder with the appropriate application

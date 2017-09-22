@@ -133,8 +133,8 @@ def main_window(request):
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name != 'nt' or not PY2,
-                    reason="It times out on Linux and Python 3")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It times out in our CIs")
 @pytest.mark.timeout(timeout=60, method='thread')
 @pytest.mark.use_introspection
 def test_calltip(main_window, qtbot):
@@ -166,6 +166,64 @@ def test_calltip(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_move_to_first_breakpoint(main_window, qtbot):
+    """Test that we move to the first breakpoint if there's one present."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    control = shell._control
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Set breakpoint
+    code_editor.add_remove_breakpoint(line_number=10)
+    qtbot.wait(500)
+
+    # Click the debug button
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Verify that we are at first breakpoint
+    shell.clear_console()
+    qtbot.wait(500)
+    shell.kernel_client.input("list")
+    qtbot.wait(500)
+    assert "1--> 10 arr = np.array(li)" in control.toPlainText()
+
+    # Exit debugging
+    shell.kernel_client.input("exit")
+    qtbot.wait(500)
+
+    # Set breakpoint on first line with code
+    code_editor.add_remove_breakpoint(line_number=2)
+    qtbot.wait(500)
+
+    # Click the debug button
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Verify that we are still on debugging
+    assert shell._reading
+
+    # Remove breakpoint and close test file
+    main_window.editor.clear_all_breakpoints()
+    main_window.editor.close_file()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run locally")
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
     CONF.set('run', 'configurations', [])
@@ -457,8 +515,8 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(True, #os.name == 'nt' or PYQT_WHEEL,
-                    reason="It times out sometimes on Windows and using PyQt wheels")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It times out in our CIs")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
@@ -676,8 +734,7 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT_WHEEL,
-                    reason="It times out sometimes on PyQt wheels")
+@pytest.mark.skipif(PYQT_WHEEL, reason="It times out sometimes on PyQt wheels")
 def test_close_when_file_is_changed(main_window, qtbot):
     """Test closing spyder when there is a file with modifications open."""
     # Wait until the window is fully up
@@ -830,6 +887,26 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 2
 
+    # Verify that doesn't go to sitecustomize.py with next and stops
+    # the debugging session.
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    assert nsb.editor.model.rowCount() == 3
+
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Assert that the prompt appear
+    shell.clear_console()
+    assert 'In [2]:' in control.toPlainText()
+
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
     main_window.editor.close_file()
@@ -843,7 +920,6 @@ def test_stop_dbg(main_window, qtbot):
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
-    control = shell._control
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Clear all breakpoints

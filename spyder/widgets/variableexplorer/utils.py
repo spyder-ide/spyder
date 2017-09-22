@@ -5,18 +5,19 @@
 # (see spyder/__init__.py for details)
 
 """
-Utilities for the Collections editor widget and dialog
+Utilities
 """
 
 from __future__ import print_function
 
+from itertools import islice
 import re
 
 # Local imports
 from spyder.config.base import get_supported_types
 from spyder.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
-                              is_text_string, is_binary_string, reprlib,
-                              PY2, to_binary_string)
+                              is_text_string, is_binary_string, PY2,
+                              to_binary_string, iteritems)
 from spyder.utils import programs
 from spyder import dependencies
 from spyder.config.base import _
@@ -82,11 +83,11 @@ def get_numpy_dtype(obj):
 #==============================================================================
 if programs.is_module_installed('pandas', PANDAS_REQVER):
     try:
-        from pandas import DataFrame, DatetimeIndex, Series
+        from pandas import DataFrame, Index, Series
     except:
-        DataFrame = DatetimeIndex = Series = FakeObject
+        DataFrame = Index = Series = FakeObject
 else:
-    DataFrame = DatetimeIndex = Series = FakeObject      # analysis:ignore
+    DataFrame = Index = Series = FakeObject      # analysis:ignore
 
 
 #==============================================================================
@@ -128,13 +129,13 @@ def try_to_eval(value):
     
 def get_size(item):
     """Return size of an item of arbitrary type"""
-    if isinstance(item, (list, tuple, dict)):
+    if isinstance(item, (list, set, tuple, dict)):
         return len(item)
     elif isinstance(item, (ndarray, MaskedArray)):
         return item.shape
     elif isinstance(item, Image):
         return item.size
-    if isinstance(item, (DataFrame, DatetimeIndex, Series)):
+    if isinstance(item, (DataFrame, Index, Series)):
         return item.shape
     else:
         return 1
@@ -150,17 +151,6 @@ def get_object_attrs(obj):
     if not attrs:
         attrs = dir(obj)
     return attrs
-
-
-# =============================================================================
-# Set limits for the amount of elements in the repr of collections (lists,
-# dicts, tuples and sets) and Numpy arrays
-# =============================================================================
-CollectionsRepr = reprlib.Repr()
-CollectionsRepr.maxlist = 10
-CollectionsRepr.maxdict = 10
-CollectionsRepr.maxtuple = 10
-CollectionsRepr.maxset = 10
 
 
 #==============================================================================
@@ -193,6 +183,7 @@ COLORS = {
           bool:               "#ff00ff",
           NUMERIC_TYPES:      SCALAR_COLOR,
           list:               "#ffff00",
+          set:                "#008000",
           dict:               "#00ffff",
           tuple:              "#c0c0c0",
           TEXT_TYPES:         "#800000",
@@ -201,7 +192,7 @@ COLORS = {
            matrix,
            DataFrame,
            Series,
-           DatetimeIndex):    ARRAY_COLOR,
+           Index):            ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -256,10 +247,74 @@ def unsorted_unique(lista):
 #==============================================================================
 # Display <--> Value
 #==============================================================================
-def value_to_display(value, minmax=False):
+def default_display(value, with_module=True):
+    """Default display for unknown objects."""
+    object_type = type(value)
+    try:
+        name = object_type.__name__
+        module = object_type.__module__
+        if with_module:
+            return name + ' object of ' + module + ' module'
+        else:
+            return name
+    except:
+        type_str = to_text_string(object_type)
+        return type_str[1:-1]
+
+
+def collections_display(value, level):
+    """Display for collections (i.e. list, set, tuple and dict)."""
+    is_dict = isinstance(value, dict)
+    is_set = isinstance(value, set)
+
+    # Get elements
+    if is_dict:
+        elements = iteritems(value)
+    else:
+        elements = value
+
+    # Truncate values
+    truncate = False
+    if level == 1 and len(value) > 10:
+        elements = islice(elements, 10) if is_dict or is_set else value[:10]
+        truncate = True
+    elif level == 2 and len(value) > 5:
+        elements = islice(elements, 5) if is_dict or is_set else value[:5]
+        truncate = True
+
+    # Get display of each element
+    if level <= 2:
+        if is_dict:
+            displays = [value_to_display(k, level=level) + ':' +
+                        value_to_display(v, level=level)
+                        for (k, v) in list(elements)]
+        else:
+            displays = [value_to_display(e, level=level)
+                        for e in elements]
+        if truncate:
+            displays.append('...')
+        display = ', '.join(displays)
+    else:
+        display = '...'
+
+    # Return display
+    if is_dict:
+        display = '{' + display + '}'
+    elif isinstance(value, list):
+        display = '[' + display + ']'
+    elif isinstance(value, set):
+        display = '{' + display + '}'
+    else:
+        display = '(' + display + ')'
+
+    return display
+
+
+def value_to_display(value, minmax=False, level=0):
     """Convert value for display purpose"""
     # To save current Numpy threshold
     np_threshold = FakeObject
+
     try:
         numeric_numpy_types = (int64, int32, float64, float32,
                                complex128, complex64)
@@ -270,75 +325,99 @@ def value_to_display(value, minmax=False):
             # in our display
             set_printoptions(threshold=10)
         if isinstance(value, recarray):
-            fields = value.names
-            display = 'Field names: ' + ', '.join(fields)
+            if level == 0:
+                fields = value.names
+                display = 'Field names: ' + ', '.join(fields)
+            else:
+                display = 'Recarray'
         elif isinstance(value, MaskedArray):
             display = 'Masked array'
         elif isinstance(value, ndarray):
-            if minmax:
-                try:
-                    display = 'Min: %r\nMax: %r' % (value.min(), value.max())
-                except (TypeError, ValueError):
+            if level == 0:
+                if minmax:
+                    try:
+                        display = 'Min: %r\nMax: %r' % (value.min(), value.max())
+                    except (TypeError, ValueError):
+                        if value.dtype.type in numeric_numpy_types:
+                            display = repr(value)
+                        else:
+                            display = default_display(value)
+                elif value.dtype.type in numeric_numpy_types:
                     display = repr(value)
+                else:
+                    display = default_display(value)
             else:
-                display = repr(value)
-        elif isinstance(value, (list, tuple, dict, set)):
-            display = CollectionsRepr.repr(value)
+                display = 'Numpy array'
+        elif any([type(value) == t for t in [list, set, tuple, dict]]):
+            display = collections_display(value, level+1)
         elif isinstance(value, Image):
-            display = '%s  Mode: %s' % (address(value), value.mode)
-        elif isinstance(value, DataFrame):
-            cols = value.columns
-            if PY2 and len(cols) > 0:
-                # Get rid of possible BOM utf-8 data present at the
-                # beginning of a file, which gets attached to the first
-                # column header when headers are present in the first
-                # row.
-                # Fixes Issue 2514
-                try:
-                    ini_col = to_text_string(cols[0], encoding='utf-8-sig')
-                except:
-                    ini_col = to_text_string(cols[0])
-                cols = [ini_col] + [to_text_string(c) for c in cols[1:]]
+            if level == 0:
+                display = '%s  Mode: %s' % (address(value), value.mode)
             else:
-                cols = [to_text_string(c) for c in cols]
-            display = 'Column names: ' + ', '.join(list(cols))
+                display = 'Image'
+        elif isinstance(value, DataFrame):
+            if level == 0:
+                cols = value.columns
+                if PY2 and len(cols) > 0:
+                    # Get rid of possible BOM utf-8 data present at the
+                    # beginning of a file, which gets attached to the first
+                    # column header when headers are present in the first
+                    # row.
+                    # Fixes Issue 2514
+                    try:
+                        ini_col = to_text_string(cols[0], encoding='utf-8-sig')
+                    except:
+                        ini_col = to_text_string(cols[0])
+                    cols = [ini_col] + [to_text_string(c) for c in cols[1:]]
+                else:
+                    cols = [to_text_string(c) for c in cols]
+                display = 'Column names: ' + ', '.join(list(cols))
+            else:
+                display = 'Dataframe'
         elif isinstance(value, NavigableString):
             # Fixes Issue 2448
             display = to_text_string(value)
-        elif isinstance(value, DatetimeIndex):
-            display = value.summary()
+            if level > 0:
+                display = u"'" + display + u"'"
+        elif isinstance(value, Index):
+            if level == 0:
+                display = value.summary()
+            else:
+                display = 'Index'
         elif is_binary_string(value):
             try:
                 display = to_text_string(value, 'utf8')
             except:
                 display = value
+            if level > 0:
+                display = (to_binary_string("'") + display +
+                           to_binary_string("'"))
         elif is_text_string(value):
             display = value
-        elif isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or \
-          isinstance(value, datetime.date) or \
-          isinstance(value, numeric_numpy_types):
+            if level > 0:
+                display = u"'" + display + u"'"
+        elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
+              isinstance(value, datetime.date) or
+              isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:
-            # Note: Don't trust on repr's. They can be inefficient and
-            # so freeze Spyder quite easily
-            # display = repr(value)
-            type_str = to_text_string(type(value))
-            display = type_str[1:-1]
+            if level == 0:
+                display = default_display(value)
+            else:
+                display = default_display(value, with_module=False)
     except:
-        type_str = to_text_string(type(value))
-        display = type_str[1:-1]
+        display = default_display(value)
 
-    # Truncate display at 80 chars to avoid freezing Spyder
+    # Truncate display at 70 chars to avoid freezing Spyder
     # because of large displays
-    if len(display) > 80:
-        display = display[:80].rstrip() + ' ...'
+    if len(display) > 70:
+        display = display[:70].rstrip() + ' ...'
 
     # Restore Numpy threshold
     if np_threshold is not FakeObject:
         set_printoptions(threshold=np_threshold)
 
     return display
-
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -395,8 +474,8 @@ def get_type_string(item):
     """Return type string of an object."""
     if isinstance(item, DataFrame):
         return "DataFrame"
-    if isinstance(item, DatetimeIndex):
-        return "DatetimeIndex"
+    if isinstance(item, Index):
+        return type(item).__name__
     if isinstance(item, Series):
         return "Series"
     found = re.findall(r"<(?:type|class) '(\S*)'>",

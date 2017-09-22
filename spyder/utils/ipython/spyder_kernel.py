@@ -131,6 +131,7 @@ class SpyderKernel(IPythonKernel):
                 properties[name] = {
                     'is_list':  isinstance(value, (tuple, list)),
                     'is_dict':  isinstance(value, dict),
+                    'is_set': isinstance(value, set),
                     'len': self._get_len(value),
                     'is_array': self._is_array(value),
                     'is_image': self._is_image(value),
@@ -207,10 +208,6 @@ class SpyderKernel(IPythonKernel):
         return iofunctions.save(data, filename)
 
     # --- For Pdb
-    def get_pdb_step(self):
-        """Return info about pdb current frame"""
-        return self._pdb_step
-
     def publish_pdb_state(self):
         """
         Publish Variable Explorer state and Pdb step through
@@ -221,6 +218,16 @@ class SpyderKernel(IPythonKernel):
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
             publish_data({'__spy_pdb_state__': state})
+
+    def pdb_continue(self):
+        """
+        Tell the console to run 'continue' after entering a
+        Pdb session to get to the first breakpoint.
+
+        Fixes issue 2034
+        """
+        if self._pdb_obj:
+            publish_data({'__spy_pdb_continue__': True})
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):

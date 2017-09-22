@@ -80,8 +80,6 @@ Using one (and only one) of these scientific Python distributions:
 
 ### On Mac OSX:
 
-- Using our DMG installer, which can be found
-  [here](https://github.com/spyder-ide/spyder/releases).
 - Using the [Anaconda Distribution](http://continuum.io/downloads).
 - Through [MacPorts](http://www.macports.org/).
 

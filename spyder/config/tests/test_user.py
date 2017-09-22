@@ -28,6 +28,13 @@ def userconfig(tmpdir, monkeypatch):
     return UserConfig('foo', defaults={}, subfolder=True,
                       version='1.0.0', raw_mode=True)
 
+
+def test_userconfig_set_percentage_string(userconfig):
+    """Test to set an option with a '%'."""
+    userconfig.set('section', 'option', '%value')
+    assert userconfig.get('section', 'option') == '%value'
+
+
 def test_userconfig_get_string_from_inifile(userconfig):
     assert userconfig.get('section', 'option') == 'value'
 
