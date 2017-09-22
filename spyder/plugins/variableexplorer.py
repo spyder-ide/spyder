@@ -198,7 +198,7 @@ class VariableExplorer(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh widget"""
         pass
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
@@ -206,7 +206,7 @@ class VariableExplorer(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):
