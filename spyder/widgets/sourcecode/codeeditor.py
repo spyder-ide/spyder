@@ -1988,7 +1988,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def uncomment(self):
         """Uncomment current line or selection."""
-        self.remove_prefix(self.comment_string)
+        if not self.unblockcomment():
+            self.remove_prefix(self.comment_string)
 
     def __blockcomment_bar(self):
         return self.comment_string + ' ' + '=' * (78 - len(self.comment_string))
@@ -2068,7 +2069,7 @@ class CodeEditor(TextEditBaseWidget):
             if cursor1.atStart():
                 break
         if not __is_comment_bar(cursor1):
-            return
+            return False
         def __in_block_comment(cursor):
             cs = self.comment_string
             return to_text_string(cursor.block().text()).startswith(cs)
@@ -2080,7 +2081,7 @@ class CodeEditor(TextEditBaseWidget):
             if cursor2.block() == self.document().lastBlock():
                 break
         if not __is_comment_bar(cursor2):
-            return
+            return False
         # Removing block comment
         cursor3 = self.textCursor()
         cursor3.beginEditBlock()
