@@ -24,15 +24,15 @@ from qtpy.compat import getsavefilename
 from qtpy.QtCore import (QByteArray, QFileInfo, QObject, QPoint, QSize, Qt,
                          QThread, QTimer, Signal, Slot)
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QMainWindow,
-                            QMessageBox, QMenu, QSplitter, QVBoxLayout,
-                            QWidget, QListWidget, QListWidgetItem)
+from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
+                            QMainWindow, QMessageBox, QMenu, QSplitter,
+                            QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
 from spyder.config.base import _, DEBUG, STDERR, STDOUT
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter)
+                                 get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
@@ -304,7 +304,12 @@ class StackHistory(MutableSequence):
         return len(self.history)
 
     def __getitem__(self, i):
-        return self.id_list.index(self.history[i])
+        self._update_id_list()
+        try:
+            return self.id_list.index(self.history[i])
+        except ValueError:
+            self.refresh()
+            raise IndexError
 
     def __delitem__(self, i):
         del self.history[i]
@@ -462,6 +467,8 @@ class EditorStack(QWidget):
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
+    sig_prev_warning = Signal()
+    sig_next_warning = Signal()
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -541,6 +548,7 @@ class EditorStack(QWidget):
         self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.blanks_enabled = False
+        self.scrollpastend_enabled = False
         self.edgeline_enabled = True
         self.edgeline_columns = (79,)
         self.codecompletion_auto_enabled = True
@@ -595,6 +603,10 @@ class EditorStack(QWidget):
 
         # Reference to save msgbox and avoid memory to be freed.
         self.msgbox = None
+
+        # File types and filters used by the Save As dialog
+        self.edit_filetypes = None
+        self.edit_filters = None
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -696,6 +708,14 @@ class EditorStack(QWidget):
                                       context="Editor",
                                       name="re-run last cell",
                                       parent=self)
+        prev_warning = config_shortcut(lambda: self.sig_prev_warning.emit(),
+                                       context="Editor",
+                                       name="Previous warning",
+                                       parent=self)
+        next_warning = config_shortcut(lambda: self.sig_next_warning.emit(),
+                                       context="Editor",
+                                       name="Next warning",
+                                       parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -703,7 +723,8 @@ class EditorStack(QWidget):
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell]
+                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+                prev_warning, next_warning]
 
     def get_shortcut_data(self):
         """
@@ -968,6 +989,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_blanks_enabled(state)
+
+    def set_scrollpastend_enabled(self, state):
+        self.scrollpastend_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_scrollpastend_enabled(state)
 
     def set_edgeline_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'edge_line')
@@ -1581,12 +1608,29 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
+        """Select a name to save a file."""
+        if self.edit_filetypes is None:
+            self.edit_filetypes = get_edit_filetypes()
+        if self.edit_filters is None:
+            self.edit_filters = get_edit_filters()
+
+        # Don't use filters on KDE to not make the dialog incredible
+        # slow
+        # Fixes issue 4156
+        if is_kde_desktop() and not is_anaconda():
+            filters = ''
+            selectedfilter = ''
+        else:
+            filters = self.edit_filters
+            selectedfilter = get_filter(self.edit_filetypes,
+                                        osp.splitext(original_filename)[1])
+
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, _("Save file"),
-                                       original_filename,
-                                       get_edit_filters(),
-                                       get_filter(get_edit_filetypes(),
-                                           osp.splitext(original_filename)[1]))
+                                    original_filename,
+                                    filters=filters,
+                                    selectedfilter=selectedfilter,
+                                    options=QFileDialog.HideNameFilterDetails)
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
@@ -1741,12 +1785,11 @@ class EditorStack(QWidget):
                 pass
 
     def _get_previous_file_index(self):
-        if len(self.stack_history) > 1:
-            last = len(self.stack_history)-1
-            w_id = self.stack_history.pop(last)
-            self.stack_history.insert(0, w_id)
-
-            return self.stack_history[last]
+        """Return the penultimate element of the stack history."""
+        try:
+            return self.stack_history[-2]
+        except IndexError:
+            return None
 
     def tab_navigation_mru(self, forward=True):
         """
@@ -2009,6 +2052,7 @@ class EditorStack(QWidget):
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
                 show_blanks=self.blanks_enabled,
+                scroll_past_end=self.scrollpastend_enabled,
                 edge_line=self.edgeline_enabled,
                 edge_line_columns=self.edgeline_columns, language=language,
                 markers=self.has_markers(), font=self.default_font,

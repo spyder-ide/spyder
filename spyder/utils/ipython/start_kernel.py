@@ -64,6 +64,8 @@ def kernel_config():
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
 
+    spy_cfg.IPCompleter.use_jedi = False
+
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
     if run_lines_o:

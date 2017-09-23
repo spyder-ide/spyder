@@ -15,7 +15,6 @@
 import os
 import re
 import sys
-from collections import OrderedDict
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -24,7 +23,7 @@ from qtpy.QtGui import (QClipboard, QColor, QFont, QMouseEvent, QPalette,
                         QTextCharFormat, QTextFormat, QTextOption, QTextCursor)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QMainWindow, QPlainTextEdit,
-                            QTextEdit, QToolTip)
+                            QToolTip)
 
 # Local imports
 from spyder.config.gui import get_font
@@ -34,6 +33,9 @@ from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
+from spyder.widgets.sourcecode.api.decoration import (TextDecoration,
+                                                      DRAW_ORDERS)
+from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
 
 
 def insert_text_to(cursor, text, fmt):
@@ -236,7 +238,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         BaseEditMixin.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
-        self.extra_selections_dict = OrderedDict()
+        self.extra_selections_dict = {}
         
         self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
@@ -280,6 +282,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.last_cursor_cell = None
 
+        self.decorations = TextDecorationsManager(self)
+
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()
@@ -317,43 +321,61 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
 
     #------Extra selections
-    def extra_selection_length(self, key):
-        selection = self.get_extra_selections(key)
-        if selection:
-            cursor = self.extra_selections_dict[key][0].cursor
-            selection_length = cursor.selectionEnd() - cursor.selectionStart()
-            return selection_length
-        else:
-            return 0
-
     def get_extra_selections(self, key):
+        """Return editor extra selections.
+
+        Args:
+            key (str) name of the extra selections group
+
+        Returns:
+            list of sourcecode.api.TextDecoration.
+        """
         return self.extra_selections_dict.get(key, [])
 
     def set_extra_selections(self, key, extra_selections):
+        """Set extra selections for a key.
+
+        Also assign draw orders to leave current_cell and current_line
+        in the backgrund (and avoid them to cover other decorations)
+
+        NOTE: This will remove previous decorations added to  the same key.
+
+        Args:
+            key (str) name of the extra selections group.
+            extra_selections (list of sourcecode.api.TextDecoration).
+        """
+        # use draw orders to highlight current_cell and current_line first
+        draw_order = DRAW_ORDERS.get(key)
+        if draw_order is None:
+            draw_order = DRAW_ORDERS.get('on_top')
+
+        for selection in extra_selections:
+            selection.draw_order = draw_order
+
+        self.clear_extra_selections(key)
         self.extra_selections_dict[key] = extra_selections
-        self.extra_selections_dict = \
-            OrderedDict(sorted(self.extra_selections_dict.items(),
-                               key=lambda s: self.extra_selection_length(s[0]),
-                               reverse=True))
 
     def update_extra_selections(self):
+        """Add extra selections to DecorationsManager.
+
+        TODO: This method could be remove it and decorations could be
+        added/removed in set_extra_selections/clear_extra_selections.
+        """
         extra_selections = []
 
-        # Python 3 compatibility (weird): current line has to be
-        # highlighted first
-        if 'current_cell' in self.extra_selections_dict:
-            extra_selections.extend(self.extra_selections_dict['current_cell'])
-        if 'current_line' in self.extra_selections_dict:
-            extra_selections.extend(self.extra_selections_dict['current_line'])
-
         for key, extra in list(self.extra_selections_dict.items()):
-            if not (key == 'current_line' or key == 'current_cell'):
-                extra_selections.extend(extra)
-        self.setExtraSelections(extra_selections)
+            extra_selections.extend(extra)
+        self.decorations.add(extra_selections)
 
     def clear_extra_selections(self, key):
+        """Remove decorations added through set_extra_selections.
+
+        Args:
+            key (str) name of the extra selections group.
+        """
+        for decoration in self.extra_selections_dict.get(key, []):
+            self.decorations.remove(decoration)
         self.extra_selections_dict[key] = []
-        self.update_extra_selections()
 
     def changed(self):
         """Emit changed signal"""
@@ -363,11 +385,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #------Highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
-        selection = QTextEdit.ExtraSelection()
+        selection = TextDecoration(self.textCursor())
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
         selection.format.setBackground(self.currentline_color)
-        selection.cursor = self.textCursor()
         selection.cursor.clearSelection()
         self.set_extra_selections('current_line', [selection])
         self.update_extra_selections()
@@ -382,12 +403,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if self.cell_separators is None or \
           not self.highlight_current_cell_enabled:
             return
-        selection = QTextEdit.ExtraSelection()
+        cursor, whole_file_selected, whole_screen_selected =\
+            self.select_current_cell_in_visible_portion()
+        selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
         selection.format.setBackground(self.currentcell_color)
-        selection.cursor, whole_file_selected, whole_screen_selected =\
-            self.select_current_cell_in_visible_portion()
+
         if whole_file_selected: 
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
@@ -453,9 +475,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         for position in positions:
             if position > self.get_position('eof'):
                 return
-            selection = QTextEdit.ExtraSelection()
+            selection = TextDecoration(self.textCursor())
             selection.format.setBackground(color)
-            selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
             selection.cursor.setPosition(position)
             selection.cursor.movePosition(QTextCursor.NextCharacter,

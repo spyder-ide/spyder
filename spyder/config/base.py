@@ -380,7 +380,7 @@ def get_supported_types():
     If you update this list, don't forget to update doc/variablexplorer.rst
     """
     from datetime import date
-    editable_types = [int, float, complex, list, dict, tuple, date
+    editable_types = [int, float, complex, list, set, dict, tuple, date
                       ] + list(TEXT_TYPES) + list(INT_TYPES)
     try:
         from numpy import ndarray, matrix, generic
@@ -388,8 +388,8 @@ def get_supported_types():
     except:
         pass
     try:
-        from pandas import DataFrame, Series, DatetimeIndex
-        editable_types += [DataFrame, Series, DatetimeIndex]
+        from pandas import DataFrame, Series, Index
+        editable_types += [DataFrame, Series, Index]
     except:
         pass
     picklable_types = editable_types[:]

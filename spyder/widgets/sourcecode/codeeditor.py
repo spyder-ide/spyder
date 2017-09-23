@@ -38,7 +38,7 @@ from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout)
+                            QToolTip, QVBoxLayout)
 from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
@@ -66,12 +66,11 @@ from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.widgets.sourcecode.folding import IndentFoldDetector
-from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
 from spyder.widgets.sourcecode.extensions.manager import (
         EditorExtensionsManager)
 from spyder.widgets.sourcecode.extensions.closequotes import (
         CloseQuotesExtension)
-
+from spyder.widgets.sourcecode.api.decoration import TextDecoration
 from spyder.api.panel import Panel
 
 try:
@@ -293,8 +292,10 @@ class CodeEditor(TextEditBaseWidget):
         # Blanks enabled
         self.blanks_enabled = False
 
+        # Scrolling past the end of the document
+        self.scrollpastend_enabled = False
+
         self.background = QColor('white')
-        self.decorations = TextDecorationsManager(self)
 
         # Folding
         self.panels.register(FoldingPanel())
@@ -607,8 +608,8 @@ class CodeEditor(TextEditBaseWidget):
                      add_colons=True, auto_unindent=True, indent_chars=" "*4,
                      tab_stop_width_spaces=4, cloned_from=None, filename=None,
                      occurrence_timeout=1500, show_class_func_dropdown=False,
-                     indent_guides=False):
-        
+                     indent_guides=False, scroll_past_end=False):
+
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -638,6 +639,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
+
+        # Scrolling past the end
+        self.set_scrollpastend_enabled(scroll_past_end)
 
         # Line number area
         if cloned_from:
@@ -941,7 +945,7 @@ class CodeEditor(TextEditBaseWidget):
                         underline_style=QTextCharFormat.SpellCheckUnderline,
                         update=False):
         extra_selections = self.get_extra_selections(key)
-        selection = QTextEdit.ExtraSelection()
+        selection = TextDecoration(cursor)
         if foreground_color is not None:
             selection.format.setForeground(foreground_color)
         if background_color is not None:
@@ -953,7 +957,6 @@ class CodeEditor(TextEditBaseWidget):
                                          to_qvariant(underline_color))
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
-        selection.cursor = cursor
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
         if update:
@@ -1011,9 +1014,8 @@ class CodeEditor(TextEditBaseWidget):
         self.found_results = []
         for match in regobj.finditer(text):
             pos1, pos2 = match.span()
-            selection = QTextEdit.ExtraSelection()
+            selection = TextDecoration(self.textCursor())
             selection.format.setBackground(self.found_results_color)
-            selection.cursor = self.textCursor()
             selection.cursor.setPosition(pos1)
             self.found_results.append(selection.cursor.blockNumber())
             selection.cursor.setPosition(pos2, QTextCursor.KeepAnchor)
@@ -1200,6 +1202,15 @@ class CodeEditor(TextEditBaseWidget):
         self.document().setDefaultTextOption(option)
         # Rehighlight to make the spaces less apparent.
         self.rehighlight()
+
+    def set_scrollpastend_enabled(self, state):
+        """
+        Allow user to scroll past the end of the document to have the last
+        line on top of the screen
+        """
+        self.scrollpastend_enabled = state
+        self.setCenterOnScroll(state)
+        self.setDocument(self.document())
 
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle p resizing"""

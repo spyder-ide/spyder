@@ -661,8 +661,8 @@ class ProfilerDataTree(QTreeWidget):
         while ancestor:
             if (child_item.data(0, Qt.DisplayRole
                                 ) == ancestor.data(0, Qt.DisplayRole) and
-                child_item.data(4, Qt.DisplayRole
-                                ) == ancestor.data(4, Qt.DisplayRole)):
+                child_item.data(7, Qt.DisplayRole
+                                ) == ancestor.data(7, Qt.DisplayRole)):
                 return True
             else:
                 ancestor = ancestor.parent()

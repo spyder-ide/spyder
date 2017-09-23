@@ -437,12 +437,15 @@ def user_return(self, frame, return_value):
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
-    self.setup(frame, traceback)
-    if self.send_initial_notification:
-        self.notify_spyder(frame)
-    self.print_stack_entry(self.stack[self.curindex])
-    self._cmdloop()
-    self.forget()
+    if frame is not None and "sitecustomize.py" in frame.f_code.co_filename:
+        self.run('exit')
+    else:
+        self.setup(frame, traceback)
+        if self.send_initial_notification:
+            self.notify_spyder(frame)
+        self.print_stack_entry(self.stack[self.curindex])
+        self._cmdloop()
+        self.forget()
 
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')

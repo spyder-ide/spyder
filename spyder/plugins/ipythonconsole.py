@@ -299,12 +299,18 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         calltips_box = newcb(_("Display balloon tips"), 'show_calltips')
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
+        reset_namespace_box = newcb(
+                _("Ask for confirmation before resetting the namespace."),
+                'show_reset_namespace_warning',
+                tip=_("This option lets you hide the warning message shown\n"
+                      "when resetting the namespace from Spyder."))
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
         interface_layout.addWidget(pager_box)
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
+        interface_layout.addWidget(reset_namespace_box)
         interface_group.setLayout(interface_layout)
 
         comp_group = QGroupBox(_("Completion Type"))
@@ -870,7 +876,10 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
-            self.execute_code(line, current_client, clear_variables)
+            try:
+                self.execute_code(line, current_client, clear_variables)
+            except AttributeError:
+                pass
             self.visibility_changed(True)
             self.raise_()
         else:
@@ -913,10 +922,10 @@ class IPythonConsole(SpyderPluginWidget):
                     sw.silent_execute('%clear')
                     sw.silent_execute(
                         'get_ipython().kernel.close_all_mpl_figures()')
-                    sw.reset_namespace(force=True)
+                    sw.reset_namespace(warning=False, silent=True)
                 elif current_client and clear_variables:
-                    sw.reset_namespace(force=True)
-                sw.execute(to_text_string(to_text_string(lines)))
+                    sw.reset_namespace(warning=False, silent=True)
+                sw.execute(to_text_string(lines))
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 

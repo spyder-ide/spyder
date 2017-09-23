@@ -14,7 +14,7 @@ import uuid
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
-from qtpy import PYQT4
+from spyder.config.main import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
@@ -22,6 +22,7 @@ from spyder.utils import encoding
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.ipython.style import create_qss_style, create_style_class
+from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.widgets.ipythonconsole import (ControlWidget, DebuggingWidget,
                                            HelpWidget, NamepaceBrowserWidget,
                                            PageControlWidget)
@@ -220,27 +221,44 @@ the sympy module (e.g. plot)
         else:
             self.execute("%clear")
 
-    def reset_namespace(self, force=False):
+    def _reset_namespace(self):
+        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
+        self.reset_namespace(silent=True, warning=warning)
+
+    def reset_namespace(self, warning=False, silent=True):
         """Reset the namespace by removing all names defined by the user."""
         reset_str = _("Reset IPython namespace")
         warn_str = _("All user-defined variables will be removed."
                      "<br>Are you sure you want to reset the namespace?")
-        if not force:
-            reply = QMessageBox.question(self, reset_str,
-                                         warn_str,
-                                         QMessageBox.Yes | QMessageBox.No
-            )
 
-            if reply == QMessageBox.Yes:
-                if self._reading:
-                    self.dbg_exec_magic('reset', '-f')
-                else:
-                    self.execute("%reset -f")
+        if warning:
+            box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
+            box.setWindowTitle(reset_str)
+            box.set_checkbox_text(_("Don't show again."))
+            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            box.setDefaultButton(QMessageBox.No)
+
+            box.set_checked(False)
+            box.set_check_visible(True)
+            box.setText(warn_str)
+
+            answer = box.exec_()
+
+            # Update checkbox based on user interaction
+            CONF.set('ipython_console', 'show_reset_namespace_warning',
+                     not box.is_checked())
+
+            if answer != QMessageBox.Yes:
+                return
+
+        if self._reading:
+            self.dbg_exec_magic('reset', '-f')
         else:
-            if self._reading:
-                self.dbg_exec_magic('reset', '-f')
-            else:
+            if silent:
                 self.silent_execute("%reset -f")
+                self.refresh_namespacebrowser()
+            else:
+                self.execute("%reset -f")
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
@@ -255,7 +273,7 @@ the sympy module (e.g. plot)
         new_tab = config_shortcut(lambda: self.new_client.emit(),
                                   context='ipython_console', name='new tab',
                                   parent=self)
-        reset_namespace = config_shortcut(lambda: self.reset_namespace(),
+        reset_namespace = config_shortcut(lambda: self._reset_namespace(),
                                           context='ipython_console',
                                           name='reset namespace', parent=self)
         array_inline = config_shortcut(self._control.enter_array_inline,
@@ -271,7 +289,10 @@ the sympy module (e.g. plot)
     # --- To communicate with the kernel
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
-        self.kernel_client.execute(to_text_string(code), silent=True)
+        try:
+            self.kernel_client.execute(to_text_string(code), silent=True)
+        except AttributeError:
+            pass
 
     def silent_exec_method(self, code):
         """Silently execute a kernel method and save its reply
