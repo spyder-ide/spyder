@@ -82,7 +82,7 @@ class TextDecorationsManager(Manager):
             try:
                 decoration.format.setFont(
                         font, QTextCharFormat.FontPropertiesSpecifiedOnly)
-            except TypeError:  # Qt < 5.3
+            except (TypeError, AttributeError):  # Qt < 5.3
                 decoration.format.setFontFamily(font.family())
                 decoration.format.setFontPointSize(font.pointSize())
         self.editor.setExtraSelections(self._decorations)
