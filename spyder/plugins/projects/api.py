@@ -5,14 +5,14 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
-"""Project types"""
+"""Project API"""
 
 import os
 import os.path as osp
 
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.widgets.projects.config import (ProjectConfig, CODESTYLE,
+from spyder.plugins.projects.utils.config import (ProjectConfig, CODESTYLE,
                                             CODESTYLE_DEFAULTS,
                                             CODESTYLE_VERSION, WORKSPACE,
                                             WORKSPACE_DEFAULTS,

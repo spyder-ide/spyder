@@ -12,7 +12,7 @@ Tests for explorer.py
 import pytest
 
 # Local imports
-from spyder.widgets.projects.explorer import ProjectExplorerTest
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest
 
 @pytest.fixture
 def setup_projects_explorer(qtbot):

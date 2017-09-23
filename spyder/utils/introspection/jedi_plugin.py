@@ -71,6 +71,12 @@ class JediPlugin(IntrospectionPlugin):
         """
         call_def = self.get_jedi_object('goto_definitions', info)
         for cd in call_def:
+            # For compatibility with Jedi 0.11
+            try:
+                cd.doc = cd.docstring()
+            except AttributeError:
+                pass
+
             if cd.doc and not cd.doc.rstrip().endswith(')'):
                 call_def = cd
                 break

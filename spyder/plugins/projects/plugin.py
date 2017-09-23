@@ -25,9 +25,9 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string, getcwd
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
-from spyder.widgets.projects.explorer import ProjectExplorerWidget
-from spyder.widgets.projects.projectdialog import ProjectDialog
-from spyder.widgets.projects import EmptyProject
+from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
+from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
+from spyder.plugins.projects.widgets import EmptyProject
 
 
 class Projects(SpyderPluginWidget):
@@ -203,7 +203,7 @@ class Projects(SpyderPluginWidget):
 
     def edit_project_preferences(self):
         """Edit Spyder active project preferences"""
-        from spyder.widgets.projects.configdialog import ProjectPreferences
+        from spyder.plugins.projects.confpage import ProjectPreferences
         if self.project_active:
             active_project = self.project_list[0]
             dlg = ProjectPreferences(self, active_project)
