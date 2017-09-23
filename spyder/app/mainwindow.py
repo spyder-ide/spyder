@@ -907,6 +907,8 @@ class MainWindow(QMainWindow):
             self.findinfiles.register_plugin()
 
         # Load other plugins (former external plugins)
+        # TODO: Use this bucle to load all internall plugins and remove
+        # duplicated code
         other_plugins = ['breakpoints', 'profiler', 'pylint']
         for plugin_name in other_plugins:
             if CONF.get(plugin_name, 'enable'):
