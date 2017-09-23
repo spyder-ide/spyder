@@ -19,16 +19,13 @@ from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import QGroupBox, QInputDialog, QLabel, QVBoxLayout
 
 # Local imports
-from spyder.config.base import get_translation
+from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from .widgets.pylintgui import PylintWidget
-
-
-_ = get_translation("pylint", "spyder_pylint")
 
 
 class PylintConfigPage(PluginConfigPage):

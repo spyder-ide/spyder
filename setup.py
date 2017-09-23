@@ -94,14 +94,7 @@ def get_data_files():
 
 def get_packages():
     """Return package list"""
-    packages = (
-        get_subpackages(LIBNAME)
-        + get_subpackages('spyder_breakpoints')
-        + get_subpackages('spyder_profiler')
-        + get_subpackages('spyder_pylint')
-        + get_subpackages('spyder_io_dcm')
-        + get_subpackages('spyder_io_hdf5')
-        )
+    packages = (get_subpackages(LIBNAME))
     return packages
 
 
@@ -244,13 +237,7 @@ editor, Python console, etc.""",
       keywords='PyQt5 PyQt4 editor shell console widgets IDE',
       platforms=['any'],
       packages=get_packages(),
-      package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyder_breakpoints': get_package_data('spyder_breakpoints', EXTLIST),
-                    'spyder_profiler': get_package_data('spyder_profiler', EXTLIST),
-                    'spyder_pylint': get_package_data('spyder_pylint', EXTLIST),
-                    'spyder_io_dcm': get_package_data('spyder_io_dcm', EXTLIST),
-                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5', EXTLIST),
-                    },
+      package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
       classifiers=['License :: OSI Approved :: MIT License',

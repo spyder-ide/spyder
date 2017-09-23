@@ -71,6 +71,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/plugins/*/plugin.py ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/*/__init__.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
@@ -117,17 +120,6 @@ for f in spyder/*/*/*/*/*.py; do
         continue
     fi
     if [[ $f == spyder/plugins/ipythonconsole/utils/site/sitecustomize.py ]]; then
-        continue
-    fi
-    python "$f"
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-done
-
-# Spyderplugins
-for f in spyder_*/widgets/*.py; do
-    if [[ $f == *test*/*.* ]]; then
         continue
     fi
     python "$f"

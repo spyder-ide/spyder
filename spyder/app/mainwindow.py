@@ -33,6 +33,7 @@ import subprocess
 import sys
 import threading
 import traceback
+import importlib
 
 
 #==============================================================================
@@ -904,6 +905,19 @@ class MainWindow(QMainWindow):
             from spyder.plugins.findinfiles.plugin import FindInFiles
             self.findinfiles = FindInFiles(self)
             self.findinfiles.register_plugin()
+
+        # Load other plugins (former external plugins)
+        # TODO: Use this bucle to load all internall plugins and remove
+        # duplicated code
+        other_plugins = ['breakpoints', 'profiler', 'pylint']
+        for plugin_name in other_plugins:
+            if CONF.get(plugin_name, 'enable'):
+                module = importlib.import_module(
+                        'spyder.plugins.{}'.format(plugin_name))
+                plugin = module.PLUGIN_CLASS(self)
+                if plugin.check_compatibility()[0]:
+                    self.thirdparty_plugins.append(plugin)
+                    plugin.register_plugin()
 
         # Third-party plugins
         self.set_splash(_("Loading third-party plugins..."))

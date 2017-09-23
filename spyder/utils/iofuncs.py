@@ -23,6 +23,7 @@ import warnings
 import json
 import inspect
 import dis
+import importlib
 
 # - If pandas fails to import here (for any reason), Spyder
 #   will crash at startup (e.g. see Issue 2300)
@@ -435,7 +436,14 @@ class IOFunctions(object):
     def get_3rd_party_funcs(self):
         other_funcs = []
         from spyder.otherplugins import get_spyderplugins_mods
-        for mod in get_spyderplugins_mods(io=True):
+        spyder_plugins = get_spyderplugins_mods(io=True)
+
+        for plugin_name in ['io_dcm', 'io_hdf5']:
+            module = importlib.import_module(
+                        'spyder.plugins.{}'.format(plugin_name))
+            spyder_plugins.append(module)
+
+        for mod in spyder_plugins:
             try:
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
                                     mod.FORMAT_LOAD, mod.FORMAT_SAVE))

@@ -93,8 +93,7 @@ shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 APP = [APP_MAIN_SCRIPT]
 DEPS = ['pylint', 'logilab', 'astroid', 'pycodestyle', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
-PACKAGES = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm', 'spyder_io_hdf5',
-            'spyder_profiler', 'spyder_pylint', 'sphinx', 'jinja2', 'docutils',
+PACKAGES = ['spyder', 'sphinx', 'jinja2', 'docutils',
             'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
             'IPython', 'ipykernel', 'ipython_genutils', 'jupyter_client',
             'jupyter_core', 'traitlets', 'qtconsole', 'pexpect', 'jedi',
@@ -151,8 +150,7 @@ shutil.copytree(docs_orig, docs_dest)
 # inside the app.
 minimal_lib = osp.join(app_python_lib, 'minimal-lib')
 os.mkdir(minimal_lib)
-minlib_pkgs = ['spyder', 'spyder_breakpoints', 'spyder_io_dcm',
-               'spyder_io_hdf5', 'spyder_profiler', 'spyder_pylint']
+minlib_pkgs = ['spyder']
 for p in minlib_pkgs:
     shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
 
