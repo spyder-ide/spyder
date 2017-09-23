@@ -116,9 +116,20 @@ def get_filter(filetypes, ext):
 
 def get_edit_filetypes():
     """Get all file types supported by the Editor"""
-    pygments_exts = _get_pygments_extensions()
-    favorite_exts = ['.py', '.R', '.jl', '.ipynb', '.md', '.pyw', '.pyx', '.C', '.CPP']
-    other_exts = [ext for ext in pygments_exts if ext not in favorite_exts]
+    # The filter details are not hidden on Windows, so we can't use
+    # all Pygments extensions on that platform
+    if os.name == 'nt':
+        supported_exts = []
+    else:
+        supported_exts = _get_pygments_extensions()
+
+    # NOTE: Try to not add too much extensions to this list to not
+    # make the filter look too big on Windows
+    favorite_exts = ['.py', '.R', '.jl', '.ipynb', '.md', '.pyw', '.pyx',
+                     '.c', '.cpp', '.json', '.dat', '.csv', '.tsv', '.txt',
+                     '.ini', '.html', '.js', '.h', '.bat']
+
+    other_exts = [ext for ext in supported_exts if ext not in favorite_exts]
     all_exts = tuple(favorite_exts + other_exts)
     text_filetypes = (_("Supported text files"), all_exts)
     return [text_filetypes] + EDIT_FILETYPES
@@ -171,3 +182,26 @@ def is_gtk_desktop():
             return False
     else:
         return False
+
+
+def is_kde_desktop():
+    "Detect if we are running in a KDE desktop"
+    if sys.platform.startswith('linux'):
+        xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
+        if xdg_desktop:
+            if 'KDE' in xdg_desktop:
+                return True
+            else:
+                return False
+        else:
+            return False
+    else:
+        return False
+
+
+def is_anaconda():
+    "Detect if we are running under Anaconda."
+    for var in os.environ:
+        if var.startswith('CONDA'):
+            return True
+    return False

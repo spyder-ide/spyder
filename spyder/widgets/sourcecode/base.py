@@ -51,6 +51,9 @@ def insert_text_to(cursor, text, fmt):
 
 class CompletionWidget(QListWidget):
     """Completion list widget"""
+
+    sig_show_completions = Signal(object)
+
     def __init__(self, parent, ancestor):
         QListWidget.__init__(self, ancestor)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
@@ -146,6 +149,9 @@ class CompletionWidget(QListWidget):
             # to update the displayed list:
             self.update_current()
         
+        # signal used for testing
+        self.sig_show_completions.emit(completion_list)
+
     def hide(self):
         QListWidget.hide(self)
         self.textedit.setFocus()

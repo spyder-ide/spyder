@@ -8,9 +8,13 @@
 from textwrap import dedent
 
 import pytest
+import os
+import os.path as osp
 
 from spyder.utils.introspection.manager import CodeInfo
 from spyder.utils.introspection import rope_plugin
+
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 p = rope_plugin.RopePlugin()
 p.load_plugin()
@@ -42,6 +46,14 @@ def test_get_completions_2():
     completions = p.get_completions(CodeInfo('completions', source_code,
                                              len(source_code), __file__))
     assert not completions
+
+
+def test_get_completions_custom_path():
+    source_code = "import test_rope_plugin; test_"
+    completions = p.get_completions(CodeInfo('completions', source_code,
+                                             len(source_code),
+                                             sys_path=[LOCATION]))
+    assert ('test_rope_plugin', 'module') in completions
 
 
 def test_get_definition():

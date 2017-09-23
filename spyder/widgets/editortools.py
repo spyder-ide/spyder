@@ -21,7 +21,7 @@ from spyder.config.base import _, STDOUT
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
-                                    set_item_user_text)
+                                    set_item_user_text, create_plugin_layout)
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
@@ -476,7 +476,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
             if i_item is root_item:
-                #XXX: not working anymore!!!
                 for editor, _id in list(self.editor_ids.items()):
                     if _id == editor_id and editor.parent() is parent:
                         self.current_editor = editor
@@ -517,10 +516,7 @@ class OutlineExplorerWidget(QWidget):
         for btn in self.setup_buttons():
             btn_layout.addWidget(btn)
 
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(btn_layout)
-        layout.addWidget(self.treewidget)
+        layout = create_plugin_layout(btn_layout, self.treewidget)
         self.setLayout(layout)
 
     @Slot(bool)

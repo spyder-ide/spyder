@@ -30,6 +30,8 @@ try:
 except ImportError:
     jedi = None
 
+JEDI_010 = programs.is_module_installed('jedi', '>=0.10.0')
+
 
 class JediPlugin(IntrospectionPlugin):
     """
@@ -71,6 +73,12 @@ class JediPlugin(IntrospectionPlugin):
         """
         call_def = self.get_jedi_object('goto_definitions', info)
         for cd in call_def:
+            # For compatibility with Jedi 0.11
+            try:
+                cd.doc = cd.docstring()
+            except AttributeError:
+                pass
+
             if cd.doc and not cd.doc.rstrip().endswith(')'):
                 call_def = cd
                 break
@@ -172,8 +180,13 @@ class JediPlugin(IntrospectionPlugin):
             filename = None
 
         try:
-            script = jedi.Script(info['source_code'], info['line_num'],
-                                 info['column'], filename)
+            if JEDI_010:
+                script = jedi.api.Script(info['source_code'], info['line_num'],
+                                         info['column'], filename,
+                                         sys_path=info['sys_path'])
+            else:
+                script = jedi.api.Script(info['source_code'], info['line_num'],
+                                         info['column'], filename)
             func = getattr(script, func_name)
             val = func()
         except Exception as e:

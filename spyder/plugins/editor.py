@@ -1456,13 +1456,15 @@ class Editor(SpyderPluginWidget):
     def get_current_editorstack(self, editorwindow=None):
         if self.editorstacks is not None:
             if len(self.editorstacks) == 1:
-                return self.editorstacks[0]
+                editorstack = self.editorstacks[0]
             else:
                 editorstack = self.__get_focus_editorstack()
                 if editorstack is None or editorwindow is not None:
-                    return self.get_last_focus_editorstack(editorwindow)
-                return editorstack
-        
+                    editorstack = self.get_last_focus_editorstack(editorwindow)
+                    if editorstack is None:
+                        editorstack = self.editorstacks[0]
+            return editorstack
+
     def get_current_editor(self):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
@@ -2401,11 +2403,6 @@ class Editor(SpyderPluginWidget):
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
-        # Fixes 2034
-        editor = self.get_current_editor()
-        if editor.get_breakpoints():
-            time.sleep(0.5)
-            self.debug_command('continue')
 
     @Slot()
     def re_run_file(self):

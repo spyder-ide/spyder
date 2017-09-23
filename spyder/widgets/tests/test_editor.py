@@ -81,8 +81,31 @@ def editor_cells_bot(base_editor_bot):
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor, qtbot
 
+
 # Tests
 #-------------------------------
+def test_find_number_matches(qtbot):
+    """Test for number matches in find/replace."""
+    editor_stack, editor = setup_editor(qtbot)
+    editor_stack.find_widget.case_button.setChecked(True)
+    text = ' test \nTEST \nTest \ntesT '
+    editor.set_text(text)
+
+    editor_stack.find_widget.search_text.add_text('test')
+    editor_stack.find_widget.find(changed=False, forward=True,
+                                  rehighlight=False,
+                                  multiline_replace_check=False)
+    editor_text = editor_stack.find_widget.number_matches_text.text()
+    assert editor_text == '1 of 1'
+
+    editor_stack.find_widget.search_text.add_text('fail')
+    editor_stack.find_widget.find(changed=False, forward=True,
+                                  rehighlight=False,
+                                  multiline_replace_check=False)
+    editor_text = editor_stack.find_widget.number_matches_text.text()
+    assert editor_text == 'no matches'
+
+
 def test_move_current_line_up(editor_bot):
     editor_stack, editor, qtbot = editor_bot
         
@@ -287,6 +310,21 @@ def test_replace_enter_press(editor_find_replace_bot):
     qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (3,4)
 
+
+def test_selection_replace_plain_regex(editor_find_replace_bot):
+    """Test that regex reserved characters are displayed as plain text."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    expected_new_text = ('.\\[()]*test bacon\n'
+                         'spam sausage\n'
+                         'spam egg')
+    old_text = editor.toPlainText()
+    finder.show()
+    finder.show_replace()
+    qtbot.keyClicks(finder.search_text, 'spam')
+    qtbot.keyClicks(finder.replace_text, '.\[()]*test')
+    qtbot.keyPress(finder.replace_text, Qt.Key_Return)
+    text = editor.toPlainText()[0:-1]
+    assert editor.toPlainText()[0:-1] == expected_new_text
 
 def test_advance_cell(editor_cells_bot):
     editor_stack, editor, qtbot = editor_cells_bot

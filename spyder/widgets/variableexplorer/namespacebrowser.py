@@ -29,6 +29,7 @@ except ImportError:
 
 # Local imports
 from spyder.config.base import _, get_supported_types
+from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, getcwd, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -36,7 +37,7 @@ from spyder.utils.iofuncs import iofunctions
 from spyder.utils.misc import fix_reference_name
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, create_plugin_layout)
 from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
@@ -148,7 +149,6 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_files_dropped.connect(self.import_data)
 
         # Setup layout
-        layout = QVBoxLayout()
         blayout = QHBoxLayout()
         toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
                                      exclude_capitalized, exclude_unsupported)
@@ -171,10 +171,9 @@ class NamespaceBrowser(QWidget):
 
         blayout.addStretch()
         blayout.addWidget(options_button)
-        layout.addLayout(blayout)
-        layout.addWidget(self.editor)
+
+        layout = create_plugin_layout(blayout, self.editor)
         self.setLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
 
         self.sig_option_changed.connect(self.option_changed)
         
@@ -201,8 +200,12 @@ class NamespaceBrowser(QWidget):
                                            text=_("Save data as..."),
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
+        reset_namespace_button = create_toolbutton(
+                self, text=_("Reset the namespace"),
+                icon=ima.icon('editclear'), triggered=self.reset_namespace)
 
-        toolbar += [load_button, self.save_button, save_as_button]
+        toolbar += [load_button, self.save_button, save_as_button,
+                    reset_namespace_button]
         
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
@@ -450,7 +453,12 @@ class NamespaceBrowser(QWidget):
                                        "<br><br>Error message:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
-            
+
+    @Slot()
+    def reset_namespace(self):
+        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
+        self.shellwidget.reset_namespace(silent=True, warning=warning)
+
     @Slot()
     def save_data(self, filename=None):
         """Save data"""
