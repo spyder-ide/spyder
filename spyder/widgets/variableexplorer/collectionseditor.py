@@ -60,7 +60,7 @@ if DataFrame is not FakeObject:
 
 
 LARGE_NROWS = 100
-
+ROWS_TO_LOAD = 50
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -87,7 +87,6 @@ class ProxyObject(object):
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
-    ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
@@ -152,7 +151,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
-            self.rows_loaded = self.ROWS_TO_LOAD
+            self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
 
@@ -198,27 +197,22 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             except:
                 pass
         elif column == 1:
-            self.keys = sort_against(self.keys, self.types, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.types,
+                                                        reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             try:
                 self.types.sort(reverse=reverse)
             except:
                 pass
         elif column == 2:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes,
+                                                        reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             try:
                 self.sizes.sort(reverse=reverse)
             except:
                 pass
         elif column == 3:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
-            self.types = sort_against(self.types, self.sizes, reverse)
-            try:
-                self.sizes.sort(reverse=reverse)
-            except:
-                pass
-        elif column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
@@ -245,7 +239,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
  
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        items_to_fetch = min(reminder, ROWS_TO_LOAD)
         self.set_size_and_type(self.rows_loaded,
                                self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,
