@@ -18,7 +18,7 @@ from __future__ import print_function
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QItemSelection,
+from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
@@ -373,7 +373,9 @@ class ArrayDelegate(QItemDelegate):
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
-                editor.setValidator(QDoubleValidator(editor))
+                validator = QDoubleValidator(editor)
+                validator.setLocale(QLocale('C'))
+                editor.setValidator(validator)
             editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
 
