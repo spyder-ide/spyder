@@ -60,7 +60,7 @@ if DataFrame is not FakeObject:
 
 
 LARGE_NROWS = 100
-
+ROWS_TO_LOAD = 50
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -87,7 +87,6 @@ class ProxyObject(object):
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
-    ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
@@ -152,7 +151,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
-            self.rows_loaded = self.ROWS_TO_LOAD
+            self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
 
@@ -240,7 +239,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
  
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        items_to_fetch = min(reminder, ROWS_TO_LOAD)
         self.set_size_and_type(self.rows_loaded,
                                self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,

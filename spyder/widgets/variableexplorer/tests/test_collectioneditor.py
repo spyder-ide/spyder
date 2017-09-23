@@ -19,7 +19,7 @@ import pytest
 
 # Local imports
 from spyder.widgets.variableexplorer.collectionseditor import (
-    CollectionsEditorTableView, CollectionsModel)
+    CollectionsEditorTableView, CollectionsModel, LARGE_NROWS, ROWS_TO_LOAD)
 
 # Helper functions
 def data(cm, i, j):
@@ -103,12 +103,12 @@ def test_sort_collectionsmodel():
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == 3
     assert cm.columnCount() == 4
-    cm.sort(0) # sort by index
+    cm.sort(0)  # sort by index
     assert data_table(cm, 3, 4) == [['0', '1', '2'],
                                     ['int', 'int', 'int'],
                                     ['1', '1', '1'],
                                     ['1', '3', '2']]
-    cm.sort(3) # sort by value
+    cm.sort(3)  # sort by value
     assert data_table(cm, 3, 4) == [['0', '2', '1'],
                                     ['int', 'int', 'int'],
                                     ['1', '1', '1'],
@@ -117,16 +117,30 @@ def test_sort_collectionsmodel():
     cm = CollectionsModel(None, coll)
     assert cm.rowCount() == 2
     assert cm.columnCount() == 4
-    cm.sort(1) # sort by type
+    cm.sort(1)  # sort by type
     assert data_table(cm, 2, 4) == [['1', '0'],
                                     ['int', 'list'],
                                     ['1', '2'],
                                     ['3', '[1, 2]']]
-    cm.sort(2) # sort by size
+    cm.sort(2)  # sort by size
     assert data_table(cm, 2, 4) == [['1', '0'],
                                     ['int', 'list'],
                                     ['1', '2'],
                                     ['3', '[1, 2]']]
+
+
+def test_sort_collectionsmodel_with_many_rows():
+    coll = list(range(2*LARGE_NROWS))
+    cm = CollectionsModel(None, coll)
+    assert cm.rowCount() == cm.rows_loaded == ROWS_TO_LOAD
+    assert cm.columnCount() == 4
+    cm.sort(1)  # This was causing an issue (#5232)
+    cm.fetchMore()
+    assert cm.rowCount() == 2 * ROWS_TO_LOAD
+    for _ in range(3):
+        cm.fetchMore()
+    assert cm.rowCount() == len(coll)
+
 
 if __name__ == "__main__":
     pytest.main()
