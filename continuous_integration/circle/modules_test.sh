@@ -74,6 +74,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
+    if [[ $f == spyder/utils/introspection/numpy_docstr.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then
         continue
     fi
