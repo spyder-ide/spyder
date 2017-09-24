@@ -439,7 +439,7 @@ class EditorStack(QWidget):
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
-    sig_close_file = Signal(str, int)
+    sig_close_file = Signal(str, str)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
     create_new_window = Signal()
@@ -748,6 +748,7 @@ class EditorStack(QWidget):
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
         self.tabs.set_close_function(self.close_file)
+        self.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
         self.tabs.setMovable(True)
 
         self.stack_history.refresh()
@@ -1317,8 +1318,7 @@ class EditorStack(QWidget):
         self.horsplit_action.setEnabled(state)
         self.versplit_action.setEnabled(state)
 
-
-    #------ Accessors
+    # ------ Accessors
     def get_current_filename(self):
         if self.data:
             return self.data[self.get_stack_index()].filename
@@ -1344,6 +1344,33 @@ class EditorStack(QWidget):
             return len(self.data) > 0
         else:
             return self.has_filename(filename)
+
+    def get_index_from_filename(self, filename):
+        """
+        Return the position index of a file in the tab bar of the editorstack
+        from its name.
+        """
+        filenames = [d.filename for d in self.data]
+        return filenames.index(filename)
+
+    @Slot(int, int)
+    def move_editorstack_data(self, start, end):
+        """Reorder editorstack.data so it is synchronized with the tab bar when
+        tabs are moved."""
+        if start < 0 or end < 0:
+            return
+        else:
+            steps = abs(end - start)
+            direction = (end-start) // steps  # +1 for right, -1 for left
+
+        data = self.data
+        self.blockSignals(True)
+
+        for i in range(start, end, direction):
+            data[i], data[i+direction] = data[i+direction], data[i]
+
+        self.blockSignals(False)
+        self.refresh()
 
 
     #------ Close file, tabwidget...
@@ -1376,13 +1403,14 @@ class EditorStack(QWidget):
             if self.outlineexplorer is not None:
                 self.outlineexplorer.remove_editor(finfo.editor)
 
+            filename = self.data[index].filename
             self.remove_from_data(index)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
             # (see Issue 1094, Issue 1098)
-            self.sig_close_file.emit(str(id(self)), index)
+            self.sig_close_file.emit(str(id(self)), filename)
 
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
@@ -2741,11 +2769,12 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
-    @Slot(str, int)
-    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
+    @Slot(str, str)
+    def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
+                index = editorstack.get_index_from_filename(filename)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 

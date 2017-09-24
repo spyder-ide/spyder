@@ -1330,7 +1330,6 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
-        editorstack.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1348,11 +1347,12 @@ class Editor(SpyderPluginWidget):
         for finfo in editorstack.data:
             self.register_widget_shortcuts(finfo.editor)
 
-    @Slot(str, int)
-    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
+    @Slot(str, str)
+    def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
+                index = editorstack.get_index_from_filename(filename)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 
@@ -2683,23 +2683,3 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
-
-    @Slot(int, int)
-    def move_editorstack_data(self, start, end):
-        """Move editorstack.data to be synchronized when tabs are moved."""
-        if start < 0 or end < 0:
-            return
-        else:
-            steps = abs(end - start)
-            direction = (end-start) // steps  # +1 for right, -1 for left
-
-            for editorstack in self.editorstacks:
-                if editorstack.isAncestorOf(self.sender()):
-                    data = editorstack.data
-                    editorstack.blockSignals(True)
-
-                    for i in range(start, end, direction):
-                        data[i], data[i+direction] = data[i+direction], data[i]
-
-                    editorstack.blockSignals(False)
-                    editorstack.refresh()
