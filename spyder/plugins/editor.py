@@ -2799,13 +2799,12 @@ class Editor(SpyderPluginWidget):
                     index_first_file = filenames.index(cfname)
                     filenames.pop(index_first_file)
                     filenames.insert(0, cfname)
+                    clines_first_file = clines[index_first_file]
+                    clines.pop(index_first_file)
+                    clines.insert(0, clines_first_file)
                 else:
                     cfname = filenames[0]
                     index_first_file = 0
-            if index_first_file != 0:
-                clines_0 = clines[0]
-                clines.pop(index_first_file)
-                clines.insert(0, clines_0)
             reordered_splitsettings.append((is_vertical, cfname, clines))
         layout['splitsettings'] = reordered_splitsettings
         self.set_option('layout_settings', layout)
