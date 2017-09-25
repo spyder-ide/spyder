@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Collections (i.e. dictionary, list and tuple) editor widget and dialog
+Collections (i.e. dictionary, list, set and tuple) editor widget and dialog
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -70,7 +70,7 @@ ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 LARGE_NROWS = 100
-
+ROWS_TO_LOAD = 50
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -97,7 +97,6 @@ class ProxyObject(object):
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
-    ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
@@ -130,7 +129,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         data_type = get_type_string(data)
 
         if coll_filter is not None and not self.remote and \
-          isinstance(data, (tuple, list, dict)):
+          isinstance(data, (tuple, list, dict, set)):
             data = coll_filter(data)
         self.showndata = data
 
@@ -143,6 +142,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif isinstance(data, list):
             self.keys = list(range(len(data)))
             self.title += _("List")
+        elif isinstance(data, set):
+            self.keys = list(range(len(data)))
+            self.title += _("Set")
+            self._data = list(data)
         elif isinstance(data, dict):
             self.keys = list(data.keys())
             self.title += _("Dictionary")
@@ -162,7 +165,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
-            self.rows_loaded = self.ROWS_TO_LOAD
+            self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
 
@@ -208,27 +211,22 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             except:
                 pass
         elif column == 1:
-            self.keys = sort_against(self.keys, self.types, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.types,
+                                                        reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             try:
                 self.types.sort(reverse=reverse)
             except:
                 pass
         elif column == 2:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes,
+                                                        reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             try:
                 self.sizes.sort(reverse=reverse)
             except:
                 pass
         elif column == 3:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
-            self.types = sort_against(self.types, self.sizes, reverse)
-            try:
-                self.sizes.sort(reverse=reverse)
-            except:
-                pass
-        elif column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
@@ -255,7 +253,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
  
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        items_to_fetch = min(reminder, ROWS_TO_LOAD)
         self.set_size_and_type(self.rows_loaded,
                                self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,
@@ -419,7 +417,8 @@ class CollectionsDelegate(QItemDelegate):
             val_type = index.model().types[index.row()]
         except:
             return False
-        if val_type in ['list', 'tuple', 'dict'] and int(val_size) > 1e5:
+        if val_type in ['list', 'set', 'tuple', 'dict'] and \
+                int(val_size) > 1e5:
             return True
         else:
             return False
@@ -448,10 +447,10 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
-        readonly = isinstance(value, tuple) or self.parent().readonly \
+        readonly = isinstance(value, (tuple, set)) or self.parent().readonly \
                    or not is_known_type(value)
         #---editor = CollectionsEditor
-        if isinstance(value, (list, tuple, dict)):
+        if isinstance(value, (list, set, tuple, dict)):
             editor = CollectionsEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -752,7 +751,7 @@ class BaseTableView(QTableView):
         raise NotImplementedError
         
     def is_list(self, key):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a set or a tuple"""
         raise NotImplementedError
         
     def get_len(self, key):
@@ -1154,7 +1153,7 @@ class CollectionsEditorTableView(BaseTableView):
                  names=False, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
-        self.readonly = readonly or isinstance(data, tuple)
+        self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
                                 else CollectionsModel
         self.model = CollectionsModelClass(self, data, title, names=names,
@@ -1165,7 +1164,10 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
-    
+
+        if isinstance(data, set):
+            self.horizontalHeader().hideSection(0)
+
     #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
@@ -1190,7 +1192,12 @@ class CollectionsEditorTableView(BaseTableView):
         """Return True if variable is a list or a tuple"""
         data = self.model.get_data()
         return isinstance(data[key], (tuple, list))
-        
+
+    def is_set(self, key):
+        """Return True if variable is a set"""
+        data = self.model.get_data()
+        return isinstance(data[key], set)
+
     def get_len(self, key):
         """Return sequence length"""
         data = self.model.get_data()
@@ -1253,7 +1260,7 @@ class CollectionsEditorTableView(BaseTableView):
         """Refresh context menu"""
         data = self.model.get_data()
         index = self.currentIndex()
-        condition = (not isinstance(data, tuple)) and index.isValid() \
+        condition = (not isinstance(data, (tuple, set))) and index.isValid() \
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
@@ -1304,8 +1311,8 @@ class CollectionsEditor(QDialog):
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
         """Setup editor."""
-        if isinstance(data, dict):
-            # dictionnary
+        if isinstance(data, (dict, set)):
+            # dictionnary, set
             self.data_copy = data.copy()
             datalen = len(data)
         elif isinstance(data, (tuple, list)):
@@ -1427,7 +1434,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.shellwidget.refresh_namespacebrowser()
 
     def is_list(self, name):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a tuple or a set"""
         return self.var_properties[name]['is_list']
 
     def is_dict(self, name):
@@ -1519,6 +1526,7 @@ def get_test_data():
             'str': 'kjkj kj k j j kj k jkj',
             'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
+            'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
             'float': 1.2233,

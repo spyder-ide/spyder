@@ -32,14 +32,14 @@ from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
-                        QKeySequence, QPaintEvent, QPainter,
+                        QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextBlockUserData, QTextCharFormat, QTextCursor,
                         QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout)
+                            QTextEdit, QToolTip, QVBoxLayout, QScrollBar)
 from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
@@ -252,11 +252,30 @@ class CodeEditor(TextEditBaseWidget):
     re_run_last_cell = Signal()
     go_to_definition_regex = Signal(int)
     sig_cursor_position_changed = Signal(int, int)
-    focus_changed = Signal()
     sig_new_file = Signal(str)
 
+    #: Signal emitted when the editor loses focus
+    sig_focus_changed = Signal()
+
     #: Signal emitted when a key is pressed
-    key_pressed = Signal(QKeyEvent)
+    sig_key_pressed = Signal(QKeyEvent)
+
+    #: Signal emitted when a key is released
+    sig_key_released = Signal(QKeyEvent)
+
+    #: Signal emitted when the alt key is pressed and the left button of the
+    #  mouse is clicked
+    sig_alt_left_mouse_pressed = Signal(QMouseEvent)
+
+    #: Signal emitted when the alt key is pressed and the cursor moves over
+    #  the editor
+    sig_alt_mouse_moved = Signal(QMouseEvent)
+
+    #: Signal emitted when the cursor leaves the editor
+    sig_leave_out = Signal()
+
+    #: Signal emitted when the flags need to be updated in the scrollflagarea
+    sig_flags_changed = Signal()
 
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
@@ -313,13 +332,13 @@ class CodeEditor(TextEditBaseWidget):
 
         # Line number area management
         self.linenumberarea = self.panels.register(LineNumberArea(self))
-        
+
         # Class and Method/Function Dropdowns
         self.classfuncdropdown = self.panels.register(
             ClassFunctionDropdown(self),
             Panel.Position.TOP,
         )
-        
+
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
         self.occurrence_color = None
@@ -350,6 +369,12 @@ class CodeEditor(TextEditBaseWidget):
         self.color_scheme = ccs
 
         self.highlight_current_line_enabled = False
+
+        # Vertical scrollbar
+        # This is required to avoid a "RuntimeError: no access to protected
+        # functions or signals for objects not created from Python" in
+        # Linux Ubuntu. See PR #5215.
+        self.setVerticalScrollBar(QScrollBar())
 
         # Scrollbar flag area
         self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
@@ -586,7 +611,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
                 movelinedown, gotodef, toggle_comment, blockcomment,
-                unblockcomment, transform_uppercase, transform_lowercase, 
+                unblockcomment, transform_uppercase, transform_lowercase,
                 line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
                 kill_line_start, yank, kill_ring_rotate, kill_prev_word,
@@ -1073,7 +1098,7 @@ class CodeEditor(TextEditBaseWidget):
         """Clear occurrence markers"""
         self.occurrences = []
         self.clear_extra_selections('occurrences')
-        self.scrollflagarea.update()
+        self.sig_flags_changed.emit()
 
     def __highlight_selection(self, key, cursor, foreground_color=None,
                         background_color=None, underline_color=None,
@@ -1081,7 +1106,7 @@ class CodeEditor(TextEditBaseWidget):
                         underline_style=QTextCharFormat.SpellCheckUnderline,
                         update=False):
         extra_selections = self.get_extra_selections(key)
-        selection = TextDecoration(cursor, font=self.font())
+        selection = TextDecoration(cursor)
         if foreground_color is not None:
             selection.format.setForeground(foreground_color)
         if background_color is not None:
@@ -1132,7 +1157,7 @@ class CodeEditor(TextEditBaseWidget):
             # for PyQt4... this must be related to a different behavior for
             # the QTextDocument.find function between those two libraries
             self.occurrences.pop(-1)
-        self.scrollflagarea.update()
+        self.sig_flags_changed.emit()
 
     #-----highlight found results (find/replace widget)
     def highlight_found_results(self, pattern, words=False, regexp=False):
@@ -1165,7 +1190,7 @@ class CodeEditor(TextEditBaseWidget):
         """Clear found results highlighting"""
         self.found_results = []
         self.clear_extra_selections('find')
-        self.scrollflagarea.update()
+        self.sig_flags_changed.emit()
 
     def __text_has_changed(self):
         """Text has changed, eventually clear found results highlighting"""
@@ -1278,7 +1303,7 @@ class CodeEditor(TextEditBaseWidget):
                 data.breakpoint = False
         block.setUserData(data)
         self.linenumberarea.update()
-        self.scrollflagarea.update()
+        self.sig_flags_changed.emit()
         self.breakpoints_changed.emit()
 
     def get_breakpoints(self):
@@ -1520,7 +1545,7 @@ class CodeEditor(TextEditBaseWidget):
         # When the new code analysis results are empty, it is necessary
         # to update manually the scrollflag and linenumber areas (otherwise,
         # the old flags will still be displayed):
-        self.scrollflagarea.update()
+        self.sig_flags_changed.emit()
         self.linenumberarea.update()
 
     def process_code_analysis(self, check_results):
@@ -1659,7 +1684,7 @@ class CodeEditor(TextEditBaseWidget):
                 data = BlockUserData(self)
             data.todo = message
             block.setUserData(data)
-        self.scrollflagarea.update()
+        self.sig_flags_changed.emit()
 
 
     #------Comments/Indentation
@@ -2546,6 +2571,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
+        self.sig_key_released.emit(event)
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
@@ -2553,7 +2579,7 @@ class CodeEditor(TextEditBaseWidget):
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         event.ignore()
-        self.key_pressed.emit(event)
+        self.sig_key_pressed.emit(event)
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
@@ -2767,6 +2793,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
+        if event.modifiers() & Qt.AltModifier:
+            self.sig_alt_mouse_moved.emit(event)
+            event.accept()
+            return
+
         if self.has_selected_text():
             TextEditBaseWidget.mouseMoveEvent(self, event)
             return
@@ -2806,8 +2837,14 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).setPlainText(txt)
         self.new_text_set.emit()
 
+    def focusOutEvent(self, event):
+        """Reimplement Qt method"""
+        self.sig_focus_changed.emit()
+        super(CodeEditor, self).focusOutEvent(event)
+
     def leaveEvent(self, event):
         """If cursor has not been restored yet, do it now"""
+        self.sig_leave_out.emit()
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
@@ -2833,11 +2870,14 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if event.button() == Qt.LeftButton\
-           and (event.modifiers() & Qt.ControlModifier):
+        ctrl = event.modifiers() & Qt.ControlModifier
+        alt = event.modifiers() & Qt.AltModifier
+        if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(event.pos())
             self.go_to_definition_from_cursor(cursor)
+        elif event.button() == Qt.LeftButton and alt:
+            self.sig_alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
 
@@ -2998,7 +3038,7 @@ class TestWidget(QSplitter):
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
         self.setWindowIcon(ima.icon('spyder'))
- 
+
     def load(self, filename):
         self.editor.set_text_from_file(filename)
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),

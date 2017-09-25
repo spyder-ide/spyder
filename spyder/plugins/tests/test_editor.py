@@ -56,7 +56,7 @@ def test_basic_initialization(setup_editor):
         (['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
          ['/file2.py', '/file1.py', '/file3.py', '/file4.py'],
          [(False, '/file2.py', [2, 4, 8, 12])],
-         [(False, '/file2.py', [2, 2, 8, 12])]),
+         [(False, '/file2.py', [4, 2, 8, 12])]),
         (['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
          ['/file1.py', '/file2.py', '/file3.py', '/file4.py'],
          None,
