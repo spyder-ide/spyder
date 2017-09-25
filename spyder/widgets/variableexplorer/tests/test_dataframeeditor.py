@@ -230,7 +230,7 @@ def test_dataframeeditor_with_datetimeindex():
 
 
 def test_sort_dataframe_with_duplicate_column(qtbot):
-    df = DataFrame({'A':[1, 3, 2], 'B':[4, 6, 5]})
+    df = DataFrame({'A': [1, 3, 2], 'B': [4, 6, 5]})
     df = concat((df, df.A), axis=1)
     editor = DataFrameEditor(None)
     editor.setup_and_check(df)
@@ -242,7 +242,7 @@ def test_sort_dataframe_with_duplicate_column(qtbot):
     editor.dataModel.sort(2)
     assert [data(dfm, row, 1) for row in range(len(df))] == ['1', '2', '3']
     assert [data(dfm, row, 2) for row in range(len(df))] == ['4', '5', '6']
-        
+
 
 if __name__ == "__main__":
     pytest.main()
