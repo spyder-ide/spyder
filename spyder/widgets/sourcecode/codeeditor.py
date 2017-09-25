@@ -1614,7 +1614,7 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.linenumberarea.update()
         QTimer.singleShot(
-            10000, lambda: self.clear_extra_selections('code_analysis'))
+            5000, lambda: self.clear_extra_selections('code_analysis'))
 
     def go_to_next_warning(self):
         """Go to next code analysis warning message
