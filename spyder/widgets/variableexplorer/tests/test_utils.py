@@ -114,9 +114,9 @@ def test_list_display():
 
     # List starting with a non-supported object (#5313)
     supported_types = tuple(get_supported_types()['editable'])
-    l = [len, 1]
-    assert value_to_display(l) == '[builtin_function_or_method, 1]'
-    assert is_supported(l, filters=supported_types)
+    li = [len, 1]
+    assert value_to_display(li) == '[builtin_function_or_method, 1]'
+    assert is_supported(li, filters=supported_types)
 
 def test_dict_display():
     """Tests for display of dicts."""
@@ -155,10 +155,11 @@ def test_dict_display():
 
     # Dict starting with a non-supported object (#5313)
     supported_types = tuple(get_supported_types()['editable'])
-    d = {max: len, 1: 1}
-    assert (value_to_display(d) ==
-            '{builtin_function_or_method:builtin_function_or_method, 1:1}')
-    assert is_supported(d, filters=supported_types)
+    di = {max: len, 1: 1}
+    assert value_to_display(di) in (
+            '{builtin_function_or_method:builtin_function_or_method, 1:1}',
+            '{1:1, builtin_function_or_method:builtin_function_or_method}')
+    assert is_supported(di, filters=supported_types)
 
 
 if __name__ == "__main__":
