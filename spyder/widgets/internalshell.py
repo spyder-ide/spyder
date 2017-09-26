@@ -25,12 +25,12 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder import get_versions
 from spyder.interpreter import Interpreter
-from spyder.py3compat import (builtins, getcwd, to_binary_string,
+from spyder.py3compat import (builtins, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.dochelpers import getargtxt, getdoc, getobjdir, getsource
-from spyder.utils.misc import get_error_match
+from spyder.utils.misc import get_error_match, getcwd_or_home
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.shell import PythonShellWidget
 from spyder.widgets.variableexplorer.objecteditor import oedit
@@ -430,7 +430,7 @@ class InternalShell(PythonShellWidget):
         
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
-        return os.listdir(getcwd())
+        return os.listdir(getcwd_or_home())
                 
     def iscallable(self, objtxt):
         """Is object callable?"""

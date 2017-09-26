@@ -38,9 +38,9 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, is_text_string,
-                              getcwd, PY3, to_text_string)
+                              PY3, to_text_string)
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import fix_reference_name
+from spyder.utils.misc import fix_reference_name, getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
@@ -1047,7 +1047,7 @@ class BaseTableView(QTableView):
         """Save array"""
         title = _( "Save array")
         if self.array_filename is None:
-            self.array_filename = getcwd()
+            self.array_filename = getcwd_or_home()
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,

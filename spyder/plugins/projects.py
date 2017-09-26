@@ -22,9 +22,10 @@ from qtpy.QtWidgets import QMenu, QMessageBox
 # Local imports
 from spyder.config.base import _, get_home_dir
 from spyder.plugins import SpyderPluginMixin
-from spyder.py3compat import is_text_string, getcwd
+from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.projects.explorer import ProjectExplorerWidget
 from spyder.widgets.projects.projectdialog import ProjectDialog
 from spyder.widgets.projects import EmptyProject
@@ -254,7 +255,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         if self.current_active_project is None:
             if save_previous_files:
                 self.editor.save_open_files()
-            self.editor.set_option('last_working_dir', getcwd())
+            self.editor.set_option('last_working_dir', getcwd_or_home())
             self.show_explorer()
         else: # we are switching projects
             self.set_project_filenames(self.editor.get_open_filenames())
@@ -344,7 +345,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def get_last_working_dir(self):
         """Get the path of the last working directory"""
-        return self.editor.get_option('last_working_dir', default=getcwd())
+        return self.editor.get_option('last_working_dir',
+                                      default=getcwd_or_home())
 
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""

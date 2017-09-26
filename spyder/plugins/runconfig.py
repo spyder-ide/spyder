@@ -22,9 +22,9 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.plugins.configdialog import GeneralConfigPage
-from spyder.py3compat import getcwd, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-
+from spyder.utils.misc import getcwd_or_home
 
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
@@ -264,7 +264,7 @@ class RunConfigOptions(QWidget):
         """Select directory"""
         basedir = to_text_string(self.wd_edit.text())
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         directory = getexistingdirectory(self, _("Select directory"), basedir)
         if directory:
             self.wd_edit.setText(directory)
@@ -528,7 +528,8 @@ class RunConfigPage(GeneralConfigPage):
                 FIXED_DIR,
                 WDIR_USE_FIXED_DIR_OPTION, False,
                 button_group=wdir_bg)
-        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
+        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION,
+                                           getcwd_or_home())
         thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
         dirname_radio.toggled.connect(thisdir_bd.setDisabled)
         cwd_radio.toggled.connect(thisdir_bd.setDisabled)
