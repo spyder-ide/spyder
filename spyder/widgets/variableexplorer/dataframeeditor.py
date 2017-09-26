@@ -1140,7 +1140,7 @@ class DataFrameEditor(QDialog):
                     max_col_ms = self._max_autosize_ms / max(1, end - start)
 
     def _resizeCurrentColumnToContents(self, new_index, old_index):
-        """Resize the current colum to its contents."""
+        """Resize the current column to its contents."""
         if new_index.column() not in self._autosized_cols:
             # Ensure the requested column is fully into view after resizing
             self._resizeVisibleColumnsToContents()
