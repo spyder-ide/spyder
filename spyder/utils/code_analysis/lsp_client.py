@@ -78,6 +78,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.req_status = {}
         self.plugin_registry = {}
         self.watched_files = {}
+        self.req_reply = {}
 
         self.transport_args = [sys.executable,
                                osp.join(LOCATION, 'lsp_transport', 'main.py')]
@@ -187,17 +188,18 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                             if req_type in self.handler_registry:
                                 handler_name = self.handler_registry[req_type]
                                 handler = getattr(self, handler_name)
-                                handler(resp['result'])
+                                handler(resp['result'], req_id)
             except zmq.ZMQError as e:
                 self.notifier.setEnabled(True)
                 return
 
     def perform_request(self, method, params):
-        print(method)
         if method in self.sender_registry:
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
             _id = handler(params)
+            if 'response_sig' in params:
+                self.req_reply[_id] = params['response_sig']
             return _id
 
     # ------ Spyder plugin registration --------------------------------
@@ -229,7 +231,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         return params
 
     @handles(LSPRequestTypes.INITIALIZE)
-    def process_server_capabilities(self, server_capabilites):
+    def process_server_capabilities(self, server_capabilites, *args):
         self.initialized = True
         server_capabilites = server_capabilites['capabilities']
 

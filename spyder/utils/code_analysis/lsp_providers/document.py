@@ -9,8 +9,9 @@
 import os.path as osp
 
 from spyder.py3compat import PY2
-from spyder.utils.code_analysis import LSPRequestTypes
 from spyder.utils.code_analysis.decorators import handles, send_request
+from spyder.utils.code_analysis import (
+    LSPRequestTypes, InsertTextFormat, CompletionItemKind)
 
 if PY2:
     import pathlib2 as pathlib
@@ -30,7 +31,7 @@ class DocumentProvider:
         self.watched_files[filename].append(signal)
 
     @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
-    def process_document_diagnostics(self, response):
+    def process_document_diagnostics(self, response, *args):
         uri = response['uri']
         diagnostics = response['diagnostics']
         callbacks = self.watched_files[uri]
@@ -41,25 +42,12 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
     def document_changed(self, params):
-        # start_line, start_col = params['start']
-        # end_line, end_col = params['end']
         params = {
             'textDocument': {
                 'uri': path_as_uri(params['file']),
                 'version': params['version']
             },
             'contentChanges': [{
-                # 'range': {
-                #     'start': {
-                #         'line': start_line,
-                #         'character': start_col
-                #     },
-                #     'end': {
-                #         'line': end_line,
-                #         'character': end_col
-                #     }
-                # },
-                # 'rangeLength': params['length'],
                 'text': params['text']
             }]
         }
@@ -77,3 +65,34 @@ class DocumentProvider:
         }
 
         return params
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
+    def document_completion_request(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+            'position': {
+                'line': params['line'],
+                'character': params['column']
+            }
+        }
+
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
+    def process_document_completion(self, response, req_id):
+        if isinstance(response, dict):
+            response = response['items']
+        for item in response:
+            item['kind'] = item.get('kind', CompletionItemKind.TEXT)
+            item['detail'] = item.get('detail', '')
+            item['documentation'] = item.get('documentation', '')
+            item['sortText'] = item.get('sortText', item['label'])
+            item['filterText'] = item.get('filterText', item['label'])
+            item['insertText'] = item.get(
+                'insertText', InsertTextFormat.PLAIN_TEXT)
+
+        if req_id in self.req_reply:
+            self.req_reply[req_id].emit(
+                LSPRequestTypes.DOCUMENT_COMPLETION, {'params': response})

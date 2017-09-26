@@ -754,7 +754,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
-        print(method)
         uid = uuid.uuid4()
         params['uuid'] = uid
         params['response_sig'] = self.lsp_response_signal
@@ -763,44 +762,7 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_perform_lsp_request.emit(
             self.language.lower(), method, params)
 
-    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
-    def document_did_open(self):
-        """Send textDocument/didOpen request to server."""
-        self.document_opened = True
-        params = {
-            'file': self.filename,
-            'language': self.language,
-            'version': self.text_version,
-            'text': self.toPlainText()
-        }
-        return params
-
-    @request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
-    def document_did_change(self, text):
-        """Send textDocument/didChange request to server."""
-        self.text_version += 1
-        # line, column = self.get_cursor_line_column()
-        # # print((line, column), text)
-        # txt_lines = text.splitlines()
-        # end_line = line + len(txt_lines) - 1
-        # end_col = len(txt_lines[-1])
-        # if end_line == line:
-        #     end_col += column
-        # print((line, column), (end_line, end_col), text)
-        params = {
-            'file': self.filename,
-            'version': self.text_version,
-            # 'start': (line, column),
-            # 'end': (end_line, end_col),
-            # 'length': len(text),
-            'text': self.toPlainText()
-        }
-        return params
-
-    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
-    def linting_diagnostics(self, params):
-        print(params)
-        self.process_code_analysis(params['params'])
+    # ------------- LSP: Configuration and protocol start/end ----------------
 
     def start_lsp_services(self, config):
         """Start LSP integration if it wasn't done before."""
@@ -834,6 +796,54 @@ class CodeEditor(TextEditBaseWidget):
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (
             range_formatting_options['moreTriggerCharacter'])
+
+    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
+    def document_did_open(self):
+        """Send textDocument/didOpen request to server."""
+        self.document_opened = True
+        params = {
+            'file': self.filename,
+            'language': self.language,
+            'version': self.text_version,
+            'text': self.toPlainText()
+        }
+        return params
+
+    # ------------- LSP: Linting ---------------------------------------
+    @request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
+    def document_did_change(self, text):
+        """Send textDocument/didChange request to server."""
+        self.text_version += 1
+        params = {
+            'file': self.filename,
+            'version': self.text_version,
+            'text': self.toPlainText()
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    def linting_diagnostics(self, params):
+        self.process_code_analysis(params['params'])
+
+    # ------------- LSP: Completion ---------------------------------------
+
+    @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
+    def do_completion(self, automatic=False):
+        """Trigger completion"""
+        if self.is_completion_widget_visible():
+            return
+        self.document_did_change('')
+        line, column = self.get_cursor_line_column()
+        params = {
+            'file': self.filename,
+            'line': line,
+            'column': column
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
+    def process_completion(self, params):
+        print('Here!')
 
     # -------------------------------------------------------------------------
 
@@ -1337,11 +1347,6 @@ class CodeEditor(TextEditBaseWidget):
         self.breakpoints_changed.emit()
 
     #-----Code introspection
-    def do_completion(self, automatic=False):
-        """Trigger completion"""
-        if not self.is_completion_widget_visible():
-            self.get_completions.emit(automatic)
-
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
         if not self.in_comment_or_string():
@@ -2683,20 +2688,26 @@ class CodeEditor(TextEditBaseWidget):
                     TextEditBaseWidget.keyPressEvent(self, event)
                     if self.is_completion_widget_visible():
                         self.completion_text = self.completion_text[:-1]
-        elif key == Qt.Key_Period:
-            self.insert_text(text)
-            if (self.is_python_like()) and not \
-              self.in_comment_or_string() and self.codecompletion_auto:
-                # Enable auto-completion only if last token isn't a float
-                last_obj = getobj(self.get_text('sol', 'cursor'))
-                if last_obj and not last_obj.isdigit():
-                    self.do_completion(automatic=True)
+        # elif key == Qt.Key_Period:
+        #     self.insert_text(text)
+        #     if (self.is_python_like()) and not \
+        #       self.in_comment_or_string() and self.codecompletion_auto:
+        #         # Enable auto-completion only if last token isn't a float
+        #         last_obj = getobj(self.get_text('sol', 'cursor'))
+        #         if last_obj and not last_obj.isdigit():
+        #             self.do_completion(automatic=True)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
             # See Issue 495: on MacOS X, it is necessary to redefine this
             # basic action which should have been implemented natively
             self.stdkey_end(shift, ctrl)
+        elif text in self.auto_completion_characters:
+            self.insert_text(text)
+            if not self.in_comment_or_string() and self.codecompletion_auto:
+                last_obj = getobj(self.get_text('sol', 'cursor'))
+                if last_obj and not last_obj.isdigit():
+                    self.do_completion(automatic=True)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
             self.handle_parentheses(text)
