@@ -8,13 +8,25 @@
 # Present in pandas.sandbox.qtpandas in v0.13.1
 # Copyright (c) 2011-2012, Lambda Foundry, Inc.
 # and PyData Development Team All rights reserved
+#
+# DataFrameHeaderModel and DataFrameLevelModel are based on the classes
+# Header4ExtModel and Level4ExtModel from the gtabview project. The
+# DataFrameModel is based on the classes ExtDataModel and ExtFrameModel from
+# the same project.
+# https://github.com/TabViewer/gtabview
+# Copyright(c) 2014-2016: wave++ "Yuri D'Elia" <wavexx@thregr.org>
+# Copyright(c) 2014-2015: Scott Hansen <firecat4153@gmail.com>
+# Licensed under the terms of the MIT License
+#
 
 """
 Pandas DataFrame Editor Dialog
 """
+
+# Standard library imports
 import time
+
 # Third party imports
-from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
                          QItemSelectionModel, QEvent)
@@ -22,7 +34,7 @@ from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
                             QMenu, QMessageBox, QPushButton, QTableView,
-                            QHeaderView, QScrollBar, QTableWidget, QFrame,
+                            QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
 
 from pandas import DataFrame, Index, Series
@@ -70,7 +82,7 @@ BACKGROUND_MISC_ALPHA = 0.3
 
 def bool_false_check(value):
     """
-    Used to convert bool intrance to false.
+    Used to convert bool entrance to false.
 
     Needed since any string in bool('') will return True.
     """
@@ -95,9 +107,6 @@ class DataFrameModel(QAbstractTableModel):
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/models.py
     """
-    
-    ROWS_TO_LOAD = 500
-    COLS_TO_LOAD = 40
 
     def __init__(self, dataFrame, format=DEFAULT_FORMAT, parent=None):
         QAbstractTableModel.__init__(self)
@@ -126,44 +135,64 @@ class DataFrameModel(QAbstractTableModel):
         # Use paging when the total size, number of rows or number of
         # columns is too large
         if size > LARGE_SIZE:
-            self.rows_loaded = self.ROWS_TO_LOAD
-            self.cols_loaded = self.COLS_TO_LOAD
+            self.rows_loaded = ROWS_TO_LOAD
+            self.cols_loaded = COLS_TO_LOAD
         else:
             if self.total_rows > LARGE_NROWS:
-                self.rows_loaded = self.ROWS_TO_LOAD
+                self.rows_loaded = ROWS_TO_LOAD
             else:
                 self.rows_loaded = self.total_rows
             if self.total_cols > LARGE_COLS:
-                self.cols_loaded = self.COLS_TO_LOAD
+                self.cols_loaded = COLS_TO_LOAD
             else:
                 self.cols_loaded = self.total_cols
 
     def _axis(self, axis):
+        """
+        Return the corresponding labels taking into account the axis.
+
+        The axis could be horizontal (0) or vertical (1).
+        """
         return self.df.columns if axis == 0 else self.df.index
 
     def _axis_levels(self, axis):
+        """
+        Return the number of levels in the labels taking into account the axis.
+
+        Get the number of levels for the columns (0) or rows (1).
+        """
         ax = self._axis(axis)
         return 1 if not hasattr(ax, 'levels') \
             else len(ax.levels)
 
     @property
     def shape(self):
+        """Return the shape of the dataframe."""
         return self.df.shape
 
     @property
     def header_shape(self):
+        """Return the levels for the columns and rows of the dataframe."""
         return (self._axis_levels(0), self._axis_levels(1))
 
     @property
     def chunk_size(self):
+        """Return the max value of the dimensions of the dataframe."""
         return max(*self.shape())
 
     def header(self, axis, x, level=0):
+        """
+        Return the values of the labels for the header of columns or rows.
+
+        The value corresponds to the header of a x column or row in a certain
+        level.
+        """
         ax = self._axis(axis)
         return ax.values[x] if not hasattr(ax, 'levels') \
             else ax.values[x][level]
 
     def name(self, axis, level):
+        """Return the labels of the levels if any."""
         ax = self._axis(axis)
         if hasattr(ax, 'levels'):
             return ax.names[level]
@@ -384,6 +413,7 @@ class DataFrameModel(QAbstractTableModel):
             return self.rows_loaded
 
     def can_fetch_more(self, rows=False, columns=False):
+        """Return the possibility to fetch more rows or columns."""
         if rows:
             if self.total_rows > self.rows_loaded:
                 return True
@@ -396,16 +426,17 @@ class DataFrameModel(QAbstractTableModel):
                 return False
 
     def fetch_more(self, rows=False, columns=False):
+        """Get more columns and/or rows."""
         if self.can_fetch_more(rows=rows):
             reminder = self.total_rows - self.rows_loaded
-            items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+            items_to_fetch = min(reminder, ROWS_TO_LOAD)
             self.beginInsertRows(QModelIndex(), self.rows_loaded,
                                  self.rows_loaded + items_to_fetch - 1)
             self.rows_loaded += items_to_fetch
             self.endInsertRows()
         if self.can_fetch_more(columns=columns):
             reminder = self.total_cols - self.cols_loaded
-            items_to_fetch = min(reminder, self.COLS_TO_LOAD)
+            items_to_fetch = min(reminder, COLS_TO_LOAD)
             self.beginInsertColumns(QModelIndex(), self.cols_loaded,
                                     self.cols_loaded + items_to_fetch - 1)
             self.cols_loaded += items_to_fetch
@@ -426,49 +457,9 @@ class DataFrameModel(QAbstractTableModel):
         self.endResetModel()
 
 
-class FrozenTableView(QTableView):
-    """This class implements a table with its first column frozen
-    For more information please see:
-    http://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html"""
-    def __init__(self, parent):
-        """Constructor."""
-        QTableView.__init__(self, parent)
-        self.parent = parent
-        self.setModel(parent.model())
-        self.setFocusPolicy(Qt.NoFocus)
-        self.verticalHeader().hide()
-        try:
-            self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
-        except:  # support for qtpy<1.2.0
-            self.horizontalHeader().setResizeMode(QHeaderView.Fixed)
-
-        parent.viewport().stackUnder(self)
-
-        self.setSelectionModel(parent.selectionModel())
-        for col in range(1, parent.model().columnCount()):
-            self.setColumnHidden(col, True)
-
-        self.setColumnWidth(0, parent.columnWidth(0))
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.show()
-
-        self.setVerticalScrollMode(1)
-
-    def update_geometry(self):
-        """Update the frozen column size when an update occurs
-        in its parent table"""
-        self.setGeometry(self.parent.verticalHeader().width() +
-                         self.parent.frameWidth(),
-                         self.parent.frameWidth(),
-                         self.parent.columnWidth(0),
-                         self.parent.viewport().height() +
-                         self.parent.horizontalHeader().height())
-
-
 class DataFrameView(QTableView):
     """Data Frame view class"""
-    sig_sortByColumn = Signal()
+    sig_sort_by_column = Signal()
     sig_fetch_more_columns = Signal()
     sig_fetch_more_rows = Signal()
 
@@ -502,11 +493,11 @@ class DataFrameView(QTableView):
             self.sig_fetch_more_columns.emit()
 
     def sortByColumn(self, index):
-        """Implement a Column sort."""
+        """Implement a column sort."""
         if self.sort_old == [None]:
             self.header_class.setSortIndicatorShown(True)
         sort_order = self.header_class.sortIndicatorOrder()
-        self.sig_sortByColumn.emit()
+        self.sig_sort_by_column.emit()
         if not self.model().sort(index, sort_order):
             if len(self.sort_old) != 2:
                 self.header_class.setSortIndicatorShown(False)
@@ -533,18 +524,10 @@ class DataFrameView(QTableView):
                      (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                types_in_menu += [create_action(self, name,
-                                                triggered=lambda _checked,
-                                                func=func:
-                                                    self.change_type(func),
-                                                    context=Qt.WidgetShortcut)]
-            else:
-                types_in_menu += [create_action(self, name,
-                                                triggered=lambda func=func:
-                                                    self.change_type(func),
-                                                    context=Qt.WidgetShortcut)]
+            slot = lambda func=func: self.change_type(func)
+            types_in_menu += [create_action(self, name,
+                                            triggered=slot,
+                                            context=Qt.WidgetShortcut)]
         menu = QMenu(self)
         add_actions(menu, types_in_menu)
         return menu
@@ -611,6 +594,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
                 self.rows_loaded = self.total_rows
 
     def rowCount(self, index=None):
+        """Get number of rows in the header."""
         if self.axis == 0:
             return max(1, self._shape[0])
         else:
@@ -633,6 +617,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
             return max(1, self._shape[1])
 
     def can_fetch_more(self):
+        """Return possibility to fetch more rows or columns (based on axis)."""
         if self.axis == 1:
             if self.total_rows > self.rows_loaded:
                 return True
@@ -645,6 +630,7 @@ class DataFrameHeaderModel(QAbstractTableModel):
                 return False
 
     def fetch_more(self, rows=False, columns=False):
+        """Get more columns or rows (based on axis)."""
         if self.can_fetch_more() and self.axis == 1:
             reminder = self.total_rows - self.rows_loaded
             items_to_fetch = min(reminder, ROWS_TO_LOAD)
@@ -667,12 +653,13 @@ class DataFrameHeaderModel(QAbstractTableModel):
         return True
 
     def headerData(self, section, orientation, role):
+        """Get the information to put in the header."""
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
                 return Qt.AlignCenter | Qt.AlignBottom
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
-        if role != Qt.DisplayRole:
+        if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.axis == 1 and self._shape[1] <= 1:
             return None
@@ -697,6 +684,11 @@ class DataFrameHeaderModel(QAbstractTableModel):
         return header
 
     def data(self, index, role):
+        """
+        Get the data for the header.
+
+        This is used when a header has levels.
+        """
         if not index.isValid() or \
            index.row() >= self._shape[0] or \
            index.column() >= self._shape[1]:
@@ -718,9 +710,9 @@ class DataFrameLevelModel(QAbstractTableModel):
     """
     Data Frame level class.
 
-    This class model the levels in the DataFrameEditor. When using multiindex
-    this model creates the labels for the index/header as Index i for each
-    section in the index/header
+    This class is used to represent index levels in the DataFrameEditor. When
+    using MultiIndex, this model creates labels for the index/header as Index i
+    for each section in the index/header
 
     Taken from the gtabview project(Level4ExtModel).
     For more information please see:
@@ -740,18 +732,25 @@ class DataFrameLevelModel(QAbstractTableModel):
         self._font = font
 
     def rowCount(self, index=None):
+        """Get number of rows (number of levels for the header)."""
         return max(1, self.model.header_shape[0])
 
     def columnCount(self, index=None):
+        """Get the number of columns (number of levels for the index)."""
         return max(1, self.model.header_shape[1])
 
     def headerData(self, section, orientation, role):
+        """
+        Get the text to put in the header of the levels of the indexes.
+
+        By default it returns 'Index i', where i is the section in the index
+        """
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
                 return Qt.AlignCenter | Qt.AlignBottom
             else:
                 return Qt.AlignRight | Qt.AlignVCenter
-        if role != Qt.DisplayRole:
+        if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
             return 'Index'
@@ -760,6 +759,7 @@ class DataFrameLevelModel(QAbstractTableModel):
         return 'Index ' + to_text_string(section)
 
     def data(self, index, role):
+        """Get the information of the levels."""
         if not index.isValid():
             return None
         if role == Qt.FontRole:
@@ -961,7 +961,7 @@ class DataFrameEditor(QDialog):
         self.dataTable.setItemDelegate(QItemDelegate())
         self.layout.addWidget(self.dataTable, 1, 1)
         self.setFocusProxy(self.dataTable)
-        self.dataTable.sig_sortByColumn.connect(self._sort_update)
+        self.dataTable.sig_sort_by_column.connect(self._sort_update)
         self.dataTable.sig_fetch_more_columns.connect(self._fetch_more_columns)
         self.dataTable.sig_fetch_more_rows.connect(self._fetch_more_rows)
 
@@ -973,13 +973,16 @@ class DataFrameEditor(QDialog):
         self._sort_update()
 
     def model(self):
+        """Get the model of the dataframe."""
         return self._model
 
     def _column_resized(self, col, old_width, new_width):
+        """Update the column width."""
         self.dataTable.setColumnWidth(col, new_width)
         self._update_layout()
 
     def _row_resized(self, row, old_height, new_height):
+        """Update the row height."""
         self.dataTable.setRowHeight(row, new_height)
         self._update_layout()
 
@@ -1022,16 +1025,18 @@ class DataFrameEditor(QDialog):
         self._resizeVisibleColumnsToContents()
 
     def _reset_model(self, table, model):
+        """Set the model in the given table."""
         old_sel_model = table.selectionModel()
         table.setModel(model)
         if old_sel_model:
             del old_sel_model
 
     def setAutosizeLimit(self, limit_ms):
+        """Set maximum size for columns."""
         self._max_autosize_ms = limit_ms
 
     def setModel(self, model, relayout=True):
-        """Set the model for the for data, header/index and level views."""
+        """Set the model for the data, header/index and level views."""
         self._model = model
         sel_model = self.dataTable.selectionModel()
         sel_model.currentColumnChanged.connect(
@@ -1056,11 +1061,13 @@ class DataFrameEditor(QDialog):
             self._update_layout()
 
     def setCurrentIndex(self, y, x):
+        """Set current selection."""
         self.dataTable.selectionModel().setCurrentIndex(
             self.dataTable.model().index(y, x),
             QItemSelectionModel.ClearAndSelect)
 
     def _sizeHintForColumn(self, table, col, limit_ms=None):
+        """Get the size hint for a given column in a table."""
         max_row = table.model().rowCount()
         lm_start = time.clock()
         lm_row = 64 if limit_ms else max_row
@@ -1077,6 +1084,7 @@ class DataFrameEditor(QDialog):
         return max_width
 
     def _resizeColumnToContents(self, header, data, col, limit_ms):
+        """Resize a column by its contents."""
         hdr_width = self._sizeHintForColumn(header, col, limit_ms)
         data_width = self._sizeHintForColumn(data, col, limit_ms)
         if data_width > hdr_width:
@@ -1089,6 +1097,7 @@ class DataFrameEditor(QDialog):
         header.setColumnWidth(col, width)
 
     def _resizeColumnsToContents(self, header, data, limit_ms):
+        """Resize all the colummns to its contents."""
         max_col = data.model().columnCount()
         if limit_ms is None:
             max_col_ms = None
@@ -1098,11 +1107,13 @@ class DataFrameEditor(QDialog):
             self._resizeColumnToContents(header, data, col, max_col_ms)
 
     def eventFilter(self, obj, event):
+        """Override eventFilter to catch resize event."""
         if obj == self.dataTable and event.type() == QEvent.Resize:
             self._resizeVisibleColumnsToContents()
         return False
 
     def _resizeVisibleColumnsToContents(self):
+        """Resize the columns that are in the view."""
         index_column = self.dataTable.rect().topLeft().x()
         start = col = self.dataTable.columnAt(index_column)
         width = self._model.shape[1]
@@ -1129,12 +1140,14 @@ class DataFrameEditor(QDialog):
                     max_col_ms = self._max_autosize_ms / max(1, end - start)
 
     def _resizeCurrentColumnToContents(self, new_index, old_index):
+        """Resize the current colum to its contents."""
         if new_index.column() not in self._autosized_cols:
             # Ensure the requested column is fully into view after resizing
             self._resizeVisibleColumnsToContents()
             self.dataTable.scrollTo(new_index)
 
     def resizeColumnsToContents(self):
+        """Resize the columns to its contents."""
         self._autosized_cols = set()
         self._resizeColumnsToContents(self.table_level,
                                       self.table_index, self._max_autosize_ms)
