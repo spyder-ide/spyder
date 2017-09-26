@@ -18,7 +18,8 @@ def send_request(req=None, method=None, requires_response=True):
     @functools.wraps(req)
     def wrapper(self, *args, **kwargs):
         params = req(self, *args, **kwargs)
-        self.send(method, params, requires_response)
+        _id = self.send(method, params, requires_response)
+        return _id
     wrapper._sends = method
     return wrapper
 

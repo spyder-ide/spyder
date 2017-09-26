@@ -40,7 +40,8 @@ class DocumentProvider:
                 LSPRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
                 {'params': diagnostics})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
+    @send_request(
+        method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_changed(self, params):
         params = {
             'textDocument': {
@@ -53,7 +54,8 @@ class DocumentProvider:
         }
         return params
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
+    @send_request(
+        method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_open(self, editor_params):
         params = {
             'textDocument': {

@@ -672,6 +672,4 @@ class LSPManager(SpyderPluginWidget):
 
     def send_request(self, language, request, params):
         client = self.clients[language]['instance']
-        _id = client.perform_request(request, params)
-        if _id is not None:
-            self.requests[_id] = request['uid']
+        client.perform_request(request, params)

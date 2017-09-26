@@ -754,11 +754,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def emit_request(self, method, params, requires_response):
         """Send request to LSP manager."""
-        uid = uuid.uuid4()
-        params['uuid'] = uid
+        params['requires_response'] = requires_response
         params['response_sig'] = self.lsp_response_signal
-        if requires_response:
-            self.lsp_requests[uid] = method
         self.sig_perform_lsp_request.emit(
             self.language.lower(), method, params)
 
@@ -797,7 +794,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters += (
             range_formatting_options['moreTriggerCharacter'])
 
-    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
+    @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to server."""
         self.document_opened = True
@@ -810,7 +807,8 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     # ------------- LSP: Linting ---------------------------------------
-    @request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
+    @request(
+        method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text):
         """Send textDocument/didChange request to server."""
         self.text_version += 1

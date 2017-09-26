@@ -158,7 +158,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # debug_print('')
         self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
-        return str(msg['id'])
+        return int(msg['id'])
 
     @Slot()
     def on_msg_received(self):
@@ -189,6 +189,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 handler_name = self.handler_registry[req_type]
                                 handler = getattr(self, handler_name)
                                 handler(resp['result'], req_id)
+                                self.req_status.pop(req_id)
+                                if req_id in self.req_reply:
+                                    self.req_reply.pop(req_id)
             except zmq.ZMQError as e:
                 self.notifier.setEnabled(True)
                 return
@@ -199,7 +202,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             handler = getattr(self, handler_name)
             _id = handler(params)
             if 'response_sig' in params:
-                self.req_reply[_id] = params['response_sig']
+                if params['requires_response']:
+                    self.req_reply[_id] = params['response_sig']
             return _id
 
     # ------ Spyder plugin registration --------------------------------
