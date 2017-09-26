@@ -22,9 +22,12 @@ WINDOWS = os.name == 'nt'
 parser = argparse.ArgumentParser(
     description='ZMQ Python-based MS Language-Server v3.0 client for Spyder')
 
-parser.add_argument('--zmq-port',
+parser.add_argument('--zmq-in-port',
                     default=7000,
-                    help="ZMQ port to be contacted")
+                    help="ZMQ (in) port to be contacted")
+parser.add_argument('--zmq-out-port',
+                    default=7001,
+                    help="ZMQ (out) port to be contacted")
 parser.add_argument('--server-host',
                     default='127.0.0.1',
                     help='Host that serves the ls-server')
@@ -100,7 +103,8 @@ if __name__ == '__main__':
     client = LanguageServerClient(host=args.server_host,
                                   port=args.server_port,
                                   workspace=args.folder,
-                                  zmq_port=args.zmq_port,
+                                  zmq_in_port=args.zmq_in_port,
+                                  zmq_out_port=args.zmq_out_port,
                                   use_external_server=args.external_server,
                                   server=args.server,
                                   server_args=unknownargs)

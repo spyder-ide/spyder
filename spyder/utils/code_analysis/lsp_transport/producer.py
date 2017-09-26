@@ -34,8 +34,8 @@ class LanguageServerClient:
     MAX_TIMEOUT_TIME = 5000
 
     def __init__(self, host='127.0.0.1', port=2087, workspace=getcwd(),
-                 use_external_server=False, zmq_port=7000,
-                 server='pyls', server_args=['--tcp']):
+                 use_external_server=False, zmq_in_port=7000,
+                 zmq_out_port=7001, server='pyls', server_args=['--tcp']):
         self.req_status = {}
         self.host = host
         self.port = port
@@ -83,14 +83,16 @@ class LanguageServerClient:
 
         LOGGER.info('Starting ZMQ connection...')
         self.context = zmq.Context()
-        self.zmq_socket = self.context.socket(zmq.PAIR)
-        self.zmq_socket.connect("tcp://localhost:{0}".format(zmq_port))
-        self.zmq_socket.send_pyobj({'id': -1, 'method': 'server_ready',
-                                    'params': {}})
+        self.zmq_in_socket = self.context.socket(zmq.PAIR)
+        self.zmq_in_socket.connect("tcp://localhost:{0}".format(zmq_in_port))
+        self.zmq_out_socket = self.context.socket(zmq.PAIR)
+        self.zmq_out_socket.connect("tcp://localhost:{0}".format(zmq_out_port))
+        self.zmq_out_socket.send_pyobj({'id': -1, 'method': 'server_ready',
+                                        'params': {}})
 
         LOGGER.info('Creating consumer Thread...')
         self.reading_thread = IncomingMessageThread()
-        self.reading_thread.initialize(self.socket, self.zmq_socket,
+        self.reading_thread.initialize(self.socket, self.zmq_out_socket,
                                        self.req_status)
 
     def start(self):
@@ -117,10 +119,10 @@ class LanguageServerClient:
         LOGGER.debug('Exit routine should be complete')
 
     def listen(self):
-        events = self.zmq_socket.poll(TIMEOUT)
+        events = self.zmq_in_socket.poll(TIMEOUT)
         # requests = []
         while events > 0:
-            client_request = self.zmq_socket.recv_pyobj()
+            client_request = self.zmq_in_socket.recv_pyobj()
             LOGGER.debug("Client Event: {0}".format(client_request))
             server_request = self.__compose_request(client_request['id'],
                                                     client_request['method'],

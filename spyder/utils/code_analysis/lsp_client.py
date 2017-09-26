@@ -66,8 +66,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         QObject.__init__(self)
         # LSPMethodProviderMixIn.__init__(self)
         self.manager = parent
-        self.zmq_socket = None
-        self.zmq_port = None
+        self.zmq_in_socket = None
+        self.zmq_out_socket = None
+        self.zmq_in_port = None
+        self.zmq_out_port = None
         self.transport_client = None
         self.language = language
 
@@ -98,9 +100,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.transport_args.append('--transport-debug')
 
     def start(self):
-        self.zmq_socket = self.context.socket(zmq.PAIR)
-        self.port = self.zmq_socket.bind_to_random_port('tcp://*')
-        self.transport_args += ['--zmq-port', self.port]
+        self.zmq_out_socket = self.context.socket(zmq.PAIR)
+        self.zmq_out_port = self.zmq_out_socket.bind_to_random_port('tcp://*')
+        self.zmq_in_socket = self.context.socket(zmq.PAIR)
+        self.zmq_in_port = self.zmq_in_socket.bind_to_random_port('tcp://*')
+        self.transport_args += ['--zmq-in-port', self.zmq_out_port,
+                                '--zmq-out-port', self.zmq_in_port]
 
         if not self.external_server:
             self.transport_args += self.server_args
@@ -120,7 +125,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                                  stdout=self.stdout_log,
                                                  stderr=self.stderr_log)
 
-        fid = self.zmq_socket.getsockopt(zmq.FD)
+        fid = self.zmq_in_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
         # self.notifier.activated.connect(self.debug_print)
         self.notifier.activated.connect(self.on_msg_received)
@@ -150,7 +155,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # debug_print('\n[{0}] LSP-Client ===>'.format(self.language))
         # debug_print(msg)
         # debug_print('')
-        self.zmq_socket.send_pyobj(msg)
+        self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
         return str(msg['id'])
 
@@ -159,9 +164,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.notifier.setEnabled(False)
         while True:
             try:
-                events = self.zmq_socket.poll(1500)
-                print(events)
-                resp = self.zmq_socket.recv_pyobj(flags=zmq.NOBLOCK)
+                # events = self.zmq_in_socket.poll(1500)
+                # print(events)
+                resp = self.zmq_in_socket.recv_pyobj(flags=zmq.NOBLOCK)
                 debug_print('\n[{0}] LSP-Client <==='.format(self.language))
                 debug_print(resp)
                 debug_print('')
