@@ -83,7 +83,7 @@ class BaseEditMixin(object):
         return signature, rows
     
     def show_calltip(self, title, text, signature=False, color='#2D62FF',
-                     at_line=None, at_position=None):
+                     at_line=None, at_position=None, at_point=None):
         """Show calltip"""
         if text is None or len(text) == 0:
             return
@@ -116,6 +116,8 @@ class BaseEditMixin(object):
 
         # Showing tooltip at cursor position:
         cx, cy = self.get_coordinates('cursor')
+        if at_point is not None:
+            cx, cy = at_point.x(), at_point.y()
         if at_line is not None:
             cx = 5
             cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
