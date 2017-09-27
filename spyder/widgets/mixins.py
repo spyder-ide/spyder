@@ -815,5 +815,5 @@ class BrowseHistoryMixin(object):
                 return None, start_idx
 
     def reset_search_pos(self):
-        """Reset the position from witch to search the history"""
+        """Reset the position from which to search the history"""
         self.histidx = None
