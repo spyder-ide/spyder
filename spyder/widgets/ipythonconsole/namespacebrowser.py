@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QMessageBox
 import cloudpickle
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-from spyder.config.base import _
+from spyder.config.base import _, debug_print
 from spyder.py3compat import to_text_string
 
 
@@ -158,38 +158,32 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         return self._kernel_reply
 
     # ---- Private API (defined by us) ------------------------------
-    def _handle_spyder_data_msg(self, msg):
+    def _handle_spyder_msg(self, msg):
         """
-        Handle spyder_data messages
-
-        Content is cloudpickle-serialized in the buffers.
+        Handle internal spyder messages
         """
-        # Deserialize data
-        try:
-            data = cloudpickle.loads(bytes(msg['buffers'][0]))
-        except Exception as msg:
-            self._kernel_value = None
-            self._kernel_reply = repr(msg)
+        spyder_msg_type = msg['content'].get('spyder_msg_type')
+        if spyder_msg_type == 'spy_data':
+            # Deserialize data
+            try:
+                value = cloudpickle.loads(bytes(msg['buffers'][0]))
+            except Exception as msg:
+                self._kernel_value = None
+                self._kernel_reply = repr(msg)
+            else:
+                self._kernel_value = value
             self.sig_got_reply.emit()
             return
-
-        # Receive values asked for Spyder
-        value = data.get('spy_data', None)
-        if value is not None:
-            self._kernel_value = value
-            self.sig_got_reply.emit()
-            return
-
-        # Receive Pdb state and dispatch it
-        pdb_state = data.get('spy_pdb_state', None)
-        if pdb_state is not None and isinstance(pdb_state, dict):
-            self.refresh_from_pdb(pdb_state)
-
-        # Run Pdb continue to get to the first breakpoint
-        # Fixes 2034
-        pdb_continue = data.get('spy_pdb_continue', None)
-        if pdb_continue:
+        elif spyder_msg_type == 'spy_pdb_state':
+            pdb_state = msg['content']['pdb_state']
+            if pdb_state is not None and isinstance(pdb_state, dict):
+                self.refresh_from_pdb(pdb_state)
+        elif spyder_msg_type == 'spy_pdb_continue':
+            # Run Pdb continue to get to the first breakpoint
+            # Fixes 2034
             self.write_to_stdin('continue')
+        else:
+            debug_print("No such spyder message type: %s" % spyder_msg_type)
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):

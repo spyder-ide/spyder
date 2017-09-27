@@ -136,20 +136,30 @@ class SpyderKernel(IPythonKernel):
         else:
             return repr(None)
 
-    def publish_data(self, data):
-        """publish native data to the spyder frontend
+    def send_spyder_msg(self, spyder_msg_type, content=None, data=None):
+        """publish custom messages to the spyder frontend
 
         Parameters
         ----------
 
-        data: dict
-            Any dict that is serializable by cloudpickle (should be most things).
+        spyder_msg_type: str
+            The spyder message type
+        content: dict
+            The (JSONable) content of the message
+        data: any
+            Any object that is serializable by cloudpickle (should be most things).
+            Will arrive as cloudpickled bytes in `.buffers[0]`.
         """
-        serialized = cloudpickle.dumps(data)
+        import sys
+        if content is None:
+            content = {}
+        content['spyder_msg_type'] = spyder_msg_type
         self.session.send(
             self.iopub_socket,
-            'spyder_data_msg',
-            buffers=[serialized],
+            'spyder_msg',
+            content=content,
+            buffers=[cloudpickle.dumps(data)],
+            parent=self._parent_header,
         )
 
     def get_value(self, name):
@@ -157,14 +167,13 @@ class SpyderKernel(IPythonKernel):
         ns = self._get_current_namespace()
         value = ns[name]
         try:
-            self.publish_data({'spy_data': value})
+            self.send_spyder_msg('spy_data', data=value)
         except:
             # * There is no need to inform users about
             #   these errors.
             # * value = None makes Spyder to ignore
             #   petitions to display a value
-            value = None
-            self.publish_data({'spy_data': value})
+            self.send_spyder_msg('spy_data', data=None)
         self._do_publish_pdb_state = False
 
     def set_value(self, name, value):
@@ -217,13 +226,13 @@ class SpyderKernel(IPythonKernel):
     def publish_pdb_state(self):
         """
         Publish Variable Explorer state and Pdb step through
-        publish_data.
+        send_spyder_msg.
         """
         if self._pdb_obj and self._do_publish_pdb_state:
             state = dict(namespace_view = self.get_namespace_view(),
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
-            self.publish_data({'spy_pdb_state': state})
+            self.send_spyder_msg('spy_pdb_state', content={'pdb_state': state})
         self._do_publish_pdb_state = True
 
     def pdb_continue(self):
@@ -234,7 +243,7 @@ class SpyderKernel(IPythonKernel):
         Fixes issue 2034
         """
         if self._pdb_obj:
-            self.publish_data({'spy_pdb_continue': True})
+            self.send_spyder_msg('spy_pdb_continue')
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
