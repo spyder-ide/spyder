@@ -15,11 +15,8 @@ import sys
 import traceback
 
 # Third-party imports
-from ipykernel.datapub import publish_data
+import cloudpickle
 from ipykernel.ipkernel import IPythonKernel
-import ipykernel.pickleutil
-from ipykernel.pickleutil import CannedObject
-from ipykernel.serialize import deserialize_object
 
 # Check if we are running under an external interpreter
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
@@ -41,16 +38,6 @@ else:
     from utils.misc import fix_reference_name
     from widgets.variableexplorer.utils import (get_remote_data,
                                                 make_remote_view)
-
-
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 # Excluded variables from the Variable Explorer (i.e. they are not
@@ -149,27 +136,41 @@ class SpyderKernel(IPythonKernel):
         else:
             return repr(None)
 
+    def publish_data(self, data):
+        """publish native data to the spyder frontend
+
+        Parameters
+        ----------
+
+        data: dict
+            Any dict that is serializable by cloudpickle (should be most things).
+        """
+        serialized = cloudpickle.dumps(data)
+        self.session.send(
+            self.iopub_socket,
+            'spyder_data_msg',
+            buffers=[serialized],
+        )
+
     def get_value(self, name):
         """Get the value of a variable"""
         ns = self._get_current_namespace()
         value = ns[name]
         try:
-            publish_data({'__spy_data__': value})
+            self.publish_data({'spy_data': value})
         except:
             # * There is no need to inform users about
             #   these errors.
             # * value = None makes Spyder to ignore
             #   petitions to display a value
             value = None
-            publish_data({'__spy_data__': value})
+            self.publish_data({'spy_data': value})
         self._do_publish_pdb_state = False
 
     def set_value(self, name, value):
         """Set the value of a variable"""
         ns = self._get_reference_namespace(name)
-        value = deserialize_object(value)[0]
-        if isinstance(value, CannedObject):
-            value = value.get_object()
+        value = cloudpickle.loads(value)
         ns[name] = value
 
     def remove_value(self, name):
@@ -222,7 +223,7 @@ class SpyderKernel(IPythonKernel):
             state = dict(namespace_view = self.get_namespace_view(),
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
-            publish_data({'__spy_pdb_state__': state})
+            self.publish_data({'spy_pdb_state': state})
         self._do_publish_pdb_state = True
 
     def pdb_continue(self):
@@ -233,7 +234,7 @@ class SpyderKernel(IPythonKernel):
         Fixes issue 2034
         """
         if self._pdb_obj:
-            publish_data({'__spy_pdb_continue__': True})
+            self.publish_data({'spy_pdb_continue': True})
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):

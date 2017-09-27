@@ -11,8 +11,8 @@ import shutil
 import tempfile
 from textwrap import dedent
 
+import cloudpickle
 from flaky import flaky
-from ipykernel.serialize import serialize_object
 from pygments.token import Name
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
@@ -323,7 +323,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 10
 
     # Change its value and verify
-    shell.set_value('д', serialize_object(20))
+    shell.set_value('д', cloudpickle.dumps(20))
     qtbot.wait(1000)
     assert shell.get_value('д') == 20
 
@@ -373,7 +373,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert shell.get_value('aa') == 10
 
     # Set value
-    shell.set_value('aa', serialize_object(20))
+    shell.set_value('aa', cloudpickle.dumps(20))
     qtbot.wait(1000)
     assert shell.get_value('aa') == 20
 

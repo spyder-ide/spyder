@@ -12,8 +12,7 @@ the Variable Explorer
 from qtpy.QtCore import QEventLoop
 from qtpy.QtWidgets import QMessageBox
 
-from ipykernel.pickleutil import CannedObject
-from ipykernel.serialize import deserialize_object
+import cloudpickle
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import _
@@ -159,16 +158,15 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         return self._kernel_reply
 
     # ---- Private API (defined by us) ------------------------------
-    def _handle_data_message(self, msg):
+    def _handle_spyder_data_msg(self, msg):
         """
-        Handle raw (serialized) data sent by the kernel
+        Handle spyder_data messages
 
-        We only handle data asked by Spyder, in case people use
-        publish_data for other purposes.
+        Content is cloudpickle-serialized in the buffers.
         """
         # Deserialize data
         try:
-            data = deserialize_object(msg['buffers'])[0]
+            data = cloudpickle.loads(bytes(msg['buffers'][0]))
         except Exception as msg:
             self._kernel_value = None
             self._kernel_reply = repr(msg)
@@ -176,22 +174,20 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return
 
         # Receive values asked for Spyder
-        value = data.get('__spy_data__', None)
+        value = data.get('spy_data', None)
         if value is not None:
-            if isinstance(value, CannedObject):
-                value = value.get_object()
             self._kernel_value = value
             self.sig_got_reply.emit()
             return
 
         # Receive Pdb state and dispatch it
-        pdb_state = data.get('__spy_pdb_state__', None)
+        pdb_state = data.get('spy_pdb_state', None)
         if pdb_state is not None and isinstance(pdb_state, dict):
             self.refresh_from_pdb(pdb_state)
 
         # Run Pdb continue to get to the first breakpoint
         # Fixes 2034
-        pdb_continue = data.get('__spy_pdb_continue__', None)
+        pdb_continue = data.get('spy_pdb_continue', None)
         if pdb_continue:
             self.write_to_stdin('continue')
 

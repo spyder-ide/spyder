@@ -24,6 +24,7 @@ import sys
 import warnings
 
 # Third party imports
+import cloudpickle
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
