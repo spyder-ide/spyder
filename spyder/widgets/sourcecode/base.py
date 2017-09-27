@@ -241,13 +241,13 @@ class CompletionWidget(QListWidget):
 
     @Slot(int)
     def row_changed(self, row):
-        QToolTip.hideText()
         item = self.completion_list[row]
-        # self.textedit.hide_tooltip_if_necessary()
-        self.textedit.show_calltip(
-            item['detail'], item['documentation'], color='#daa520',
-            at_point=item['point'])
-        # QTimer.singleShot(7000, lambda: QToolTip.hideText())
+        if len(item['documentation']) > 0:
+            self.textedit.show_calltip(
+                item['detail'], item['documentation'], color='#daa520',
+                at_point=item['point'])
+        else:
+            QToolTip.hideText()
 
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
