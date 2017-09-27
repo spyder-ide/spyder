@@ -173,6 +173,8 @@ class CompletionWidget(QListWidget):
         if (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
            or key == Qt.Key_Tab:
             self.item_selected()
+        elif key == Qt.Key_Escape:
+            self.hide()
         elif key in (Qt.Key_Return, Qt.Key_Enter,
                      Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
@@ -1091,8 +1093,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                 QTextCursor.KeepAnchor,
                                 len(self.completion_text))
             cursor.removeSelectedText()
-            self.document_did_change()
             self.insert_text(text)
+            self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
