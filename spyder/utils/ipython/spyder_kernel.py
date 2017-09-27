@@ -147,8 +147,8 @@ class SpyderKernel(IPythonKernel):
         content: dict
             The (JSONable) content of the message
         data: any
-            Any object that is serializable by cloudpickle (should be most things).
-            Will arrive as cloudpickled bytes in `.buffers[0]`.
+            Any object that is serializable by cloudpickle (should be most
+            things). Will arrive as cloudpickled bytes in `.buffers[0]`.
         """
         import sys
         if content is None:
