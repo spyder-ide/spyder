@@ -36,6 +36,7 @@ from spyder.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyder.widgets.sourcecode.api.decoration import (TextDecoration,
                                                       DRAW_ORDERS)
 from spyder.widgets.sourcecode.utils.decoration import TextDecorationsManager
+from spyder.utils.code_analysis import CompletionItemKind
 
 
 def insert_text_to(cursor, text, fmt):
@@ -71,29 +72,34 @@ class CompletionWidget(QListWidget):
         self.setFont(font)
         
     def show_list(self, completion_list, automatic=True):
-        types = [c[1] for c in completion_list]
-        completion_list = [c[0] for c in completion_list]
-        if len(completion_list) == 1 and not automatic:
-            self.textedit.insert_completion(completion_list[0])
-            return
+        # types = [c[1] for c in completion_list]
+        # completion_list = [c[0] for c in completion_list]
+        # if len(completion_list) == 1 and not automatic:
+        #     self.textedit.insert_completion(
+        #         completion_list[0]['insertText'])
+        #     return
 
+        self.textedit.completion_text = ''
         self.completion_list = completion_list
         self.clear()
 
-        icons_map = {'instance': 'attribute',
-                     'statement': 'attribute',
-                     'method': 'method',
-                     'function': 'function',
-                     'class': 'class',
-                     'module': 'module'}
+        icons_map = {CompletionItemKind.PROPERTY: 'attribute',
+                     CompletionItemKind.VARIABLE: 'attribute',
+                     CompletionItemKind.METHOD: 'method',
+                     CompletionItemKind.FUNCTION: 'function',
+                     CompletionItemKind.CLASS: 'class',
+                     CompletionItemKind.MODULE: 'module',
+                     CompletionItemKind.CONSTRUCTOR: 'method',
+                     CompletionItemKind.REFERENCE: 'attribute'}
 
-        self.type_list = types
-        if any(types):
-            for (c, t) in zip(completion_list, types):
-                icon = icons_map.get(t, 'no_match')
-                self.addItem(QListWidgetItem(ima.icon(icon), c))
-        else:
-            self.addItems(completion_list)
+        # self.type_list = types
+        # if any(types):
+        for completion in completion_list:
+            icon = icons_map.get(completion['kind'], 'no_match')
+            self.addItem(
+                QListWidgetItem(ima.icon(icon), completion['insertText']))
+        # else:
+            # self.addItems(completion_list)
 
         self.setCurrentRow(0)
 
@@ -186,20 +192,23 @@ class CompletionWidget(QListWidget):
 
     def update_current(self):
         completion_text = to_text_string(self.textedit.completion_text)
-
+        print(completion_text)
         if completion_text:
+            match = False
             for row, completion in enumerate(self.completion_list):
+                completion_label = completion['filterText']
                 if not self.case_sensitive:
                     print(completion_text)  # spyder: test-skip
-                    completion = completion.lower()
+                    completion_label = completion.lower()
                     completion_text = completion_text.lower()
-                if completion.startswith(completion_text):
+                if completion_label.startswith(completion_text):
                     self.setCurrentRow(row)
                     self.scrollTo(self.currentIndex(),
                                   QAbstractItemView.PositionAtTop)
+                    match = True
                     break
-            else:
-                self.hide()
+            # if not match:
+                # self.hide()
         else:
             self.hide()
 
@@ -1082,6 +1091,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                 QTextCursor.KeepAnchor,
                                 len(self.completion_text))
             cursor.removeSelectedText()
+            self.document_did_change()
             self.insert_text(text)
 
     def is_completion_widget_visible(self):

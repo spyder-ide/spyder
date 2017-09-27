@@ -809,7 +809,7 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Linting ---------------------------------------
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
-    def document_did_change(self, text):
+    def document_did_change(self, text=None):
         """Send textDocument/didChange request to server."""
         self.text_version += 1
         params = {
@@ -828,8 +828,8 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion"""
-        if self.is_completion_widget_visible():
-            return
+        # if self.is_completion_widget_visible():
+        #     return
         self.document_did_change('')
         line, column = self.get_cursor_line_column()
         params = {
@@ -841,7 +841,10 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
-        print('Here!')
+        # print('Here!')
+        completion_list = sorted(
+            params['params'], key=lambda x: x['sortText'])
+        self.completion_widget.show_list(completion_list)
 
     # -------------------------------------------------------------------------
 

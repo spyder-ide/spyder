@@ -92,8 +92,9 @@ class DocumentProvider:
             item['documentation'] = item.get('documentation', '')
             item['sortText'] = item.get('sortText', item['label'])
             item['filterText'] = item.get('filterText', item['label'])
-            item['insertText'] = item.get(
-                'insertText', InsertTextFormat.PLAIN_TEXT)
+            item['insertTextFormat'] = item.get(
+                'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
+            item['insertText'] = item.get('insertText', item['label'])
 
         if req_id in self.req_reply:
             self.req_reply[req_id].emit(
