@@ -19,9 +19,8 @@ import sys
 # Third party imports
 from qtpy import PYQT5
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import Signal, Slot, Qt
-from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QVBoxLayout,
-                            QMessageBox)
+from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, debug_print
@@ -35,6 +34,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
+from spyder.widgets.reporterror import SpyderErrorMsgBox
 from spyder.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 
@@ -95,7 +95,7 @@ class Console(SpyderPluginWidget):
         self.setAcceptDrops(True)
 
         # Traceback MessageBox
-        self.msgbox_traceback= None
+        self.msgbox_error= None
         self.error_traceback = ""
 
     #------ Private API --------------------------------------------------------
@@ -207,52 +207,21 @@ class Console(SpyderPluginWidget):
         """Exception ocurred in the internal console.
         Show a QMessageBox or the internal console to warn the user"""
         # Skip errors without traceback
-        if not is_traceback and self.msgbox_traceback is None:
+        if not is_traceback and self.msgbox_error is None:
             return
 
         if CONF.get('main', 'show_internal_console_if_traceback', False):
             self.dockwidget.show()
             self.dockwidget.raise_()
         else:
-            if self.msgbox_traceback is None:
-                self.msgbox_traceback = QMessageBox(
-                    QMessageBox.Critical,
-                    _('Error'),
-                    _("<b>Spyder has encountered a problem.</b><br>"
-                      "Sorry for the inconvenience."
-                      "<br><br>"
-                      "You can automatically submit this error to our Github "
-                      "issues tracker.<br><br>"
-                      "<i>Note:</i> You need a Github account for that."),
-                    QMessageBox.Ok,
-                    parent=self)
+            if self.msgbox_error is None:
+                self.msgbox_error = SpyderErrorMsgBox(self)
+                self.msgbox_error.finished.connect(self.close_msg)
 
-                self.submit_btn = self.msgbox_traceback.addButton(
-                        _('Submit to Github'), QMessageBox.YesRole)
-                self.submit_btn.pressed.connect(self.press_submit_btn)
-
-                self.msgbox_traceback.setWindowModality(Qt.NonModal)
-                self.error_traceback = ""
-                self.msgbox_traceback.show()
-                self.msgbox_traceback.finished.connect(self.close_msg)
-                self.msgbox_traceback.setDetailedText(' ')
-
-                # open show details (iterate over all buttons and click it)
-                for button in self.msgbox_traceback.buttons():
-                    if (self.msgbox_traceback.buttonRole(button)
-                       == QMessageBox.ActionRole):
-                        button.click()
-                        break
-
-            self.error_traceback += text
-            self.msgbox_traceback.setDetailedText(self.error_traceback)
+            self.msgbox_error.append_traceback(text)
 
     def close_msg(self):
-        self.msgbox_traceback = None
-
-    def press_submit_btn(self):
-        self.main.report_issue(self.error_traceback)
-        self.msgbox_traceback = None
+        self.msgbox_error = None
 
     #------ Public API ---------------------------------------------------------
     @Slot()
