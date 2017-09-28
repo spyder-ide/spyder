@@ -25,7 +25,6 @@ import re
 import sre_constants
 import sys
 import time
-import uuid
 
 # Third party imports
 from qtpy import is_pyqt46
@@ -39,7 +38,7 @@ from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
-                            QTextEdit, QToolTip, QVBoxLayout, QScrollBar)
+                            QToolTip, QVBoxLayout, QScrollBar)
 from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
@@ -68,11 +67,12 @@ from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.widgets.sourcecode.folding import IndentFoldDetector
 from spyder.widgets.sourcecode.extensions.manager import (
-        EditorExtensionsManager)
+    EditorExtensionsManager)
 from spyder.widgets.sourcecode.extensions.closequotes import (
-        CloseQuotesExtension)
+    CloseQuotesExtension)
 from spyder.widgets.sourcecode.api.decoration import TextDecoration
-from spyder.widgets.sourcecode.utils.lsp import request, handles, class_register
+from spyder.widgets.sourcecode.utils.lsp import (
+    request, handles, class_register)
 from spyder.utils.code_analysis import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity)
 from spyder.api.panel import Panel
@@ -98,6 +98,8 @@ def is_letter_or_number(char):
 # =============================================================================
 # Go to line dialog box
 # =============================================================================
+
+
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor, Qt.WindowTitleHint
@@ -845,6 +847,50 @@ class CodeEditor(TextEditBaseWidget):
         completion_list = sorted(
             params['params'], key=lambda x: x['sortText'])
         self.completion_widget.show_list(completion_list)
+
+    @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def request_signature(self):
+        self.document_did_change('')
+        line, column = self.get_cursor_line_column()
+        params = {
+            'file': self.filename,
+            'line': line,
+            'column': column
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def process_signatures(self, params):
+        self.hide_completion_widget()
+        signature = params['params']
+        if (signature is not None and
+                'activeParameter' in signature):
+            line, _ = self.get_cursor_line_column()
+            active_parameter_idx = signature['activeParameter']
+            func_doc = signature['documentation']
+            func_signature = signature['label']
+            parameters = signature['parameters']
+            parameter = parameters[active_parameter_idx]
+
+            font = self.font()
+            size = font.pointSize()
+            family = font.family()
+
+            parameter_str = ''
+            color_change_str = ('<span style=\'font-family: "{0}"; '
+                                'font-size: {1}pt; color: {2}\'>')
+            if len(parameter['documentation']) > 0:
+                parameter_fmt = ('{0}<b>{1}</b></span>: {2}\n')
+                parameter_str = parameter_fmt.format(
+                    color_change_str.format(family, size, '#daa520'),
+                    parameter['label'], parameter['documentation'])
+
+            title = func_signature.replace(
+                parameter['label'], '{0}{1}</span>'.format(
+                    color_change_str.format(family, size, '#daa520'),
+                    parameter['label']))
+            tooltip_text = "{0}{1}".format(parameter_str, func_doc)
+            self.show_calltip(title, tooltip_text, color='#999999')
 
     # -------------------------------------------------------------------------
 
@@ -2709,8 +2755,13 @@ class CodeEditor(TextEditBaseWidget):
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
                     self.do_completion(automatic=True)
-        elif text == '(' and not self.has_selected_text():
-            self.hide_completion_widget()
+        elif (text != '(' and text in self.signature_completion_characters and
+                not self.has_selected_text()):
+            self.insert_text(text)
+            self.request_signature()
+        elif (text == '(' and
+              not self.has_selected_text()):
+            # self.hide_completion_widget()
             self.handle_parentheses(text)
         elif (text in ('[', '{') and not self.has_selected_text() and
               self.close_parentheses_enabled):
@@ -2789,7 +2840,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def handle_parentheses(self, text):
         """Handle left and right parenthesis depending on editor config."""
-        position = self.get_position('cursor')
+        # position = self.get_position('cursor')
         rest = self.get_text('cursor', 'eol').rstrip()
         valid = not rest or rest[0] in (',', ')', ']', '}')
         if self.close_parentheses_enabled and valid:
@@ -2799,9 +2850,11 @@ class CodeEditor(TextEditBaseWidget):
             self.setTextCursor(cursor)
         else:
             self.insert_text(text)
-        if self.is_python_like() and self.get_text('sol', 'cursor') and \
-                self.calltips:
-            self.sig_show_object_info.emit(position)
+        if '(' in self.signature_completion_characters:
+            self.request_signature()
+        # if self.is_python_like() and self.get_text('sol', 'cursor') and \
+        #         self.calltips:
+        #     self.sig_show_object_info.emit(position)
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""

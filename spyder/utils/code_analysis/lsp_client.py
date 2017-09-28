@@ -104,6 +104,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
         self.zmq_out_port = self.zmq_out_socket.bind_to_random_port('tcp://*')
         self.zmq_in_socket = self.context.socket(zmq.PAIR)
+        self.zmq_in_socket.set_hwm(0)
         self.zmq_in_port = self.zmq_in_socket.bind_to_random_port('tcp://*')
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]

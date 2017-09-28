@@ -99,3 +99,29 @@ class DocumentProvider:
         if req_id in self.req_reply:
             self.req_reply[req_id].emit(
                 LSPRequestTypes.DOCUMENT_COMPLETION, {'params': response})
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def signature_help_request(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+            'position': {
+                'line': params['line'],
+                'character': params['column']
+            }
+        }
+
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
+    def process_signature_completion(self, response, req_id):
+        if len(response['signatures']) > 0:
+            response['signatures'] = response['signatures'][
+                response['activeSignature']]
+        else:
+            response['signatures'] = None
+        if req_id in self.req_reply:
+            self.req_reply[req_id].emit(
+                LSPRequestTypes.DOCUMENT_SIGNATURE,
+                {'params': response['signatures']})
