@@ -284,19 +284,12 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
         # Changing working directory
         try:
-            FileNotFoundError
-        except NameError:
-            if os.name == 'nt':
-                FileNotFoundError = WindowsError
-            else:
-                FileNotFoundError = IOError
-        try:
             os.chdir(directory)
             if refresh_explorer:
                 self.set_explorer_cwd.emit(directory)
             if refresh_console:
                 self.set_current_console_wd.emit(directory)
             self.refresh_findinfiles.emit()
-        except FileNotFoundError:
+        except OSError:
             self.history.pop(self.histindex)
         self.refresh_plugin()
