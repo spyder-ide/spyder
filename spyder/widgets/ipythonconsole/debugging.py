@@ -99,9 +99,10 @@ class DebuggingWidget(RichJupyterWidget):
             elif key == Qt.Key_Down:
                 self._control.browse_history(backward=False)
                 return True
-            else:
-                return super(DebuggingWidget,
-                             self)._event_filter_console_keypress(event)
+            elif key in (Qt.Key_Return, Qt.Key_Enter):
+                self._control.reset_search_pos()
+            return super(DebuggingWidget,
+                         self)._event_filter_console_keypress(event)
         else:
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)

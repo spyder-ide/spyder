@@ -35,7 +35,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import (getcwd, str_lower, to_binary_string,
-                              to_text_string, PY2)
+                              to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, misc, programs, vcs
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
@@ -1151,8 +1151,15 @@ class ExplorerTreeWidget(DirView):
                 self.history.append(directory)
             self.histindex = len(self.history)-1
         directory = to_text_string(directory)
-        if PY2:
+        try:
+            PermissionError
+            FileNotFoundError
+        except NameError:
             PermissionError = OSError
+            if os.name == 'nt':
+                FileNotFoundError = WindowsError
+            else:
+                FileNotFoundError = IOError
         try:
             os.chdir(directory)
             self.sig_open_dir.emit(directory)
@@ -1161,6 +1168,9 @@ class ExplorerTreeWidget(DirView):
             QMessageBox.critical(self.parent_widget, "Error",
                                  _("You don't have the right permissions to "
                                    "open this directory"))
+        except FileNotFoundError:
+            # Handle renaming directories on the fly. See issue #5183
+            self.history.pop(self.histindex)
 
 
 class ExplorerWidget(QWidget):

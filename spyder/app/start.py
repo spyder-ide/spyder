@@ -8,8 +8,12 @@ import socket
 import sys
 import time
 
+# To prevent a race condition with ZMQ
+# See issue 5324
+import zmq
+
 # This import is needed to fix errors with OpenGL when installed using pip
-# See issue #3332
+# See issue 3332
 try:
     from OpenGL import GL
 except ImportError:

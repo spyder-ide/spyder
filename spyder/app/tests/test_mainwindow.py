@@ -166,7 +166,7 @@ def test_calltip(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
 def test_move_to_first_breakpoint(main_window, qtbot):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
