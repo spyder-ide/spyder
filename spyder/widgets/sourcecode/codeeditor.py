@@ -613,6 +613,10 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable wrap mode"""
         self.set_wrap_mode('word' if enable else None)
 
+    def toggle_line_numbers(self, linenumbers=True, markers=False):
+        """Enable/disable line numbers."""
+        self.linenumberarea.setup_margins(linenumbers, markers)
+
     @property
     def panels(self):
         """
@@ -671,7 +675,7 @@ class CodeEditor(TextEditBaseWidget):
         # Line number area
         if cloned_from:
             self.setFont(font) # this is required for line numbers area
-        self.linenumberarea.setup_margins(linenumbers, markers)
+        self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
         self.set_language(language, filename)
