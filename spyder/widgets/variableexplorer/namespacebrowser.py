@@ -301,8 +301,12 @@ class NamespaceBrowser(QWidget):
 
     def set_value(self, name, value):
         """Set value for a variable."""
-        value = serialize_object(value)
-        self.shellwidget.set_value(name, value)
+        try:
+            value = serialize_object(value)
+            self.shellwidget.set_value(name, value)
+        except TypeError as e:
+            QMessageBox.critical(self, _("Error"),
+                                 "TypeError: %s" % to_text_string(e))
         self.refresh_table()
         
     def remove_values(self, names):
