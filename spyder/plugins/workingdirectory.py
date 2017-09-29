@@ -283,11 +283,13 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             self.histindex = len(self.history)-1
         
         # Changing working directory
-        os.chdir(directory)
+        try:
+            os.chdir(directory)
+            if refresh_explorer:
+                self.set_explorer_cwd.emit(directory)
+            if refresh_console:
+                self.set_current_console_wd.emit(directory)
+            self.refresh_findinfiles.emit()
+        except OSError:
+            self.history.pop(self.histindex)
         self.refresh_plugin()
-
-        if refresh_explorer:
-            self.set_explorer_cwd.emit(directory)
-        if refresh_console:
-            self.set_current_console_wd.emit(directory)
-        self.refresh_findinfiles.emit()
