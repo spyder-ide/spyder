@@ -288,7 +288,11 @@ class MainWindow(QMainWindow):
                 pass
         else:
             signal.signal(signal.SIGTERM, signal_handler)
-            signal.signal(signal.SIGINT, signal_handler)
+            if not DEV:
+                # Make spyder quit when presing ctrl+C in the console
+                # In DEV Ctrl+C doesn't quit, because it helps to
+                # capture the traceback when spyder freezes
+                signal.signal(signal.SIGINT, signal_handler)
 
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
