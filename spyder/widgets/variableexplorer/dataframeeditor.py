@@ -987,14 +987,17 @@ class DataFrameEditor(QDialog):
         self._update_layout()
 
     def _index_resized(self, col, old_width, new_width):
+        """Resize the corresponding column of the index section selected."""
         self.table_index.setColumnWidth(col, new_width)
         self._update_layout()
 
     def _header_resized(self, row, old_height, new_height):
+        """Resize the corresponding row of the header section selected."""
         self.table_header.setRowHeight(row, new_height)
         self._update_layout()
 
     def _update_layout(self):
+        """Set the width and height of the QTableViews."""
         h_width = max(self.table_level.verticalHeader().sizeHint().width(),
                       self.table_index.verticalHeader().sizeHint().width())
         self.table_level.verticalHeader().setFixedWidth(h_width)
