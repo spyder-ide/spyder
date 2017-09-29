@@ -315,6 +315,10 @@ class DataFrameModel(QAbstractTableModel):
                     self.df.sort(columns=self.df.columns[column-1],
                                  ascending=ascending, inplace=True,
                                  kind='mergesort')
+                except ValueError as e:
+                    # Not possible to sort on duplicate columns #5225
+                    QMessageBox.critical(self.dialog, "Error",
+                                         "ValueError: %s" % to_text_string(e))
                 self.update_df_index()
             else:
                 self.df.sort_index(inplace=True, ascending=ascending)
