@@ -30,7 +30,7 @@ from spyder.utils.test import close_message_box
 from spyder.widgets.variableexplorer import dataframeeditor
 from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
-from spyder.py3compat import PY2, PY3
+from spyder.py3compat import PY2
 
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -230,8 +230,7 @@ def test_dataframeeditor_with_datetimeindex():
     assert data(dfm, 2, 1) == '2015-01-03 00:00:00'
 
 
-@pytest.mark.skipif(PYQT4 and PY3,
-                    reason="It generates a strange failure in another test")
+@pytest.mark.skipif(PYQT4, reason="It generates a strange failure in another test")
 def test_sort_dataframe_with_duplicate_column(qtbot):
     df = DataFrame({'A': [1, 3, 2], 'B': [4, 6, 5]})
     df = concat((df, df.A), axis=1)
