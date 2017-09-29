@@ -125,3 +125,29 @@ class DocumentProvider:
             self.req_reply[req_id].emit(
                 LSPRequestTypes.DOCUMENT_SIGNATURE,
                 {'params': response['signatures']})
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
+    def hover_request(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+            'position': {
+                'line': params['line'],
+                'character': params['column']
+            }
+        }
+
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_HOVER)
+    def process_hover_result(self, result, req_id):
+        contents = result['contents']
+        if isinstance(contents, list):
+            contents = contents[0]
+        if isinstance(contents, dict):
+            contents = contents['value']
+        if req_id in self.req_reply:
+            self.req_reply[req_id].emit(
+                LSPRequestTypes.DOCUMENT_HOVER,
+                {'params': contents})

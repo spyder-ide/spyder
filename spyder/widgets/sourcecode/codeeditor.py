@@ -848,6 +848,8 @@ class CodeEditor(TextEditBaseWidget):
             params['params'], key=lambda x: x['sortText'])
         self.completion_widget.show_list(completion_list)
 
+    # ------------- LSP: Signature Hints ------------------------------------
+
     @request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self):
         self.document_did_change('')
@@ -891,6 +893,23 @@ class CodeEditor(TextEditBaseWidget):
                     parameter['label']))
             tooltip_text = "{0}{1}".format(parameter_str, func_doc)
             self.show_calltip(title, tooltip_text, color='#999999')
+
+    # ------------- LSP: Hover ---------------------------------------
+
+    @request(method=LSPRequestTypes.DOCUMENT_HOVER)
+    def request_hover(self, line, col):
+        params = {
+            'file': self.filename,
+            'line': line,
+            'column': col
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_HOVER)
+    def handle_hover_response(self, contents):
+        text = contents['params']
+        self.show_calltip(_("Hint"), text, at_point=self.mouse_point)
+        # QTimer.singleShot(20000, lambda: QToolTip.hideText())
 
     # -------------------------------------------------------------------------
 
@@ -2858,6 +2877,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
+        self.mouse_point = event.pos()
+        QToolTip.hideText()
         if event.modifiers() & Qt.AltModifier:
             self.sig_alt_mouse_moved.emit(event)
             event.accept()
@@ -2888,6 +2909,11 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
+        else:
+            cursor = self.cursorForPosition(event.pos())
+            line, col = cursor.blockNumber(), cursor.columnNumber()
+            if self.enable_hover:
+                self.request_hover(line, col)
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def setPlainText(self, txt):
@@ -2944,6 +2970,10 @@ class CodeEditor(TextEditBaseWidget):
         elif event.button() == Qt.LeftButton and alt:
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
+            # cursor = self.cursorForPosition(event.pos())
+            # line, col = cursor.blockNumber(), cursor.columnNumber()
+            # if self.enable_hover:
+            #     self.request_hover(line, col)
             TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):
