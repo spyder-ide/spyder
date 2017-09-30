@@ -295,7 +295,8 @@ class FileSwitcher(QDialog):
     @property
     def widgets(self):
         widgets = []
-        for tabs, plugin in self.plugins_tabs:
+        for plugin in self.plugins_instances:
+            tabs = self.get_plugin_tabwidget(plugin)
             widgets += [(tabs.widget(index), plugin) for
                         index in range(tabs.count())]
         return widgets
@@ -321,14 +322,16 @@ class FileSwitcher(QDialog):
     @property
     def paths(self):
         paths = []
-        for da, icon in self.plugins_data:
+        for plugin in self.plugins_instances:
+            da = self.get_plugin_data(plugin)
             paths += [getattr(td, 'filename', None) for td in da]
         return paths
 
     @property
     def filenames(self):
         filenames = []
-        for da, icon in self.plugins_data:
+        for plugin in self.plugins_instances:
+            da = self.get_plugin_data(plugin)
             filenames += [os.path.basename(getattr(td,
                                                    'filename',
                                                    None)) for td in da]
@@ -526,18 +529,35 @@ class FileSwitcher(QDialog):
         return real_index
 
     # --- Helper methods: Widget
+    def get_plugin_data(self, plugin):
+        # The data object is named "data" in the editor plugin while it is
+        # named "clients" in the notebook plugin.
+        try:
+            data = plugin.get_current_tab_manager().data
+        except AttributeError:
+            data = plugin.get_current_tab_manager().clients
+
+        return data
+
+    def get_plugin_tabwidget(self, plugin):
+        # The tab widget is named "tabs" in the editor plugin while it is
+        # named "tabwidget" in the notebook plugin.
+        try:
+            tabwidget = plugin.get_current_tab_manager().tabs
+        except AttributeError:
+            tabwidget = plugin.get_current_tab_manager().tabwidget
+
+        return tabwidget
+
     def get_widget(self, index=None, path=None, tabs=None):
         """Get widget by index.
-        
+
         If no tabs and index specified the current active widget is returned.
         """
-        if index and tabs:
-            return tabs.widget(index)
-        elif path and tabs:
+        if (index and tabs) or (path and tabs):
             return tabs.widget(index)
         elif self.plugin:
-            index = self.plugins_instances.index(self.plugin)
-            return self.plugins_tabs[index][0].currentWidget()
+            return self.get_plugin_tabwidget(self.plugin).currentWidget()
         else:
             return self.plugins_tabs[0][0].currentWidget()
 
