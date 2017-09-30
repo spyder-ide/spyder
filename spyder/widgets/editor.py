@@ -2205,11 +2205,13 @@ class EditorStack(QWidget):
         self.is_analysis_done = False
         return finfo
 
-    def set_os_eol_chars(self, index=None):
+    def set_os_eol_chars(self, index=None, osname=None):
+        if osname is None:
+            osname = os.name
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        eol_chars = sourcecode.get_eol_chars_from_os_name(os.name)
+        eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
         finfo.editor.set_eol_chars(eol_chars)
         finfo.editor.document().setModified(True)
 
