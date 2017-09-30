@@ -2280,7 +2280,6 @@ class Editor(SpyderPluginWidget):
     def go_to_line(self, line=None):
         """Open 'go to line' dialog"""
         editorstack = self.get_current_editorstack()
-        print(editorstack)
         if editorstack is not None:
             editorstack.go_to_line(line)
 
