@@ -357,10 +357,29 @@ class EditorConfigPage(PluginConfigPage):
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
                               'check_eol_chars', default=True)
+        convert_eol_on_save_box = newcb(_("On Save: convert EOL characters"
+                                          " to"),
+                                        'convert_eol_on_save', default=False)
+        eol_combo_choices = ((_("LF (UNIX)"), 'LF'),
+                             (_("CRLF (Windows)"), 'CRLF'),
+                             (_("CR (Mac)"), 'CR'),
+                             )
+        convert_eol_on_save_combo = self.create_combobox(_(""),
+                                                         eol_combo_choices,
+                                                         'convert_eol_on_save_to',
+                                                         )
+        convert_eol_on_save_box.toggled.connect(convert_eol_on_save_combo.setEnabled)
+        convert_eol_on_save_combo.setEnabled(
+                self.get_option('convert_eol_on_save'))
+
+        eol_on_save_layout = QHBoxLayout()
+        eol_on_save_layout.addWidget(convert_eol_on_save_box)
+        eol_on_save_layout.addWidget(convert_eol_on_save_combo)
 
         eol_layout = QVBoxLayout()
         eol_layout.addWidget(eol_label)
         eol_layout.addWidget(check_eol_box)
+        eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
         
         tabs = QTabWidget()
@@ -1361,6 +1380,8 @@ class Editor(SpyderPluginWidget):
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
+            ('set_convert_eol_on_save',             'convert_eol_on_save'),
+            ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
@@ -2614,6 +2635,10 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
+            converteol_n = 'convert_eol_on_save'
+            converteol_o = self.get_option(converteol_n)
+            converteolto_n = 'convert_eol_on_save_to'
+            converteolto_o = self.get_option(converteolto_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
@@ -2676,6 +2701,10 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
                     editorstack.set_always_remove_trailing_spaces(removetrail_o)
+                if converteol_n in options:
+                    editorstack.set_convert_eol_on_save(converteol_o)
+                if converteolto_n in options:
+                    editorstack.set_convert_eol_on_save_to(converteolto_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:
