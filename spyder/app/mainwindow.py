@@ -2792,6 +2792,7 @@ class MainWindow(QMainWindow):
             return
         if symbol:
             self.fileswitcher.plugin = self.editor
+            self.fileswitcher.set_search_text('@')
         else:
             self.fileswitcher.set_search_text('')
         self.fileswitcher.setup()
@@ -2801,8 +2802,6 @@ class MainWindow(QMainWindow):
     def open_symbolfinder(self):
         """Open symbol list management dialog box."""
         self.open_fileswitcher(symbol=True)
-        self.fileswitcher.set_search_text('@')
-        self.fileswitcher.setup()
 
     def add_to_fileswitcher(self, plugin, tabs, data, icon):
         """Add a plugin to the File Switcher."""
