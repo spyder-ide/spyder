@@ -2277,11 +2277,12 @@ class Editor(SpyderPluginWidget):
         self.__move_cursor_position(1)
 
     @Slot()
-    def go_to_line(self):
+    def go_to_line(self, line=None):
         """Open 'go to line' dialog"""
         editorstack = self.get_current_editorstack()
+        print(editorstack)
         if editorstack is not None:
-            editorstack.go_to_line()
+            editorstack.go_to_line(line)
 
     @Slot()
     def set_or_clear_breakpoint(self):

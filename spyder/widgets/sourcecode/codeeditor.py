@@ -1649,6 +1649,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
+        line = min(line, self.get_line_count())
         block = self.document().findBlockByNumber(line-1)
         self.setTextCursor(QTextCursor(block))
         if self.isVisible():

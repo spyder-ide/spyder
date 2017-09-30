@@ -558,9 +558,8 @@ class FileSwitcher(QDialog):
         """Go to specified line number in current active editor."""
         if line_number:
             line_number = int(line_number)
-            editor = self.get_widget()
             try:
-                editor.go_to_line(min(line_number, editor.get_line_count()))
+                self.plugin.go_to_line(line_number)
             except AttributeError:
                 pass
 
@@ -616,6 +615,8 @@ class FileSwitcher(QDialog):
         # Get optional line number
         if trying_for_line_number:
             filter_text, line_number = filter_text.split(':')
+            if line_number == '':
+                line_number = None
             # Get all the available filenames
             scores = get_search_scores('', self.filenames,
                                        template="<b>{0}</b>")
@@ -625,7 +626,6 @@ class FileSwitcher(QDialog):
             # "fuzzy" matching
             scores = get_search_scores(filter_text, self.filenames,
                                        template="<b>{0}</b>")
-
 
         # Get max width to determine if shortpaths should be used
         max_width = self.get_item_size(paths)[0]
