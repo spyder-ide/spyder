@@ -128,6 +128,6 @@ class DebuggerPanel(Panel):
         """
         self.setVisible(state)
         if state:
-            self.editor.breakpoints_changed.connect(self.repaint)
+            self.editor.sig_breakpoints_changed.connect(self.repaint)
         else:
-            self.editor.breakpoints_changed.disconnect(self.repaint)
+            self.editor.sig_breakpoints_changed.disconnect(self.repaint)

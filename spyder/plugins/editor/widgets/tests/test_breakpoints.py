@@ -30,7 +30,7 @@ def reset_emits(editor):
     "Reset signal mocks."
     if version_info > (4, ):
         editor.sig_flags_changed.reset_mock()
-    editor.breakpoints_changed.reset_mock()
+    editor.sig_breakpoints_changed.reset_mock()
 
 
 def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
@@ -49,11 +49,11 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
     if emits:
         if version_info > (4, ):
             editor.sig_flags_changed.emit.assert_called_with()
-        editor.breakpoints_changed.emit.assert_called_with()
+        editor.sig_breakpoints_changed.emit.assert_called_with()
     else:
         if version_info > (4, ):
             editor.sig_flags_changed.emit.assert_not_called()
-        editor.breakpoints_changed.emit.assert_not_called()
+        editor.sig_breakpoints_changed.emit.assert_not_called()
 
 
 # --- Fixtures
@@ -72,7 +72,7 @@ def code_editor_bot(qtbot):
         editor.sig_flags_changed = Mock()
     else:
         editor.get_linenumberarea_width = Mock(return_value=1)
-    editor.breakpoints_changed = Mock()
+    editor.sig_breakpoints_changed = Mock()
     text = ('def f1(a, b):\n'
             '"Double quote string."\n'
             '\n'  # Blank line.
@@ -103,7 +103,7 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     assert not block.userData()  # But user data not added to it.
     if version_info > (4, ):
         editor.sig_flags_changed.emit.assert_not_called()
-    editor.breakpoints_changed.emit.assert_not_called()
+    editor.sig_breakpoints_changed.emit.assert_not_called()
 
     # Reset language.
     editor.set_language('Python')
@@ -167,7 +167,7 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     # Confirm scrollflag, and breakpoints not called.
     if version_info > (4, ):
         editor.sig_flags_changed.emit.assert_not_called()
-    editor.breakpoints_changed.emit.assert_not_called()
+    editor.sig_breakpoints_changed.emit.assert_not_called()
 
     # Call as if 'OK' button pressed.
     reset_emits(editor)
@@ -256,10 +256,10 @@ def test_update_breakpoints(code_editor_bot):
     """Test CodeEditor.update_breakpoints."""
     editor, qtbot = code_editor_bot
     reset_emits(editor)
-    editor.breakpoints_changed.emit.assert_not_called()
+    editor.sig_breakpoints_changed.emit.assert_not_called()
     # update_breakpoints is the slot for the blockCountChanged signal.
     editor.textCursor().insertBlock()
-    editor.breakpoints_changed.emit.assert_called_with()
+    editor.sig_breakpoints_changed.emit.assert_called_with()
 
 
 if __name__ == "__main__":

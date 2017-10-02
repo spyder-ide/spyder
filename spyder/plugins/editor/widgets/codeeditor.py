@@ -228,7 +228,7 @@ class CodeEditor(TextEditBaseWidget):
     edge_line = None
     indent_guides = None
 
-    breakpoints_changed = Signal()
+    sig_breakpoints_changed = Signal()
     sig_breakpoints_saved = Signal()
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)

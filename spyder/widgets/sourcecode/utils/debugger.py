@@ -62,7 +62,7 @@ class DebuggerManager(Manager):
     def __init__(self, editor):
         super(DebuggerManager, self).__init__(editor)
         self.breakpoints = self.get_breakpoints()
-        self.editor.breakpoints_changed.connect(self.breakpoints_changed)
+        self.editor.sig_breakpoints_changed.connect(self.breakpoints_changed)
 
     def toogle_breakpoint(self, line_number=None, condition=None,
                           edit_condition=False):
@@ -98,7 +98,7 @@ class DebuggerManager(Manager):
                 data.breakpoint = False
         block.setUserData(data)
         self.editor.sig_flags_changed.emit()
-        self.editor.breakpoints_changed.emit()
+        self.editor.sig_breakpoints_changed.emit()
 
     def get_breakpoints(self):
         """Get breakpoints"""
@@ -131,7 +131,7 @@ class DebuggerManager(Manager):
 
     def update_breakpoints(self):
         """Update breakpoints"""
-        self.editor.breakpoints_changed.emit()
+        self.editor.sig_breakpoints_changed.emit()
 
     def breakpoints_changed(self):
         """Breakpoint list has changed"""
