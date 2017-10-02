@@ -94,7 +94,8 @@ class DebuggerPanel(Panel):
         """
         line_number = self.editor.get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
-        self.editor.add_remove_breakpoint(line_number, edit_condition=shift)
+        self.editor.debugger.toogle_breakpoint(line_number,
+                                               edit_condition=shift)
 
     def mouseMoveEvent(self, event):
         """Override Qt method.

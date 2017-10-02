@@ -2118,7 +2118,7 @@ class Editor(SpyderPluginWidget):
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
-                current_editor.set_breakpoints(load_breakpoints(filename))
+                current_editor.debugger.set_breakpoints(load_breakpoints(filename))
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
@@ -2516,7 +2516,7 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             for data in editorstack.data:
-                data.editor.clear_breakpoints()
+                data.editor.debugger.clear_breakpoints()
         self.refresh_plugin()
 
     def clear_breakpoint(self, filename, lineno):
@@ -2527,8 +2527,9 @@ class Editor(SpyderPluginWidget):
         if editorstack is not None:
             index = self.is_file_opened(filename)
             if index is not None:
-                editorstack.data[index].editor.add_remove_breakpoint(lineno)
-
+                editorstack.data[index].editor.debugger.toogle_breakpoint(
+                        lineno)
+                
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()

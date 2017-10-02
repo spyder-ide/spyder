@@ -21,13 +21,13 @@ from qtpy.QtGui import QTextCursor
 from spyder import version_info
 from spyder.py3compat import to_text_string
 import spyder.plugins.editor.widgets.codeeditor as codeeditor
+from spyder.widgets.sourcecode.utils import debugger
 
 
 # --- Helper methods
 # -----------------------------------------------------------------------------
 def reset_emits(editor):
     "Reset signal mocks."
-    editor.linenumberarea.reset_mock()
     if version_info > (4, ):
         editor.sig_flags_changed.reset_mock()
     editor.breakpoints_changed.reset_mock()
@@ -47,12 +47,10 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
     assert data.breakpoint == bp
     assert data.breakpoint_condition == bpc
     if emits:
-        editor.linenumberarea.update.assert_called_with()
         if version_info > (4, ):
             editor.sig_flags_changed.emit.assert_called_with()
         editor.breakpoints_changed.emit.assert_called_with()
     else:
-        editor.linenumberarea.update.assert_not_called()
         if version_info > (4, ):
             editor.sig_flags_changed.emit.assert_not_called()
         editor.breakpoints_changed.emit.assert_not_called()
@@ -70,7 +68,6 @@ def code_editor_bot(qtbot):
                         tab_stop_width_spaces=tab_stop_width_spaces)
     # Mock the screen updates and signal emits to test when they've been
     # called.
-    editor.linenumberarea = Mock()
     if version_info > (4, ):
         editor.sig_flags_changed = Mock()
     else:
@@ -91,9 +88,9 @@ def code_editor_bot(qtbot):
 def test_add_remove_breakpoint(code_editor_bot, mocker):
     """Test CodeEditor.add_remove_breakpoint()."""
     editor, qtbot = code_editor_bot
-    arb = editor.add_remove_breakpoint
+    arb = editor.debugger.toogle_breakpoint
 
-    mocker.patch.object(codeeditor.QInputDialog, 'getText')
+    mocker.patch.object(debugger.QInputDialog, 'getText')
 
     editor.go_to_line(1)
     block = editor.textCursor().block()
@@ -104,7 +101,6 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     arb()
     assert block  # Block exists.
     assert not block.userData()  # But user data not added to it.
-    editor.linenumberarea.update.assert_not_called()
     if version_info > (4, ):
         editor.sig_flags_changed.emit.assert_not_called()
     editor.breakpoints_changed.emit.assert_not_called()
@@ -137,13 +133,13 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
 
     # Call already set breakpoint with edit condition.
     reset_emits(editor)
-    codeeditor.QInputDialog.getText.return_value = ('a == 42', False)
+    debugger.QInputDialog.getText.return_value = ('a == 42', False)
     arb(line_number=4, edit_condition=True)
     # Condition not changed because edit was cancelled.
     editor_assert_helper(editor, block, bp=True, bpc='a > 50', emits=False)
 
     # Condition changed.
-    codeeditor.QInputDialog.getText.return_value = ('a == 42', True)  # OK.
+    debugger.QInputDialog.getText.return_value = ('a == 42', True)  # OK.
     reset_emits(editor)
     arb(line_number=4, edit_condition=True)
     editor_assert_helper(editor, block, bp=True, bpc='a == 42', emits=True)
@@ -154,8 +150,8 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     # For issue 2179.
 
     editor, qtbot = code_editor_bot
-    arb = editor.add_remove_breakpoint
-    mocker.patch.object(codeeditor.QInputDialog, 'getText')
+    arb = editor.debugger.toogle_breakpoint
+    mocker.patch.object(debugger.QInputDialog, 'getText')
 
     linenumber = 5
     block = editor.document().findBlockByLineNumber(linenumber - 1)
@@ -164,25 +160,24 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     # Once a line has a breakpoint set, it remains in userData(), which results
     # in a different behavior when calling the dialog box (tested below).
     reset_emits(editor)
-    codeeditor.QInputDialog.getText.return_value = ('b == 1', False)
+    debugger.QInputDialog.getText.return_value = ('b == 1', False)
     arb(line_number=linenumber, edit_condition=True)
     data = block.userData()
     assert not data  # Data isn't saved in this case.
-    # Confirm line number area, scrollflag, and breakpoints not called.
-    editor.linenumberarea.update.assert_not_called()
+    # Confirm scrollflag, and breakpoints not called.
     if version_info > (4, ):
         editor.sig_flags_changed.emit.assert_not_called()
     editor.breakpoints_changed.emit.assert_not_called()
 
     # Call as if 'OK' button pressed.
     reset_emits(editor)
-    codeeditor.QInputDialog.getText.return_value = ('b == 1', True)
+    debugger.QInputDialog.getText.return_value = ('b == 1', True)
     arb(line_number=linenumber, edit_condition=True)
     editor_assert_helper(editor, block, bp=True, bpc='b == 1', emits=True)
 
     # Call again with dialog cancelled - breakpoint is already active.
     reset_emits(editor)
-    codeeditor.QInputDialog.getText.return_value = ('b == 9', False)
+    debugger.QInputDialog.getText.return_value = ('b == 9', False)
     arb(line_number=linenumber, edit_condition=True)
     # Breakpoint stays active, but signals aren't emitted.
     editor_assert_helper(editor, block, bp=True, bpc='b == 1', emits=False)
@@ -194,7 +189,7 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
 
     # Call again with dialog cancelled.
     reset_emits(editor)
-    codeeditor.QInputDialog.getText.return_value = ('b == 9', False)
+    debugger.QInputDialog.getText.return_value = ('b == 9', False)
     arb(line_number=linenumber, edit_condition=True)
     editor_assert_helper(editor, block, bp=False, bpc=None, emits=False)
 
@@ -202,14 +197,14 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
 def test_get_breakpoints(code_editor_bot):
     """Test CodeEditor.get_breakpoints."""
     editor, qtbot = code_editor_bot
-    arb = editor.add_remove_breakpoint
-    gb = editor.get_breakpoints
+    arb = editor.debugger.toogle_breakpoint
+    gb = editor.debugger.get_breakpoints
 
     assert(gb() == [])
 
     # Add breakpoints.
     bp = [(1, None), (3, None), (4, 'a > 1'), (5, 'c == 10')]
-    editor.set_breakpoints(bp)
+    editor.debugger.set_breakpoints(bp)
     assert(gb() == [(1, None), (4, 'a > 1'), (5, 'c == 10')])
 
     # Only includes active breakpoints.  Calling add_remove turns the
@@ -226,12 +221,12 @@ def test_clear_breakpoints(code_editor_bot):
     assert len(editor.blockuserdata_list) == 0
 
     bp = [(1, None), (4, None)]
-    editor.set_breakpoints(bp)
-    assert editor.get_breakpoints() == bp
+    editor.debugger.set_breakpoints(bp)
+    assert editor.debugger.get_breakpoints() == bp
     assert len(editor.blockuserdata_list) == 2
 
-    editor.clear_breakpoints()
-    assert editor.get_breakpoints() == []
+    editor.debugger.clear_breakpoints()
+    assert editor.debugger.get_breakpoints() == []
     # Even though there is a 'del data' that would pop the item from the
     # list, the __del__ funcion isn't called.
     assert len(editor.blockuserdata_list) == 2
@@ -243,17 +238,17 @@ def test_set_breakpoints(code_editor_bot):
     """Test CodeEditor.set_breakpoints."""
     editor, qtbot = code_editor_bot
 
-    editor.set_breakpoints([])
-    assert editor.get_breakpoints() == []
+    editor.debugger.set_breakpoints([])
+    assert editor.debugger.get_breakpoints() == []
 
     bp = [(1, 'a > b'), (4, None)]
-    editor.set_breakpoints(bp)
-    assert editor.get_breakpoints() == bp
+    editor.debugger.set_breakpoints(bp)
+    assert editor.debugger.get_breakpoints() == bp
     assert editor.blockuserdata_list[0].breakpoint
 
     bp = [(1, None), (5, 'c == 50')]
-    editor.set_breakpoints(bp)
-    assert editor.get_breakpoints() == bp
+    editor.debugger.set_breakpoints(bp)
+    assert editor.debugger.get_breakpoints() == bp
     assert editor.blockuserdata_list[0].breakpoint
 
 

@@ -214,9 +214,9 @@ class FileInfo(QObject):
 
     def breakpoints_changed(self):
         """Breakpoint list has changed"""
-        breakpoints = self.editor.get_breakpoints()
-        if self.editor.breakpoints != breakpoints:
-            self.editor.breakpoints = breakpoints
+        breakpoints = self.editor.debugger.get_breakpoints()
+        if self.editor.debugger.breakpoints != breakpoints:
+            self.editor.debugger.breakpoints = breakpoints
             self.save_breakpoints.emit(self.filename, repr(breakpoints))
 
 
@@ -855,13 +855,13 @@ class EditorStack(QWidget):
         """Set/clear breakpoint"""
         if self.data:
             editor = self.get_current_editor()
-            editor.add_remove_breakpoint()
+            editor.debugger.toogle_breakpoint()
 
     def set_or_edit_conditional_breakpoint(self):
         """Set conditional breakpoint"""
         if self.data:
             editor = self.get_current_editor()
-            editor.add_remove_breakpoint(edit_condition=True)
+            editor.debugger.toogle_breakpoint(edit_condition=True)
 
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""
