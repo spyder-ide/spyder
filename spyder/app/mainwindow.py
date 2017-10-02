@@ -290,6 +290,11 @@ class MainWindow(QMainWindow):
                 pass
         else:
             signal.signal(signal.SIGTERM, signal_handler)
+            if not DEV:
+                # Make spyder quit when presing ctrl+C in the console
+                # In DEV Ctrl+C doesn't quit, because it helps to
+                # capture the traceback when spyder freezes
+                signal.signal(signal.SIGINT, signal_handler)
 
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
@@ -2501,22 +2506,23 @@ class MainWindow(QMainWindow):
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
 
-    #---- PYTHONPATH management, etc.
+    # ---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""
-        return self.path+self.project_path
+        active_path = [p for p in self.path if p not in self.not_active_path]
+        return active_path + self.project_path
 
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
         for path in reversed(self.get_spyder_pythonpath()):
-            if path not in self.not_active_path:
-                sys.path.insert(1, path)
+            sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
         sys_path = sys.path
-        while sys_path[1] in self.get_spyder_pythonpath():
-            sys_path.pop(1)
+        for path in self.path:
+            while path in sys_path:
+                sys_path.remove(path)
 
     @Slot()
     def path_manager_callback(self):

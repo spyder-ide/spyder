@@ -826,3 +826,7 @@ class BrowseHistoryMixin(object):
                     return entry[len(tocursor):], idx
             else:
                 return None, start_idx
+
+    def reset_search_pos(self):
+        """Reset the position from which to search the history"""
+        self.histidx = None

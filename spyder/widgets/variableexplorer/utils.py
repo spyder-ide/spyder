@@ -508,7 +508,7 @@ def get_human_readable_type(item):
 # Globals filter: filter namespace dictionaries (to be edited in
 # CollectionsEditor)
 #==============================================================================
-def is_supported(value, check_all=False, filters=None, iterate=True):
+def is_supported(value, check_all=False, filters=None, iterate=False):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
     if value is None:

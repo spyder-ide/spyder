@@ -17,15 +17,17 @@ except ImportError:
 import os
 
 # Third party imports
-from pandas import (DataFrame, date_range, read_csv, Index, RangeIndex,
+from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
                     DatetimeIndex, MultiIndex, CategoricalIndex)
+from qtpy import PYQT4
 from qtpy.QtGui import QColor
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QTimer
 import numpy
 import pytest
 
 # Local imports
 from spyder.utils.programs import is_module_installed
+from spyder.utils.test import close_message_box
 from spyder.widgets.variableexplorer import dataframeeditor
 from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
@@ -272,6 +274,23 @@ def test_dataframeeditor_with_various_indexes():
             assert data(dfm, 1, 1) == 'b'
             assert data(dfm, 2, 1) == 'c'
             assert data(dfm, 19, 1) == 'b'
+
+
+@pytest.mark.skipif(PYQT4, reason="It generates a strange failure in another test")
+def test_sort_dataframe_with_duplicate_column(qtbot):
+    df = DataFrame({'A': [1, 3, 2], 'B': [4, 6, 5]})
+    df = concat((df, df.A), axis=1)
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df)
+    dfm = editor.dataModel
+    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
+    editor.dataModel.sort(1)
+    assert [data(dfm, row, 1) for row in range(len(df))] == ['1', '3', '2']
+    assert [data(dfm, row, 2) for row in range(len(df))] == ['4', '6', '5']
+    editor.dataModel.sort(2)
+    assert [data(dfm, row, 1) for row in range(len(df))] == ['1', '2', '3']
+    assert [data(dfm, row, 2) for row in range(len(df))] == ['4', '5', '6']
+
 
 if __name__ == "__main__":
     pytest.main()
