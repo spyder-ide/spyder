@@ -149,7 +149,7 @@ class DebuggerManager(Manager):
         else:
             breakpoints = []
         save_breakpoints(filename, breakpoints)
-#        self.breakpoints_saved.emit()
+        self.editor.sig_breakpoints_saved.emit()
 
     def load_breakpoints(self, filename):
         self.set_breakpoints(load_breakpoints(filename))

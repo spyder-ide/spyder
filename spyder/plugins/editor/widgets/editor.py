@@ -403,6 +403,7 @@ class EditorStack(QWidget):
     update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
+    sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str, int)
     plugin_load = Signal((str,), ())
@@ -2222,6 +2223,7 @@ class EditorStack(QWidget):
         editor.sig_run_cell_and_advance.connect(self.run_cell_and_advance)
         editor.sig_re_run_last_cell.connect(self.re_run_last_cell)
         editor.sig_new_file.connect(self.sig_new_file.emit)
+        editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,
