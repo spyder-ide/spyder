@@ -178,26 +178,6 @@ class GoToLineDialog(QDialog):
 #===============================================================================
 # CodeEditor widget
 #===============================================================================
-class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor, cursor=None, color=None):
-        QTextBlockUserData.__init__(self)
-        self.editor = editor
-        self.breakpoint = False
-        self.breakpoint_condition = None
-        self.code_analysis = []
-        self.todo = ''
-        self.selection = cursor
-        self.color = color
-        self.editor.blockuserdata_list.append(self)
-
-    def is_empty(self):
-        return not self.breakpoint and not self.code_analysis and not self.todo
-
-    def __del__(self):
-        bud_list = self.editor.blockuserdata_list
-        bud_list.pop(bud_list.index(self))
-
-
 def get_file_language(filename, text=None):
     """Get file language from filename"""
     ext = osp.splitext(filename)[1]

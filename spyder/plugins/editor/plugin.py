@@ -45,6 +45,8 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.widgets.sourcecode.utils.debugger import (clear_all_breakpoints,
+                                                      clear_breakpoint)
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget
@@ -68,44 +70,6 @@ dependencies.add('pyls',
 NBCONVERT_REQVER = ">=4.0"
 dependencies.add("nbconvert", _("Manipulate Jupyter notebooks on the Editor"),
                  required_version=NBCONVERT_REQVER)
-
-
-def _load_all_breakpoints():
-    bp_dict = CONF.get('run', 'breakpoints', {})
-    for filename in list(bp_dict.keys()):
-        if not osp.isfile(filename):
-            bp_dict.pop(filename)
-    return bp_dict
-
-
-def load_breakpoints(filename):
-    breakpoints = _load_all_breakpoints().get(filename, [])
-    if breakpoints and isinstance(breakpoints[0], int):
-        # Old breakpoints format
-        breakpoints = [(lineno, None) for lineno in breakpoints]
-    return breakpoints
-
-
-def save_breakpoints(filename, breakpoints):
-    if not osp.isfile(filename):
-        return
-    bp_dict = _load_all_breakpoints()
-    bp_dict[filename] = breakpoints
-    CONF.set('run', 'breakpoints', bp_dict)
-
-
-def clear_all_breakpoints():
-    CONF.set('run', 'breakpoints', {})
-
-
-def clear_breakpoint(filename, lineno):
-    breakpoints = load_breakpoints(filename)
-    if breakpoints:
-        for breakpoint in breakpoints[:]:
-            if breakpoint[0] == lineno:
-                breakpoints.remove(breakpoint)
-        save_breakpoints(filename, breakpoints)
-
 
 WINPDB_PATH = programs.find_program('winpdb')
 
@@ -1507,7 +1471,6 @@ class Editor(SpyderPluginWidget):
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
-        editorstack.save_breakpoints.connect(self.save_breakpoints)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
         editorstack.plugin_load.connect(self.load)
@@ -1832,6 +1795,7 @@ class Editor(SpyderPluginWidget):
         save_breakpoints(filename, breakpoints)
         self.breakpoints_saved.emit()
 
+
     #------ File I/O
     def __load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -2118,7 +2082,7 @@ class Editor(SpyderPluginWidget):
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
-                current_editor.debugger.set_breakpoints(load_breakpoints(filename))
+                current_editor.debugger.load_breakpoints(filename)
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)

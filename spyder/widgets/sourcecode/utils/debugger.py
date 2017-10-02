@@ -7,13 +7,52 @@
 """
 Contains the text debugger manager.
 """
-from qtpy.QtCore import Signal
+import os.path as osp
+
 from qtpy.QtWidgets import QInputDialog, QLineEdit
 
+from spyder.config.main import CONF
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.api.manager import Manager
 from spyder.widgets.sourcecode.utils.editor import BlockUserData
+
+
+def _load_all_breakpoints():
+    bp_dict = CONF.get('run', 'breakpoints', {})
+    for filename in list(bp_dict.keys()):
+        if not osp.isfile(filename):
+            bp_dict.pop(filename)
+    return bp_dict
+
+
+def load_breakpoints(filename):
+    breakpoints = _load_all_breakpoints().get(filename, [])
+    if breakpoints and isinstance(breakpoints[0], int):
+        # Old breakpoints format
+        breakpoints = [(lineno, None) for lineno in breakpoints]
+    return breakpoints
+
+
+def save_breakpoints(filename, breakpoints):
+    if not osp.isfile(filename):
+        return
+    bp_dict = _load_all_breakpoints()
+    bp_dict[filename] = breakpoints
+    CONF.set('run', 'breakpoints', bp_dict)
+
+
+def clear_all_breakpoints():
+    CONF.set('run', 'breakpoints', {})
+
+
+def clear_breakpoint(filename, lineno):
+    breakpoints = load_breakpoints(filename)
+    if breakpoints:
+        for breakpoint in breakpoints[:]:
+            if breakpoint[0] == lineno:
+                breakpoints.remove(breakpoint)
+        save_breakpoints(filename, breakpoints)
 
 
 class DebuggerManager(Manager):
@@ -23,6 +62,7 @@ class DebuggerManager(Manager):
     def __init__(self, editor):
         super(DebuggerManager, self).__init__(editor)
         self.breakpoints = self.get_breakpoints()
+        self.editor.breakpoints_changed.connect(self.breakpoints_changed)
 
     def toogle_breakpoint(self, line_number=None, condition=None,
                           edit_condition=False):
@@ -92,3 +132,24 @@ class DebuggerManager(Manager):
     def update_breakpoints(self):
         """Update breakpoints"""
         self.editor.breakpoints_changed.emit()
+
+    def breakpoints_changed(self):
+        """Breakpoint list has changed"""
+        breakpoints = self.get_breakpoints()
+        if self.breakpoints != breakpoints:
+            self.breakpoints = breakpoints
+            self.save_breakpoints(self.filename, repr(breakpoints))
+
+    def save_breakpoints(self, filename, breakpoints):
+        filename = to_text_string(filename)
+        breakpoints = to_text_string(breakpoints)
+        filename = osp.normpath(osp.abspath(filename))
+        if breakpoints:
+            breakpoints = eval(breakpoints)
+        else:
+            breakpoints = []
+        save_breakpoints(filename, breakpoints)
+#        self.breakpoints_saved.emit()
+
+    def load_breakpoints(self, filename):
+        self.set_breakpoints(load_breakpoints(filename))

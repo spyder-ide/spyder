@@ -159,7 +159,6 @@ class ThreadManager(QObject):
 class FileInfo(QObject):
     """File properties"""
     todo_results_changed = Signal()
-    save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
@@ -179,7 +178,6 @@ class FileInfo(QObject):
         self.lastmodified = QFileInfo(filename).lastModified()
 
         self.editor.textChanged.connect(self.text_changed)
-        self.editor.breakpoints_changed.connect(self.breakpoints_changed)
 
     def text_changed(self):
         """Editor's text has changed"""
@@ -211,13 +209,6 @@ class FileInfo(QObject):
     def cleanup_todo_results(self):
         """Clean-up TODO finder results"""
         self.todo_results = []
-
-    def breakpoints_changed(self):
-        """Breakpoint list has changed"""
-        breakpoints = self.editor.debugger.get_breakpoints()
-        if self.editor.debugger.breakpoints != breakpoints:
-            self.editor.debugger.breakpoints = breakpoints
-            self.save_breakpoints.emit(self.filename, repr(breakpoints))
 
 
 class StackHistory(MutableSequence):
@@ -412,7 +403,6 @@ class EditorStack(QWidget):
     update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
-    save_breakpoints = Signal(str, str)
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str, int)
     plugin_load = Signal((str,), ())
