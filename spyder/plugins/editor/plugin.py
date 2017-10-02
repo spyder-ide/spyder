@@ -2083,7 +2083,7 @@ class Editor(SpyderPluginWidget):
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
                                                                  focus=focus)
-                current_editor.debugger.load_breakpoints(filename)
+                current_editor.debugger.load_breakpoints()
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)

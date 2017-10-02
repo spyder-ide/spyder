@@ -623,6 +623,9 @@ class CodeEditor(TextEditBaseWidget):
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
 
+        # Debugging
+        self.debugger.set_filename(filename)
+
         # Edge line
         self.edge_line.set_enabled(edge_line)
         self.edge_line.set_columns(edge_line_columns)
