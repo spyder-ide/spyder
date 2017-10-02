@@ -243,9 +243,11 @@ class CompletionWidget(QListWidget):
     def row_changed(self, row):
         item = self.completion_list[row]
         if len(item['documentation']) > 0:
-            self.textedit.show_calltip(
-                item['detail'], item['documentation'], color='#daa520',
-                at_point=item['point'])
+            # TODO: LSP - Define an UI element to display the documentation
+            # self.textedit.show_calltip(
+            #     item['detail'], item['documentation'], color='#daa520',
+            #     at_point=item['point'])
+            pass
         else:
             QToolTip.hideText()
 

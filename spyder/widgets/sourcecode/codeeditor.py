@@ -2909,11 +2909,12 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
-        else:
-            cursor = self.cursorForPosition(event.pos())
-            line, col = cursor.blockNumber(), cursor.columnNumber()
-            if self.enable_hover:
-                self.request_hover(line, col)
+        # TODO: LSP addition - Define hover expected behaviour and UI element
+        # else:
+        #     cursor = self.cursorForPosition(event.pos())
+        #     line, col = cursor.blockNumber(), cursor.columnNumber()
+        #     if self.enable_hover:
+        #         self.request_hover(line, col)
         TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def setPlainText(self, txt):
