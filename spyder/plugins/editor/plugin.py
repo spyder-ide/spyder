@@ -2097,6 +2097,9 @@ class Editor(SpyderPluginWidget):
             current_editor.window().raise_()
             if processevents:
                 QApplication.processEvents()
+            else:
+                # processevents is false only when calling from debugging
+                current_editor.sig_debug_stop.emit(goto[index])
 
     @Slot()
     def print_file(self):
