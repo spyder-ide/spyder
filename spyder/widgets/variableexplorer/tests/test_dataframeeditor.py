@@ -352,12 +352,12 @@ def test_sort_dataframe_with_duplicate_column(qtbot):
     editor.setup_and_check(df)
     dfm = editor.dataModel
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
+    editor.dataModel.sort(0)
+    assert [data(dfm, row, 0) for row in range(len(df))] == ['1', '3', '2']
+    assert [data(dfm, row, 1) for row in range(len(df))] == ['4', '6', '5']
     editor.dataModel.sort(1)
-    assert [data(dfm, row, 1) for row in range(len(df))] == ['1', '3', '2']
-    assert [data(dfm, row, 2) for row in range(len(df))] == ['4', '6', '5']
-    editor.dataModel.sort(2)
-    assert [data(dfm, row, 1) for row in range(len(df))] == ['1', '2', '3']
-    assert [data(dfm, row, 2) for row in range(len(df))] == ['4', '5', '6']
+    assert [data(dfm, row, 0) for row in range(len(df))] == ['1', '2', '3']
+    assert [data(dfm, row, 1) for row in range(len(df))] == ['4', '5', '6']
 
 
 if __name__ == "__main__":
