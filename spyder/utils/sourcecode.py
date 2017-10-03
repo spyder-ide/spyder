@@ -56,8 +56,11 @@ def get_os_name_from_eol_chars(eol_chars):
 
 
 def get_eol_chars_from_os_name(os_name):
-    """Return EOL characters from OS name"""
-    for eol_chars, name in EOL_CHARS:
+    """Return EOL characters from OS name.
+
+    `os_name` can also be 'CR', 'CRLF', or 'LF'"""
+    extra_eol_chars = ("\r\n", 'CRLF'), ("\n", 'LF'), ("\r", 'CR')
+    for eol_chars, name in EOL_CHARS + extra_eol_chars:
         if name == os_name:
             return eol_chars
 
