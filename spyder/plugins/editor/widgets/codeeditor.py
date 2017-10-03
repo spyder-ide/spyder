@@ -230,6 +230,7 @@ class CodeEditor(TextEditBaseWidget):
 
     sig_breakpoints_changed = Signal()
     sig_breakpoints_saved = Signal()
+    sig_filename_changed = Signal(str)
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)

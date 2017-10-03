@@ -162,11 +162,12 @@ class FileInfo(QObject):
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
     send_to_help = Signal(str, str, str, str, bool)
+    sig_filename_changed = Signal(str)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
         self.threadmanager = threadmanager
-        self.filename = filename
+        self._filename = filename
         self.newly_created = new
         self.default = False      # Default untitled file
         self.encoding = encoding
@@ -178,6 +179,16 @@ class FileInfo(QObject):
         self.lastmodified = QFileInfo(filename).lastModified()
 
         self.editor.textChanged.connect(self.text_changed)
+        self.sig_filename_changed.connect(self.editor.sig_filename_changed)
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
+        self.sig_filename_changed.emit(value)
 
     def text_changed(self):
         """Editor's text has changed"""

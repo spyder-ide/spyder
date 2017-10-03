@@ -64,12 +64,17 @@ class DebuggerManager(Manager):
         self.filename = None
         self.breakpoints = self.get_breakpoints()
         self.editor.sig_breakpoints_changed.connect(self.breakpoints_changed)
+        self.editor.sig_filename_changed.connect(self.set_filename)
 
     def set_filename(self, filename):
         if filename is None:
             return
         if self.filename != filename:
+            old_filename = self.filename
             self.filename = filename
+            if self.breakpoints:
+                save_breakpoints(old_filename, [])  # clear old breakpoints
+                self.save_breakpoints()
 
     def toogle_breakpoint(self, line_number=None, condition=None,
                           edit_condition=False):
@@ -135,6 +140,7 @@ class DebuggerManager(Manager):
         self.clear_breakpoints()
         for line_number, condition in breakpoints:
             self.toogle_breakpoint(line_number, condition)
+        self.breakpoints = self.get_breakpoints()
 
     def update_breakpoints(self):
         """Update breakpoints"""
@@ -145,9 +151,10 @@ class DebuggerManager(Manager):
         breakpoints = self.get_breakpoints()
         if self.breakpoints != breakpoints:
             self.breakpoints = breakpoints
-            self.save_breakpoints(repr(breakpoints))
+            self.save_breakpoints()
 
-    def save_breakpoints(self, breakpoints):
+    def save_breakpoints(self):
+        breakpoints = repr(self.breakpoints)
         filename = to_text_string(self.filename)
         breakpoints = to_text_string(breakpoints)
         filename = osp.normpath(osp.abspath(filename))
