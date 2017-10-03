@@ -364,7 +364,7 @@ class EditorConfigPage(PluginConfigPage):
                              (_("CRLF (Windows)"), 'CRLF'),
                              (_("CR (Mac)"), 'CR'),
                              )
-        convert_eol_on_save_combo = self.create_combobox(_(""),
+        convert_eol_on_save_combo = self.create_combobox("",
                                                          eol_combo_choices,
                                                          'convert_eol_on_save_to',
                                                          )
