@@ -13,7 +13,7 @@ import sys
 import stat
 
 from spyder.py3compat import is_text_string, getcwd
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, debug_print
 
 
 def __remove_pyc_pyo(fname):
@@ -295,4 +295,6 @@ def getcwd_or_home():
     try:
         return getcwd()
     except OSError:
+        debug_print("WARNING: Current working directory was deleted, "
+                    "falling back to home dirertory")
         return get_home_dir()
