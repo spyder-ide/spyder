@@ -1178,9 +1178,13 @@ class EditorStack(QWidget):
         self.always_remove_trailing_spaces = state
 
     def set_convert_eol_on_save(self, state):
+        """If `state` is `True`, saving files will convert line endings."""
+        # CONF.get(self.CONF_SECTION, 'convert_eol_on_save')
         self.convert_eol_on_save = state
 
     def set_convert_eol_on_save_to(self, state):
+        """`state` can be one of ('LF', 'CRLF', 'CR')"""
+        # CONF.get(self.CONF_SECTION, 'convert_eol_on_save_to')
         self.convert_eol_on_save_to = state
 
     def set_focus_to_editor(self, state):
@@ -2220,6 +2224,14 @@ class EditorStack(QWidget):
         return finfo
 
     def set_os_eol_chars(self, index=None, osname=None):
+        """Sets the EOL character(s) based on the operating system.
+        
+        If `osname` is None, then the default line endings for the current
+        operating system (`os.name` value) will be used.
+        
+        `osname` can be one of:
+            ('posix', 'nt', 'java')
+        """
         if osname is None:
             osname = os.name
         if index is None:
