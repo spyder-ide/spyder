@@ -817,7 +817,6 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg = FileSwitcher(self, self, self.tabs, self.data,
                                              ima.icon('TextFileIcon'))
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
-        self.fileswitcher_dlg.setup()
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
 
