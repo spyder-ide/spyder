@@ -197,7 +197,6 @@ class DataFrameModel(QAbstractTableModel):
             return ax.names[level]
         if ax.name:
             return ax.name
-        return ''
 
     def max_min_col_update(self):
         """
@@ -742,6 +741,8 @@ class DataFrameLevelModel(QAbstractTableModel):
             return _('Index')
         elif self.model.header_shape[0] <= 1:
             return None
+        elif self.model.header_shape[1] <= 1 and orientation == Qt.Vertical:
+            return None
         return _('Index ') + to_text_string(section)
 
     def data(self, index, role):
@@ -750,20 +751,17 @@ class DataFrameLevelModel(QAbstractTableModel):
             return None
         if role == Qt.FontRole:
             return self._font
-        if index.row() == self.model.header_shape[0] - 1:
-            if role == Qt.DisplayRole:
-                return str(self.model.name(1, index.column()))
-            elif role == Qt.ForegroundRole:
-                return self._foreground
-            elif role == Qt.BackgroundRole:
-                return self._background
-        elif index.column() == self.model.header_shape[1] - 1:
-            if role == Qt.DisplayRole:
-                return str(self.model.name(0, index.row()))
-            elif role == Qt.ForegroundRole:
-                return self._foreground
-            elif role == Qt.BackgroundRole:
-                return self._background
+        label = ''
+        if index.column() == self.model.header_shape[1] - 1:
+            label = str(self.model.name(0, index.row()))
+        elif index.row() == self.model.header_shape[0] - 1:
+            label = str(self.model.name(1, index.column()))
+        if role == Qt.DisplayRole and label:
+            return label
+        elif role == Qt.ForegroundRole:
+            return self._foreground
+        elif role == Qt.BackgroundRole:
+            return self._background
         elif role == Qt.BackgroundRole:
             return self._palette.window()
         return None
