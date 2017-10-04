@@ -32,9 +32,10 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QListWidget, QSizePolicy,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import getcwd, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.qthelpers import create_toolbutton, get_icon
@@ -232,7 +233,7 @@ class FindOptions(QWidget):
         QWidget.__init__(self, parent)
 
         if search_path is None:
-            search_path = getcwd()
+            search_path = getcwd_or_home()
 
         self.path = ''
         self.project_path = None

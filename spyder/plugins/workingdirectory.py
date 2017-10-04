@@ -26,7 +26,8 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
 from spyder.config.base import _, get_conf_path, get_home_dir
 from spyder.plugins import SpyderPluginMixin
 from spyder.plugins.configdialog import PluginConfigPage
-from spyder.py3compat import to_text_string, getcwd
+from spyder.py3compat import to_text_string
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
@@ -64,7 +65,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                   "is open will be the specified path"),
                                 button_group=console_bg)
         console_dir_bd = self.create_browsedir("", 'console/fixed_directory',
-                                               getcwd())
+                                               getcwd_or_home())
         console_dir_radio.toggled.connect(console_dir_bd.setEnabled)
         console_project_radio.toggled.connect(console_dir_bd.setDisabled)
         console_cwd_radio.toggled.connect(console_dir_bd.setDisabled)
@@ -198,7 +199,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
     def refresh_plugin(self):
         """Refresh widget"""
-        curdir = getcwd()
+        curdir = getcwd_or_home()
         self.pathedit.add_text(curdir)
         self.save_wdhistory()
         self.set_previous_enabled.emit(
@@ -237,7 +238,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         """Select directory"""
         self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self.main, _("Select directory"),
-                                         getcwd())
+                                         getcwd_or_home())
         if directory:
             self.chdir(directory)
         self.redirect_stdio.emit(True)
@@ -257,7 +258,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     @Slot()
     def parent_directory(self):
         """Change working directory to parent directory"""
-        self.chdir(os.path.join(getcwd(), os.path.pardir))
+        self.chdir(os.path.join(getcwd_or_home(), os.path.pardir))
 
     @Slot(str)
     @Slot(str, bool)

@@ -35,11 +35,12 @@ from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -1745,7 +1746,7 @@ class Editor(SpyderPluginWidget):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            basedir = getcwd()
+            basedir = getcwd_or_home()
 
             if self.main.projects.get_active_project() is not None:
                 basedir = self.main.projects.get_active_project_path()
@@ -1835,7 +1836,7 @@ class Editor(SpyderPluginWidget):
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
         if not filenames:
-            basedir = getcwd()
+            basedir = getcwd_or_home()
             if self.edit_filetypes is None:
                 self.edit_filetypes = get_edit_filetypes()
             if self.edit_filters is None:

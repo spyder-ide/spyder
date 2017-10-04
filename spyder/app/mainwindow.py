@@ -150,13 +150,13 @@ from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
-from spyder.py3compat import (getcwd, is_text_string, to_text_string,
+from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
-from spyder.utils.misc import select_port
+from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.widgets.fileswitcher import FileSwitcher
 
 #==============================================================================
@@ -184,7 +184,7 @@ from spyder.app import tour
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
 #==============================================================================
-CWD = getcwd()
+CWD = getcwd_or_home()
 
 
 #==============================================================================
