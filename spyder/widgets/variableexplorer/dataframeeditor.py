@@ -183,8 +183,8 @@ class DataFrameModel(QAbstractTableModel):
         """
         Return the values of the labels for the header of columns or rows.
 
-        The value corresponds to the header of a column or row 'x' in a certain
-        level.
+        The value corresponds to the header of column or row x in the
+        given level.
         """
         ax = self._axis(axis)
         return ax.values[x] if not hasattr(ax, 'levels') \
@@ -556,10 +556,8 @@ class DataFrameView(QTableView):
 
 class DataFrameHeaderModel(QAbstractTableModel):
     """
-    Data Frame Header/Index class.
+    This class is the model for the header or index of the DataFrameEditor.
 
-    This class is the model for the horizontal header and vertical index
-    of the DataFrameEditor.
     Taken from gtabview project (Header4ExtModel).
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
@@ -743,7 +741,7 @@ class DataFrameLevelModel(QAbstractTableModel):
             return None
         elif self.model.header_shape[1] <= 1 and orientation == Qt.Vertical:
             return None
-        return _('Index ') + to_text_string(section)
+        return _('Index') + ' ' + to_text_string(section)
 
     def data(self, index, role):
         """Get the information of the levels."""
