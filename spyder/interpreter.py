@@ -21,8 +21,8 @@ from code import InteractiveConsole
 # Local imports:
 from spyder.utils.dochelpers import isdefined
 from spyder.utils import encoding, programs
-from spyder.py3compat import is_text_string, getcwd
-from spyder.utils.misc import remove_backslashes
+from spyder.py3compat import is_text_string
+from spyder.utils.misc import remove_backslashes, getcwd_or_home
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')
@@ -34,7 +34,7 @@ def guess_filename(filename):
         return filename
     if not filename.endswith('.py'):
         filename += '.py'
-    for path in [getcwd()] + sys.path:
+    for path in [getcwd_or_home()] + sys.path:
         fname = osp.join(path, filename)
         if osp.isfile(fname):
             return fname
