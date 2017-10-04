@@ -10,12 +10,6 @@ from qtpy.QtGui import QTextOption
 
 from spyder.plugins import history
 
-
-#==============================================================================
-# Constants
-#==============================================================================
-
-
 #==============================================================================
 # Utillity Functions
 #==============================================================================
@@ -34,13 +28,16 @@ def set_option(self, option, value):
     global options
     options[option] = value
 
-
 #==============================================================================
 # Qt Test Fixtures
 #==============================================================================
 @pytest.fixture
-def historylog(qtbot):
-    historylog = history.HistoryLog(None, testing=True)
+def historylog(qtbot, monkeypatch):
+    """Return a fixture for base history log, which is a plugin widget."""
+    monkeypatch.setattr(history.HistoryLog,
+                        'register_widget_shortcuts',
+                        lambda *args: None)
+    historylog = history.HistoryLog(None)
     qtbot.addWidget(historylog)
     historylog.show()
     yield historylog
@@ -50,6 +47,13 @@ def historylog(qtbot):
 
 @pytest.fixture
 def historylog_with_tab(historylog, mocker, monkeypatch):
+    """Return a fixture for a history log with one tab.
+
+    The base history log is a plugin widget.  Within the plugin widget,
+    the method add_history creates a tab containing a code editor
+    for each history file.  This fixture creates a history log with
+    one tab containing no text.
+    """
     hl = historylog
     # Mock read so file doesn't have to exist.
     mocker.patch.object(history.encoding, 'read')
@@ -67,12 +71,16 @@ def historylog_with_tab(historylog, mocker, monkeypatch):
     hl.add_history('test_history.py')
     return hl
 
-
 #==============================================================================
 # Tests
 #==============================================================================
 
 def test_init(historylog):
+    """Test HistoryLog.__init__.
+
+    Test that the initialization created the expected instance variables
+    and widgets for a new HistoryLog instance.
+    """
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
@@ -82,6 +90,11 @@ def test_init(historylog):
 
 
 def test_add_history(historylog, mocker, monkeypatch):
+    """Test the add_history method.
+
+    Test adding a history file to the history log widget and the
+    code editor properties that are enabled/disabled.
+    """
     hl = historylog
     hle = hl.editors
 
@@ -101,6 +114,7 @@ def test_add_history(historylog, mocker, monkeypatch):
     hl.set_option('wrap', False)
     history.encoding.read.return_value = (text1, '')
     hl.add_history(tab1)
+    # Check tab and editor were created correctly.
     assert len(hle) == 1
     assert hl.filenames == [tab1]
     assert hl.tabwidget.currentIndex() == 0
@@ -122,6 +136,7 @@ def test_add_history(historylog, mocker, monkeypatch):
     text2 = 'random text\nspam line\n\n\n\n'
     history.encoding.read.return_value = (text2, '')
     hl.add_history(tab2)
+    # Check second tab and editor were created correctly.
     assert len(hle) == 2
     assert hl.filenames == [tab1, tab2]
     assert hl.tabwidget.currentIndex() == 1
@@ -132,6 +147,7 @@ def test_add_history(historylog, mocker, monkeypatch):
 
     assert hl.filenames == [tab1, tab2]
 
+    # Check differences between tabs based on setup.
     assert hle[0].supported_language
     assert hle[0].is_python()
     assert hle[0].isReadOnly()
@@ -146,24 +162,39 @@ def test_add_history(historylog, mocker, monkeypatch):
 
 
 def test_append_to_history(historylog_with_tab, mocker):
+    """Test the append_to_history method.
+
+    Test adding text to a history file.  Also test the go_to_eof config
+    option for positioning the cursor.
+    """
     hl = historylog_with_tab
 
+    # Toggle to move to the end of the file after appending.
     hl.set_option('go_to_eof', True)
+    # Force cursor to the beginning of the file.
     hl.editors[0].set_cursor_position('sof')
     hl.append_to_history('test_history.py', 'import re\n')
     assert hl.editors[0].toPlainText() == 'import re\n'
     assert hl.tabwidget.currentIndex() == 0
+    # Cursor moved to end.
     assert hl.editors[0].is_cursor_at_end()
     assert not hl.editors[0].linenumberarea.isVisible()
 
+    # Toggle to not move cursor after appending.
     hl.set_option('go_to_eof', False)
+    # Force cursor to the beginning of the file.
     hl.editors[0].set_cursor_position('sof')
     hl.append_to_history('test_history.py', 'a = r"[a-z]"\n')
     assert hl.editors[0].toPlainText() == 'import re\na = r"[a-z]"\n'
+    # Cursor not at end.
     assert not hl.editors[0].is_cursor_at_end()
 
 
 def test_change_history_depth(historylog_with_tab, mocker):
+    """Test the change_history_depth method.
+
+    Modify the 'Maximum history entries' values to test the config action.
+    """
     hl = historylog_with_tab
     action = hl.history_action
     # Mock dialog.
@@ -184,6 +215,10 @@ def test_change_history_depth(historylog_with_tab, mocker):
 
 
 def test_toggle_wrap_mode(historylog_with_tab):
+    """Test the toggle_wrap_mode method.
+
+    Toggle the 'Wrap lines' config action.
+    """
     hl = historylog_with_tab
     action = hl.wrap_action
     action.setChecked(False)
@@ -204,6 +239,10 @@ def test_toggle_wrap_mode(historylog_with_tab):
 
 
 def test_toggle_line_numbers(historylog_with_tab):
+    """Test toggle_line_numbers method.
+
+    Toggle the 'Show line numbers' config action.
+    """
     hl = historylog_with_tab
     action = hl.linenumbers_action
     action.setChecked(False)

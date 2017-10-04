@@ -73,7 +73,7 @@ class HistoryLog(SpyderPluginWidget):
     CONFIGWIDGET_CLASS = HistoryConfigPage
     focus_changed = Signal()
     
-    def __init__(self, parent, testing=False):
+    def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
@@ -84,7 +84,6 @@ class HistoryLog(SpyderPluginWidget):
         
         self.editors = []
         self.filenames = []
-        self.testing = testing
 
         # Initialize plugin
         self.initialize_plugin()
@@ -116,8 +115,7 @@ class HistoryLog(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        if not self.testing:
-            self.register_widget_shortcuts(self.find_widget)
+        self.register_widget_shortcuts(self.find_widget)
 
         layout.addWidget(self.find_widget)
 
