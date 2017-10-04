@@ -736,6 +736,8 @@ class DataFrameLevelModel(QAbstractTableModel):
         if role != Qt.DisplayRole and role != Qt.ToolTipRole:
             return None
         if self.model.header_shape[0] <= 1 and orientation == Qt.Horizontal:
+            if self.model.name(1,section):
+                return self.model.name(1,section)
             return _('Index')
         elif self.model.header_shape[0] <= 1:
             return None
