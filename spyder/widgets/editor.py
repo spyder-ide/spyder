@@ -113,13 +113,14 @@ class ThreadManager(QObject):
 
     def add_thread(self, checker, end_callback, source_code, parent):
         """Add thread to queue"""
-        parent_id = id(parent)
-        thread = AnalysisThread(self, checker, source_code)
-        self.end_callbacks[id(thread)] = end_callback
-        self.pending_threads.append((thread, parent_id))
-        if DEBUG_EDITOR:
-            print("Added thread %r to queue" % thread, file=STDOUT)
-        QTimer.singleShot(50, self.update_queue)
+        pass
+        # parent_id = id(parent)
+        # thread = AnalysisThread(self, checker, source_code)
+        # self.end_callbacks[id(thread)] = end_callback
+        # self.pending_threads.append((thread, parent_id))
+        # if DEBUG_EDITOR:
+        #     print("Added thread %r to queue" % thread, file=STDOUT)
+        # QTimer.singleShot(50, self.update_queue)
 
     def update_queue(self):
         """Update queue"""

@@ -14,6 +14,7 @@ import json
 import socket
 import logging
 from threading import Thread, Lock
+from pexpect.fdpexpect import fdspawn
 
 
 TIMEOUT = 5000
@@ -35,6 +36,7 @@ class IncomingMessageThread(Thread):
 
     def initialize(self, sock, zmq_sock, req_status):
         self.socket = sock
+        self.expect = fdspawn(self.socket)
         self.zmq_sock = zmq_sock
         self.req_status = req_status
 
@@ -45,16 +47,35 @@ class IncomingMessageThread(Thread):
                     LOGGER.debug('Stopping Thread...')
                     break
             try:
-                recv = self.socket.recv(self.CHUNK_BYTE_SIZE)
+                self.expect.expect('\r\n\r\n', timeout=None)
+                headers = self.expect.before
+                headers = self.parse_headers(headers)
+                content_length = int(headers['Content-Length'])
+                LOGGER.debug(headers)
+                # recv = self.socket.recv(content_length)
                 # LOGGER.debug(recv)
-                err, body = self.process_response(recv)
-                if not err and body is not None:
+                body = self.expect.read(size=content_length)
+                err = False
+                try:
+                    body = json.loads(body)
+                except ValueError:
+                    err = True
+                # recv = self.socket.recv(self.CHUNK_BYTE_SIZE)
+                # LOGGER.debug(body)
+                # err, body = self.process_response(recv)
+                # LOGGER.debug(body)
+                if not err:
                     LOGGER.debug(body)
                     self.zmq_sock.send_pyobj(body)
                     LOGGER.debug('Message sent')
             except socket.error:
                 pass
         LOGGER.debug('Thread stopped.')
+
+    def parse_headers(self, headers):
+        headers = headers.split('\r\n')
+        header_dict = dict([x.split(': ') for x in headers])
+        return header_dict
 
     def process_response(self, response):
         err = True
