@@ -1519,13 +1519,18 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 if cursor.position() < start_pos:
                     cursor.setPosition(start_pos)
+            move_number = self.__spaces_for_prefix()
 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
+                line_text = to_text_string(cursor.block().text())
                 if (self.get_character(cursor.position()) == ' '
-                        and '#' in prefix):
-                    cursor.movePosition(QTextCursor.NextWord)
-                cursor.insertText(prefix)
+                        and '#' in prefix and not line_text.isspace()
+                        or not line_text.startswith(' ')):
+                    cursor.movePosition(QTextCursor.Right,
+                                        QTextCursor.MoveAnchor,
+                                        move_number)
+                    cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
                     break
@@ -1544,6 +1549,52 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.NextWord)
             cursor.insertText(prefix)
             cursor.endEditBlock()
+
+    def __spaces_for_prefix(self):
+        """Find the less indented level of text."""
+        cursor = self.textCursor()
+        if self.has_selected_text():
+           # Add prefix to selected line(s)
+           start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+
+           # Let's see if selection begins at a block start
+           first_pos = min([start_pos, end_pos])
+           first_cursor = self.textCursor()
+           first_cursor.setPosition(first_pos)
+           begins_at_block_start = first_cursor.atBlockStart()
+
+           cursor.beginEditBlock()
+           cursor.setPosition(end_pos)
+           # Check if end_pos is at the start of a block: if so, starting
+           # changes from the previous block
+           if cursor.atBlockStart():
+               cursor.movePosition(QTextCursor.PreviousBlock)
+               if cursor.position() < start_pos:
+                   cursor.setPosition(start_pos)
+
+           number_spaces = -1
+           while cursor.position() >= start_pos:
+               cursor.movePosition(QTextCursor.StartOfBlock)
+               line_text = to_text_string(cursor.block().text())
+               start_with_space = line_text.startswith(' ')
+               left_number_spaces = self.__number_of_spaces(line_text)
+               if not start_with_space:
+                   left_number_spaces = 0
+               if (number_spaces == -1
+                       or number_spaces > left_number_spaces
+                       and not line_text.isspace()):
+                   number_spaces = left_number_spaces
+               if start_pos == 0 and cursor.blockNumber() == 0:
+                   # Avoid infinite loop when indenting the very first line
+                   break
+               cursor.movePosition(QTextCursor.PreviousBlock)
+               cursor.movePosition(QTextCursor.EndOfBlock)
+           cursor.endEditBlock()
+           if begins_at_block_start:
+                cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
+                cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+                self.setTextCursor(cursor)
+        return number_spaces
 
     def __is_cursor_at_start_of_block(self, cursor):
         cursor.movePosition(QTextCursor.StartOfBlock)
@@ -1587,34 +1638,36 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     old_pos = new_pos
                 line_text = to_text_string(cursor.block().text())
-                self._remove_prefix(prefix, cursor, line_text)
+                self.__remove_prefix(prefix, cursor, line_text)
                 cursor.movePosition(QTextCursor.PreviousBlock)
             cursor.endEditBlock()
         else:
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
             line_text = to_text_string(cursor.block().text())
-            self._remove_prefix(prefix, cursor, line_text)
+            self.__remove_prefix(prefix, cursor, line_text)
 
-    def _remove_prefix(self, prefix, cursor, line_text):
+    def __remove_prefix(self, prefix, cursor, line_text):
         """Handle the remove of the prefix for a single line."""
         start_with_space = line_text.startswith(' ')
         if start_with_space:
-            left_spaces = self._even_number_of_spaces(line_text)
+            left_spaces = self.__even_number_of_spaces(line_text)
         else:
             left_spaces = False
         if start_with_space:
-            right_number_spaces = self._number_of_spaces(line_text, group=1)
+            right_number_spaces = self.__number_of_spaces(line_text, group=1)
         else:
-            right_number_spaces = self._number_of_spaces(line_text)
+            right_number_spaces = self.__number_of_spaces(line_text)
         # Handle prefix remove for comments with spaces
         if (prefix.strip() and line_text.lstrip().startswith(prefix + ' ')
                 or line_text.startswith(prefix + ' ') and '#' in prefix):
             cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.MoveAnchor,
                                 line_text.find(prefix))
-            if right_number_spaces == 1 and (left_spaces
-                                             or not start_with_space):
+            if (right_number_spaces == 1
+                    and (left_spaces or not start_with_space)
+                    or (not start_with_space and right_number_spaces % 2 != 0)
+                    or (left_spaces and right_number_spaces % 2 != 0)):
                 # Handle inserted '# ' with the count of the number of spaces
                 # at the right and left of the prefix.
                 cursor.movePosition(QTextCursor.Right,
@@ -1634,7 +1687,7 @@ class CodeEditor(TextEditBaseWidget):
                                 QTextCursor.KeepAnchor, len(prefix))
             cursor.removeSelectedText()
 
-    def _even_number_of_spaces(self, line_text, group=0):
+    def __even_number_of_spaces(self, line_text, group=0):
         """
         Get if there is a correct indentation from a group of spaces of a line.
         """
@@ -1642,7 +1695,7 @@ class CodeEditor(TextEditBaseWidget):
         if len(spaces) - 1 >= group:
             return len(spaces[group]) % 4 == 0
 
-    def _number_of_spaces(self, line_text, group=0):
+    def __number_of_spaces(self, line_text, group=0):
         """Get the number of spaces from a group of spaces in a line."""
         spaces = re.findall('\s+', line_text)
         if len(spaces) - 1 >= group:
