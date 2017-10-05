@@ -1580,8 +1580,8 @@ class CodeEditor(TextEditBaseWidget):
                left_number_spaces = self.__number_of_spaces(line_text)
                if not start_with_space:
                    left_number_spaces = 0
-               if (number_spaces == -1
-                       or number_spaces > left_number_spaces
+               if ((number_spaces == -1
+                       or number_spaces > left_number_spaces)
                        and not line_text.isspace()):
                    number_spaces = left_number_spaces
                if start_pos == 0 and cursor.blockNumber() == 0:
