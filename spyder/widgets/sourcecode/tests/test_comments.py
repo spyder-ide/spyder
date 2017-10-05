@@ -130,9 +130,9 @@ def test_selection_comment(code_editor_bot):
     # Toggle comment inserting prefix and space
     text = toggle_comment(editor, single_line=False)
     assert text == ("# class a():\n"
-                    "    # self.b = 1\n"
-                    "    # print(self.b)\n"
-                    "    # \n"
+                    "#     self.b = 1\n"
+                    "#     print(self.b)\n"
+                    "    \n"
                     )
     # Toggle comment deleting inserted prefix and space
     text = toggle_comment(editor, single_line=False)
