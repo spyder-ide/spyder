@@ -1554,43 +1554,43 @@ class CodeEditor(TextEditBaseWidget):
         """Find the less indented level of text."""
         cursor = self.textCursor()
         if self.has_selected_text():
-           # Add prefix to selected line(s)
-           start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            # Add prefix to selected line(s)
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
 
-           # Let's see if selection begins at a block start
-           first_pos = min([start_pos, end_pos])
-           first_cursor = self.textCursor()
-           first_cursor.setPosition(first_pos)
-           begins_at_block_start = first_cursor.atBlockStart()
+            # Let's see if selection begins at a block start
+            first_pos = min([start_pos, end_pos])
+            first_cursor = self.textCursor()
+            first_cursor.setPosition(first_pos)
+            begins_at_block_start = first_cursor.atBlockStart()
 
-           cursor.beginEditBlock()
-           cursor.setPosition(end_pos)
-           # Check if end_pos is at the start of a block: if so, starting
-           # changes from the previous block
-           if cursor.atBlockStart():
-               cursor.movePosition(QTextCursor.PreviousBlock)
-               if cursor.position() < start_pos:
-                   cursor.setPosition(start_pos)
+            cursor.beginEditBlock()
+            cursor.setPosition(end_pos)
+            # Check if end_pos is at the start of a block: if so, starting
+            # changes from the previous block
+            if cursor.atBlockStart():
+                cursor.movePosition(QTextCursor.PreviousBlock)
+                if cursor.position() < start_pos:
+                    cursor.setPosition(start_pos)
 
-           number_spaces = -1
-           while cursor.position() >= start_pos:
-               cursor.movePosition(QTextCursor.StartOfBlock)
-               line_text = to_text_string(cursor.block().text())
-               start_with_space = line_text.startswith(' ')
-               left_number_spaces = self.__number_of_spaces(line_text)
-               if not start_with_space:
-                   left_number_spaces = 0
-               if ((number_spaces == -1
-                       or number_spaces > left_number_spaces)
-                       and not line_text.isspace()):
-                   number_spaces = left_number_spaces
-               if start_pos == 0 and cursor.blockNumber() == 0:
-                   # Avoid infinite loop when indenting the very first line
-                   break
-               cursor.movePosition(QTextCursor.PreviousBlock)
-               cursor.movePosition(QTextCursor.EndOfBlock)
-           cursor.endEditBlock()
-           if begins_at_block_start:
+            number_spaces = -1
+            while cursor.position() >= start_pos:
+                cursor.movePosition(QTextCursor.StartOfBlock)
+                line_text = to_text_string(cursor.block().text())
+                start_with_space = line_text.startswith(' ')
+                left_number_spaces = self.__number_of_spaces(line_text)
+                if not start_with_space:
+                    left_number_spaces = 0
+                if ((number_spaces == -1
+                        or number_spaces > left_number_spaces)
+                        and not line_text.isspace()):
+                    number_spaces = left_number_spaces
+                if start_pos == 0 and cursor.blockNumber() == 0:
+                    # Avoid infinite loop when indenting the very first line
+                    break
+                cursor.movePosition(QTextCursor.PreviousBlock)
+                cursor.movePosition(QTextCursor.EndOfBlock)
+            cursor.endEditBlock()
+            if begins_at_block_start:
                 cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
                 cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
                 self.setTextCursor(cursor)
