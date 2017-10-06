@@ -1526,7 +1526,8 @@ class CodeEditor(TextEditBaseWidget):
                 line_text = to_text_string(cursor.block().text())
                 if (self.get_character(cursor.position()) == ' '
                         and '#' in prefix and not line_text.isspace()
-                        or not line_text.startswith(' ')):
+                        or (not line_text.startswith(' ')
+                            and line_text != '')):
                     cursor.movePosition(QTextCursor.Right,
                                         QTextCursor.MoveAnchor,
                                         move_number)
@@ -1537,10 +1538,6 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
-            if begins_at_block_start:
-                cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
-                cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-                self.setTextCursor(cursor)
         else:
             # Add prefix to current line
             cursor.beginEditBlock()
@@ -1561,7 +1558,6 @@ class CodeEditor(TextEditBaseWidget):
             first_pos = min([start_pos, end_pos])
             first_cursor = self.textCursor()
             first_cursor.setPosition(first_pos)
-            begins_at_block_start = first_cursor.atBlockStart()
 
             cursor.beginEditBlock()
             cursor.setPosition(end_pos)
@@ -1590,10 +1586,6 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
-            if begins_at_block_start:
-                cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
-                cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-                self.setTextCursor(cursor)
         return number_spaces
 
     def __is_cursor_at_start_of_block(self, cursor):
@@ -2055,8 +2047,13 @@ class CodeEditor(TextEditBaseWidget):
         if not self.unblockcomment():
             self.remove_prefix(self.comment_string)
 
-    def __blockcomment_bar(self):
-        return self.comment_string + ' ' + '=' * (78 - len(self.comment_string))
+    def __blockcomment_bar(self, compatibility=False):
+        blockcomment_bar = self.comment_string + ' ' + '=' * (
+                                    79 - len(self.comment_string + ' '))
+        if compatibility:
+            blockcomment_bar = self.comment_string + '=' * (
+                                    79 - len(self.comment_string))
+        return blockcomment_bar
 
     def transform_to_uppercase(self):
         """Change to uppercase current line or selection."""
@@ -2120,10 +2117,18 @@ class CodeEditor(TextEditBaseWidget):
         cursor.endEditBlock()
 
     def unblockcomment(self):
-        """Un-block comment current line or selection"""
+        """Un-block comment current line or selection."""
+        # Needed for backward compatibility with Spyder previous blockcomments.
+        # See issue 2845
+        if not self.__unblockcomment():
+            self.__unblockcomment(compatibility=True)
+
+    def __unblockcomment(self, compatibility=False):
+        """Un-block comment current line or selection helper."""
         def __is_comment_bar(cursor):
             return to_text_string(cursor.block().text()
-                           ).startswith(self.__blockcomment_bar())
+                           ).startswith(
+                         self.__blockcomment_bar(compatibility=compatibility))
         # Finding first comment bar
         cursor1 = self.textCursor()
         if __is_comment_bar(cursor1):
@@ -2157,8 +2162,9 @@ class CodeEditor(TextEditBaseWidget):
             if not cursor3.atBlockEnd():
                 # standard commenting inserts '# ' but a trailing space on an
                 # empty line might be stripped.
-                cursor3.movePosition(QTextCursor.NextCharacter,
-                                     QTextCursor.KeepAnchor)
+                if not compatibility:
+                    cursor3.movePosition(QTextCursor.NextCharacter,
+                                         QTextCursor.KeepAnchor)
             cursor3.removeSelectedText()
             cursor3.movePosition(QTextCursor.NextBlock)
         for cursor in (cursor2, cursor1):
@@ -2166,6 +2172,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor3.select(QTextCursor.BlockUnderCursor)
             cursor3.removeSelectedText()
         cursor3.endEditBlock()
+        return True
 
     #------Kill ring handlers
     # Taken from Jupyter's QtConsole
