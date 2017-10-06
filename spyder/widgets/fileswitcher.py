@@ -771,7 +771,10 @@ class FileSwitcher(QDialog):
         self.set_dialog_position()
 
     def show(self):
-        """Override Qt method."""
+        """
+        Override Qt method to force an update of the fileswitcher before
+        showing it. See Issue #5317 and PR #5389.
+        """
         self.setup()
         super(FileSwitcher, self).show()
 
