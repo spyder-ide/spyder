@@ -2043,7 +2043,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def uncomment(self):
         """Uncomment current line or selection."""
-        if not self.unblockcomment():
+        blockcomment = self.unblockcomment()
+        if not blockcomment:
             self.remove_prefix(self.comment_string)
 
     def __blockcomment_bar(self, compatibility=False):
@@ -2119,8 +2120,11 @@ class CodeEditor(TextEditBaseWidget):
         """Un-block comment current line or selection."""
         # Needed for backward compatibility with Spyder previous blockcomments.
         # See issue 2845
-        if not self.__unblockcomment():
-            self.__unblockcomment(compatibility=True)
+        unblockcomment = self.__unblockcomment()
+        if not unblockcomment:
+            unblockcomment =  self.__unblockcomment(compatibility=True)
+        else:
+            return unblockcomment
 
     def __unblockcomment(self, compatibility=False):
         """Un-block comment current line or selection helper."""
