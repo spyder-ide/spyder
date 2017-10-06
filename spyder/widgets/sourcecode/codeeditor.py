@@ -1509,7 +1509,6 @@ class CodeEditor(TextEditBaseWidget):
             first_pos = min([start_pos, end_pos])
             first_cursor = self.textCursor()
             first_cursor.setPosition(first_pos)
-            begins_at_block_start = first_cursor.atBlockStart()
 
             cursor.beginEditBlock()
             cursor.setPosition(end_pos)
@@ -1578,7 +1577,7 @@ class CodeEditor(TextEditBaseWidget):
                     left_number_spaces = 0
                 if ((number_spaces == -1
                         or number_spaces > left_number_spaces)
-                        and not line_text.isspace()):
+                        and not line_text.isspace() and line_text != ''):
                     number_spaces = left_number_spaces
                 if start_pos == 0 and cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
