@@ -22,6 +22,7 @@ import math
 import traceback
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.compat import getexistingdirectory
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot, QSize
@@ -656,7 +657,10 @@ class ResultsBrowser(OneColumnTree):
     def set_sorting(self, flag):
         """Enable result sorting after search is complete."""
         self.sorting['status'] = flag
-        self.header().setSectionsClickable(flag == ON)
+        if PYQT5:
+            self.header().setSectionsClickable(flag == ON)
+        else:
+            self.header().setClickable(flag == ON)
 
     @Slot(int)
     def sort_section(self, idx):
