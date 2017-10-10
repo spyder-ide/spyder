@@ -1179,10 +1179,7 @@ class ExplorerWidget(QWidget):
         button_previous = QToolButton(self)
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
-        if options_button:
-            self.button_menu = options_button
-        else:
-            self.button_menu = QToolButton(self)
+        self.button_menu = options_button or QToolButton(self)
         if menu:
             self.menu = menu
         else:

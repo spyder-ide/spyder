@@ -38,7 +38,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
                           syntaxhighlighters)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, mimedata2url)
+                                    create_toolbutton, MENU_SEPARATOR,
+                                    mimedata2url)
 from spyder.widgets.editortools import OutlineExplorerWidget
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
@@ -1341,11 +1342,12 @@ class EditorStack(QWidget):
                 triggered=lambda: self.split_horizontally.emit())
         self.close_action = create_action(self, _("Close this panel"),
                 icon=ima.icon('close_panel'), triggered=self.close)
-        actions = [None, self.undock_action, None, self.versplit_action,
+        actions = [MENU_SEPARATOR, self.undock_action,
+                   MENU_SEPARATOR, self.versplit_action,
                    self.horsplit_action, self.close_action]
         if self.new_window:
-            actions = [None, self.versplit_action, self.horsplit_action,
-                       self.close_action]
+            actions = [MENU_SEPARATOR, self.versplit_action,
+                       self.horsplit_action, self.close_action]
         return actions
 
     def reset_orientation(self):

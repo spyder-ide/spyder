@@ -28,7 +28,7 @@ from spyder.plugins.base import _, BasePluginWidget
 from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_toolbutton,
-                                    toggle_actions)
+                                    MENU_SEPARATOR, toggle_actions)
 from spyder.plugins.base import PluginMainWindow
 
 
@@ -95,7 +95,7 @@ class PluginWidget(BasePluginWidget):
         """
         self.create_toggle_view_action()
         self.create_undock_action()
-        self.plugin_actions = self.get_plugin_actions() + [None,
+        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self.undock_action]
         add_actions(self.menu, self.plugin_actions)
         self.options_button.setMenu(self.menu)
@@ -202,7 +202,7 @@ class PluginWidget(BasePluginWidget):
     def refresh_actions(self):
         """Clear the menu of the plugin and add the actions."""
         self.menu.clear()
-        self.plugin_actions = self.get_plugin_actions() + [None,
+        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self.undock_action]
         add_actions(self.menu, self.plugin_actions)
 

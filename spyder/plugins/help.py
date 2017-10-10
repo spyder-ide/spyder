@@ -31,7 +31,8 @@ from spyder.utils import programs
 from spyder.utils.help.sphinxify import (CSS_PATH, generate_context,
                                          sphinxify, usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout)
+                                    create_toolbutton, create_plugin_layout,
+                                    MENU_SEPARATOR)
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
@@ -427,8 +428,8 @@ class Help(SpyderPluginWidget):
         # Option menu
         self.menu = QMenu(self)
         add_actions(self.menu, [self.rich_text_action, self.plain_text_action,
-                                self.show_source_action, None,
-                                self.auto_import_action, None,
+                                self.show_source_action, MENU_SEPARATOR,
+                                self.auto_import_action, MENU_SEPARATOR,
                                 self.undock_action])
         self.options_button.setMenu(self.menu)
         layout_edit.addWidget(self.options_button)

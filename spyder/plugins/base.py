@@ -112,7 +112,7 @@ class BasePluginWidget(QWidget):
             self.toggle_view_action.setChecked(True)
         self.visibility_changed(True)
 
-    def plugin_closed(self, event):
+    def plugin_closed(self):
         """DockWidget was closed"""
         self.toggle_view_action.setChecked(False)
 

@@ -1531,7 +1531,7 @@ class Editor(SpyderPluginWidget):
         Reimplemented method to desactivate shortcut when
         opening a new window.
         """
-        if len(self.editorwindows) == 0 or self.dockwidget.isVisible():
+        if not self.editorwindows or self.dockwidget.isVisible():
             super(Editor, self).switch_to_plugin()
 
     def create_new_window(self):

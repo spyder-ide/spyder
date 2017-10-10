@@ -30,7 +30,7 @@ from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, DialogManager,
-                                    mimedata2url)
+                                    mimedata2url, MENU_SEPARATOR)
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
@@ -189,7 +189,8 @@ class Console(SpyderPluginWidget):
                                   codecompenter_action, exteditor_action))
                     
         plugin_actions = [None, run_action, environ_action, syspath_action,
-                          option_menu, None, quit_action, self.undock_action]
+                          option_menu, MENU_SEPARATOR, quit_action,
+                          self.undock_action]
 
         return plugin_actions
     
