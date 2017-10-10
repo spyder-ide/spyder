@@ -1639,7 +1639,7 @@ class CodeEditor(TextEditBaseWidget):
             self.__remove_prefix(prefix, cursor, line_text)
 
     def __remove_prefix(self, prefix, cursor, line_text):
-        """Handle the remove of the prefix for a single line."""
+        """Handle the removal of the prefix for a single line."""
         start_with_space = line_text.startswith(' ')
         if start_with_space:
             left_spaces = self.__even_number_of_spaces(line_text)
@@ -2048,9 +2048,12 @@ class CodeEditor(TextEditBaseWidget):
             self.remove_prefix(self.comment_string)
 
     def __blockcomment_bar(self, compatibility=False):
+        """Handle versions of blockcomment bar for backwards compatibility."""
+        # Blockcomment bar in Spyder version >= 4
         blockcomment_bar = self.comment_string + ' ' + '=' * (
                                     79 - len(self.comment_string + ' '))
         if compatibility:
+            # Blockcomment bar in Spyder version < 4
             blockcomment_bar = self.comment_string + '=' * (
                                     79 - len(self.comment_string))
         return blockcomment_bar
