@@ -514,7 +514,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget.hide()
         self.shellwidget.show()
         self.infowidget.setHtml(BLANK)
-        self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
+        self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
