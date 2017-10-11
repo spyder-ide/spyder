@@ -2799,7 +2799,6 @@ class MainWindow(QMainWindow):
             self.fileswitcher.plugin = self.editor
         else:
             self.fileswitcher.set_search_text('')
-        self.fileswitcher.setup()
         self.fileswitcher.show()
         self.fileswitcher.is_visible = True
 
