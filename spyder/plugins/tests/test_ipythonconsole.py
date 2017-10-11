@@ -423,7 +423,7 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
+@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5) or PYQT4,
                     reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
