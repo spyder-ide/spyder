@@ -837,7 +837,6 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg = FileSwitcher(self, self, self.tabs, self.data,
                                              ima.icon('TextFileIcon'))
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
-        self.fileswitcher_dlg.setup()
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
 
@@ -846,11 +845,6 @@ class EditorStack(QWidget):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
         
-    def update_fileswitcher_dlg(self):
-        """Synchronize file list dialog box with editor widget tabs"""
-        if self.fileswitcher_dlg:
-            self.fileswitcher_dlg.setup()
-
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
         return self
@@ -1208,7 +1202,6 @@ class EditorStack(QWidget):
         self.data.pop(index)
         self.tabs.blockSignals(False)
         self.update_actions()
-        self.update_fileswitcher_dlg()
 
     def __modified_readonly_title(self, title, is_modified, is_readonly):
         if is_modified is not None and is_modified:
@@ -1256,7 +1249,6 @@ class EditorStack(QWidget):
             self.set_stack_index(index)
             self.current_changed(index)
         self.update_actions()
-        self.update_fileswitcher_dlg()
 
     def __repopulate_stack(self):
         self.tabs.blockSignals(True)
@@ -1272,7 +1264,6 @@ class EditorStack(QWidget):
             index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
         self.tabs.blockSignals(False)
-        self.update_fileswitcher_dlg()
 
     def rename_in_data(self, index, new_filename):
         finfo = self.data[index]
