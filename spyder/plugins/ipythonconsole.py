@@ -898,8 +898,8 @@ class IPythonConsole(SpyderPluginWidget):
                     else:
                         client.shellwidget.execute('%clear')
                     client.shellwidget.sig_prompt_ready.connect(
-                            lambda : self.execute_code(line, current_client,
-                                                       clear_variables))
+                            lambda: self.execute_code(line, current_client,
+                                                      clear_variables))
             except AttributeError:
                 pass
             self.visibility_changed(True)
