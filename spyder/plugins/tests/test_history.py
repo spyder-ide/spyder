@@ -84,7 +84,7 @@ def test_init(historylog):
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
-    assert hl.plugin_actions == hl.menu_actions
+    assert hl.plugin_actions == hl.get_plugin_actions()
     assert hl.tabwidget.menu.actions() == hl.menu_actions
     assert hl.tabwidget.cornerWidget().menu().actions() == hl.menu_actions
 

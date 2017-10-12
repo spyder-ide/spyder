@@ -22,6 +22,23 @@ from spyder.utils.qthelpers import create_action
 from spyder.widgets.dock import SpyderDockWidget
 
 
+
+class PluginMainWindow(QMainWindow):
+    """Spyder Plugin MainWindow class."""
+    def __init__(self, plugin):
+        QMainWindow.__init__(self)
+        self.plugin = plugin
+
+    def closeEvent(self, event):
+        """Reimplement Qt method."""
+        self.plugin.dockwidget.setWidget(self.plugin)
+        self.plugin.dockwidget.setVisible(True)
+        self.plugin.undock_action.setDisabled(False)
+        self.plugin.switch_to_plugin()
+        QMainWindow.closeEvent(self, event)
+
+
+
 class BasePluginWidget(QWidget):
     """
     Basic functionality for Spyder plugin widgets
@@ -197,7 +214,7 @@ class BasePluginWidget(QWidget):
     def create_undock_action(self):
         """Create the undock action for the plugin."""
         self.undock_action = create_action(self,
-                                           _("Undock the plugin"),
+                                           _("Undock"),
                                            icon=ima.icon('newwindow'),
                                            tip=_("Undock the plugin"),
                                            triggered=self.undock_plugin)
@@ -207,18 +224,3 @@ class BasePluginWidget(QWidget):
         self.undocked = True
         self.dockwidget.setFloating(True)
         self.undock_action.setDisabled(True)
-
-
-class PluginMainWindow(QMainWindow):
-    """Spyder Plugin MainWindow class."""
-    def __init__(self, plugin):
-        QMainWindow.__init__(self)
-        self.plugin = plugin
-
-    def closeEvent(self, event):
-        """Reimplement Qt method."""
-        self.plugin.dockwidget.setWidget(self.plugin)
-        self.plugin.dockwidget.setVisible(True)
-        self.plugin.undock_action.setDisabled(False)
-        self.plugin.switch_to_plugin()
-        QMainWindow.closeEvent(self, event)

@@ -71,7 +71,7 @@ class PluginWidget(BasePluginWidget):
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
-        self.menu = QMenu(self)
+        self.options_menu = QMenu(self)
 
         # NOTE: Don't use the default option of CONF.get to assign a
         # None shortcut to plugins that don't have one. That will mess
@@ -97,9 +97,9 @@ class PluginWidget(BasePluginWidget):
         self.create_undock_action()
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self.undock_action]
-        add_actions(self.menu, self.plugin_actions)
-        self.options_button.setMenu(self.menu)
-        self.menu.aboutToShow.connect(self.refresh_actions)
+        add_actions(self.options_menu, self.plugin_actions)
+        self.options_button.setMenu(self.options_menu)
+        self.options_menu.aboutToShow.connect(self.refresh_actions)
         self.sig_show_message.connect(self.show_message)
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.sig_option_changed.connect(self.set_option)
@@ -201,10 +201,10 @@ class PluginWidget(BasePluginWidget):
 
     def refresh_actions(self):
         """Clear the menu of the plugin and add the actions."""
-        self.menu.clear()
+        self.options_menu.clear()
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self.undock_action]
-        add_actions(self.menu, self.plugin_actions)
+        add_actions(self.options_menu, self.plugin_actions)
 
 
 class SpyderPluginWidget(PluginWidget):
