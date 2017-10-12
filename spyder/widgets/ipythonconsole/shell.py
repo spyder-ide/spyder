@@ -52,6 +52,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_got_reply = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted = Signal(str)
+    sig_prompt_ready = Signal()
 
     # For global working directory
     sig_change_cwd = Signal(str)
@@ -467,6 +468,12 @@ the sympy module (e.g. plot)
             self._highlighter._clear_caches()
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
+
+    def _prompt_started_hook(self):
+        """Emit a signal when the prompt is ready."""
+        if not self._reading:
+            self._highlighter.highlighting_on = True
+            self.sig_prompt_ready.emit()
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
