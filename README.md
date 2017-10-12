@@ -153,7 +153,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Run introspection services asynchronously.
-* **QtPy** 1.1.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
+* **QtPy** 1.2.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
   and PyQt5.
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get return types for functions with Numpydoc docstrings.
