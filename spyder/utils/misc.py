@@ -12,7 +12,8 @@ import os.path as osp
 import sys
 import stat
 
-from spyder.py3compat import is_text_string
+from spyder.py3compat import is_text_string, getcwd
+from spyder.config.base import get_home_dir, debug_print
 
 
 def __remove_pyc_pyo(fname):
@@ -283,3 +284,17 @@ def memoize(obj):
             cache.popitem(last=False)
         return cache[key]
     return memoizer
+
+
+def getcwd_or_home():
+    """Safe version of getcwd that will fallback to home user dir.
+
+    This will catch the error raised when the current working directory
+    was removed for an external program.
+    """
+    try:
+        return getcwd()
+    except OSError:
+        debug_print("WARNING: Current working directory was deleted, "
+                    "falling back to home dirertory")
+        return get_home_dir()

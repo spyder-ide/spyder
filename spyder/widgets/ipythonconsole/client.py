@@ -143,12 +143,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # --- Exit function
         self.exit_callback = lambda: plugin.close_client(client=self)
 
-        # --- Signals
-        # As soon as some content is printed in the console, stop
-        # our loading animation
-        document = self.get_control().document()
-        document.contentsChange.connect(self._hide_loading_page)
-
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
@@ -216,10 +210,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
+        # To apply style
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
             self.shellwidget.silent_execute("%colors linux")
         else:
             self.shellwidget.silent_execute("%colors lightbg")
+
+        # To hide the loading page
+        self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -517,9 +515,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget.hide()
         self.shellwidget.show()
         self.infowidget.setHtml(BLANK)
-
-        document = self.get_control().document()
-        document.contentsChange.disconnect(self._hide_loading_page)
+        self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""

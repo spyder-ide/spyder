@@ -35,11 +35,12 @@ from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -1415,7 +1416,6 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(self.go_to_previous_cursor_position)
         editorstack.sig_next_cursor.connect(self.go_to_next_cursor_position)
-        editorstack.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
         editorstack.sig_prev_warning.connect(self.go_to_previous_warning)
         editorstack.sig_next_warning.connect(self.go_to_next_warning)
 
@@ -1435,11 +1435,12 @@ class Editor(SpyderPluginWidget):
         for finfo in editorstack.data:
             self.register_widget_shortcuts(finfo.editor)
 
-    @Slot(str, int)
-    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
+    @Slot(str, str)
+    def close_file_in_all_editorstacks(self, editorstack_id_str, filename):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
+                index = editorstack.get_index_from_filename(filename)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 
@@ -1862,7 +1863,7 @@ class Editor(SpyderPluginWidget):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            basedir = getcwd()
+            basedir = getcwd_or_home()
 
             if self.main.projects.get_active_project() is not None:
                 basedir = self.main.projects.get_active_project_path()
@@ -1952,7 +1953,7 @@ class Editor(SpyderPluginWidget):
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
         if not filenames:
-            basedir = getcwd()
+            basedir = getcwd_or_home()
             if self.edit_filetypes is None:
                 self.edit_filetypes = get_edit_filetypes()
             if self.edit_filters is None:
@@ -2827,13 +2828,12 @@ class Editor(SpyderPluginWidget):
                     index_first_file = filenames.index(cfname)
                     filenames.pop(index_first_file)
                     filenames.insert(0, cfname)
+                    clines_first_file = clines[index_first_file]
+                    clines.pop(index_first_file)
+                    clines.insert(0, clines_first_file)
                 else:
                     cfname = filenames[0]
                     index_first_file = 0
-            if index_first_file != 0:
-                clines_0 = clines[0]
-                clines.pop(index_first_file)
-                clines.insert(0, clines_0)
             reordered_splitsettings.append((is_vertical, cfname, clines))
         layout['splitsettings'] = reordered_splitsettings
         self.set_option('layout_settings', layout)
@@ -2847,23 +2847,3 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
-
-    @Slot(int, int)
-    def move_editorstack_data(self, start, end):
-        """Move editorstack.data to be synchronized when tabs are moved."""
-        if start < 0 or end < 0:
-            return
-        else:
-            steps = abs(end - start)
-            direction = (end-start) // steps  # +1 for right, -1 for left
-
-            for editorstack in self.editorstacks:
-                if editorstack.isAncestorOf(self.sender()):
-                    data = editorstack.data
-                    editorstack.blockSignals(True)
-
-                    for i in range(start, end, direction):
-                        data[i], data[i+direction] = data[i+direction], data[i]
-
-                    editorstack.blockSignals(False)
-                    editorstack.refresh()

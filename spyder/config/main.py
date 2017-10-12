@@ -231,6 +231,7 @@ DEFAULTS = [
               'max_entries': 100,
               'wrap': True,
               'go_to_eof': True,
+              'line_numbers': False,
               }),
             ('help',
              {

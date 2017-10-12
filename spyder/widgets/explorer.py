@@ -34,12 +34,13 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QWidget)
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import (getcwd, str_lower, to_binary_string,
-                              to_text_string, PY2)
+from spyder.py3compat import (str_lower, to_binary_string,
+                              to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, misc, programs, vcs
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     create_plugin_layout)
+from spyder.utils.misc import getcwd_or_home
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -1092,7 +1093,7 @@ class ExplorerTreeWidget(DirView):
         """Refresh widget
         force=False: won't refresh widget if path has not changed"""
         if new_path is None:
-            new_path = getcwd()
+            new_path = getcwd_or_home()
         if force_current:
             index = self.set_current_folder(new_path)
             self.expand(index)
@@ -1113,7 +1114,7 @@ class ExplorerTreeWidget(DirView):
     @Slot()
     def go_to_parent_directory(self):
         """Go to parent directory"""
-        self.chdir( osp.abspath(osp.join(getcwd(), os.pardir)) )
+        self.chdir(osp.abspath(osp.join(getcwd_or_home(), os.pardir)))
 
     @Slot()
     def go_to_previous_directory(self):
@@ -1151,8 +1152,15 @@ class ExplorerTreeWidget(DirView):
                 self.history.append(directory)
             self.histindex = len(self.history)-1
         directory = to_text_string(directory)
-        if PY2:
+        try:
+            PermissionError
+            FileNotFoundError
+        except NameError:
             PermissionError = OSError
+            if os.name == 'nt':
+                FileNotFoundError = WindowsError
+            else:
+                FileNotFoundError = IOError
         try:
             os.chdir(directory)
             self.sig_open_dir.emit(directory)
@@ -1161,6 +1169,9 @@ class ExplorerTreeWidget(DirView):
             QMessageBox.critical(self.parent_widget, "Error",
                                  _("You don't have the right permissions to "
                                    "open this directory"))
+        except FileNotFoundError:
+            # Handle renaming directories on the fly. See issue #5183
+            self.history.pop(self.histindex)
 
 
 class ExplorerWidget(QWidget):
@@ -1203,7 +1214,7 @@ class ExplorerWidget(QWidget):
 
         # Setup widgets
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
-        self.treewidget.chdir(getcwd())
+        self.treewidget.chdir(getcwd_or_home())
         self.treewidget.common_actions += [None, icontext_action]
 
         button_previous.setDefaultAction(previous_action)

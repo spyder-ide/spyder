@@ -150,13 +150,13 @@ from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_gtk_desktop
 from spyder.app.cli_options import get_options
 from spyder import dependencies
-from spyder.py3compat import (getcwd, is_text_string, to_text_string,
+from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
-from spyder.utils.misc import select_port
+from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.widgets.fileswitcher import FileSwitcher
 
 #==============================================================================
@@ -184,7 +184,7 @@ from spyder.app import tour
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
 #==============================================================================
-CWD = getcwd()
+CWD = getcwd_or_home()
 
 
 #==============================================================================
@@ -288,6 +288,11 @@ class MainWindow(QMainWindow):
                 pass
         else:
             signal.signal(signal.SIGTERM, signal_handler)
+            if not DEV:
+                # Make spyder quit when presing ctrl+C in the console
+                # In DEV Ctrl+C doesn't quit, because it helps to
+                # capture the traceback when spyder freezes
+                signal.signal(signal.SIGINT, signal_handler)
 
         # Use a custom Qt stylesheet
         if sys.platform == 'darwin':
@@ -2482,22 +2487,23 @@ class MainWindow(QMainWindow):
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
 
-    #---- PYTHONPATH management, etc.
+    # ---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""
-        return self.path+self.project_path
+        active_path = [p for p in self.path if p not in self.not_active_path]
+        return active_path + self.project_path
 
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
         for path in reversed(self.get_spyder_pythonpath()):
-            if path not in self.not_active_path:
-                sys.path.insert(1, path)
+            sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
         sys_path = sys.path
-        while sys_path[1] in self.get_spyder_pythonpath():
-            sys_path.pop(1)
+        for path in self.path:
+            while path in sys_path:
+                sys_path.remove(path)
 
     @Slot()
     def path_manager_callback(self):
@@ -2789,7 +2795,6 @@ class MainWindow(QMainWindow):
             self.fileswitcher.plugin = self.editor
         else:
             self.fileswitcher.set_search_text('')
-        self.fileswitcher.setup()
         self.fileswitcher.show()
         self.fileswitcher.is_visible = True
 

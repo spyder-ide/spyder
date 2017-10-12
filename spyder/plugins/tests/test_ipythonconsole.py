@@ -423,7 +423,7 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
+@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5) or PYQT4,
                     reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
@@ -567,7 +567,8 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
+                    reason="It segfaults frequently")
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
     Test that a new client is created using a connection file

@@ -28,10 +28,11 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
 # Local imports
 from spyder import dependencies
 from spyder.config.base import get_conf_path, get_translation
-from spyder.py3compat import getcwd, pickle, to_text_string
+from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -238,8 +239,9 @@ class PylintWidget(QWidget):
     @Slot()
     def select_file(self):
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getopenfilename(self, _("Select Python file"),
-                           getcwd(), _("Python files")+" (*.py ; *.pyw)")
+        filename, _selfilter = getopenfilename(
+                self, _("Select Python file"),
+                getcwd_or_home(), _("Python files")+" (*.py ; *.pyw)")
         self.redirect_stdio.emit(True)
         if filename:
             self.analyze(filename)

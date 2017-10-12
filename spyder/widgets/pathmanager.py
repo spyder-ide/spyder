@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import getcwd
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton
 
@@ -48,7 +48,7 @@ class PathManager(QDialog):
             ro_pathlist = []
         self.ro_pathlist = ro_pathlist
         
-        self.last_path = getcwd()
+        self.last_path = getcwd_or_home()
         
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(ima.icon('pythonpath'))

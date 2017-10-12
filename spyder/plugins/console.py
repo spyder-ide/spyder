@@ -27,7 +27,8 @@ from spyder.config.base import _, debug_print
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
-from spyder.utils.misc import get_error_match, remove_backslashes
+from spyder.utils.misc import (get_error_match, remove_backslashes,
+                               getcwd_or_home)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, DialogManager,
                                     mimedata2url, MENU_SEPARATOR)
@@ -35,7 +36,7 @@ from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 from spyder.api.plugins  import SpyderPluginWidget
-from spyder.py3compat import getcwd, to_text_string
+from spyder.py3compat import to_text_string
 
 
 class Console(SpyderPluginWidget):
@@ -277,8 +278,9 @@ class Console(SpyderPluginWidget):
         """Run a Python script"""
         if filename is None:
             self.shell.interpreter.restore_stds()
-            filename, _selfilter = getopenfilename(self, _("Run Python script"),
-                   getcwd(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
+            filename, _selfilter = getopenfilename(
+                    self, _("Run Python script"), getcwd_or_home(),
+                    _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
             self.shell.interpreter.redirect_stds()
             if filename:
                 os.chdir( osp.dirname(filename) )

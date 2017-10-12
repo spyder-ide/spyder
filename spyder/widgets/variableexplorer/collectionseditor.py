@@ -39,9 +39,9 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, is_text_string,
-                              getcwd, PY3, to_text_string)
+                              PY3, to_text_string)
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import fix_reference_name
+from spyder.utils.misc import fix_reference_name, getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
@@ -70,7 +70,7 @@ ipykernel.pickleutil.can_map.pop('numpy.ndarray')
 
 
 LARGE_NROWS = 100
-
+ROWS_TO_LOAD = 50
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -97,7 +97,6 @@ class ProxyObject(object):
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
-    ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
@@ -166,7 +165,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
-            self.rows_loaded = self.ROWS_TO_LOAD
+            self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
 
@@ -212,27 +211,22 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             except:
                 pass
         elif column == 1:
-            self.keys = sort_against(self.keys, self.types, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.types,
+                                                        reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             try:
                 self.types.sort(reverse=reverse)
             except:
                 pass
         elif column == 2:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes,
+                                                        reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             try:
                 self.sizes.sort(reverse=reverse)
             except:
                 pass
         elif column == 3:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
-            self.types = sort_against(self.types, self.sizes, reverse)
-            try:
-                self.sizes.sort(reverse=reverse)
-            except:
-                pass
-        elif column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
@@ -259,7 +253,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
  
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        items_to_fetch = min(reminder, ROWS_TO_LOAD)
         self.set_size_and_type(self.rows_loaded,
                                self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,
@@ -1068,7 +1062,7 @@ class BaseTableView(QTableView):
         """Save array"""
         title = _( "Save array")
         if self.array_filename is None:
-            self.array_filename = getcwd()
+            self.array_filename = getcwd_or_home()
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
@@ -1424,8 +1418,12 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     def new_value(self, name, value):
         """Create new value in data"""
-        value = serialize_object(value)
-        self.shellwidget.set_value(name, value)
+        try:
+            value = serialize_object(value)
+            self.shellwidget.set_value(name, value)
+        except TypeError as e:
+            QMessageBox.critical(self, _("Error"),
+                                 "TypeError: %s" % to_text_string(e))
         self.shellwidget.refresh_namespacebrowser()
 
     def remove_values(self, names):

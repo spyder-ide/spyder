@@ -23,11 +23,11 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
 # Local imports
 from spyder.config.base import _, get_supported_types
 from spyder.config.main import CONF
-from spyder.py3compat import is_text_string, getcwd, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.iofuncs import iofunctions
-from spyder.utils.misc import fix_reference_name
+from spyder.utils.misc import fix_reference_name, getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout)
@@ -271,7 +271,7 @@ class NamespaceBrowser(QWidget):
         title = _("Import data")
         if filenames is None:
             if self.filename is None:
-                basedir = getcwd()
+                basedir = getcwd_or_home()
             else:
                 basedir = osp.dirname(self.filename)
             filenames, _selfilter = getopenfilenames(self, title, basedir,
@@ -345,7 +345,7 @@ class NamespaceBrowser(QWidget):
         if filename is None:
             filename = self.filename
             if filename is None:
-                filename = getcwd()
+                filename = getcwd_or_home()
             filename, _selfilter = getsavefilename(self, _("Save data"),
                                                    filename,
                                                    iofunctions.save_filters)
