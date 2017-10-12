@@ -51,7 +51,7 @@ from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
-from spyder.utils import encoding, programs, sourcecode
+from spyder.utils import programs, sourcecode
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
@@ -849,6 +849,7 @@ class IPythonConsole(SpyderPluginWidget):
         norm = lambda text: remove_backslashes(to_text_string(text))
 
         # Select client to execute code on it
+        is_new_client = False
         if current_client:
             client = self.get_current_client()
         else:
@@ -856,6 +857,7 @@ class IPythonConsole(SpyderPluginWidget):
             if client is None:
                 self.create_client_for_file(filename)
                 client = self.get_current_client()
+                is_new_client = True
 
         if client is not None:
             # Internal kernels, use runfile
@@ -877,7 +879,16 @@ class IPythonConsole(SpyderPluginWidget):
                 if args:
                     line += " %s" % norm(args)
             try:
-                self.execute_code(line, current_client, clear_variables)
+                if current_client:
+                    self.execute_code(line, current_client, clear_variables)
+                else:
+                    if is_new_client:
+                        client.shellwidget.silent_execute('%clear')
+                    else:
+                        client.shellwidget.execute('%clear')
+                    client.shellwidget.sig_prompt_ready.connect(
+                            lambda: self.execute_code(line, current_client,
+                                                      clear_variables))
             except AttributeError:
                 pass
             self.visibility_changed(True)
@@ -919,7 +930,7 @@ class IPythonConsole(SpyderPluginWidget):
                 if not current_client:
                     # Clear console and reset namespace for
                     # dedicated clients
-                    sw.silent_execute('%clear')
+                    sw.sig_prompt_ready.disconnect()
                     sw.silent_execute(
                         'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(warning=False, silent=True)
@@ -1416,7 +1427,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Increase time to detect if a kernel is alive
         # See Issue 3444
-        kernel_client.hb_channel.time_to_dead = 6.0
+        kernel_client.hb_channel.time_to_dead = 18.0
 
         return kernel_manager, kernel_client
 
