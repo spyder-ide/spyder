@@ -1021,12 +1021,7 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        try:
-            stderr_file = client.stderr_file
-        except PermissionError:
-            error_msg = self.permission_error_msg.format(TEMPDIR)
-            client.show_kernel_error(error_msg)
-            return
+        stderr_file = client.stderr_file
 
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
@@ -1430,7 +1425,10 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
-        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        if stderr_file is not None:
+            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        else:
+            stderr = None
         kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
