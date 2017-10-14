@@ -319,6 +319,10 @@ class DataFrameModel(QAbstractTableModel):
                     # Not possible to sort on duplicate columns #5225
                     QMessageBox.critical(self.dialog, "Error",
                                          "ValueError: %s" % to_text_string(e))
+                except SystemError as e:
+                    # Not possible to sort on category dtypes #5361
+                    QMessageBox.critical(self.dialog, "Error",
+                                         "SystemError: %s" % to_text_string(e))
                 self.update_df_index()
             else:
                 self.df.sort_index(inplace=True, ascending=ascending)
