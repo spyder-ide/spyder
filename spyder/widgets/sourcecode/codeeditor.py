@@ -307,7 +307,6 @@ class CodeEditor(TextEditBaseWidget):
         # indent guides
         self.indent_guides = self.panels.register(IndentationGuide(self),
                                                   Panel.Position.FLOATING)
-
         # Blanks enabled
         self.blanks_enabled = False
 
@@ -1713,7 +1712,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         spaces = re.findall('\s+', line_text)
         if len(spaces) - 1 >= group:
-            return len(spaces[group]) % 4 == 0
+            return len(spaces[group]) % len(self.indent_chars) == 0
 
     def __number_of_spaces(self, line_text, group=0):
         """Get the number of spaces from a group of spaces in a line."""
