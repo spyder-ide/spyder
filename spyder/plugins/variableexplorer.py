@@ -15,6 +15,7 @@ from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import add_actions
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
 from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
@@ -72,6 +73,7 @@ class VariableExplorer(SpyderPluginWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
+
 
         # Initialize plugin
         self.initialize_plugin()
@@ -138,7 +140,10 @@ class VariableExplorer(SpyderPluginWidget):
         """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self.shellwidgets:
-            nsb = NamespaceBrowser(self)
+            self.options_button.setVisible(True)
+            nsb = NamespaceBrowser(self,
+                                   options_button=self.options_button,
+                                   plugin_actions=[self.undock_action])
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
@@ -193,7 +198,7 @@ class VariableExplorer(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh widget"""
         pass
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
@@ -201,7 +206,7 @@ class VariableExplorer(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):

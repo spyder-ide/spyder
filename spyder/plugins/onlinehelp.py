@@ -28,14 +28,14 @@ class OnlineHelp(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
-        self.pydocbrowser = PydocBrowser(self)
+        # Initialize plugin
+        self.initialize_plugin()
+
+        self.pydocbrowser = PydocBrowser(self, self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.pydocbrowser)
         self.setLayout(layout)
-
-        # Initialize plugin
-        self.initialize_plugin()
 
         self.register_widget_shortcuts(self.pydocbrowser.find_widget)
         self.pydocbrowser.webview.set_zoom_factor(

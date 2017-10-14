@@ -36,7 +36,8 @@ class Breakpoints(SpyderPluginWidget):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
-        self.breakpoints = BreakpointWidget(self)
+        self.breakpoints = BreakpointWidget(self,
+                                            options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.breakpoints)
