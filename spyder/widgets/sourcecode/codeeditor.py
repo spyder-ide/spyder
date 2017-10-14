@@ -1560,6 +1560,8 @@ class CodeEditor(TextEditBaseWidget):
                                         QTextCursor.MoveAnchor,
                                         move_number)
                     cursor.insertText(prefix)
+                elif '#' not in prefix:
+                    cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
                     break
