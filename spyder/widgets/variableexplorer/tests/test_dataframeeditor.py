@@ -360,6 +360,8 @@ def test_sort_dataframe_with_duplicate_column(qtbot):
     assert [data(dfm, row, 1) for row in range(len(df))] == ['4', '5', '6']
 
 
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="It segfaults too much on Linux")
 def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
     df = DataFrame({'A': [1, 2, 3, 4],
                     'B': ['a', 'b', 'c', 'd']})
@@ -369,9 +371,9 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
     editor.setup_and_check(df_cols)
     dfm = editor.dataModel
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
-    editor.dataModel.sort(1)
-    assert data(dfm, 0, 1) == 'int64'
-    assert data(dfm, 1, 1) == 'category'
+    editor.dataModel.sort(0)
+    assert data(dfm, 0, 0) == 'int64'
+    assert data(dfm, 1, 0) == 'category'
 
 
 if __name__ == "__main__":
