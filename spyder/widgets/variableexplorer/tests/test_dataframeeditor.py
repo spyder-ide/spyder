@@ -343,8 +343,8 @@ def test_dataframeeditor_with_various_indexes():
             assert data(dfm, 19, 0) == 'b'
 
 
-
-@pytest.mark.skipif(PYQT4, reason="It generates a strange failure in another test")
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="It segfaults too much on Linux")
 def test_sort_dataframe_with_duplicate_column(qtbot):
     df = DataFrame({'A': [1, 3, 2], 'B': [4, 6, 5]})
     df = concat((df, df.A), axis=1)
