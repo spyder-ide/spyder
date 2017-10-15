@@ -20,9 +20,8 @@ from qtpy.QtWidgets import QVBoxLayout
 # Local imports
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import to_text_string
+from spyder.utils.qthelpers import add_actions, MENU_SEPARATOR
 from spyder.widgets.explorer import ExplorerWidget
-
 
 class Explorer(SpyderPluginWidget):
     """File and Directories Explorer DockWidget."""
@@ -33,18 +32,19 @@ class Explorer(SpyderPluginWidget):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
+        # Initialize plugin
+        self.initialize_plugin()
+
         self.fileexplorer = ExplorerWidget(
                                 self,
                                 name_filters=self.get_option('name_filters'),
                                 show_all=self.get_option('show_all'),
-                                show_icontext=self.get_option('show_icontext'))
+                                show_icontext=self.get_option('show_icontext'),
+                                options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.fileexplorer)
         self.setLayout(layout)
-
-        # Initialize plugin
-        self.initialize_plugin()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -66,9 +66,11 @@ class Explorer(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
         treewidget = self.fileexplorer.treewidget
+        undock = [MENU_SEPARATOR, self.undock_action]
 
         self.main.add_dockwidget(self)
         self.fileexplorer.sig_open_file.connect(self.main.open_file)
+        add_actions(self.fileexplorer.menu, undock)
 
         treewidget.sig_edit.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)

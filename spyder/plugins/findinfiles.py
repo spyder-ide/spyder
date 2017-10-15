@@ -61,7 +61,8 @@ class FindInFiles(SpyderPluginWidget):
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
                                    in_python_path, more_options,
-                                   case_sensitive, path_history)
+                                   case_sensitive, path_history,
+                                   options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)

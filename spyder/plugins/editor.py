@@ -1392,7 +1392,7 @@ class Editor(SpyderPluginWidget):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.create_new_window.connect(self.create_new_window)
+        editorstack.sig_undock_window.connect(self.undock_plugin)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
         editorstack.analysis_results_changed.connect(
@@ -1509,7 +1509,32 @@ class Editor(SpyderPluginWidget):
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
             win.set_layout_settings(layout_settings)
-        
+
+    @Slot()
+    def create_window(self):
+        """Open a new window instance of the Editor instead of undocking it."""
+        if self.dockwidget.isFloating() and not self.undocked:
+            self.dockwidget.setVisible(False)
+            self.create_new_window()
+            self.toggle_view_action.setChecked(False)
+            self.dockwidget.setFloating(False)
+        self.undocked = False
+        if self.get_current_editorstack():
+            self.get_current_editorstack().new_window = False
+
+    def undock_plugin(self):
+        """Undocks the Editor window."""
+        super(Editor, self).undock_plugin()
+        self.get_current_editorstack().new_window = True
+
+    def switch_to_plugin(self):
+        """
+        Reimplemented method to desactivate shortcut when
+        opening a new window.
+        """
+        if not self.editorwindows or self.dockwidget.isVisible():
+            super(Editor, self).switch_to_plugin()
+
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
         fullpath_sorting=self.get_option('fullpath_sorting', True),
@@ -1523,6 +1548,7 @@ class Editor(SpyderPluginWidget):
         window.load_toolbars()
         window.resize(self.size())
         window.show()
+        window.editorwidget.editorsplitter.editorstack.new_window = True
         self.register_editorwindow(window)
         window.destroyed.connect(lambda: self.unregister_editorwindow(window))
         return window
@@ -1531,6 +1557,8 @@ class Editor(SpyderPluginWidget):
         self.editorwindows.append(window)
         
     def unregister_editorwindow(self, window):
+        if len(self.editorwindows) == 1:
+            self.toggle_view_action.setChecked(True)
         self.editorwindows.pop(self.editorwindows.index(window))
     
         

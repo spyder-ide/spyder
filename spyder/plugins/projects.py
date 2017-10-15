@@ -48,7 +48,8 @@ class Projects(SpyderPluginWidget):
                             self,
                             name_filters=self.get_option('name_filters'),
                             show_all=self.get_option('show_all'),
-                            show_hscrollbar=self.get_option('show_hscrollbar'))
+                            show_hscrollbar=self.get_option('show_hscrollbar'),
+                            options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)

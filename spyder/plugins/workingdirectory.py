@@ -184,7 +184,7 @@ class WorkingDirectory(SpyderPluginWidget):
         
     def get_plugin_actions(self):
         """Setup actions"""
-        return (None, None)
+        return [None, None]
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

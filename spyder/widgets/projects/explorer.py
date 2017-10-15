@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils import misc
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, create_plugin_layout
 from spyder.widgets.explorer import FilteredDirView
 
 
@@ -173,7 +173,7 @@ class ProjectExplorerWidget(QWidget):
     sig_open_file = Signal(str)
 
     def __init__(self, parent, name_filters=[],
-                 show_all=True, show_hscrollbar=True):
+                 show_all=True, show_hscrollbar=True, options_button=None):
         QWidget.__init__(self, parent)
 
         self.name_filters = name_filters
@@ -187,8 +187,16 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget.hide()
 
         self.emptywidget = ExplorerTreeWidget(self)
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+
+        if options_button:
+            btn_layout = QHBoxLayout()
+            btn_layout.setAlignment(Qt.AlignLeft)
+            btn_layout.addStretch()
+            btn_layout.addWidget(options_button, Qt.AlignRight)
+            layout = create_plugin_layout(btn_layout)
+        else:
+            layout = QVBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)

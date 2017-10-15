@@ -343,8 +343,8 @@ def test_dataframeeditor_with_various_indexes():
             assert data(dfm, 19, 0) == 'b'
 
 
-
-@pytest.mark.skipif(PYQT4, reason="It generates a strange failure in another test")
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="It segfaults too much on Linux")
 def test_sort_dataframe_with_duplicate_column(qtbot):
     df = DataFrame({'A': [1, 3, 2], 'B': [4, 6, 5]})
     df = concat((df, df.A), axis=1)
@@ -358,6 +358,22 @@ def test_sort_dataframe_with_duplicate_column(qtbot):
     editor.dataModel.sort(1)
     assert [data(dfm, row, 0) for row in range(len(df))] == ['1', '2', '3']
     assert [data(dfm, row, 1) for row in range(len(df))] == ['4', '5', '6']
+
+
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="It segfaults too much on Linux")
+def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
+    df = DataFrame({'A': [1, 2, 3, 4],
+                    'B': ['a', 'b', 'c', 'd']})
+    df = df.astype(dtype={'B': 'category'})
+    df_cols = df.dtypes
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(df_cols)
+    dfm = editor.dataModel
+    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
+    editor.dataModel.sort(0)
+    assert data(dfm, 0, 0) == 'int64'
+    assert data(dfm, 1, 0) == 'category'
 
 
 if __name__ == "__main__":

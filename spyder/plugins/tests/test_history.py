@@ -84,9 +84,9 @@ def test_init(historylog):
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
-    assert hl.plugin_actions == hl.menu_actions
-    assert hl.tabwidget.menu.actions() == hl.menu_actions
-    assert hl.tabwidget.cornerWidget().menu().actions() == hl.menu_actions
+    assert len(hl.plugin_actions) == 5
+    assert len(hl.tabwidget.menu.actions()) == 5
+    assert len(hl.tabwidget.cornerWidget().menu().actions()) == 5
 
 
 def test_add_history(historylog, mocker, monkeypatch):

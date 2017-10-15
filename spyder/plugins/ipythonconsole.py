@@ -622,10 +622,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.testing = testing
         self.test_dir = test_dir
 
-        # Initialize plugin
-        if not self.testing:
-            self.initialize_plugin()
-
         # Create temp dir on testing to save kernel errors
         if self.testing:
             if not osp.isdir(osp.join(test_dir)):
@@ -633,7 +629,8 @@ class IPythonConsole(SpyderPluginWidget):
 
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
+        self.tabwidget = Tabs(self, menu=self.options_menu, actions=self.menu_actions,
+                              rename_tabs=True,
                               split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
@@ -669,6 +666,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Accepting drops
         self.setAcceptDrops(True)
+
+        # Initialize plugin
+        if not self.testing:
+            self.initialize_plugin()
+
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
@@ -786,12 +788,19 @@ class IPythonConsole(SpyderPluginWidget):
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
-                               connect_to_kernel_action]
-        
+                               connect_to_kernel_action,
+                               MENU_SEPARATOR]
+
         # Plugin actions
         self.menu_actions = [create_client_action, MENU_SEPARATOR,
                              restart_action, connect_to_kernel_action,
-                             MENU_SEPARATOR, rename_tab_action]
+                             MENU_SEPARATOR, rename_tab_action,
+                             MENU_SEPARATOR]
+
+        # Check for a current client. Since it manages more actions.
+        client = self.get_current_client()
+        if client:
+            return client.get_options_menu()
         
         return self.menu_actions
 
@@ -961,7 +970,8 @@ class IPythonConsole(SpyderPluginWidget):
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              menu_actions=self.menu_actions)
+                              menu_actions=self.menu_actions,
+                              options_button=self.options_button)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)

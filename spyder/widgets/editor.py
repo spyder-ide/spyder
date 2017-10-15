@@ -38,7 +38,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
                           syntaxhighlighters)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, mimedata2url)
+                                    create_toolbutton, MENU_SEPARATOR,
+                                    mimedata2url)
 from spyder.widgets.editortools import OutlineExplorerWidget
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
@@ -448,7 +449,7 @@ class EditorStack(QWidget):
     sig_close_file = Signal(str, str)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
-    create_new_window = Signal()
+    sig_undock_window = Signal()
     opened_files_list_changed = Signal()
     analysis_results_changed = Signal()
     todo_results_changed = Signal()
@@ -476,8 +477,8 @@ class EditorStack(QWidget):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.threadmanager = ThreadManager(self)
-
-        self.newwindow_action = None
+        self.new_window = False
+        self.undock_action = None
         self.horsplit_action = None
         self.versplit_action = None
         self.close_action = None
@@ -1316,10 +1317,12 @@ class EditorStack(QWidget):
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
-        # New window
-        self.newwindow_action = create_action(self, _("New window"),
-                icon=ima.icon('newwindow'), tip=_("Create a new editor window"),
-                triggered=lambda: self.create_new_window.emit())
+        # Undock Editor window
+        self.undock_action = create_action(self, _("Undock Editor window"),
+                                           icon=ima.icon('newwindow'),
+                                           tip=_("Undock the editor window"),
+                                           triggered=lambda:
+                                               self.sig_undock_window.emit())
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon=ima.icon('versplit'),
@@ -1331,8 +1334,13 @@ class EditorStack(QWidget):
                 triggered=lambda: self.split_horizontally.emit())
         self.close_action = create_action(self, _("Close this panel"),
                 icon=ima.icon('close_panel'), triggered=self.close)
-        return [None, self.newwindow_action, None,
-                self.versplit_action, self.horsplit_action, self.close_action]
+        actions = [MENU_SEPARATOR, self.undock_action,
+                   MENU_SEPARATOR, self.versplit_action,
+                   self.horsplit_action, self.close_action]
+        if self.new_window:
+            actions = [MENU_SEPARATOR, self.versplit_action,
+                       self.horsplit_action, self.close_action]
+        return actions
 
     def reset_orientation(self):
         self.horsplit_action.setEnabled(True)
@@ -2771,7 +2779,6 @@ class EditorPluginExample(QSplitter):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.create_new_window.connect(self.create_new_window)
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
