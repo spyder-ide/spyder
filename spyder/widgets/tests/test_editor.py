@@ -21,7 +21,7 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.utils.fixtures import setup_editor
-from spyder.widgets.editor import EditorStack
+from spyder.widgets.editor import EditorStack, EditorSplitter
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
 
@@ -80,6 +80,16 @@ def editor_cells_bot(base_editor_bot):
     find_replace = FindReplace(None, enable_replace=True)
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor, qtbot
+
+
+@pytest.fixture
+def editor_splitter_bot(qtbot):
+    """Create editor splitter."""
+    editor_splitter = EditorSplitter(None, Mock(), [], first=True)
+    qtbot.addWidget(editor_splitter)
+    editor_splitter.show()
+    yield editor_splitter
+    editor_splitter.destroy()
 
 
 # Tests
@@ -393,6 +403,31 @@ def test_get_current_word(base_editor_bot):
     editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
     assert '123valid_python_word' == editor.textCursor().selectedText()
     assert editor.get_current_word() == 'valid_python_word'
+
+
+def test_editor_splitter_init(editor_splitter_bot):
+    """"Test EditorSplitter.__init__."""
+    es = editor_splitter_bot
+    assert es.orientation() == Qt.Horizontal
+    assert es.testAttribute(Qt.WA_DeleteOnClose)
+    assert not es.childrenCollapsible()
+    assert not es.toolbar_list
+    assert not es.menu_list
+    assert es.register_editorstack_cb == es.plugin.register_editorstack
+    assert es.unregister_editorstack_cb == es.plugin.unregister_editorstack
+
+    # No menu actions in parameter call.
+    assert not es.menu_actions
+    # EditorStack adds its own menu actions to the existing actions.
+    assert es.editorstack.menu_actions
+
+    assert isinstance(es.editorstack, EditorStack)
+    es.plugin.register_editorstack.assert_called_with(es.editorstack)
+    es.plugin.unregister_editorstack.assert_not_called()
+    es.plugin.clone_editorstack.assert_not_called()
+
+    assert es.count() == 1
+    assert es.widget(0) == es.editorstack
 
 
 if __name__ == "__main__":
