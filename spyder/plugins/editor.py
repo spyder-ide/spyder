@@ -1513,7 +1513,8 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def create_window(self):
         """Open a new window instance of the Editor instead of undocking it."""
-        if self.dockwidget.isFloating() and not self.undocked:
+        if (self.dockwidget.isFloating() and not self.undocked and
+                self.dockwidget.main.dockwidgets_locked):
             self.dockwidget.setVisible(False)
             self.create_new_window()
             self.toggle_view_action.setChecked(False)
