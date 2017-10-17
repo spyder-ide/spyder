@@ -64,22 +64,50 @@ def get_console_background_color(style_sheet):
 #==============================================================================
 @pytest.fixture
 def ipyconsole(request):
+    """IPython console fixture."""
+
     try:
         console = IPythonConsole(None, testing=True, test_dir=request.param)
     except AttributeError:
         console = IPythonConsole(None, testing=True)
+
+    # Intruct the console to not use a stderr file
+    no_stderr_file = request.node.get_marker('no_stderr_file')
+    if no_stderr_file:
+        console.test_no_stderr = True
+
     console.create_new_client()
+
     def close_console():
         console.closing_plugin()
         console.close()
     request.addfinalizer(close_console)
     console.show()
+
     return console
 
 
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.no_stderr_file
+def test_no_stderr_file(ipyconsole, qtbot):
+    """Test that consoles can run without an stderr."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute a simple assignment
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 1')
+
+    # Assert we get the value correctly
+    assert shell.get_value('a') == 1
+
+
 @pytest.mark.parametrize('ipyconsole', [osp.join(TEMP_DIRECTORY, u'測試',
                                                  u'اختبار')], indirect=True)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
@@ -531,7 +559,7 @@ def test_restart_kernel(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Do an assigment to verify that it's not there after restarting
+    # Do an assignment to verify that it's not there after restarting
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 10')
 

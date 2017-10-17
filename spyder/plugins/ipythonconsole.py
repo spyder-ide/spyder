@@ -623,8 +623,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
+
+        # Attrs for testing
         self.testing = testing
         self.test_dir = test_dir
+        self.test_no_stderr = None
 
         # Initialize plugin
         if not self.testing:
@@ -1021,7 +1024,11 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        stderr_file = client.stderr_file
+
+        if self.test_no_stderr:
+            stderr_file = None
+        else:
+            stderr_file = client.stderr_file
 
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
