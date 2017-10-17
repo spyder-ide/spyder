@@ -602,7 +602,8 @@ class IPythonConsole(SpyderPluginWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, parent, testing=False, test_dir=TEMPDIR):
+    def __init__(self, parent, testing=False, test_dir=TEMPDIR,
+                 test_no_stderr=False):
         """Ipython Console constructor."""
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
@@ -627,7 +628,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Attrs for testing
         self.testing = testing
         self.test_dir = test_dir
-        self.test_no_stderr = None
+        self.test_no_stderr = test_no_stderr
 
         # Initialize plugin
         if not self.testing:

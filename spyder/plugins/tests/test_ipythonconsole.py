@@ -26,6 +26,7 @@ from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
 from spyder.utils.environ import listdict2envdict
 from spyder.utils.ipython.style import create_style_class
+from spyder.utils.programs import TEMPDIR
 from spyder.utils.test import close_message_box
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
@@ -69,18 +70,23 @@ def ipyconsole(request):
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_marker('non_ascii_dir')
-
-    # Create the console
     if non_ascii_dir:
-        console = IPythonConsole(None, testing=True, test_dir=NON_ASCII_DIR)
+        test_dir = NON_ASCII_DIR
     else:
-        console = IPythonConsole(None, testing=True)
+        test_dir = TEMPDIR
 
     # Instruct the console to not use a stderr file
     no_stderr_file = request.node.get_marker('no_stderr_file')
     if no_stderr_file:
-        console.test_no_stderr = True
+        test_no_stderr = True
+    else:
+        test_no_stderr = False
 
+    # Create the console and a new client
+    console = IPythonConsole(parent=None,
+                             testing=True,
+                             test_dir=test_dir,
+                             test_no_stderr=test_no_stderr)
     console.create_new_client()
 
     def close_console():
@@ -109,7 +115,7 @@ def test_no_stderr_file(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 1')
 
-    # Assert we get the value correctly
+    # Assert we get the assigned value correctly
     assert shell.get_value('a') == 1
 
 
@@ -123,15 +129,11 @@ def test_non_ascii_stderr_file(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Create a new client with s stderr file in a non-ascii dir
-    ipyconsole.create_new_client()
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    # Execute a simple assignment
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 1')
 
-    # Assert we get the a value correctly
+    # Assert we get the assigned value
     assert shell.get_value('a') == 1
 
 
