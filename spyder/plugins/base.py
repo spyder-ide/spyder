@@ -193,7 +193,8 @@ class BasePluginWidget(QWidget):
     @Slot()
     def create_window(self):
         """Open a window of the plugin instead of undocking it."""
-        if self.dockwidget.isFloating() and not self.undocked:
+        if (self.dockwidget.isFloating() and not self.undocked and
+                self.dockwidget.main.dockwidgets_locked):
             self.dockwidget.setFloating(False)
             self.dockwidget.setVisible(False)
             self.undock_action.setDisabled(True)
