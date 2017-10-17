@@ -601,7 +601,8 @@ class IPythonConsole(SpyderPluginWidget):
                              "required to create IPython consoles. Please "
                              "make it writable.")
 
-    def __init__(self, parent, testing=False, test_dir=TEMPDIR):
+    def __init__(self, parent, testing=False, test_dir=TEMPDIR,
+                 test_no_stderr=False):
         """Ipython Console constructor."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -619,8 +620,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames = []
         self.mainwindow_close = False
         self.create_new_client_if_empty = True
+
+        # Attrs for testing
         self.testing = testing
         self.test_dir = test_dir
+        self.test_no_stderr = test_no_stderr
 
         # Create temp dir on testing to save kernel errors
         if self.testing:
@@ -1020,12 +1024,11 @@ class IPythonConsole(SpyderPluginWidget):
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
-        try:
+
+        if self.test_no_stderr:
+            stderr_file = None
+        else:
             stderr_file = client.stderr_file
-        except PermissionError:
-            error_msg = self.permission_error_msg.format(TEMPDIR)
-            client.show_kernel_error(error_msg)
-            return
 
         km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
                                                               stderr_file)
@@ -1429,7 +1432,10 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
-        stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        if stderr_file is not None:
+            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+        else:
+            stderr = None
         kernel_manager.start_kernel(stderr=stderr)
 
         # Kernel client
@@ -1558,7 +1564,7 @@ class IPythonConsole(SpyderPluginWidget):
         if not osp.isdir(jupyter_runtime_dir()):
             try:
                 os.makedirs(jupyter_runtime_dir())
-            except PermissionError:
+            except (IOError, OSError):
                 return None
         cf = ''
         while not cf:

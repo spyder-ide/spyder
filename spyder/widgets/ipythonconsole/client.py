@@ -157,15 +157,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @property
     def stderr_file(self):
         """Filename to save kernel stderr output."""
+        stderr_file = None
         if self.connection_file is not None:
             stderr_file = self.kernel_id + '.stderr'
             if self.stderr_dir is not None:
                 stderr_file = osp.join(self.stderr_dir, stderr_file)
             else:
-                if not osp.isdir(TEMPDIR):
-                    os.makedirs(TEMPDIR)
-                stderr_file = osp.join(TEMPDIR, stderr_file)
-            return stderr_file
+                try:
+                    if not osp.isdir(TEMPDIR):
+                        os.makedirs(TEMPDIR)
+                    stderr_file = osp.join(TEMPDIR, stderr_file)
+                except (IOError, OSError):
+                    stderr_file = None
+        return stderr_file
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
