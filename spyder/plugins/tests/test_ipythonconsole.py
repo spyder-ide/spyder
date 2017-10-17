@@ -36,6 +36,7 @@ from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 SHELL_TIMEOUT = 20000
 PYQT_WHEEL = PYQT_VERSION > '5.6'
 TEMP_DIRECTORY = tempfile.gettempdir()
+NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 
 
 #==============================================================================
@@ -66,12 +67,16 @@ def get_console_background_color(style_sheet):
 def ipyconsole(request):
     """IPython console fixture."""
 
-    try:
-        console = IPythonConsole(None, testing=True, test_dir=request.param)
-    except AttributeError:
+    # Test the console with a non-ascii temp dir
+    non_ascii_dir = request.node.get_marker('non_ascii_dir')
+
+    # Create the console
+    if non_ascii_dir:
+        console = IPythonConsole(None, testing=True, test_dir=NON_ASCII_DIR)
+    else:
         console = IPythonConsole(None, testing=True)
 
-    # Intruct the console to not use a stderr file
+    # Instruct the console to not use a stderr file
     no_stderr_file = request.node.get_marker('no_stderr_file')
     if no_stderr_file:
         console.test_no_stderr = True
@@ -108,11 +113,11 @@ def test_no_stderr_file(ipyconsole, qtbot):
     assert shell.get_value('a') == 1
 
 
-@pytest.mark.parametrize('ipyconsole', [osp.join(TEMP_DIRECTORY, u'測試',
-                                                 u'اختبار')], indirect=True)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-def test_console_stderr_file(ipyconsole, qtbot):
-    """Test a the creation of a console with a stderr file in ascii dir."""
+@pytest.mark.non_ascii_dir
+def test_non_ascii_stderr_file(ipyconsole, qtbot):
+    """Test the creation of a console with a stderr file in a non-ascii dir."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
