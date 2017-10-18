@@ -1,5 +1,84 @@
 # History of changes
 
+## Version 3.2.4 (2017-10-18)
+
+### New features
+
+* Add compatibility with Jedi 0.11
+* Display lists with all types of elements in the Variable Explorer.
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 5416](https://github.com/spyder-ide/spyder/issues/5416) - Cannot get past splash screen
+* [Issue 5361](https://github.com/spyder-ide/spyder/issues/5361) - Sorting by column in variable explorer
+* [Issue 5330](https://github.com/spyder-ide/spyder/issues/5330) - Error in variable explorer for dicts with mixed-type keys
+* [Issue 5324](https://github.com/spyder-ide/spyder/issues/5324) - Spyder crashes because of race condition in ZMQ
+* [Issue 5317](https://github.com/spyder-ide/spyder/issues/5317) - Error when opening a new project
+* [Issue 5313](https://github.com/spyder-ide/spyder/issues/5313) - Not all lists are supported by the variable explorer
+* [Issue 5305](https://github.com/spyder-ide/spyder/issues/5305) - Error when pressing Ctrl+C in the terminal where Spyder was started 
+* [Issue 5296](https://github.com/spyder-ide/spyder/issues/5296) - Increase kernel_client.hb_channel.time_to_dead even more
+* [Issue 5294](https://github.com/spyder-ide/spyder/issues/5294) - Variable Explorer: sort by values not working
+* [Issue 5289](https://github.com/spyder-ide/spyder/issues/5289) - Checking/Unchecking path in the pathmanager is not working as expected in the IPython console
+* [Issue 5280](https://github.com/spyder-ide/spyder/issues/5280) - Enter in IPython console inserts new line when big Dataframes are in namespace
+* [Issue 5271](https://github.com/spyder-ide/spyder/issues/5271) - Problem when closing files with split editors whose tabs order are not synced.
+* [Issue 5254](https://github.com/spyder-ide/spyder/issues/5254) - Variable explorer crash when viewing numpy structured array
+* [Issue 5253](https://github.com/spyder-ide/spyder/issues/5253) - Profiler incorrectly detects recursion
+* [Issue 5232](https://github.com/spyder-ide/spyder/issues/5232) - Variable explorer raise error when try to sort dict by values
+* [Issue 5226](https://github.com/spyder-ide/spyder/issues/5226) - error when closing a file
+* [Issue 5225](https://github.com/spyder-ide/spyder/issues/5225) - Error when trying to sort dataframe with duplicate columns
+* [Issue 5213](https://github.com/spyder-ide/spyder/issues/5213) - Error when Selecting Fig from Variable Explorer
+* [Issue 5202](https://github.com/spyder-ide/spyder/issues/5202) - In ipdb, the up and down keys have a strange behaviour
+* [Issue 5200](https://github.com/spyder-ide/spyder/issues/5200) - pdb.pm() raises an Error
+* [Issue 5183](https://github.com/spyder-ide/spyder/issues/5183) - Issues with recognizing directory renaming
+* [Issue 5099](https://github.com/spyder-ide/spyder/issues/5099) - Closing last open file while being in non-existing working dir raises exception
+* [Issue 5053](https://github.com/spyder-ide/spyder/issues/5053) - AttributeError: 'NoneType' object has no attribute 'execute'
+* [Issue 5003](https://github.com/spyder-ide/spyder/issues/5003) - Error when trying to edit elements of a float numpy array in variable explorer
+* [Issue 4856](https://github.com/spyder-ide/spyder/issues/4856) - Some issues with dedicated consoles
+* [Issue 4156](https://github.com/spyder-ide/spyder/issues/4156) - "Save as" dialog extremely slow
+
+In this release 26 issues were closed
+
+**Pull requests**
+
+* [PR 5467](https://github.com/spyder-ide/spyder/pull/5467) - PR: Add an error message when sorting a dataframe on categorical dtypes 
+* [PR 5457](https://github.com/spyder-ide/spyder/pull/5457) - PR: Make consoles to start without an stderr file
+* [PR 5450](https://github.com/spyder-ide/spyder/pull/5450) - PR: Update minimal QtPy required version
+* [PR 5445](https://github.com/spyder-ide/spyder/pull/5445) - PR: Skip a Matplotlib test in PyQt4 because it's failing too much
+* [PR 5392](https://github.com/spyder-ide/spyder/pull/5392) - PR: Backport PR 5159
+* [PR 5389](https://github.com/spyder-ide/spyder/pull/5389) - PR: Fix crashing of the fileswitcher after closing the last file of the Editor.
+* [PR 5388](https://github.com/spyder-ide/spyder/pull/5388) - PR: Change spyderproject for spyproject in some missing places.
+* [PR 5358](https://github.com/spyder-ide/spyder/pull/5358) - PR: Add an error message when failing to serialize an object
+* [PR 5357](https://github.com/spyder-ide/spyder/pull/5357) - PR: Skip some tests to prevent recurrent failures and segfaults
+* [PR 5356](https://github.com/spyder-ide/spyder/pull/5356) - PR: Prevent a race condition with ZMQ during startup
+* [PR 5342](https://github.com/spyder-ide/spyder/pull/5342) - PR: Fix history browsing while debugging
+* [PR 5340](https://github.com/spyder-ide/spyder/pull/5340) - PR: Add handling for OSError's when changing directories.
+* [PR 5337](https://github.com/spyder-ide/spyder/pull/5337) - PR: Display all lists in the variable explorer
+* [PR 5336](https://github.com/spyder-ide/spyder/pull/5336) - PR: Add a safe getcwd function to handle errors when the current working was deleted
+* [PR 5327](https://github.com/spyder-ide/spyder/pull/5327) - PR: Show error when trying to sort dataframe with duplicate columns
+* [PR 5320](https://github.com/spyder-ide/spyder/pull/5320) - PR: Fix editing floats in array editor
+* [PR 5311](https://github.com/spyder-ide/spyder/pull/5311) - PR: Sync correctly the closing of files in multiple editorstacks.
+* [PR 5301](https://github.com/spyder-ide/spyder/pull/5301) - PR: Wait until console is ready before executing code for dedicated consoles
+* [PR 5298](https://github.com/spyder-ide/spyder/pull/5298) - PR: Fix some execution delays in the IPython console
+* [PR 5297](https://github.com/spyder-ide/spyder/pull/5297) - PR: A couple of fixes for Jedi 0.11
+* [PR 5295](https://github.com/spyder-ide/spyder/pull/5295) - PR: Enable sorting by values in Variable Explorer
+* [PR 5290](https://github.com/spyder-ide/spyder/pull/5290) - PR: Prevent unchecked paths in the pathmanager to be added to the IPython console sys.path
+* [PR 5272](https://github.com/spyder-ide/spyder/pull/5272) - PR: Fix recursion error in profiler
+* [PR 5259](https://github.com/spyder-ide/spyder/pull/5259) - PR: Prevent hard crash when inspecting certain structured arrays
+* [PR 5246](https://github.com/spyder-ide/spyder/pull/5246) - PR: Don't show errors when kernel_client is None
+* [PR 5245](https://github.com/spyder-ide/spyder/pull/5245) - PR: Fix some issues with the Editor Save dialog
+* [PR 5244](https://github.com/spyder-ide/spyder/pull/5244) - PR: Apply window style only if it's not None
+* [PR 5234](https://github.com/spyder-ide/spyder/pull/5234) - PR: Handle error when using deepcopy in the collections editor.
+* [PR 5229](https://github.com/spyder-ide/spyder/pull/5229) - PR: Editor historystack improvements
+* [PR 5204](https://github.com/spyder-ide/spyder/pull/5204) - PR: Fix calling pdb.pm() in a console
+
+In this release 30 pull requests were merged
+
+
+----
+
+
 ## Version 3.2.3 (2017-09-11)
 
 ### New features
