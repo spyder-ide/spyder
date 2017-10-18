@@ -1021,7 +1021,7 @@ class Editor(SpyderPluginWidget):
                 'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
         showcode_analysis_pep8_action = self._create_checkable_action(
-                _("Show code syle warnings (pep8)"),
+                _("Show code style warnings (pep8)"),
                 'code_analysis/pep8', 'set_pep8_enabled')
 
         self.checkable_actions = {
