@@ -1596,7 +1596,10 @@ class EditorStack(QWidget):
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
         if self.convert_eol_on_save:
-            osname = self.convert_eol_on_save_to
+            # hack to account for the fact that the config file saves
+            # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
+            osname_lookup = {'LF': 'posix', 'CRLF': 'nt', 'CR': 'mac'}
+            osname = osname_lookup[self.convert_eol_on_save_to]
             self.set_os_eol_chars(osname=osname)
         txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
@@ -2222,12 +2225,12 @@ class EditorStack(QWidget):
 
     def set_os_eol_chars(self, index=None, osname=None):
         """Sets the EOL character(s) based on the operating system.
-
+        
         If `osname` is None, then the default line endings for the current
         operating system (`os.name` value) will be used.
-
+        
         `osname` can be one of:
-            ('posix', 'nt', 'java', 'CR', 'LF', 'CRFL')
+            ('posix', 'nt', 'java')
         """
         if osname is None:
             osname = os.name
