@@ -20,6 +20,7 @@ import os.path as osp
 import os
 import shutil
 import sys
+import warnings
 
 # Local imports
 from spyder.utils import encoding
@@ -59,6 +60,7 @@ DEBUG = _get_debug_env()
 
 def debug_print(*message):
     """Output debug messages to stdout"""
+    warnings.warn("Debug_print is deprecated use logging module instead.")
     if DEBUG:
         ss = STDOUT
         if PY3:
