@@ -1020,11 +1020,16 @@ class Editor(SpyderPluginWidget):
                 _("Show selector for classes and functions."),
                 'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
+        showcode_analysis_pep8_action = self._create_checkable_action(
+                _("Show code syle warnings (pep8)"),
+                'code_analysis/pep8', 'set_pep8_enabled')
+
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
-                'show_class_func_dropdown': show_classfunc_dropdown_action}
+                'show_class_func_dropdown': show_classfunc_dropdown_action,
+                'code_analysis/pep8': showcode_analysis_pep8_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -1148,6 +1153,7 @@ class Editor(SpyderPluginWidget):
                                scrollpastend_action,
                                showindentguides_action,
                                show_classfunc_dropdown_action,
+                               showcode_analysis_pep8_action,
                                trailingspaces_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
@@ -1266,6 +1272,12 @@ class Editor(SpyderPluginWidget):
                     editorstack.__getattribute__(editorstack_method)(checked)
                 except AttributeError as e:
                     debug_print("Error {}".format(str))
+                # Run code analysis when `set_pep8_enabled` is toggled
+                if editorstack_method == 'set_pep8_enabled':
+                    for finfo in editorstack.data:
+                        finfo.run_code_analysis(
+                                self.get_option('code_analysis/pyflakes'),
+                                checked)
         CONF.set('editor', conf_name, checked)
 
     #------ Focus tabwidget
