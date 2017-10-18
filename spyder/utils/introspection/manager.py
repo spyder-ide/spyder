@@ -8,6 +8,7 @@
 from __future__ import print_function
 from collections import OrderedDict
 import time
+import logging
 
 # Third party imports
 from qtpy.QtCore import QObject, QTimer, Signal
@@ -15,11 +16,12 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, DEBUG, debug_print, get_conf_path
+from spyder.config.base import _, DEBUG, get_conf_path
 from spyder.utils import sourcecode
 from spyder.utils.introspection.plugin_client import PluginClient
 from spyder.utils.introspection.utils import CodeInfo
 
+logger = logging.getLogger(__name__)
 
 PLUGINS = ['rope', 'jedi', 'fallback']
 
@@ -52,10 +54,9 @@ class PluginManager(QObject):
                 plugin = PluginClient(name, executable, extra_path=extra_path)
                 plugin.run()
             except Exception as e:
-                debug_print('Introspection Plugin Failed: %s' % name)
-                debug_print(str(e))
+                logger.exception('Introspection Plugin Failed: %s', name)
                 continue
-            debug_print('Introspection Plugin Loaded: %s' % name)
+            logger.debug('Introspection Plugin Loaded: %s', name)
             plugins[name] = plugin
             plugin.received.connect(self.handle_response)
         self.plugins = plugins
@@ -74,9 +75,9 @@ class PluginManager(QObject):
             if info.serialize() != self.info.serialize():
                 self.pending_request = info
             else:
-                debug_print('skipping duplicate request')
+                logger.debug('skipping duplicate request')
             return
-        debug_print('%s request' % info.name)
+        logger.debug('%s request', info.name)
         desired = None
         self.info = info
         editor = info.editor
@@ -121,7 +122,7 @@ class PluginManager(QObject):
         if not name:
             return
         if response.get('error', None):
-            debug_print('Response error:', response['error'])
+            logger.debug('Response error: %s', response['error'])
             return
         if name == self.desired[0] or not self.waiting:
             if response.get('result', None):
@@ -132,16 +133,16 @@ class PluginManager(QObject):
     def close(self):
         for name, plugin in self.plugins.items():
             plugin.close()
-            debug_print("Introspection Plugin Closed: {}".format(name))
+            logger.debug("Introspection Plugin Closed: %s", name)
 
     def _finalize(self, response):
         self.waiting = False
         self.pending = None
         if self.info:
             delta = time.time() - self._start_time
-            debug_print('%s request from %s finished: "%s" in %.1f sec'
-                % (self.info.name, response['name'],
-                   str(response['result'])[:100], delta))
+            logger.debug('%s request from %s finished: "%.100s" in %.1f sec',
+                         self.info.name, response['name'], response['result'],
+                         delta)
             response['info'] = self.info
             self.introspection_complete.emit(response)
             self.info = None
@@ -155,7 +156,7 @@ class PluginManager(QObject):
         if self.pending:
             self._finalize(self.pending)
         else:
-            debug_print('No valid responses acquired')
+            logger.debug('No valid responses acquired')
 
 
 class IntrospectionManager(QObject):
@@ -256,7 +257,7 @@ class IntrospectionManager(QObject):
             try:
                 func(result, current, info)
             except Exception as e:
-                debug_print(e)
+                logger.exception("Error handling introspection result")
 
     def _handle_completions_result(self, comp_list, info, prev_info):
         """

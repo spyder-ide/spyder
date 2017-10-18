@@ -34,8 +34,9 @@ import sys
 import threading
 import traceback
 import importlib
+import logging
 
-
+logger = logging.getLogger(__name__)
 #==============================================================================
 # Keeping a reference to the original sys.exit before patching it
 #==============================================================================
@@ -137,7 +138,7 @@ else:
 from spyder import __version__, __project_url__, __forum_url__, get_versions
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
-                                debug_print, MAC_APP_NAME, get_home_dir,
+                                MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
@@ -264,7 +265,7 @@ class MainWindow(QMainWindow):
         self.new_instance = options.new_instance
         self.open_project = options.open_project
 
-        self.debug_print("Start of MainWindow constructor")
+        logger.debug("Start of MainWindow constructor")
 
         def signal_handler(signum, frame=None):
             """Handler for signals."""
@@ -445,7 +446,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(icon)
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
-            debug_print("appusermodelid: " + str(res))
+            logger.debug("appusermodelid: %s", res)
 
         # Setting QTimer if running in travis
         test_travis = os.environ.get('TEST_CI_APP', None)
@@ -511,11 +512,7 @@ class MainWindow(QMainWindow):
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
         self.apply_settings()
-        self.debug_print("End of MainWindow constructor")
-
-    def debug_print(self, message):
-        """Debug prints"""
-        debug_print(message)
+        logger.debug("End of MainWindow constructor")
 
     #---- Window setup
     def create_toolbar(self, title, object_name, iconsize=24):
@@ -528,8 +525,8 @@ class MainWindow(QMainWindow):
 
     def setup(self):
         """Setup main window"""
-        self.debug_print("*** Start of MainWindow setup ***")
-        self.debug_print("  ..core actions")
+        logger.debug("*** Start of MainWindow setup ***")
+        logger.debug("  ..core actions")
         self.close_dockwidget_action = create_action(self,
                                     icon=ima.icon('DialogCloseButton'),
                                     text=_("Close current pane"),
@@ -606,7 +603,7 @@ class MainWindow(QMainWindow):
                                   self.paste_action, self.selectall_action]
 
         namespace = None
-        self.debug_print("  ..toolbars")
+        logger.debug("  ..toolbars")
         # File menu/toolbar
         self.file_menu = self.menuBar().addMenu(_("&File"))
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
@@ -658,7 +655,7 @@ class MainWindow(QMainWindow):
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
 
-        self.debug_print("  ..tools")
+        logger.debug("  ..tools")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
                                         icon=ima.icon('configure'),
@@ -728,7 +725,7 @@ class MainWindow(QMainWindow):
             self.external_tools_menu_actions += [None] + additact
 
         # Guidata and Sift
-        self.debug_print("  ..sift?")
+        logger.debug("  ..sift?")
         gdgq_act = []
         # Guidata and Guiqwt don't support PyQt5 yet and they fail
         # with an AssertionError when imported using those bindings
@@ -794,7 +791,7 @@ class MainWindow(QMainWindow):
                                                 "main_toolbar")
 
         # Internal console plugin
-        self.debug_print("  ..plugin: internal console")
+        logger.debug("  ..plugin: internal console")
         from spyder.plugins.console.plugin import Console
         self.console = Console(self, namespace, exitfunc=self.closing,
                             profile=self.profile,
@@ -808,7 +805,7 @@ class MainWindow(QMainWindow):
         self.console.register_plugin()
 
         # Working directory plugin
-        self.debug_print("  ..plugin: working directory")
+        logger.debug("  ..plugin: working directory")
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
         self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
         self.workingdirectory.register_plugin()
@@ -855,7 +852,7 @@ class MainWindow(QMainWindow):
                                    restart_action, quit_action]
         self.set_splash("")
 
-        self.debug_print("  ..widgets")
+        logger.debug("  ..widgets")
 
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
@@ -1157,7 +1154,7 @@ class MainWindow(QMainWindow):
         self.all_actions_defined.emit()
 
         # Window set-up
-        self.debug_print("Setting up window...")
+        logger.debug("Setting up window...")
         self.setup_layout(default=False)
 
         # Show and hide shortcuts in menus for Mac.
@@ -1189,7 +1186,7 @@ class MainWindow(QMainWindow):
                 except TypeError:
                     pass
 
-        self.debug_print("*** End of MainWindow setup ***")
+        logger.debug("*** End of MainWindow setup ***")
         self.is_starting_up = False
 
     def post_visible_setup(self):
@@ -2109,7 +2106,7 @@ class MainWindow(QMainWindow):
         if self.splash is None:
             return
         if message:
-            self.debug_print(message)
+            logger.debug(message)
         self.splash.show()
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter |
                                 Qt.AlignAbsolute, QColor(Qt.white))

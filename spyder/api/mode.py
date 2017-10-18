@@ -9,7 +9,9 @@
 This module contains the editor extension API.
 Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/mode.py
 """
-from spyder.config.base import debug_print
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Mode(object):
@@ -83,7 +85,7 @@ class Mode(object):
         self._on_close = False
 
     def __del__(self):
-        debug_print('{}.__del__'.format(type(self)))
+        logger.debug('%s.__del__', type(self))
 
     def on_install(self, editor):
         """

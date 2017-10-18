@@ -15,6 +15,7 @@
 import os
 import os.path as osp
 import sys
+import logging
 
 # Third party imports
 from qtpy.compat import getopenfilename
@@ -23,7 +24,7 @@ from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QVBoxLayout,
                             QMessageBox)
 
 # Local imports
-from spyder.config.base import _, debug_print
+from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
@@ -36,6 +37,8 @@ from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
 from spyder.api.plugins  import SpyderPluginWidget
 from spyder.py3compat import getcwd, to_text_string
+
+logger = logging.getLogger(__name__)
 
 
 class Console(SpyderPluginWidget):
@@ -51,7 +54,7 @@ class Console(SpyderPluginWidget):
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
 
-        debug_print("    ..internal console: initializing")
+        logger.debug("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
 
         # Shell
@@ -283,7 +286,7 @@ class Console(SpyderPluginWidget):
                 filename = osp.basename(filename)
             else:
                 return
-        debug_print(args)
+        logger.debug("Running script with %s", args)
         filename = osp.abspath(filename)
         rbs = remove_backslashes
         command = "runfile('%s', args='%s')" % (rbs(filename), rbs(args))

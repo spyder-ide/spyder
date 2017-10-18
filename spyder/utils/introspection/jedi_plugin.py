@@ -11,8 +11,8 @@ import re
 import os.path as osp
 import sys
 import time
+import logging
 
-from spyder.config.base import debug_print
 from spyder.utils import programs
 from spyder.utils.debug import log_last_error, log_dt
 from spyder.utils.dochelpers import getsignaturefromtext
@@ -29,6 +29,8 @@ try:
         import jedi
 except ImportError:
     jedi = None
+
+logger = logging.getLogger(__name__)
 
 
 class JediPlugin(IntrospectionPlugin):
@@ -55,7 +57,7 @@ class JediPlugin(IntrospectionPlugin):
         if DEBUG_EDITOR:
             log_last_error(LOG_FILENAME, str("comp: " + str(completions)[:100]))
         completions = [(c.name, c.type) for c in completions]
-        debug_print(str(completions)[:100])
+        logger.debug("Jedi completions: %.100s", completions)
         return completions
 
     def get_info(self, info):
@@ -119,7 +121,7 @@ class JediPlugin(IntrospectionPlugin):
                                         mod_name)
         argspec = argspec.replace(' = ', '=')
         calltip = calltip.replace(' = ', '=')
-        debug_print(call_def.name)
+        logger.debug("Jedi object name: %s", call_def.name)
 
         doc_info = dict(name=name, argspec=argspec,
                         note=note, docstring=docstring, calltip=calltip)
@@ -184,8 +186,7 @@ class JediPlugin(IntrospectionPlugin):
             val = func()
         except Exception as e:
             val = None
-            debug_print('Jedi error (%s)' % func_name)
-            debug_print(str(e))
+            logger.exception('Jedi error: (%s)', func_name)
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, str(e))
         if DEBUG_EDITOR:

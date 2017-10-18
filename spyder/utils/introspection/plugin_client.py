@@ -10,6 +10,7 @@ import os
 import os.path as osp
 import sys
 import uuid
+import logging
 
 # Third party imports
 from qtpy.QtCore import (QObject, QProcess, QProcessEnvironment,
@@ -18,8 +19,9 @@ from qtpy.QtWidgets import QApplication
 import zmq
 
 # Local imports
-from spyder.config.base import debug_print, get_module_path
+from spyder.config.base import get_module_path
 
+logger = logging.getLogger(__name__)
 
 # Heartbeat timer in milliseconds
 HEARTBEAT = 1000
@@ -95,8 +97,8 @@ class AsyncClient(QObject):
                     python_path = osp.pathsep.join([python_path] +
                                                    self.extra_path)
                 except Exception as e:
-                    debug_print("Error when adding extra_path to plugin env")
-                    debug_print(e)
+                    logger.exception(
+                            "Error when adding extra_path to plugin env")
             env.append("PYTHONPATH=%s" % python_path)
         if self.env:
             env.update(self.env)
@@ -159,16 +161,16 @@ class AsyncClient(QObject):
         if self.closing:
             return
         if self.is_initialized:
-            debug_print('Restarting %s' % self.name)
-            debug_print(self.process.readAllStandardOutput())
-            debug_print(self.process.readAllStandardError())
+            logger.debug('Restarting %s', self.name)
+            logger.debug(self.process.readAllStandardOutput())
+            logger.debug(self.process.readAllStandardError())
             self.is_initialized = False
             self.notifier.setEnabled(False)
             self.run()
         else:
-            debug_print('Errored %s' % self.name)
-            debug_print(self.process.readAllStandardOutput())
-            debug_print(self.process.readAllStandardError())
+            logger.debug('Errored %s', self.name)
+            logger.debug(self.process.readAllStandardOutput())
+            logger.debug(self.process.readAllStandardError())
             self.errored.emit()
 
     def _on_msg_received(self):
@@ -183,7 +185,7 @@ class AsyncClient(QObject):
                 return
             if not self.is_initialized:
                 self.is_initialized = True
-                debug_print('Initialized %s' % self.name)
+                logger.debug('Initialized %s', self.name)
                 self.initialized.emit()
                 self.timer.start(HEARTBEAT)
                 continue
@@ -201,7 +203,7 @@ class AsyncClient(QObject):
         try:
             self.socket.send_pyobj(obj, zmq.NOBLOCK)
         except Exception as e:
-            debug_print(e)
+            logger.exception("Error sending the object through the socket")
             self.is_initialized = False
             self._on_finished()
 

@@ -11,6 +11,7 @@ from __future__ import print_function
 import os
 import re
 import sys
+import logging
 
 # Third party imports
 from qtpy import PYQT5
@@ -24,7 +25,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QTableView, QVBoxLayout)
 
 # Local imports
-from spyder.config.base import _, debug_print
+from spyder.config.base import _
 from spyder.config.gui import (get_shortcut, iter_shortcuts,
                                reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -34,6 +35,7 @@ from spyder.utils.stringmatching import get_search_scores, get_search_regex
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.widgets.helperwidgets import HelperToolButton
 
+logger = logging.getLogger(__name__)
 
 MODIFIERS = {Qt.Key_Shift: Qt.SHIFT,
              Qt.Key_Control: Qt.CTRL,
@@ -217,7 +219,7 @@ class ShortcutEditor(QDialog):
         self.key_text.append(e.text())
         self.invalid_key_flag = False
 
-        debug_print('key {0}, npressed: {1}'.format(key, self.npressed))
+        logger.debug('key %s, npressed: %s', key, self.npressed)
 
         if key == Qt.Key_unknown:
             return
@@ -237,7 +239,7 @@ class ShortcutEditor(QDialog):
             key += Qt.CTRL
             if sys.platform == 'darwin':
                 self.npressed -= 1
-            debug_print('decrementing')
+            logger.debug('decrementing')
         if modifiers & Qt.AltModifier:
             key += Qt.ALT
         if modifiers & Qt.MetaModifier:
@@ -295,7 +297,7 @@ class ShortcutEditor(QDialog):
             if not self.edit_state:
                 self.nonedit_keyrelease(e)
             else:
-                debug_print('keys: {}'.format(self.keys))
+                logger.debug('keys: {}', self.keys)
                 if self.keys and key != Qt.Key_Escape:
                     self.validate_sequence()
                 self.keys = set()
