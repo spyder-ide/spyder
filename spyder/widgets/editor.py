@@ -525,10 +525,9 @@ class EditorStack(QWidget):
            text= _("Show in external file explorer")
         external_fileexp_action = create_action(self, text,
                                 triggered=self.show_in_external_file_explorer)
-                
-        actions.append(external_fileexp_action)
-        
-        self.menu_actions = actions + [None, fileswitcher_action,
+
+        self.menu_actions = actions + [external_fileexp_action,
+                                       None, fileswitcher_action,
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this]
