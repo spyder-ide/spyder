@@ -575,6 +575,8 @@ class EditorStack(QWidget):
         self.occurrence_highlighting_timeout=1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
+        self.convert_eol_on_save = False
+        self.convert_eol_on_save_to = 'LF'
         self.fullpath_sorting_enabled = None
         self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
@@ -1170,6 +1172,16 @@ class EditorStack(QWidget):
         # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
         self.always_remove_trailing_spaces = state
 
+    def set_convert_eol_on_save(self, state):
+        """If `state` is `True`, saving files will convert line endings."""
+        # CONF.get(self.CONF_SECTION, 'convert_eol_on_save')
+        self.convert_eol_on_save = state
+
+    def set_convert_eol_on_save_to(self, state):
+        """`state` can be one of ('LF', 'CRLF', 'CR')"""
+        # CONF.get(self.CONF_SECTION, 'convert_eol_on_save_to')
+        self.convert_eol_on_save_to = state
+
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
 
@@ -1582,6 +1594,12 @@ class EditorStack(QWidget):
             return self.save_as(index=index)
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
+        if self.convert_eol_on_save:
+            # hack to account for the fact that the config file saves
+            # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
+            osname_lookup = {'LF': 'posix', 'CRLF': 'nt', 'CR': 'mac'}
+            osname = osname_lookup[self.convert_eol_on_save_to]
+            self.set_os_eol_chars(osname=osname)
         txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename,
@@ -2204,11 +2222,21 @@ class EditorStack(QWidget):
         self.is_analysis_done = False
         return finfo
 
-    def set_os_eol_chars(self, index=None):
+    def set_os_eol_chars(self, index=None, osname=None):
+        """Sets the EOL character(s) based on the operating system.
+        
+        If `osname` is None, then the default line endings for the current
+        operating system (`os.name` value) will be used.
+        
+        `osname` can be one of:
+            ('posix', 'nt', 'java')
+        """
+        if osname is None:
+            osname = os.name
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        eol_chars = sourcecode.get_eol_chars_from_os_name(os.name)
+        eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
         finfo.editor.set_eol_chars(eol_chars)
         finfo.editor.document().setModified(True)
 
