@@ -589,7 +589,8 @@ class TestEditorSplitter:
         # Each splitter gets its own editor stack as the first widget.
         assert es.widget(1).count() == 1
         assert es.widget(1).editorstack == es.widget(1).widget(0)
-        es.widget(1).plugin.clone_editorstack.assert_called()
+        es.widget(1).plugin.clone_editorstack.assert_called_with(
+                                        editorstack=es.widget(1).editorstack)
 
         # Create a horizontal split on original widget.
         es.editorstack.sig_split_horizontally.emit()  # Call from signal.
@@ -699,7 +700,8 @@ class TestEditorSplitter:
         assert es.count() == 2  # One EditorStack and one EditorSplitter.
         assert es.widget(1).count() == 2  # One EditorStack and one EditorSplitter.
         assert es.widget(1).widget(1).count() == 1  # One EditorStack.
-        assert get_settings['hexstate'] == state
+        if not PY2:
+            assert get_settings['hexstate'] == state
 
         # All the lines for each tab and split are at the last line number.
         assert get_settings['splitsettings'] == [(False, 'foo.py', [5, 2, linecount]),
