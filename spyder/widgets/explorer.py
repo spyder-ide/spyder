@@ -34,12 +34,13 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QWidget)
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import (getcwd, str_lower, to_binary_string,
+from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, misc, programs, vcs
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     create_plugin_layout)
+from spyder.utils.misc import getcwd_or_home
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -1092,7 +1093,7 @@ class ExplorerTreeWidget(DirView):
         """Refresh widget
         force=False: won't refresh widget if path has not changed"""
         if new_path is None:
-            new_path = getcwd()
+            new_path = getcwd_or_home()
         if force_current:
             index = self.set_current_folder(new_path)
             self.expand(index)
@@ -1113,7 +1114,7 @@ class ExplorerTreeWidget(DirView):
     @Slot()
     def go_to_parent_directory(self):
         """Go to parent directory"""
-        self.chdir( osp.abspath(osp.join(getcwd(), os.pardir)) )
+        self.chdir(osp.abspath(osp.join(getcwd_or_home(), os.pardir)))
 
     @Slot()
     def go_to_previous_directory(self):
@@ -1180,7 +1181,8 @@ class ExplorerWidget(QWidget):
     open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 show_all=False, show_cd_only=None, show_icontext=True):
+                 show_all=False, show_cd_only=None, show_icontext=True,
+                 options_button=None, menu=None):
         QWidget.__init__(self, parent)
 
         # Widgets
@@ -1188,8 +1190,11 @@ class ExplorerWidget(QWidget):
         button_previous = QToolButton(self)
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
-        self.button_menu = QToolButton(self)
-        menu = QMenu(self)
+        self.button_menu = options_button or QToolButton(self)
+        if menu:
+            self.menu = menu
+        else:
+            self.menu = QMenu(self)
 
         self.action_widgets = [button_previous, button_next, button_parent,
                                self.button_menu]
@@ -1206,11 +1211,10 @@ class ExplorerWidget(QWidget):
         parent_action = create_action(self, text=_("Parent"),
                             icon=ima.icon('ArrowUp'),
                             triggered=self.treewidget.go_to_parent_directory)
-        options_action = create_action(self, text='', tip=_('Options'))
 
         # Setup widgets
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
-        self.treewidget.chdir(getcwd())
+        self.treewidget.chdir(getcwd_or_home())
         self.treewidget.common_actions += [None, icontext_action]
 
         button_previous.setDefaultAction(previous_action)
@@ -1223,9 +1227,8 @@ class ExplorerWidget(QWidget):
 
         self.button_menu.setIcon(ima.icon('tooloptions'))
         self.button_menu.setPopupMode(QToolButton.InstantPopup)
-        self.button_menu.setMenu(menu)
-        add_actions(menu, self.treewidget.common_actions)
-        options_action.setMenu(menu)
+        self.button_menu.setMenu(self.menu)
+        add_actions(self.menu, self.treewidget.common_actions)
 
         self.toggle_icontext(show_icontext)
         icontext_action.setChecked(show_icontext)

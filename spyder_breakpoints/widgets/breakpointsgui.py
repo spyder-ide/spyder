@@ -21,13 +21,14 @@ from qtpy import API
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QTextCodec, Qt,
                          Signal)
-from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QHBoxLayout,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_translation
 from spyder.config.main import CONF
-from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_plugin_layout)
 
 # This is needed for testing this module as a stand alone script
 try:
@@ -221,14 +222,21 @@ class BreakpointWidget(QWidget):
     clear_breakpoint = Signal(str, int)
     edit_goto = Signal(str, int, str)
     
-    def __init__(self, parent):
+    def __init__(self, parent, options_button=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Breakpoints")        
         self.dictwidget = BreakpointTableView(self, 
                                self._load_all_breakpoints())
-        layout = QVBoxLayout()
-        layout.addWidget(self.dictwidget)
+        if options_button:
+            btn_layout = QHBoxLayout()
+            btn_layout.setAlignment(Qt.AlignLeft)
+            btn_layout.addStretch()
+            btn_layout.addWidget(options_button, Qt.AlignRight)
+            layout = create_plugin_layout(btn_layout, self.dictwidget)
+        else:
+            layout = QVBoxLayout()
+            layout.addWidget(self.dictwidget)
         self.setLayout(layout)
         self.dictwidget.clear_all_breakpoints.connect(
                                      lambda: self.clear_all_breakpoints.emit())

@@ -33,9 +33,10 @@ from spyder.config.gui import get_font, set_font
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.config.utils import is_gtk_desktop
-from spyder.py3compat import to_text_string, is_text_string, getcwd
+from spyder.py3compat import to_text_string, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
@@ -521,7 +522,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Select directory"""
         basedir = to_text_string(edit.text())
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         title = _("Select directory")
         directory = getexistingdirectory(self, title, basedir)
         if directory:
@@ -551,7 +552,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Select File"""
         basedir = osp.dirname(to_text_string(edit.text()))
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         if filters is None:
             filters = _("All files (*)")
         title = _("Select file")

@@ -35,11 +35,12 @@ from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
-from spyder.py3compat import getcwd, PY2, qbytearray_to_str, to_text_string
+from spyder.py3compat import PY2, qbytearray_to_str, to_text_string
 from spyder.utils import codeanalysis, encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection.manager import IntrospectionManager
 from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.editor import (EditorMainWindow, EditorSplitter,
                                    EditorStack, Printer)
@@ -359,10 +360,29 @@ class EditorConfigPage(PluginConfigPage):
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
                               'check_eol_chars', default=True)
+        convert_eol_on_save_box = newcb(_("On Save: convert EOL characters"
+                                          " to"),
+                                        'convert_eol_on_save', default=False)
+        eol_combo_choices = ((_("LF (UNIX)"), 'LF'),
+                             (_("CRLF (Windows)"), 'CRLF'),
+                             (_("CR (Mac)"), 'CR'),
+                             )
+        convert_eol_on_save_combo = self.create_combobox("",
+                                                         eol_combo_choices,
+                                                         'convert_eol_on_save_to',
+                                                         )
+        convert_eol_on_save_box.toggled.connect(convert_eol_on_save_combo.setEnabled)
+        convert_eol_on_save_combo.setEnabled(
+                self.get_option('convert_eol_on_save'))
+
+        eol_on_save_layout = QHBoxLayout()
+        eol_on_save_layout.addWidget(convert_eol_on_save_box)
+        eol_on_save_layout.addWidget(convert_eol_on_save_combo)
 
         eol_layout = QVBoxLayout()
         eol_layout.addWidget(eol_label)
         eol_layout.addWidget(check_eol_box)
+        eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
         
         tabs = QTabWidget()
@@ -1059,11 +1079,16 @@ class Editor(SpyderPluginWidget):
                 _("Show selector for classes and functions."),
                 'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
+        showcode_analysis_pep8_action = self._create_checkable_action(
+                _("Show code style warnings (pep8)"),
+                'code_analysis/pep8', 'set_pep8_enabled')
+
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
-                'show_class_func_dropdown': show_classfunc_dropdown_action}
+                'show_class_func_dropdown': show_classfunc_dropdown_action,
+                'code_analysis/pep8': showcode_analysis_pep8_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -1187,6 +1212,7 @@ class Editor(SpyderPluginWidget):
                                scrollpastend_action,
                                showindentguides_action,
                                show_classfunc_dropdown_action,
+                               showcode_analysis_pep8_action,
                                trailingspaces_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
@@ -1307,6 +1333,12 @@ class Editor(SpyderPluginWidget):
                     editorstack.__getattribute__(editorstack_method)(checked)
                 except AttributeError as e:
                     debug_print("Error {}".format(str))
+                # Run code analysis when `set_pep8_enabled` is toggled
+                if editorstack_method == 'set_pep8_enabled':
+                    for finfo in editorstack.data:
+                        finfo.run_code_analysis(
+                                self.get_option('code_analysis/pyflakes'),
+                                checked)
         CONF.set('editor', conf_name, checked)
 
     #------ Focus tabwidget
@@ -1404,6 +1436,8 @@ class Editor(SpyderPluginWidget):
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
+            ('set_convert_eol_on_save',             'convert_eol_on_save'),
+            ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
@@ -1435,7 +1469,7 @@ class Editor(SpyderPluginWidget):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.create_new_window.connect(self.create_new_window)
+        editorstack.sig_undock_window.connect(self.undock_plugin)
         editorstack.opened_files_list_changed.connect(
                                                 self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
@@ -1555,7 +1589,33 @@ class Editor(SpyderPluginWidget):
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
             win.set_layout_settings(layout_settings)
-        
+
+    @Slot()
+    def create_window(self):
+        """Open a new window instance of the Editor instead of undocking it."""
+        if (self.dockwidget.isFloating() and not self.undocked and
+                self.dockwidget.main.dockwidgets_locked):
+            self.dockwidget.setVisible(False)
+            self.create_new_window()
+            self.toggle_view_action.setChecked(False)
+            self.dockwidget.setFloating(False)
+        self.undocked = False
+        if self.get_current_editorstack():
+            self.get_current_editorstack().new_window = False
+
+    def undock_plugin(self):
+        """Undocks the Editor window."""
+        super(Editor, self).undock_plugin()
+        self.get_current_editorstack().new_window = True
+
+    def switch_to_plugin(self):
+        """
+        Reimplemented method to desactivate shortcut when
+        opening a new window.
+        """
+        if not self.editorwindows or self.dockwidget.isVisible():
+            super(Editor, self).switch_to_plugin()
+
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
         fullpath_sorting=self.get_option('fullpath_sorting', True),
@@ -1569,6 +1629,7 @@ class Editor(SpyderPluginWidget):
         window.load_toolbars()
         window.resize(self.size())
         window.show()
+        window.editorwidget.editorsplitter.editorstack.new_window = True
         self.register_editorwindow(window)
         window.destroyed.connect(lambda: self.unregister_editorwindow(window))
         return window
@@ -1577,6 +1638,8 @@ class Editor(SpyderPluginWidget):
         self.editorwindows.append(window)
         
     def unregister_editorwindow(self, window):
+        if len(self.editorwindows) == 1:
+            self.toggle_view_action.setChecked(True)
         self.editorwindows.pop(self.editorwindows.index(window))
     
         
@@ -1886,7 +1949,7 @@ class Editor(SpyderPluginWidget):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            basedir = getcwd()
+            basedir = getcwd_or_home()
 
             if self.main.projects.get_active_project() is not None:
                 basedir = self.main.projects.get_active_project_path()
@@ -1976,7 +2039,7 @@ class Editor(SpyderPluginWidget):
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
         if not filenames:
-            basedir = getcwd()
+            basedir = getcwd_or_home()
             if self.edit_filetypes is None:
                 self.edit_filetypes = get_edit_filetypes()
             if self.edit_filters is None:
@@ -2666,6 +2729,10 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
+            converteol_n = 'convert_eol_on_save'
+            converteol_o = self.get_option(converteol_n)
+            converteolto_n = 'convert_eol_on_save_to'
+            converteolto_o = self.get_option(converteolto_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
@@ -2728,6 +2795,10 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
                     editorstack.set_always_remove_trailing_spaces(removetrail_o)
+                if converteol_n in options:
+                    editorstack.set_convert_eol_on_save(converteol_o)
+                if converteolto_n in options:
+                    editorstack.set_convert_eol_on_save_to(converteolto_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:

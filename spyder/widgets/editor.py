@@ -38,7 +38,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import (codeanalysis, encoding, sourcecode,
                           syntaxhighlighters)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, mimedata2url)
+                                    create_toolbutton, MENU_SEPARATOR,
+                                    mimedata2url)
 from spyder.widgets.editortools import OutlineExplorerWidget
 from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
@@ -453,7 +454,7 @@ class EditorStack(QWidget):
     sig_close_file = Signal(str, str)
     file_saved = Signal(str, int, str)
     file_renamed_in_data = Signal(str, int, str)
-    create_new_window = Signal()
+    sig_undock_window = Signal()
     opened_files_list_changed = Signal()
     active_languages_stats = Signal(set)
     analysis_results_changed = Signal()
@@ -483,8 +484,8 @@ class EditorStack(QWidget):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.threadmanager = ThreadManager(self)
-
-        self.newwindow_action = None
+        self.new_window = False
+        self.undock_action = None
         self.horsplit_action = None
         self.versplit_action = None
         self.close_action = None
@@ -531,10 +532,9 @@ class EditorStack(QWidget):
            text= _("Show in external file explorer")
         external_fileexp_action = create_action(self, text,
                                 triggered=self.show_in_external_file_explorer)
-                
-        actions.append(external_fileexp_action)
-        
-        self.menu_actions = actions + [None, fileswitcher_action,
+
+        self.menu_actions = actions + [external_fileexp_action,
+                                       None, fileswitcher_action,
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this]
@@ -581,6 +581,8 @@ class EditorStack(QWidget):
         self.occurrence_highlighting_timeout=1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
+        self.convert_eol_on_save = False
+        self.convert_eol_on_save_to = 'LF'
         self.fullpath_sorting_enabled = None
         self.focus_to_editor = True
         self.set_fullpath_sorting_enabled(False)
@@ -844,7 +846,6 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg = FileSwitcher(self, self, self.tabs, self.data,
                                              ima.icon('TextFileIcon'))
         self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
-        self.fileswitcher_dlg.setup()
         self.fileswitcher_dlg.show()
         self.fileswitcher_dlg.is_visible = True
 
@@ -853,11 +854,6 @@ class EditorStack(QWidget):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
         
-    def update_fileswitcher_dlg(self):
-        """Synchronize file list dialog box with editor widget tabs"""
-        if self.fileswitcher_dlg:
-            self.fileswitcher_dlg.setup()
-
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
         return self
@@ -1182,6 +1178,16 @@ class EditorStack(QWidget):
         # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
         self.always_remove_trailing_spaces = state
 
+    def set_convert_eol_on_save(self, state):
+        """If `state` is `True`, saving files will convert line endings."""
+        # CONF.get(self.CONF_SECTION, 'convert_eol_on_save')
+        self.convert_eol_on_save = state
+
+    def set_convert_eol_on_save_to(self, state):
+        """`state` can be one of ('LF', 'CRLF', 'CR')"""
+        # CONF.get(self.CONF_SECTION, 'convert_eol_on_save_to')
+        self.convert_eol_on_save_to = state
+
     def set_focus_to_editor(self, state):
         self.focus_to_editor = state
 
@@ -1215,7 +1221,6 @@ class EditorStack(QWidget):
         self.data.pop(index)
         self.tabs.blockSignals(False)
         self.update_actions()
-        self.update_fileswitcher_dlg()
 
     def __modified_readonly_title(self, title, is_modified, is_readonly):
         if is_modified is not None and is_modified:
@@ -1263,7 +1268,6 @@ class EditorStack(QWidget):
             self.set_stack_index(index)
             self.current_changed(index)
         self.update_actions()
-        self.update_fileswitcher_dlg()
 
     def __repopulate_stack(self):
         self.tabs.blockSignals(True)
@@ -1279,7 +1283,6 @@ class EditorStack(QWidget):
             index = self.tabs.addTab(finfo.editor, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
         self.tabs.blockSignals(False)
-        self.update_fileswitcher_dlg()
 
     def rename_in_data(self, index, new_filename):
         finfo = self.data[index]
@@ -1332,10 +1335,12 @@ class EditorStack(QWidget):
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
-        # New window
-        self.newwindow_action = create_action(self, _("New window"),
-                icon=ima.icon('newwindow'), tip=_("Create a new editor window"),
-                triggered=lambda: self.create_new_window.emit())
+        # Undock Editor window
+        self.undock_action = create_action(self, _("Undock Editor window"),
+                                           icon=ima.icon('newwindow'),
+                                           tip=_("Undock the editor window"),
+                                           triggered=lambda:
+                                               self.sig_undock_window.emit())
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon=ima.icon('versplit'),
@@ -1347,8 +1352,13 @@ class EditorStack(QWidget):
                 triggered=lambda: self.split_horizontally.emit())
         self.close_action = create_action(self, _("Close this panel"),
                 icon=ima.icon('close_panel'), triggered=self.close)
-        return [None, self.newwindow_action, None,
-                self.versplit_action, self.horsplit_action, self.close_action]
+        actions = [MENU_SEPARATOR, self.undock_action,
+                   MENU_SEPARATOR, self.versplit_action,
+                   self.horsplit_action, self.close_action]
+        if self.new_window:
+            actions = [MENU_SEPARATOR, self.versplit_action,
+                       self.horsplit_action, self.close_action]
+        return actions
 
     def reset_orientation(self):
         self.horsplit_action.setEnabled(True)
@@ -1606,6 +1616,12 @@ class EditorStack(QWidget):
             return self.save_as(index=index)
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
+        if self.convert_eol_on_save:
+            # hack to account for the fact that the config file saves
+            # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
+            osname_lookup = {'LF': 'posix', 'CRLF': 'nt', 'CR': 'mac'}
+            osname = osname_lookup[self.convert_eol_on_save_to]
+            self.set_os_eol_chars(osname=osname)
         txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename,
@@ -2244,11 +2260,21 @@ class EditorStack(QWidget):
         self.is_analysis_done = False
         return finfo
 
-    def set_os_eol_chars(self, index=None):
+    def set_os_eol_chars(self, index=None, osname=None):
+        """Sets the EOL character(s) based on the operating system.
+        
+        If `osname` is None, then the default line endings for the current
+        operating system (`os.name` value) will be used.
+        
+        `osname` can be one of:
+            ('posix', 'nt', 'java')
+        """
+        if osname is None:
+            osname = os.name
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        eol_chars = sourcecode.get_eol_chars_from_os_name(os.name)
+        eol_chars = sourcecode.get_eol_chars_from_os_name(osname)
         finfo.editor.set_eol_chars(eol_chars)
         finfo.editor.document().setModified(True)
 
@@ -2819,7 +2845,6 @@ class EditorPluginExample(QSplitter):
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
-        editorstack.create_new_window.connect(self.create_new_window)
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):

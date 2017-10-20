@@ -23,11 +23,11 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
 # Local imports
 from spyder.config.base import _, get_supported_types
 from spyder.config.main import CONF
-from spyder.py3compat import is_text_string, getcwd, to_text_string
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.iofuncs import iofunctions
-from spyder.utils.misc import fix_reference_name
+from spyder.utils.misc import fix_reference_name, getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout)
@@ -45,7 +45,8 @@ class NamespaceBrowser(QWidget):
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
     
-    def __init__(self, parent):
+    def __init__(self, parent, options_button=None, menu=None,
+                 plugin_actions=None):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
@@ -69,6 +70,10 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.options_button = options_button
+        self.menu = menu
+        self.actions = None
+        self.plugin_actions = plugin_actions
 
         self.filename = None
 
@@ -122,21 +127,27 @@ class NamespaceBrowser(QWidget):
             blayout.addWidget(widget)
 
         # Options menu
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
         editor = self.editor
         actions = [self.exclude_private_action, self.exclude_uppercase_action,
                    self.exclude_capitalized_action,
                    self.exclude_unsupported_action, None]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
-        add_actions(menu, actions)
-        options_button.setMenu(menu)
+        if self.plugin_actions:
+            actions = actions + self.plugin_actions
+        self.actions = actions
+        if not self.options_button:
+            self.options_button = create_toolbutton(
+                                        self, text=_('Options'),
+                                        icon=ima.icon('tooloptions'))
+            self.options_button.setPopupMode(QToolButton.InstantPopup)
+        if not self.menu:
+            self.menu = QMenu(self)
+        add_actions(self.menu, self.actions)
+        self.options_button.setMenu(self.menu)
 
         blayout.addStretch()
-        blayout.addWidget(options_button)
+        blayout.addWidget(self.options_button)
 
         layout = create_plugin_layout(blayout, self.editor)
         self.setLayout(layout)
@@ -147,6 +158,10 @@ class NamespaceBrowser(QWidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
         shellwidget.set_namespacebrowser(self)
+
+    def get_actions(self):
+        """Get actions of the widget."""
+        return self.actions
 
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported):
@@ -256,7 +271,7 @@ class NamespaceBrowser(QWidget):
         title = _("Import data")
         if filenames is None:
             if self.filename is None:
-                basedir = getcwd()
+                basedir = getcwd_or_home()
             else:
                 basedir = osp.dirname(self.filename)
             filenames, _selfilter = getopenfilenames(self, title, basedir,
@@ -330,7 +345,7 @@ class NamespaceBrowser(QWidget):
         if filename is None:
             filename = self.filename
             if filename is None:
-                filename = getcwd()
+                filename = getcwd_or_home()
             filename, _selfilter = getsavefilename(self, _("Save data"),
                                                    filename,
                                                    iofunctions.save_filters)

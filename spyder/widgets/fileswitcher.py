@@ -770,6 +770,14 @@ class FileSwitcher(QDialog):
         # Set position according to size
         self.set_dialog_position()
 
+    def show(self):
+        """
+        Override Qt method to force an update of the fileswitcher before
+        showing it. See Issue #5317 and PR #5389.
+        """
+        self.setup()
+        super(FileSwitcher, self).show()
+
     def add_plugin(self, plugin, tabs, data, icon):
         """Add a plugin to display its files."""
         self.plugins_tabs.append((tabs, plugin))

@@ -32,9 +32,10 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QListWidget, QSizePolicy,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import getcwd, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.qthelpers import create_toolbutton, get_icon
@@ -229,11 +230,11 @@ class FindOptions(QWidget):
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  exclude, exclude_idx, exclude_regexp,
                  supported_encodings, in_python_path, more_options,
-                 case_sensitive, external_path_history):
+                 case_sensitive, external_path_history, options_button=None):
         QWidget.__init__(self, parent)
 
         if search_path is None:
-            search_path = getcwd()
+            search_path = getcwd_or_home()
 
         self.path = ''
         self.project_path = None
@@ -288,6 +289,8 @@ class FindOptions(QWidget):
         for widget in [self.search_text, self.edit_regexp, self.case_button,
                        self.ok_button, self.stop_button, self.more_options]:
             hlayout1.addWidget(widget)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         # Layout 2
         hlayout2 = QHBoxLayout()
@@ -825,7 +828,8 @@ class FindInFilesWidget(QWidget):
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
                  in_python_path=False, more_options=False,
-                 case_sensitive=True, external_path_history=[]):
+                 case_sensitive=True, external_path_history=[],
+                 options_button=None):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
@@ -836,12 +840,18 @@ class FindInFilesWidget(QWidget):
 
         self.status_bar = FileProgressBar(self)
         self.status_bar.hide()
-        self.find_options = FindOptions(self, search_text, search_text_regexp,
+
+        self.find_options = FindOptions(self, search_text,
+                                        search_text_regexp,
                                         search_path,
-                                        exclude, exclude_idx, exclude_regexp,
-                                        supported_encodings, in_python_path,
-                                        more_options, case_sensitive,
-                                        external_path_history)
+                                        exclude, exclude_idx,
+                                        exclude_regexp,
+                                        supported_encodings,
+                                        in_python_path,
+                                        more_options,
+                                        case_sensitive,
+                                        external_path_history,
+                                        options_button=options_button)
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
 

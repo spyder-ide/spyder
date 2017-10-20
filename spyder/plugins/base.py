@@ -9,16 +9,34 @@ Base plugin class
 """
 
 # Third party imports
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QShortcut, QWidget
+from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut, QWidget
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config.main import CONF
+from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.dock import SpyderDockWidget
+
+
+
+class PluginMainWindow(QMainWindow):
+    """Spyder Plugin MainWindow class."""
+    def __init__(self, plugin):
+        QMainWindow.__init__(self)
+        self.plugin = plugin
+
+    def closeEvent(self, event):
+        """Reimplement Qt method."""
+        self.plugin.dockwidget.setWidget(self.plugin)
+        self.plugin.dockwidget.setVisible(True)
+        self.plugin.undock_action.setDisabled(False)
+        self.plugin.switch_to_plugin()
+        QMainWindow.closeEvent(self, event)
+
 
 
 class BasePluginWidget(QWidget):
@@ -85,8 +103,10 @@ class BasePluginWidget(QWidget):
         dock.setWidget(self)
         self.update_margins()
         dock.visibilityChanged.connect(self.visibility_changed)
+        dock.topLevelChanged.connect(self.create_window)
         dock.plugin_closed.connect(self.plugin_closed)
         self.dockwidget = dock
+        self.undocked = False
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
@@ -169,3 +189,39 @@ class BasePluginWidget(QWidget):
             self.dockwidget.raise_()
         else:
             self.dockwidget.hide()
+
+    @Slot()
+    def create_window(self):
+        """Open a window of the plugin instead of undocking it."""
+        if (self.dockwidget.isFloating() and not self.undocked and
+                self.dockwidget.main.dockwidgets_locked):
+            self.dockwidget.setFloating(False)
+            self.dockwidget.setVisible(False)
+            self.undock_action.setDisabled(True)
+            window = self.create_mainwindow()
+            window.show()
+        elif self.undocked:
+            self.undock_action.setDisabled(True)
+        else:
+            self.undock_action.setDisabled(False)
+        self.undocked = False
+
+    def create_mainwindow(self):
+        """
+        Create a QMainWindow instance containing this plugin.
+        """
+        raise NotImplementedError
+
+    def create_undock_action(self):
+        """Create the undock action for the plugin."""
+        self.undock_action = create_action(self,
+                                           _("Undock"),
+                                           icon=ima.icon('newwindow'),
+                                           tip=_("Undock the plugin"),
+                                           triggered=self.undock_plugin)
+
+    def undock_plugin(self):
+        """Undocks the plugin from the MainWindow."""
+        self.undocked = True
+        self.dockwidget.setFloating(True)
+        self.undock_action.setDisabled(True)
