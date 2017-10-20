@@ -120,11 +120,11 @@ class DocumentProvider:
             response['signatures'] = response['signatures'][
                 response['activeSignature']]
         else:
-            response['signatures'] = None
+            response = None
         if req_id in self.req_reply:
             self.req_reply[req_id].emit(
                 LSPRequestTypes.DOCUMENT_SIGNATURE,
-                {'params': response['signatures']})
+                {'params': response})
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def hover_request(self, params):
@@ -151,3 +151,29 @@ class DocumentProvider:
             self.req_reply[req_id].emit(
                 LSPRequestTypes.DOCUMENT_HOVER,
                 {'params': contents})
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
+    def go_to_definition_request(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+            'position': {
+                'line': params['line'],
+                'character': params['column']
+            }
+        }
+
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
+    def process_go_to_definition(self, result, req_id):
+        if isinstance(result['result'], list):
+            if len(result['result']) > 0:
+                result['result'] = result['result'][0]
+            else:
+                result['result'] = None
+        if req_id in self.req_reply:
+            self.req_reply[req_id].emit(
+                LSPRequestTypes.DOCUMENT_DEFINITION,
+                {'params': result['result']})
