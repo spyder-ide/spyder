@@ -97,6 +97,16 @@ if sys.excepthook != sys.__excepthook__:
 
 # --- Continue
 
+if options.debug:
+    # safety check - Spyder config should not be imported at this point
+    if "spyder.config.base" in sys.modules:
+        sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
+    print("0x. Switching debug mode on")
+    os.environ["SPYDER_DEBUG"] = "True"
+    # this way of interaction suxx, because there is no feedback
+    # if operation is successful
+
+
 from spyder.utils.vcs import get_git_revision
 print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
@@ -122,16 +132,6 @@ if options.gui is None:
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
-
-
-if options.debug:
-    # safety check - Spyder config should not be imported at this point
-    if "spyder.config.base" in sys.modules:
-        sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
-    print("0x. Switching debug mode on")
-    os.environ["SPYDER_DEBUG"] = "True"
-    # this way of interaction suxx, because there is no feedback
-    # if operation is successful
 
 
 # Checking versions (among other things, this has the effect of setting the
