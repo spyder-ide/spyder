@@ -126,7 +126,7 @@ def editor_splitter_layout_bot(editor_splitter_bot):
         editorstack.set_find_widget(Mock())
         editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         editorstack.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')
-        editorstack.new('spam.py', 'utf-8', 'print(spam)')
+        editorstack.new('layout_test.py', 'utf-8', 'print(spam)')
         with open(__file__) as f:
             text = f.read()
         editorstack.new(__file__, 'utf-8', text)
@@ -653,7 +653,7 @@ class TestEditorSplitter:
         # Add some editors to patch output of iter_editorstacks.
         stack1 = base_editor_bot(qtbot)[0]
         stack1.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')
-        stack1.new('spam.py', 'utf-8', 'spam egg\n')
+        stack1.new('layout_test.py', 'utf-8', 'spam egg\n')
 
         stack2 = base_editor_bot(qtbot)[0]
         stack2.new('test.py', 'utf-8', 'test text')
@@ -676,7 +676,7 @@ class TestEditorSplitter:
         # New layout to restore.
         state = '000000ff000000010000000200000231000001ff00ffffffff010000000200'
         sizes = [561, 511]
-        splitsettings = [(False, 'spam.py', [2, 1, 52]),
+        splitsettings = [(False, 'layout_test.py', [2, 1, 52]),
                          (False, 'foo.py', [3, 2, 125]),
                          (False, __file__, [1, 1, 1])]
 
@@ -716,7 +716,7 @@ class TestEditorSplitter:
         # New layout to restore.
         state = '000000ff000000010000000200000231000001ff00ffffffff010000000200'
         sizes = [561, 511]
-        splitsettings = [(False, 'spam.py', [2, 1, 52]),
+        splitsettings = [(False, 'layout_test.py', [2, 1, 52]),
                          (False, 'foo.py', [3, 2, 125]),
                          (False, __file__, [1, 1, 1])]
 
