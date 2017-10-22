@@ -135,6 +135,8 @@ class PatternComboBox(BaseComboBox):
     def __init__(self, parent, items=None, tip=None,
                  adjust_to_minimum=True):
         BaseComboBox.__init__(self, parent)
+        if hasattr(self.lineEdit(), 'setClearButtonEnabled'):  # only Qt >= 5.2
+            self.lineEdit().setClearButtonEnabled(True)
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
