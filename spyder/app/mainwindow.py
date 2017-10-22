@@ -2351,7 +2351,6 @@ class MainWindow(QMainWindow):
         from spyder.widgets.dependencies import DependenciesDialog
         dlg = DependenciesDialog(None)
         dlg.set_data(dependencies.DEPENDENCIES)
-        dlg.show()
         dlg.exec_()
 
     @Slot()
