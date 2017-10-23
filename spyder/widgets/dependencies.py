@@ -170,7 +170,15 @@ class DependenciesDialog(QDialog):
 
         self.setLayout(vlayout)
         self.resize(630, 420)
-        
+
+    def exec_(self):
+        self.show()
+        # we need an explicit show() because resizeRowsToContents() does only
+        # work correctly after the widget has been drawn. Without this the
+        # dimensions are not known yet.
+        self.view.resizeRowsToContents()
+        super(DependenciesDialog, self).exec_()
+
     def set_data(self, dependencies):
         self.view.model.set_data(dependencies)
         self.view.adjust_columns()
