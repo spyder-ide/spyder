@@ -29,14 +29,6 @@ from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
 
 
-CONTROL_CHARACTERS = {
-    '\\n': '\n',
-    '\\r': '\r',
-    '\\t': '\t',
-    '\\f': '\f'
-}
-
-
 def is_position_sup(pos1, pos2):
     """Return True is pos1 > pos2"""
     return pos1 > pos2
@@ -565,10 +557,8 @@ class FindReplace(QWidget):
                 cursor = self.editor.textCursor()
                 cursor.beginEditBlock()
                 cursor.removeSelectedText()
-                for plain_char in CONTROL_CHARACTERS:
-                    replacement = replacement.replace(
-                        plain_char, CONTROL_CHARACTERS[plain_char])
-                replacement = re.sub(r'\\(.)', r'\1', replacement)
+                if not self.re_button.isChecked():
+                    replacement = re.sub(r'\\(?![nrtf])(.)', r'\1', replacement)
                 cursor.insertText(replacement)
                 cursor.endEditBlock()
             if focus_replace_text:
