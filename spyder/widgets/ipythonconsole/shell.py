@@ -283,9 +283,12 @@ the sympy module (e.g. plot)
         array_table = config_shortcut(self._control.enter_array_table,
                                       context='array_builder',
                                       name='enter array table', parent=self)
+        clear_line = config_shortcut(self.ipyclient.clear_line,
+                                     context='console', name='clear line',
+                                     parent=self)
 
         return [inspect, clear_console, restart_kernel, new_tab,
-                reset_namespace, array_inline, array_table]
+                reset_namespace, array_inline, array_table, clear_line]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
