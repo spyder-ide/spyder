@@ -350,12 +350,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                     icon=ima.icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
-                                          QKeySequence("Shift+Escape"),
+                                          QKeySequence(get_shortcut(
+                                                  'console',
+                                                  'clear line')),
                                           icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
         reset_namespace_action = create_action(self, _("Reset namespace"),
-                                          QKeySequence("Ctrl+Alt+R"),
-                                          triggered=self.reset_namespace)
+                                               QKeySequence(get_shortcut(
+                                                       'ipython_console',
+                                                       'reset namespace')),
+                                               triggered=self.reset_namespace)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
