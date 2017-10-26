@@ -1313,37 +1313,27 @@ class CodeEditor(TextEditBaseWidget):
         else:
             block = self.document().findBlockByNumber(line_number-1)
         data = block.userData()
-        if data:
-            data.breakpoint = not data.breakpoint
-            old_breakpoint_condition = data.breakpoint_condition
-            data.breakpoint_condition = None
-        else:
+        if not data:
             data = BlockUserData(self)
             data.breakpoint = True
-            old_breakpoint_condition = None
+        elif not edit_condition:
+            data.breakpoint = not data.breakpoint
+            data.breakpoint_condition = None
         if condition is not None:
             data.breakpoint_condition = condition
         if edit_condition:
-            data.breakpoint = True
             condition = data.breakpoint_condition
-            if old_breakpoint_condition is not None:
-                condition = old_breakpoint_condition
             condition, valid = QInputDialog.getText(self,
                                         _('Breakpoint'),
                                         _("Condition:"),
                                         QLineEdit.Normal, condition)
-            if valid:
-                condition = str(condition)
-                if not condition:
-                    condition = None
-                data.breakpoint_condition = condition
-            else:
-                data.breakpoint_condition = old_breakpoint_condition
+            if not valid:
                 return
+            data.breakpoint = True
+            data.breakpoint_condition = str(condition) if condition else None
         if data.breakpoint:
             text = to_text_string(block.text()).strip()
-            if len(text) == 0 or text.startswith('#') or text.startswith('"') \
-               or text.startswith("'"):
+            if len(text) == 0 or text.startswith(('#', '"', "'")):
                 data.breakpoint = False
         block.setUserData(data)
         self.linenumberarea.update()
@@ -1368,6 +1358,9 @@ class CodeEditor(TextEditBaseWidget):
             data.breakpoint = False
             # data.breakpoint_condition = None  # not necessary, but logical
             if data.is_empty():
+                # This is not calling the __del__ in BlockUserData.  Not
+                # sure if it's supposed to or not, but that seems to be the
+                # intent.
                 del data
 
     def set_breakpoints(self, breakpoints):
