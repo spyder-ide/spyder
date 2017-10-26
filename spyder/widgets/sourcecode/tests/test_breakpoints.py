@@ -255,7 +255,7 @@ def test_update_breakpoints(code_editor_bot):
     editor.breakpoints_changed.emit.assert_not_called()
     # update_breakpoints is the slot for the blockCountChanged signal.
     editor.textCursor().insertBlock()
-    editor.breakpoints_changed.emit.assert_called()
+    editor.breakpoints_changed.emit.assert_called_with()
 
 
 if __name__ == "__main__":
