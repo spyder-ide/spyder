@@ -18,6 +18,7 @@ import pytest
 from qtpy.QtGui import QTextCursor
 
 # Local imports
+from spyder import version_info
 from spyder.py3compat import to_text_string
 import spyder.widgets.sourcecode.codeeditor as codeeditor
 
@@ -27,7 +28,8 @@ import spyder.widgets.sourcecode.codeeditor as codeeditor
 def reset_emits(editor):
     "Reset signal mocks."
     editor.linenumberarea.reset_mock()
-    # editor.sig_flags_changed.reset_mock()  # 4.0
+    if version_info > (4, ):
+        editor.sig_flags_changed.reset_mock()
     editor.breakpoints_changed.reset_mock()
 
 
@@ -46,11 +48,13 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
     assert data.breakpoint_condition == bpc
     if emits:
         editor.linenumberarea.update.assert_called_with()
-        # editor.sig_flags_changed.emit.assert_called_with()  # 4.0
+        if version_info > (4, ):
+            editor.sig_flags_changed.emit.assert_called_with()
         editor.breakpoints_changed.emit.assert_called_with()
     else:
         editor.linenumberarea.update.assert_not_called()
-        # editor.sig_flags_changed.emit.assert_not_called()  # 4.0
+        if version_info > (4, ):
+            editor.sig_flags_changed.emit.assert_not_called()
         editor.breakpoints_changed.emit.assert_not_called()
 
 
@@ -67,8 +71,10 @@ def code_editor_bot(qtbot):
     # Mock the screen updates and signal emits to test when they've been
     # called.
     editor.linenumberarea = Mock()
-    editor.get_linenumberarea_width = Mock(return_value=1)  # 3.x
-    # editor.sig_flags_changed = Mock()  # 4.0
+    if version_info > (4, ):
+        editor.sig_flags_changed = Mock()
+    else:
+        editor.get_linenumberarea_width = Mock(return_value=1)
     editor.breakpoints_changed = Mock()
     text = ('def f1(a, b):\n'
             '"Double quote string."\n'
@@ -99,7 +105,8 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
     assert block  # Block exists.
     assert not block.userData()  # But user data not added to it.
     editor.linenumberarea.update.assert_not_called()
-    # editor.sig_flags_changed.emit.assert_not_called()  # 4.0
+    if version_info > (4, ):
+        editor.sig_flags_changed.emit.assert_not_called()
     editor.breakpoints_changed.emit.assert_not_called()
 
     # Reset language.
@@ -163,7 +170,8 @@ def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     assert not data  # Data isn't saved in this case.
     # Confirm line number area, scrollflag, and breakpoints not called.
     editor.linenumberarea.update.assert_not_called()
-    # editor.sig_flags_changed.emit.assert_not_called()  # 4.0
+    if version_info > (4, ):
+        editor.sig_flags_changed.emit.assert_not_called()
     editor.breakpoints_changed.emit.assert_not_called()
 
     # Call as if 'OK' button pressed.
