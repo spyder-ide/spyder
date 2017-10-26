@@ -65,6 +65,7 @@ class SpyderKernel(IPythonKernel):
         self.namespace_view_settings = {}
         self._pdb_obj = None
         self._pdb_step = None
+        self._do_publish_pdb_state = True
 
         kernel_config = self.config.get('IPKernelApp', None)
         if kernel_config is not None:
@@ -157,6 +158,7 @@ class SpyderKernel(IPythonKernel):
             #   petitions to display a value
             value = None
             publish_data({'__spy_data__': value})
+        self._do_publish_pdb_state = False
 
     def set_value(self, name, value):
         """Set the value of a variable"""
@@ -212,11 +214,12 @@ class SpyderKernel(IPythonKernel):
         Publish Variable Explorer state and Pdb step through
         publish_data.
         """
-        if self._pdb_obj:
+        if self._pdb_obj and self._do_publish_pdb_state:
             state = dict(namespace_view = self.get_namespace_view(),
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
             publish_data({'__spy_pdb_state__': state})
+        self._do_publish_pdb_state = True
 
     def pdb_continue(self):
         """
