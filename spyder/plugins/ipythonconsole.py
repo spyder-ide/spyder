@@ -1248,8 +1248,12 @@ class IPythonConsole(SpyderPluginWidget):
         if index is not None:
             client = self.tabwidget.widget(index)
 
-        # Close client
-        client.stop_button_click_handler()
+        # Needed to handle a RuntimeError. See issue 5568.
+        try:
+            # Close client
+            client.stop_button_click_handler()
+        except RuntimeError:
+            pass
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
