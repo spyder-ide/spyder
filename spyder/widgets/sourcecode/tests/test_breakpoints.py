@@ -8,7 +8,10 @@
 Tests for breakpoints.
 """
 
-import unittest.mock as mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock  # Python 2
 
 # Third party imports
 import pytest
@@ -42,9 +45,9 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
     assert data.breakpoint == bp
     assert data.breakpoint_condition == bpc
     if emits:
-        editor.linenumberarea.update.assert_called()
-        editor.sig_flags_changed.emit.assert_called()
-        editor.breakpoints_changed.emit.assert_called()
+        editor.linenumberarea.update.assert_called_with()
+        editor.sig_flags_changed.emit.assert_called_with()
+        editor.breakpoints_changed.emit.assert_called_with()
     else:
         editor.linenumberarea.update.assert_not_called()
         editor.sig_flags_changed.emit.assert_not_called()
@@ -63,9 +66,9 @@ def code_editor_bot(qtbot):
                         tab_stop_width_spaces=tab_stop_width_spaces)
     # Mock the screen updates and signal emits to test when they've been
     # called.
-    editor.linenumberarea = mock.Mock()
-    editor.sig_flags_changed = mock.Mock()
-    editor.breakpoints_changed = mock.Mock()
+    editor.linenumberarea = Mock()
+    editor.sig_flags_changed = Mock()
+    editor.breakpoints_changed = Mock()
     text = ('def f1(a, b):\n'
             '"Double quote string."\n'
             '\n'  # Blank line.
