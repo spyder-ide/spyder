@@ -18,7 +18,7 @@ from collections import namedtuple
 from spyder.config.base import debug_print, get_conf_path
 from spyder.utils.external import toml
 
-regex_variables = re.compile(r'\$\{(\d+)\:(\w*)\}')
+regex_variables = re.compile(r'\$\{(\d+)\:([^\}]+)\}')
 Variable = namedtuple('Variable', 'start length')
 
 
