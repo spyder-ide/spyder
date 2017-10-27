@@ -2501,7 +2501,7 @@ class EditorSplitter(QSplitter):
         is a clone of the current EditorStack.
 
         A single EditorSplitter instance can be split multiple times, but the
-        orientatation will be the same for all the direct splits.  If one of
+        orientation will be the same for all the direct splits.  If one of
         the child splits is split, then that split can have a different
         orientation.
         """
