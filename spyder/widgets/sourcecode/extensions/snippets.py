@@ -112,6 +112,7 @@ class SnippetsExtension(EditorExtension):
         cursor = self.editor.textCursor()
         try:
             d = self._selection_decos.pop(0)
+            self.editor.decorations.remove(d)
         except IndexError:
             self.snippet = None
             cursor.clearSelection()
