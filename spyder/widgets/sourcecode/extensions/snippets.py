@@ -37,9 +37,9 @@ class SnippetsExtension(EditorExtension):
     def on_state_changed(self, state):
         """Connect/disconnect key_pressed signal."""
         if state:
-            self.editor.key_pressed.connect(self._on_key_pressed)
+            self.editor.sig_key_pressed.connect(self._on_key_pressed)
         else:
-            self.editor.key_pressed.disconnect(self._on_key_pressed)
+            self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
 
     def _on_key_pressed(self, event):
         if event.isAccepted():
