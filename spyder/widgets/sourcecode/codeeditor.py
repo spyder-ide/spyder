@@ -2892,8 +2892,13 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']'}[key]:
+            key_matches_next_char = (
+                text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                         Qt.Key_BracketRight: ']'}[key]
+            )
+            if (key_matches_next_char
+              and not self.__unmatched_braces_in_line(cursor.block().text())):
+                # overwrite an existing brace if all braces in line are matched
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
