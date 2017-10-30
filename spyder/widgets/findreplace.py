@@ -426,7 +426,12 @@ class FindReplace(QWidget):
         if (self.editor is not None):
             replace_text = to_text_string(self.replace_text.currentText())
             search_text = to_text_string(self.search_text.currentText())
-            pattern = search_text if self.re_button.isChecked() else None
+            re_pattern = None
+            if self.re_button.isChecked():
+                try:
+                    re_pattern = re.compile(search_text)
+                except re.error:
+                    return  # do nothing with an invalid regexp
             case = self.case_button.isChecked()
             first = True
             cursor = None
@@ -436,7 +441,7 @@ class FindReplace(QWidget):
                     seltxt = to_text_string(self.editor.get_selected_text())
                     cmptxt1 = search_text if case else search_text.lower()
                     cmptxt2 = seltxt if case else seltxt.lower()
-                    if not pattern:
+                    if re_pattern is None:
                         has_selected = self.editor.has_selected_text()
                         if has_selected and cmptxt1 == cmptxt2:
                             # Text was already found, do nothing
@@ -446,7 +451,7 @@ class FindReplace(QWidget):
                                              rehighlight=False):
                                 break
                     else:
-                        if len(re.findall(pattern, cmptxt2)) > 0:
+                        if len(re_pattern.findall(cmptxt2)) > 0:
                             pass
                         else:
                             if not self.find(changed=False, forward=True,
@@ -476,13 +481,13 @@ class FindReplace(QWidget):
                         # Avoid infinite loop: single found occurrence
                         break
                     position0 = position1
-                if pattern is None:
+                if re_pattern is None:
                     cursor.removeSelectedText()
                     cursor.insertText(replace_text)
                 else:
                     seltxt = to_text_string(cursor.selectedText())
                     cursor.removeSelectedText()
-                    cursor.insertText(re.sub(pattern, replace_text, seltxt))
+                    cursor.insertText(re_pattern.sub(replace_text, seltxt))
                 if self.find_next():
                     found_cursor = self.editor.textCursor()
                     cursor.setPosition(found_cursor.selectionStart(),
