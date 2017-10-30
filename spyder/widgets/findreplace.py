@@ -512,39 +512,38 @@ class FindReplace(QWidget):
     @Slot()
     def replace_find_selection(self, focus_replace_text=False):
         """Replace and find in the current selection"""
-        if (self.editor is not None):
+        if self.editor is not None:
             replace_text = to_text_string(self.replace_text.currentText())
             search_text = to_text_string(self.search_text.currentText())
-            pattern = search_text if self.re_button.isChecked() else None
             case = self.case_button.isChecked()
             words = self.words_button.isChecked()
             re_flags = re.MULTILINE if case else re.IGNORECASE|re.MULTILINE
 
-            cursor = self.editor.textCursor()
-            cursor.beginEditBlock()
-            seltxt = to_text_string(self.editor.get_selected_text())
-            if not pattern:
+            re_pattern = None
+            if self.re_button.isChecked():
+                pattern = search_text
+            else:
                 pattern = re.escape(search_text)
                 replace_text = re.escape(replace_text)
-            if words:
-                #If whole words is checked we need to check that each match
-                #is actually a whole word before replacing
-                try:
-                    re.compile(pattern)
-                except re.error:
-                    return #if the pattern won't compile cancel the find/replace
-                word_pattern = r'\b{pattern}\b'.format(pattern = pattern)
-                replacement = re.sub(word_pattern, replace_text, seltxt, flags=re_flags)
-            else:
-                replacement = re.sub(pattern, replace_text, seltxt, flags=re_flags)
-            if replacement != seltxt:
+            if words:  # match whole words only
+                pattern = r'\b{pattern}\b'.format(pattern=pattern)
+            try:
+                re_pattern = re.compile(pattern, flags=re_flags)
+            except re.error as e:
+                return  # do nothing with an invalid regexp
+
+            selected_text = to_text_string(self.editor.get_selected_text())
+            replacement = re_pattern.sub(replace_text, selected_text)
+            if replacement != selected_text:
+                cursor = self.editor.textCursor()
+                cursor.beginEditBlock()
                 cursor.removeSelectedText()
                 for plain_char in CONTROL_CHARACTERS:
                     replacement = replacement.replace(
                         plain_char, CONTROL_CHARACTERS[plain_char])
                 replacement = re.sub(r'\\(.)', r'\1', replacement)
                 cursor.insertText(replacement)
-            cursor.endEditBlock()
+                cursor.endEditBlock()
             if focus_replace_text:
                 self.replace_text.setFocus()
             else:
