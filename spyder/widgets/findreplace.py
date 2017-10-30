@@ -53,6 +53,11 @@ class FindReplace(QWidget):
              None: "",
              'regexp_error': "background-color:rgb(255, 20, 20);",
              }
+    TOOLTIP = {False: _("No matches"),
+               True: _("Search string"),
+               None: _("Search string"),
+               'regexp_error': _("Regular expression error")
+               }
     visibility_changed = Signal(bool)
     return_shift_pressed = Signal()
     return_pressed = Signal()
@@ -385,13 +390,15 @@ class FindReplace(QWidget):
         # When several lines are selected in the editor and replace box is activated, 
         # dynamic search is deactivated to prevent changing the selection. Otherwise
         # we show matching items.
-        def is_regexp_valid(text):
-            """Checks if the given text is a valid regular expression."""
+        def rexexp_error_msg(pattern):
+            """Returns None if the pattern is a valid regular expression or
+            a string describing why the pattern is invalid.
+            """
             try:
-                re.compile(text)
-            except re.error:
-                return False
-            return True
+                re.compile(pattern)
+            except re.error as e:
+                return str(e)
+            return None
 
         if multiline_replace_check and self.replace_widgets[0].isVisible() and \
            len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
@@ -411,11 +418,17 @@ class FindReplace(QWidget):
             found = self.editor.find_text(text, changed, forward, case=case,
                                           words=words, regexp=regexp)
 
-            if not found and regexp and not is_regexp_valid(text):
+            if not found and regexp and rexexp_error_msg(text) is not None:
                 stylesheet = self.STYLE['regexp_error']
+                tooltip = self.TOOLTIP['regexp_error']
+                error_msg = rexexp_error_msg(text)
+                if error_msg:
+                    tooltip += ': ' + error_msg
             else:
                 stylesheet = self.STYLE[found]
+                tooltip = self.TOOLTIP[found]
             self.search_text.lineEdit().setStyleSheet(stylesheet)
+            self.search_text.setToolTip(tooltip)
             if self.is_code_editor and found:
                 if rehighlight or not self.editor.found_results:
                     self.highlight_timer.stop()
