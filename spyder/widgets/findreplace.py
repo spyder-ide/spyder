@@ -50,7 +50,9 @@ class FindReplace(QWidget):
     """Find widget"""
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: "",
-             None: ""}
+             None: "",
+             'regexp_error': "background-color:rgb(255, 20, 20);",
+             }
     visibility_changed = Signal(bool)
     return_shift_pressed = Signal()
     return_pressed = Signal()
@@ -383,6 +385,14 @@ class FindReplace(QWidget):
         # When several lines are selected in the editor and replace box is activated, 
         # dynamic search is deactivated to prevent changing the selection. Otherwise
         # we show matching items.
+        def is_regexp_valid(text):
+            """Checks if the given text is a valid regular expression."""
+            try:
+                re.compile(text)
+            except re.error:
+                return False
+            return True
+
         if multiline_replace_check and self.replace_widgets[0].isVisible() and \
            len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
             return None
@@ -400,7 +410,12 @@ class FindReplace(QWidget):
             regexp = self.re_button.isChecked()
             found = self.editor.find_text(text, changed, forward, case=case,
                                           words=words, regexp=regexp)
-            self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
+
+            if not found and regexp and not is_regexp_valid(text):
+                stylesheet = self.STYLE['regexp_error']
+            else:
+                stylesheet = self.STYLE[found]
+            self.search_text.lineEdit().setStyleSheet(stylesheet)
             if self.is_code_editor and found:
                 if rehighlight or not self.editor.found_results:
                     self.highlight_timer.stop()
