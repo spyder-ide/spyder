@@ -119,7 +119,7 @@ class TextHelper(object):
         except TypeError:
             self._editor_ref = editor
 
-    def goto_line(self, line, column=0, move=True, word=''):
+    def goto_line(self, line, column=0, end_column=0, move=True, word=''):
         """
         Moves the text cursor to the specified position.
 
@@ -135,6 +135,8 @@ class TextHelper(object):
         if column:
             text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
                                      column)
+            text_cursor.movePosition(text_cursor.Right, text_cursor.KeepAnchor,
+                                     end_column)
         if move:
             block = text_cursor.block()
             self.unfold_if_colapsed(block)
@@ -144,8 +146,7 @@ class TextHelper(object):
                 self._editor.centerCursor()
             else:
                 self._editor.focus_in.connect(
-                        self._editor.center_cursor_on_next_focus)
-
+                    self._editor.center_cursor_on_next_focus)
             if word and to_text_string(word) in to_text_string(block.text()):
                 self._editor.find(word, QTextDocument.FindCaseSensitively)
         return text_cursor

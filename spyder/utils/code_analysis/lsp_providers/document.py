@@ -15,8 +15,10 @@ from spyder.utils.code_analysis import (
 
 if PY2:
     import pathlib2 as pathlib
+    from urlparse import urlparse
 else:
     import pathlib
+    from urllib.parse import urlparse
 
 
 def path_as_uri(path):
@@ -168,12 +170,14 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
     def process_go_to_definition(self, result, req_id):
-        if isinstance(result['result'], list):
-            if len(result['result']) > 0:
-                result['result'] = result['result'][0]
+        if isinstance(result, list):
+            if len(result) > 0:
+                result = result[0]
+                uri = urlparse(result['uri'])
+                result['file'] = osp.join(uri.netloc, uri.path)
             else:
-                result['result'] = None
+                result = None
         if req_id in self.req_reply:
             self.req_reply[req_id].emit(
                 LSPRequestTypes.DOCUMENT_DEFINITION,
-                {'params': result['result']})
+                {'params': result})

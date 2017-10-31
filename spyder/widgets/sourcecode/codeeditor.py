@@ -847,9 +847,10 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         # print('Here!')
-        completion_list = sorted(
-            params['params'], key=lambda x: x['sortText'])
-        self.completion_widget.show_list(completion_list)
+        if len(params['params']) > 0:
+            completion_list = sorted(
+                params['params'], key=lambda x: x['sortText'])
+            self.completion_widget.show_list(completion_list)
 
     # ------------- LSP: Signature Hints ------------------------------------
 
@@ -942,7 +943,16 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
-    def go_to_definition(self, position):
+    def handle_go_to_definition(self, position):
+        position = position['params']
+        def_range = position['range']
+        if self.filename == position['file']:
+            # cursor = self.textCursor()
+            start = def_range['start']
+            end = def_range['end']
+            self.go_to_line(start['line'] + 1, start['character'],
+                            end['character'], word=None)
+            # pass
         print(position)
 
     # -------------------------------------------------------------------------
@@ -1628,9 +1638,11 @@ class CodeEditor(TextEditBaseWidget):
         self.centerCursor()
         self.focus_in.disconnect(self.center_cursor_on_next_focus)
 
-    def go_to_line(self, line, word=''):
+    def go_to_line(self, line, start_column=0, end_column=0, word=''):
         """Go to line number *line* and eventually highlight it"""
-        self.text_helper.goto_line(line, move=True, word=word)
+        self.text_helper.goto_line(line, column=start_column,
+                                   end_column=end_column, move=True,
+                                   word=word)
 
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
