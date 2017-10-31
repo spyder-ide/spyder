@@ -132,9 +132,11 @@ class TextHelper(object):
         :rtype: QtGui.QTextCursor
         """
         text_cursor = self._move_cursor_to(line)
+        print(end_column)
         if column:
             text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
                                      column)
+        if end_column:
             text_cursor.movePosition(text_cursor.Right, text_cursor.KeepAnchor,
                                      end_column)
         if move:

@@ -945,14 +945,13 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
     def handle_go_to_definition(self, position):
         position = position['params']
-        def_range = position['range']
-        if self.filename == position['file']:
-            # cursor = self.textCursor()
-            start = def_range['start']
-            end = def_range['end']
-            self.go_to_line(start['line'] + 1, start['character'],
-                            end['character'], word=None)
-            # pass
+        if len(position) > 0:
+            def_range = position['range']
+            if self.filename == position['file']:
+                start = def_range['start']
+                # end = def_range['end']
+                self.go_to_line(start['line'] + 1, start['character'],
+                                None, word=None)
         print(position)
 
     # -------------------------------------------------------------------------
