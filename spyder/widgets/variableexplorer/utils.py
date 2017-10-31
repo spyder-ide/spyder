@@ -173,6 +173,7 @@ def datestr_to_datetime(value):
     print(value, "-->", v)  # spyder: test-skip
     return v
 
+
 def str_to_timedelta(value):
     m = re.match('^(?:datetime\.timedelta)?\(?([^\)]*)\)?$', value)
     if not m:
