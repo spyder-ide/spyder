@@ -28,12 +28,15 @@ parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="""\
 Arguments for Spyder's main script are specified after the --
-symbol (example: `python bootstrap.py -- --show-console`).
+symbol (example: `python bootstrap.py -- --hide-console`).
 Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
 parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
                        "pyside (for PySide, deprecated)")
+parser.add_option('--show-console', action='store_true', default=False,
+                  help="(Deprecated) Do nothing, now the default behavior "
+                  "is to show the console")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
 parser.add_option('--test', dest="test", action='store_true', default=False,
@@ -154,9 +157,13 @@ if not programs.is_module_installed('qtpy', '>=1.1.0'):
 
 # --- Executing Spyder
 
-if not options.hide_console and os.name == 'nt':
-    print("0x. Enforcing parent console (Windows only)")
-    sys.argv.append("--show-console")  # Windows only: show parent console
+if options.show_console:
+    print("(Deprecated) --show console do nothing, now the default behavior "
+          "is to show the console, use --hide-console if you want to hide it")
+
+if options.hide_console and os.name == 'nt':
+    print("0x. Hiding parent console (Windows only)")
+    sys.argv.append("--hide-console")  # Windows only: show parent console
 
 print("04. Running Spyder")
 from spyder.app import start

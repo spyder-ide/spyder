@@ -3047,8 +3047,13 @@ def main():
     # otherwise, optparse won't be able to exit if --help option is passed
     options, args = get_options()
 
+    if options.show_console:
+        print("(Deprecated) --show console do nothing, now the default "
+              " behavior is to show the console, use --hide-console if you "
+              "want to hide it")
+
     if set_attached_console_visible is not None:
-        set_attached_console_visible(options.show_console
+        set_attached_console_visible(not options.hide_console
                                      or options.reset_config_files
                                      or options.reset_to_defaults
                                      or options.optimize or bool(DEBUG))

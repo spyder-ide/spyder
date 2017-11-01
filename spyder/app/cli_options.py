@@ -26,8 +26,11 @@ def get_options():
                            "administrative privileges)")
     parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
+    parser.add_option('--hide-console', action='store_true', default=False,
+                      help="Hide parent console window (Windows)")
     parser.add_option('--show-console', action='store_true', default=False,
-                      help="Do not hide parent console window (Windows)")
+                      help="(Deprecated) Do nothing, now the default behavior "
+                      "is to show the console")
     parser.add_option('--multithread', dest="multithreaded",
                       action='store_true', default=False,
                       help="Internal console is executed in another thread "
