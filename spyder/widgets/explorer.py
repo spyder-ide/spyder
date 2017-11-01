@@ -244,6 +244,8 @@ class DirView(QTreeView):
     def get_selected_filenames(self):
         """Return selected filenames"""
         if self.selectionMode() == self.ExtendedSelection:
+            if self.selectionModel() is None:
+                return []
             return [self.get_filename(idx) for idx in 
                     self.selectionModel().selectedRows()]
         else:
