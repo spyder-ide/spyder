@@ -53,9 +53,8 @@ class SpyderErrorMsgBox(QMessageBox):
         if filldescription.exec_():
             self.accept()
 
-    def report_issue(self, description, expected):
-        self.parent().main.report_issue(self.error_traceback, description,
-                                        expected)
+    def report_issue(self, description):
+        self.parent().main.report_issue(self.error_traceback, description)
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in show details."""
@@ -65,7 +64,7 @@ class SpyderErrorMsgBox(QMessageBox):
 
 class FillDescription(QDialog):
 
-    sig_accepted = Signal(str, str)
+    sig_accepted = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -75,11 +74,6 @@ class FillDescription(QDialog):
             "What steps will reproduce the problem")
         self.input_description = QPlainTextEdit()
         self.input_description.textChanged.connect(self.text_changed)
-
-        self.label_expected = QLabel(
-            "What is the expected output? What do you see instead?")
-        self.input_expected = QPlainTextEdit()
-        self.input_expected.textChanged.connect(self.text_changed)
 
         self.ok_button = QPushButton("Ok")
         self.cancel_button = QPushButton("Cancel")
@@ -94,20 +88,14 @@ class FillDescription(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(self.label_description)
         layout.addWidget(self.input_description)
-        layout.addWidget(self.label_expected)
-        layout.addWidget(self.input_expected)
         layout.addLayout(buttons_layout)
         self.setLayout(layout)
 
     def text_changed(self):
         words_description = len(self.input_description.toPlainText().split())
-        words_expected = len(self.input_expected.toPlainText().split())
-
-        state = words_description > 10 and words_expected > 10
-        self.ok_button.setEnabled(state)
+        self.ok_button.setEnabled(words_description > 10)
 
     def accept(self):
         text_description = self.input_description.toPlainText()
-        text_expected = self.input_expected.toPlainText()
-        self.sig_accepted.emit(text_description, text_expected)
+        self.sig_accepted.emit(text_description)
         super().accept()
