@@ -469,6 +469,7 @@ class ProfilerDataTree(QTreeWidget):
                     self, _("Error"),
                     _("Error when trying to load profiler results"))
                 debug_print("Error when calling pstats, {}".format(e))
+                self.compare_file = None
         map(lambda x: x.calc_callees(), stats_indi)
         self.profdata.calc_callees()
         self.stats1 = stats_indi
