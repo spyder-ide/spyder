@@ -187,7 +187,6 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget.hide()
 
         self.emptywidget = ExplorerTreeWidget(self)
-        self.emptywidget.setup_view()
 
         if options_button:
             btn_layout = QHBoxLayout()
