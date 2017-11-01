@@ -541,7 +541,7 @@ class FileSwitcher(QDialog):
         return data
 
     def get_plugin_tabwidget(self, plugin):
-        """Get the data object of the plugin's current tab manager."""
+        """Get the tabwidget of the plugin's current tab manager."""
         # The tab widget is named "tabs" in the editor plugin while it is
         # named "tabwidget" in the notebook plugin.
         try:
