@@ -35,7 +35,7 @@ parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
                        "pyside (for PySide, deprecated)")
 parser.add_option('--show-console', action='store_true', default=False,
-                  help="(Deprecated) Do nothing, now the default behavior "
+                  help="(Deprecated) Does nothing, now the default behavior "
                   "is to show the console")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
@@ -158,7 +158,7 @@ if not programs.is_module_installed('qtpy', '>=1.1.0'):
 # --- Executing Spyder
 
 if options.show_console:
-    print("(Deprecated) --show console do nothing, now the default behavior "
+    print("(Deprecated) --show console does nothing, now the default behavior "
           "is to show the console, use --hide-console if you want to hide it")
 
 if options.hide_console and os.name == 'nt':

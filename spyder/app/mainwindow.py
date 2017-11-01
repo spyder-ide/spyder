@@ -3048,7 +3048,7 @@ def main():
     options, args = get_options()
 
     if options.show_console:
-        print("(Deprecated) --show console do nothing, now the default "
+        print("(Deprecated) --show console does nothing, now the default "
               " behavior is to show the console, use --hide-console if you "
               "want to hide it")
 

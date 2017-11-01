@@ -29,7 +29,7 @@ def get_options():
     parser.add_option('--hide-console', action='store_true', default=False,
                       help="Hide parent console window (Windows)")
     parser.add_option('--show-console', action='store_true', default=False,
-                      help="(Deprecated) Do nothing, now the default behavior "
+                      help="(Deprecated) Does nothing, now the default behavior "
                       "is to show the console")
     parser.add_option('--multithread', dest="multithreaded",
                       action='store_true', default=False,
