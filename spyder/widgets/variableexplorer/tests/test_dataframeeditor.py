@@ -230,7 +230,8 @@ def test_dataframeeditor_with_datetimeindex():
     assert data(dfm, 2, 1) == '2015-01-03 00:00:00'
 
 
-@pytest.mark.skipif(PYQT4, reason="It generates a strange failure in another test")
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="It segfaults too much on Linux")
 def test_sort_dataframe_with_duplicate_column(qtbot):
     df = DataFrame({'A': [1, 3, 2], 'B': [4, 6, 5]})
     df = concat((df, df.A), axis=1)
@@ -246,6 +247,8 @@ def test_sort_dataframe_with_duplicate_column(qtbot):
     assert [data(dfm, row, 2) for row in range(len(df))] == ['4', '5', '6']
 
 
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="It segfaults too much on Linux")
 def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
     df = DataFrame({'A': [1, 2, 3, 4],
                     'B': ['a', 'b', 'c', 'd']})

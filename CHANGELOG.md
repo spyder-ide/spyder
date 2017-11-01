@@ -83,7 +83,7 @@ In this release 30 pull requests were merged
 
 ### New features
 
-* Add a button to the Variable Explorer to remove to remove all variables at
+* Add a button to the Variable Explorer to remove all variables at
   once.
 
 ### Bugs fixed
