@@ -12,8 +12,9 @@ Tests for texteditor.py
 import pytest
 
 # Local imports
-from spyder.py3compat import PY2
+from spyder.py3compat import PY3
 from spyder.widgets.variableexplorer.texteditor import TextEditor
+
 
 @pytest.fixture
 def setup_texteditor(qtbot, text):
@@ -21,6 +22,7 @@ def setup_texteditor(qtbot, text):
     texteditor = TextEditor(text)
     qtbot.addWidget(texteditor)
     return texteditor
+
 
 def test_texteditor(qtbot):
     """Run TextEditor dialog."""
@@ -32,15 +34,14 @@ dedekdh elkd ezd ekjd lekdj elkdfjelfjk e"""
     dlg_text = texteditor.get_value()
     assert text == dlg_text
 
+
+@pytest.mark.skipif(PY3, reason="It makes no sense in Python 3")
 def test_texteditor_setup_and_check():
-    if PY2:
-        import string
-        dig_its = string.digits;
-        translate_digits = string.maketrans(dig_its,len(dig_its)*' ')
-        editor = TextEditor(None)
-        assert not editor.setup_and_check(translate_digits)
-    else:
-        assert True
+    import string
+    dig_its = string.digits
+    translate_digits = string.maketrans(dig_its,len(dig_its)*' ')
+    editor = TextEditor(None)
+    assert not editor.setup_and_check(translate_digits)
 
 
 if __name__ == "__main__":
