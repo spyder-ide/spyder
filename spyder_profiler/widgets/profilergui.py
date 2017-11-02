@@ -30,7 +30,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_conf_path, get_translation
+from spyder.config.base import get_conf_path, get_translation, debug_print
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
@@ -462,7 +462,14 @@ class ProfilerDataTree(QTreeWidget):
         self.profdata = stats_indi[0]
         
         if self.compare_file is not None:
-            stats_indi.append(pstats.Stats(self.compare_file))
+            try:
+                stats_indi.append(pstats.Stats(self.compare_file))
+            except IOError as e:
+                QMessageBox.critical(
+                    self, _("Error"),
+                    _("Error when trying to load profiler results"))
+                debug_print("Error when calling pstats, {}".format(e))
+                self.compare_file = None
         map(lambda x: x.calc_callees(), stats_indi)
         self.profdata.calc_callees()
         self.stats1 = stats_indi
