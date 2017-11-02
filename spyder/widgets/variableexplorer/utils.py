@@ -175,7 +175,27 @@ def datestr_to_datetime(value):
 
 
 def str_to_timedelta(value):
-    m = re.match('^(?:datetime\.timedelta)?\(?([^\)]*)\)?$', value)
+    """Convert a string to a datetime.timedelta value.
+
+    The following strings are accepted:
+
+        - 'datetime.timedelta(1, 5, 12345)'
+        - 'timedelta(1, 5, 12345)'
+        - '(1, 5, 12345)'
+        - '1, 5, 12345'
+        - '1'
+
+    if there are less then three parameters, the missing parameters are
+    assumed to be 0. Variations in the spacing of the parameters are allowed.
+
+    Raises:
+        ValueError for strings not matching the above criterion.
+
+    """
+    m = re.match('^(?:(?:datetime\.)?timedelta)?'
+                 '\(?'
+                 '([^)]*)'
+                 '\)?$', value)
     if not m:
         raise ValueError('Invalid string for datetime.timedelta')
     args = [int(a.strip()) for a in m.group(1).split(',')]
