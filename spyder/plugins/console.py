@@ -97,6 +97,7 @@ class Console(SpyderPluginWidget):
         # Traceback MessageBox
         self.msgbox_error= None
         self.error_traceback = ""
+        self.dimiss_error = False
 
     #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):
@@ -207,7 +208,7 @@ class Console(SpyderPluginWidget):
         """Exception ocurred in the internal console.
         Show a QMessageBox or the internal console to warn the user"""
         # Skip errors without traceback
-        if not is_traceback and self.msgbox_error is None:
+        if (not is_traceback and self.msgbox_error is None) or self.dimiss_error:
             return
 
         if CONF.get('main', 'show_internal_console_if_traceback', False):
@@ -220,7 +221,9 @@ class Console(SpyderPluginWidget):
 
             self.msgbox_error.append_traceback(text)
 
-    def close_msg(self):
+    def close_msg(self, result):
+        if result == 1:  # submited to github or dialog dismissed
+            self.dimiss_error = True
         self.msgbox_error = None
 
     #------ Public API ---------------------------------------------------------

@@ -37,6 +37,8 @@ class SpyderErrorMsgBox(QMessageBox):
         self.submit_btn = self.addButton(
             _('Submit to Github'), QMessageBox.YesRole)
         self.submit_btn.pressed.connect(self._press_submit_btn)
+        self.dimiss_btn = self.addButton(
+            _('Dimiss'), QMessageBox.RejectRole)
 
         self.setWindowModality(Qt.NonModal)
         self.error_traceback = ""
