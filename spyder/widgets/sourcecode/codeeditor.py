@@ -246,13 +246,13 @@ class CodeEditor(TextEditBaseWidget):
 
     breakpoints_changed = Signal()
     get_completions = Signal(bool)
-    go_to_definition = Signal(int)
+    go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
     run_selection = Signal()
     run_cell_and_advance = Signal()
     run_cell = Signal()
     re_run_last_cell = Signal()
-    go_to_definition_regex = Signal(int)
+    go_to_definition_regex = Signal(str, int, int)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
 
@@ -945,14 +945,15 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_DEFINITION)
     def handle_go_to_definition(self, position):
         position = position['params']
-        if len(position) > 0:
+        if position is not None:
             def_range = position['range']
+            start = def_range['start']
             if self.filename == position['file']:
-                start = def_range['start']
-                # end = def_range['end']
                 self.go_to_line(start['line'] + 1, start['character'],
                                 None, word=None)
-        print(position)
+            else:
+                self.go_to_definition.emit(position['file'], start['line'] + 1,
+                                           start['character'])
 
     # -------------------------------------------------------------------------
 
@@ -1458,8 +1459,9 @@ class CodeEditor(TextEditBaseWidget):
     #-----Code introspection
     def do_go_to_definition(self):
         """Trigger go-to-definition"""
-        if not self.in_comment_or_string():
-            self.go_to_definition.emit(self.textCursor().position())
+        self.go_to_definition_from_cursor()
+        # if not self.in_comment_or_string():
+        #     self.go_to_definition.emit(self.textCursor().position())
 
     def show_object_info(self, position):
         """Trigger a calltip"""

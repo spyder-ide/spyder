@@ -476,6 +476,7 @@ class EditorStack(QWidget):
     sig_next_cursor = Signal()
     sig_prev_warning = Signal()
     sig_next_warning = Signal()
+    sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
 
     def __init__(self, parent, actions):
@@ -2097,7 +2098,10 @@ class EditorStack(QWidget):
         introspector = self.introspector
         editor.get_completions.connect(introspector.get_completions)
         editor.sig_show_object_info.connect(introspector.show_object_info)
-        editor.go_to_definition.connect(introspector.go_to_definition)
+        # editor.go_to_definition.connect(introspector.go_to_definition)
+        editor.go_to_definition.connect(
+            lambda fname, line, column: self.sig_go_to_definition.emit(
+                fname, line, column))
 
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
                          self.introspector)
@@ -2800,11 +2804,11 @@ class EditorPluginExample(QSplitter):
         self.menu_list = None
         self.setup_window([], [])
 
-    def go_to_file(self, fname, lineno, text):
+    def go_to_file(self, fname, lineno, text='', start_column=None):
         editorstack = self.editorstacks[0]
         editorstack.set_current_filename(to_text_string(fname))
         editor = editorstack.get_current_editor()
-        editor.go_to_line(lineno, word=text)
+        editor.go_to_line(lineno, word=text, start_column=start_column)
 
     def closeEvent(self, event):
         for win in self.editorwindows[:]:

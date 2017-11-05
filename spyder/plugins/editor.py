@@ -1474,6 +1474,9 @@ class Editor(SpyderPluginWidget):
                                                 self.opened_files_list_changed)
         editorstack.active_languages_stats.connect(
             self.update_active_languages)
+        editorstack.sig_go_to_definition.connect(
+            lambda fname, line, col: self.load(
+                fname, line, start_column=col))
         editorstack.perform_lsp_request.connect(self.send_lsp_request)
         editorstack.analysis_results_changed.connect(
                                                  self.analysis_results_changed)
@@ -2017,8 +2020,8 @@ class Editor(SpyderPluginWidget):
     @Slot(str)
     @Slot(str, int, str)
     @Slot(str, int, str, object)
-    def load(self, filenames=None, goto=None, word='', editorwindow=None,
-             processevents=True):
+    def load(self, filenames=None, goto=None, word='',
+             editorwindow=None, processevents=True, start_column=None):
         """
         Load a text file
         editorwindow: load in this editorwindow (useful when clicking on
@@ -2128,7 +2131,8 @@ class Editor(SpyderPluginWidget):
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
             if goto is not None: # 'word' is assumed to be None as well
-                current_editor.go_to_line(goto[index], word=word)
+                current_editor.go_to_line(goto[index], word=word,
+                                          start_column=start_column)
                 position = current_editor.get_position('cursor')
                 self.cursor_moved(filename0, position0, filename, position)
             current_editor.clearFocus()
