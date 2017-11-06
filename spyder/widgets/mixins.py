@@ -342,35 +342,11 @@ class BaseEditMixin(object):
 
     def get_current_word(self):
         """Return current word, i.e. word at cursor position"""
-        cursor = self.textCursor()
-
-        if cursor.hasSelection():
-            # Removes the selection and moves the cursor to the left side
-            # of the selection: this is required to be able to properly
-            # select the whole word under cursor (otherwise, the same word is
-            # not selected when the cursor is at the right side of it):
-            cursor.setPosition(min([cursor.selectionStart(),
-                                    cursor.selectionEnd()]))
-        else:
-            # Checks if the first character to the right is a white space
-            # and if not, moves the cursor one word to the left (otherwise,
-            # if the character to the left do not match the "word regexp"
-            # (see below), the word to the left of the cursor won't be
-            # selected), but only if the first character to the left is not a
-            # white space too.
-            def is_space(move):
-                curs = self.textCursor()
-                curs.movePosition(move, QTextCursor.KeepAnchor)
-                return not to_text_string(curs.selectedText()).strip()
-            if is_space(QTextCursor.NextCharacter):
-                if is_space(QTextCursor.PreviousCharacter):
-                    return
-                cursor.movePosition(QTextCursor.WordLeft)
-
-        cursor.select(QTextCursor.WordUnderCursor)
+        cursor = self.text_helper.word_under_cursor(select_whole_word=True,
+                                                    extended_selection={'.',})
         text = to_text_string(cursor.selectedText())
         # find a valid python variable name
-        match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
+        match = re.findall(r'([^\d\W][\w\.]*)', text, re.UNICODE)
         if match:
             return match[0]
 
