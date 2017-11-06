@@ -786,7 +786,9 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif((os.name == 'nt' or
+                     os.environ.get('CI', None) is not None and PYQT_VERSION >= '5.9'),
+                    reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
 def test_issue_4066(main_window, qtbot):
     """
     Test for a segfault when these steps are followed:
