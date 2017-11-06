@@ -51,7 +51,14 @@ class FindReplace(QWidget):
     """Find widget"""
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: "",
-             None: ""}
+             None: "",
+             'regexp_error': "background-color:rgb(255, 80, 80);",
+             }
+    TOOLTIP = {False: _("No matches"),
+               True: _("Search string"),
+               None: _("Search string"),
+               'regexp_error': _("Regular expression error")
+               }
     visibility_changed = Signal(bool)
     return_shift_pressed = Signal()
     return_pressed = Signal()
@@ -384,6 +391,16 @@ class FindReplace(QWidget):
         # When several lines are selected in the editor and replace box is activated, 
         # dynamic search is deactivated to prevent changing the selection. Otherwise
         # we show matching items.
+        def regexp_error_msg(pattern):
+            """Returns None if the pattern is a valid regular expression or
+            a string describing why the pattern is invalid.
+            """
+            try:
+                re.compile(pattern)
+            except re.error as e:
+                return str(e)
+            return None
+
         if multiline_replace_check and self.replace_widgets[0].isVisible() and \
            len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
             return None
@@ -401,7 +418,17 @@ class FindReplace(QWidget):
             regexp = self.re_button.isChecked()
             found = self.editor.find_text(text, changed, forward, case=case,
                                           words=words, regexp=regexp)
-            self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
+
+            stylesheet = self.STYLE[found]
+            tooltip = self.TOOLTIP[found]
+            if not found and regexp:
+                error_msg = regexp_error_msg(text)
+                if error_msg:  # special styling for regexp errors
+                    stylesheet = self.STYLE['regexp_error']
+                    tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
+            self.search_text.lineEdit().setStyleSheet(stylesheet)
+            self.search_text.setToolTip(tooltip)
+
             if self.is_code_editor and found:
                 block = self.editor.textCursor().block()
                 TextHelper(self.editor).unfold_if_colapsed(block)
