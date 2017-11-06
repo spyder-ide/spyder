@@ -86,7 +86,7 @@ def test_selection_indent(code_editor_indent_bot):
 
 def test_fix_indentation(code_editor_indent_bot):
     """Test fix_indentation() method."""
-    ed, qtbot = code_editor_indent_bot
+    editor, qtbot = code_editor_indent_bot
     # Contains tabs.
     original = ("\t\n"
                 "class a():\t\n"
@@ -101,17 +101,17 @@ def test_fix_indentation(code_editor_indent_bot):
              "    print(self.b)\n"
              "\n"
              )
-    ed.set_text(original)
-    ed.fix_indentation()
-    assert to_text_string(ed.toPlainText()) == fixed
-    assert ed.document().isModified()
+    editor.set_text(original)
+    editor.fix_indentation()
+    assert to_text_string(editor.toPlainText()) == fixed
+    assert editor.document().isModified()
     # Test that undo/redo works - issue 1754.
-    ed.undo()
-    assert to_text_string(ed.toPlainText()) == original
-    assert not ed.document().isModified()
-    ed.redo()
-    assert to_text_string(ed.toPlainText()) == fixed
-    assert ed.document().isModified()
+    editor.undo()
+    assert to_text_string(editor.toPlainText()) == original
+    assert not editor.document().isModified()
+    editor.redo()
+    assert to_text_string(editor.toPlainText()) == fixed
+    assert editor.document().isModified()
 
 
 if __name__ == "__main__":
