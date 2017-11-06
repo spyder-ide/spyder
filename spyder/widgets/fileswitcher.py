@@ -760,6 +760,10 @@ class FileSwitcher(QDialog):
         # To adjust the delegate layout for KDE themes
         self.list.files_list = False
 
+        # Select edit line when using symbol search initially.
+        # See issue 5661
+        self.edit.setFocus()
+
         # Move selected item in list accordingly
         # NOTE: Doing this is causing two problems:
         # 1. It makes the cursor to auto-jump to the last selected
