@@ -17,7 +17,7 @@ import pdb
 import shlex
 import sys
 import time
-
+import warnings
 
 PY2 = sys.version[0] == '2'
 
@@ -280,6 +280,14 @@ class IPyTesProgram(TestProgram):
         TestProgram.__init__(self, *args, **kwargs)
 unittest.main = IPyTesProgram
 
+# Filter warnings that appear for ipykernel wheninteracting with
+# the Variable explorer (i.e trying to see a variable)
+# Fixes Issue 5591
+warnings.filterwarnings(action='ignore', category=DeprecationWarning,
+                        module='ipykernel.datapub',
+                        message=".*ipykernel.datapub is deprecated. "
+                                "It has moved to ipyparallel.datapub.*")
+
 
 #==============================================================================
 # Pandas adjustments
@@ -295,7 +303,6 @@ try:
     # >>> import pandas as pd, numpy as np
     # >>> pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
     # Fixes Issue 2991
-    import warnings
     # For 0.18-
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.core.format',
