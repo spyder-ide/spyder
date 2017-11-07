@@ -73,9 +73,9 @@ class DependenciesDialog(QDialog):
 
         self.label = QLabel(_("Optional modules are not required to run "
                               "Spyder but enhance its functions."))
-        self.label2 = QLabel(_("<b>Note:</b> New dependencies or changed ones will be "
-                               "correctly detected only after Spyder is "
-                               "restarted."))
+        self.label2 = QLabel(_("<b>Note:</b> New dependencies or changed ones "
+                               "will be correctly detected only after Spyder "
+                               "is restarted."))
 
         btn = QPushButton(_("Copy to clipboard"), )
         btn.clicked.connect(self.copy_to_clipboard)
