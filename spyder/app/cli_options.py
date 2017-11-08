@@ -6,7 +6,7 @@
 
 import argparse
 
-def get_options():
+def get_options(argv=None):
     """
     Convert options into commands
     return commands, message
@@ -44,6 +44,6 @@ def get_options():
                       dest="open_project",
                       help="Path that contains an Spyder project")
     parser.add_argument('files', nargs='*')
-    options = parser.parse_args()
+    options = parser.parse_args(argv)
     args = options.files
     return options, args
