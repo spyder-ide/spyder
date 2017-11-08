@@ -2249,7 +2249,10 @@ class EditorStack(QWidget):
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
-        if source.hasUrls() and source.urls():
+        # The third check is needed since a file could be dropped from
+        # compressed files. In Windows mimedata2url(source) returns None
+        # Fixes issue 5218
+        if source.hasUrls() and source.urls() and mimedata2url(source):
             all_urls = mimedata2url(source)
             text = [encoding.is_text_file(url) for url in all_urls]
             if any(text):
