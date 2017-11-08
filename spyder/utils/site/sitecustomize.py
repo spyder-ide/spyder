@@ -280,13 +280,12 @@ class IPyTesProgram(TestProgram):
         TestProgram.__init__(self, *args, **kwargs)
 unittest.main = IPyTesProgram
 
-# Filter warnings that appear for ipykernel wheninteracting with
+# Filter warnings that appear for ipykernel when interacting with
 # the Variable explorer (i.e trying to see a variable)
 # Fixes Issue 5591
 warnings.filterwarnings(action='ignore', category=DeprecationWarning,
                         module='ipykernel.datapub',
-                        message=".*ipykernel.datapub is deprecated. "
-                                "It has moved to ipyparallel.datapub.*")
+                        message=".*ipykernel.datapub is deprecated.*")
 
 
 #==============================================================================
