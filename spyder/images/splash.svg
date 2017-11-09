@@ -15,7 +15,7 @@
    height="250"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
+   inkscape:version="0.92.2 (unknown)"
    sodipodi:docname="splash.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="D:\Python\spyder\img_src\ico32.png"
@@ -29,7 +29,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
         <cc:license
            rdf:resource="http://creativecommons.org/licenses/by/3.0/" />
       </cc:Work>
@@ -49,22 +49,24 @@
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
-     inkscape:window-height="703"
-     inkscape:window-width="1280"
+     inkscape:window-height="1050"
+     inkscape:window-width="1839"
      inkscape:pageshadow="2"
      inkscape:pageopacity="1"
      borderopacity="1.0"
      bordercolor="#666666"
      pagecolor="#ffffff"
      id="base"
-     inkscape:zoom="1"
-     inkscape:cx="180.09356"
-     inkscape:cy="126.04479"
-     inkscape:window-x="78"
-     inkscape:window-y="32"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="172.15883"
+     inkscape:cy="149.59093"
+     inkscape:window-x="81"
+     inkscape:window-y="30"
      inkscape:current-layer="svg2"
      showgrid="false"
-     inkscape:window-maximized="0" />
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true" />
   <defs
      id="defs4">
     <linearGradient
@@ -403,28 +405,45 @@
          sodipodi:type="arc" />
     </g>
   </g>
-  <text
-     xml:space="preserve"
+  <g
+     aria-label="spyder"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:Candara;-inkscape-font-specification:Candara;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
-     x="209.12732"
-     y="140.99556"
-     id="text2451"><tspan
-       sodipodi:role="line"
-       id="tspan2453"
-       x="209.12732"
-       y="140.99556"
-       style="font-size:45px;line-height:1.25;fill:#ffffff;fill-opacity:1">spyder</tspan></text>
-  <text
-     xml:space="preserve"
+     id="text2451">
+    <path
+       d="m 218.56887,122.05759 q -2.048,0 -2.98667,0.768 -0.896,0.72533 -0.896,2.00533 0,0.42667 0.128,0.896 0.128,0.46933 0.46933,0.896 0.384,0.384 0.98134,0.768 0.64,0.34133 1.664,0.55467 l 3.02933,0.68266 q 1.792,0.384 2.85867,1.06667 1.10933,0.64 1.70666,1.408 0.59734,0.768 0.768,1.57867 0.21334,0.768 0.21334,1.45066 0,1.32267 -0.55467,2.47467 -0.512,1.152 -1.536,2.00533 -0.98133,0.85334 -2.432,1.32267 -1.45067,0.512 -3.24267,0.512 -2.26133,0 -4.18133,-0.64 -1.92,-0.68267 -3.072,-1.49333 l 0.768,-2.77334 q 1.536,1.408 3.41333,2.048 1.87734,0.64 3.37067,0.64 2.13333,0 3.24267,-1.024 1.10933,-1.06666 1.10933,-2.21866 0,-0.384 -0.0427,-0.85334 -0.0427,-0.512 -0.34133,-1.024 -0.29867,-0.512 -0.896,-0.93866 -0.59733,-0.46934 -1.70667,-0.72534 l -4.096,-1.024 q -1.408,-0.34133 -2.304,-0.896 -0.896,-0.55466 -1.408,-1.19466 -0.512,-0.68267 -0.72533,-1.408 -0.21333,-0.768 -0.21333,-1.536 0,-2.60267 1.92,-4.13867 1.96266,-1.57867 5.20533,-1.57867 1.664,0 3.584,0.46934 1.92,0.42666 3.24267,1.28 l -0.81067,2.56 q -0.85333,-0.72534 -2.56,-1.32267 -1.664,-0.59733 -3.66933,-0.59733 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.66666794px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffffff;fill-opacity:1"
+       id="path933" />
+    <path
+       d="m 242.18087,119.66825 q 2.176,0 3.79733,0.85334 1.62133,0.85333 2.688,2.26133 1.06667,1.408 1.57867,3.28533 0.55466,1.83467 0.55466,3.88267 0,2.13333 -0.59733,4.05333 -0.55467,1.87734 -1.70667,3.328 -1.10933,1.408 -2.816,2.26134 -1.70666,0.85333 -3.968,0.85333 -2.85866,0 -4.69333,-1.23733 -1.83467,-1.23734 -2.38933,-3.072 v 14.89066 h -2.98667 v -30.72 h 2.34667 l 0.34133,3.66934 h 0.17067 q 0.512,-0.768 1.23733,-1.536 0.768,-0.81067 1.74933,-1.408 0.98134,-0.59734 2.13334,-0.98134 1.19466,-0.384 2.56,-0.384 z m -0.768,2.51734 q -2.048,0 -3.84,1.10933 -1.74934,1.10933 -2.944,3.2 v 6.272 q 0.384,1.23733 1.10933,2.176 0.72533,0.93867 1.664,1.62133 0.98133,0.68267 2.048,1.024 1.10933,0.34134 2.21867,0.34134 1.49333,0 2.60266,-0.59734 1.10934,-0.59733 1.83467,-1.664 0.768,-1.06666 1.152,-2.47466 0.384,-1.408 0.384,-3.02934 0,-1.536 -0.384,-2.98666 -0.34133,-1.45067 -1.10933,-2.56 -0.768,-1.10934 -1.96267,-1.74934 -1.152,-0.68266 -2.77333,-0.68266 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.66666794px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffffff;fill-opacity:1"
+       id="path935" />
+    <path
+       d="m 265.19354,140.10559 q -0.64,1.36533 -1.536,3.2 -0.89601,1.87733 -2.13334,3.54133 -1.23733,1.664 -2.90133,2.816 -1.664,1.19467 -3.75467,1.19467 -0.34133,0 -0.512,-0.0427 -0.17067,0 -0.384,-0.0853 l -0.55467,-2.816 q 0.128,0.0427 0.29867,0.0853 0.17067,0.0427 0.59733,0.0427 0.85334,0 1.57867,-0.17067 0.768,-0.17067 1.49333,-0.68267 1.49334,-1.06666 2.688,-3.11466 1.23734,-2.048 2.21867,-4.77867 l -9.81333,-18.98667 h 3.54133 l 7.808,16.34134 6.99734,-16.34134 h 3.37066 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.66666794px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffffff;fill-opacity:1"
+       id="path937" />
+    <path
+       d="m 285.0642,140.44692 q -2.176,0 -3.79733,-0.85333 -1.62133,-0.85334 -2.688,-2.26134 -1.06667,-1.408 -1.62133,-3.24266 -0.512,-1.87734 -0.512,-3.92534 0,-2.09066 0.55466,-4.01066 0.59734,-1.92 1.70667,-3.328 1.152,-1.45067 2.85867,-2.304 1.70666,-0.85334 3.968,-0.85334 2.85866,0 4.69333,1.23734 1.83467,1.23733 2.38933,3.072 v -15.616 h 2.98667 v 31.57333 h -2.34667 l -0.34133,-3.49867 h -0.17067 q -1.024,1.57867 -2.98666,2.816 -1.96267,1.19467 -4.69334,1.19467 z m 0.34134,-2.51733 q 2.048,0 4.01066,-1.10934 2.00534,-1.10933 3.2,-3.2 v -6.272 q -0.768,-2.432 -2.60266,-3.79733 -1.792,-1.36533 -4.05334,-1.36533 -1.49333,0 -2.688,0.59733 -1.152,0.59733 -1.96266,1.664 -0.81067,1.06667 -1.28,2.56 -0.42667,1.49333 -0.42667,3.28533 0,1.36534 0.29867,2.73067 0.29866,1.36533 0.98133,2.47467 0.68267,1.06666 1.792,1.74933 1.10933,0.68267 2.73067,0.68267 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.66666794px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffffff;fill-opacity:1"
+       id="path939" />
+    <path
+       d="m 311.01487,119.66825 q 3.75467,0 5.80267,1.92 2.048,1.87734 2.048,5.33334 0,0.72533 -0.0853,1.49333 -0.0853,0.72533 -0.29866,1.06667 h -14.37867 v 0.42666 q 0,1.62134 0.42667,3.11467 0.42666,1.49333 1.28,2.64533 0.85333,1.152 2.13333,1.83467 1.32267,0.68267 3.11467,0.68267 1.024,0 2.00533,-0.21334 0.98133,-0.256 1.87733,-0.59733 0.896,-0.384 1.664,-0.81067 0.768,-0.42666 1.36534,-0.85333 l 0.512,2.432 q -0.55467,0.34133 -1.36534,0.768 -0.81066,0.384 -1.792,0.72533 -0.98133,0.34134 -2.176,0.55467 -1.152,0.256 -2.432,0.256 -2.38933,0 -4.224,-0.81067 -1.83466,-0.85333 -3.072,-2.26133 -1.23733,-1.45067 -1.87733,-3.328 -0.64,-1.87733 -0.64,-3.92533 0,-2.09067 0.64,-3.968 0.68267,-1.92 1.96267,-3.37067 1.28,-1.45067 3.15733,-2.26133 1.92,-0.85334 4.352,-0.85334 z m -0.128,2.38934 q -2.816,0 -4.39467,1.49333 -1.536,1.45067 -2.09066,3.66933 h 11.648 q 0.0427,-0.21333 0.0427,-0.384 0,-0.17066 0,-0.384 0,-1.06666 -0.42666,-1.87733 -0.42667,-0.85333 -1.152,-1.408 -0.72534,-0.55467 -1.664,-0.81067 -0.93867,-0.29866 -1.96267,-0.29866 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.66666794px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffffff;fill-opacity:1"
+       id="path941" />
+    <path
+       d="m 334.8902,123.46559 q -0.68267,-0.384 -1.36533,-0.59734 -0.68267,-0.256 -1.32267,-0.256 -0.85333,0 -1.62133,0.46934 -0.768,0.46933 -1.408,1.28 -0.64,0.81066 -1.152,1.87733 -0.46934,1.06667 -0.72534,2.21867 v 11.47733 h -2.98666 v -19.62667 h 2.34666 l 0.34134,4.30934 h 0.17066 q 0.29867,-0.98134 0.768,-1.87734 0.512,-0.896 1.19467,-1.57866 0.72533,-0.68267 1.62133,-1.06667 0.896,-0.42667 2.048,-0.42667 0.81067,0 1.70667,0.29867 0.896,0.256 1.28,0.68267 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.66666794px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffffff;fill-opacity:1"
+       id="path943" />
+  </g>
+  <g
+     aria-label="4"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:Candara;-inkscape-font-specification:Candara;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffff00;fill-opacity:1;stroke:none"
-     x="346.5874"
-     y="118.50293"
-     id="text2451-4"><tspan
-       sodipodi:role="line"
-       id="tspan2453-0"
-       x="346.5874"
-       y="118.50293"
-       style="font-size:30px;line-height:1.25;fill:#ffff00;fill-opacity:1">4</tspan></text>
+     id="text2451-4">
+    <path
+       d="m 357.12319,114.96486 h -2.208 v 6.72 h -2.4 v -6.72 h -9.088 v -2.24 l 8.928,-12.16 h 2.56 v 12.16 h 2.208 z m -4.608,-2.24 v -8.672 l -6.368,8.672 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffff00;fill-opacity:1"
+       id="path946"
+       inkscape:connector-curvature="0" />
+  </g>
   <rect
      style="fill:none;stroke:#ffff7b;stroke-width:0.99700844000000000;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:0.64921468;stroke-dasharray:none"
      id="rect3215"
@@ -432,4 +451,91 @@
      height="249.00299"
      x="0.49850422"
      y="0.49849206" />
+  <rect
+     style="fill:#1a5f15;fill-opacity:1;stroke-width:1.14124453"
+     id="rect895"
+     width="205"
+     height="133.5"
+     x="181"
+     y="-164.49998" />
+  <text
+     id="text889"
+     y="-70.065079"
+     x="209.48087"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:Candara;-inkscape-font-specification:Candara;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none"
+     xml:space="preserve"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.66666794px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffffff;fill-opacity:1"
+       y="-70.065079"
+       x="209.48087"
+       id="tspan887"
+       sodipodi:role="line">spyder</tspan></text>
+  <text
+     id="text893"
+     y="-87.254471"
+     x="340.66754"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:Candara;-inkscape-font-specification:Candara;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffff00;fill-opacity:1;stroke:none"
+     xml:space="preserve"><tspan
+       dy="-0.35355338"
+       dx="0.35355338"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Quattrocento Sans';-inkscape-font-specification:'Quattrocento Sans';fill:#ffff00;fill-opacity:1"
+       y="-87.254471"
+       x="340.66754"
+       id="tspan891"
+       sodipodi:role="line">4</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:21.33333397px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;"
+     x="212.49998"
+     y="-134.49998"
+     id="text899"><tspan
+       sodipodi:role="line"
+       id="tspan897"
+       x="212.49998"
+       y="-134.49998">editable text</tspan></text>
+  <text
+     id="text923"
+     y="-149.49998"
+     x="-187"
+     style="font-style:normal;font-weight:normal;font-size:21.33333397px;line-height:1em;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+     xml:space="preserve"><tspan
+       y="-149.49998"
+       x="-187"
+       id="tspan913"
+       sodipodi:role="line"
+       style="font-size:13.33333302px;line-height:1em">Notes: 0: Using Inkscape and Quattrocento Sans </tspan><tspan
+       y="-128.16666"
+       x="-187"
+       sodipodi:role="line"
+       style="font-size:13.33333302px;line-height:1em"
+       id="tspan953">           1: Change the editable text</tspan><tspan
+       id="tspan915"
+       y="-106.83331"
+       x="-187"
+       sodipodi:role="line"
+       style="font-size:13.33333302px;line-height:1em">           2: Duplicate the editable text</tspan><tspan
+       y="-85.499985"
+       x="-187"
+       sodipodi:role="line"
+       style="font-size:13.33333302px;line-height:1em"
+       id="tspan949">           3: Move the duplicate text over the original</tspan><tspan
+       id="tspan921"
+       y="-64.166649"
+       x="-187"
+       sodipodi:role="line"
+       style="font-size:13.33333302px;line-height:1em">           4: Delete the original text</tspan><tspan
+       y="-42.833313"
+       x="-187"
+       sodipodi:role="line"
+       id="tspan927"
+       style="font-size:13.33333302px;line-height:1em">           5: Convert the new logo text to a path</tspan><tspan
+       y="-21.499981"
+       x="-187"
+       sodipodi:role="line"
+       id="tspan931"
+       style="font-size:13.33333302px;line-height:1em">               with: Path &gt; Object to Path </tspan><tspan
+       y="-0.16664696"
+       x="-187"
+       sodipodi:role="line"
+       id="tspan929"
+       style="font-size:16px;line-height:1em" /></text>
 </svg>
