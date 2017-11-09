@@ -145,7 +145,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         if pyexec == def_pyexec:
             return
         if (not programs.is_python_interpreter(pyexec) or
-            not self.warn_python_compatibility(pyexec)):
+                not self.warn_python_compatibility(pyexec)):
             QMessageBox.warning(self, _('Warning'),
                     _("You selected an invalid Python interpreter for the "
                       "console so the previous interpreter will stay. Please "
