@@ -139,27 +139,24 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         """Custom Python executable value has been changed"""
         if not self.cus_exec_radio.isChecked():
             return
+        def_pyexec = get_python_executable()
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        if programs.is_python_interpreter(pyexec):
-            self.warn_python_compatibility(pyexec)
-        else:
+        if pyexec == def_pyexec:
+            return
+        if (not programs.is_python_interpreter(pyexec) or
+                not self.warn_python_compatibility(pyexec)):
             QMessageBox.warning(self, _('Warning'),
                     _("You selected an invalid Python interpreter for the "
                       "console so the previous interpreter will stay. Please "
                       "make sure to select a valid one."), QMessageBox.Ok)
-            self.pyexec_edit.setText(get_python_executable())
+            self.pyexec_edit.setText(def_pyexec)
             return
 
     def python_executable_switched(self, custom):
         """Python executable default/custom radio button has been toggled"""
-        def_pyexec = get_python_executable()
-        cust_pyexec = self.pyexec_edit.text()
-        if not is_text_string(cust_pyexec):
-            cust_pyexec = to_text_string(cust_pyexec.toUtf8(), 'utf-8')
-        if def_pyexec != cust_pyexec:
-            if custom:
-                self.warn_python_compatibility(cust_pyexec)
+        if custom:
+            self.python_executable_changed(self.pyexec_edit.text())
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
@@ -171,6 +168,8 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             console_version = int(proc.communicate()[0])
         except IOError:
             console_version = spyder_version
+        except ValueError:
+            return False
         if spyder_version != console_version:
             QMessageBox.warning(self, _('Warning'),
                 _("You selected a <b>Python %d</b> interpreter for the console "
@@ -180,6 +179,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                   "seeing false warnings and errors due to the incompatible "
                   "syntax between these two Python versions."
                   ) % (console_version, spyder_version), QMessageBox.Ok)
+        return True
 
     def set_umr_namelist(self):
         """Set UMR excluded modules name list"""
