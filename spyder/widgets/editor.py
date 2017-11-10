@@ -1466,6 +1466,7 @@ class EditorStack(QWidget):
 
             filename = self.data[index].filename
             self.remove_from_data(index)
+            finfo.editor.notify_close()
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing

@@ -958,9 +958,10 @@ class CodeEditor(TextEditBaseWidget):
                 self.go_to_definition.emit(position['file'], start['line'] + 1,
                                            start['character'])
 
-    # ------------- LSP: Save and Close file ----------------------------------
+    # ------------- LSP: Save/close file -----------------------------------
 
-    @request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE)
+    @request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE,
+             requires_response=False)
     def notify_save(self):
         if self.will_save_notify:
             params = {
@@ -968,6 +969,15 @@ class CodeEditor(TextEditBaseWidget):
                 'reason': TextDocumentSaveReason.MANUAL
             }
             return params
+
+    @request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
+             requires_response=False)
+    def notify_close(self):
+        params = {
+            'file': self.filename,
+            'signal': self.lsp_response_signal
+        }
+        return params
 
     # -------------------------------------------------------------------------
 

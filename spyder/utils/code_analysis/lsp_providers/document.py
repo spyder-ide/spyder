@@ -182,7 +182,8 @@ class DocumentProvider:
                 LSPRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
 
-    @send_request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE)
+    @send_request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE,
+                  requires_response=False)
     def document_will_save_notification(self, params):
         params = {
             'textDocument': {
@@ -190,4 +191,27 @@ class DocumentProvider:
             },
             'reason': params['reason']
         }
+        return params
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
+                  requires_response=False)
+    def document_did_close(self, params):
+        file_signal = params['signal']
+        filename = path_as_uri(params['file'])
+        params = {
+            'textDocument': {
+                'uri': filename
+            }
+        }
+        signals = self.watched_files[filename]
+        idx = -1
+        for i, signal in enumerate(signals):
+            if id(file_signal) == id(signal):
+                idx = i
+                break
+        if idx > 0:
+            signals.pop(idx)
+
+        if len(signals) == 0:
+            self.watched_files.pop(filename)
         return params
