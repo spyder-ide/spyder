@@ -591,7 +591,8 @@ class LSPManagerConfigPage(PluginConfigPage):
 class LSPManager(SpyderPluginWidget):
     """Language Server Protocol Client Manager."""
     CONF_SECTION = 'lsp-server'
-    CONFIGWIDGET_CLASS = LSPManagerConfigPage
+    # Configuration page disabled until further disussion
+    # CONFIGWIDGET_CLASS = LSPManagerConfigPage
 
     STOPPED = 'stopped'
     RUNNING = 'running'
