@@ -74,7 +74,8 @@ from spyder.widgets.sourcecode.api.decoration import TextDecoration
 from spyder.widgets.sourcecode.utils.lsp import (
     request, handles, class_register)
 from spyder.utils.code_analysis import (
-    LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity)
+    LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
+    TextDocumentSaveReason)
 from spyder.api.panel import Panel
 
 try:
@@ -478,8 +479,8 @@ class CodeEditor(TextEditBaseWidget):
         self.save_include_text = True
         self.open_close_notifications = True
         self.sync_mode = TextDocumentSyncKind.FULL
-        self.will_save_notify = True
-        self.will_save_until_notify = True
+        self.will_save_notify = False
+        self.will_save_until_notify = False
         self.enable_hover = False
         self.auto_completion_characters = []
         self.signature_completion_characters = []
@@ -916,6 +917,8 @@ class CodeEditor(TextEditBaseWidget):
         self.show_calltip(_("Hint"), text, at_point=self.mouse_point)
         # QTimer.singleShot(20000, lambda: QToolTip.hideText())
 
+    # ------------- LSP: Go To Definition ----------------------------
+
     @Slot()
     @request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_from_cursor(self, cursor=None):
@@ -954,6 +957,17 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 self.go_to_definition.emit(position['file'], start['line'] + 1,
                                            start['character'])
+
+    # ------------- LSP: Save and Close file ----------------------------------
+
+    @request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE)
+    def notify_save(self):
+        if self.will_save_notify:
+            params = {
+                'file': self.filename,
+                'reason': TextDocumentSaveReason.MANUAL
+            }
+            return params
 
     # -------------------------------------------------------------------------
 

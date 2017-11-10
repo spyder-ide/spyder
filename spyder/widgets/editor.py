@@ -1625,6 +1625,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
+            finfo.editor.notify_save()
             finfo.encoding = encoding.write(txt, finfo.filename,
                                             finfo.encoding)
             finfo.newly_created = False

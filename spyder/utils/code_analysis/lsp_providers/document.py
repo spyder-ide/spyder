@@ -181,3 +181,13 @@ class DocumentProvider:
             self.req_reply[req_id].emit(
                 LSPRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_WILL_SAVE)
+    def document_will_save_notification(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+            'reason': params['reason']
+        }
+        return params

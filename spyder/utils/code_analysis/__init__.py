@@ -256,10 +256,10 @@ TEXT_DOCUMENT_SYNC_OPTIONS = {
     'change': TextDocumentSyncKind.NONE,
 
     # Will save notifications are sent to the server.
-    'willSave': True,
+    'willSave': False,
 
     # Will save wait until requests are sent to the server.
-    'willSaveWaitUntil': True,
+    'willSaveWaitUntil': False,
 
     # Save notifications are sent to the server.
     'save': SAVE_OPTIONS
@@ -472,3 +472,12 @@ class InsertTextFormat:
     """LSP completion text interpretations."""
     PLAIN_TEXT = 1
     SNIPPET = 2
+
+# ----------------- SAVING REQUEST RELATED VALUES -------------------
+
+
+class TextDocumentSaveReason:
+    """LSP text document saving action causes."""
+    MANUAL = 1
+    AFTER_DELAY = 2
+    FOCUS_OUT = 3
