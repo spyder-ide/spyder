@@ -19,47 +19,48 @@ time_start = time.time()
 import os
 import os.path as osp
 import sys
-import optparse
+import argparse
 
 
 # --- Parse command line
 
-parser = optparse.OptionParser(
+parser = argparse.ArgumentParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="""\
 Arguments for Spyder's main script are specified after the --
 symbol (example: `python bootstrap.py -- --hide-console`).
 Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
-parser.add_option('--gui', default=None,
+parser.add_argument('--gui', default=None,
                   help="GUI toolkit: pyqt5 (for PyQt5), pyqt (for PyQt4) or "
                        "pyside (for PySide, deprecated)")
-parser.add_option('--show-console', action='store_true', default=False,
+parser.add_argument('--show-console', action='store_true', default=False,
                   help="(Deprecated) Does nothing, now the default behavior "
                   "is to show the console")
-parser.add_option('--hide-console', action='store_true',
+parser.add_argument('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
-parser.add_option('--test', dest="test", action='store_true', default=False,
+parser.add_argument('--test', dest="test", action='store_true', default=False,
                   help="Test Spyder with a clean settings dir")
-parser.add_option('--no-apport', action='store_true',
+parser.add_argument('--no-apport', action='store_true',
                   default=False, help="Disable Apport exception hook (Ubuntu)")
-parser.add_option('--debug', action='store_true',
+parser.add_argument('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
+parser.add_argument('spyder_options', nargs='*')
 
-options, args = parser.parse_args()
+args = parser.parse_args()
 
 # Store variable to be used in self.restart (restart spyder instance)
 os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(sys.argv[1:])
 
-assert options.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
-       "Invalid GUI toolkit option '%s'" % options.gui
+assert args.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
+       "Invalid GUI toolkit option '%s'" % args.gui
 
 # For testing purposes
-if options.test:
+if args.test:
     os.environ['SPYDER_TEST'] = 'True'
 
 # Prepare arguments for Spyder's main script
-sys.argv = [sys.argv[0]] + args
+sys.argv = [sys.argv[0]] + args.spyder_options
 
 
 print("Executing Spyder from source checkout")
@@ -90,7 +91,7 @@ if sys.excepthook != sys.__excepthook__:
      print("WARNING: 3rd party Python exception hook is active: '%s'"
             % sys.excepthook.__name__)
    else:
-     if not options.no_apport:
+     if not args.no_apport:
        print("WARNING: Ubuntu Apport exception hook is detected")
        print("         Use --no-apport option to disable it")
      else:
@@ -100,7 +101,7 @@ if sys.excepthook != sys.__excepthook__:
 
 # --- Continue
 
-if options.debug:
+if args.debug:
     # safety check - Spyder config should not be imported at this point
     if "spyder.config.base" in sys.modules:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
@@ -119,7 +120,7 @@ print("01. Patched sys.path with %s" % DEVPATH)
 
 # Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
-if options.gui is None:
+if args.gui is None:
     try:
         import PyQt5  # analysis:ignore
         print("02. PyQt5 is detected, selecting")
@@ -134,7 +135,7 @@ if options.gui is None:
                   "(deprecated)")
 else:
     print ("02. Skipping GUI toolkit detection")
-    os.environ['QT_API'] = options.gui
+    os.environ['QT_API'] = args.gui
 
 
 # Checking versions (among other things, this has the effect of setting the
@@ -157,11 +158,11 @@ if not programs.is_module_installed('qtpy', '>=1.1.0'):
 
 # --- Executing Spyder
 
-if options.show_console:
+if args.show_console:
     print("(Deprecated) --show console does nothing, now the default behavior "
           "is to show the console, use --hide-console if you want to hide it")
 
-if options.hide_console and os.name == 'nt':
+if args.hide_console and os.name == 'nt':
     print("0x. Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console
 

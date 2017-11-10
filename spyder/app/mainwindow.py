@@ -3036,7 +3036,7 @@ def main():
     # **** Collect command line options ****
     # Note regarding Options:
     # It's important to collect options before monkey patching sys.exit,
-    # otherwise, optparse won't be able to exit if --help option is passed
+    # otherwise, argparse won't be able to exit if --help option is passed
     options, args = get_options()
 
     if options.show_console:
