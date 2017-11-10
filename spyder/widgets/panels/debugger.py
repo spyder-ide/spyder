@@ -7,7 +7,7 @@
 This module contains the DebuggerPanel panel
 """
 from qtpy.QtCore import QSize, Qt, QRect
-from qtpy.QtGui import QPainter, QFontMetricsF
+from qtpy.QtGui import QPainter, QFontMetrics
 
 from spyder.utils import icon_manager as ima
 from spyder.api.panel import Panel
@@ -41,7 +41,7 @@ class DebuggerPanel(Panel):
 
         Returns the widget size hint (based on the editor font size).
         """
-        fm = QFontMetricsF(self.editor.font())
+        fm = QFontMetrics(self.editor.font())
         size_hint = QSize(fm.height(), fm.height())
         if size_hint.width() > 16:
             size_hint.setWidth(16)
