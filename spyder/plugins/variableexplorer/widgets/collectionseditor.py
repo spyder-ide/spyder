@@ -711,7 +711,9 @@ class BaseTableView(QTableView):
         self.duplicate_action = None
         self.delegate = None
         self.setAcceptDrops(True)
-        
+        self._updating_column_width = False
+        self.automatic_column_width = True
+
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -870,9 +872,12 @@ class BaseTableView(QTableView):
         
     def adjust_columns(self):
         """Resize two first columns to contents"""
-        for col in range(3):
-            self.resizeColumnToContents(col)
-        
+        if self.automatic_column_width:
+            self._updating_column_width = True
+            for col in range(3):
+                self.resizeColumnToContents(col)
+            self._updating_column_width = False
+
     def set_data(self, data):
         """Set table data"""
         if data is not None:
