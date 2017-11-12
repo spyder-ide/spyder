@@ -627,7 +627,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
                     reason="It segfaults frequently")
 def test_load_kernel_file(ipyconsole, qtbot):
     """
