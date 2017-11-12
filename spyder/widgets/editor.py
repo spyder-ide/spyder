@@ -1548,7 +1548,7 @@ class EditorStack(QWidget):
             # No file to save
             return True
         if unsaved_nb > 1:
-            buttons |= QMessageBox.YesAll | QMessageBox.NoAll
+            buttons |= QMessageBox.YesToAll | QMessageBox.NoToAll
         yes_all = False
         for index in indexes:
             self.set_stack_index(index)
@@ -1571,11 +1571,11 @@ class EditorStack(QWidget):
                 if answer == QMessageBox.Yes:
                     if not self.save():
                         return False
-                elif answer == QMessageBox.YesAll:
+                elif answer == QMessageBox.YesToAll:
                     if not self.save():
                         return False
                     yes_all = True
-                elif answer == QMessageBox.NoAll:
+                elif answer == QMessageBox.NoToAll:
                     return True
                 elif answer == QMessageBox.Cancel:
                     return False
