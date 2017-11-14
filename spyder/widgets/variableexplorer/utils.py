@@ -11,6 +11,7 @@ Utilities
 from __future__ import print_function
 
 from itertools import islice
+import ast
 import re
 
 # Local imports
@@ -419,6 +420,10 @@ def value_to_display(value, minmax=False, level=0):
                            to_binary_string("'"))
         elif is_text_string(value):
             display = value
+            try:
+                ast.literal_eval(display)
+            except ValueError:
+                display = default_display(value)
             if level > 0:
                 display = u"'" + display + u"'"
         elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
