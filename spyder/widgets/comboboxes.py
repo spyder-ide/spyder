@@ -285,7 +285,8 @@ class PathComboBox(EditableComboBox):
 
     def add_tooltip_to_highlighted_item(self, index):
         """
-        Add a tooltip showing the full path of each item of the PathComboBox.
+        Add a tooltip showing the full path of the currently highlighter item
+        of the PathComboBox.
         """
         self.setItemData(index, self.itemText(index), Qt.ToolTipRole)
 
