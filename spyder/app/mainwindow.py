@@ -2380,12 +2380,7 @@ class MainWindow(QMainWindow):
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 
-    @Slot()
-    def report_issue(self, traceback=""):
-        if PY3:
-            from urllib.parse import quote
-        else:
-            from urllib import quote     # analysis:ignore
+    def render_issue(self, traceback=""):
         versions = get_versions()
         # Get git revision for development version
         revision = ''
@@ -2427,15 +2422,31 @@ class MainWindow(QMainWindow):
        versions['system'],
        dependencies.status())
 
+        return issue_template
+
+    @Slot()
+    def report_issue(self, body=None, title=None):
+        if PY3:
+            from urllib.parse import quote
+        else:
+            from urllib import quote     # analysis:ignore
+
+        if body is None:
+            body = self.render_issue()
+
         url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
         if PYQT5:
             from qtpy.QtCore import QUrlQuery
             query = QUrlQuery()
-            query.addQueryItem("body", quote(issue_template))
+            query.addQueryItem("body", quote(body))
+            if title:
+                query.addQueryItem("title", quote(title))
             url.setQuery(query)
         else:
-            url.addEncodedQueryItem("body", quote(issue_template))
-            
+            url.addEncodedQueryItem("body", quote(body))
+            if title:
+                url.addEncodedQueryItem("title", quote(title))
+
         QDesktopServices.openUrl(url)
 
     @Slot()

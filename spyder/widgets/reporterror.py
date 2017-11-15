@@ -7,7 +7,7 @@
 """Repport Error Dialog"""
 
 # Third party imports
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QMessageBox, QApplication
 from qtpy.QtCore import Qt
 
 # Local Imports
@@ -49,7 +49,11 @@ class SpyderErrorMsgBox(QMessageBox):
         self.show()
 
     def _press_submit_btn(self):
-        self.parent().main.report_issue(self.error_traceback)
+        main = self.parent().main
+        issue_text  = main.render_issue(traceback=self.error_traceback)
+        QApplication.clipboard().setText(issue_text)
+        main.report_issue(body="", title="Spyder Error Report")
+        self.accept()
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in show details."""
