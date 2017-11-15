@@ -13,8 +13,6 @@ from qtpy.QtCore import Qt, Signal
 
 # Local Imports
 from spyder.config.base import _
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
-from spyder.config.main import CONF
 
 
 class SpyderErrorMsgBox(QMessageBox):
@@ -72,19 +70,11 @@ class FillDescription(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-
-        color_scheme = CONF.get('color_schemes', 'selected')
-
         self.setWindowTitle(_("Error Description"))
 
         self.label_description = QLabel(
             "What steps will reproduce the problem")
-        self.input_description = CodeEditor()
-        self.input_description.setup_editor(
-            language='md', linenumbers=False, scrollflagarea=False,
-            color_scheme=color_scheme)
-        self.input_description.set_text("1. \n2. \n3. ")
-        self.input_description.move_cursor(3)
+        self.input_description = QPlainTextEdit()
         self.input_description.textChanged.connect(self.text_changed)
 
         self.ok_button = QPushButton("Ok")
