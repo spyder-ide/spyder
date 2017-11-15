@@ -287,13 +287,11 @@ install_requires = [
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
-    'numpydoc'
+    'numpydoc',
+    # This is only needed for our wheels on Linux.
+    # See issue #3332
+    'pyopengl;platform_system=="Linux"'
 ]
-
-# This is needed only for pip installations on Linux.
-# See issue #3332
-if any([arg.startswith('manylinux1') for arg in sys.argv]):
-    install_requires = install_requires + ['pyopengl']
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
