@@ -17,7 +17,8 @@ import re
 # Local imports
 from spyder.config.base import get_supported_types
 from spyder.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
-                              is_text_string, is_binary_string, PY2,
+                              is_text_string, is_type_text_string,
+                              is_binary_string, PY2,
                               to_binary_string, iteritems)
 from spyder.utils import programs
 from spyder import dependencies
@@ -418,12 +419,8 @@ def value_to_display(value, minmax=False, level=0):
             if level > 0:
                 display = (to_binary_string("'") + display +
                            to_binary_string("'"))
-        elif is_text_string(value):
+        elif is_text_string(value) and is_type_text_string(value):
             display = value
-            try:
-                ast.literal_eval(display)
-            except ValueError:
-                display = default_display(value)
             if level > 0:
                 display = u"'" + display + u"'"
         elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
