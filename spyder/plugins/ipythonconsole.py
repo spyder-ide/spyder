@@ -945,7 +945,11 @@ class IPythonConsole(SpyderPluginWidget):
                 if not current_client:
                     # Clear console and reset namespace for
                     # dedicated clients
-                    sw.sig_prompt_ready.disconnect()
+                    # See issue 5748
+                    try:
+                        sw.sig_prompt_ready.disconnect()
+                    except TypeError:
+                        pass
                     sw.silent_execute(
                         'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(warning=False, silent=True)
