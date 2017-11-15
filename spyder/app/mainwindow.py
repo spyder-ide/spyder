@@ -2381,7 +2381,7 @@ class MainWindow(QMainWindow):
         dlg.exec_()
 
     @Slot()
-    def report_issue(self, traceback="", description="1. \n2. \n3. ", expected=""):
+    def report_issue(self, traceback=""):
         if PY3:
             from urllib.parse import quote
         else:
@@ -2396,11 +2396,12 @@ class MainWindow(QMainWindow):
 
 **What steps will reproduce the problem?**
 
-%s
+1. 
+2. 
+3. 
 
 **What is the expected output? What do you see instead?**
 
-%s
 
 **Please provide any additional information below**
 
@@ -2416,9 +2417,7 @@ class MainWindow(QMainWindow):
 ```
 %s
 ```
-""" % (description,
-       expected,
-       traceback,
+""" % (traceback,
        versions['spyder'],
        revision,
        versions['python'],
