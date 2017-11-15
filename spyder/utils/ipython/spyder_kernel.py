@@ -11,6 +11,7 @@ Spyder kernel for Jupyter
 # Standard library imports
 import os
 import os.path as osp
+import sys
 
 # Third-party imports
 from ipykernel.datapub import publish_data
@@ -63,9 +64,13 @@ class SpyderKernel(IPythonKernel):
         super(SpyderKernel, self).__init__(*args, **kwargs)
 
         self.namespace_view_settings = {}
+
         self._pdb_obj = None
         self._pdb_step = None
         self._do_publish_pdb_state = True
+
+        self._mpl_backend = None
+        self._mpl_backend_errors = False
 
         kernel_config = self.config.get('IPKernelApp', None)
         if kernel_config is not None:
@@ -410,3 +415,46 @@ class SpyderKernel(IPythonKernel):
             return eval(text, ns), True
         except:
             return None, False
+
+    # --- Others
+    def _set_mpl_backend(self, backend, pylab=False):
+        """
+        Set a backend for Matplotlib.
+
+        backend: A parameter that can be passed to %matplotlib
+                 (e.g. inline or tk).
+        """
+        from IPython.core.getipython import get_ipython
+        try:
+            import matplotlib
+        except:
+            return
+
+        ini_backend = matplotlib.get_backend()
+        if (ini_backend in ['agg', 'inline'] or backend == 'inline' or
+            backend.lower() in ini_backend.lower()):
+            try:
+                if pylab:
+                    get_ipython().run_line_magic('pylab', backend)
+                else:
+                    get_ipython().run_line_magic('matplotlib', backend)
+                del matplotlib
+            except:
+                del matplotlib
+                return
+        else:
+            del matplotlib
+            self._mpl_backend = ini_backend
+            self._mpl_backend_errors = True
+
+    def _show_mpl_backend_errors(self):
+        if self._mpl_backend_errors:
+            if sys.platform.startswith('linux'):
+                linux_place = "This file can be placed at '/etc/matplotlibrc'."
+            print("\n"
+                  "NOTE: Spyder *can't* set your selected Matplotlib backend "
+                  "because there is an external matplotlibrc file that's "
+                  "setting it first.\n\n"
+                  "{0}\n\n"
+                  "Your backend will be {1}".format(linux_place,
+                                                    self._mpl_backend))

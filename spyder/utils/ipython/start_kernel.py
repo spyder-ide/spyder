@@ -105,12 +105,9 @@ def kernel_config():
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
         autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
-        if autoload_pylab_o:
-            spy_cfg.IPKernelApp.exec_lines.append(
-                                              "%pylab {0}".format(mpl_backend))
-        else:
-            spy_cfg.IPKernelApp.exec_lines.append(
-                                         "%matplotlib {0}".format(mpl_backend))
+        command = "get_ipython().kernel._set_mpl_backend('{0}', {1})"
+        spy_cfg.IPKernelApp.exec_lines.append(
+            command.format(mpl_backend, autoload_pylab_o))
 
         # Inline backend configuration
         if mpl_backend == 'inline':
