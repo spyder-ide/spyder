@@ -462,4 +462,5 @@ class SpyderKernel(IPythonKernel):
     def _show_mpl_backend_errors(self):
         """Show Matplotlib backend errors after the prompt is ready."""
         if self._mpl_backend_error is not None:
-            print(self._mpl_backend_error)
+            print(self._mpl_backend_error)  # spyder: test-skip
+
