@@ -263,7 +263,7 @@ def test():
     app = qapplication(test_time=8)
     server_args_fmt = '--host %(host)s --port %(port)s --tcp'
     server_settings = {'host': '127.0.0.1', 'port': 2087, 'cmd': 'pyls'}
-    lsp = LSPClient(server_args_fmt, server_settings)
+    lsp = LSPClient(app, server_args_fmt, server_settings)
     lsp.start()
 
     app.aboutToQuit.connect(lsp.stop)

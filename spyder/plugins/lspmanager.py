@@ -25,9 +25,9 @@ from qtpy.QtWidgets import (QDialog,
 
 # Local imports
 from spyder.config.main import CONF
-from spyder.config.base import _
-from spyder.utils import icon_manager as ima
 from spyder.utils.misc import select_port
+from spyder.utils import icon_manager as ima
+from spyder.config.base import _, debug_print
 from spyder.utils.programs import find_program
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
@@ -662,7 +662,7 @@ class LSPManager(SpyderPluginWidget):
         if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                print("Closing LSP")
+                debug_print("Closing LSP")
                 language_client['instance'].shutdown()
                 language_client['instance'].exit()
                 language_client['instance'].stop()
