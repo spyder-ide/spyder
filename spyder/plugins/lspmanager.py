@@ -12,13 +12,11 @@
 # pylint: disable=R0201
 
 # Standard library imports
-import os
 import re
-import os.path as osp
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (Qt, Signal, Slot, QAbstractTableModel, QModelIndex)
+from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex)
 from qtpy.QtWidgets import (QDialog,
                             QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout, QTableView,
@@ -34,8 +32,6 @@ from spyder.utils.programs import find_program
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.widgets.helperwidgets import ItemDelegate
-from spyder.utils.code_analysis import (LSPRequestTypes, LSPEventTypes,
-                                        TextDocumentSyncKind)
 from spyder.utils.code_analysis.lsp_client import LSPClient
 
 
