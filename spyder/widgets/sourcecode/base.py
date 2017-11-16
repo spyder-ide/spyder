@@ -175,7 +175,7 @@ class CompletionWidget(QListWidget):
                      Qt.Key_Home, Qt.Key_End,
                      Qt.Key_CapsLock) and not modifier:
             if key == Qt.Key_Up and self.currentRow() == 0:
-                self.setCurrentRow(self.count()-1)
+                self.setCurrentRow(self.count() - 1)
             elif key == Qt.Key_Down and self.currentRow() == self.count()-1:
                 self.setCurrentRow(0)
             else:
