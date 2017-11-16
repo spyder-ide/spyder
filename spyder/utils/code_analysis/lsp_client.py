@@ -74,13 +74,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.language = language
 
         self.initialized = False
+        self.ready_to_close = False
         self.request_seq = 1
         self.req_status = {}
         self.plugin_registry = {}
         self.watched_files = {}
         self.req_reply = {}
 
-        self.transport_args = [sys.executable,
+        self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'lsp_transport', 'main.py')]
         self.external_server = external_server
 
@@ -138,11 +139,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # print('Stopping')
         # self.shutdown()
         # self.exit()
+        debug_print('LSP Client ==> Stopping...')
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        self.transport_client.terminate()
+        self.transport_client.kill()
         self.context.destroy()
 
     def send(self, method, params, requires_response):
@@ -154,8 +156,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if requires_response:
             self.req_status[self.request_seq] = method
 
-        # debug_print('\n[{0}] LSP-Client ===>'.format(self.language))
-        # debug_print(msg)
+        debug_print('\n[{0}] LSP-Client ===>'.format(self.language))
+        debug_print(method)
         # debug_print('')
         self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
@@ -225,10 +227,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         }
         return params
 
-    @send_request(method=LSPRequestTypes.SHUTDOWN, requires_response=False)
+    @send_request(method=LSPRequestTypes.SHUTDOWN)
     def shutdown(self):
         params = {}
         return params
+
+    @handles(LSPRequestTypes.SHUTDOWN)
+    def handle_shutdown(self, response, *args):
+        self.ready_to_close = True
 
     @send_request(method=LSPRequestTypes.EXIT, requires_response=False)
     def exit(self):
