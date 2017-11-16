@@ -30,7 +30,7 @@ class SpyderErrorMsgBox(QMessageBox):
               "The issue dependencies and traceback "
               "will be  copied  in the clipboard, "
               "paste them when submiting the issue.<br><br>"
-              "<i>Note:</i> You need a Github account for that."),
+              "<i>Note: You need a Github account for that.</i>"),
             parent=parent)
 
         self.submit_btn = self.addButton(
