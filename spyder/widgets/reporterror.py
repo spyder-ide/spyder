@@ -28,7 +28,6 @@ class SpyderErrorMsgBox(QMessageBox):
               "You can automatically submit this error to our Github "
               "issues tracker.<br><br>"
               "<i>Note:</i> You need a Github account for that."),
-            QMessageBox.Ok,
             parent=parent)
 
         self.submit_btn = self.addButton(
