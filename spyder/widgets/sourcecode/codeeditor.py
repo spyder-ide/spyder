@@ -2701,8 +2701,11 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
-        # Accept event to avoid it being handled by the parent
-        event.accept()
+        if not event.modifiers():
+            # Accept event to avoid it being handled by the parent
+            # Modifiers should be passed to the parent because they
+            # could be shortcuts
+            event.accept()
 
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""
