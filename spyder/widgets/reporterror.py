@@ -25,8 +25,11 @@ class SpyderErrorMsgBox(QMessageBox):
             _("<b>Spyder has encountered a problem.</b><br>"
               "Sorry for the inconvenience."
               "<br><br>"
-              "You can automatically submit this error to our Github "
+              "You can create a new issue in our Github "
               "issues tracker.<br><br>"
+              "The issue dependencies and traceback "
+              "will be  copied  in the clipboard, "
+              "paste them when submiting the issue.<br><br>"
               "<i>Note:</i> You need a Github account for that."),
             parent=parent)
 
