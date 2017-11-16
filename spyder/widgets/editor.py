@@ -1319,10 +1319,20 @@ class EditorStack(QWidget):
             return self.data[self.get_stack_index()].filename
 
     def has_filename(self, filename):
+        """Return the self.data index position for the filename.
+
+        Args:
+            filename: Name of the file to search for in self.data.
+
+        Returns:
+            The self.data index for the filename.  Returns None
+            if the filename is not found in self.data.
+        """
         fixpath = lambda path: osp.normcase(osp.realpath(path))
         for index, finfo in enumerate(self.data):
             if fixpath(filename) == fixpath(finfo.filename):
                 return index
+        return None
 
     def set_current_filename(self, filename):
         """Set current filename and return the associated editor instance"""
@@ -1334,6 +1344,18 @@ class EditorStack(QWidget):
             return editor
 
     def is_file_opened(self, filename=None):
+        """Return if filename is in the editor stack.
+
+        Args:
+            filename: Name of the file to search for.  If filename is None,
+                then checks if any file is open.
+
+        Returns:
+            True: If filename is None and a file is open.
+            False: If filename is None and no files are open.
+            None: If filename is not None and the file isn't found.
+            integer: Index of file name in editor stack.
+        """
         if filename is None:
             # Is there any file opened?
             return len(self.data) > 0
@@ -1629,7 +1651,7 @@ class EditorStack(QWidget):
         if filename:
             ao_index = self.has_filename(filename)
             # Note: ao_index == index --> saving an untitled file
-            if ao_index and ao_index != index:
+            if ao_index is not None and ao_index != index:
                 if not self.close_file(ao_index):
                     return
                 if ao_index < index:
@@ -1660,7 +1682,7 @@ class EditorStack(QWidget):
         if filename:
             ao_index = self.has_filename(filename)
             # Note: ao_index == index --> saving an untitled file
-            if ao_index and ao_index != index:
+            if ao_index is not None and ao_index != index:
                 if not self.close_file(ao_index):
                     return
                 if ao_index < index:
