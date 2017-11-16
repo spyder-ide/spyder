@@ -943,7 +943,11 @@ class IPythonConsole(SpyderPluginWidget):
                 if not current_client:
                     # Clear console and reset namespace for
                     # dedicated clients
-                    sw.sig_prompt_ready.disconnect()
+                    # See issue 5748
+                    try:
+                        sw.sig_prompt_ready.disconnect()
+                    except TypeError:
+                        pass
                     sw.silent_execute(
                         'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(warning=False, silent=True)
@@ -1248,8 +1252,12 @@ class IPythonConsole(SpyderPluginWidget):
         if index is not None:
             client = self.tabwidget.widget(index)
 
-        # Close client
-        client.stop_button_click_handler()
+        # Needed to handle a RuntimeError. See issue 5568.
+        try:
+            # Close client
+            client.stop_button_click_handler()
+        except RuntimeError:
+            pass
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them

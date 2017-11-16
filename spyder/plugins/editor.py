@@ -1370,11 +1370,18 @@ class Editor(SpyderPluginWidget):
                 if win.isAncestorOf(editorstack):
                     self.set_last_focus_editorstack(win, editorstack)
 
-    #------ Handling editorstacks
+    # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
         # print(self.lsp_editor_settings)
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
+        if len(self.editorstacks) > 1 and self.main is not None:
+            # The first editostack is registered automatically with Spyder's
+            # main window through the `register_plugin` method. Only additional
+            # editors added by splitting need to be registered.
+            # See Issue #5057.
+            self.main.fileswitcher.sig_goto_file.connect(
+                      editorstack.set_stack_index)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -2478,11 +2485,11 @@ class Editor(SpyderPluginWidget):
         self.__move_cursor_position(1)
 
     @Slot()
-    def go_to_line(self):
+    def go_to_line(self, line=None):
         """Open 'go to line' dialog"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
-            editorstack.go_to_line()
+            editorstack.go_to_line(line)
 
     @Slot()
     def set_or_clear_breakpoint(self):

@@ -859,10 +859,15 @@ class EditorStack(QWidget):
         """Get the widget with the TabWidget attribute."""
         return self
 
-    def go_to_line(self):
+    def go_to_line(self, line=None):
         """Go to line dialog"""
-        if self.data:
-            self.get_current_editor().exec_gotolinedialog()
+        if line is not None:
+            # When this method is called from the flileswitcher, a line
+            # number is specified, so there is no need for the dialog.
+            self.get_current_editor().go_to_line(line)
+        else:
+            if self.data:
+                self.get_current_editor().exec_gotolinedialog()
 
     def set_or_clear_breakpoint(self):
         """Set/clear breakpoint"""
@@ -1568,7 +1573,7 @@ class EditorStack(QWidget):
             # No file to save
             return True
         if unsaved_nb > 1:
-            buttons |= QMessageBox.YesAll | QMessageBox.NoAll
+            buttons |= QMessageBox.YesToAll | QMessageBox.NoToAll
         yes_all = False
         for index in indexes:
             self.set_stack_index(index)
@@ -1591,11 +1596,11 @@ class EditorStack(QWidget):
                 if answer == QMessageBox.Yes:
                     if not self.save():
                         return False
-                elif answer == QMessageBox.YesAll:
+                elif answer == QMessageBox.YesToAll:
                     if not self.save():
                         return False
                     yes_all = True
-                elif answer == QMessageBox.NoAll:
+                elif answer == QMessageBox.NoToAll:
                     return True
                 elif answer == QMessageBox.Cancel:
                     return False
@@ -2369,7 +2374,10 @@ class EditorStack(QWidget):
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
-        if source.hasUrls() and source.urls():
+        # The third check is needed since a file could be dropped from
+        # compressed files. In Windows mimedata2url(source) returns None
+        # Fixes issue 5218
+        if source.hasUrls() and source.urls() and mimedata2url(source):
             all_urls = mimedata2url(source)
             text = [encoding.is_text_file(url) for url in all_urls]
             if any(text):

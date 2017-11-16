@@ -295,7 +295,8 @@ class FileSwitcher(QDialog):
     @property
     def widgets(self):
         widgets = []
-        for tabs, plugin in self.plugins_tabs:
+        for plugin in self.plugins_instances:
+            tabs = self.get_plugin_tabwidget(plugin)
             widgets += [(tabs.widget(index), plugin) for
                         index in range(tabs.count())]
         return widgets
@@ -321,14 +322,16 @@ class FileSwitcher(QDialog):
     @property
     def paths(self):
         paths = []
-        for da, icon in self.plugins_data:
+        for plugin in self.plugins_instances:
+            da = self.get_plugin_data(plugin)
             paths += [getattr(td, 'filename', None) for td in da]
         return paths
 
     @property
     def filenames(self):
         filenames = []
-        for da, icon in self.plugins_data:
+        for plugin in self.plugins_instances:
+            da = self.get_plugin_data(plugin)
             filenames += [os.path.basename(getattr(td,
                                                    'filename',
                                                    None)) for td in da]
@@ -526,18 +529,37 @@ class FileSwitcher(QDialog):
         return real_index
 
     # --- Helper methods: Widget
+    def get_plugin_data(self, plugin):
+        """Get the data object of the plugin's current tab manager."""
+        # The data object is named "data" in the editor plugin while it is
+        # named "clients" in the notebook plugin.
+        try:
+            data = plugin.get_current_tab_manager().data
+        except AttributeError:
+            data = plugin.get_current_tab_manager().clients
+
+        return data
+
+    def get_plugin_tabwidget(self, plugin):
+        """Get the tabwidget of the plugin's current tab manager."""
+        # The tab widget is named "tabs" in the editor plugin while it is
+        # named "tabwidget" in the notebook plugin.
+        try:
+            tabwidget = plugin.get_current_tab_manager().tabs
+        except AttributeError:
+            tabwidget = plugin.get_current_tab_manager().tabwidget
+
+        return tabwidget
+
     def get_widget(self, index=None, path=None, tabs=None):
         """Get widget by index.
-        
+
         If no tabs and index specified the current active widget is returned.
         """
-        if index and tabs:
-            return tabs.widget(index)
-        elif path and tabs:
+        if (index and tabs) or (path and tabs):
             return tabs.widget(index)
         elif self.plugin:
-            index = self.plugins_instances.index(self.plugin)
-            return self.plugins_tabs[index][0].currentWidget()
+            return self.get_plugin_tabwidget(self.plugin).currentWidget()
         else:
             return self.plugins_tabs[0][0].currentWidget()
 
@@ -558,9 +580,8 @@ class FileSwitcher(QDialog):
         """Go to specified line number in current active editor."""
         if line_number:
             line_number = int(line_number)
-            editor = self.get_widget()
             try:
-                editor.go_to_line(min(line_number, editor.get_line_count()))
+                self.plugin.go_to_line(line_number)
             except AttributeError:
                 pass
 
@@ -616,6 +637,8 @@ class FileSwitcher(QDialog):
         # Get optional line number
         if trying_for_line_number:
             filter_text, line_number = filter_text.split(':')
+            if line_number == '':
+                line_number = None
             # Get all the available filenames
             scores = get_search_scores('', self.filenames,
                                        template="<b>{0}</b>")
@@ -625,7 +648,6 @@ class FileSwitcher(QDialog):
             # "fuzzy" matching
             scores = get_search_scores(filter_text, self.filenames,
                                        template="<b>{0}</b>")
-
 
         # Get max width to determine if shortpaths should be used
         max_width = self.get_item_size(paths)[0]
@@ -737,6 +759,10 @@ class FileSwitcher(QDialog):
 
         # To adjust the delegate layout for KDE themes
         self.list.files_list = False
+
+        # Select edit line when using symbol search initially.
+        # See issue 5661
+        self.edit.setFocus()
 
         # Move selected item in list accordingly
         # NOTE: Doing this is causing two problems:

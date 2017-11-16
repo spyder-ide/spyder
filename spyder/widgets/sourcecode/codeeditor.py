@@ -1413,7 +1413,10 @@ class CodeEditor(TextEditBaseWidget):
         else:
             block = self.document().findBlockByNumber(line_number-1)
         data = block.userData()
-        if data:
+        if not data:
+            data = BlockUserData(self)
+            data.breakpoint = True
+        elif not edit_condition:
             data.breakpoint = not data.breakpoint
             old_breakpoint_condition = data.breakpoint_condition
             data.breakpoint_condition = None
@@ -1432,18 +1435,13 @@ class CodeEditor(TextEditBaseWidget):
                                         _('Breakpoint'),
                                         _("Condition:"),
                                         QLineEdit.Normal, condition)
-            if valid:
-                condition = str(condition)
-                if not condition:
-                    condition = None
-                data.breakpoint_condition = condition
-            else:
-                data.breakpoint_condition = old_breakpoint_condition
+            if not valid:
                 return
+            data.breakpoint = True
+            data.breakpoint_condition = str(condition) if condition else None
         if data.breakpoint:
             text = to_text_string(block.text()).strip()
-            if len(text) == 0 or text.startswith('#') or text.startswith('"') \
-               or text.startswith("'"):
+            if len(text) == 0 or text.startswith(('#', '"', "'")):
                 data.breakpoint = False
         block.setUserData(data)
         self.linenumberarea.update()
@@ -1468,6 +1466,9 @@ class CodeEditor(TextEditBaseWidget):
             data.breakpoint = False
             # data.breakpoint_condition = None  # not necessary, but logical
             if data.is_empty():
+                # This is not calling the __del__ in BlockUserData.  Not
+                # sure if it's supposed to or not, but that seems to be the
+                # intent.
                 del data
 
     def set_breakpoints(self, breakpoints):
@@ -2975,8 +2976,13 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = to_text_string(cursor.selectedText())
-            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']'}[key]:
+            key_matches_next_char = (
+                text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                         Qt.Key_BracketRight: ']'}[key]
+            )
+            if (key_matches_next_char
+              and not self.__unmatched_braces_in_line(cursor.block().text())):
+                # overwrite an existing brace if all braces in line are matched
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
@@ -3024,8 +3030,11 @@ class CodeEditor(TextEditBaseWidget):
         if len(text) > 0:
             # print(self.get_cursor_line_column(), text)
             self.document_did_change(text)
-        # Accept event to avoid it being handled by the parent
-        event.accept()
+        if not event.modifiers():
+            # Accept event to avoid it being handled by the parent
+            # Modifiers should be passed to the parent because they
+            # could be shortcuts
+            event.accept()
 
     def run_pygments_highlighter(self):
         """Run pygments highlighter."""

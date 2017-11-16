@@ -341,21 +341,59 @@ def test_replace_enter_press(editor_find_replace_bot):
     qtbot.keyPress(finder.search_text, Qt.Key_Return, modifier=Qt.ShiftModifier)
     assert editor.get_cursor_line_column() == (3,4)
 
-
-def test_selection_replace_plain_regex(editor_find_replace_bot):
+def test_replace_plain_regex(editor_find_replace_bot):
     """Test that regex reserved characters are displayed as plain text."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     expected_new_text = ('.\\[()]*test bacon\n'
                          'spam sausage\n'
                          'spam egg')
-    old_text = editor.toPlainText()
     finder.show()
     finder.show_replace()
     qtbot.keyClicks(finder.search_text, 'spam')
     qtbot.keyClicks(finder.replace_text, '.\[()]*test')
     qtbot.keyPress(finder.replace_text, Qt.Key_Return)
-    text = editor.toPlainText()[0:-1]
     assert editor.toPlainText()[0:-1] == expected_new_text
+
+def test_replace_invalid_regex(editor_find_replace_bot):
+    """Assert that replacing an invalid regexp does nothing."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    old_text = editor.toPlainText()
+    finder.show()
+    finder.show_replace()
+    qtbot.keyClicks(finder.search_text, '\\')
+    qtbot.keyClicks(finder.replace_text, 'anything')
+    if not finder.re_button.isChecked():
+        qtbot.mouseClick(finder.re_button, Qt.LeftButton)
+    qtbot.mouseClick(finder.replace_button, Qt.LeftButton)
+    assert editor.toPlainText() == old_text
+    qtbot.mouseClick(finder.replace_sel_button, Qt.LeftButton)
+    assert editor.toPlainText() == old_text
+    qtbot.mouseClick(finder.replace_all_button, Qt.LeftButton)
+    assert editor.toPlainText() == old_text
+
+
+def test_selection_escape_characters(editor_find_replace_bot):
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    expected_new_text = ('spam bacon\n'
+                         'spam sausage\n'
+                         'spam egg\n'
+                         '\\n \\t some escape characters')
+    qtbot.keyClicks(editor, '\\n \\t escape characters')
+
+    finder.show()
+    finder.show_replace()
+    qtbot.keyClicks(finder.search_text, 'escape')
+    qtbot.keyClicks(finder.replace_text, 'some escape')
+
+    # Select last line
+    cursor = editor.textCursor()
+    cursor.select(QTextCursor.LineUnderCursor)
+    assert cursor.selection().toPlainText() == "\\n \\t escape characters"
+
+    #replace
+    finder.replace_find_selection()
+    assert editor.toPlainText() == expected_new_text
+
 
 def test_advance_cell(editor_cells_bot):
     editor_stack, editor, qtbot = editor_cells_bot

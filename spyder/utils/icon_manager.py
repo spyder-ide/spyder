@@ -142,6 +142,13 @@ _qtaargs = {
     'versplit':                [('spyder.rows',), {}],
     'horsplit':                [('fa.columns',), {}],
     'close_panel':             [('fa.close',), {}],
+    'class':                   [('spyder.circle-letter-c',), {'color':'#3775a9'}],
+    'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
+    'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c'}],
+    'method':                  [('spyder.circle-letter-m',), {'color':'#7ea67e'}],
+    'function':                [('spyder.circle-letter-f',), {'color':'orange'}],
+    'blockcomment':            [('spyder.circle-hash',), {'color':'grey'}],
+    'cell':                    [('spyder.circle-percent',), {'color':'red'}],
     'fromcursor':              [('fa.hand-o-right',), {}],
     'filter':                  [('fa.filter',), {}],
     'folder_new':              [('fa.folder-o', 'fa.plus'), {'options': [{}, {'scale_factor': 0.5, 'offset': (0.0, 0.1)}]}],
@@ -218,7 +225,10 @@ _qtaargs = {
     'folding.arrow_right_on':  [('fa.caret-right',), {}],
     'folding.arrow_down_off':  [('fa.caret-down',), {'color': 'gray'}],
     'folding.arrow_down_on':   [('fa.caret-down',), {}],
-    'lspserver':               [('fa.server',), {}]
+    'lspserver':               [('fa.server',), {}],
+    'dependency_ok':           [('fa.check',), {}],
+    'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
+    'dependency_error':        [('fa.warning',), {'color': 'darkred'}],
 }
 
 

@@ -56,3 +56,37 @@ def test_editor_lower_to_upper(editorbot):
     widget.transform_to_uppercase()
     new_text = widget.get_text('sof', 'eof')
     assert text != new_text
+
+def test_editor_complete_backet(editorbot):
+    qtbot, editor = editorbot
+    editor.textCursor().insertText('foo')
+    qtbot.keyClicks(editor, '(')
+    assert editor.toPlainText() == 'foo()'
+    assert editor.textCursor().columnNumber() == 4
+
+def test_editor_complete_bracket_nested(editorbot):
+    qtbot, editor = editorbot
+    editor.textCursor().insertText('foo(bar)')
+    editor.move_cursor(-1)
+    qtbot.keyClicks(editor, '(')
+    assert editor.toPlainText() == 'foo(bar())'
+    assert editor.textCursor().columnNumber() == 8
+
+def test_editor_bracket_closing(editorbot):
+    qtbot, editor = editorbot
+    editor.textCursor().insertText('foo(bar(x')
+    qtbot.keyClicks(editor, ')')
+    assert editor.toPlainText() == 'foo(bar(x)'
+    assert editor.textCursor().columnNumber() == 10
+    qtbot.keyClicks(editor, ')')
+    assert editor.toPlainText() == 'foo(bar(x))'
+    assert editor.textCursor().columnNumber() == 11
+    # same ')' closing with existing brackets starting at 'foo(bar(x|))'
+    editor.move_cursor(-2)
+    qtbot.keyClicks(editor, ')')
+    assert editor.toPlainText() == 'foo(bar(x))'
+    assert editor.textCursor().columnNumber() == 10
+    qtbot.keyClicks(editor, ')')
+    assert editor.toPlainText() == 'foo(bar(x))'
+    assert editor.textCursor().columnNumber() == 11
+

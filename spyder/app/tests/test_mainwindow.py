@@ -71,6 +71,11 @@ def open_file_in_editor(main_window, fname, directory=None):
             input_field.setText(fname)
             QTest.keyClick(w, Qt.Key_Enter)
 
+def get_thirdparty_plugin(main_window, plugin_title):
+    """Get a reference to the thirdparty plugin with the title given."""
+    for plugin in main_window.thirdparty_plugins:
+        if plugin.get_plugin_title() == plugin_title:
+            return plugin
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
     """Reset state after a run code test"""
@@ -786,7 +791,9 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif((os.name == 'nt' or
+                     os.environ.get('CI', None) is not None and PYQT_VERSION >= '5.9'),
+                    reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
 def test_issue_4066(main_window, qtbot):
     """
     Test for a segfault when these steps are followed:
@@ -1085,6 +1092,38 @@ def test_fileswitcher(main_window, qtbot):
        main_window.open_fileswitcher()
        item_text = main_window.fileswitcher.list.currentItem().text()
        assert '...' in item_text
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(not PYQT5, reason="It times out.")
+def test_run_static_code_analysis(main_window, qtbot):
+    """This tests that the Pylint plugin is working as expected."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Select the third-party plugin
+    pylint = get_thirdparty_plugin(main_window, "Static code analysis")
+
+    # Do an analysis
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+    qtbot.keyClick(code_editor, Qt.Key_F8)
+    qtbot.wait(500)
+
+    # Perform the test
+    # Check output of the analysis
+    treewidget = pylint.get_focus_widget()
+    qtbot.waitUntil(lambda: treewidget.results is not None,
+                    timeout=SHELL_TIMEOUT)
+    result_content = treewidget.results
+    assert result_content['C:']
+    assert len(result_content['C:']) == 5
+
+    # Close the file
+    main_window.editor.close_file()
 
 
 if __name__ == "__main__":

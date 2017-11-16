@@ -131,6 +131,7 @@ class TextHelper(object):
         :return: The new text cursor
         :rtype: QtGui.QTextCursor
         """
+        line = min(line, self.line_count())
         text_cursor = self._move_cursor_to(line)
         print(end_column)
         if column:

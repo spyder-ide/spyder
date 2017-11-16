@@ -13,7 +13,8 @@ Options:
                         administrative privileges)
   -w WORKING_DIRECTORY, --workdir=WORKING_DIRECTORY
                         Default working directory
-  --show-console        Do not hide parent console window (Windows)
+  --hide-console        Hide parent console window (Windows)
+  --show-console        (Deprecated) Does nothing, now the default behavior is to show the console
   --multithread         Internal console is executed in another thread
                         (separate from main application thread)
   --profile             Profile mode (internal test, not related with Python
