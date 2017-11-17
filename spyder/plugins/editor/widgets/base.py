@@ -331,14 +331,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.decorations = TextDecorationsManager(self)
 
-    @property
-    def word_separators(self):
-        return {
-            '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+', '{',
-            '}', '|', ':', '"', "'", "<", ">", "?", ",", ".", "/", ";", '[',
-            ']', '\\', '\n', '\t', '=', '-', ' '
-            }
-
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
         font = get_font()

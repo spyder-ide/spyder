@@ -181,11 +181,13 @@ class TextHelper(object):
         """Returns the selected text."""
         return self._editor.textCursor().selectedText()
 
-    def word_under_cursor(self, select_whole_word=False, text_cursor=None,
-                          extended_selection=set()):
+    def word_under_cursor(self, select_whole_word=False, text_cursor=None):
         """
         Gets the word under cursor using the separators defined by
         :attr:`spyder.plugins.editor.widgets.codeeditor.CodeEditor.word_separators`.
+
+        FIXME: This is not working because CodeEditor have no attribute
+        word_separators
 
         .. note: Instead of returning the word string, this function returns
             a QTextCursor, that way you may get more information than just the
@@ -193,43 +195,47 @@ class TextHelper(object):
             value.
 
         :param select_whole_word: If set to true the whole word is selected,
-            else the selection stops at the cursor position.
+         else the selection stops at the cursor position.
         :param text_cursor: Optional custom text cursor (e.g. from a
             QTextDocument clone)
-        :param extended_selection: Include these characters when selecting a
-            word.
         :returns: The QTextCursor that contains the selected word.
         """
-        def move_cursor(start, direction='left'):
-
-            moves = {'left': (text_cursor.atStart, text_cursor.Left),
-                     'right': (text_cursor.atEnd, text_cursor.Right)}
-
-            boundary, operation = moves[direction]
-            text_cursor.setPosition(start)
-            while not boundary():
-                text_cursor.movePosition(operation, text_cursor.KeepAnchor, 1)
-                try:
-                    selected_txt = text_cursor.selectedText()
-                    if (selected_txt in word_separators and
-                        selected_txt not in extended_selection or
-                        selected_txt.isspace()):
-                        break  # Boundary found.
-                except IndexError:
-                    break  # Nothing selectable.
-                text_cursor.setPosition(text_cursor.position())
-            return text_cursor.position()
-
         editor = self._editor
-        word_separators = editor.word_separators
         if not text_cursor:
             text_cursor = editor.textCursor()
-        curr = text_cursor.position()
-        # Select char by char until we are at a word boundary.
-        start_pos = move_cursor(curr, 'left')
-        # Select the rest of the word.
-        end_pos = curr if not select_whole_word else move_cursor(curr, 'right')
-        # Now that we have the boundaries, we can select the text.
+        word_separators = editor.word_separators
+        end_pos = start_pos = text_cursor.position()
+        # select char by char until we are at the original cursor position.
+        while not text_cursor.atStart():
+            text_cursor.movePosition(
+                text_cursor.Left, text_cursor.KeepAnchor, 1)
+            try:
+                char = text_cursor.selectedText()[0]
+                word_separators = editor.word_separators
+                selected_txt = text_cursor.selectedText()
+                if (selected_txt in word_separators and
+                        (selected_txt != "n" and selected_txt != "t") or
+                        char.isspace()):
+                    break  # start boundary found
+            except IndexError:
+                break  # nothing selectable
+            start_pos = text_cursor.position()
+            text_cursor.setPosition(start_pos)
+        if select_whole_word:
+            # select the resot of the word
+            text_cursor.setPosition(end_pos)
+            while not text_cursor.atEnd():
+                text_cursor.movePosition(text_cursor.Right,
+                                         text_cursor.KeepAnchor, 1)
+                char = text_cursor.selectedText()[0]
+                selected_txt = text_cursor.selectedText()
+                if (selected_txt in word_separators and
+                        (selected_txt != "n" and selected_txt != "t") or
+                        char.isspace()):
+                    break  # end boundary found
+                end_pos = text_cursor.position()
+                text_cursor.setPosition(end_pos)
+        # now that we habe the boundaries, we can select the text
         text_cursor.setPosition(start_pos)
         text_cursor.setPosition(end_pos, text_cursor.KeepAnchor)
         return text_cursor
@@ -728,7 +734,7 @@ class TextHelper(object):
             elif char in seps and char not in continuation_chars:
                 stop = True
                 end_pos = cursor.position() - 1
-        if start_pos is not None and end_pos is not None:
+        if start_pos and end_pos:
             cursor.setPosition(start_pos)
             cursor.movePosition(cursor.Right, cursor.KeepAnchor,
                                 end_pos - start_pos)

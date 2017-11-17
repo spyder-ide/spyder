@@ -482,12 +482,10 @@ def test_get_current_word(base_editor_bot, qtbot):
     """Test getting selected valid python word."""
     editor_stack = base_editor_bot
     text = ('some words with non-ascii  characters\n'
-            'niño\t\n'
+            'niño\n'
             'garçon\n'
             'α alpha greek\n'
-            'alpha α greek\n'
-            '123valid_python_word\n'
-            'dotted.reference():\n')
+            '123valid_python_word')
     finfo = editor_stack.new('foo.py', 'utf-8', text)
     qtbot.addWidget(editor_stack)
     editor = finfo.editor
@@ -516,24 +514,11 @@ def test_get_current_word(base_editor_bot, qtbot):
     assert 'α' == editor.textCursor().selectedText()
     assert editor.get_current_word() == 'α'
 
-    # Select α - single character in the middle of a sentence.
-    editor.go_to_line(5)
-    editor.moveCursor(QTextCursor.NextWord)
-    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
-    assert 'α' == editor.textCursor().selectedText()
-    assert editor.get_current_word() == 'α'
-
     # Select valid_python_word, should search first valid python word
-    editor.go_to_line(6)
+    editor.go_to_line(5)
     editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
     assert '123valid_python_word' == editor.textCursor().selectedText()
     assert editor.get_current_word() == 'valid_python_word'
-
-    # Selection includes dot.
-    editor.go_to_line(7)
-    editor.moveCursor(QTextCursor.EndOfWord, QTextCursor.KeepAnchor)
-    assert 'dotted' == editor.textCursor().selectedText()
-    assert editor.get_current_word() == 'dotted.reference'
 
 
 def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot, qtbot):
