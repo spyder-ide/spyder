@@ -1917,7 +1917,7 @@ class Editor(SpyderPluginWidget):
             # QString when triggered by a Qt signal
             fname = osp.abspath(to_text_string(fname))
             index = current_es.has_filename(fname)
-            if index and not current_es.close_file(index):
+            if index is not None and not current_es.close_file(index):
                 return
         
         # Creating the editor widget in the first editorstack (the one that
@@ -1939,7 +1939,7 @@ class Editor(SpyderPluginWidget):
         """Update recent file menu"""
         recent_files = []
         for fname in self.recent_files:
-            if not self.is_file_opened(fname) and osp.isfile(fname):
+            if self.is_file_opened(fname) is None and osp.isfile(fname):
                 recent_files.append(fname)
         self.recent_file_menu.clear()
         if recent_files:
