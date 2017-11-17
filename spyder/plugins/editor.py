@@ -611,10 +611,15 @@ class Editor(SpyderPluginWidget):
         callback = options['signal']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
         if stat:
-            self.lsp_server_ready(
-                language.lower(), self.lsp_editor_settings[language.lower()])
-            self.main.lspmanager.register_file(
-                language.lower(), filename, callback)
+            if language.lower() in self.lsp_editor_settings:
+                self.lsp_server_ready(
+                    language.lower(), self.lsp_editor_settings[
+                        language.lower()])
+                self.main.lspmanager.register_file(
+                    language.lower(), filename, callback)
+            else:
+                editor = self.get_current_editor()
+                editor.lsp_ready = False
 
     @Slot(dict, str)
     def document_server_settings(self, settings, language):

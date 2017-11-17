@@ -808,7 +808,8 @@ class CodeEditor(TextEditBaseWidget):
             'file': self.filename,
             'language': self.language,
             'version': self.text_version,
-            'text': self.toPlainText()
+            'text': self.toPlainText(),
+            'signal': self.lsp_response_signal
         }
         return params
 
@@ -868,7 +869,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_SIGNATURE)
     def process_signatures(self, params):
-        self.hide_completion_widget()
+        # self.hide_completion_widget()
         signature = params['params']
         if (signature is not None and
                 'activeParameter' in signature):
@@ -3318,12 +3319,13 @@ def test(fname):
     win.load(fname)
     win.resize(900, 700)
 
-    from spyder.utils.codeanalysis import (check_with_pyflakes,
-                                           check_with_pep8)
+    # from spyder.utils.codeanalysis import (check_with_pyflakes,
+    # check_with_pep8)
     source_code = to_text_string(win.editor.toPlainText())
-    results = check_with_pyflakes(source_code, fname) + \
-              check_with_pep8(source_code, fname)
-    win.editor.process_code_analysis(results)
+    # results = check_with_pyflakes(source_code, fname) + \
+    # check_with_pep8(source_code, fname)
+    results = win.editor.document_did_change()
+    # win.editor.process_code_analysis(results)
 
     sys.exit(app.exec_())
 

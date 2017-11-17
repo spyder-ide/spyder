@@ -59,9 +59,12 @@ class DocumentProvider:
     @send_request(
         method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_open(self, editor_params):
+        uri = path_as_uri(editor_params['file'])
+        if uri not in self.watched_files:
+            self.register_file(editor_params['file'], editor_params['signal'])
         params = {
             'textDocument': {
-                'uri': path_as_uri(editor_params['file']),
+                'uri': uri,
                 'languageId': editor_params['language'],
                 'version': editor_params['version'],
                 'text': editor_params['text']

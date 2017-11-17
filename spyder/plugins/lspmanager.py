@@ -296,6 +296,7 @@ class LSPServerEditor(QDialog):
         self.args_input.setText(self.DEFAULT_ARGS)
 
     @Slot(bool)
+    @Slot(int)
     def set_local_options(self, enabled):
         self.external = enabled
         self.cmd_input.setEnabled(True)
@@ -588,7 +589,7 @@ class LSPManager(SpyderPluginWidget):
     """Language Server Protocol Client Manager."""
     CONF_SECTION = 'lsp-server'
     # Configuration page disabled until further disussion
-    # CONFIGWIDGET_CLASS = LSPManagerConfigPage
+    CONFIGWIDGET_CLASS = LSPManagerConfigPage
 
     STOPPED = 'stopped'
     RUNNING = 'running'
@@ -666,7 +667,7 @@ class LSPManager(SpyderPluginWidget):
                 language_client['instance'].shutdown()
                 language_client['instance'].exit()
                 language_client['instance'].stop()
-                language_client['status'] = self.STOPPED
+            language_client['status'] = self.STOPPED
 
     def send_request(self, language, request, params):
         client = self.clients[language]['instance']
