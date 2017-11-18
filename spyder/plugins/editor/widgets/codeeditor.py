@@ -1244,10 +1244,13 @@ class CodeEditor(TextEditBaseWidget):
         if not self.supported_language:
             return
 
-        text = self.get_current_word()
+        text = self.get_selected_text().strip()
+        if not text:
+            text = self.get_current_word()
         if text is None:
             return
-        if self.has_selected_text() and self.get_selected_text() != text:
+        if (self.has_selected_text() and
+                self.get_selected_text().strip() != text):
             return
 
         if (self.is_python_like()) and \
