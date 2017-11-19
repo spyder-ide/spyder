@@ -20,6 +20,7 @@ import pytest
 # Local imports
 from spyder.widgets import editor
 
+
 # Helpers
 # --------------------------------
 def add_files(editorstack):
@@ -35,6 +36,7 @@ def add_files(editorstack):
     with open(__file__) as f:
         text = f.read()
     editorstack.new(__file__, 'utf-8', text)
+
 
 # Qt Test Fixtures
 # --------------------------------
