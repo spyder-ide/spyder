@@ -1484,20 +1484,22 @@ class Editor(SpyderPluginWidget):
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 
-    @Slot(str, int, str)
-    def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
+    @Slot(str, str, str)
+    def file_saved_in_editorstack(self, editorstack_id_str,
+                                  original_filename, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.file_saved_in_other_editorstack(index, filename)
+                editorstack.file_saved_in_other_editorstack(original_filename,
+                                                            filename)
 
-    @Slot(str, int, str)
+    @Slot(str, str, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            index, filename):
+                                            original_filename, filename):
         """A file was renamed in data in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.rename_in_data(index, filename)
+                editorstack.rename_in_data(original_filename, filename)
 
     def set_editorstack_for_introspection(self):
         """
@@ -1704,9 +1706,10 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_analysis_results()
         index = editorstack.get_stack_index()
         if index != -1:
+            filename = editorstack.data[index].filename
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
-                    other_editorstack.set_analysis_results(index, results)
+                    other_editorstack.set_analysis_results(filename, results)
         self.update_code_analysis_actions()
             
     def update_todo_menu(self):
@@ -1735,9 +1738,10 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_todo_results()
         index = editorstack.get_stack_index()
         if index != -1:
+            filename = editorstack.data[index].filename
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
-                    other_editorstack.set_todo_results(index, results)
+                    other_editorstack.set_todo_results(filename, results)
         self.update_todo_actions()
             
     def refresh_eol_chars(self, os_name):
@@ -2228,7 +2232,7 @@ class Editor(SpyderPluginWidget):
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             for editorstack in self.editorstacks:
-                editorstack.rename_in_data(index,
+                editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
         
     
