@@ -2307,7 +2307,8 @@ class EditorStack(QWidget):
         finfo = self.create_new_editor(filename, encoding, text,
                                        set_current=False, new=True)
         finfo.editor.set_cursor_position('eof')
-        finfo.editor.insert_text(os.linesep)
+        if not default_content:
+            finfo.editor.insert_text(os.linesep)
         if default_content:
             finfo.default = True
             finfo.editor.document().setModified(False)
