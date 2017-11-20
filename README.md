@@ -5,7 +5,8 @@ Copyright © Spyder Project Contributors.
 ## Project details
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
-[![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
+[![OpenCollective Backers](https://opencollective.com/spyder/backers/badge.svg?color=blue)](#backers)
+[![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
 
 ## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
@@ -188,3 +189,15 @@ then get started!
 * For discussions and troubleshooting:
 
     <http://groups.google.com/group/spyderlib>
+
+## Backers
+
+Support us with a monthly donation and help us continue our activities.
+
+[![Backers](https://opencollective.com/spyder/backers.svg)](https://opencollective.com/spyder#support)
+
+## Sponsors
+
+Become a sponsor to get your logo on our README on Github.
+
+[![Sponsors](https://opencollective.com/spyder/sponsors.svg)](https://opencollective.com/spyder#support)
