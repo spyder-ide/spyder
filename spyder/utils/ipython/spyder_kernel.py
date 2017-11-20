@@ -264,7 +264,6 @@ class SpyderKernel(IPythonKernel):
 
     def get_syspath(self):
         """Return sys.path contents."""
-        import sys
         return sys.path[:]
 
     def get_env(self):
