@@ -84,13 +84,13 @@ else:
 #==============================================================================
 def is_type_text_string(obj):
     """Return True if `obj` is type text string, False if it is anything else,
-    like binary data (Python 3) or QString (Python 2, PyQt API #1)"""
+    like an instance of a class that extends the basestring class."""
     if PY2:
         # Python 2
-        return type(obj) in [basestring]
+        return type(obj) == basestring
     else:
         # Python 3
-        return type(obj) in [str]
+        return type(obj) == str
 
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,
