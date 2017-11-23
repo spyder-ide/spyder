@@ -217,8 +217,8 @@ else:
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.c', '.chm', '.cpp', '.csv', '.html', '.ini', '.ipynb', '.java',
-	   '.js', '.json', '.md', '.mo', '.png', '.pyx', '.qss', '.R', '.rst',
-	   '.svg', '.ttf', '.txt']
+           '.js', '.json', '.md', '.mo', '.png', '.pyx', '.qss', '.R', '.rst',
+           '.svg', '.ttf', '.txt']
 if os.name == 'nt':
     EXTLIST += ['.ico']
     SCRIPTS += ['spyder.bat']
@@ -246,11 +246,16 @@ editor, Python console, etc.""",
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyder_breakpoints': get_package_data('spyder_breakpoints', EXTLIST),
-                    'spyder_io_dcm': get_package_data('spyder_io_dcm', EXTLIST),
-                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5', EXTLIST),
-                    'spyder_profiler': get_package_data('spyder_profiler', EXTLIST),
-                    'spyder_pylint': get_package_data('spyder_pylint', EXTLIST),
+                    'spyder_breakpoints': get_package_data('spyder_breakpoints',
+                                                           EXTLIST),
+                    'spyder_io_dcm': get_package_data('spyder_io_dcm',
+                                                      EXTLIST),
+                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5',
+                                                       EXTLIST),
+                    'spyder_profiler': get_package_data('spyder_profiler',
+                                                        EXTLIST),
+                    'spyder_pylint': get_package_data('spyder_pylint',
+                                                      EXTLIST)
                     },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
