@@ -1,0 +1,11 @@
+[run]
+omit =
+    # Omit tests
+    */tests/*
+    # Omit external files
+    */external/*
+    # Omit site files
+    */utils/site/*
+
+[report]
+fail_under=0
