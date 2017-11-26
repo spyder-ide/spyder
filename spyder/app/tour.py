@@ -582,7 +582,7 @@ class FadingTipBox(FadingDialog):
                              color: rgbs(0,0,0,100%);
                              border-style: outset;
                              border-width: 1px;
-                             border-radius: 3px;
+                             border-radius: 0px;
                              border-color: rgbs(100,100,100,100%);
                              padding: 2px;
                              }
@@ -742,7 +742,7 @@ class FadingTipBox(FadingDialog):
     def build_paths(self):
         """ """
         geo = self.geometry()
-        radius = 30
+        radius = 0
         shadow = self.offset_shadow
         x0, y0 = geo.x(), geo.y()
         width, height = geo.width() - shadow, geo.height() - shadow
