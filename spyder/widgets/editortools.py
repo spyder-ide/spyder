@@ -329,23 +329,23 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         else:
             sort_func = lambda item: osp.basename(item.path.lower())
         self.sort_top_level_items(key=sort_func)
-
+            
     def populate_branch(self, editor, root_item, tree_cache=None):
         if tree_cache is None:
             tree_cache = {}
-
+        
         # Removing cached items for which line is > total line nb
         for _l in list(tree_cache.keys()):
             if _l >= editor.get_line_count():
-                # Checking if key is still in tree cache in case one of its
+                # Checking if key is still in tree cache in case one of its 
                 # ancestors was deleted in the meantime (deleting all children):
                 if _l in tree_cache:
                     remove_from_tree_cache(tree_cache, line=_l)
-
+                    
         ancestors = [(root_item, 0)]
         previous_item = None
         previous_level = None
-
+        
         oe_data = editor.highlighter.get_outlineexplorer_data()
         editor.has_cell_separators = oe_data.get('found_cell_separators', False)
         for block_nb in range(editor.get_line_count()):
@@ -353,13 +353,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             data = oe_data.get(block_nb)
             level = None if data is None else data.fold_level
             citem, clevel, _d = tree_cache.get(line_nb, (None, None, ""))
-
+            
             # Skip iteration if line is not the first line of a foldable block
             if level is None:
                 if citem is not None:
                     remove_from_tree_cache(tree_cache, line=line_nb)
                 continue
-
+            
             # Searching for class/function statements
             not_class_nor_function = data.is_not_class_nor_function()
             if not not_class_nor_function:
@@ -380,7 +380,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if previous_level is not None:
                 if level == previous_level:
                     pass
-                elif level > previous_level+4:  # Invalid indentation
+                elif level > previous_level+4: # Invalid indentation
                     continue
                 elif level > previous_level:
                     ancestors.append((previous_item, previous_level))
@@ -389,7 +389,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         ancestors.pop(-1)
                         _item, previous_level = ancestors[-1]
             parent, _level = ancestors[-1]
-
+            
             if citem is not None:
                 cname = to_text_string(citem.text(0))
 
@@ -428,7 +428,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
                 item = FunctionItem(func_name, line_nb, parent, preceding)
-
+                
             item.setup()
             debug = "%s -- %s/%s" % (str(item.line).rjust(6),
                                      to_text_string(item.parent().text(0)),
@@ -436,7 +436,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_cache[line_nb] = (item, level, debug)
             previous_level = level
             previous_item = item
-
+            
         return tree_cache
 
     def root_item_selected(self, item):
