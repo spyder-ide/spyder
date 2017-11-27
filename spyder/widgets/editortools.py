@@ -392,7 +392,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             
             if citem is not None:
                 cname = to_text_string(citem.text(0))
-
+                
             preceding = root_item if previous_item is None else previous_item
             if not_class_nor_function and data.is_comment():
                 if not self.show_comments:
