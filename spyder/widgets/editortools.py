@@ -394,8 +394,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 cname = to_text_string(citem.text(0))
 
             preceding = root_item if previous_item is None else previous_item
-            if not_class_nor_function:
-                if data.is_comment() and not self.show_comments:
+            if not_class_nor_function and data.is_comment():
+                if not self.show_comments:
                     if citem is not None:
                         remove_from_tree_cache(tree_cache, line=line_nb)
                     continue
@@ -406,15 +406,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-
-                if data.is_comment():
-                    if data.def_type == data.CELL:
-                        item = CellItem(data.text, line_nb, parent, preceding)
-                    else:
-                        item = CommentItem(
-                            data.text, line_nb, parent, preceding)
+                if data.def_type == data.CELL:
+                    item = CellItem(data.text, line_nb, parent, preceding)
                 else:
-                    item = TreeItem(data.text, line_nb, parent, preceding)
+                    item = CommentItem(data.text, line_nb, parent, preceding)
             elif class_name is not None:
                 if citem is not None:
                     if class_name == cname and level == clevel:
