@@ -351,10 +351,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
             data = oe_data.get(block_nb)
-            if data is None:
-                level = None
-            else:
-                level = data.fold_level
+            level = None if data is None else data.fold_level
             citem, clevel, _d = tree_cache.get(line_nb, (None, None, ""))
             
             # Skip iteration if line is not the first line of a foldable block
