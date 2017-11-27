@@ -182,10 +182,12 @@ class FilesystemLock:
                             conditions = ['spyder' in c.lower()
                                           for c in p.cmdline()]
                         else:
-                            conditions = [p.name() == 'spyder',
-                                          p.name() == 'spyder3']
-                        # For DEV
-                        conditions += ['bootstrap.py' in p.cmdline()]
+                            # Valid names for main script
+                            names = set(['spyder', 'spyder3', 'bootstrap.py'])
+                            # Check the first three command line arguments
+                            arguments = set(os.path.basename(arg)
+                                            for arg in p.cmdline()[:3])
+                            conditions = [names & arguments]
                         if not any(conditions):
                             raise(OSError(errno.ESRCH, 'No such process'))
                     except OSError as e:
