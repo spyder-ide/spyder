@@ -15,9 +15,9 @@ from __future__ import print_function
 
 import os
 import os.path as osp
+import shutil
 import subprocess
 import sys
-import shutil
 
 from distutils.core import setup
 from distutils.command.build import build
@@ -45,35 +45,14 @@ if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
 #==============================================================================
 # Constants
 #==============================================================================
-NAME = 'spyder'
 LIBNAME = 'spyder'
+NAME = 'spyder'
 from spyder import __version__, __project_url__
 
 
 #==============================================================================
 # Auxiliary functions
 #==============================================================================
-def get_package_data(name, extlist):
-    """Return data files for package *name* with extensions in *extlist*"""
-    flist = []
-    # Workaround to replace os.path.relpath (not available until Python 2.6):
-    offset = len(name)+len(os.pathsep)
-    for dirpath, _dirnames, filenames in os.walk(name):
-        for fname in filenames:
-            if not fname.startswith('.') and osp.splitext(fname)[1] in extlist:
-                flist.append(osp.join(dirpath, fname)[offset:])
-    return flist
-
-
-def get_subpackages(name):
-    """Return subpackages of package *name*"""
-    splist = []
-    for dirpath, _dirnames, _filenames in os.walk(name):
-        if osp.isfile(osp.join(dirpath, '__init__.py')):
-            splist.append(".".join(dirpath.split(os.sep)))
-    return splist
-
-
 def get_data_files():
     """Return data_files in a platform dependent manner"""
     if sys.platform.startswith('linux'):
@@ -92,6 +71,18 @@ def get_data_files():
     return data_files
 
 
+def get_package_data(name, extlist):
+    """Return data files for package *name* with extensions in *extlist*"""
+    flist = []
+    # Workaround to replace os.path.relpath (not available until Python 2.6):
+    offset = len(name)+len(os.pathsep)
+    for dirpath, _dirnames, filenames in os.walk(name):
+        for fname in filenames:
+            if not fname.startswith('.') and osp.splitext(fname)[1] in extlist:
+                flist.append(osp.join(dirpath, fname)[offset:])
+    return flist
+
+
 def get_packages():
     """Return package list"""
     packages = (
@@ -103,6 +94,15 @@ def get_packages():
         + get_subpackages('spyder_io_hdf5')
         )
     return packages
+
+
+def get_subpackages(name):
+    """Return subpackages of package *name*"""
+    splist = []
+    for dirpath, _dirnames, _filenames in os.walk(name):
+        if osp.isfile(osp.join(dirpath, '__init__.py')):
+            splist.append(".".join(dirpath.split(os.sep)))
+    return splist
 
 
 #==============================================================================
@@ -216,12 +216,13 @@ else:
 #==============================================================================
 # Files added to the package
 #==============================================================================
-EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
-           '.txt', '.rst', '.qss', '.ttf', '.json', '.c', '.cpp', '.java',
-           '.md', '.R', '.csv', '.pyx', '.ipynb']
+EXTLIST = ['.c', '.chm', '.cpp', '.csv', '.html', '.ini', '.ipynb', '.java',
+           '.js', '.json', '.md', '.mo', '.png', '.pyx', '.qss', '.R', '.rst',
+           '.svg', '.ttf', '.txt']
 if os.name == 'nt':
-    SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
+    SCRIPTS += ['spyder.bat']
+
 
 
 #==============================================================================
@@ -245,21 +246,26 @@ editor, Python console, etc.""",
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyder_breakpoints': get_package_data('spyder_breakpoints', EXTLIST),
-                    'spyder_profiler': get_package_data('spyder_profiler', EXTLIST),
-                    'spyder_pylint': get_package_data('spyder_pylint', EXTLIST),
-                    'spyder_io_dcm': get_package_data('spyder_io_dcm', EXTLIST),
-                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5', EXTLIST),
+                    'spyder_breakpoints': get_package_data('spyder_breakpoints',
+                                                           EXTLIST),
+                    'spyder_io_dcm': get_package_data('spyder_io_dcm',
+                                                      EXTLIST),
+                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5',
+                                                       EXTLIST),
+                    'spyder_profiler': get_package_data('spyder_profiler',
+                                                        EXTLIST),
+                    'spyder_pylint': get_package_data('spyder_pylint',
+                                                      EXTLIST)
                     },
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       data_files=get_data_files(),
-      classifiers=['License :: OSI Approved :: MIT License',
+      classifiers=['Development Status :: 5 - Production/Stable',
+                   'License :: OSI Approved :: MIT License',
                    'Operating System :: MacOS',
                    'Operating System :: Microsoft :: Windows',
                    'Operating System :: POSIX :: Linux',
                    'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
-                   'Development Status :: 5 - Production/Stable',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Software Development :: Widget Sets'],
       cmdclass=CMDCLASS)
@@ -272,22 +278,23 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
-    'rope>=0.10.5',
+    'chardet>=2.0.0',
     'jedi>=0.9.0',
+    'nbconvert',
+    'numpydoc',
+    'pickleshare',
+    'psutil',
+    'pycodestyle',
     'pyflakes',
     'pygments>=2.0',
-    'qtconsole>=4.2.0',
-    'nbconvert',
-    'sphinx',
-    'pycodestyle',
     'pylint',
-    'psutil',
-    'qtawesome>=0.4.1',
-    'qtpy>=1.2.0',
-    'pickleshare',
+    'pyqt5',
     'pyzmq',
-    'chardet>=2.0.0',
-    'numpydoc',
+    'qtawesome>=0.4.1',
+    'qtconsole>=4.2.0',
+    'qtpy>=1.2.0',
+    'rope>=0.10.5',
+    'sphinx',
     # This is only needed for our wheels on Linux.
     # See issue #3332
     'pyopengl;platform_system=="Linux"'
@@ -295,20 +302,20 @@ install_requires = [
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
-    'test': ['pytest',
-             'pytest-qt',
-             'pytest-mock',
-             'pytest-cov',
-             'pytest-xvfb',
-             'pytest-timeout',
-             'mock',
+    'test': ['cython',
              'flaky',
+             'matplotlib',
+             'mock',
              'pandas',
+             'pillow',
+             'pytest',
+             'pytest-cov',
+             'pytest-mock',
+             'pytest-qt',
+             'pytest-timeout',
+             'pytest-xvfb',
              'scipy',
              'sympy',
-             'pillow',
-             'matplotlib',
-             'cython'],
 }
 
 if 'setuptools' in sys.modules:
