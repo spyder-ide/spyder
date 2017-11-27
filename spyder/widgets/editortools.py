@@ -371,6 +371,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                             remove_from_tree_cache(tree_cache, line=line_nb)
                         continue
 
+            # Skip iteration for if/else/try/for/etc foldable blocks.
+            if not_class_nor_function and not data.is_comment():
+                if citem is not None:
+                    remove_from_tree_cache(tree_cache, line=line_nb)
+                continue
+
             if previous_level is not None:
                 if level == previous_level:
                     pass
