@@ -223,6 +223,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To hide the loading page
         self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
 
+        # Show possible errors when setting Matplotlib backend
+        self.shellwidget.sig_prompt_ready.connect(
+            self._show_mpl_backend_errors)
+
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
 
@@ -531,3 +535,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         encoding = get_coding(stderr_text)
         stderr = to_text_string(stderr_text, encoding)
         return stderr
+
+    def _show_mpl_backend_errors(self):
+        """
+        Show possible errors when setting the selected Matplotlib backend.
+        """
+        self.shellwidget.silent_execute(
+            "get_ipython().kernel._show_mpl_backend_errors()")
+        self.shellwidget.sig_prompt_ready.disconnect(
+            self._show_mpl_backend_errors)
