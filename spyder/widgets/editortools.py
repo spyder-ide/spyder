@@ -329,19 +329,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         else:
             sort_func = lambda item: osp.basename(item.path.lower())
         self.sort_top_level_items(key=sort_func)
-            
+
     def populate_branch(self, editor, root_item, tree_cache=None):
         if tree_cache is None:
             tree_cache = {}
-        
+
         # Removing cached items for which line is > total line nb
         for _l in list(tree_cache.keys()):
             if _l >= editor.get_line_count():
-                # Checking if key is still in tree cache in case one of its 
+                # Checking if key is still in tree cache in case one of its
                 # ancestors was deleted in the meantime (deleting all children):
                 if _l in tree_cache:
                     remove_from_tree_cache(tree_cache, line=_l)
-                    
+
         ancestors = [(root_item, 0)]
         previous_item = None
         previous_level = None
