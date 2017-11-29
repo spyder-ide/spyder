@@ -16,7 +16,7 @@ import cloudpickle
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import _, debug_print
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY2, to_text_string
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -166,7 +166,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if spyder_msg_type == 'spy_data':
             # Deserialize data
             try:
-                value = cloudpickle.loads(bytes(msg['buffers'][0]))
+                if PY2:
+                    value = cloudpickle.loads(msg['buffers'][0])
+                else:
+                    value = cloudpickle.loads(bytes(msg['buffers'][0]))
             except Exception as msg:
                 self._kernel_value = None
                 self._kernel_reply = repr(msg)
