@@ -150,7 +150,6 @@ class SpyderKernel(IPythonKernel):
             Any object that is serializable by cloudpickle (should be most
             things). Will arrive as cloudpickled bytes in `.buffers[0]`.
         """
-        import sys
         if content is None:
             content = {}
         content['spyder_msg_type'] = spyder_msg_type
