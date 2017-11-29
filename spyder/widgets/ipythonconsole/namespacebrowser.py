@@ -163,7 +163,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         Handle internal spyder messages
         """
         spyder_msg_type = msg['content'].get('spyder_msg_type')
-        if spyder_msg_type == 'spy_data':
+        if spyder_msg_type == 'data':
             # Deserialize data
             try:
                 if PY2:
@@ -177,11 +177,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 self._kernel_value = value
             self.sig_got_reply.emit()
             return
-        elif spyder_msg_type == 'spy_pdb_state':
+        elif spyder_msg_type == 'pdb_state':
             pdb_state = msg['content']['pdb_state']
             if pdb_state is not None and isinstance(pdb_state, dict):
                 self.refresh_from_pdb(pdb_state)
-        elif spyder_msg_type == 'spy_pdb_continue':
+        elif spyder_msg_type == 'pdb_continue':
             # Run Pdb continue to get to the first breakpoint
             # Fixes 2034
             self.write_to_stdin('continue')

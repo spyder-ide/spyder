@@ -169,13 +169,13 @@ class SpyderKernel(IPythonKernel):
         ns = self._get_current_namespace()
         value = ns[name]
         try:
-            self.send_spyder_msg('spy_data', data=value)
+            self.send_spyder_msg('data', data=value)
         except:
             # * There is no need to inform users about
             #   these errors.
             # * value = None makes Spyder to ignore
             #   petitions to display a value
-            self.send_spyder_msg('spy_data', data=None)
+            self.send_spyder_msg('data', data=None)
         self._do_publish_pdb_state = False
 
     def set_value(self, name, value):
@@ -240,7 +240,7 @@ class SpyderKernel(IPythonKernel):
             state = dict(namespace_view = self.get_namespace_view(),
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
-            self.send_spyder_msg('spy_pdb_state', content={'pdb_state': state})
+            self.send_spyder_msg('pdb_state', content={'pdb_state': state})
         self._do_publish_pdb_state = True
 
     def pdb_continue(self):
@@ -251,7 +251,7 @@ class SpyderKernel(IPythonKernel):
         Fixes issue 2034
         """
         if self._pdb_obj:
-            self.send_spyder_msg('spy_pdb_continue')
+            self.send_spyder_msg('pdb_continue')
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
