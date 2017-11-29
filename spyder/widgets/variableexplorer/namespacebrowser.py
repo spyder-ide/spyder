@@ -291,7 +291,9 @@ class NamespaceBrowser(QWidget):
     def set_value(self, name, value):
         """Set value for a variable."""
         try:
-            svalue = cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)
+            # We need to enclose values in a list to be able to send
+            # them to the kernel in Python 2
+            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
             self.shellwidget.set_value(name, svalue)
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),

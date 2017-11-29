@@ -181,8 +181,14 @@ class SpyderKernel(IPythonKernel):
     def set_value(self, name, value):
         """Set the value of a variable"""
         ns = self._get_reference_namespace(name)
-        value = cloudpickle.loads(value)
-        ns[name] = value
+
+        # We send serialized values in a list of one element
+        # from Spyder to the kernel, to be able to send them
+        # at all in Python 2
+        svalue = value[0]
+
+        dvalue = cloudpickle.loads(svalue)
+        ns[name] = dvalue
 
     def remove_value(self, name):
         """Remove a variable"""
