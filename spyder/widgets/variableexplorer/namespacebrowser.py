@@ -42,6 +42,9 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 SUPPORTED_TYPES = get_supported_types()
 
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
+
 
 class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
@@ -288,8 +291,8 @@ class NamespaceBrowser(QWidget):
     def set_value(self, name, value):
         """Set value for a variable."""
         try:
-            value = cloudpickle.dumps(value)
-            self.shellwidget.set_value(name, value)
+            svalue = cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)
+            self.shellwidget.set_value(name, svalue)
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))

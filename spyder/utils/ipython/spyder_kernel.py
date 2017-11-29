@@ -44,6 +44,9 @@ else:
 # shown at all there)
 EXCLUDED_NAMES = ['In', 'Out', 'exit', 'get_ipython', 'quit']
 
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
+
 
 class SpyderKernel(IPythonKernel):
     """Spyder kernel for Jupyter"""
@@ -157,7 +160,7 @@ class SpyderKernel(IPythonKernel):
             self.iopub_socket,
             'spyder_msg',
             content=content,
-            buffers=[cloudpickle.dumps(data)],
+            buffers=[cloudpickle.dumps(data, protocol=PICKLE_PROTOCOL)],
             parent=self._parent_header,
         )
 

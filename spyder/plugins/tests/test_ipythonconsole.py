@@ -323,7 +323,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 10
 
     # Change its value and verify
-    shell.set_value('д', cloudpickle.dumps(20))
+    shell.set_value('д', cloudpickle.dumps(20, protocol=2))
     qtbot.wait(1000)
     assert shell.get_value('д') == 20
 
@@ -373,7 +373,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert shell.get_value('aa') == 10
 
     # Set value
-    shell.set_value('aa', cloudpickle.dumps(20))
+    shell.set_value('aa', cloudpickle.dumps(20, protocol=2))
     qtbot.wait(1000)
     assert shell.get_value('aa') == 20
 
