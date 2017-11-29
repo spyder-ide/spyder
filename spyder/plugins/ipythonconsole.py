@@ -994,20 +994,24 @@ class IPythonConsole(SpyderPluginWidget):
         # Else we won't be able to create a client
         if not CONF.get('main_interpreter', 'default'):
             pyexec = CONF.get('main_interpreter', 'executable')
-            ipykernel_present = programs.is_module_installed('ipykernel',
-                                                            interpreter=pyexec)
-            if not ipykernel_present:
+            has_ipykernel = programs.is_module_installed('ipykernel',
+                                                         interpreter=pyexec)
+            has_cloudpickle = programs.is_module_installed('cloudpickle',
+                                                           interpreter=pyexec)
+            if not (has_ipykernel and has_cloudpickle):
                 client.show_kernel_error(_("Your Python environment or "
                                      "installation doesn't "
-                                     "have the <tt>ipykernel</tt> module "
-                                     "installed on it. Without this module is "
-                                     "not possible for Spyder to create a "
+                                     "have the <tt>ipykernel</tt> and "
+                                     "<tt>cloudpickle</tt> modules "
+                                     "installed on it. Without these modules "
+                                     "is not possible for Spyder to create a "
                                      "console for you.<br><br>"
-                                     "You can install <tt>ipykernel</tt> by "
-                                     "running in a terminal:<br><br>"
-                                     "<tt>pip install ipykernel</tt><br><br>"
+                                     "You can install them by running "
+                                     "in a system terminal:<br><br>"
+                                     "<tt>pip install ipykernel cloudpickle</tt>"
+                                     "<br><br>"
                                      "or<br><br>"
-                                     "<tt>conda install ipykernel</tt>"))
+                                     "<tt>conda install ipykernel cloudpickle</tt>"))
                 return
 
         self.connect_client_to_kernel(client)
