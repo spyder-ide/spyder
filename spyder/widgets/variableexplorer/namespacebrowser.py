@@ -21,11 +21,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
 # Third party imports (others)
-try:
-    import ipykernel.pickleutil
-    from ipykernel.serialize import serialize_object
-except ImportError:
-    serialize_object = None
+import cloudpickle
 
 # Local imports
 from spyder.config.base import _, get_supported_types
@@ -46,15 +42,8 @@ from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 SUPPORTED_TYPES = get_supported_types()
 
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-if serialize_object is not None:
-    ipykernel.pickleutil.can_map.pop('numpy.ndarray')
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 
 class NamespaceBrowser(QWidget):
@@ -302,8 +291,10 @@ class NamespaceBrowser(QWidget):
     def set_value(self, name, value):
         """Set value for a variable."""
         try:
-            value = serialize_object(value)
-            self.shellwidget.set_value(name, value)
+            # We need to enclose values in a list to be able to send
+            # them to the kernel in Python 2
+            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
+            self.shellwidget.set_value(name, svalue)
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))

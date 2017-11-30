@@ -12,12 +12,11 @@ the Variable Explorer
 from qtpy.QtCore import QEventLoop
 from qtpy.QtWidgets import QMessageBox
 
-from ipykernel.pickleutil import CannedObject
-from ipykernel.serialize import deserialize_object
+import cloudpickle
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.config.base import _, debug_print
+from spyder.py3compat import PY2, to_text_string
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -98,7 +97,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def set_value(self, name, value):
         """Set value for a variable"""
         value = to_text_string(value)
-        code = u"get_ipython().kernel.set_value('%s', %s)" % (name, value)
+        code = u"get_ipython().kernel.set_value('%s', %s, %s)" % (name, value,
+                                                                  PY2)
+
         if self._reading:
             self.kernel_client.input(u'!' + code)
         else:
@@ -159,41 +160,35 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         return self._kernel_reply
 
     # ---- Private API (defined by us) ------------------------------
-    def _handle_data_message(self, msg):
+    def _handle_spyder_msg(self, msg):
         """
-        Handle raw (serialized) data sent by the kernel
-
-        We only handle data asked by Spyder, in case people use
-        publish_data for other purposes.
+        Handle internal spyder messages
         """
-        # Deserialize data
-        try:
-            data = deserialize_object(msg['buffers'])[0]
-        except Exception as msg:
-            self._kernel_value = None
-            self._kernel_reply = repr(msg)
+        spyder_msg_type = msg['content'].get('spyder_msg_type')
+        if spyder_msg_type == 'data':
+            # Deserialize data
+            try:
+                if PY2:
+                    value = cloudpickle.loads(msg['buffers'][0])
+                else:
+                    value = cloudpickle.loads(bytes(msg['buffers'][0]))
+            except Exception as msg:
+                self._kernel_value = None
+                self._kernel_reply = repr(msg)
+            else:
+                self._kernel_value = value
             self.sig_got_reply.emit()
             return
-
-        # Receive values asked for Spyder
-        value = data.get('__spy_data__', None)
-        if value is not None:
-            if isinstance(value, CannedObject):
-                value = value.get_object()
-            self._kernel_value = value
-            self.sig_got_reply.emit()
-            return
-
-        # Receive Pdb state and dispatch it
-        pdb_state = data.get('__spy_pdb_state__', None)
-        if pdb_state is not None and isinstance(pdb_state, dict):
-            self.refresh_from_pdb(pdb_state)
-
-        # Run Pdb continue to get to the first breakpoint
-        # Fixes 2034
-        pdb_continue = data.get('__spy_pdb_continue__', None)
-        if pdb_continue:
+        elif spyder_msg_type == 'pdb_state':
+            pdb_state = msg['content']['pdb_state']
+            if pdb_state is not None and isinstance(pdb_state, dict):
+                self.refresh_from_pdb(pdb_state)
+        elif spyder_msg_type == 'pdb_continue':
+            # Run Pdb continue to get to the first breakpoint
+            # Fixes 2034
             self.write_to_stdin('continue')
+        else:
+            debug_print("No such spyder message type: %s" % spyder_msg_type)
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):

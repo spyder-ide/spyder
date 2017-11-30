@@ -1,3 +1,4 @@
+cloudpickle
 rope>=0.9.4
 jedi>=0.9.0
 pyflakes
