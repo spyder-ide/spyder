@@ -1059,7 +1059,6 @@ class MainWindow(QMainWindow):
                                                         self.BOOKMARKS)
         webres_actions.insert(2, None)
         webres_actions.insert(5, None)
-        webres_actions.insert(8, None)
         add_actions(web_resources, webres_actions)
         self.help_menu_actions.append(web_resources)
         # Qt assistant link
