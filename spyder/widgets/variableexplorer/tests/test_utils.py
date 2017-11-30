@@ -17,7 +17,8 @@ import pytest
 # Local imports
 from spyder.config.base import get_supported_types
 from spyder.widgets.variableexplorer.utils import (sort_against,
-    is_supported, value_to_display)
+                                                   is_supported,
+                                                   value_to_display)
 
 
 def generate_complex_object():
@@ -62,6 +63,16 @@ def test_none_values_are_supported():
     assert is_supported(none_list, filters=tuple(supported_types[mode]))
     assert is_supported(none_dict, filters=tuple(supported_types[mode]))
     assert is_supported(none_tuple, filters=tuple(supported_types[mode]))
+
+
+def test_str_subclass_display():
+    """Test for value_to_display of subclasses of str/basestring."""
+    class Test(str):
+        def __repr__(self):
+            return 'test'
+    value = Test()
+    value_display = value_to_display(value)
+    assert 'Test object' in value_display
 
 
 def test_default_display():
@@ -117,6 +128,7 @@ def test_list_display():
     li = [len, 1]
     assert value_to_display(li) == '[builtin_function_or_method, 1]'
     assert is_supported(li, filters=supported_types)
+
 
 def test_dict_display():
     """Tests for display of dicts."""
