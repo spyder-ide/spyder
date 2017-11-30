@@ -15,11 +15,8 @@ import sys
 import traceback
 
 # Third-party imports
-from ipykernel.datapub import publish_data
+import cloudpickle
 from ipykernel.ipkernel import IPythonKernel
-import ipykernel.pickleutil
-from ipykernel.pickleutil import CannedObject
-from ipykernel.serialize import deserialize_object
 
 # Check if we are running under an external interpreter
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
@@ -43,19 +40,15 @@ else:
                                                 make_remote_view)
 
 
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-ipykernel.pickleutil.can_map.pop('numpy.ndarray')
+PY2 = sys.version[0] == '2'
 
 
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)
 EXCLUDED_NAMES = ['In', 'Out', 'exit', 'get_ipython', 'quit']
+
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 
 class SpyderKernel(IPythonKernel):
@@ -150,28 +143,62 @@ class SpyderKernel(IPythonKernel):
         else:
             return repr(None)
 
+    def send_spyder_msg(self, spyder_msg_type, content=None, data=None):
+        """publish custom messages to the spyder frontend
+
+        Parameters
+        ----------
+
+        spyder_msg_type: str
+            The spyder message type
+        content: dict
+            The (JSONable) content of the message
+        data: any
+            Any object that is serializable by cloudpickle (should be most
+            things). Will arrive as cloudpickled bytes in `.buffers[0]`.
+        """
+        if content is None:
+            content = {}
+        content['spyder_msg_type'] = spyder_msg_type
+        self.session.send(
+            self.iopub_socket,
+            'spyder_msg',
+            content=content,
+            buffers=[cloudpickle.dumps(data, protocol=PICKLE_PROTOCOL)],
+            parent=self._parent_header,
+        )
+
     def get_value(self, name):
         """Get the value of a variable"""
         ns = self._get_current_namespace()
         value = ns[name]
         try:
-            publish_data({'__spy_data__': value})
+            self.send_spyder_msg('data', data=value)
         except:
             # * There is no need to inform users about
             #   these errors.
             # * value = None makes Spyder to ignore
             #   petitions to display a value
-            value = None
-            publish_data({'__spy_data__': value})
+            self.send_spyder_msg('data', data=None)
         self._do_publish_pdb_state = False
 
-    def set_value(self, name, value):
+    def set_value(self, name, value, PY2_frontend):
         """Set the value of a variable"""
         ns = self._get_reference_namespace(name)
-        value = deserialize_object(value)[0]
-        if isinstance(value, CannedObject):
-            value = value.get_object()
-        ns[name] = value
+
+        # We send serialized values in a list of one element
+        # from Spyder to the kernel, to be able to send them
+        # at all in Python 2
+        svalue = value[0]
+
+        # We need to convert svalue to bytes if the frontend
+        # runs in Python 2 and the kernel runs in Python 3
+        if PY2_frontend and not PY2:
+            svalue = bytes(svalue, 'latin-1')
+
+        # Deserialize and set value in namespace
+        dvalue = cloudpickle.loads(svalue)
+        ns[name] = dvalue
 
     def remove_value(self, name):
         """Remove a variable"""
@@ -217,13 +244,13 @@ class SpyderKernel(IPythonKernel):
     def publish_pdb_state(self):
         """
         Publish Variable Explorer state and Pdb step through
-        publish_data.
+        send_spyder_msg.
         """
         if self._pdb_obj and self._do_publish_pdb_state:
             state = dict(namespace_view = self.get_namespace_view(),
                          var_properties = self.get_var_properties(),
                          step = self._pdb_step)
-            publish_data({'__spy_pdb_state__': state})
+            self.send_spyder_msg('pdb_state', content={'pdb_state': state})
         self._do_publish_pdb_state = True
 
     def pdb_continue(self):
@@ -234,7 +261,7 @@ class SpyderKernel(IPythonKernel):
         Fixes issue 2034
         """
         if self._pdb_obj:
-            publish_data({'__spy_pdb_continue__': True})
+            self.send_spyder_msg('pdb_continue')
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):

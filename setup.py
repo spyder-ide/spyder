@@ -272,6 +272,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
+    'cloudpickle',
     'rope>=0.10.5',
     'jedi>=0.9.0',
     'pyflakes',

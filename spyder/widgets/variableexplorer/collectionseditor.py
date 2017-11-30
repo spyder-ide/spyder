@@ -23,8 +23,7 @@ import gc
 import sys
 
 # Third party imports
-import ipykernel.pickleutil
-from ipykernel.serialize import serialize_object
+import cloudpickle
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
@@ -59,18 +58,12 @@ if DataFrame is not FakeObject:
     from spyder.widgets.variableexplorer.dataframeeditor import DataFrameEditor
 
 
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-ipykernel.pickleutil.can_map.pop('numpy.ndarray')
-
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
+
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -1419,8 +1412,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            value = serialize_object(value)
-            self.shellwidget.set_value(name, value)
+            # We need to enclose values in a list to be able to send
+            # them to the kernel in Python 2
+            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
+            self.shellwidget.set_value(name, svalue)
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))

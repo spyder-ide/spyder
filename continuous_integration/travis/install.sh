@@ -8,7 +8,7 @@ if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
 else
     export CONDA_DEPENDENCIES_FLAGS="--quiet"
     export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
-                               qtawesome pickleshare qtpy pyzmq chardet mock nomkl pandas \
+                               qtawesome cloudpickle pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky"
 fi
