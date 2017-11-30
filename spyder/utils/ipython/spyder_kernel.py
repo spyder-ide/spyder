@@ -40,6 +40,9 @@ else:
                                                 make_remote_view)
 
 
+PY2 = sys.version[0] == '2'
+
+
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)
 EXCLUDED_NAMES = ['In', 'Out', 'exit', 'get_ipython', 'quit']
@@ -178,7 +181,7 @@ class SpyderKernel(IPythonKernel):
             self.send_spyder_msg('data', data=None)
         self._do_publish_pdb_state = False
 
-    def set_value(self, name, value):
+    def set_value(self, name, value, PY2_frontend):
         """Set the value of a variable"""
         ns = self._get_reference_namespace(name)
 
@@ -187,6 +190,12 @@ class SpyderKernel(IPythonKernel):
         # at all in Python 2
         svalue = value[0]
 
+        # We need to convert svalue to bytes if the frontend
+        # runs in Python 2 and the kernel runs in Python 3
+        if PY2_frontend and not PY2:
+            svalue = bytes(svalue, 'latin-1')
+
+        # Deserialize and set value in namespace
         dvalue = cloudpickle.loads(svalue)
         ns[name] = dvalue
 
