@@ -24,7 +24,6 @@ from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
 class SpyderKernelSpec(KernelSpec):
     """Kernel spec for Spyder kernels"""
 
-    default_interpreter = CONF.get('main_interpreter', 'default')
     spy_path = get_module_source_path('spyder')
 
     def __init__(self, **kwargs):
@@ -37,7 +36,7 @@ class SpyderKernelSpec(KernelSpec):
     def argv(self):
         """Command to start kernels"""
         # Python interpreter used to start kernels
-        if self.default_interpreter:
+        if CONF.get('main_interpreter', 'default'):
             pyexec = get_python_executable()
         else:
             # Avoid IPython adding the virtualenv on which Spyder is running
