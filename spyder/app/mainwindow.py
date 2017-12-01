@@ -234,9 +234,9 @@ class MainWindow(QMainWindow):
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     BOOKMARKS = (
          ('Python2', "https://docs.python.org/2/index.html",
-           _("Python2 documentation")),
+          _("Python2 documentation")),
          ('Python3', "https://docs.python.org/3/index.html",
-           _("Python3 documentation")),
+          _("Python3 documentation")),
          ('numpy', "http://docs.scipy.org/doc/",
           _("Numpy and Scipy documentation")),
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
