@@ -40,13 +40,11 @@ def kernel_config():
     from IPython.core.application import get_ipython_dir
     from traitlets.config.loader import Config, load_pyconfig_files
     if not IS_EXT_INTERPRETER:
-        from spyder.config.main import CONF
         from spyder.utils.programs import is_module_installed
     else:
         # We add "spyder" to sys.path for external interpreters,
         # so this works!
         # See create_kernel_spec of plugins/ipythonconsole
-        from config.main import CONF
         from utils.programs import is_module_installed
 
     # ---- IPython config ----
@@ -69,7 +67,7 @@ def kernel_config():
     spy_cfg.IPCompleter.use_jedi = False
 
     # Run lines of code at startup
-    run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
+    run_lines_o = os.environ.get('RUN_LINES_O')
     if run_lines_o:
         spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
     else:
@@ -81,13 +79,12 @@ def kernel_config():
 
     # Pylab configuration
     mpl_backend = None
-    mpl_installed = is_module_installed('matplotlib')
-    pylab_o = CONF.get('ipython_console', 'pylab')
+    pylab_o = os.environ.get('PYLAB_O')
 
-    if mpl_installed and pylab_o:
+    if pylab_o == 'True' and is_module_installed('matplotlib'):
         # Get matplotlib backend
-        backend_o = CONF.get('ipython_console', 'pylab/backend')
-        if backend_o == 1:
+        backend_o = os.environ.get('BACKEND_O')
+        if backend_o == '1':
             if is_module_installed('PyQt5'):
                 auto_backend = 'qt5'
             elif is_module_installed('PyQt4'):
@@ -98,13 +95,20 @@ def kernel_config():
                 auto_backend = 'inline'
         else:
             auto_backend = ''
-        backends = {0: 'inline', 1: auto_backend, 2: 'qt5', 3: 'qt4',
-                    4: 'osx', 5: 'gtk3', 6: 'gtk', 7: 'wx', 8: 'tk'}
+        backends = {'0': 'inline',
+                    '1': auto_backend,
+                    '2': 'qt5',
+                    '3': 'qt4',
+                    '4': 'osx',
+                    '5': 'gtk3',
+                    '6': 'gtk',
+                    '7': 'wx',
+                    '8': 'tk'}
         mpl_backend = backends[backend_o]
 
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
-        autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
+        autoload_pylab_o = os.environ.get('AUTOLOAD_PYLAB_O') == 'True'
         command = "get_ipython().kernel._set_mpl_backend('{0}', {1})"
         spy_cfg.IPKernelApp.exec_lines.append(
             command.format(mpl_backend, autoload_pylab_o))
@@ -112,9 +116,9 @@ def kernel_config():
         # Inline backend configuration
         if mpl_backend == 'inline':
             # Figure format
-            format_o = CONF.get('ipython_console',
-                                'pylab/inline/figure_format', 0)
-            formats = {0: 'png', 1: 'svg'}
+            format_o = os.environ.get('FORMAT_O')
+            formats = {'0': 'png',
+                       '1': 'svg'}
             spy_cfg.InlineBackend.figure_format = formats[format_o]
 
             # Resolution
@@ -129,13 +133,12 @@ def kernel_config():
                                         'figure.subplot.bottom': .125,
                                         'figure.facecolor': 'white',
                                         'figure.edgecolor': 'white'}
-            resolution_o = CONF.get('ipython_console',
-                                    'pylab/inline/resolution')
-            spy_cfg.InlineBackend.rc[dpi_option] = resolution_o
+            resolution_o = os.environ.get('RESOLUTION_O')
+            spy_cfg.InlineBackend.rc[dpi_option] = float(resolution_o)
 
             # Figure size
-            width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
-            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
+            width_o = float(os.environ.get('WIDTH_O'))
+            height_o = float(os.environ.get('HEIGHT_O'))
             spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
 
 
@@ -144,24 +147,24 @@ def kernel_config():
         spy_cfg.IPKernelApp.exec_lines.append('%load_ext Cython')
 
     # Run a file at startup
-    use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
-    run_file_o = CONF.get('ipython_console', 'startup/run_file')
-    if use_file_o and run_file_o:
+    use_file_o = os.environ.get('USE_FILE_O')
+    run_file_o = os.environ.get('RUN_FILE_O')
+    if use_file_o == 'True' and run_file_o:
         spy_cfg.IPKernelApp.file_to_run = run_file_o
 
     # Autocall
-    autocall_o = CONF.get('ipython_console', 'autocall')
-    spy_cfg.ZMQInteractiveShell.autocall = autocall_o
+    autocall_o = os.environ.get('AUTOCALL_O')
+    spy_cfg.ZMQInteractiveShell.autocall = int(autocall_o)
 
     # To handle the banner by ourselves in IPython 3+
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
     # Greedy completer
-    greedy_o = CONF.get('ipython_console', 'greedy_completer')
+    greedy_o = os.environ.get('GREEDY_O') == 'True'
     spy_cfg.IPCompleter.greedy = greedy_o
 
     # Sympy loading
-    sympy_o = CONF.get('ipython_console', 'symbolic_math')
+    sympy_o = os.environ.get('SYMPY_O') == 'True'
     if sympy_o and is_module_installed('sympy'):
         lines = sympy_config(mpl_backend)
         spy_cfg.IPKernelApp.exec_lines.append(lines)

@@ -99,7 +99,22 @@ class SpyderKernelSpec(KernelSpec):
             'EXTERNAL_INTERPRETER': not default_interpreter,
             'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
             'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(umr_namelist)
+            'UMR_NAMELIST': ','.join(umr_namelist),
+            'RUN_LINES_O': CONF.get('ipython_console', 'startup/run_lines'),
+            'PYLAB_O': CONF.get('ipython_console', 'pylab'),
+            'BACKEND_O': CONF.get('ipython_console', 'pylab/backend'),
+            'AUTOLOAD_PYLAB_O': CONF.get('ipython_console', 'pylab/autoload'),
+            'FORMAT_O': CONF.get('ipython_console',
+                                 'pylab/inline/figure_format'),
+            'RESOLUTION_O': CONF.get('ipython_console',
+                                     'pylab/inline/resolution'),
+            'WIDTH_O': CONF.get('ipython_console', 'pylab/inline/width'),
+            'HEIGHT_O': CONF.get('ipython_console', 'pylab/inline/height'),
+            'USE_FILE_O': CONF.get('ipython_console', 'startup/use_run_file'),
+            'RUN_FILE_O': CONF.get('ipython_console', 'startup/run_file'),
+            'AUTOCALL_O': CONF.get('ipython_console', 'autocall'),
+            'GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
+            'SYMPY_O': CONF.get('ipython_console', 'symbolic_math')
         }
 
         # Add our PYTHONPATH to env_vars
