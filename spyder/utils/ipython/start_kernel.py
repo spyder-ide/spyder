@@ -84,6 +84,23 @@ def kernel_config():
     clear_argv = "import sys;sys.argv = [''];del sys"
     spy_cfg.IPKernelApp.exec_lines.append(clear_argv)
 
+    # Default inline backend configuration
+    # This is useful to have when people doesn't
+    # use our config system to configure the
+    # inline backend but want to use
+    # '%matplotlib inline' at runtime
+    if ipykernel.__version__ < '4.5':
+        dpi_option = 'savefig.dpi'
+    else:
+        dpi_option = 'figure.dpi'
+
+    spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
+                                dpi_option: 72,
+                                'font.size': 10,
+                                'figure.subplot.bottom': .125,
+                                'figure.facecolor': 'white',
+                                'figure.edgecolor': 'white'}
+
     # Pylab configuration
     mpl_backend = None
     pylab_o = os.environ.get('PYLAB_O')
@@ -129,17 +146,6 @@ def kernel_config():
             spy_cfg.InlineBackend.figure_format = formats[format_o]
 
             # Resolution
-            if ipykernel.__version__ < '4.5':
-                dpi_option = 'savefig.dpi'
-            else:
-                dpi_option = 'figure.dpi'
-
-            spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
-                                        dpi_option: 72,
-                                        'font.size': 10,
-                                        'figure.subplot.bottom': .125,
-                                        'figure.facecolor': 'white',
-                                        'figure.edgecolor': 'white'}
             resolution_o = os.environ.get('RESOLUTION_O')
             spy_cfg.InlineBackend.rc[dpi_option] = float(resolution_o)
 
