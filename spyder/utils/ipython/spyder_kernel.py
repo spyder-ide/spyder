@@ -283,6 +283,12 @@ class SpyderKernel(IPythonKernel):
 
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
+        try:
+            import matplotlib
+            matplotlib.rcParams['docstring.hardcopy'] = True
+        except:
+            pass
+
         if not IS_EXT_INTERPRETER:
             from spyder.utils.dochelpers import getdoc
         else:

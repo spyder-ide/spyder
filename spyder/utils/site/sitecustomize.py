@@ -242,23 +242,6 @@ if os.environ["QT_API"] == 'pyqt':
     except:
         pass
 
-#==============================================================================
-# This prevents a kernel crash with the inline backend in our IPython
-# consoles on Linux and Python 3 (Fixes Issue 2257)
-#==============================================================================
-try:
-    import matplotlib
-except:
-    matplotlib = None   # analysis:ignore
-
-
-#==============================================================================
-# Matplotlib settings
-#==============================================================================
-if matplotlib is not None:
-    # To have mpl docstrings as rst
-    matplotlib.rcParams['docstring.hardcopy'] = True
-
 
 #==============================================================================
 # IPython kernel adjustments
