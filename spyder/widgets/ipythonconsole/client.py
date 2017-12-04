@@ -18,13 +18,13 @@ import os
 import os.path as osp
 from string import Template
 from threading import Thread
-import time
+from time import ctime, time, strftime, gmtime
 
 # Third party imports (qtpy)
-from qtpy.QtCore import QUrl, Signal, Slot
+from qtpy.QtCore import QUrl, QTimer, Signal, Slot
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import (QHBoxLayout, QMenu, QMessageBox, QToolButton,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
+                            QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, get_image_path, get_module_source_path
@@ -84,7 +84,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     to print different messages there.
     """
 
-    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
+    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
 
@@ -127,12 +127,21 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.loading_page = self._create_loading_page()
         self._show_loading_page()
 
+        # Time label
+        self.time_label = None
+        self.t0 = None
+        self.timer = QTimer(self)
+
         # --- Layout
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
+
         hlayout = QHBoxLayout()
+        hlayout.addWidget(self.create_time_label())
+        hlayout.addStretch(0)
         for button in toolbar_buttons:
             hlayout.addWidget(button)
+
         vlayout.addLayout(hlayout)
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addWidget(self.shellwidget)
@@ -499,6 +508,29 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def show_env(self, env):
         """Show environment variables."""
         self.dialog_manager.show(RemoteEnvDialog(env))
+
+    def create_time_label(self):
+        """Create elapsed time label widget (if necessary) and return it"""
+        if self.time_label is None:
+            self.time_label = QLabel()
+        return self.time_label
+
+    def show_time(self, end=False):
+        """Text to show in time_label."""
+        if self.time_label is None:
+            return
+        elapsed_time = time() - self.t0
+        if elapsed_time > 24 * 3600: # More than a day...!
+            fmt = "%d %H:%M:%S"
+        else:
+            fmt = "%H:%M:%S"
+        if end:
+            color = "#AAAAAA"
+        else:
+            color = "#AA6655"
+        text = "<span style=\'color: %s\'><b>%s" \
+               "</b></span>" % (color, strftime(fmt, gmtime(elapsed_time)))
+        self.time_label.setText(text)
 
 
     #------ Private API -------------------------------------------------------

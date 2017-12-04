@@ -9,6 +9,8 @@ Widget that handle communications between the IPython Console and
 the Variable Explorer
 """
 
+from time import time
+
 from qtpy.QtCore import QEventLoop
 from qtpy.QtWidgets import QMessageBox
 
@@ -224,10 +226,15 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """
         state = msg['content'].get('execution_state', '')
         msg_type = msg['parent_header'].get('msg_type', '')
-        if state == 'starting' and not self._kernel_is_starting:
+        if state == 'starting':
+            self.ipyclient.t0 = time()
+            self.ipyclient.timer.timeout.connect(self.ipyclient.show_time)
+            self.ipyclient.timer.start(1000)
+
             # This handles restarts when the kernel dies
             # unexpectedly
-            self._kernel_is_starting = True
+            if not self._kernel_is_starting:
+                self._kernel_is_starting = True
         elif state == 'idle' and msg_type == 'shutdown_request':
             # This handles restarts asked by the user
             if self.namespacebrowser is not None:
