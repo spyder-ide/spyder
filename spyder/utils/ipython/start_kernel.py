@@ -18,6 +18,19 @@ import sys
 IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
 
 
+def is_module_installed(module_name):
+    """
+    Simpler version of spyder.utils.programs.is_module_installed
+    to improve startup time.
+    """
+    try:
+        __import__(module_name)
+        return True
+    except:
+        # Module is not installed
+        return False
+
+
 def sympy_config(mpl_backend):
     """Sympy configuration"""
     if mpl_backend is not None:
@@ -37,15 +50,9 @@ init_session()
 
 def kernel_config():
     """Create a config object with IPython kernel options."""
+    import ipykernel
     from IPython.core.application import get_ipython_dir
     from traitlets.config.loader import Config, load_pyconfig_files
-    if not IS_EXT_INTERPRETER:
-        from spyder.utils.programs import is_module_installed
-    else:
-        # We add "spyder" to sys.path for external interpreters,
-        # so this works!
-        # See create_kernel_spec of plugins/ipythonconsole
-        from utils.programs import is_module_installed
 
     # ---- IPython config ----
     try:
@@ -122,7 +129,7 @@ def kernel_config():
             spy_cfg.InlineBackend.figure_format = formats[format_o]
 
             # Resolution
-            if is_module_installed('ipykernel', '<4.5'):
+            if ipykernel.__version__ < '4.5':
                 dpi_option = 'savefig.dpi'
             else:
                 dpi_option = 'figure.dpi'
