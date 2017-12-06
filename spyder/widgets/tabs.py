@@ -150,6 +150,7 @@ class TabBar(QTabBar):
         self.__drag_start_pos = QPoint()
         self.setAcceptDrops(True)
         self.setUsesScrollButtons(True)
+        self.setMovable(True)
 
         # Tab name editor
         self.rename_tabs = rename_tabs
@@ -168,25 +169,29 @@ class TabBar(QTabBar):
     
     def mouseMoveEvent(self, event):
         """Override Qt method"""
-        if event.buttons() == Qt.MouseButtons(Qt.LeftButton) and \
-           (event.pos() - self.__drag_start_pos).manhattanLength() > \
-                QApplication.startDragDistance():
-            drag = QDrag(self)
-            mimeData = QMimeData()
+        # FIXME: This was added by Pierre presumably to move tabs
+        # between plugins, but righit now it's breaking the regular
+        # Qt drag behavior for tabs, so we're commenting it for
+        # now
+        #if event.buttons() == Qt.MouseButtons(Qt.LeftButton) and \
+        #   (event.pos() - self.__drag_start_pos).manhattanLength() > \
+        #        QApplication.startDragDistance():
+        #    drag = QDrag(self)
+        #    mimeData = QMimeData()#
 
-            ancestor_id = to_text_string(id(self.ancestor))
-            parent_widget_id = to_text_string(id(self.parentWidget()))
-            self_id = to_text_string(id(self))
-            source_index = to_text_string(self.tabAt(self.__drag_start_pos))
+        #    ancestor_id = to_text_string(id(self.ancestor))
+        #    parent_widget_id = to_text_string(id(self.parentWidget()))
+        #    self_id = to_text_string(id(self))
+        #    source_index = to_text_string(self.tabAt(self.__drag_start_pos))
 
-            mimeData.setData("parent-id", to_binary_string(ancestor_id))
-            mimeData.setData("tabwidget-id",
-                             to_binary_string(parent_widget_id))
-            mimeData.setData("tabbar-id", to_binary_string(self_id))
-            mimeData.setData("source-index", to_binary_string(source_index))
+        #    mimeData.setData("parent-id", to_binary_string(ancestor_id))
+        #    mimeData.setData("tabwidget-id",
+        #                     to_binary_string(parent_widget_id))
+        #    mimeData.setData("tabbar-id", to_binary_string(self_id))
+        #    mimeData.setData("source-index", to_binary_string(source_index))
 
-            drag.setMimeData(mimeData)
-            drag.exec_()
+        #    drag.setMimeData(mimeData)
+        #    drag.exec_()
         QTabBar.mouseMoveEvent(self, event)
     
     def dragEnterEvent(self, event):
