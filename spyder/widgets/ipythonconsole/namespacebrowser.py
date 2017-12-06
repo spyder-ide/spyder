@@ -211,6 +211,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 self.set_namespace_view_settings()
                 self.refresh_namespacebrowser()
             self._kernel_is_starting = False
+            self.ipyclient.t0 = time()
 
         # Handle silent execution of kernel methods
         if info and info.kind == 'silent_exec_method' and not self._hidden:
@@ -227,6 +228,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         state = msg['content'].get('execution_state', '')
         msg_type = msg['parent_header'].get('msg_type', '')
         if state == 'starting':
+            # This is needed to show the time a kernel
+            # has been alive in each console.
             self.ipyclient.t0 = time()
             self.ipyclient.timer.timeout.connect(self.ipyclient.show_time)
             self.ipyclient.timer.start(1000)
@@ -240,5 +243,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
                 self.refresh_namespacebrowser()
+            self.ipyclient.t0 = time()
         else:
             super(NamepaceBrowserWidget, self)._handle_status(msg)
