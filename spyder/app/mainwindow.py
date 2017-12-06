@@ -233,6 +233,10 @@ class MainWindow(QMainWindow):
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     BOOKMARKS = (
+         ('Python2', "https://docs.python.org/2/index.html",
+          _("Python2 documentation")),
+         ('Python3', "https://docs.python.org/3/index.html",
+          _("Python3 documentation")),
          ('numpy', "http://docs.scipy.org/doc/",
           _("Numpy and Scipy documentation")),
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
@@ -243,6 +247,12 @@ class MainWindow(QMainWindow):
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
           _("PyQt4 API Reference")),
+         ('PyQt5',
+          "http://pyqt.sourceforge.net/Docs/PyQt5/",
+          _("PyQt5 Reference Guide")),
+         ('PyQt5',
+          "http://pyqt.sourceforge.net/Docs/PyQt5/class_reference.html",
+          _("PyQt5 API Reference")),
          ('winpython', "https://winpython.github.io/",
           _("WinPython"))
                 )
@@ -1055,6 +1065,7 @@ class MainWindow(QMainWindow):
                                                         self.BOOKMARKS)
         webres_actions.insert(2, None)
         webres_actions.insert(5, None)
+        webres_actions.insert(8, None)
         add_actions(web_resources, webres_actions)
         self.help_menu_actions.append(web_resources)
         # Qt assistant link
