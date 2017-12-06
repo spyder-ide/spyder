@@ -95,7 +95,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
-                 external_kernel=False, given_name=None):
+                 external_kernel=False, given_name=None,
+                 show_elapsed_time=False):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -127,7 +128,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.loading_page = self._create_loading_page()
         self._show_loading_page()
 
-        # Time label
+        # Elapsed time
+        self.show_elapsed_time = show_elapsed_time
         self.time_label = None
         self.t0 = None
         self.timer = QTimer(self)
@@ -153,6 +155,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # --- Dialog manager
         self.dialog_manager = DialogManager()
+
+        # Show timer
+        self.update_time_label_visibility()
 
     #------ Public API --------------------------------------------------------
     @property
@@ -532,6 +537,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                "</b></span>" % (color, strftime(fmt, gmtime(elapsed_time)))
         self.time_label.setText(text)
 
+    def update_time_label_visibility(self):
+        self.time_label.setVisible(self.show_elapsed_time)
 
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
