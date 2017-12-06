@@ -309,7 +309,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
-        show_time_action = create_action(self, _("Show elapsed time"),
+        self.show_time_action = create_action(self, _("Show elapsed time"),
                                          toggled=self.set_elapsed_time_visible)
         env_action = create_action(
                         self,
@@ -324,9 +324,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                             triggered=self.shellwidget.get_syspath
                          )
 
-        show_time_action.setChecked(self.show_elapsed_time)
-        additional_actions = [MENU_SEPARATOR, show_time_action, env_action,
-                              syspath_action]
+        self.show_time_action.setChecked(self.show_elapsed_time)
+        additional_actions = [MENU_SEPARATOR, self.show_time_action,
+                              env_action, syspath_action]
 
         if self.menu_actions is not None:
             return self.menu_actions + additional_actions

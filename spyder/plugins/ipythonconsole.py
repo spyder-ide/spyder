@@ -305,6 +305,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                 'show_reset_namespace_warning',
                 tip=_("This option lets you hide the warning message shown\n"
                       "when resetting the namespace from Spyder."))
+        show_time_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
@@ -312,6 +313,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_layout.addWidget(reset_namespace_box)
+        interface_layout.addWidget(show_time_box)
         interface_group.setLayout(interface_layout)
 
         comp_group = QGroupBox(_("Completion Type"))
@@ -693,6 +695,8 @@ class IPythonConsole(SpyderPluginWidget):
         help_o = CONF.get('help', 'connect/ipython_console')
         color_scheme_n = 'color_scheme_name'
         color_scheme_o = CONF.get('color_schemes', 'selected')
+        show_time_n = 'show_elapsed_time'
+        show_time_o = self.get_option(show_time_n)
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -701,6 +705,9 @@ class IPythonConsole(SpyderPluginWidget):
                 control.set_help_enabled(help_o)
             if color_scheme_n in options:
                 client.set_color_scheme(color_scheme_o)
+            if show_time_n in options:
+                client.show_time_action.setChecked(show_time_o)
+                client.set_elapsed_time_visible(show_time_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -975,13 +982,15 @@ class IPythonConsole(SpyderPluginWidget):
         client_id = dict(int_id=to_text_string(self.master_clients),
                          str_id='A')
         cf = self._new_connection_file()
+        show_elapsed_time = self.get_option('show_elapsed_time')
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
                               additional_options=self.additional_options(),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
-                              menu_actions=self.menu_actions)
+                              menu_actions=self.menu_actions,
+                              show_elapsed_time=show_elapsed_time)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
