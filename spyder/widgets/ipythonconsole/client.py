@@ -542,10 +542,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.time_label.setText(text)
 
     def update_time_label_visibility(self):
+        """Update elapsed time visibility."""
         self.time_label.setVisible(self.show_elapsed_time)
 
     @Slot(bool)
     def set_elapsed_time_visible(self, state):
+        """Slot to show/hide elapsed time label."""
         self.show_elapsed_time = state
         if self.time_label is not None:
             self.time_label.setVisible(state)
