@@ -15,3 +15,4 @@ pickleshare
 pyzmq
 chardet>=2.0.0
 numpydoc
+pyqt5
