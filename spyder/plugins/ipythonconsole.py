@@ -1265,6 +1265,12 @@ class IPythonConsole(SpyderPluginWidget):
         except RuntimeError:
             pass
 
+        # Disconnect timer needed to update elapsed time
+        try:
+            client.timer.timeout.disconnect(client.show_time)
+        except (RuntimeError, TypeError):
+            pass
+
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not self.mainwindow_close and not force:
