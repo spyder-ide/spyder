@@ -14,10 +14,6 @@ import os.path as osp
 import sys
 
 
-# Check if we are running under an external interpreter
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
-
 def is_module_installed(module_name):
     """
     Simpler version of spyder.utils.programs.is_module_installed
@@ -74,7 +70,7 @@ def kernel_config():
     spy_cfg.IPCompleter.use_jedi = False
 
     # Run lines of code at startup
-    run_lines_o = os.environ.get('RUN_LINES_O')
+    run_lines_o = os.environ.get('SPY_RUN_LINES_O')
     if run_lines_o:
         spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
     else:
@@ -103,11 +99,11 @@ def kernel_config():
 
     # Pylab configuration
     mpl_backend = None
-    pylab_o = os.environ.get('PYLAB_O')
+    pylab_o = os.environ.get('SPY_PYLAB_O')
 
     if pylab_o == 'True' and is_module_installed('matplotlib'):
         # Get matplotlib backend
-        backend_o = os.environ.get('BACKEND_O')
+        backend_o = os.environ.get('SPY_BACKEND_O')
         if backend_o == '1':
             if is_module_installed('PyQt5'):
                 auto_backend = 'qt5'
@@ -132,7 +128,7 @@ def kernel_config():
 
         # Automatically load Pylab and Numpy, or only set Matplotlib
         # backend
-        autoload_pylab_o = os.environ.get('AUTOLOAD_PYLAB_O') == 'True'
+        autoload_pylab_o = os.environ.get('SPY_AUTOLOAD_PYLAB_O') == 'True'
         command = "get_ipython().kernel._set_mpl_backend('{0}', {1})"
         spy_cfg.IPKernelApp.exec_lines.append(
             command.format(mpl_backend, autoload_pylab_o))
@@ -140,18 +136,18 @@ def kernel_config():
         # Inline backend configuration
         if mpl_backend == 'inline':
             # Figure format
-            format_o = os.environ.get('FORMAT_O')
+            format_o = os.environ.get('SPY_FORMAT_O')
             formats = {'0': 'png',
                        '1': 'svg'}
             spy_cfg.InlineBackend.figure_format = formats[format_o]
 
             # Resolution
-            resolution_o = os.environ.get('RESOLUTION_O')
+            resolution_o = os.environ.get('SPY_RESOLUTION_O')
             spy_cfg.InlineBackend.rc[dpi_option] = float(resolution_o)
 
             # Figure size
-            width_o = float(os.environ.get('WIDTH_O'))
-            height_o = float(os.environ.get('HEIGHT_O'))
+            width_o = float(os.environ.get('SPY_WIDTH_O'))
+            height_o = float(os.environ.get('SPY_HEIGHT_O'))
             spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
 
 
@@ -160,24 +156,24 @@ def kernel_config():
         spy_cfg.IPKernelApp.exec_lines.append('%load_ext Cython')
 
     # Run a file at startup
-    use_file_o = os.environ.get('USE_FILE_O')
-    run_file_o = os.environ.get('RUN_FILE_O')
+    use_file_o = os.environ.get('SPY_USE_FILE_O')
+    run_file_o = os.environ.get('SPY_RUN_FILE_O')
     if use_file_o == 'True' and run_file_o:
         spy_cfg.IPKernelApp.file_to_run = run_file_o
 
     # Autocall
-    autocall_o = os.environ.get('AUTOCALL_O')
+    autocall_o = os.environ.get('SPY_AUTOCALL_O')
     spy_cfg.ZMQInteractiveShell.autocall = int(autocall_o)
 
     # To handle the banner by ourselves in IPython 3+
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
     # Greedy completer
-    greedy_o = os.environ.get('GREEDY_O') == 'True'
+    greedy_o = os.environ.get('SPY_GREEDY_O') == 'True'
     spy_cfg.IPCompleter.greedy = greedy_o
 
     # Sympy loading
-    sympy_o = os.environ.get('SYMPY_O') == 'True'
+    sympy_o = os.environ.get('SPY_SYMPY_O') == 'True'
     if sympy_o and is_module_installed('sympy'):
         lines = sympy_config(mpl_backend)
         spy_cfg.IPKernelApp.exec_lines.append(lines)
@@ -225,7 +221,7 @@ def main():
     # Fire up the kernel instance.
     from ipykernel.kernelapp import IPKernelApp
 
-    if not IS_EXT_INTERPRETER:
+    if not os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True":
         from spyder.utils.ipython.spyder_kernel import SpyderKernel
     else:
         # We add "spyder" to sys.path for external interpreters,

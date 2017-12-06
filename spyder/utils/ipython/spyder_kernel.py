@@ -22,7 +22,7 @@ PY2 = sys.version[0] == '2'
 # Check if we are running under an external interpreter
 # We add "spyder" to sys.path for external interpreters,
 # so relative imports work!
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)

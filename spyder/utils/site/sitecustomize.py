@@ -34,7 +34,7 @@ if not hasattr(sys, 'argv'):
 #==============================================================================
 # Main constants
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 
 
 #==============================================================================
@@ -654,14 +654,14 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         # AttributeError --> systematically raised in Python 3
         pass
     global __umr__
-    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+    if os.environ.get("SPY_UMR_ENABLED", "").lower() == "true":
         if __umr__ is None:
-            namelist = os.environ.get("UMR_NAMELIST", None)
+            namelist = os.environ.get("SPY_UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
             __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            verbose = os.environ.get("SPY_UMR_VERBOSE", "").lower() == "true"
             __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
