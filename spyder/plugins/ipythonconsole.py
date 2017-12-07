@@ -758,8 +758,9 @@ class IPythonConsole(SpyderPluginWidget):
             client = self.tabwidget.currentWidget()
             control = client.get_control()
             control.setFocus()
-            widgets = [client.create_time_label(), 5
-                       ] + client.get_toolbar_buttons()+[5]
+            buttons = [[b, -8] for b in client.get_toolbar_buttons()]
+            buttons = sum(buttons, [])[:-1]
+            widgets = [client.create_time_label()] + buttons
         else:
             control = None
             widgets = []
