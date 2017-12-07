@@ -301,7 +301,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
         reset_namespace_box = newcb(
-                _("Ask for confirmation before resetting the namespace."),
+                _("Ask for confirmation before removing all user-defined "
+                  "variables"),
                 'show_reset_namespace_warning',
                 tip=_("This option lets you hide the warning message shown\n"
                       "when resetting the namespace from Spyder."))

@@ -228,16 +228,16 @@ the sympy module (e.g. plot)
 
     def reset_namespace(self, warning=False, silent=True):
         """Reset the namespace by removing all names defined by the user."""
-        reset_str = _("Reset IPython namespace")
-        warn_str = _("All user-defined variables will be removed."
-                     "<br>Are you sure you want to reset the namespace?")
+        reset_str = _("Remove all variables")
+        warn_str = _("All user-defined variables will be removed. "
+                     "Are you sure you want to proceed?")
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
             box.setWindowTitle(reset_str)
             box.set_checkbox_text(_("Don't show again."))
             box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            box.setDefaultButton(QMessageBox.No)
+            box.setDefaultButton(QMessageBox.Yes)
 
             box.set_checked(False)
             box.set_check_visible(True)

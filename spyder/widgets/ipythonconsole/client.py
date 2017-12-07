@@ -374,17 +374,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                           QKeySequence(get_shortcut(
                                                   'console',
                                                   'clear line')),
-                                          icon=ima.icon('editdelete'),
                                           triggered=self.clear_line)
-        reset_namespace_action = create_action(self, _("Reset namespace"),
+        reset_namespace_action = create_action(self, _("Remove all variables"),
                                                QKeySequence(get_shortcut(
                                                        'ipython_console',
                                                        'reset namespace')),
+                                               icon=ima.icon('editdelete'),
                                                triggered=self.reset_namespace)
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
-                                             icon=ima.icon('editclear'),
                                              triggered=self.clear_console)
         quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
