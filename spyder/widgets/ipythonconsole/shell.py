@@ -256,6 +256,9 @@ the sympy module (e.g. plot)
             self.dbg_exec_magic('reset', '-f')
         else:
             if silent:
+                self.reset()
+                self._append_html(_("<br><br>Removing all variables...\n<hr><br>"),
+                                  before_prompt=False)
                 self.silent_execute("%reset -f")
                 self.refresh_namespacebrowser()
             else:
