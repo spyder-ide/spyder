@@ -341,19 +341,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Return toolbar buttons list."""
         buttons = []
 
-        # Reset namespace button
-        if self.reset_button is None:
-            reset_fn = lambda: self.shellwidget.reset_namespace(
-                                   warning=self.reset_warning)
-            self.reset_button = create_toolbutton(
-                                    self,
-                                    text=_("Remove"),
-                                    icon=ima.icon('editdelete'),
-                                    tip=_("Remove all variables"),
-                                    triggered=reset_fn)
-        if self.reset_button is not None:
-            buttons.append(self.reset_button)
-
         # Code to add the stop button
         if self.stop_button is None:
             self.stop_button = create_toolbutton(
@@ -366,6 +353,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.stop_button.clicked.connect(self.stop_button_click_handler)
         if self.stop_button is not None:
             buttons.append(self.stop_button)
+
+        # Reset namespace button
+        if self.reset_button is None:
+            reset_fn = lambda: self.shellwidget.reset_namespace(
+                                   warning=self.reset_warning)
+            self.reset_button = create_toolbutton(
+                                    self,
+                                    text=_("Remove"),
+                                    icon=ima.icon('editdelete'),
+                                    tip=_("Remove all variables"),
+                                    triggered=reset_fn)
+        if self.reset_button is not None:
+            buttons.append(self.reset_button)
 
         if self.options_button is None:
             options = self.get_options_menu()
