@@ -191,7 +191,7 @@ class NamespaceBrowser(QWidget):
                                            triggered=self.save_data)
         reset_namespace_button = create_toolbutton(
                 self, text=_("Reset the namespace"),
-                icon=ima.icon('editclear'), triggered=self.reset_namespace)
+                icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
         toolbar += [load_button, self.save_button, save_as_button,
                     reset_namespace_button]
