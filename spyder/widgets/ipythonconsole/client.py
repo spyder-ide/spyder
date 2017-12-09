@@ -96,7 +96,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
                  external_kernel=False, given_name=None,
-                 show_elapsed_time=False):
+                 show_elapsed_time=False,
+                 reset_warning=True):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -107,6 +108,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.menu_actions = menu_actions
         self.slave = slave
         self.given_name = given_name
+        self.show_elapsed_time = show_elapsed_time
+        self.reset_warning = reset_warning
 
         # --- Other attrs
         self.options_button = None
@@ -130,7 +133,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._show_loading_page()
 
         # Elapsed time
-        self.show_elapsed_time = show_elapsed_time
         self.time_label = None
         self.t0 = None
         self.timer = QTimer(self)
@@ -340,7 +342,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # Reset namespace button
         if self.reset_button is None:
-            reset_fn = lambda: self.shellwidget.reset_namespace(warning=True)
+            reset_fn = lambda: self.shellwidget.reset_namespace(
+                                   warning=self.reset_warning)
             self.reset_button = create_toolbutton(
                                     self,
                                     text=_("Remove"),

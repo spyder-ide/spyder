@@ -698,6 +698,8 @@ class IPythonConsole(SpyderPluginWidget):
         color_scheme_o = CONF.get('color_schemes', 'selected')
         show_time_n = 'show_elapsed_time'
         show_time_o = self.get_option(show_time_n)
+        reset_namespace_n = 'show_reset_namespace_warning'
+        reset_namespace_o = self.get_option(reset_namespace_n)
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -709,6 +711,8 @@ class IPythonConsole(SpyderPluginWidget):
             if show_time_n in options:
                 client.show_time_action.setChecked(show_time_o)
                 client.set_elapsed_time_visible(show_time_o)
+            if reset_namespace_n in options:
+                client.reset_warning = reset_namespace_o
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -985,6 +989,7 @@ class IPythonConsole(SpyderPluginWidget):
                          str_id='A')
         cf = self._new_connection_file()
         show_elapsed_time = self.get_option('show_elapsed_time')
+        reset_warning = self.get_option('show_reset_namespace_warning')
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
@@ -992,7 +997,8 @@ class IPythonConsole(SpyderPluginWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions,
-                              show_elapsed_time=show_elapsed_time)
+                              show_elapsed_time=show_elapsed_time,
+                              reset_warning=reset_warning)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
