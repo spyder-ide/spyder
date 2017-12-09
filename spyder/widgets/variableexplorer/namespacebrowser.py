@@ -190,7 +190,7 @@ class NamespaceBrowser(QWidget):
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
         reset_namespace_button = create_toolbutton(
-                self, text=_("Reset the namespace"),
+                self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
         toolbar += [load_button, self.save_button, save_as_button,
