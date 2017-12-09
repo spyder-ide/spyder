@@ -14,6 +14,9 @@ import os.path as osp
 import sys
 
 
+PY2 = sys.version[0] == '2'
+
+
 def is_module_installed(module_name):
     """
     Simpler version of spyder.utils.programs.is_module_installed
@@ -65,9 +68,10 @@ def kernel_config():
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
 
-    # Using Jedi slow completions a lot for objects
-    # with big repr's
-    spy_cfg.IPCompleter.use_jedi = False
+    # - Using Jedi slow completions a lot for objects with big repr's.
+    # - Jedi completions are not available in Python 2.
+    if not PY2:
+        spy_cfg.IPCompleter.use_jedi = False
 
     # Run lines of code at startup
     run_lines_o = os.environ.get('SPY_RUN_LINES_O')
