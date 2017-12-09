@@ -107,6 +107,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.hostname = hostname
         self.menu_actions = menu_actions
         self.slave = slave
+        self.external_kernel = external_kernel
         self.given_name = given_name
         self.show_elapsed_time = show_elapsed_time
         self.reset_warning = reset_warning
@@ -606,7 +607,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         Show possible errors when setting the selected Matplotlib backend.
         """
-        self.shellwidget.silent_execute(
-            "get_ipython().kernel._show_mpl_backend_errors()")
+        if not self.external_kernel:
+            self.shellwidget.silent_execute(
+                    "get_ipython().kernel._show_mpl_backend_errors()")
         self.shellwidget.sig_prompt_ready.disconnect(
             self._show_mpl_backend_errors)
