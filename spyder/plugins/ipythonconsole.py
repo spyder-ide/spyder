@@ -1417,6 +1417,17 @@ class IPythonConsole(SpyderPluginWidget):
                 break
         return client
 
+    def set_elapsed_time(self, client):
+        """Set elapsed time for slave clients."""
+        related_clients = self.get_related_clients(client)
+        for cl in related_clients:
+            if cl.timer is not None:
+                client.create_time_label()
+                client.t0 = cl.t0
+                client.timer.timeout.connect(client.show_time)
+                client.timer.start(1000)
+                break
+
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
         if os.name == 'nt':
@@ -1684,6 +1695,8 @@ class IPythonConsole(SpyderPluginWidget):
                          str_id=chr(slave_ord + 1))
 
         # Creating the client
+        show_elapsed_time = self.get_option('show_elapsed_time')
+        reset_warning = self.get_option('show_reset_namespace_warning')
         client = ClientWidget(self,
                               id_=client_id,
                               given_name=given_name,
@@ -1695,7 +1708,9 @@ class IPythonConsole(SpyderPluginWidget):
                               menu_actions=self.menu_actions,
                               hostname=hostname,
                               external_kernel=external_kernel,
-                              slave=True)
+                              slave=True,
+                              show_elapsed_time=show_elapsed_time,
+                              reset_warning=reset_warning)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
@@ -1727,6 +1742,10 @@ class IPythonConsole(SpyderPluginWidget):
             client.shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)
             client.shellwidget.is_spyder_kernel()
+
+        # Set elapsed time, if possible
+        if not external_kernel:
+            self.set_elapsed_time(client)
 
         # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())
