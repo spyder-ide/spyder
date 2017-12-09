@@ -107,12 +107,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         if os.name == 'nt':
             dirname = dirname.replace(u"\\", u"\\\\")
 
-        code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
-        if self._reading:
-            self.kernel_client.input(u'!' + code)
-        else:
-            self.silent_execute(code)
-        self._cwd = dirname
+        if not self.external_kernel:
+            code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
+            if self._reading:
+                self.kernel_client.input(u'!' + code)
+            else:
+                self.silent_execute(code)
+            self._cwd = dirname
 
     def get_cwd(self):
         """Update current working directory.
