@@ -340,6 +340,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def get_toolbar_buttons(self):
         """Return toolbar buttons list."""
         buttons = []
+        sw = self.shellwidget
 
         # Code to add the stop button
         if self.stop_button is None:
@@ -356,8 +357,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # Reset namespace button
         if self.reset_button is None:
-            reset_fn = lambda: self.shellwidget.reset_namespace(
-                                   warning=self.reset_warning)
+            reset_fn = lambda: sw.reset_namespace(warning=self.reset_warning,
+                                                  message=True)
             self.reset_button = create_toolbutton(
                                     self,
                                     text=_("Remove"),
@@ -388,23 +389,31 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                                     'inspect current object')),
                                     icon=ima.icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)
+
         clear_line_action = create_action(self, _("Clear line or block"),
                                           QKeySequence(get_shortcut(
                                                   'console',
                                                   'clear line')),
                                           triggered=self.clear_line)
+
+        sw = self.shellwidget
+        reset_fn = lambda: sw.reset_namespace(warning=self.reset_warning,
+                                              message=True)
         reset_namespace_action = create_action(self, _("Remove all variables"),
                                                QKeySequence(get_shortcut(
                                                        'ipython_console',
                                                        'reset namespace')),
                                                icon=ima.icon('editdelete'),
-                                               triggered=self.reset_namespace)
+                                               triggered=reset_fn)
+
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
                                                                'clear shell')),
                                              triggered=self.clear_console)
+
         quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
                                     triggered=self.exit_callback)
+
         add_actions(menu, (None, inspect_action, clear_line_action,
                            clear_console_action, reset_namespace_action,
                            None, quit_action))
@@ -510,11 +519,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.clear_console()
-
-    @Slot()
-    def reset_namespace(self):
-        """Resets the namespace by removing all names defined by the user"""
-        self.shellwidget.reset_namespace()
 
     def update_history(self):
         self.history = self.shellwidget._history

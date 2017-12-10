@@ -227,7 +227,7 @@ the sympy module (e.g. plot)
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
         self.reset_namespace(silent=True, warning=warning)
 
-    def reset_namespace(self, warning=False, silent=True):
+    def reset_namespace(self, warning=False, silent=True, message=False):
         """Reset the namespace by removing all names defined by the user."""
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
@@ -257,9 +257,11 @@ the sympy module (e.g. plot)
             self.dbg_exec_magic('reset', '-f')
         else:
             if silent:
-                self.reset()
-                self._append_html(_("<br><br>Removing all variables...\n<hr><br>"),
-                                  before_prompt=False)
+                if message:
+                    self.reset()
+                    self._append_html(_("<br><br>Removing all variables..."
+                                        "\n<hr>"),
+                                      before_prompt=False)
                 self.silent_execute("%reset -f")
                 self.refresh_namespacebrowser()
             else:

@@ -452,7 +452,8 @@ class NamespaceBrowser(QWidget):
     @Slot()
     def reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
-        self.shellwidget.reset_namespace(silent=True, warning=warning)
+        self.shellwidget.reset_namespace(warning=warning, silent=True,
+                                         message=True)
 
     @Slot()
     def save_data(self, filename=None):
