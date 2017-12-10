@@ -8,6 +8,7 @@ Tests for collectionseditor.py
 """
 
 # Standard library imports
+import copy
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -140,6 +141,24 @@ def test_sort_collectionsmodel_with_many_rows():
     for _ in range(3):
         cm.fetchMore()
     assert cm.rowCount() == len(coll)
+
+
+def test_rename_and_duplicate_item_in_collection_editor():
+    collections = {'list': ([1, 2, 3], False, True),
+                   'tuple': ((1, 2, 3), False, False),
+                   'dict': ({'a': 1, 'b': 2}, True, True)}
+    for coll, rename_enabled, duplicate_enabled in collections.values():
+        coll_copy = copy.copy(coll)
+        editor = CollectionsEditorTableView(None, coll)
+        assert editor.rename_action.isEnabled()
+        assert editor.duplicate_action.isEnabled()
+        editor.setCurrentIndex(editor.model.createIndex(0, 0))
+        editor.refresh_menu()
+        assert editor.rename_action.isEnabled() == rename_enabled
+        assert editor.duplicate_action.isEnabled() == duplicate_enabled
+        if isinstance(coll, list):
+            editor.duplicate_item()
+            assert editor.model.get_data() == coll_copy + [coll_copy[0]]
 
 
 if __name__ == "__main__":
