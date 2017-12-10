@@ -96,10 +96,27 @@ class SpyderKernelSpec(KernelSpec):
                 CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
 
         env_vars = {
-            'EXTERNAL_INTERPRETER': not default_interpreter,
-            'UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
-            'UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
-            'UMR_NAMELIST': ','.join(umr_namelist)
+            'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
+            'SPY_UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
+            'SPY_UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
+            'SPY_UMR_NAMELIST': ','.join(umr_namelist),
+            'SPY_RUN_LINES_O': CONF.get('ipython_console', 'startup/run_lines'),
+            'SPY_PYLAB_O': CONF.get('ipython_console', 'pylab'),
+            'SPY_BACKEND_O': CONF.get('ipython_console', 'pylab/backend'),
+            'SPY_AUTOLOAD_PYLAB_O': CONF.get('ipython_console',
+                                             'pylab/autoload'),
+            'SPY_FORMAT_O': CONF.get('ipython_console',
+                                     'pylab/inline/figure_format'),
+            'SPY_RESOLUTION_O': CONF.get('ipython_console',
+                                         'pylab/inline/resolution'),
+            'SPY_WIDTH_O': CONF.get('ipython_console', 'pylab/inline/width'),
+            'SPY_HEIGHT_O': CONF.get('ipython_console', 'pylab/inline/height'),
+            'SPY_USE_FILE_O': CONF.get('ipython_console',
+                                       'startup/use_run_file'),
+            'SPY_RUN_FILE_O': CONF.get('ipython_console', 'startup/run_file'),
+            'SPY_AUTOCALL_O': CONF.get('ipython_console', 'autocall'),
+            'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
+            'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math')
         }
 
         # Add our PYTHONPATH to env_vars

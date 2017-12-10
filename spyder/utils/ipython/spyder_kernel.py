@@ -12,36 +12,17 @@ Spyder kernel for Jupyter
 import os
 import os.path as osp
 import sys
-import traceback
 
 # Third-party imports
-import cloudpickle
 from ipykernel.ipkernel import IPythonKernel
-
-# Check if we are running under an external interpreter
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
-
-# Local imports
-if not IS_EXT_INTERPRETER:
-    from spyder.py3compat import is_text_string
-    from spyder.utils.dochelpers import isdefined, getdoc, getsource
-    from spyder.utils.iofuncs import iofunctions
-    from spyder.utils.misc import fix_reference_name
-    from spyder.widgets.variableexplorer.utils import (get_remote_data,
-                                                       make_remote_view)
-else:
-    # We add "spyder" to sys.path for external interpreters, so this works!
-    # See create_kernel_spec of plugins/ipythonconsole
-    from py3compat import is_text_string
-    from utils.dochelpers import isdefined, getdoc, getsource
-    from utils.iofuncs import iofunctions
-    from utils.misc import fix_reference_name
-    from widgets.variableexplorer.utils import (get_remote_data,
-                                                make_remote_view)
 
 
 PY2 = sys.version[0] == '2'
 
+# Check if we are running under an external interpreter
+# We add "spyder" to sys.path for external interpreters,
+# so relative imports work!
+IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)
@@ -105,6 +86,11 @@ class SpyderKernel(IPythonKernel):
         * 'size' and 'type' are self-evident
         * and'view' is its value or the text shown in the last column
         """
+        if not IS_EXT_INTERPRETER:
+            from spyder.widgets.variableexplorer.utils import make_remote_view
+        else:
+            from widgets.variableexplorer.utils import make_remote_view
+
         settings = self.namespace_view_settings
         if settings:
             ns = self._get_current_namespace()
@@ -118,6 +104,11 @@ class SpyderKernel(IPythonKernel):
         Get some properties of the variables in the current
         namespace
         """
+        if not IS_EXT_INTERPRETER:
+            from spyder.widgets.variableexplorer.utils import get_remote_data
+        else:
+            from widgets.variableexplorer.utils import get_remote_data
+
         settings = self.namespace_view_settings
         if settings:
             ns = self._get_current_namespace()
@@ -156,6 +147,8 @@ class SpyderKernel(IPythonKernel):
             Any object that is serializable by cloudpickle (should be most
             things). Will arrive as cloudpickled bytes in `.buffers[0]`.
         """
+        import cloudpickle
+
         if content is None:
             content = {}
         content['spyder_msg_type'] = spyder_msg_type
@@ -183,6 +176,7 @@ class SpyderKernel(IPythonKernel):
 
     def set_value(self, name, value, PY2_frontend):
         """Set the value of a variable"""
+        import cloudpickle
         ns = self._get_reference_namespace(name)
 
         # We send serialized values in a list of one element
@@ -211,6 +205,13 @@ class SpyderKernel(IPythonKernel):
 
     def load_data(self, filename, ext):
         """Load data from filename"""
+        if not IS_EXT_INTERPRETER:
+            from spyder.utils.iofuncs import iofunctions
+            from spyder.utils.misc import fix_reference_name
+        else:
+            from utils.iofuncs import iofunctions
+            from utils.misc import fix_reference_name
+
         glbs = self._mglobals()
 
         load_func = iofunctions.load_funcs[ext]
@@ -233,6 +234,13 @@ class SpyderKernel(IPythonKernel):
 
     def save_namespace(self, filename):
         """Save namespace into filename"""
+        if not IS_EXT_INTERPRETER:
+            from spyder.utils.iofuncs import iofunctions
+            from spyder.widgets.variableexplorer.utils import get_remote_data
+        else:
+            from utils.iofuncs import iofunctions
+            from widgets.variableexplorer.utils import get_remote_data
+
         ns = self._get_current_namespace()
         settings = self.namespace_view_settings
         data = get_remote_data(ns, settings, mode='picklable',
@@ -265,17 +273,38 @@ class SpyderKernel(IPythonKernel):
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
+        if not IS_EXT_INTERPRETER:
+            from spyder.utils.dochelpers import isdefined
+        else:
+            from utils.dochelpers import isdefined
+
         ns = self._get_current_namespace(with_magics=True)
         return isdefined(obj, force_import=force_import, namespace=ns)
 
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
+        try:
+            import matplotlib
+            matplotlib.rcParams['docstring.hardcopy'] = True
+        except:
+            pass
+
+        if not IS_EXT_INTERPRETER:
+            from spyder.utils.dochelpers import getdoc
+        else:
+            from utils.dochelpers import getdoc
+
         obj, valid = self._eval(objtxt)
         if valid:
             return getdoc(obj)
 
     def get_source(self, objtxt):
         """Get object source"""
+        if not IS_EXT_INTERPRETER:
+            from spyder.utils.dochelpers import getsource
+        else:
+            from utils.dochelpers import getsource
+
         obj, valid = self._eval(objtxt)
         if valid:
             return getsource(obj)
@@ -434,6 +463,11 @@ class SpyderKernel(IPythonKernel):
         where *obj* is the object represented by *text*
         and *valid* is True if object evaluation did not raise any exception
         """
+        if not IS_EXT_INTERPRETER:
+            from spyder.py3compat import is_text_string
+        else:
+            from py3compat import is_text_string
+
         assert is_text_string(text)
         ns = self._get_current_namespace(with_magics=True)
         try:
@@ -449,7 +483,9 @@ class SpyderKernel(IPythonKernel):
         backend: A parameter that can be passed to %matplotlib
                  (e.g. inline or tk).
         """
+        import traceback
         from IPython.core.getipython import get_ipython
+
         generic_error = ("\n"
                          "NOTE: The following error appeared when setting "
                          "your Matplotlib backend\n\n"

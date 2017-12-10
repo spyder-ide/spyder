@@ -103,6 +103,23 @@ def ipyconsole(request):
 #==============================================================================
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_conf_env_vars(ipyconsole, qtbot):
+    """Test that kernels have env vars set by our kernel spec."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Get a CONF env var
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; a = os.environ.get('SPY_SYMPY_O')")
+
+    # Assert we get the assigned value correctly
+    assert shell.get_value('a') == 'False'
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 @pytest.mark.no_stderr_file
 def test_no_stderr_file(ipyconsole, qtbot):
     """Test that consoles can run without an stderr."""
