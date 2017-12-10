@@ -959,8 +959,12 @@ class BaseTableView(QTableView):
         else:
             title = _('Duplicate')
             field_text = _('Variable name:')
-        new_key, valid = QInputDialog.getText(self, title, field_text,
-                                              QLineEdit.Normal, orig_key)
+        data = self.model.get_data()
+        if isinstance(data, (list, set)):
+            new_key, valid = len(data), True
+        else:
+            new_key, valid = QInputDialog.getText(self, title, field_text,
+                                                  QLineEdit.Normal, orig_key)
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
             if new_key == orig_key:
@@ -1172,7 +1176,12 @@ class CollectionsEditorTableView(BaseTableView):
     def copy_value(self, orig_key, new_key):
         """Copy value"""
         data = self.model.get_data()
-        data[new_key] = data[orig_key]
+        if isinstance(data, list):
+            data.append(data[orig_key])
+        if isinstance(data, set):
+            data.add(data[orig_key])
+        else:
+            data[new_key] = data[orig_key]
         self.set_data(data)
     
     def new_value(self, key, value):
@@ -1258,6 +1267,9 @@ class CollectionsEditorTableView(BaseTableView):
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
         self.insert_action.setEnabled( not self.readonly )
+        self.duplicate_action.setEnabled(condition)
+        condition_rename = not isinstance(data, (tuple, list, set))
+        self.rename_action.setEnabled(condition_rename)
         self.refresh_plot_entries(index)
         
     def set_filter(self, dictfilter=None):

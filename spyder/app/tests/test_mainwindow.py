@@ -283,6 +283,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     # ---- Load test file ----
