@@ -313,14 +313,20 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_options_menu(self):
         """Return options menu"""
+        reset_action = create_action(self, _("Remove all variables"),
+                                     icon=ima.icon('editdelete'),
+                                     triggered=self.reset_namespace)
+
         self.show_time_action = create_action(self, _("Show elapsed time"),
                                          toggled=self.set_elapsed_time_visible)
+
         env_action = create_action(
                         self,
                         _("Show environment variables"),
                         icon=ima.icon('environ'),
                         triggered=self.shellwidget.get_env
                      )
+
         syspath_action = create_action(
                             self,
                             _("Show sys.path contents"),
@@ -329,8 +335,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                          )
 
         self.show_time_action.setChecked(self.show_elapsed_time)
-        additional_actions = [MENU_SEPARATOR, self.show_time_action,
-                              env_action, syspath_action]
+        additional_actions = [reset_action,
+                              MENU_SEPARATOR,
+                              env_action,
+                              syspath_action,
+                              self.show_time_action]
 
         if self.menu_actions is not None:
             return self.menu_actions + additional_actions
@@ -340,7 +349,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def get_toolbar_buttons(self):
         """Return toolbar buttons list."""
         buttons = []
-        sw = self.shellwidget
 
         # Code to add the stop button
         if self.stop_button is None:
@@ -357,14 +365,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # Reset namespace button
         if self.reset_button is None:
-            reset_fn = lambda: sw.reset_namespace(warning=self.reset_warning,
-                                                  message=True)
             self.reset_button = create_toolbutton(
                                     self,
                                     text=_("Remove"),
                                     icon=ima.icon('editdelete'),
                                     tip=_("Remove all variables"),
-                                    triggered=reset_fn)
+                                    triggered=self.reset_namespace)
         if self.reset_button is not None:
             buttons.append(self.reset_button)
 
@@ -396,15 +402,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                                   'clear line')),
                                           triggered=self.clear_line)
 
-        sw = self.shellwidget
-        reset_fn = lambda: sw.reset_namespace(warning=self.reset_warning,
-                                              message=True)
         reset_namespace_action = create_action(self, _("Remove all variables"),
                                                QKeySequence(get_shortcut(
                                                        'ipython_console',
                                                        'reset namespace')),
                                                icon=ima.icon('editdelete'),
-                                               triggered=reset_fn)
+                                               triggered=self.reset_namespace)
 
         clear_console_action = create_action(self, _("Clear console"),
                                              QKeySequence(get_shortcut('console',
@@ -519,6 +522,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def clear_console(self):
         """Clear the whole console"""
         self.shellwidget.clear_console()
+
+    @Slot()
+    def reset_namespace(self):
+        """Resets the namespace by removing all names defined by the user"""
+        self.shellwidget.reset_namespace(warning=self.reset_warning,
+                                         message=True)
 
     def update_history(self):
         self.history = self.shellwidget._history
