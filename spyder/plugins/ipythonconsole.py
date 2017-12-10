@@ -964,8 +964,6 @@ class IPythonConsole(SpyderPluginWidget):
                         sw.sig_prompt_ready.disconnect()
                     except TypeError:
                         pass
-                    sw.silent_execute(
-                        'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(warning=False, silent=True)
                 elif current_client and clear_variables:
                     sw.reset_namespace(warning=False, silent=True)

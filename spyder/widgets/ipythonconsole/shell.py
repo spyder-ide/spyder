@@ -267,6 +267,10 @@ the sympy module (e.g. plot)
             else:
                 self.execute("%reset -f")
 
+            if not self.external_kernel:
+                self.silent_execute(
+                    'get_ipython().kernel.close_all_mpl_figures()')
+
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
         inspect = config_shortcut(self._control.inspect_current_object,
