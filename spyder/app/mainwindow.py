@@ -222,6 +222,19 @@ def get_focus_python_shell():
     elif isinstance(widget, ExternalPythonShell):
         return widget.shell
 
+def get_environment_infostr():
+    """Find if running inside a conda and/or venv
+    Return None if not the case or anything fails"""
+    debug_print("Collecting environment information")
+    try:
+        try:
+            return "env: {}".format(os.path.basename(sys.prefix))
+        except AttributeError:
+            return ""
+    except Exception as e:
+        debug_print("Exception {} while trying to obtain environment information".format(e))
+
+    return ""
 
 #==============================================================================
 # Main Window
@@ -446,6 +459,10 @@ class MainWindow(QMainWindow):
         else:
             title = "Spyder (Python %s.%s)" % (sys.version_info[0],
                                                sys.version_info[1])
+        env_info = get_environment_infostr()
+        if env_info:
+            title += " [%s]" % env_info
+
         if DEBUG:
             title += " [DEBUG MODE %d]" % DEBUG
         if options.window_title is not None:
