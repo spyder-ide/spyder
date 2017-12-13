@@ -60,18 +60,8 @@ Installing on MacOS X
 The easy way
 ~~~~~~~~~~~~
 
-Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, you have
-two alternatives:
-
-#. Use the `Anaconda <http://continuum.io/downloads.html>`_ Python distribution.
-
-#. Use our DMG installers, which can be found
-   `here <https://github.com/spyder-ide/spyder/releases>`_.
-
-  .. note::
-     
-     The minimal version to run our DMG's is Mavericks (10.9) since
-     Spyder 2.3.5. Previous versions work on Lion (10.7) or higher.
++Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, Spyder is included
++in the `Anaconda <http://continuum.io/downloads.html>`_ Python distribution.
 
 
 The hard way
