@@ -12,7 +12,7 @@ The easy way
 
 Spyder is already included in these *Python Scientific Distributions*:
 
-#. `Anaconda <http://continuum.io/downloads.html>`_
+#. `Anaconda <https://www.anaconda.com/download/>`_
 #. `WinPython <https://winpython.github.io/>`_
 #. `Python(x,y) <https://code.google.com/p/pythonxy>`_
 
@@ -60,8 +60,8 @@ Installing on MacOS X
 The easy way
 ~~~~~~~~~~~~
 
-+Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, Spyder is included
-+in the `Anaconda <http://continuum.io/downloads.html>`_ Python distribution.
++Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
++in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution.
 
 
 The hard way
