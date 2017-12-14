@@ -12,9 +12,9 @@ The easy way
 
 Spyder is already included in these *Python Scientific Distributions*:
 
-#. `Anaconda <https://www.anaconda.com/download/>`_
-#. `WinPython <https://winpython.github.io/>`_
-#. `Python(x,y) <https://code.google.com/p/pythonxy>`_
+* `Anaconda <https://www.anaconda.com/download/>`_
+* `WinPython <https://winpython.github.io/>`_
+* `Python(x,y) <https://code.google.com/p/pythonxy>`_
 
 You can start using it immediately after installing one of them (you only need
 to install one!).
@@ -60,8 +60,9 @@ Installing on macOS
 The easy way
 ~~~~~~~~~~~~
 
-+Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
-+in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution.
+Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
+in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution,
+which comes with everything you need to get started in an all-in-one package.
 
 
 The hard way
@@ -91,7 +92,7 @@ Installing on Linux
 Please refer to the `Requirements`_ section to see what other packages you
 might need.
 
-#. **Ubuntu**:
+**Ubuntu**:
 
    * Using the official package manager: ``sudo apt-get install spyder``.
 
@@ -105,7 +106,8 @@ might need.
      * Installing: ``sudo pip install spyder``
      * Updating: ``sudo pip install -U spyder``
 
-#. **Debian Unstable**:
+     
+**Debian Unstable**:
   
    Using the package manager: ``sudo apt-get install spyder``
 
@@ -114,7 +116,7 @@ might need.
    __ http://packages.debian.org/fr/sid/spyder.
 
 
-#. **Other Distributions**
+**Other Distributions**
 
    Spyder is also available in other GNU/Linux distributions, like
 
@@ -215,11 +217,11 @@ Optional modules
 Installation procedure
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. If you use Anaconda, you need to run this command to install Spyder:
+If you use Anaconda, you need to run this command to install Spyder:
 
    ``conda install spyder``
 
-2. If you don't use Anaconda, you need to run:
+If you don't use Anaconda, you need to run:
 
    ``pip install --upgrade spyder``
 
