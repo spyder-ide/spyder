@@ -89,6 +89,17 @@ __ http://www.macports.org/ports.php?by=name&substr=spyder
 Installing on Linux
 -------------------
 
+The easy way
+~~~~~~~~~~~~
+
+Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
+in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution,
+which comes with everything you need to get started in an all-in-one package.
+
+
+The harder way
+~~~~~~~~~~~~~~
+
 Please refer to the `Requirements`_ section to see what other packages you
 might need.
 
