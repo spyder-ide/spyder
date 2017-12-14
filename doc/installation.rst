@@ -1,7 +1,7 @@
 Installation
 ============
 
-Spyder is quite easy to install on Windows, Linux and MacOS X. Just the read the
+Spyder is quite easy to install on Windows, Linux and macOS. Just the read the
 following instructions with care.
 
 Installing on Windows Vista/7/8/10
@@ -54,8 +54,8 @@ You can update Spyder by:
 
 |
 
-Installing on MacOS X
-----------------------
+Installing on macOS
+-------------------
 
 The easy way
 ~~~~~~~~~~~~
