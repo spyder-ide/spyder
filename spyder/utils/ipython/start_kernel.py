@@ -84,6 +84,10 @@ def kernel_config():
     clear_argv = "import sys;sys.argv = [''];del sys"
     spy_cfg.IPKernelApp.exec_lines.append(clear_argv)
 
+    # Load %autoreload magic
+    spy_cfg.IPKernelApp.exec_lines.append(
+        "get_ipython().kernel._load_autoreload_magic()")
+
     # Default inline backend configuration
     # This is useful to have when people doesn't
     # use our config system to configure the

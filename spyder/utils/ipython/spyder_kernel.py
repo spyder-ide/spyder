@@ -476,7 +476,7 @@ class SpyderKernel(IPythonKernel):
         except:
             return None, False
 
-    # --- Others
+    # --- For Matplotlib
     def _set_mpl_backend(self, backend, pylab=False):
         """
         Set a backend for Matplotlib.
@@ -523,3 +523,9 @@ class SpyderKernel(IPythonKernel):
         if self._mpl_backend_error is not None:
             print(self._mpl_backend_error)  # spyder: test-skip
 
+    # --- Others
+    def _load_autoreload_magic(self):
+        """Load %autoreload magic."""
+        from IPython.core.getipython import get_ipython
+        get_ipython().run_line_magic('reload_ext', 'autoreload')
+        get_ipython().run_line_magic('autoreload', '2')
