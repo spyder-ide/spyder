@@ -1,7 +1,7 @@
 Installation
 ============
 
-Spyder is quite easy to install on Windows, Linux and MacOS X. Just the read the
+Spyder is quite easy to install on Windows, Linux and macOS. Just the read the
 following instructions with care.
 
 Installing on Windows Vista/7/8/10
@@ -12,7 +12,7 @@ The easy way
 
 Spyder is already included in these *Python Scientific Distributions*:
 
-#. `Anaconda <http://continuum.io/downloads.html>`_
+#. `Anaconda <https://www.anaconda.com/download/>`_
 #. `WinPython <https://winpython.github.io/>`_
 #. `Python(x,y) <https://code.google.com/p/pythonxy>`_
 
@@ -54,24 +54,14 @@ You can update Spyder by:
 
 |
 
-Installing on MacOS X
-----------------------
+Installing on macOS
+-------------------
 
 The easy way
 ~~~~~~~~~~~~
 
-Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, you have
-two alternatives:
-
-#. Use the `Anaconda <http://continuum.io/downloads.html>`_ Python distribution.
-
-#. Use our DMG installers, which can be found
-   `here <https://github.com/spyder-ide/spyder/releases>`_.
-
-  .. note::
-     
-     The minimal version to run our DMG's is Mavericks (10.9) since
-     Spyder 2.3.5. Previous versions work on Lion (10.7) or higher.
++Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
++in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution.
 
 
 The hard way
