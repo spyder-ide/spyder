@@ -474,21 +474,15 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = QDateTimeEdit
-        elif isinstance(value, datetime.datetime):
-            if readonly:
-                return None
-            else:
-                editor = QDateTimeEdit(value, parent)
-                editor.setCalendarPopup(True)
-                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-                return editor
-        #---editor = QDateEdit
+        #---editor = QDateEdit or QDateTimeEdit
         elif isinstance(value, datetime.date):
             if readonly:
                 return None
             else:
-                editor = QDateEdit(value, parent)
+                if isinstance(value, datetime.datetime):
+                    editor = QDateTimeEdit(value, parent)
+                else:
+                    editor = QDateEdit(value, parent)
                 editor.setCalendarPopup(True)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 return editor
