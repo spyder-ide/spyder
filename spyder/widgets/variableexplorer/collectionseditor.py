@@ -476,28 +476,36 @@ class CollectionsDelegate(QItemDelegate):
             return None
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime):
-            editor = QDateTimeEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
+            if readonly:
+                return None
+            else:
+                editor = QDateTimeEdit(value, parent)
+                editor.setCalendarPopup(True)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                return editor
         #---editor = QDateEdit
         elif isinstance(value, datetime.date):
-            editor = QDateEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
+            if readonly:
+                return None
+            else:
+                editor = QDateEdit(value, parent)
+                editor.setCalendarPopup(True)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                return editor
         #---editor = TextEditor
         elif is_text_string(value) and len(value) > 40:
             te = TextEditor(None)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key)
+                editor = TextEditor(value, key, readonly=readonly)
                 self.create_dialog(editor, dict(model=index.model(),
                                                 editor=editor, key=key,
                                                 readonly=readonly))
             return None
         #---editor = QLineEdit
         elif is_editable_type(value):
-            if not readonly:
+            if readonly:
+                return None
+            else:
                 editor = QLineEdit(parent)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 editor.setAlignment(Qt.AlignLeft)
