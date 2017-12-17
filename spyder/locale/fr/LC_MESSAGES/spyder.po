@@ -6,29 +6,27 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2017-12-14 15:40+-05\n"
-"PO-Revision-Date: 2017-07-17 10:58-0500\n"
-"Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
+"PO-Revision-Date: 2017-12-17 20:23+0100\n"
+"Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.0.2\n"
+"X-Generator: Poedit 2.0.4\n"
 
 #: spyder/app/mainwindow.py:134
 msgid "Initializing..."
 msgstr "Initialisation..."
 
 #: spyder/app/mainwindow.py:237
-#, fuzzy
 msgid "Python2 documentation"
-msgstr "Documentation de Python"
+msgstr "Documentation de Python2"
 
 #: spyder/app/mainwindow.py:239
-#, fuzzy
 msgid "Python3 documentation"
-msgstr "Documentation de Python"
+msgstr "Documentation de Python3"
 
 #: spyder/app/mainwindow.py:241
 msgid "Numpy and Scipy documentation"
@@ -47,14 +45,12 @@ msgid "PyQt4 API Reference"
 msgstr "Documentation de l'API de PyQt4"
 
 #: spyder/app/mainwindow.py:252
-#, fuzzy
 msgid "PyQt5 Reference Guide"
-msgstr "Guide de référence de PyQt4"
+msgstr "Guide de référence de PyQt5"
 
 #: spyder/app/mainwindow.py:255
-#, fuzzy
 msgid "PyQt5 API Reference"
-msgstr "Documentation de l'API de PyQt4"
+msgstr "Documentation de l'API de PyQt5"
 
 #: spyder/app/mainwindow.py:257
 msgid "WinPython"
@@ -1095,12 +1091,11 @@ msgstr "pixels"
 
 #: spyder/plugins/configdialog.py:889
 msgid "Cursor blinking:"
-msgstr ""
+msgstr "Clignotement du curseur :"
 
 #: spyder/plugins/configdialog.py:891
-#, fuzzy
 msgid "ms"
-msgstr " ms"
+msgstr "ms"
 
 #: spyder/plugins/configdialog.py:930
 msgid "Status bar"
@@ -2397,18 +2392,18 @@ msgid "Ask for confirmation before closing"
 msgstr "Demander confirmation avant de fermer une console"
 
 #: spyder/plugins/ipythonconsole.py:304
-#, fuzzy
 msgid "Ask for confirmation before removing all user-defined variables"
-msgstr "Demander confirmation avant de fermer une console"
+msgstr ""
+"Demander confirmation avant de supprimer les variables définies par "
+"l'utilisateur"
 
 #: spyder/plugins/ipythonconsole.py:307
-#, fuzzy
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
 msgstr ""
-"Cette option permet de masquer la message d'accueil\n"
-"qui s'affiche à l'ouverture de la console."
+"Cette option permet de masquer le message de confirmation\n"
+"lors de la suppression des variables de Spyder."
 
 #: spyder/plugins/ipythonconsole.py:309
 #: spyder/widgets/ipythonconsole/client.py:320
@@ -2739,7 +2734,6 @@ msgstr ""
 "<br><br>Merci d'ouvrir un nouveau client IPython et de réessayer."
 
 #: spyder/plugins/ipythonconsole.py:1018
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>ipykernel</tt> "
 "and <tt>cloudpickle</tt> modules installed on it. Without these modules is "
@@ -2748,11 +2742,12 @@ msgid ""
 "cloudpickle</tt><br><br>or<br><br><tt>conda install ipykernel cloudpickle</"
 "tt>"
 msgstr ""
-"Votre environnement Python ou l'installation ne dispose pas du module "
-"<tt>ipykernel</ tt> installé sur celui-ci. Sans ce module, Spyder ne peut "
-"pas créer une console pour vous. <br><br>Vous pouvez installer "
-"<tt>ipykernel</tt> en exécutant un terminal: <br><br><p>pip install "
-"ipykernel </tt><br><br>ou<br><br><tt>conda installer ipykernel</tt>"
+"Votre environnement Python ou l'installation ne dispose pas des modules "
+"<tt>ipykernel</tt> et <tt>cloudpickle</tt> installés sur celui-ci. Sans ces "
+"modules, Spyder ne peut pas créer une console pour vous. <br><br>Vous pouvez "
+"les installer en exécutant dans un terminal de commande : <br><br><tt>pip "
+"install ipykernel cloudpickle</tt><br><br>ou<br><br><tt>conda install "
+"ipykernel cloudpickle</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1295
 msgid "Do you want to close this console?"
@@ -3017,7 +3012,6 @@ msgid "Always show %s on a first file run"
 msgstr "Toujours afficher %s lors de la première exécution d'un script"
 
 #: spyder/plugins/runconfig.py:45
-#, fuzzy
 msgid "Remove all variables before execution"
 msgstr "Effacer toutes les variables avant l'exécution"
 
@@ -3200,14 +3194,12 @@ msgid "Reset to default values"
 msgstr "Rétablir les valeurs par défaut"
 
 #: spyder/plugins/shortcuts.py:859
-#, fuzzy
 msgid "Shortcuts reset"
-msgstr "Raccourci clavier"
+msgstr "Réinitialisation des raccourcis"
 
 #: spyder/plugins/shortcuts.py:860
-#, fuzzy
 msgid "Do you want to reset to default values?"
-msgstr "Rétablir les valeurs par défaut"
+msgstr "Souhaitez-vous rétablir les valeurs par défaut ?"
 
 #: spyder/plugins/variableexplorer.py:25
 msgid "Filter"
@@ -4071,14 +4063,12 @@ msgid "Exclude:"
 msgstr "Exclure :"
 
 #: spyder/widgets/findinfiles.py:313
-#, fuzzy
 msgid "Search in:"
-msgstr "Chaîne de caractères à rechercher"
+msgstr "Rechercher dans :"
 
 #: spyder/widgets/findinfiles.py:315
-#, fuzzy
 msgid "Search directory"
-msgstr "Sélectionner un répertoire"
+msgstr "Rechercher un répertoire"
 
 #: spyder/widgets/findinfiles.py:324
 msgid "Search in all files and directories present on thecurrent Spyder path"
@@ -4107,14 +4097,12 @@ msgid "Search in current opened file"
 msgstr "Recherche dans le fichier ouvert actuel"
 
 #: spyder/widgets/findinfiles.py:340
-#, fuzzy
 msgid "Select other directory"
-msgstr "Sélectionner un répertoire"
+msgstr "Sélectionner un autre répertoire"
 
 #: spyder/widgets/findinfiles.py:342
-#, fuzzy
 msgid "Search in other folder present on the file system"
-msgstr "Recherche dans le fichier ouvert actuel"
+msgstr "Rechercher dans un autre répertoire du système"
 
 #: spyder/widgets/findinfiles.py:378
 msgid "Hide advanced options"
@@ -4137,9 +4125,8 @@ msgid "file"
 msgstr "fichier"
 
 #: spyder/widgets/findinfiles.py:794
-#, fuzzy
 msgid " Scanning: {0}"
-msgstr " Scanning: {0}"
+msgstr " Recherche en cours : {0}"
 
 #: spyder/widgets/findinfiles.py:796
 msgid " Searching for files in folder: {0}"
@@ -4150,9 +4137,8 @@ msgid "  Searching for files..."
 msgstr "Recherche de fichiers …"
 
 #: spyder/widgets/findreplace.py:48
-#, fuzzy
 msgid "No matches"
-msgstr "correspondances trouvées dans"
+msgstr "Pas de correspondance"
 
 #: spyder/widgets/findreplace.py:49 spyder/widgets/findreplace.py:50
 #: spyder/widgets/findreplace.py:72
@@ -4160,9 +4146,8 @@ msgid "Search string"
 msgstr "Chaîne de caractères à rechercher"
 
 #: spyder/widgets/findreplace.py:51
-#, fuzzy
 msgid "Regular expression error"
-msgstr "Expression régulière"
+msgstr "Erreur d'expression régulière"
 
 #: spyder/widgets/findreplace.py:111
 msgid "Whole words"
@@ -4194,17 +4179,15 @@ msgstr "Remplacer tout"
 
 #: spyder/widgets/findreplace.py:572
 msgid "of"
-msgstr ""
+msgstr "sur"
 
 #: spyder/widgets/findreplace.py:576
-#, fuzzy
 msgid "matches"
-msgstr "correspondances trouvées dans"
+msgstr "correspondances"
 
 #: spyder/widgets/findreplace.py:579
-#, fuzzy
 msgid "no matches"
-msgstr "correspondances trouvées dans"
+msgstr "Pas de correspondance"
 
 #: spyder/widgets/internalshell.py:262
 msgid "Help..."
@@ -4251,9 +4234,8 @@ msgstr "Une erreur est survenue lors du démarrage du noyau."
 #: spyder/widgets/ipythonconsole/client.py:405
 #: spyder/widgets/ipythonconsole/shell.py:232
 #: spyder/widgets/variableexplorer/namespacebrowser.py:193
-#, fuzzy
 msgid "Remove all variables"
-msgstr "Enregistrer tous les fichiers"
+msgstr "Supprimer toutes les variables"
 
 #: spyder/widgets/ipythonconsole/client.py:325
 msgid "Show environment variables"
@@ -4329,22 +4311,23 @@ msgstr ""
 "L’enregistrement de données lors du déboggage n’est pas pris en charge."
 
 #: spyder/widgets/ipythonconsole/shell.py:233
-#, fuzzy
 msgid ""
 "All user-defined variables will be removed. Are you sure you want to proceed?"
 msgstr ""
-"Toutes les variables définies par l'utilisateur seront supprimées."
-"<br>Souhaitez-vous néanmoins réinitialiser l'espace de noms?"
+"Toutes les variables définies par l'utilisateur seront supprimées. Souhaitez-"
+"vous continuer ?"
 
 #: spyder/widgets/ipythonconsole/shell.py:239
 msgid "Don't show again."
-msgstr ""
+msgstr "Ne plus me demander."
 
 #: spyder/widgets/ipythonconsole/shell.py:262
 msgid ""
 "<br><br>Removing all variables...\n"
 "<hr>"
 msgstr ""
+"<br><br>Suppression de toutes les variables...\n"
+"<hr>"
 
 #: spyder/widgets/ipythonconsole/shell.py:426
 msgid "Changing backend to Qt for Mayavi"
