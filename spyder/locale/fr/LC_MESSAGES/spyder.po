@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2017-12-14 15:40+-05\n"
-"PO-Revision-Date: 2017-12-17 20:47+0100\n"
+"PO-Revision-Date: 2017-12-17 20:58+0100\n"
 "Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -578,8 +578,8 @@ msgid ""
 "Spyder will restart and reset to default settings: <br><br>Do you want to "
 "continue?"
 msgstr ""
-"Spyder va redémarrer et réinitialiser les paramètres par "
-"défaut<br><br>Souhaitez-vous néanmoins continuer?"
+"Spyder va redémarrer et réinitialiser les paramètres par défaut :"
+"<br><br>Souhaitez-vous néanmoins continuer ?"
 
 #: spyder/app/mainwindow.py:2851 spyder/widgets/helperwidgets.py:254
 msgid "Spyder updates"
@@ -597,7 +597,7 @@ msgid ""
 "please wait until new conda packages are available and use <code>conda</"
 "code> to perform the update.<hr>"
 msgstr ""
-"<hr><b>IMPORTANT:</b> il semble que vous utilisiez Spyder avec <b>Anaconda/"
+"<hr><b>IMPORTANT :</b> il semble que vous utilisiez Spyder avec <b>Anaconda/"
 "Miniconda</b>. Il est <b>fortement</b> conseillé de ne pas recourir à "
 "<code>pip</code> pour le mettre à jour, puisqu'il est probable que cela "
 "casse votre installation.<br><br>À la place, il est suggéré de simplement "
@@ -611,8 +611,8 @@ msgid ""
 "new version. <br><br>If you are not sure how to proceed to update Spyder "
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 msgstr ""
-"<b>Spyder %s est disponible!</b> <br><br>Utiliser le gestionnaire de paquets "
-"pour mettre à jour Spyder, consultez le <a href=\"%s\">site</a> pour "
+"<b>Spyder %s est disponible !</b> <br><br>Utiliser le gestionnaire de "
+"paquets pour mettre à jour Spyder, consultez le <a href=\"%s\">site</a> pour "
 "télécharger le programme directement. <br><br>Si vous ne savez pas comment "
 "procéder pour mettre Spyder à jour, veuillez consulter notre  <a href=\"%s"
 "\">documentation</a>."
@@ -827,7 +827,7 @@ msgstr "Exécuter du code"
 
 #: spyder/app/tour.py:830
 msgid "Go to step: "
-msgstr "Allez à l'étape: "
+msgstr "Allez à l'étape : "
 
 #: spyder/config/base.py:257
 msgid ""
@@ -1011,7 +1011,7 @@ msgstr "Il faut redémarrer Spyder pour changer les options suivantes :"
 
 #: spyder/plugins/configdialog.py:794
 msgid "Do you wish to restart now?"
-msgstr "Souhaitez-vous redémarrer Spyder?"
+msgstr "Souhaitez-vous redémarrer Spyder ?"
 
 #: spyder/plugins/configdialog.py:800
 msgid "Information"
@@ -1083,7 +1083,7 @@ msgstr ""
 
 #: spyder/plugins/configdialog.py:880
 msgid "Custom margin for panes:"
-msgstr "Marges personnalisées pour les onglets:"
+msgstr "Marges personnalisées pour les onglets :"
 
 #: spyder/plugins/configdialog.py:882
 msgid "pixels"
@@ -1216,7 +1216,7 @@ msgstr "Réinitialiser"
 
 #: spyder/plugins/configdialog.py:1125
 msgid "Scheme:"
-msgstr "Thème de coloration:"
+msgstr "Thème de coloration :"
 
 #: spyder/plugins/configdialog.py:1156
 msgid "Manage color schemes"
@@ -1224,7 +1224,7 @@ msgstr "Gérer les thèmes de coloration syntaxique"
 
 #: spyder/plugins/configdialog.py:1347
 msgid "Are you sure you want to delete this scheme?"
-msgstr "Souhaitez-vous supprimer ce thème?"
+msgstr "Souhaitez-vous supprimer ce thème ?"
 
 #: spyder/plugins/configdialog.py:1464
 msgid "Text"
@@ -1240,7 +1240,7 @@ msgstr "Fond"
 
 #: spyder/plugins/configdialog.py:1472
 msgid "Scheme name:"
-msgstr "Nom du thème:"
+msgstr "Nom du thème :"
 
 #: spyder/plugins/configdialog.py:1479
 msgid "Color scheme editor"
@@ -1322,7 +1322,7 @@ msgid ""
 msgstr ""
 "<b>Spyder a rencontré un problème. </b> <br> Désolé pour les inconvénients. "
 "<br><br>Vous pouvez envoyer automatiquement cette erreur à notre agent de "
-"suivi des problèmes sur Github. <br><br><i>Remarque:</i> Vous avez besoin "
+"suivi des problèmes sur Github. <br><br><i>Remarque :</i> Vous avez besoin "
 "d’un compte Github pour cela."
 
 #: spyder/plugins/console.py:231
@@ -1553,8 +1553,8 @@ msgid ""
 msgstr ""
 "<p>Si cette option est activée, le code source Python sera analysé avec des "
 "outils l'outil d'introspection de code pyflakes, et les lignes contenant des "
-"erreurs seront indiquées.</p><p><u>Note</u>: rajouter <b>analysis:ignore</b> "
-"dans un commentaire pour ignorer les avertissements d'analyse de code.</p>"
+"erreurs seront indiquées.</p><p><u>Note</u> : rajouter <b>analysis:ignore</"
+"b> dans un commentaire pour ignorer les avertissements d'analyse de code.</p>"
 
 #: spyder/plugins/editor.py:261
 msgid "Code analysis requires pyflakes %s+"
@@ -1573,7 +1573,7 @@ msgid ""
 msgstr ""
 "<p>Si cette option est activée, le style du code source Python sera analysé "
 "avec l'outil d'introspection de code PEP8 et les lignes ne suivant pas les "
-"recommandations officielles seront indiquées.</p><p><u>Note</u>: rajouter "
+"recommandations officielles seront indiquées.</p><p><u>Note</u> : rajouter "
 "<b>analysis:ignore</b> dans un commentaire pour ignorer les avertissements "
 "d'analyse de code.</p>"
 
@@ -2432,7 +2432,7 @@ msgstr "Terminal"
 
 #: spyder/plugins/ipythonconsole.py:324
 msgid "Completion:"
-msgstr "Completion de code:"
+msgstr "Complétion de code :"
 
 #: spyder/plugins/ipythonconsole.py:334
 msgid " lines"
@@ -2527,7 +2527,7 @@ msgstr "ppp"
 
 #: spyder/plugins/ipythonconsole.py:411
 msgid "Only used when the format is PNG. Default is 72"
-msgstr "Utilisé uniquement dans le cas du format PNG. Par défaut: 72"
+msgstr "Utilisé uniquement dans le cas du format PNG. Par défaut : 72"
 
 #: spyder/plugins/ipythonconsole.py:414
 msgid "Width:"
@@ -2751,7 +2751,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:1295
 msgid "Do you want to close this console?"
-msgstr "Souhaitez-vous fermer cette console?"
+msgstr "Souhaitez-vous fermer cette console ?"
 
 #: spyder/plugins/ipythonconsole.py:1301
 msgid ""
@@ -2767,7 +2767,7 @@ msgid ""
 "project. The error was {0}"
 msgstr ""
 "Il n’a pas été possible de redémarrer la console IPython lors du passage à "
-"ce projet. L’erreur était la suivante: {0}"
+"ce projet. L’erreur était la suivante : {0}"
 
 #: spyder/plugins/ipythonconsole.py:1467
 msgid ""
@@ -2798,7 +2798,7 @@ msgid ""
 "Could not open ssh tunnel. The error was:\n"
 "\n"
 msgstr ""
-"Impossible d'ouvrir un tunnel ssh. L'erreur rencontrée est:\n"
+"Impossible d'ouvrir un tunnel ssh. L'erreur rencontrée est :\n"
 "\n"
 
 #: spyder/plugins/layoutdialog.py:177
@@ -2911,7 +2911,7 @@ msgid ""
 "between these two Python versions."
 msgstr ""
 "Vous avez sélectionné un interpréteur <b>Python %d</b> pour la console. Or "
-"cette version de Spyder est exécutée par <b>Python %d</b>!.<br><br> Même si "
+"cette version de Spyder est exécutée par <b>Python %d</b> !.<br><br> Même si "
 "c'est techniquement possible, il est recommandé d'installer et d'exécuter "
 "Spyder directement dans la version de l'interpréteur sélectionnée, afin "
 "d'éviter l'apparition d'avertissements ou d'erreurs liées à une syntaxe "
@@ -2924,7 +2924,8 @@ msgstr "UMR"
 
 #: spyder/plugins/maininterpreter.py:187
 msgid "Set the list of excluded modules as this: <i>numpy, scipy</i>"
-msgstr "Définissez la liste des modules exclus comme ceci: <i>numpy, scipy</i>"
+msgstr ""
+"Définissez la liste des modules exclus comme ceci : <i>numpy, scipy</i>"
 
 #: spyder/plugins/maininterpreter.py:204
 msgid ""
@@ -2993,7 +2994,7 @@ msgstr "Ouvrir le projet"
 
 #: spyder/plugins/projects.py:249
 msgid "<b>%s</b> is not a Spyder project!"
-msgstr "<b>%s</b> n'est pas un projet Spyder!"
+msgstr "<b>%s</b> n'est pas un projet Spyder !"
 
 #: spyder/plugins/runconfig.py:29
 msgid "Execute in current console"
@@ -3117,7 +3118,7 @@ msgid ""
 "(Press 'Tab' once to switch focus between the shortcut entry \n"
 "and the buttons below it)"
 msgstr ""
-"Écrivez le nouveau raccourci et sélectionnez 'OK':\n"
+"Écrivez le nouveau raccourci et sélectionnez 'OK' :\n"
 "(Appuyez sur la touche 'Tab' une fois pour changer de focus entre l'entrée "
 "de raccourci\n"
 "et les boutons ci-dessous)"
@@ -3128,11 +3129,11 @@ msgstr "Raccourci actuel :"
 
 #: spyder/plugins/shortcuts.py:154
 msgid "New shortcut:"
-msgstr "Nouveau raccourci:"
+msgstr "Nouveau raccourci :"
 
 #: spyder/plugins/shortcuts.py:167
 msgid "Shortcut: {0}"
-msgstr "Raccourci clavier: {0}"
+msgstr "Raccourci clavier : {0}"
 
 #: spyder/plugins/shortcuts.py:288
 msgid "Please introduce a different shortcut"
@@ -3144,7 +3145,7 @@ msgstr "Le nouveau raccourci est en conflit avec :"
 
 #: spyder/plugins/shortcuts.py:334 spyder/plugins/shortcuts.py:343
 msgid "Forbidden key sequence!"
-msgstr "Séquence de clé interdite!"
+msgstr "Séquence de clé interdite !"
 
 #: spyder/plugins/shortcuts.py:354
 msgid ""
@@ -3248,7 +3249,7 @@ msgstr "Répertoire de la console"
 
 #: spyder/plugins/workingdirectory.py:45
 msgid "The working directory for new consoles is:"
-msgstr "Le répertoire de travail pour les nouvelles consoles est:"
+msgstr "Le répertoire de travail pour les nouvelles consoles est :"
 
 #: spyder/plugins/workingdirectory.py:49
 msgid ""
@@ -3448,7 +3449,7 @@ msgstr "Zones latérales :"
 
 #: spyder/utils/syntaxhighlighters.py:49
 msgid "Matched <br>parens:"
-msgstr "Parenthèses correspondantes:"
+msgstr "Parenthèses correspondantes :"
 
 #: spyder/utils/syntaxhighlighters.py:50
 msgid "Unmatched <br>parens:"
@@ -3501,7 +3502,7 @@ msgid ""
 msgstr ""
 "\n"
 "          <b>Constructeur de Tableau/Matrice Numpy</b><br>\n"
-"           Tapez un tableau dans Matlab: <code> [1 2; 3 4] </ code> <br>\n"
+"           Tapez un tableau dans Matlab : <code> [1 2; 3 4] </ code> <br>\n"
 "           ou la syntaxe simplifiée de Spyder: <code> 1 2; 3 4 </ code>\n"
 "           <br> <br>\n"
 "           Appuyez sur la touche 'Entrée' pour le tableau Numpy ou 'Ctrl"
@@ -3533,7 +3534,7 @@ msgstr ""
 "         Appuyez sur la touche 'Entrée' pour le tableau ou 'Ctrl + Entrée' "
 "pour la matrice.\n"
 "         <br><br>\n"
-"         <b>Conseil:</b> appuyez deux fois sur la touche 'Tab' à la fin "
+"         <b>Conseil :</b> appuyez deux fois sur la touche 'Tab' à la fin "
 "d'une ligne pour passer à la ligne suivante.\n"
 "          "
 
@@ -3895,7 +3896,7 @@ msgid ""
 "It was not possible to convert this notebook. The error is:\n"
 "\n"
 msgstr ""
-"Impossible de convertir ce notebook. Message d'erreur:\n"
+"Impossible de convertir ce notebook. Message d'erreur :\n"
 "\n"
 
 #: spyder/widgets/explorer.py:646 spyder/widgets/explorer.py:654
@@ -4130,7 +4131,7 @@ msgstr " Recherche en cours : {0}"
 
 #: spyder/widgets/findinfiles.py:796
 msgid " Searching for files in folder: {0}"
-msgstr " Recherche de fichiers dans le dossier: {0}"
+msgstr " Recherche de fichiers dans le dossier : {0}"
 
 #: spyder/widgets/findinfiles.py:800
 msgid "  Searching for files..."
@@ -4277,7 +4278,7 @@ msgstr "Redémarrer le noyau ?"
 
 #: spyder/widgets/ipythonconsole/client.py:474
 msgid "Error restarting kernel: %s\n"
-msgstr "Une erreur est survenue lors du démarrage du noyau: %s\n"
+msgstr "Une erreur est survenue lors du démarrage du noyau : %s\n"
 
 #: spyder/widgets/ipythonconsole/client.py:479
 msgid ""
@@ -4634,7 +4635,7 @@ msgid ""
 "It was not possible to remove outputs from this notebook. The error is:\n"
 "\n"
 msgstr ""
-"Impossible d'effacer les résultats de ce notebook:\n"
+"Impossible d'effacer les résultats de ce notebook :\n"
 "\n"
 
 #: spyder/widgets/sourcecode/codeeditor.py:2684
@@ -4793,7 +4794,7 @@ msgstr "Indice :"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:722
 msgid "<u>Warning</u>: changes are applied separately"
-msgstr "<u>Attention</u>: les changements seront pris en compte séparément"
+msgstr "<u>Attention</u> : les changements seront pris en compte séparément"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:723
 msgid ""
@@ -4860,7 +4861,7 @@ msgid ""
 "<br><br>The error mesage was:<br><i>%s</i>"
 msgstr ""
 "Impossible de récupérer la valeur de cette variable depuis la console. "
-"<br><br>Message d'erreur:<br><i>%s</i>"
+"<br><br>Message d'erreur :<br><i>%s</i>"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:605
 msgid "Edit item"
@@ -4908,7 +4909,7 @@ msgstr "Dupliquer"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:929
 msgid "Do you want to remove the selected item?"
-msgstr "Souhaitez-vous supprimer l'élément sélectionné?"
+msgstr "Souhaitez-vous supprimer l'élément sélectionné ?"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:930
 msgid "Do you want to remove all selected items?"
@@ -4920,7 +4921,7 @@ msgstr "Nouveau nom de variable :"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:953
 msgid "Variable name:"
-msgstr "Nom de variable:"
+msgstr "Nom de variable :"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:991
 msgid "Key:"
