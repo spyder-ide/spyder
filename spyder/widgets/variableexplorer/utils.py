@@ -421,9 +421,12 @@ def value_to_display(value, minmax=False, level=0):
             display = value
             if level > 0:
                 display = u"'" + display + u"'"
-        elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
-              isinstance(value, datetime.date) or
-              isinstance(value, datetime.timedelta) or
+        # TODO: Implement full timedelta support in variable explorer
+        elif (isinstance(value, datetime.date) or 
+              isinstance(value, datetime.date)):
+            display = str(value)
+        elif (isinstance(value, NUMERIC_TYPES) or 
+              isinstance(value, bool) or
               isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:
