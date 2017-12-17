@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2017-12-14 15:40+-05\n"
-"PO-Revision-Date: 2017-12-17 20:23+0100\n"
-"Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
+"PO-Revision-Date: 2017-12-17 20:47+0100\n"
+"Last-Translator: Sylvain Corlay <sylvain.corlay@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -381,7 +381,7 @@ msgstr "Support technique de Spyder..."
 
 #: spyder/app/mainwindow.py:950
 msgid "Check for updates..."
-msgstr "Rechercher les mises à jour"
+msgstr "Rechercher les mises à jour..."
 
 #: spyder/app/mainwindow.py:973
 msgid "Spyder documentation"
@@ -478,7 +478,7 @@ msgid ""
 "of missing dependencies, prior to reporting a new issue."
 msgstr ""
 "<b>Il manque certaines dépendances</b><br><br><tt>%s</tt><br><b>Veuillez les "
-"installer pour éviter ce message </b><br><br></i>Remarque</i>: Spyder "
+"installer pour éviter ce message </b><br><br></i>Remarque</i> : Spyder "
 "pourrait fonctionner sans certaines de ces dépendances, mais pour avoir une "
 "bonne expérience lors de l'utilisation de Spyder nous <i>fortement</i> vous "
 "recommandons d'installer toutes les dépendances manquantes. <br><br> "
@@ -619,7 +619,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:2894
 msgid "Spyder is up to date."
-msgstr "Spyder à jour"
+msgstr "Spyder est à jour."
 
 #: spyder/app/restart.py:134
 msgid ""
@@ -671,7 +671,7 @@ msgstr "Redémarrage"
 
 #: spyder/app/tour.py:123
 msgid "Welcome to the Introduction tour"
-msgstr "Bienvenue à la visite interactive de Spyder !"
+msgstr "Bienvenue dans la visite interactive de Spyder"
 
 #: spyder/app/tour.py:124
 msgid ""
@@ -803,7 +803,7 @@ msgstr ""
 #: spyder/app/tour.py:250
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
 msgstr ""
-"<b>Spyder</ b> est un environnement de développement interactif basé sur ..."
+"<b>Spyder</b> est un environnement de développement interactif basé sur"
 
 #: spyder/app/tour.py:254
 msgid "Welcome to Spyder introduction tour"
@@ -811,7 +811,7 @@ msgstr "Bienvenue à la visite interactive de Spyder"
 
 #: spyder/app/tour.py:255
 msgid "Spyder is an interactive development environment based on bla"
-msgstr "Spyder est un environnement de développement interactif basé sur ..."
+msgstr "Spyder est un environnement de développement interactif basé sur"
 
 #: spyder/app/tour.py:260
 msgid "Introduction tour"
@@ -919,7 +919,7 @@ msgstr "Fichiers Json"
 
 #: spyder/config/utils.py:44
 msgid "IPython notebooks"
-msgstr "Documents IPython "
+msgstr "Notebooks IPython"
 
 #: spyder/config/utils.py:45
 msgid "Enaml files"
@@ -1003,11 +1003,11 @@ msgstr "Police d'écriture"
 
 #: spyder/plugins/configdialog.py:789
 msgid "Spyder needs to restart to change the following setting:"
-msgstr "Il faut redémarrer Spyder pour changer l'option suivante"
+msgstr "Il faut redémarrer Spyder pour changer l'option suivante :"
 
 #: spyder/plugins/configdialog.py:792
 msgid "Spyder needs to restart to change the following settings:"
-msgstr "Il faut redémarrer Spyder pour changer les options suivantes"
+msgstr "Il faut redémarrer Spyder pour changer les options suivantes :"
 
 #: spyder/plugins/configdialog.py:794
 msgid "Do you wish to restart now?"
@@ -2571,7 +2571,7 @@ msgstr "Exécuter un fichier"
 msgid ""
 "You can also run a whole file at startup instead of just some lines (This is "
 "similar to have a PYTHONSTARTUP file)."
-msgstr "Option similaire à PYTHONSTARTUP pour un interpréteur standard"
+msgstr "Option similaire à PYTHONSTARTUP pour un interpréteur standard."
 
 #: spyder/plugins/ipythonconsole.py:467
 msgid "Use the following file:"
@@ -2589,7 +2589,7 @@ msgid ""
 "meth().&lt;Tab&gt;</tt>"
 msgstr ""
 "Active la complétion par <tt>Tab</tt> sur les éléments de liste, les "
-"résultats de fonctions, etc... <i>sans</i> les avoir assignés à une variable."
+"résultats de fonctions, etc. <i>sans</i> les avoir assignés à une variable."
 "<br>Par exemple vous pourrez avoir la complétion pour des expressions du "
 "type <tt>li[0].&lt;Tab&gt;</tt> ou <tt>ins.meth().&lt;Tab&gt;</tt>."
 
@@ -2625,7 +2625,7 @@ msgstr "Désactivé"
 
 #: spyder/plugins/ipythonconsole.py:513
 msgid "Autocall:  "
-msgstr "Appel automatique :"
+msgstr "Appel automatique : "
 
 #: spyder/plugins/ipythonconsole.py:514
 msgid ""
@@ -3033,7 +3033,7 @@ msgstr "Le répertoire de travail actuel"
 
 #: spyder/plugins/runconfig.py:51
 msgid "The following directory:"
-msgstr "le répertoire suivant:"
+msgstr "Le répertoire suivant :"
 
 #: spyder/plugins/runconfig.py:184 spyder/plugins/runconfig.py:504
 msgid "General settings"
@@ -3140,7 +3140,7 @@ msgstr "Merci d'utiliser un raccourci clavier différent"
 
 #: spyder/plugins/shortcuts.py:325
 msgid "The new shortcut conflicts with:"
-msgstr "Le nouveau raccourci est en conflit avec"
+msgstr "Le nouveau raccourci est en conflit avec :"
 
 #: spyder/plugins/shortcuts.py:334 spyder/plugins/shortcuts.py:343
 msgid "Forbidden key sequence!"
@@ -3187,7 +3187,7 @@ msgstr "Raccourcis clavier"
 
 #: spyder/plugins/shortcuts.py:828
 msgid "Search: "
-msgstr "Rechercher :"
+msgstr "Rechercher : "
 
 #: spyder/plugins/shortcuts.py:829
 msgid "Reset to default values"
@@ -3452,7 +3452,7 @@ msgstr "Parenthèses correspondantes:"
 
 #: spyder/utils/syntaxhighlighters.py:50
 msgid "Unmatched <br>parens:"
-msgstr "Parenthèse isolée"
+msgstr "Parenthèse isolée :"
 
 #: spyder/utils/syntaxhighlighters.py:51
 msgid "Normal text:"
@@ -4130,11 +4130,11 @@ msgstr " Recherche en cours : {0}"
 
 #: spyder/widgets/findinfiles.py:796
 msgid " Searching for files in folder: {0}"
-msgstr "Recherche de fichiers dans le dossier: {0}"
+msgstr " Recherche de fichiers dans le dossier: {0}"
 
 #: spyder/widgets/findinfiles.py:800
 msgid "  Searching for files..."
-msgstr "Recherche de fichiers …"
+msgstr "  Recherche de fichiers…"
 
 #: spyder/widgets/findreplace.py:48
 msgid "No matches"
@@ -4227,7 +4227,7 @@ msgstr "Éditeur graphique :"
 
 #: spyder/widgets/ipythonconsole/client.py:275
 msgid "An error ocurred while starting the kernel"
-msgstr "Une erreur est survenue lors du démarrage du noyau."
+msgstr "Une erreur est survenue lors du démarrage du noyau"
 
 #: spyder/widgets/ipythonconsole/client.py:316
 #: spyder/widgets/ipythonconsole/client.py:372
@@ -4273,7 +4273,7 @@ msgstr "Souhaitez-vous vraiment redémarrer le noyau ?"
 
 #: spyder/widgets/ipythonconsole/client.py:462
 msgid "Restart kernel?"
-msgstr "Redémarrer le noyau"
+msgstr "Redémarrer le noyau ?"
 
 #: spyder/widgets/ipythonconsole/client.py:474
 msgid "Error restarting kernel: %s\n"
@@ -4769,7 +4769,7 @@ msgstr "lecture seule"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:681
 msgid "Record array fields:"
-msgstr "Champs du tableau : "
+msgstr "Champs du tableau :"
 
 #: spyder/widgets/variableexplorer/arrayeditor.py:693
 msgid "Data"
@@ -4916,7 +4916,7 @@ msgstr "Souhaitez-vous supprimer les éléments sélectionnés ?"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:950
 msgid "New variable name:"
-msgstr "Nouveau nom de variable"
+msgstr "Nouveau nom de variable :"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:953
 msgid "Variable name:"
@@ -5190,19 +5190,19 @@ msgstr ""
 
 #: spyder/workers/updates.py:90 spyder/workers/updates.py:92
 msgid "Unable to retrieve information."
-msgstr "Impossible de charger l'information"
+msgstr "Impossible de charger l'information."
 
 #: spyder/workers/updates.py:94
 msgid ""
 "Unable to connect to the internet. <br><br>Make sure the connection is "
 "working properly."
 msgstr ""
-"impossible de se connecter à internet. <br><br> Vérifiez que votre accès à "
-"Internet fonctionne bien"
+"Impossible de se connecter à internet. <br><br> Vérifiez que votre accès à "
+"internet fonctionne correctement."
 
 #: spyder/workers/updates.py:97
 msgid "Unable to check for updates."
-msgstr "Impossible de vérifier les mises à jour"
+msgstr "Impossible de vérifier les mises à jour."
 
 #~ msgid "At startup, the current working directory is:"
 #~ msgstr "Au démarrage, le répertoire de travail global est:"
