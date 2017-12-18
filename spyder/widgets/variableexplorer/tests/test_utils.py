@@ -8,6 +8,7 @@ Tests for utils.py
 """
 
 from collections import defaultdict
+import datetime
 
 # Third party imports
 import numpy as np
@@ -118,6 +119,7 @@ def test_list_display():
     assert value_to_display(li) == '[builtin_function_or_method, 1]'
     assert is_supported(li, filters=supported_types)
 
+
 def test_dict_display():
     """Tests for display of dicts."""
     long_list = list(range(100))
@@ -162,5 +164,41 @@ def test_dict_display():
     assert is_supported(di, filters=supported_types)
 
 
-if __name__ == "__main__":
-    pytest.main()
+def test_datetime_display():
+    """Simple tests that dates, datetimes and timedeltas display correctly."""
+    test_date = datetime.date(2017, 12, 18)
+    test_date_2 = datetime.date(2017, 2, 2)
+
+    test_datetime = datetime.datetime(2017, 12, 18, 13, 43, 2)
+    test_datetime_2 = datetime.datetime(2017, 8, 18, 0, 41, 27)
+
+    test_timedelta = datetime.timedelta(-1, 2000)
+    test_timedelta_2 = datetime.timedelta(0, 3600)
+
+    # Simple dates/datetimes/timedeltas
+    assert value_to_display(test_date) == '2017-12-18'
+    assert value_to_display(test_datetime) == '2017-12-18 13:43:02'
+    assert value_to_display(test_timedelta) == '-1 day, 0:33:20'
+
+    # Lists of dates/datetimes/timedeltas
+    assert (value_to_display([test_date, test_date_2]) ==
+            '[2017-12-18, 2017-02-02]')
+    assert (value_to_display([test_datetime, test_datetime_2]) ==
+            '[2017-12-18 13:43:02, 2017-08-18 00:41:27]')
+    assert (value_to_display([test_timedelta, test_timedelta_2]) ==
+            '[-1 day, 0:33:20, 1:00:00]')
+
+    # Tuple of dates/datetimes/timedeltas
+    assert (value_to_display((test_date, test_datetime, test_timedelta)) ==
+            '(2017-12-18, 2017-12-18 13:43:02, -1 day, 0:33:20)')
+
+    # Dict of dates/datetimes/timedeltas
+    assert (value_to_display({"date": test_date,
+                              "time": test_datetime,
+                              "delta": test_timedelta_2}) ==
+            ("{'date':2017-12-18, 'time':2017-12-18 13:43:02," +
+             " 'delta':1:00:00}"))
+
+
+#if __name__ == "__main__":
+#    pytest.main()
