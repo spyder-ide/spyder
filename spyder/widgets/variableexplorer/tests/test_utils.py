@@ -193,12 +193,11 @@ def test_datetime_display():
             '(2017-12-18, 2017-12-18 13:43:02, -1 day, 0:33:20)')
 
     # Dict of dates/datetimes/timedeltas
-    assert (value_to_display({"date": test_date,
-                              "time": test_datetime,
-                              "delta": test_timedelta_2}) ==
-            ("{'date':2017-12-18, 'time':2017-12-18 13:43:02," +
-             " 'delta':1:00:00}"))
+    assert (value_to_display({0: test_date,
+                              1: test_datetime,
+                              2: test_timedelta_2}) ==
+            ("{0:2017-12-18, 1:2017-12-18 13:43:02, 2:1:00:00}"))
 
 
-#if __name__ == "__main__":
-#    pytest.main()
+if __name__ == "__main__":
+    pytest.main()
