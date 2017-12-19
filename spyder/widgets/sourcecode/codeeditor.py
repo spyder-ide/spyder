@@ -2534,11 +2534,11 @@ class CodeEditor(TextEditBaseWidget):
         block = self.textCursor().block()
         line_pos = block.position()
         for pos, char in enumerate(text):
-            if char in ['(', '[', '{']:
+            if char in opening_braces:
                 match = self.find_brace_match(line_pos+pos, char, forward=True)
                 if (match is None) or (match > line_pos+len(text)):
                     return True
-            if char in [')', ']', '}']:
+            if char in closing_braces:
                 match = self.find_brace_match(line_pos+pos, char, forward=False)
                 if (match is None) or (match < line_pos):
                     return True
