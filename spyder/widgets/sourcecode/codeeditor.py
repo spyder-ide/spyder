@@ -2518,7 +2518,18 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def __unmatched_braces_in_line(self, text):
+    def __unmatched_braces_in_line(self, text, closing_braces_type=None):
+        """
+        Checks if there is an unmatched brace in the 'text'.
+        The brace type can be general or specified by closing_braces_type 
+        (')', ']', or '}')
+        """
+        if closing_braces_type is None:
+            opening_braces = ['(', '[', '{']
+            closing_braces = [')', ']', '}']
+        else:
+            closing_braces = [closing_braces_type]
+            opening_braces = [{')': '(', '}': '{', ']': '['}[closing_braces_type]]
         block = self.textCursor().block()
         line_pos = block.position()
         for pos, char in enumerate(text):
@@ -2898,7 +2909,7 @@ class CodeEditor(TextEditBaseWidget):
                          Qt.Key_BracketRight: ']'}[key]
             )
             if (key_matches_next_char
-              and not self.__unmatched_braces_in_line(cursor.block().text())):
+              and not self.__unmatched_braces_in_line(cursor.block().text(), text)):
                 # overwrite an existing brace if all braces in line are matched
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
