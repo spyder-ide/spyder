@@ -5,7 +5,7 @@
 #
 
 """
-Tests for editor.py
+Tests for editortool.py
 """
 
 # Third party imports
@@ -71,10 +71,16 @@ def outline_explorer_bot(qtbot):
     outline_explorer.set_current_editor(
             editor, 'test_outline_explorer.py', False, False)
 
+    qtbot.addWidget(outline_explorer)
+
     return outline_explorer, qtbot
 
 
+# Test OutlineExplorerWidget
+# -------------------------------
+
 def test_outline_explorer(outline_explorer_bot):
+    """Basic test to asser the outline explorer is initializing correctly."""
     outline_explorer, qtbot = outline_explorer_bot
     outline_explorer.show()
     outline_explorer.setFixedSize(400, 350)
