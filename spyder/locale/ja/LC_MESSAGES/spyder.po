@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-12-14 15:40+-05\n"
-"PO-Revision-Date: 2017-07-14 15:24+0900\n"
+"PO-Revision-Date: 2017-12-18 19:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
 "Language: ja\n"
@@ -25,14 +25,12 @@ msgid "Initializing..."
 msgstr "初期化中..."
 
 #: spyder/app/mainwindow.py:237
-#, fuzzy
 msgid "Python2 documentation"
-msgstr "Pythonドキュメント"
+msgstr "Python2ドキュメント"
 
 #: spyder/app/mainwindow.py:239
-#, fuzzy
 msgid "Python3 documentation"
-msgstr "Pythonドキュメント"
+msgstr "Python3ドキュメント"
 
 #: spyder/app/mainwindow.py:241
 msgid "Numpy and Scipy documentation"
@@ -51,14 +49,12 @@ msgid "PyQt4 API Reference"
 msgstr "PyQt4 APIリファレンス"
 
 #: spyder/app/mainwindow.py:252
-#, fuzzy
 msgid "PyQt5 Reference Guide"
-msgstr "PyQt4リファレンスガイド"
+msgstr "PyQt5リファレンスガイド"
 
 #: spyder/app/mainwindow.py:255
-#, fuzzy
 msgid "PyQt5 API Reference"
-msgstr "PyQt4 APIリファレンス"
+msgstr "PyQt5 APIリファレンス"
 
 #: spyder/app/mainwindow.py:257
 msgid "WinPython"
@@ -1079,10 +1075,9 @@ msgstr "ピクセル"
 
 #: spyder/plugins/configdialog.py:889
 msgid "Cursor blinking:"
-msgstr ""
+msgstr "カーソルの点滅:"
 
 #: spyder/plugins/configdialog.py:891
-#, fuzzy
 msgid "ms"
 msgstr "ms"
 
@@ -2350,18 +2345,16 @@ msgid "Ask for confirmation before closing"
 msgstr "閉じる前に確認するようにする"
 
 #: spyder/plugins/ipythonconsole.py:304
-#, fuzzy
 msgid "Ask for confirmation before removing all user-defined variables"
-msgstr "閉じる前に確認するようにする"
+msgstr "全ユーザー定義変数を削除する前に確認する"
 
 #: spyder/plugins/ipythonconsole.py:307
-#, fuzzy
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
 msgstr ""
-"このオプションによりコンソールを開いた時に表示される\n"
-"一番上のメッセージを隠すことができます。"
+"このオプションによりSpyderから名前空間をリセットするときの\n"
+"警告メッセージを隠すことができます。"
 
 #: spyder/plugins/ipythonconsole.py:309
 #: spyder/widgets/ipythonconsole/client.py:320
@@ -2690,7 +2683,6 @@ msgstr ""
 "試行してください。"
 
 #: spyder/plugins/ipythonconsole.py:1018
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>ipykernel</tt> "
 "and <tt>cloudpickle</tt> modules installed on it. Without these modules is "
@@ -2699,11 +2691,11 @@ msgid ""
 "cloudpickle</tt><br><br>or<br><br><tt>conda install ipykernel cloudpickle</"
 "tt>"
 msgstr ""
-"Python環境に<tt>ipykernel</tt>モジュールがインストールされていません。このモ"
-"ジュールがなければSpyderコンソールが作成できません。<br><br><tt>ipykernel</"
-"tt> はターミナルで以下のコマンドによりインストールできます:<br><br><tt>pip "
-"install ipykernel</tt><br><br>あるいは<br><br><tt>conda install ipykernel</"
-"tt>"
+"Python環境に<tt>ipykernel</tt>と<tt>cloudpickle</tt> モジュールがインストール"
+"されていません。これらのモジュールがない場合Spyderでコンソールを開くことがで"
+"きない場合があります。<br><br>システムのターミナルで以下のコマンドでインス"
+"トールすることが可能です。:<br><br><tt>pip install ipykernel cloudpickle</"
+"tt><br><br>あるいは<br><br><tt>conda install ipykernel cloudpickle</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1295
 msgid "Do you want to close this console?"
@@ -2956,9 +2948,8 @@ msgid "Always show %s on a first file run"
 msgstr "ファイルの先頭に %s を常に表示"
 
 #: spyder/plugins/runconfig.py:45
-#, fuzzy
 msgid "Remove all variables before execution"
-msgstr "実行前に全ての変数をクリア"
+msgstr "実行前に全ての変数を削除"
 
 #: spyder/plugins/runconfig.py:46
 msgid "Directly enter debugging when errors appear"
@@ -3134,14 +3125,12 @@ msgid "Reset to default values"
 msgstr "デフォルト値に戻す"
 
 #: spyder/plugins/shortcuts.py:859
-#, fuzzy
 msgid "Shortcuts reset"
-msgstr "ショートカット"
+msgstr "ショートカットのリセット"
 
 #: spyder/plugins/shortcuts.py:860
-#, fuzzy
 msgid "Do you want to reset to default values?"
-msgstr "デフォルト値に戻す"
+msgstr "デフォルト値に戻しますか？"
 
 #: spyder/plugins/variableexplorer.py:25
 msgid "Filter"
@@ -3986,14 +3975,12 @@ msgid "Exclude:"
 msgstr "除外:"
 
 #: spyder/widgets/findinfiles.py:313
-#, fuzzy
 msgid "Search in:"
-msgstr "検索文字列"
+msgstr "検索："
 
 #: spyder/widgets/findinfiles.py:315
-#, fuzzy
 msgid "Search directory"
-msgstr "ディレクトリを選択"
+msgstr "ディレクトリを検索"
 
 #: spyder/widgets/findinfiles.py:324
 msgid "Search in all files and directories present on thecurrent Spyder path"
@@ -4019,14 +4006,12 @@ msgid "Search in current opened file"
 msgstr "現在開いているファイルを検索"
 
 #: spyder/widgets/findinfiles.py:340
-#, fuzzy
 msgid "Select other directory"
-msgstr "ディレクトリを選択"
+msgstr "他のディレクトリを選択"
 
 #: spyder/widgets/findinfiles.py:342
-#, fuzzy
 msgid "Search in other folder present on the file system"
-msgstr "現在開いているファイルを検索"
+msgstr "ファイルシステム上の他フォルダを検索"
 
 #: spyder/widgets/findinfiles.py:378
 msgid "Hide advanced options"
@@ -4061,9 +4046,8 @@ msgid "  Searching for files..."
 msgstr "  ファイルを検索しています..."
 
 #: spyder/widgets/findreplace.py:48
-#, fuzzy
 msgid "No matches"
-msgstr "一致"
+msgstr "一致なし"
 
 #: spyder/widgets/findreplace.py:49 spyder/widgets/findreplace.py:50
 #: spyder/widgets/findreplace.py:72
@@ -4071,9 +4055,8 @@ msgid "Search string"
 msgstr "検索文字列"
 
 #: spyder/widgets/findreplace.py:51
-#, fuzzy
 msgid "Regular expression error"
-msgstr "正規表現"
+msgstr "正規表現エラー"
 
 #: spyder/widgets/findreplace.py:111
 msgid "Whole words"
@@ -4105,17 +4088,15 @@ msgstr "全て置換"
 
 #: spyder/widgets/findreplace.py:572
 msgid "of"
-msgstr ""
+msgstr "of"
 
 #: spyder/widgets/findreplace.py:576
-#, fuzzy
 msgid "matches"
 msgstr "一致"
 
 #: spyder/widgets/findreplace.py:579
-#, fuzzy
 msgid "no matches"
-msgstr "一致"
+msgstr "一致なし"
 
 #: spyder/widgets/internalshell.py:262
 msgid "Help..."
@@ -4162,9 +4143,8 @@ msgstr "カーネルを開始中にエラーが発生しました"
 #: spyder/widgets/ipythonconsole/client.py:405
 #: spyder/widgets/ipythonconsole/shell.py:232
 #: spyder/widgets/variableexplorer/namespacebrowser.py:193
-#, fuzzy
 msgid "Remove all variables"
-msgstr "すべてのファイルを保存"
+msgstr "全ての変数を削除"
 
 #: spyder/widgets/ipythonconsole/client.py:325
 msgid "Show environment variables"
@@ -4237,21 +4217,21 @@ msgid "Saving data while debugging is not supported."
 msgstr "デバッグ中のデータ保存はサポートされていません。"
 
 #: spyder/widgets/ipythonconsole/shell.py:233
-#, fuzzy
 msgid ""
 "All user-defined variables will be removed. Are you sure you want to proceed?"
-msgstr ""
-"全てのユーザー定義変数は削除されます。<br>本当に名前空間をリセットしますか？"
+msgstr "全てのユーザー定義変数は削除されます。本当に実行しますか？"
 
 #: spyder/widgets/ipythonconsole/shell.py:239
 msgid "Don't show again."
-msgstr ""
+msgstr "次回以降表示しない。"
 
 #: spyder/widgets/ipythonconsole/shell.py:262
 msgid ""
 "<br><br>Removing all variables...\n"
 "<hr>"
 msgstr ""
+"<br><br>全ての変数を削除しています…\n"
+"<hr>"
 
 #: spyder/widgets/ipythonconsole/shell.py:426
 msgid "Changing backend to Qt for Mayavi"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Spyder\n"
 "POT-Creation-Date: 2017-12-14 15:40+-05\n"
-"PO-Revision-Date: 2017-04-23 17:25+0900\n"
+"PO-Revision-Date: 2017-12-18 19:08+0900\n"
 "Last-Translator: sohnishi <s.ohnishi77+github@gmail.com>\n"
 "Language-Team: Japanese\n"
 "Language: ja\n"
@@ -166,7 +166,7 @@ msgstr "ファイル：行"
 
 #: spyder_profiler/widgets/profilergui.py:470
 msgid "Error when trying to load profiler results"
-msgstr ""
+msgstr "プロファイル結果ロード中にエラー"
 
 #: spyder_profiler/widgets/profilergui.py:604
 msgid "Function or module name"
