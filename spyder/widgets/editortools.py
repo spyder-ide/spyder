@@ -331,6 +331,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sort_top_level_items(key=sort_func)
             
     def populate_branch(self, editor, root_item, tree_cache=None):
+        """
+        Generates an outline of the editor's content and stores the result
+        in a cache.
+        """
         if tree_cache is None:
             tree_cache = {}
         
