@@ -190,6 +190,10 @@ The requirements to run Spyder are:
 * `Numpydoc <https://github.com/numpy/numpydoc>`_ Used by Jedi to get return types for
   functions with Numpydoc docstrings.
 
+* `Cloudpickle <https://github.com/cloudpipe/cloudpickle>`_ Serialize variables in the
+  IPython kernel to send them to Spyder.
+
+
 Optional modules
 ~~~~~~~~~~~~~~~~
 
