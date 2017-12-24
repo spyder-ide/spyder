@@ -141,7 +141,7 @@ def main_window(request):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt',
                     reason="It times out in our CIs, and apparently Windows.")
-@pytest.mark.timeout(timeout=30, method='thread')
+@pytest.mark.timeout(timeout=60, method='thread')
 @pytest.mark.use_introspection
 def test_calltip(main_window, qtbot):
     """Hide the calltip in the editor when a matching ')' is found."""
@@ -287,7 +287,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It's failing on Windows.")
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     # ---- Load test file ----
@@ -1101,7 +1101,7 @@ def test_fileswitcher(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not PYQT5 or os.name == 'nt', reason="It times out.")
+@pytest.mark.skipif(not PYQT5, reason="It times out.")
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Wait until the window is fully up
@@ -1117,7 +1117,7 @@ def test_run_static_code_analysis(main_window, qtbot):
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
     qtbot.keyClick(code_editor, Qt.Key_F8)
-    qtbot.wait(500)
+    qtbot.wait(3000)
 
     # Perform the test
     # Check output of the analysis
