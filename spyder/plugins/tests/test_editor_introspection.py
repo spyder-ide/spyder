@@ -60,6 +60,7 @@ def setup_editor(qtbot, monkeypatch):
 
 @pytest.mark.skipif(os.environ.get('CI', None) is not None,
                     reason="This test fails too much in the CI :(")
+@pytest.mark.skipif(os.name == 'nt', reason="This fails regularly on Windows.")
 @pytest.mark.skipif(not JEDI_010,
                     reason="This feature is only supported in jedy >= 0.10")
 def test_introspection(setup_editor):
