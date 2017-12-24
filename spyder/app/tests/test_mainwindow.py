@@ -174,9 +174,6 @@ def test_calltip(main_window, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2 or PYQT4,
                     reason="It fails sometimes")
-@pytest.mark.skipif(os.environ.get('CI', None) is not None and
-                    version_info[0:2] == (3, 5) and PYQT5,
-                    reason="It failed without cause at least once on Travis.")
 def test_move_to_first_breakpoint(main_window, qtbot):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
