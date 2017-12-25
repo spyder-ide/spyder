@@ -14,11 +14,11 @@
   and Spyder.
 
 #### Variable Explorer
-* Add support for `datetime.timedelta`.
+* Add support for `datetime.timedelta` objects.
 
 #### Under the hood
 * Add `pyqt5` as a new wheel dependency.
-* Add a new --hide-console option and deprecate --show-console
+* Add a new `--hide-console` option and deprecate `--show-console`
   on Windows.
 
 ### Bugs fixed
