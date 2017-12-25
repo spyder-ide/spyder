@@ -1110,7 +1110,7 @@ def test_run_static_code_analysis(main_window, qtbot):
     pylint = get_thirdparty_plugin(main_window, "Static code analysis")
 
     # Do an analysis
-    test_file = osp.join(LOCATION, 'script.py')
+    test_file = osp.join(LOCATION, 'script_pylint.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
     qtbot.keyClick(code_editor, Qt.Key_F8)
