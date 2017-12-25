@@ -1,5 +1,141 @@
 # History of changes
 
+## Version 3.2.5 (2017-12-25)
+
+### New features
+
+#### IPython Console
+* Improve kernel startup time.
+* Add option to show kernel elapsed time.
+* Add button and option to remove all user-defined variables.
+* Load `%autoreload` magic at kernel startup to make changes to
+  modules take effect instantly in the console.
+* Use `cloudpickle` to serialize/deserialize data between kernels
+  and Spyder.
+
+#### Variable Explorer
+* Add support for `datetime.timedelta`.
+
+#### Under the hood
+* Add `pyqt5` as a new wheel dependency.
+* Add a new --hide-console option and deprecate --show-console
+  on Windows.
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 5988](https://github.com/spyder-ide/spyder/issues/5988) - Update translations for 3.2.5
+* [Issue 5978](https://github.com/spyder-ide/spyder/issues/5978) - Remove 'DMG Installers' option from documentation
+* [Issue 5944](https://github.com/spyder-ide/spyder/issues/5944) - UserWarning: Config option use_jedi not recognized by IPCompleter
+* [Issue 5885](https://github.com/spyder-ide/spyder/issues/5885) - Error when choosing rename option after editing tuple value from Variable explorer.
+* [Issue 5877](https://github.com/spyder-ide/spyder/issues/5877) - Code from one file not updating when called from another if run directly in the console
+* [Issue 5791](https://github.com/spyder-ide/spyder/issues/5791) - "Real-time code style analysis" checkbox in Prefs > Editor > Introspection checks for pep8, not pycodestyle
+* [Issue 5776](https://github.com/spyder-ide/spyder/issues/5776) - Return value of EditorStack.has_filename not checked properly
+* [Issue 5759](https://github.com/spyder-ide/spyder/issues/5759) - IPython console missing features with respect to the old Python console
+* [Issue 5755](https://github.com/spyder-ide/spyder/issues/5755) - AttributeError is thrown when trying to get help of an object
+* [Issue 5750](https://github.com/spyder-ide/spyder/issues/5750) - Improve working directory dropdown box
+* [Issue 5748](https://github.com/spyder-ide/spyder/issues/5748) - TypeError: disconnect() failed between 'sig_prompt_ready' and all its connections
+* [Issue 5728](https://github.com/spyder-ide/spyder/issues/5728) - Missing python doc in help menu
+* [Issue 5718](https://github.com/spyder-ide/spyder/issues/5718) - Problems with backend "TkAgg" on Linux
+* [Issue 5707](https://github.com/spyder-ide/spyder/issues/5707) - NameError when running isdefined
+* [Issue 5703](https://github.com/spyder-ide/spyder/issues/5703) - Save after moving editor tabs with split panes changes wrong files
+* [Issue 5661](https://github.com/spyder-ide/spyder/issues/5661) - Symbol finder gives error message
+* [Issue 5640](https://github.com/spyder-ide/spyder/issues/5640) - Cannot run static code analysis on Spyder 3.2.4
+* [Issue 5628](https://github.com/spyder-ide/spyder/issues/5628) - Error when trying to explore empty numpy array
+* [Issue 5591](https://github.com/spyder-ide/spyder/issues/5591) - Variable explorer broken because of DeprecationWarning in ipykernel
+* [Issue 5588](https://github.com/spyder-ide/spyder/issues/5588) - Close parenthesis when unmatched
+* [Issue 5587](https://github.com/spyder-ide/spyder/issues/5587) - Crash on profiler because of lack of profiler.results
+* [Issue 5578](https://github.com/spyder-ide/spyder/issues/5578) - Can't open preferences anymore as I get an error message
+* [Issue 5568](https://github.com/spyder-ide/spyder/issues/5568) - Runtime Error raised while closing IPython Console instance
+* [Issue 5559](https://github.com/spyder-ide/spyder/issues/5559) - AttributeError: 'InternalShell' object has no attribute 'is_running'
+* [Issue 5557](https://github.com/spyder-ide/spyder/issues/5557) - Keyboard shortcuts reset button cannot be canceled/undone and too easy to trigger  
+* [Issue 5552](https://github.com/spyder-ide/spyder/issues/5552) - Explicitly stated default Russian encoding on Windows not recognized
+* [Issue 5541](https://github.com/spyder-ide/spyder/issues/5541) - Automatic graphics backend throws an error
+* [Issue 5535](https://github.com/spyder-ide/spyder/issues/5535) - Can't enable debug mode
+* [Issue 5514](https://github.com/spyder-ide/spyder/issues/5514) - Spyder crashes after typing plt.plot( at the ipython console
+* [Issue 5495](https://github.com/spyder-ide/spyder/issues/5495) - Change --show-console for --hide-console
+* [Issue 5494](https://github.com/spyder-ide/spyder/issues/5494) - "Replace Selection" Erroneously Removing/Interpreting Escape Sequences
+* [Issue 5475](https://github.com/spyder-ide/spyder/issues/5475) - 'Show in external file explorer' on editor menu more than once for split panels
+* [Issue 5402](https://github.com/spyder-ide/spyder/issues/5402) - ValueError: invalid literal for int() with base 10: b''
+* [Issue 5386](https://github.com/spyder-ide/spyder/issues/5386) - Error when replacing "\" by "\\"
+* [Issue 5373](https://github.com/spyder-ide/spyder/issues/5373) - Add Clear button to (find) entry boxes
+* [Issue 5360](https://github.com/spyder-ide/spyder/issues/5360) - Don't set current working directory for external kernels
+* [Issue 5218](https://github.com/spyder-ide/spyder/issues/5218) - Error when drag and drop file from zip
+* [Issue 5057](https://github.com/spyder-ide/spyder/issues/5057) - Fast file switch and fast symbol search do not work properly if the editor is splitted
+* [Issue 5036](https://github.com/spyder-ide/spyder/issues/5036) - Exploring variables in debugging mode is giving focus to the Editor
+* [Issue 4186](https://github.com/spyder-ide/spyder/issues/4186) - Spyder always opens a new instance
+* [Issue 3612](https://github.com/spyder-ide/spyder/issues/3612) - Variable explorer should list datetime.timedelta variables
+* [Issue 3242](https://github.com/spyder-ide/spyder/issues/3242) - Spyder is not installing the PyQt5 wheel when using pip
+* [Issue 2883](https://github.com/spyder-ide/spyder/issues/2883) - Outline explorer doesn't work with second Editor window
+* [Issue 2179](https://github.com/spyder-ide/spyder/issues/2179) - Breakpoint doesn't appear in gui (red circle) but is listed in Debug > Breakpoints > List breakpoints
+* [Issue 1492](https://github.com/spyder-ide/spyder/issues/1492) - There should be a way to donate money to support the project
+
+In this release 45 issues were closed
+
+**Pull requests**
+
+* [PR 6005](https://github.com/spyder-ide/spyder/pull/6005) - PR: Update Japanese translation for 3.2.5
+* [PR 6002](https://github.com/spyder-ide/spyder/pull/6002) - PR: Update French translation for 3.2.5
+* [PR 5997](https://github.com/spyder-ide/spyder/pull/5997) - PR: Update Spanish translations for 3.2.5
+* [PR 5995](https://github.com/spyder-ide/spyder/pull/5995) - PR: Update Russian translation for 3.2.5
+* [PR 5987](https://github.com/spyder-ide/spyder/pull/5987) - PR: Load %autoreload magic at kernel startup
+* [PR 5979](https://github.com/spyder-ide/spyder/pull/5979) - PR: Remove/update outdated refs to Mac OS X, Mac DMG installers and Continuum.io
+* [PR 5952](https://github.com/spyder-ide/spyder/pull/5952) - PR: Skip a test that started to fail on Windows and Python 2
+* [PR 5950](https://github.com/spyder-ide/spyder/pull/5950) - PR: Disable renames for list, set and tuple in the Variable Explorer
+* [PR 5902](https://github.com/spyder-ide/spyder/pull/5902) - PR: Make tabs drag behavior in the IPython console to be the same as the Editor one
+* [PR 5878](https://github.com/spyder-ide/spyder/pull/5878) - PR: Several improvements to the IPython console
+* [PR 5865](https://github.com/spyder-ide/spyder/pull/5865) - PR: Fix missing documentation links
+* [PR 5862](https://github.com/spyder-ide/spyder/pull/5862) - PR: Add PyQt5 as a new wheel dependency
+* [PR 5792](https://github.com/spyder-ide/spyder/pull/5792) - PR: Change pep8 check_executable for pycodestyle.
+* [PR 5784](https://github.com/spyder-ide/spyder/pull/5784) - PR: Change for file save on split editor when tabs are moved
+* [PR 5780](https://github.com/spyder-ide/spyder/pull/5780) - PR: Disable smartpants quotes in Sphinx to prevent crash with MathJax
+* [PR 5778](https://github.com/spyder-ide/spyder/pull/5778) - PR: Catch AttributeError while using the Help plugin
+* [PR 5777](https://github.com/spyder-ide/spyder/pull/5777) - PR: Adjust calls to use has_filenames return value of None
+* [PR 5766](https://github.com/spyder-ide/spyder/pull/5766) - PR: Simplify how pyopengl is declared in setup.py
+* [PR 5762](https://github.com/spyder-ide/spyder/pull/5762) - PR: Add a tooltip showing the full path of highlighted item in the working directory dropdown box
+* [PR 5758](https://github.com/spyder-ide/spyder/pull/5758) - PR: Improve how Matplotlib backend is set in the IPython console
+* [PR 5752](https://github.com/spyder-ide/spyder/pull/5752) - PR: Catch TypeError while executing code instructions in the IPython console
+* [PR 5742](https://github.com/spyder-ide/spyder/pull/5742) - PR: Prevent Editor dockwidget to become visible when clicking on the outline explorer if the Editor is in a separate window
+* [PR 5731](https://github.com/spyder-ide/spyder/pull/5731) - PR: Skip test_load_kernel_file in PyQt4 because it segfaults too much
+* [PR 5714](https://github.com/spyder-ide/spyder/pull/5714) - PR: Catch NameError in isdefined
+* [PR 5694](https://github.com/spyder-ide/spyder/pull/5694) - PR: Add validation for mimedata2url in Editor's dragEnterEvent
+* [PR 5688](https://github.com/spyder-ide/spyder/pull/5688) - PR: Ignore warning generated by ipykernel.datapub
+* [PR 5674](https://github.com/spyder-ide/spyder/pull/5674) - PR: Skip test_issue_4066 in our CIs with PyQt >= 5.9
+* [PR 5666](https://github.com/spyder-ide/spyder/pull/5666) - PR: Set focus for filter line when doing symbol search
+* [PR 5662](https://github.com/spyder-ide/spyder/pull/5662) - PR: Handle 3d empty numpy arrays
+* [PR 5646](https://github.com/spyder-ide/spyder/pull/5646) - PR: Change position of data loading to prevent not calling validation in the Pylint plugin
+* [PR 5635](https://github.com/spyder-ide/spyder/pull/5635) - PR: Change default behavior of --show-console option
+* [PR 5634](https://github.com/spyder-ide/spyder/pull/5634) - PR: Catch not found file error when loading profiler results.
+* [PR 5632](https://github.com/spyder-ide/spyder/pull/5632) - PR: Skip some dataframe tests on Linux
+* [PR 5624](https://github.com/spyder-ide/spyder/pull/5624) - PR: Add validation for attribute 'is_running' in the Help plugin
+* [PR 5619](https://github.com/spyder-ide/spyder/pull/5619) - PR: Support datetime.timedelta in variable explorer
+* [PR 5618](https://github.com/spyder-ide/spyder/pull/5618) - PR: Catch search regexp error while doing replace/find
+* [PR 5614](https://github.com/spyder-ide/spyder/pull/5614) - PR: Better feedback for regexp errors in find/replace
+* [PR 5604](https://github.com/spyder-ide/spyder/pull/5604) - PR: Do not overwrite unmatched braces
+* [PR 5585](https://github.com/spyder-ide/spyder/pull/5585) - PR: Fix ValueError when switching Python interpreters
+* [PR 5584](https://github.com/spyder-ide/spyder/pull/5584) - PR: Fix typo in Solarized color schemes.
+* [PR 5577](https://github.com/spyder-ide/spyder/pull/5577) - PR: Add confirmation message to reset shortcuts.
+* [PR 5576](https://github.com/spyder-ide/spyder/pull/5576) - PR: Add handling for RuntimeError while closing an IPython console instance.
+* [PR 5575](https://github.com/spyder-ide/spyder/pull/5575) - PR: Fix syncing of line number and plugin list for breakpoints and add unit tests.
+* [PR 5560](https://github.com/spyder-ide/spyder/pull/5560) - PR: Make clear line shortcut configurable in the IPython console
+* [PR 5555](https://github.com/spyder-ide/spyder/pull/5555) - PR: Don't unescape control characteres in replace in selection
+* [PR 5553](https://github.com/spyder-ide/spyder/pull/5553) - PR: Add cp1251 (default Russian) encoding on Windows to be recognized by the Editor
+* [PR 5538](https://github.com/spyder-ide/spyder/pull/5538) - PR: Reduce row height in dependencies dialog
+* [PR 5537](https://github.com/spyder-ide/spyder/pull/5537) - PR: Add clear button to find comboboxes
+* [PR 5536](https://github.com/spyder-ide/spyder/pull/5536) - PR: Fix bootstrap.py --debug
+* [PR 5528](https://github.com/spyder-ide/spyder/pull/5528) - PR: Add validation to not publish pdb_state after getting values of variables
+* [PR 5476](https://github.com/spyder-ide/spyder/pull/5476) - PR: Fix EditorSplitter menu_actions and add test.
+* [PR 5472](https://github.com/spyder-ide/spyder/pull/5472) - PR: Don't rely on process name when detecting a previous instance
+* [PR 5341](https://github.com/spyder-ide/spyder/pull/5341) - PR: Trade ipykernel.serialize for cloudpickle and remove use of publish_data
+* [PR 5221](https://github.com/spyder-ide/spyder/pull/5221) - PR: Make the fileswitcher aware of split editorstacks
+
+In this release 54 pull requests were merged
+
+
+----
+
+
 ## Version 3.2.4 (2017-10-18)
 
 ### New features
