@@ -30,6 +30,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
 from spyder.config.base import _, get_image_path
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils import icon_manager as ima
 
 # FIXME: Known issues
 # How to handle if an specific dockwidget does not exists/load, like ipython
@@ -547,11 +548,17 @@ class FadingTipBox(FadingDialog):
         self.setModal(False)
 
         # Widgets
-        self.button_home = QPushButton("<<")
-        self.button_close = QPushButton("X")
-        self.button_previous = QPushButton(" < ")
-        self.button_end = QPushButton(">>")
-        self.button_next = QPushButton(" > ")
+        def toolbutton(icon):
+            bt = QToolButton()
+            bt.setAutoRaise(True)
+            bt.setIcon(icon)
+            return bt
+
+        self.button_close = toolbutton(ima.icon("tour.close"))
+        self.button_home = toolbutton(ima.icon("tour.home"))
+        self.button_previous = toolbutton(ima.icon("tour.previous"))
+        self.button_end = toolbutton(ima.icon("tour.end"))
+        self.button_next = toolbutton(ima.icon("tour.next"))
         self.button_run = QPushButton(_('Run code'))
         self.button_disable = None
         self.button_current = QToolButton()
@@ -577,27 +584,7 @@ class FadingTipBox(FadingDialog):
 
         arrow = get_image_path('hide.png')
 
-        self.stylesheet = '''QPushButton {
-                             background-color: rgbs(200,200,200,100%);
-                             color: rgbs(0,0,0,100%);
-                             border-style: outset;
-                             border-width: 1px;
-                             border-radius: 3px;
-                             border-color: rgbs(100,100,100,100%);
-                             padding: 2px;
-                             }
-
-                             QPushButton:hover {
-                             background-color: rgbs(150, 150, 150, 100%);
-                             }
-
-                             QPushButton:disabled {
-                             background-color: rgbs(230,230,230,100%);
-                             color: rgbs(200,200,200,100%);
-                             border-color: rgbs(200,200,200,100%);
-                             }
-
-                             QComboBox {
+        self.stylesheet = '''QComboBox {
                              padding-left: 5px;
                              background-color: rgbs(230,230,230,100%);
                              border-width: 0px;
@@ -742,7 +729,7 @@ class FadingTipBox(FadingDialog):
     def build_paths(self):
         """ """
         geo = self.geometry()
-        radius = 30
+        radius = 0
         shadow = self.offset_shadow
         x0, y0 = geo.x(), geo.y()
         width, height = geo.width() - shadow, geo.height() - shadow

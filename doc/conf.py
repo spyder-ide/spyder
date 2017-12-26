@@ -192,3 +192,16 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+
+# -- Options for manual page output ---------------------------------------
+
+# One entry per manual page. List of tuples
+# (source start file, name, description, authors, manual section).
+man_pages = [
+        ('manpage', 'spyder', 'Scientific PYthon Development EnviRonment',
+            ['Ghislain Antony Vaillant <ghisvail@gmail.com>'], 1)
+        ]
+
+# If true, show URL addresses after external links.
+#man_show_urls = False

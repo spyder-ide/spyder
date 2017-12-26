@@ -738,23 +738,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return widget
 
 
-class PluginConfigPage(SpyderConfigPage):
-    """Plugin configuration dialog box page widget"""
-    def __init__(self, plugin, parent):
-        self.plugin = plugin
-        self.get_option = plugin.get_option
-        self.set_option = plugin.set_option
-        self.get_font = plugin.get_plugin_font
-        self.apply_settings = plugin.apply_plugin_settings
-        SpyderConfigPage.__init__(self, parent)
-
-    def get_name(self):
-        return self.plugin.get_plugin_title()
-
-    def get_icon(self):
-        return self.plugin.get_plugin_icon()
-
-
 class GeneralConfigPage(SpyderConfigPage):
     """Config page that maintains reference to main Spyder window
        and allows to specify page name and icon declaratively
@@ -1267,6 +1250,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 '        print(bar)\n'
                 )
         show_blanks = CONF.get('editor', 'blank_spaces')
+        update_scrollbar = CONF.get('editor', 'scroll_past_end')
         if scheme_name is None:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
@@ -1274,7 +1258,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                          tab_mode=False,
                                          font=get_font(),
                                          show_blanks=show_blanks,
-                                         color_scheme=scheme_name)
+                                         color_scheme=scheme_name,
+                                         scroll_past_end=update_scrollbar)
         self.preview_editor.set_text(text)
         self.preview_editor.set_language('Python')
 

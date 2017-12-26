@@ -17,10 +17,9 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Signal, Slot, Qt
-from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QVBoxLayout,
+from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QHBoxLayout,
                             QMessageBox)
 
 # Local imports
@@ -31,11 +30,12 @@ from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, remove_backslashes,
                                getcwd_or_home)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    DialogManager, mimedata2url)
+                                    create_plugin_layout, DialogManager,
+                                    mimedata2url, MENU_SEPARATOR)
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
-from spyder.plugins import SpyderPluginWidget
+from spyder.api.plugins  import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 
 
@@ -50,11 +50,8 @@ class Console(SpyderPluginWidget):
     
     def __init__(self, parent=None, namespace=None, commands=[], message=None,
                  exitfunc=None, profile=False, multithreaded=False):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
-        
+        SpyderPluginWidget.__init__(self, parent)
+
         debug_print("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
 
@@ -83,7 +80,11 @@ class Console(SpyderPluginWidget):
         self.register_widget_shortcuts(self.find_widget)
 
         # Main layout
-        layout = QVBoxLayout()
+        btn_layout = QHBoxLayout()
+        btn_layout.setAlignment(Qt.AlignLeft)
+        btn_layout.addStretch()
+        btn_layout.addWidget(self.options_button, Qt.AlignRight)
+        layout = create_plugin_layout(btn_layout)
         layout.addWidget(self.shell)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
@@ -189,11 +190,9 @@ class Console(SpyderPluginWidget):
                                   codecompenter_action, exteditor_action))
                     
         plugin_actions = [None, run_action, environ_action, syspath_action,
-                          option_menu, None, quit_action]
-        
-        # Add actions to context menu
-        add_actions(self.shell.menu, plugin_actions)
-        
+                          option_menu, MENU_SEPARATOR, quit_action,
+                          self.undock_action]
+
         return plugin_actions
     
     def register_plugin(self):

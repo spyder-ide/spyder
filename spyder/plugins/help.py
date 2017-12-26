@@ -13,7 +13,6 @@ import socket
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import QThread, QUrl, Signal, Slot
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMenu, QMessageBox, QSizePolicy,
@@ -24,15 +23,16 @@ from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.help.sphinxify import (CSS_PATH, generate_context,
                                          sphinxify, usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout)
+                                    create_toolbutton, create_plugin_layout,
+                                    MENU_SEPARATOR)
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
@@ -329,10 +329,7 @@ class Help(SpyderPluginWidget):
     focus_changed = Signal()
 
     def __init__(self, parent):
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.internal_shell = None
 
@@ -429,15 +426,13 @@ class Help(SpyderPluginWidget):
         self._update_lock_icon()
 
         # Option menu
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, [self.rich_text_action, self.plain_text_action,
-                           self.show_source_action, None,
-                           self.auto_import_action])
-        options_button.setMenu(menu)
-        layout_edit.addWidget(options_button)
+        self.menu = QMenu(self)
+        add_actions(self.menu, [self.rich_text_action, self.plain_text_action,
+                                self.show_source_action, MENU_SEPARATOR,
+                                self.auto_import_action, MENU_SEPARATOR,
+                                self.undock_action])
+        self.options_button.setMenu(self.menu)
+        layout_edit.addWidget(self.options_button)
 
         if self.rich_help:
             self.switch_to_rich_text()

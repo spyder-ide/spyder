@@ -228,7 +228,9 @@ LANGUAGE_CODES = {'en': u'English',
                   'es': u'Español',
                   'pt_BR': u'Português',
                   'ru': u'Русский',
-                  'ja': u'日本語'
+                  'zh_CN': u'简体中文',
+                  'ja': u'日本語',
+                  'de': u'Deutsch'
                   }
 
 # Disabled languages (because their translations are outdated)
@@ -378,16 +380,16 @@ def get_supported_types():
     If you update this list, don't forget to update doc/variablexplorer.rst
     """
     from datetime import date, timedelta
-    editable_types = [int, float, complex, list, dict, tuple, date, timedelta
-                      ] + list(TEXT_TYPES) + list(INT_TYPES)
+    editable_types = [int, float, complex, list, set, dict, tuple, date,
+                      timedelta] + list(TEXT_TYPES) + list(INT_TYPES)
     try:
         from numpy import ndarray, matrix, generic
         editable_types += [ndarray, matrix, generic]
     except:
         pass
     try:
-        from pandas import DataFrame, Series, DatetimeIndex
-        editable_types += [DataFrame, Series, DatetimeIndex]
+        from pandas import DataFrame, Series, Index
+        editable_types += [DataFrame, Series, Index]
     except:
         pass
     picklable_types = editable_types[:]

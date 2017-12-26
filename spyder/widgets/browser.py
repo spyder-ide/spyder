@@ -199,7 +199,7 @@ class WebBrowser(QWidget):
     """
     Web browser widget
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, options_button=None):
         QWidget.__init__(self, parent)
         
         self.home_url = None
@@ -256,6 +256,9 @@ class WebBrowser(QWidget):
                        refresh_button, progressbar, stop_button):
             hlayout.addWidget(widget)
         
+        if options_button:
+            hlayout.addWidget(options_button)
+
         layout = create_plugin_layout(hlayout)
         layout.addWidget(self.webview)
         layout.addWidget(self.find_widget)

@@ -55,6 +55,8 @@ dependencies.add("pylint", _("Static code analysis"),
 
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
+    sig_edit_goto = Signal(str, int, str)
+
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
         self.filename = None
@@ -67,7 +69,7 @@ class ResultsTree(OneColumnTree):
         data = self.data.get(id(item))
         if data is not None:
             fname, lineno = data
-            self.parent().edit_goto.emit(fname, lineno, '')
+            self.sig_edit_goto.emit(fname, lineno, '')
 
     def clicked(self, item):
         """Click event"""
@@ -148,7 +150,7 @@ class PylintWidget(QWidget):
     VERSION = '1.1.0'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100):
+    def __init__(self, parent, max_entries=100, options_button=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Pylint")
@@ -198,6 +200,8 @@ class PylintWidget(QWidget):
         hlayout1.addWidget(browse_button)
         hlayout1.addWidget(self.start_button)
         hlayout1.addWidget(self.stop_button)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addWidget(self.ratelabel)

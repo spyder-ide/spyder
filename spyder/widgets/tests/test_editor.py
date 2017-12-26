@@ -83,6 +83,27 @@ def editor_cells_bot(base_editor_bot):
 
 
 @pytest.fixture
+def editor_folding_bot(base_editor_bot):
+    """
+    Setup CodeEditor with some text useful for folding related tests.
+    """
+    editor_stack, qtbot = base_editor_bot
+    text = ('# dummy test file\n'
+            'class a():\n'  # fold-block level-0
+            '    self.b = 1\n'
+            '    print(self.b)\n'
+            '    \n'
+            )
+    finfo = editor_stack.new('foo.py', 'utf-8', text)
+
+    find_replace = FindReplace(None, enable_replace=True)
+    editor_stack.set_find_widget(find_replace)
+    find_replace.set_editor(finfo.editor)
+    qtbot.addWidget(editor_stack)
+    return editor_stack, finfo.editor, find_replace, qtbot
+
+
+@pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
     editor_splitter = EditorSplitter(None, Mock(), [], first=True)
@@ -397,6 +418,38 @@ def test_advance_cell(editor_cells_bot):
     # advance to 3rd cell
     editor_stack.advance_cell()
     assert editor.get_cursor_line_column() == (6, 0)
+
+
+def test_unfold_when_searching(editor_folding_bot):
+    editor_stack, editor, finder, qtbot = editor_folding_bot
+    folding_panel = editor.panels.get('FoldingPanel')
+    line_search = editor.document().findBlockByLineNumber(3)
+
+    # fold region
+    block = editor.document().findBlockByLineNumber(1)
+    folding_panel.toggle_fold_trigger(block)
+    assert not line_search.isVisible()
+
+    # unfolded when searching
+    finder.show()
+    qtbot.keyClicks(finder.search_text, 'print')
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert line_search.isVisible()
+
+
+def test_unfold_goto(editor_folding_bot):
+    editor_stack, editor, finder, qtbot = editor_folding_bot
+    folding_panel = editor.panels.get('FoldingPanel')
+    line_goto = editor.document().findBlockByLineNumber(3)
+
+    # fold region
+    block = editor.document().findBlockByLineNumber(1)
+    folding_panel.toggle_fold_trigger(block)
+    assert not line_goto.isVisible()
+
+    # unfolded when goto
+    editor.go_to_line(4)
+    assert line_goto.isVisible()
 
 
 @pytest.mark.skipif(PY2, reason="Python2 does not support unicode very well")

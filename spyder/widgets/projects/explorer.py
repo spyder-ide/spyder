@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils import misc
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, create_plugin_layout
 from spyder.widgets.explorer import FilteredDirView
 
 
@@ -96,8 +96,8 @@ class ExplorerTreeWidget(FilteredDirView):
         src_list = [to_text_string(url.toString())
                     for url in event.mimeData().urls()]
         if len(src_list) > 1:
-            buttons = QMessageBox.Yes|QMessageBox.YesAll| \
-                      QMessageBox.No|QMessageBox.NoAll|QMessageBox.Cancel
+            buttons = QMessageBox.Yes|QMessageBox.YesToAll| \
+                      QMessageBox.No|QMessageBox.NoToAll|QMessageBox.Cancel
         else:
             buttons = QMessageBox.Yes|QMessageBox.No
         for src in src_list:
@@ -117,9 +117,9 @@ class ExplorerTreeWidget(FilteredDirView):
                         continue
                     elif answer == QMessageBox.Cancel:
                         break
-                    elif answer == QMessageBox.YesAll:
+                    elif answer == QMessageBox.YesToAll:
                         yes_to_all = True
-                    elif answer == QMessageBox.NoAll:
+                    elif answer == QMessageBox.NoToAll:
                         no_to_all = True
                         continue
                 else:
@@ -173,23 +173,32 @@ class ProjectExplorerWidget(QWidget):
     sig_open_file = Signal(str)
 
     def __init__(self, parent, name_filters=[],
-                 show_all=True, show_hscrollbar=True):
+                 show_all=True, show_hscrollbar=True, options_button=None):
         QWidget.__init__(self, parent)
-        self.treewidget = None
-        self.emptywidget = None
+
         self.name_filters = name_filters
         self.show_all = show_all
         self.show_hscrollbar = show_hscrollbar
-        self.setup_layout()
 
-    def setup_layout(self):
-        """Setup project explorer widget layout"""
+        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
+        self.treewidget.setup(name_filters=self.name_filters,
+                              show_all=self.show_all)
+        self.treewidget.setup_view()
+        self.treewidget.hide()
 
         self.emptywidget = ExplorerTreeWidget(self)
 
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+        if options_button:
+            btn_layout = QHBoxLayout()
+            btn_layout.setAlignment(Qt.AlignLeft)
+            btn_layout.addStretch()
+            btn_layout.addWidget(options_button, Qt.AlignRight)
+            layout = create_plugin_layout(btn_layout)
+        else:
+            layout = QVBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.emptywidget)
+        layout.addWidget(self.treewidget)
         self.setLayout(layout)
 
     def closing_widget(self):
@@ -216,29 +225,21 @@ class ProjectExplorerWidget(QWidget):
 
     def setup_project(self, directory):
         """Setup project"""
-        if self.treewidget is not None:
-            self.treewidget.hide()
-
-        # Setup a new tree widget
-        self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup(name_filters=self.name_filters,
-                              show_all=self.show_all)
-        self.treewidget.setup_view()
         self.emptywidget.hide()
         self.treewidget.show()
-        self.layout().addWidget(self.treewidget)
 
         # Setup the directory shown by the tree
         self.set_project_dir(directory)
-     
+
         # Signal to delete the project
         self.treewidget.sig_delete_project.connect(self.delete_project)
 
     def delete_project(self):
-        """Delete current project without deleting the files in the directory."""
+        """Delete current project without deleting the files in the
+        directory."""
         if self.current_active_project:
             path = self.current_active_project.root_path
-            buttons = QMessageBox.Yes|QMessageBox.No
+            buttons = QMessageBox.Yes | QMessageBox.No
             answer = QMessageBox.warning(self, _("Delete"),
                                  _("Do you really want "
                                    "to delete <b>{filename}</b>?<br><br>"
