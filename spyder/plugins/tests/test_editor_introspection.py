@@ -58,6 +58,7 @@ def setup_editor(qtbot, monkeypatch):
     editor.introspector.plugin_manager.close()
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is not None,
                     reason="This test fails too much in the CI :(")
 @pytest.mark.skipif(not JEDI_010,
@@ -73,11 +74,11 @@ def test_introspection(setup_editor):
 
     # Complete fr --> from
     qtbot.keyClicks(code_editor, 'fr')
-    qtbot.wait(5000)
+    qtbot.wait(20000)
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=5000) as sig:
+                          timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "from" in sig.args[0]
 
