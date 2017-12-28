@@ -62,7 +62,8 @@ VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔ�
 VALID_FINDER_CHARS = "[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
 BLACKLIST = {
-    'Shift+Del': _('Currently used to delete lines on editor')
+    'Shift+Del': _('Currently used to delete lines on editor/Cut a word'),
+    'Shift+Ins': _('Currently used to paste a word')
 }
 
 if os.name == 'nt':
