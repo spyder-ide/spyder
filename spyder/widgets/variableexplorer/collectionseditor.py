@@ -1318,7 +1318,7 @@ class CollectionsEditor(QDialog):
                 self.data_copy = copy.deepcopy(data)
             except NotImplementedError:
                 self.data_copy = copy.copy(data)
-            except TypeError:
+            except (TypeError, AttributeError):
                 readonly = True
                 self.data_copy = data
             datalen = len(get_object_attrs(data))
