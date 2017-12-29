@@ -16,9 +16,9 @@ To release a new version of Spyder you need to follow these steps:
 
 * python setup.py sdist upload
 
-* python2 setup.py bdist_wheel upload
+* activate py2env-with-latest-setuptools && python2 setup.py bdist_wheel upload
 
-* python3 setup.py bdist_wheel upload
+* activate py3env-with-latest-setuptools && python3 setup.py bdist_wheel upload
 
 * git tag -a vX.X.X -m 'Release X.X.X'
 
