@@ -45,9 +45,11 @@ Spyder is a Python development environment with a lot of features:
 
 * **Find in files**
 
-    Supporting regular expressions and mercurial repositories
+    Supporting regular expressions and Mercurial repositories
 
 * **File explorer**
+
+    Interact with your filesystem from within the IDE.
 
 * **History log**
 
@@ -90,19 +92,19 @@ solve on your own, we recommend you use Anaconda instead, as we are
 generally unable to offer individual assistance for problems specific
 to installing via these alternative distributions.
 
-** Windows **
+**Windows**
 
 Spyder is included in these other scientific Python distributions:
 
 * [WinPython](https://winpython.github.io/)
 * [Python(x,y)](http://python-xy.github.io)
 
-** macOS **
+**macOS**
 
 Spyder can be obtained through through
 [MacPorts](http://www.macports.org/).
 
-** GNU/Linux **
+**GNU/Linux**
 
 * You can often get Spyder through your distribution's package
 manager (i.e. `apt-get`, `yum`, etc), or install from source
