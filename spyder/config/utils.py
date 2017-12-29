@@ -200,8 +200,10 @@ def is_kde_desktop():
 
 
 def is_anaconda():
-    "Detect if we are running under Anaconda."
-    for var in os.environ:
-        if var.startswith('CONDA'):
-            return True
-    return False
+    "
+    Detect if we are running under Anaconda.
+
+    Taken from https://stackoverflow.com/a/47610844/438386
+    "
+    is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
+    return is_conda
