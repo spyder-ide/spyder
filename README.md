@@ -30,7 +30,7 @@ Spyder is a Python development environment with a lot of features:
 
     Python or IPython consoles with workspace and debugging support to
     instantly evaluate the code written in the Editor. It also comes
-    with Matplotlib figures integration. 
+    with Matplotlib figures integration.
 
 * **Documentation viewer**
 
@@ -69,60 +69,98 @@ This section explains how to install the latest stable release of
 Spyder. If you prefer testing the development version, please use
 the `bootstrap` script (see next section).
 
-The easiest way to install Spyder is:
+### The Easy/Recommended Way: Anaconda
 
-### On Windows:
+The easiest way to install Spyder for any of our platform, and
+the way we recommend to avoid unexpected issues we aren't able to
+help you with, is to download it as part of the
+[Anaconda](https://www.anaconda.com/download/) distribution, and keep
+it updated and install other packages with the `conda` package
+and environment manager.
 
-Using one (and only one) of these scientific Python distributions:
+If in doubt, you should install via this method; it generally has the
+least likelihood of potential pitfalls for non-experts, and we may be
+able to provide limited assistance if you do run into trouble.
 
-1. [Anaconda](http://continuum.io/downloads)
-2. [WinPython](https://winpython.github.io/)
-3. [Python(x,y)](http://python-xy.github.io)
+### The Harder Way: Alternative Distributions
 
-### On Mac OSX:
+**Important Note:** While we offer alternative options for users who
+desire them, if you encounter installation issues you are unable to
+solve on your own, we recommend you use Anaconda instead, as we are
+generally unable to offer individual assistance for problems specific
+to installing via these alternative distributions.
 
-- Using the [Anaconda Distribution](http://continuum.io/downloads).
-- Through [MacPorts](http://www.macports.org/).
+** Windows **
 
-### On GNU/Linux
+Spyder is included in these other scientific Python distributions:
 
-- Through your distribution package manager (i.e. `apt-get`, `yum`,
-  etc).
-- Using the [Anaconda Distribution](http://continuum.io/downloads).
-- Installing from source (see below).
+* [WinPython](https://winpython.github.io/)
+* [Python(x,y)](http://python-xy.github.io)
 
-### Cross-platform way from source
+** macOS **
+
+Spyder can be obtained through through
+[MacPorts](http://www.macports.org/).
+
+** GNU/Linux **
+
+* You can often get Spyder through your distribution's package
+manager (i.e. `apt-get`, `yum`, etc), or install from source
+(see below).
+
+### The Expert/Cross-platform Way: Installing from source with pip
+
+**Warning:** While this installation method is a viable option for
+experienced users, installing Spyder (and other SciPy stack packages)
+with `pip` can encounter a number of tricky issues. While you are welcome
+to try this on your own if you're an expert, we are unable to help if you
+do run into problems, except to recommend using Anaconda instead.
 
 You can also install Spyder with the `pip` package manager, which comes by
-default with most Python installations. For that you need to use the
-command:
-
+default with most Python installations. To do so, you need to use the command:
+```
     pip install spyder
-
+```
 To upgrade Spyder to its latest version, if it was installed before, you need
-to run
-
+to run:
+```
     pip install --upgrade spyder
-
-For more details on supported platforms, please refer to our
-[installation instructions](http://pythonhosted.org/spyder/installation.html).
+```
 
 **Important note**: This does not install the graphical Python libraries (i.e.
 PyQt5 or PyQt4) that Spyder depends on. Those have to be installed separately
 after installing Python.
 
 
+For more details on supported platforms, please refer to our
+[installation instructions](http://pythonhosted.org/spyder/installation.html).
+
+
 ## Running from source
 
-The fastest way to run Spyder is to get the source code using git, install
-PyQt5 or PyQt4, and run these commands:
-
-1. Install our *runtime dependencies* (see below).
-2. `cd /your/spyder/git-clone`
-3. `python bootstrap.py`
-
+The fastest way to run Spyder is to run form source, hosted on the
+[Spyder github repo](https://github.com/spyder-ide/spyder).
 You may want to do this for fixing bugs in Spyder, adding new
 features, learning how Spyder works or just getting a taste of it.
+Make sure to copy the path listed under the "Clone or Download" button there,
+or just use https://github.com/spyder-ide/spyder.git .
+
+If using `conda` (strongly recommended), run the following from
+the command line (the Anaconda Prompt, if on Windows):
+```
+conda install spyder
+conda remove spyder
+git clone PATH_FROM_SPYDER_REPO
+cd DIR_YOU_CLONED_IT_TO
+python bootstrap.py
+```
+
+Alternatively, you can install PyQt5 (or PyQt4) separately and use `pip`
+to install the *runtime dependencies* discussed below, but this is
+for experts only and is not recommend, so you'll have to solve any
+problems on your own. See the
+[installation instructions](http://pythonhosted.org/spyder/installation.html)
+for more detail.
 
 
 ## Dependencies
@@ -174,7 +212,7 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 
 Everyone is welcome to contribute. Please read our
 [contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md),
-then get started!
+to get started!
 
 
 ## More information
