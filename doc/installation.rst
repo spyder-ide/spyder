@@ -73,7 +73,7 @@ might need.
 
 **Ubuntu**:
 
-   * Using the official package manager: ``sudo apt-get install spyder``.
+Using the official package manager: ``sudo apt-get install spyder``.
 
      .. note::
 
@@ -83,29 +83,29 @@ might need.
 
 **Debian Unstable**:
 
-   Using the package manager: ``sudo apt-get install spyder``
+Using the package manager: ``sudo apt-get install spyder``
 
-   The Spyder's official Debian package is available `here`__
+The Spyder's official Debian package is available `here`__
 
-   __ http://packages.debian.org/fr/sid/spyder.
+__ http://packages.debian.org/fr/sid/spyder.
 
 
 **Other Distributions**
 
-   Spyder is also available in other GNU/Linux distributions, like
+Spyder is also available in other GNU/Linux distributions, like
 
-   * `Archlinux <https://aur.archlinux.org/packages/?K=spyder>`_
+* `Archlinux <https://aur.archlinux.org/packages/?K=spyder>`_
 
-   * `Fedora <https://admin.fedoraproject.org/pkgdb/acls/name/spyder?_csrf_token=ab2ac812ed6df3abdf42981038a56d3d87b34128>`_
+* `Fedora <https://admin.fedoraproject.org/pkgdb/acls/name/spyder?_csrf_token=ab2ac812ed6df3abdf42981038a56d3d87b34128>`_
 
-   * `Gentoo <http://packages.gentoo.org/package/dev-python/spyder>`_
+* `Gentoo <http://packages.gentoo.org/package/dev-python/spyder>`_
 
-   * `openSUSE <https://build.opensuse.org/package/show?package=python-spyder&project=home%3Aocefpaf>`_
+* `openSUSE <https://build.opensuse.org/package/show?package=python-spyder&project=home%3Aocefpaf>`_
 
-   * `Mageia <http://mageia.madb.org/package/show/name/spyder>`_
+* `Mageia <http://mageia.madb.org/package/show/name/spyder>`_
 
-   Please refer to your distribution's documentation to learn how to install it
-   there.
+Please refer to your distribution's documentation to learn how to install it
+there.
 
 |
 
@@ -209,13 +209,10 @@ Before installing Spyder itself by this method, you need at least:
 
 * `The Python programming language <http://www.python.org/>`_
 * `PyQt5 <http://www.riverbankcomputing.co.uk/software/pyqt/download5>`_ (recommended)
- or `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
+  or `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
 
 
-Then, to install Spyder and its other dependencies, run
-``
-    pip install spyder
-``
+Then, to install Spyder and its other dependencies, run ``pip install spyder``
 
 **Important note**: This does not install the graphical Python libraries (i.e.
 PyQt5 or PyQt4) that Spyder depends on. Those have to be installed separately
@@ -244,23 +241,18 @@ Updating Spyder
 You can update Spyder by:
 
 * Updating Anaconda (recommended), WinPython, Python(x,y), MacPorts, or
-through your system package manager, if you installed via those options.
+  through your system package manager, if you installed via those options.
 
-    With Anaconda, just run
-    ``
-        conda update spyder
-    ``
-    to update Spyder specifically, and
-    ``
-        conda update anaconda
-    ``
-    to update the rest of the distribution as desired.
+  With Anaconda, just run (in Anaconda Prompt if on Windows)
+  ``conda update spyder``
+  to update Spyder specifically, and
+  ``conda update anaconda``
+  to update the rest of the distribution, as desired.
 
 * Or, if having installed Spyder via the advanced/crossplatform method,
-``pip``, run::
-    ``
-        pip install --upgrade spyder
-    ``
+  ``pip``, run
+  ``pip install --upgrade spyder``
+
   .. note::
 
      This command will also update all Spyder dependencies
@@ -282,14 +274,13 @@ To do so:
 
 #. Install Spyder `requirements`_
 
-    The recommended and easiest way to do this is with ``conda``:
-    ``
-        conda install spyder
-        conda remove spyder
-    ``
+   The recommended and easiest way to do this is with ``conda``:
+    ``conda install spyder``
+    then
+    ``conda remove spyder``
 
-    This installs all of Spyder's dependencies into the environment along with
-    the stable/packaged version of Spyder itself, and then removes the latter.
+   This installs all of Spyder's dependencies into the environment along with
+   the stable/packaged version of Spyder itself, and then removes the latter.
 
 #. Install `Git <http://git-scm.com/downloads>`_, a powerful
    source control management tool.
@@ -308,7 +299,7 @@ To do so:
    inside the cloned directory.
 
 #. (*Optional*) If you want to read the documentation, you must build it first
-    with the command
+   with the command
 
    ``python setup.py build_doc``
 
