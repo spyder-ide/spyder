@@ -5,9 +5,9 @@
 ## General Guidelines
 
 This page documents at a very high level how to contribute to Spyder.
-Please Check the
+Please check the
 [Spyder IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
-for a more detailed guide on how to contribute to the Spyder.
+for a more detailed guide on how to do so.
 
 
 ## Setting Up a Development Environment
@@ -22,14 +22,18 @@ for a more detailed guide on how to contribute to the Spyder.
 ### Creating a conda environment or virtualenv
 
 If you use Anaconda you can create a conda environment with
-these instructions
+these commands:
 
 ```bash
   $ conda create -n spyder-dev python=3
   $ source activate spyder-dev
 ```
 
-You can also use `virtualenv` on Linux, but `conda` is preferred:
+On Windows, you'll want to run them under the Anaconda Prompt,
+and use just ```activate spyder-dev``` for the second command.
+
+You can also use `virtualenv` on Linux, but `conda` is strongly
+recommended:
 
 ```bash
   $ mkvirtualenv spyder-dev
@@ -39,21 +43,25 @@ You can also use `virtualenv` on Linux, but `conda` is preferred:
 ### Installing dependencies
 
 After you have created your development environment, you need to install
-Spyder necessary dependencies. For that you need to go to the directory
-where your git clone is placed and run:
+Spyder's necessary dependencies. For that, the easiest way to do so is
 
 ```bash
-  $ conda install --file requirements/requirements.txt
+  $ conda install spyder
+  $ conda remove spyder
 ```
 
-or using pip and virtualenv:
+This installs all of Spyder's dependencies into the environment along with
+the stable/packaged version of Spyder itself, and then removes the latter.
+
+If using `pip` and `virtualenv` (not recommended), you need to `cd` to
+the directory where your git clone is stored and run:
 
 ```bash
   $ pip install -r requirements/requirements.txt
 ```
 
-*Note*: If you are using pip, you also need to install a Qt binding
-package. This can be achieved by running
+If you are using pip, you also need to install a Qt binding package.
+This can be achieved by running:
 
 ```bash
   $ pip install pyqt5
@@ -61,8 +69,9 @@ package. This can be achieved by running
 
 ### Running Spyder
 
-To start Spyder directly from your clone, i.e. without installing it to your
-environment, you need to run
+To start Spyder directly from your clone, i.e. without installing it into
+your environment, you need to run
+(from the directory you cloned it to e.g. `spyder`):
 
 ```bash
   $ python bootstrap.py
@@ -87,8 +96,8 @@ to use, like this:
   Spyder versions (Milestone `v4.0beta1`, `v4.0beta2`, etc).
 
 
-You can also submit bugfixes to `3.x` or `master` for errors that are only present in
-those branches.
+You can also submit bugfixes to `3.x` or `master` for errors that are
+only present in those branches.
 
 So to start working on a new PR, you need to follow these commands:
 
@@ -121,12 +130,12 @@ Install our test dependencies:
   $ conda install --file requirements/test_requirements.txt -c spyder-ide
 ```
 
-or using pip
+or using `pip` (not recommended):
 ```bash
   $ pip install -r requirements/test_requirements.txt
 ```
 
-To run Spyder test suite, please use:
+To run the Spyder test suite, please use (from the root spyder directory):
 ```bash
   $ python runtests.py
 ```
