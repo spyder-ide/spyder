@@ -4,71 +4,50 @@ Installation
 Spyder is quite easy to install on Windows, Linux and macOS. Just the read the
 following instructions with care.
 
-Installing on Windows Vista/7/8/10
+This section explains how to install the latest stable release of
+Spyder. If you prefer testing the development version, please use
+the `bootstrap` script (see next section).
+
+
+The Easy/Recommended Way: Anaconda
 ----------------------------------
 
-The easy way
-~~~~~~~~~~~~
+Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is
+included in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution,
+which comes with everything you need to get started in an all-in-one package.
 
-Spyder is already included in these *Python Scientific Distributions*:
+This is the easiest way to install Spyder for any of our platform, and
+the way we recommend to avoid unexpected issues we aren't able to
+help you with. If in doubt, you should install via this method;
+it generally has the least likelihood of potential pitfalls for non-experts,
+and we may be able to provide limited assistance if you do run into trouble.
 
-* `Anaconda <https://www.anaconda.com/download/>`_
+
+The Harder Way: Alternative Distributions
+----------------------------------------------------
+
+**Important Note:** While we offer alternative options for users who
+desire them, if you encounter installation issues you are unable to
+solve on your own, we recommend you use Anaconda instead, as we are
+generally unable to offer individual assistance for problems specific
+to installing via these alternative distributions.
+
+Windows
+~~~~~~~
+
+Spyder is included in these other scientific Python distributions:
+
 * `WinPython <https://winpython.github.io/>`_
 * `Python(x,y) <https://code.google.com/p/pythonxy>`_
 
-You can start using it immediately after installing one of them (you only need
-to install one!).
+You can start using it immediately after installing one of them
+(you only need to install one!), just like with Anaconda.
 
+macOS
+~~~~~
 
-The hard way
-~~~~~~~~~~~~
-
-If you want to install Spyder directly, you need to follow these steps:
-
-#. Install the essential requirements:
-
-   * `The Python programming language <http://www.python.org/>`_
-   * `PyQt5 <http://www.riverbankcomputing.co.uk/software/pyqt/download5>`_ (recommended)
-     or `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
-
-#. Install Spyder and its dependencies by running this command::
-
-       pip install spyder
-
-
-Updating Spyder
-~~~~~~~~~~~~~~~
-
-You can update Spyder by:
-
-* Updating Anaconda, WinPython or Python(x,y).
-
-* Or using this command (in case you *don't* use any of those scientific
-  distributions)::
-
-        pip install --upgrade spyder
-
-  .. note::
-
-     This command will also update all Spyder dependencies
-
-|
-
-Installing on macOS
--------------------
-
-The easy way
-~~~~~~~~~~~~
-
-Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
-in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution,
-which comes with everything you need to get started in an all-in-one package.
-
-
-The hard way
-~~~~~~~~~~~~
-
-Thanks to the *MacPorts* project, Spyder can be installed using its ``port`` package manager.
+Thanks to the `*MacPorts* project <http://www.macports.org/>`_, Spyder can be
+installed using its ``port`` package manager.
 There are `several versions`__ available from which you can choose from.
 
 __ http://www.macports.org/ports.php?by=name&substr=spyder
@@ -77,28 +56,17 @@ __ http://www.macports.org/ports.php?by=name&substr=spyder
 
      It is known that the MacPorts version of Spyder is raising this error:
      ``ValueError: unknown locale: UTF-8``, which doesn't let it start correctly.
-   
+
      To fix it you will have to set these environment variables in your
      ``~/.profile`` (or ``~/.bashrc``) manually::
-        
+
         export LANG=en_US.UTF-8
         export LC_ALL=en_US.UTF-8
 
 |
 
-Installing on Linux
--------------------
-
-The easy way
-~~~~~~~~~~~~
-
-Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
-in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution,
-which comes with everything you need to get started in an all-in-one package.
-
-
-The harder way
-~~~~~~~~~~~~~~
+GNU/Linux
+~~~~~~~~~
 
 Please refer to the `Requirements`_ section to see what other packages you
 might need.
@@ -112,18 +80,13 @@ might need.
         This package could be slightly outdated. If you find that is the case,
         please use the Debian package mentioned below.
 
-   * Using the `pip <https://pypi.python.org/pypi/pip/>`_ package manager:
 
-     * Installing: ``sudo pip install spyder``
-     * Updating: ``sudo pip install -U spyder``
-
-     
 **Debian Unstable**:
-  
+
    Using the package manager: ``sudo apt-get install spyder``
 
-   The Spyder's official Debian package is available `here`__ 
-  
+   The Spyder's official Debian package is available `here`__
+
    __ http://packages.debian.org/fr/sid/spyder.
 
 
@@ -146,8 +109,16 @@ might need.
 
 |
 
-Installing or running directly from source
-------------------------------------------
+
+The Expert Way: Installing or running directly from source
+----------------------------------------------------------
+
+**Warning:** While this installation method is a viable option for
+experienced users, installing Spyder (and other SciPy stack packages)
+with `pip` can encounter a number of tricky issues. While you are welcome
+to try this on your own if you're an expert, we are unable to help if you
+do run into problems, except to recommend using Anaconda instead.
+
 
 Requirements
 ~~~~~~~~~~~~
@@ -199,7 +170,7 @@ The requirements to run Spyder are:
 
 * `Chardet <https://github.com/chardet/chardet>`_ >=2.0.0-- Character encoding auto-detection
   in Python.
-  
+
 * `Numpydoc <https://github.com/numpy/numpydoc>`_ Used by Jedi to get return types for
   functions with Numpydoc docstrings.
 
@@ -232,13 +203,23 @@ Optional modules
 Installation procedure
 ~~~~~~~~~~~~~~~~~~~~~~
 
-If you use Anaconda, you need to run this command to install Spyder:
+You can install Spyder with the ``pip`` package manager, which comes by
+default with most Python installations.
+Before installing Spyder itself by this method, you need at least:
 
-   ``conda install spyder``
+* `The Python programming language <http://www.python.org/>`_
+* `PyQt5 <http://www.riverbankcomputing.co.uk/software/pyqt/download5>`_ (recommended)
+ or `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
 
-If you don't use Anaconda, you need to run:
 
-   ``pip install --upgrade spyder``
+Then, to install Spyder and its other dependencies, run
+``
+    pip install spyder
+``
+
+**Important note**: This does not install the graphical Python libraries (i.e.
+PyQt5 or PyQt4) that Spyder depends on. Those have to be installed separately
+after installing Python. Please see their documentation for more on that.
 
 
 Run without installing
@@ -246,22 +227,69 @@ Run without installing
 
 You can execute Spyder without installing it first by following these steps:
 
-#. Unzip the source package
+#. Unzip the source package (or clone from Github, see next section)
 #. Change current directory to the unzipped directory
 #. Run Spyder with the command ``python bootstrap.py``
 #. (*Optional*) Build the documentation with ``python setup.py build_doc``.
 
-This is especially useful for beta-testing, troubleshooting and development 
+This is especially useful for beta-testing, troubleshooting and development
 of Spyder itself.
 
 |
 
+
+Updating Spyder
+---------------
+
+You can update Spyder by:
+
+* Updating Anaconda (recommended), WinPython, Python(x,y), MacPorts, or
+through your system package manager, if you installed via those options.
+
+    With Anaconda, just run
+    ``
+        conda update spyder
+    ``
+    to update Spyder specifically, and
+    ``
+        conda update anaconda
+    ``
+    to update the rest of the distribution as desired.
+
+* Or, if having installed Spyder via the advanced/crossplatform method,
+``pip``, run::
+    ``
+        pip install --upgrade spyder
+    ``
+  .. note::
+
+     This command will also update all Spyder dependencies
+
+|
+
+
 Installing the development version
 ----------------------------------
 
-If you want to try the next Spyder version, you have to:
+If you want to try the next Spyder version, you can!
+You may want to do this for fixing bugs in Spyder, adding new
+features, learning how Spyder works or just getting a taste of it.
+For more information, please see the CONTRIBUTING.md document included
+with the Spyder source or on Github, or for further detail consult the
+`online development wiki <https://github.com/spyder-ide/spyder/wiki>`_ .
+
+To do so:
 
 #. Install Spyder `requirements`_
+
+    The recommended and easiest way to do this is with ``conda``:
+    ``
+        conda install spyder
+        conda remove spyder
+    ``
+
+    This installs all of Spyder's dependencies into the environment along with
+    the stable/packaged version of Spyder itself, and then removes the latter.
 
 #. Install `Git <http://git-scm.com/downloads>`_, a powerful
    source control management tool.
@@ -270,18 +298,22 @@ If you want to try the next Spyder version, you have to:
 
    ``git clone https://github.com/spyder-ide/spyder.git``
 
+#. Run Spyder with the ``bootstrap.py`` script from within the cloned directory:
+   ``python bootstrap.py``
+
 #. To keep your repository up-to-date, run
 
    ``git pull``
-   
+
    inside the cloned directory.
 
-#. (*Optional*) If you want to read the documentation, you must build it first with
-   the command
-  
+#. (*Optional*) If you want to read the documentation, you must build it first
+    with the command
+
    ``python setup.py build_doc``
 
 |
+
 
 Help and support
 ----------------
@@ -290,5 +322,7 @@ Spyder websites:
 
 * For bug reports and feature requests you can go to our
   `website <https://github.com/spyder-ide/spyder/issues>`_.
+* For general and development-oriented information, visit
+  `our Github wiki <https://github.com/spyder-ide/spyder/wiki>`_.
 * For discussions and help requests, you can suscribe to our
   `Google Group <http://groups.google.com/group/spyderlib>`_.
