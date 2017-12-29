@@ -269,7 +269,7 @@ def test_edit_mutable_and_immutable_types(qtbot, monkeypatch):
                                                             readonly=True)
 
 
-def test_view_module_in_coledit(qtbot, monkeypatch):
+def test_view_module_in_coledit():
     """Check that modules don't produce an error when trying to open them in
     Variable Explorer, and are set as readonly. Regression test for #6080"""
 
