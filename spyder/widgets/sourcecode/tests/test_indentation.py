@@ -94,11 +94,11 @@ def test_fix_indentation(code_editor_indent_bot):
                 "\tprint(self.b)\n"
                 "\n"
                 )
-    # Fix indentation replaces tabs with 4 spaces and not indent_chars spaces.
-    fixed = ("    \n"
-             "class a():    \n"
-             "    self.b = 1\n"
-             "    print(self.b)\n"
+    # Fix indentation replaces tabs with indent_chars spaces.
+    fixed = ("  \n"
+             "class a():  \n"
+             "  self.b = 1\n"
+             "  print(self.b)\n"
              "\n"
              )
     editor.set_text(original)
