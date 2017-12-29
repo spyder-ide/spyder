@@ -16,8 +16,7 @@ import zmq
 # See issue 3332
 try:
     from OpenGL import GL
-except ImportError:
-    # pyopengl is not present when installed using conda
+except:
     pass
 
 # Local imports
