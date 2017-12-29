@@ -1322,13 +1322,14 @@ class CollectionsEditor(QDialog):
                 readonly = True
                 self.data_copy = data
             datalen = len(get_object_attrs(data))
-        self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
-                                              readonly=readonly, remote=remote)
+        self.widget = CollectionsEditorWidget(self, self.data_copy,
+                                              title=title, readonly=readonly,
+                                              remote=remote)
 
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
-        
+
         # Buttons configuration
         buttons = QDialogButtonBox.Ok
         if not readonly:

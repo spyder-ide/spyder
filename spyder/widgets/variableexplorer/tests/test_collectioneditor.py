@@ -19,6 +19,7 @@ except ImportError:
 # Third party imports
 import pandas
 import pytest
+from flaky import flaky
 
 # Local imports
 from spyder.widgets.variableexplorer.collectionseditor import (
@@ -165,7 +166,7 @@ def test_rename_and_duplicate_item_in_collection_editor():
             assert editor.model.get_data() == coll_copy + [coll_copy[0]]
 
 
-def test_edit_mutable_and_immutable_types(qtbot, monkeypatch):
+def test_edit_mutable_and_immutable_types(monkeypatch):
     """Check to ensure mutable types (lists, dicts) and individual values are
     editable, but not immutable ones (tuples) or anything inside of them,
     per #5991"""
@@ -269,10 +270,10 @@ def test_edit_mutable_and_immutable_types(qtbot, monkeypatch):
                                                             readonly=True)
 
 
+@flaky(max_runs=3)
 def test_view_module_in_coledit():
     """Check that modules don't produce an error when trying to open them in
     Variable Explorer, and are set as readonly. Regression test for #6080"""
-
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
     assert editor.widget.editor.readonly
