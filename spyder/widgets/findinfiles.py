@@ -29,7 +29,7 @@ from qtpy.QtCore import (QMutex, QMutexLocker, Qt, QThread, Signal, Slot,
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QComboBox, QSizePolicy,
                             QTreeWidgetItem, QVBoxLayout, QWidget,
                             QStyledItemDelegate, QStyleOptionViewItem,
-                            QApplication, QStyle)
+                            QApplication, QStyle, QMessageBox)
 
 # Local imports
 from spyder.config.base import _
@@ -51,7 +51,9 @@ OFF = 'off'
 CWD = 0
 PROJECT = 1
 FILE_PATH = 2
-EXTERNAL_PATH = 4
+SELECT_OTHER = 4
+CLEAR_LIST = 5
+EXTERNAL_PATHS = 7
 
 MAX_PATH_LENGTH = 60
 MAX_PATH_HISTORY = 15
@@ -235,12 +237,17 @@ class SearchInComboBox(QComboBox):
         ttip = _("Search in current opened file")
         self.setItemData(2, ttip, Qt.ToolTipRole)
 
+        self.insertSeparator(3)
+
         self.addItem(_("Select other directory"))
         ttip = _("Search in other folder present on the file system")
-        self.setItemData(3, ttip, Qt.ToolTipRole)
+        self.setItemData(4, ttip, Qt.ToolTipRole)
 
-        self.insertSeparator(3)
-        self.insertSeparator(5)
+        self.addItem(_("Clear this list"))
+        ttip = _("Clear the list of other directories")
+        self.setItemData(5, ttip, Qt.ToolTipRole)
+
+        self.insertSeparator(6)
 
         for path in external_path_history:
             self.add_external_path(path)
@@ -260,13 +267,19 @@ class SearchInComboBox(QComboBox):
         self.removeItem(self.findText(path))
         self.addItem(path)
         self.setItemData(self.count()-1, path, Qt.ToolTipRole)
-        while self.count() > MAX_PATH_HISTORY+6:
-            self.removeItem(6)
+        while self.count() > MAX_PATH_HISTORY+EXTERNAL_PATHS:
+            self.removeItem(EXTERNAL_PATHS)
 
     def get_external_paths(self):
         """Returns a list of the external paths listed in the combobox."""
         return [to_text_string(self.itemText(i))
-                for i in range(6, self.count())]
+                for i in range(EXTERNAL_PATHS, self.count())]
+
+    def clear_external_paths(self):
+        """Remove all the external paths listed in the combobox."""
+        while self.count() > EXTERNAL_PATHS:
+            self.removeItem(EXTERNAL_PATHS)
+        self.setCurrentIndex(0)
 
     def get_current_searchpath(self):
         """
@@ -294,14 +307,21 @@ class SearchInComboBox(QComboBox):
     def path_selection_changed(self):
         """Handles when the current index of the combobox changes."""
         idx = self.currentIndex()
-        if idx == EXTERNAL_PATH:
+        if idx == SELECT_OTHER:
             external_path = self.select_directory()
             if len(external_path) > 0:
                 self.add_external_path(external_path)
                 self.setCurrentIndex(self.count()-1)
             else:
                 self.setCurrentIndex(CWD)
-        elif idx > EXTERNAL_PATH:
+        elif idx == CLEAR_LIST:
+            reply = QMessageBox.question(
+                    self, _("Clear other directories"),
+                    _("Do you want to clear the list of other directories?"),
+                    QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.clear_external_paths()
+        elif idx >= EXTERNAL_PATHS:
             self.external_path = to_text_string(self.itemText(idx))
 
     @Slot()
@@ -334,13 +354,13 @@ class SearchInComboBox(QComboBox):
         """Used to handle key events on the QListView of the combobox."""
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Delete:
             index = self.view().currentIndex().row()
-            if index > EXTERNAL_PATH:
+            if index >= EXTERNAL_PATHS:
                 # Remove item and update the view.
                 self.removeItem(index)
                 self.showPopup()
                 # Set the view selection so that it doesn't bounce around.
                 new_index = min(self.count()-1, index)
-                new_index = 0 if new_index == EXTERNAL_PATH+1 else new_index
+                new_index = 0 if new_index < EXTERNAL_PATHS else new_index
                 self.view().setCurrentIndex(self.model().index(new_index, 0))
                 self.setCurrentIndex(new_index)
             return True
