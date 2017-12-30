@@ -279,7 +279,6 @@ class SearchInComboBox(QComboBox):
         """Remove all the external paths listed in the combobox."""
         while self.count() > EXTERNAL_PATHS:
             self.removeItem(EXTERNAL_PATHS)
-        self.setCurrentIndex(0)
 
     def get_current_searchpath(self):
         """
@@ -321,6 +320,7 @@ class SearchInComboBox(QComboBox):
                     QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.clear_external_paths()
+            self.setCurrentIndex(0)
         elif idx >= EXTERNAL_PATHS:
             self.external_path = to_text_string(self.itemText(idx))
 
