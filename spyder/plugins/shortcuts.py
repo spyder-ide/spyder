@@ -16,7 +16,7 @@ import sys
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
-                         QSortFilterProxyModel, Qt)
+                         QSortFilterProxyModel, Qt, Slot)
 from qtpy.QtGui import (QKeySequence, QRegExpValidator)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QDialogButtonBox, QGridLayout, QHBoxLayout, QLabel,
@@ -203,6 +203,24 @@ class ShortcutEditor(QDialog):
         # Signals
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
+
+    @Slot()
+    def reject(self):
+        """Slot for rejected signal."""
+        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
+        # buttons, if the cancel button was clicked without first setting focus
+        # to the button, it would cause a seg fault crash.
+        self.button_cancel.setFocus()
+        super().reject()
+
+    @Slot()
+    def accept(self):
+        """Slot for accepted signal."""
+        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
+        # buttons, if the ok button was clicked without first setting focus to
+        # the button, it would cause a seg fault crash.
+        self.button_ok.setFocus()
+        super().accept()
 
     def keyPressEvent(self, e):
         """Qt override."""
