@@ -9,9 +9,10 @@ coverage:
   precision: 2
   round: down
   range: "70...100"
-  
   status:
-    project: yes
+    project:
+      default:
+        threshold: 1%
     patch: no
     changes: no
     
