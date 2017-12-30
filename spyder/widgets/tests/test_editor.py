@@ -10,9 +10,9 @@ Tests for editor.py
 
 # Standard library imports
 try:
-    from unittest.mock import Mock
+    from unittest.mock import Mock, MagicMock
 except ImportError:
-    from mock import Mock # Python 2
+    from mock import Mock, MagicMock  # Python 2
 
 # Third party imports
 import pytest
@@ -466,6 +466,27 @@ def test_editor_splitter_init(editor_splitter_bot):
 
     assert es.count() == 1
     assert es.widget(0) == es.editorstack
+
+
+def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
+    """Check that tab works in find/replace dialog. Regression test #3674"""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    text = '  \nspam \nspam \nspam '
+    editor.set_text(text)
+    finder.show()
+    finder.show_replace()
+
+    # "Real world" test—more comprehensive but potentially less robust
+    assert finder.search_text.hasFocus()
+    assert not finder.replace_text.hasFocus()
+    qtbot.keyPress(finder.search_text, Qt.Key_Tab)
+    assert not finder.search_text.hasFocus()
+    assert finder.replace_text.hasFocus()
+
+    # Mock test—more isolated but probably less flimsy
+    finder.focusNextChild = MagicMock(name="focusNextChild")
+    qtbot.keyPress(finder.search_text, Qt.Key_Tab)
+    finder.focusNextChild.assert_called_once_with()
 
 
 if __name__ == "__main__":
