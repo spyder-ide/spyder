@@ -992,10 +992,19 @@ class FindInFilesWidget(QWidget):
 def test():
     """Run Find in Files widget test"""
     from spyder.utils.qthelpers import qapplication
+    from os.path import dirname
     app = qapplication()
     widget = FindInFilesWidget(None)
     widget.resize(640, 480)
     widget.show()
+    external_paths = [
+            dirname(__file__),
+            dirname(dirname(__file__)),
+            dirname(dirname(dirname(__file__))),
+            dirname(dirname(dirname(dirname(__file__))))
+            ]
+    for path in external_paths:
+        widget.find_options.path_selection_combo.add_external_path(path)
     sys.exit(app.exec_())
 
 
