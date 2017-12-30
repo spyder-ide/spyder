@@ -17,6 +17,7 @@ except ImportError:
 
 # Third party imports
 import pytest
+from flaky import flaky
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
@@ -483,6 +484,7 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
     finder.focusNextChild.assert_called_once_with()
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(platform.startswith('linux'),
                     reason="This test fails on Linux, for unknown reasons.")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
@@ -494,10 +496,13 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
     finder.show()
     finder.show_replace()
 
+    qtbot.wait(100)
     finder.search_text.setFocus()
+    qtbot.wait(100)
     assert finder.search_text.hasFocus()
     assert not finder.replace_text.hasFocus()
     qtbot.keyPress(finder.search_text, Qt.Key_Tab)
+    qtbot.wait(100)
     assert not finder.search_text.hasFocus()
     assert finder.replace_text.hasFocus()
 
