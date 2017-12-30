@@ -477,6 +477,7 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
     finder.show_replace()
 
     # "Real world" test—more comprehensive but potentially less robust
+    finder.search_text.setFocus()
     assert finder.search_text.hasFocus()
     assert not finder.replace_text.hasFocus()
     qtbot.keyPress(finder.search_text, Qt.Key_Tab)
