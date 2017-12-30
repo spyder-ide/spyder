@@ -157,7 +157,7 @@ def get_edit_extensions():
 # Detection of OS specific versions
 #==============================================================================
 def is_ubuntu():
-    "Detect if we are running in an Ubuntu-based distribution"
+    """Detect if we are running in an Ubuntu-based distribution"""
     if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
         release_info = open('/etc/lsb-release').read()
         if 'Ubuntu' in release_info:
@@ -169,7 +169,7 @@ def is_ubuntu():
 
 
 def is_gtk_desktop():
-    "Detect if we are running in a Gtk-based desktop"
+    """Detect if we are running in a Gtk-based desktop"""
     if sys.platform.startswith('linux'):
         xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
         if xdg_desktop:
@@ -185,7 +185,7 @@ def is_gtk_desktop():
 
 
 def is_kde_desktop():
-    "Detect if we are running in a KDE desktop"
+    """Detect if we are running in a KDE desktop"""
     if sys.platform.startswith('linux'):
         xdg_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '')
         if xdg_desktop:
@@ -200,8 +200,10 @@ def is_kde_desktop():
 
 
 def is_anaconda():
-    "Detect if we are running under Anaconda."
-    for var in os.environ:
-        if var.startswith('CONDA'):
-            return True
-    return False
+    """
+    Detect if we are running under Anaconda.
+
+    Taken from https://stackoverflow.com/a/47610844/438386
+    """
+    is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
+    return is_conda
