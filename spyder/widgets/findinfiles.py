@@ -24,7 +24,8 @@ import traceback
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
-from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot, QSize
+from qtpy.QtCore import (QMutex, QMutexLocker, Qt, QThread, Signal, Slot,
+                         QSize, QEvent)
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QComboBox, QSizePolicy,
                             QTreeWidgetItem, QVBoxLayout, QWidget,
                             QStyledItemDelegate, QStyleOptionViewItem,
@@ -245,6 +246,7 @@ class SearchInComboBox(QComboBox):
             self.add_external_path(path)
 
         self.currentIndexChanged.connect(self.path_selection_changed)
+        self.view().installEventFilter(self)
 
     def add_external_path(self, path):
         """
@@ -327,6 +329,22 @@ class SearchInComboBox(QComboBox):
             path = to_text_string(osp.abspath(to_text_string(path)))
             self.project_path = path
             self.model().item(PROJECT, 0).setEnabled(True)
+
+    def eventFilter(self, widget, event):
+        """Used to handle key events on the QListView of the combobox."""
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Delete:
+            index = self.view().currentIndex().row()
+            if index > EXTERNAL_PATH:
+                # Remove item and update the view.
+                self.removeItem(index)
+                self.showPopup()
+                # Set the view selection so that it doesn't bounce around.
+                new_index = min(self.count()-1, index)
+                new_index = 0 if new_index == EXTERNAL_PATH+1 else new_index
+                self.view().setCurrentIndex(self.model().index(new_index, 0))
+                self.setCurrentIndex(new_index)
+            return True
+        return QComboBox.eventFilter(self, widget, event)
 
     def __redirect_stdio_emit(self, value):
         """
