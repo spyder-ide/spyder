@@ -262,12 +262,12 @@ class SearchInComboBox(QComboBox):
         current position and added back at the end. If the maximum number of
         paths is reached, the oldest external path is removed from the list.
         """
-        if not os.path.exists(path):
+        if not osp.exists(path):
             return
         self.removeItem(self.findText(path))
         self.addItem(path)
-        self.setItemData(self.count()-1, path, Qt.ToolTipRole)
-        while self.count() > MAX_PATH_HISTORY+EXTERNAL_PATHS:
+        self.setItemData(self.count() - 1, path, Qt.ToolTipRole)
+        while self.count() > MAX_PATH_HISTORY + EXTERNAL_PATHS:
             self.removeItem(EXTERNAL_PATHS)
 
     def get_external_paths(self):
@@ -310,7 +310,7 @@ class SearchInComboBox(QComboBox):
             external_path = self.select_directory()
             if len(external_path) > 0:
                 self.add_external_path(external_path)
-                self.setCurrentIndex(self.count()-1)
+                self.setCurrentIndex(self.count() - 1)
             else:
                 self.setCurrentIndex(CWD)
         elif idx == CLEAR_LIST:
@@ -320,7 +320,7 @@ class SearchInComboBox(QComboBox):
                     QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.clear_external_paths()
-            self.setCurrentIndex(0)
+            self.setCurrentIndex(CWD)
         elif idx >= EXTERNAL_PATHS:
             self.external_path = to_text_string(self.itemText(idx))
 
@@ -359,7 +359,7 @@ class SearchInComboBox(QComboBox):
                 self.removeItem(index)
                 self.showPopup()
                 # Set the view selection so that it doesn't bounce around.
-                new_index = min(self.count()-1, index)
+                new_index = min(self.count() - 1, index)
                 new_index = 0 if new_index < EXTERNAL_PATHS else new_index
                 self.view().setCurrentIndex(self.model().index(new_index, 0))
                 self.setCurrentIndex(new_index)
