@@ -23,8 +23,10 @@ from spyder.widgets.findinfiles import (FindInFilesWidget, SearchInComboBox,
                                         CLEAR_LIST, PROJECT, FILE_PATH,
                                         QMessageBox)
 
-LOCATION = os.path.realpath(os.path.join(os.getcwd(),
-                                         os.path.dirname(__file__)))
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
+NONASCII_DIR = os.path.join(LOCATION, "èáïü Øαôå 字分误")
+if not osp.exists(NONASCII_DIR):
+    os.makedirs(NONASCII_DIR)
 
 
 def process_search_results(results):
@@ -55,12 +57,12 @@ def setup_findinfiles(qtbot, *args, **kwargs):
 def searchin_combobox_bot(qtbot):
     """Set up SearchInComboBox combobox."""
     external_path_history = [
-            osp.dirname(__file__),
-            osp.dirname(osp.dirname(__file__)),
-            osp.dirname(osp.dirname(osp.dirname(__file__))),
-            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__)))),
-            osp.dirname(osp.dirname(__file__)),
-            osp.join(osp.dirname(__file__), 'path_that_to_not_exists')
+            LOCATION,
+            osp.dirname(LOCATION),
+            osp.dirname(osp.dirname(LOCATION)),
+            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+            osp.dirname(LOCATION),
+            osp.join(LOCATION, 'path_that_does_not_exist')
             ]
     searchin_combobox = SearchInComboBox(external_path_history)
     qtbot.addWidget(searchin_combobox)
@@ -164,10 +166,10 @@ def test_add_external_paths(searchin_combobox_bot, mocker):
     # Assert that the external_path_history was added correctly to the
     # combobox
     expected_results = [
-            osp.dirname(__file__),
-            osp.dirname(osp.dirname(osp.dirname(__file__))),
-            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__)))),
-            osp.dirname(osp.dirname(__file__))
+            LOCATION,
+            osp.dirname(osp.dirname(LOCATION)),
+            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+            osp.dirname(LOCATION)
             ]
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
@@ -176,7 +178,7 @@ def test_add_external_paths(searchin_combobox_bot, mocker):
 
     # Add a new external path to the combobox. The new path is added at the
     # end of the combobox.
-    new_path = osp.join(osp.dirname(__file__), 'data')
+    new_path = NONASCII_DIR
     mocker.patch('spyder.widgets.findinfiles.getexistingdirectory',
                  return_value=new_path)
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
@@ -188,7 +190,7 @@ def test_add_external_paths(searchin_combobox_bot, mocker):
 
     # Add an external path that is already listed in the combobox. In this
     # case, the new path is removed from the list and is added back at the end.
-    new_path = osp.join(osp.dirname(__file__))
+    new_path = LOCATION
     mocker.patch('spyder.widgets.findinfiles.getexistingdirectory',
                  return_value=new_path)
     searchin_combobox.setCurrentIndex(SELECT_OTHER)
@@ -223,10 +225,10 @@ def test_clear_this_list(searchin_combobox_bot, mocker):
     searchin_combobox.setCurrentIndex(CLEAR_LIST)
 
     expected_results = [
-            osp.dirname(__file__),
-            osp.dirname(osp.dirname(osp.dirname(__file__))),
-            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__)))),
-            osp.dirname(osp.dirname(__file__))
+            LOCATION,
+            osp.dirname(osp.dirname(LOCATION)),
+            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+            osp.dirname(LOCATION)
             ]
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
@@ -251,10 +253,10 @@ def test_delete_path(searchin_combobox_bot, mocker):
     searchin_combobox.show()
 
     expected_results = [
-            osp.dirname(__file__),
-            osp.dirname(osp.dirname(osp.dirname(__file__))),
-            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__)))),
-            osp.dirname(osp.dirname(__file__))
+            LOCATION,
+            osp.dirname(osp.dirname(LOCATION)),
+            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+            osp.dirname(LOCATION)
             ]
 
     searchin_combobox.showPopup()
@@ -333,7 +335,7 @@ def test_set_project_path(qtbot):
 
     # Set the project path to an existing directory. For the purpose of this
     # test, it doesn't need to be a valid Spyder project path.
-    project_path = osp.dirname(__file__)
+    project_path = NONASCII_DIR
     find_options.set_project_path(project_path)
     assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is True
     assert find_options.project_path == project_path
@@ -355,10 +357,10 @@ def test_current_search_path(qtbot):
     FindInFilesWidget.
     """
     external_paths = [
-            osp.dirname(__file__),
-            osp.dirname(osp.dirname(__file__)),
-            osp.dirname(osp.dirname(osp.dirname(__file__))),
-            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__))))
+            LOCATION,
+            osp.dirname(LOCATION),
+            osp.dirname(osp.dirname(LOCATION)),
+            NONASCII_DIR
             ]
 
     findinfiles_widget = setup_findinfiles(
@@ -371,8 +373,8 @@ def test_current_search_path(qtbot):
     # For the purpose of this test, the project path doesn't need to be a
     # valid Spyder project path.
 
-    directory = osp.join(osp.dirname(__file__), "data")
-    project_path = osp.dirname(__file__)
+    directory = NONASCII_DIR
+    project_path = NONASCII_DIR
     file_path = osp.join(directory, "spam.py")
 
     find_options.set_directory(directory)
@@ -419,9 +421,9 @@ def test_max_history(qtbot, mocker):
     # In this case, the first path of the external_path_history was removed to
     # respect the MAX_PATH_HISTORY of 3.
     expected_results = [
-            osp.dirname(osp.dirname(osp.dirname(__file__))),
-            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__)))),
-            osp.dirname(osp.dirname(__file__))
+            osp.dirname(osp.dirname(LOCATION)),
+            osp.dirname(osp.dirname(osp.dirname(LOCATION))),
+            osp.dirname(LOCATION)
             ]
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results

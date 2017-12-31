@@ -9,6 +9,7 @@
 
 # Standard library imports
 import re
+import os
 import os.path as osp
 
 # 3rd party imports
@@ -18,6 +19,11 @@ import pytest
 from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.plugins.findinfiles import FindInFiles
 from spyder.widgets.findinfiles import SELECT_OTHER
+
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
+NONASCII_DIR = osp.join(LOCATION, "èáïü Øαôå 字分误")
+if not osp.exists(NONASCII_DIR):
+    os.makedirs(NONASCII_DIR)
 
 
 @pytest.fixture
@@ -63,10 +69,10 @@ def test_closing_plugin(qtbot, mocker):
 
     # Add external paths to the path_selection_combo.
     expected_results = [
-            osp.dirname(__file__),
-            osp.dirname(osp.dirname(osp.dirname(__file__))),
-            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__)))),
-            osp.dirname(osp.dirname(__file__))
+            LOCATION,
+            osp.dirname(LOCATION),
+            osp.dirname(osp.dirname(LOCATION)),
+            NONASCII_DIR
             ]
     for external_path in expected_results:
         mocker.patch('spyder.widgets.findinfiles.getexistingdirectory',
