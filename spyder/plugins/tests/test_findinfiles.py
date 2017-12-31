@@ -21,7 +21,7 @@ from spyder.plugins.findinfiles import FindInFiles
 from spyder.widgets.findinfiles import SELECT_OTHER
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
-NONASCII_DIR = osp.join(LOCATION, "èáïü Øαôå 字分误")
+NONASCII_DIR = osp.join(LOCATION, u"èáïü Øαôå 字分误")
 if not osp.exists(NONASCII_DIR):
     os.makedirs(NONASCII_DIR)
 
