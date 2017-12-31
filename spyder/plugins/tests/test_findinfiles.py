@@ -17,6 +17,7 @@ import pytest
 # Local imports
 from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.plugins.findinfiles import FindInFiles
+from spyder.widgets.findinfiles import SELECT_OTHER
 
 
 @pytest.fixture
@@ -50,7 +51,7 @@ def test_exclude_patterns_are_valid_regex():
 
 # ---- Tests for FindInFiles plugin
 
-def test_closing_plugin(qtbot):
+def test_closing_plugin(qtbot, mocker):
     """
     Test that the external paths listed in the combobox are saved and loaded
     correctly from the spyder config file.
@@ -68,7 +69,9 @@ def test_closing_plugin(qtbot):
             osp.dirname(osp.dirname(__file__))
             ]
     for external_path in expected_results:
-        path_selection_combo.add_external_path(external_path)
+        mocker.patch('spyder.widgets.findinfiles.getexistingdirectory',
+                     return_value=external_path)
+        path_selection_combo.setCurrentIndex(SELECT_OTHER)
     assert path_selection_combo.get_external_paths() == expected_results
 
     # Force the options to be saved to the config file. Something needs to be
