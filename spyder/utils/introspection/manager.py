@@ -318,10 +318,10 @@ class IntrospectionManager(QObject):
                                      signature=True,
                                      at_position=prev_info.position)
 
-        if resp['name']:
+        if resp['name']:     
             self.send_to_help.emit(
                 resp['name'], resp['argspec'],
-                resp['note'], resp['docstring'],
+                resp['note'], resp['docstring'] or resp['name'],
                 not prev_info.auto)
 
     def _handle_definition_result(self, resp, info, prev_info):
