@@ -20,7 +20,8 @@ from qtpy.QtCore import Qt
 from spyder.widgets import findinfiles
 from spyder.widgets.findinfiles import (FindInFilesWidget, SearchInComboBox,
                                         EXTERNAL_PATHS, SELECT_OTHER, CWD,
-                                        CLEAR_LIST, QMessageBox)
+                                        CLEAR_LIST, PROJECT, FILE_PATH,
+                                        QMessageBox)
 
 LOCATION = os.path.realpath(os.path.join(os.getcwd(),
                                          os.path.dirname(__file__)))
@@ -149,8 +150,7 @@ def test_case_sensitive_search(qtbot):
     assert matches == {'ham.txt': [(9, 0)]}
 
 
-# Tests for SearchInComboBox
-# -------------------------------
+# ---- Tests for SearchInComboBox
 
 def test_add_external_paths(searchin_combobox_bot, mocker):
     """
@@ -303,7 +303,8 @@ def test_delete_path(searchin_combobox_bot, mocker):
     assert searchin_combobox.count() == len(expected_results)+EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
     assert searchin_combobox.currentIndex() == searchin_combobox.count()-1
-    assert searchin_combobox.view().currentIndex().row() == searchin_combobox.count()-1
+    assert (searchin_combobox.view().currentIndex().row() ==
+            searchin_combobox.count()-1)
 
     # Delete the last remaining external path in the list.
     searchin_combobox.view().setCurrentIndex(
@@ -314,6 +315,97 @@ def test_delete_path(searchin_combobox_bot, mocker):
     assert searchin_combobox.get_external_paths() == []
     assert searchin_combobox.currentIndex() == CWD
     assert searchin_combobox.view().currentIndex().row() == CWD
+
+
+def test_set_project_path(qtbot):
+    """
+    Test setting the project path of the SearchInComboBox from the
+    FindInFilesWidget.
+    """
+    findinfiles_widget = setup_findinfiles(qtbot)
+    find_options = findinfiles_widget.find_options
+    path_selection_combo = find_options.path_selection_combo
+    findinfiles_widget.show()
+
+    assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is False
+    assert find_options.project_path is None
+    assert path_selection_combo.project_path is None
+
+    # Set the project path to an existing directory. For the purpose of this
+    # test, it doesn't need to be a valid Spyder project path.
+    project_path = osp.dirname(__file__)
+    find_options.set_project_path(project_path)
+    assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is True
+    assert find_options.project_path == project_path
+    assert path_selection_combo.project_path == project_path
+
+    # Disable the project path search in the widget.
+    path_selection_combo.setCurrentIndex(PROJECT)
+    find_options.disable_project_search()
+    assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is False
+    assert find_options.project_path is None
+    assert path_selection_combo.project_path is None
+    assert path_selection_combo.currentIndex() == CWD
+
+
+def test_current_search_path(qtbot):
+    """
+    Test that the expected search path is returned for the corresponding
+    option selected in the SearchInComboBox. This test is done using the
+    FindInFilesWidget.
+    """
+    external_paths = [
+            osp.dirname(__file__),
+            osp.dirname(osp.dirname(__file__)),
+            osp.dirname(osp.dirname(osp.dirname(__file__))),
+            osp.dirname(osp.dirname(osp.dirname(osp.dirname(__file__))))
+            ]
+
+    findinfiles_widget = setup_findinfiles(
+            qtbot, external_path_history=external_paths)
+    find_options = findinfiles_widget.find_options
+    path_selection_combo = find_options.path_selection_combo
+    findinfiles_widget.show()
+
+    # Set the project, file, and spyder path of the SearchInComboBox.
+    # For the purpose of this test, the project path doesn't need to be a
+    # valid Spyder project path.
+
+    directory = osp.join(osp.dirname(__file__), "data")
+    project_path = osp.dirname(__file__)
+    file_path = osp.join(directory, "spam.py")
+
+    find_options.set_directory(directory)
+    assert find_options.path == directory
+    assert path_selection_combo.path == directory
+
+    find_options.set_project_path(project_path)
+    assert find_options.project_path == project_path
+    assert path_selection_combo.project_path == project_path
+
+    find_options.set_file_path(file_path)
+    assert find_options.file_path == file_path
+    assert path_selection_combo.file_path == file_path
+
+    # Assert that the good path is returned for each option selected.
+
+    # Test for the current working directory :
+    path_selection_combo.setCurrentIndex(CWD)
+    assert path_selection_combo.get_current_searchpath() == directory
+    assert path_selection_combo.is_file_search() is False
+    # Test for the project path :
+    path_selection_combo.setCurrentIndex(PROJECT)
+    assert path_selection_combo.get_current_searchpath() == project_path
+    assert path_selection_combo.is_file_search() is False
+    # Test for the file path :
+    path_selection_combo.setCurrentIndex(FILE_PATH)
+    assert path_selection_combo.get_current_searchpath() == file_path
+    assert path_selection_combo.is_file_search() is True
+    # Test for the external file path :
+    for i, path in enumerate(external_paths):
+        path_selection_combo.setCurrentIndex(EXTERNAL_PATHS+i)
+        assert path_selection_combo.get_current_searchpath() == path
+        assert path_selection_combo.is_file_search() is False
 
 
 def test_max_history(qtbot, mocker):
