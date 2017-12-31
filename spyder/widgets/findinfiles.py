@@ -35,7 +35,7 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.encoding import is_text_file
+from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
@@ -331,7 +331,7 @@ class SearchInComboBox(QComboBox):
         directory = getexistingdirectory(
                 self, _("Select directory"), self.path)
         if directory:
-            directory = to_text_string(osp.abspath(to_text_string(directory)))
+            directory = to_unicode_from_fs(osp.abspath(directory))
         self.__redirect_stdio_emit(True)
         return directory
 
@@ -346,7 +346,7 @@ class SearchInComboBox(QComboBox):
             if self.currentIndex() == PROJECT:
                 self.setCurrentIndex(CWD)
         else:
-            path = to_text_string(osp.abspath(to_text_string(path)))
+            path = osp.abspath(path)
             self.project_path = path
             self.model().item(PROJECT, 0).setEnabled(True)
 
