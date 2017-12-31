@@ -153,6 +153,11 @@ class IconProvider(QFileIconProvider):
                     icon = ima.icon(self.OFFICE_FILES[extension])
 
                 if mime_type is not None:
+                    # The replace is a fix for issue 5080.  In the Windows
+                    # registry, .sql has a mimetype of text\plain instead of
+                    # text/plain therefore mimetypes is returning
+                    # it incorrectly.
+                    mime_type.replace('\\', '/')
                     file_type, bin_name = mime_type.split('/')
                     if file_type == 'text':
                         icon = ima.icon('TextFileIcon')
