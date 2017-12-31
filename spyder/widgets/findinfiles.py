@@ -24,12 +24,12 @@ import traceback
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
-from qtpy.QtCore import (QMutex, QMutexLocker, Qt, QThread, Signal, Slot,
-                         QSize, QEvent)
-from qtpy.QtWidgets import (QHBoxLayout, QLabel, QComboBox, QSizePolicy,
-                            QTreeWidgetItem, QVBoxLayout, QWidget,
+from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QSize, Qt, QThread,
+                         Signal, Slot)
+from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
+                            QMessageBox, QSizePolicy, QStyle,
                             QStyledItemDelegate, QStyleOptionViewItem,
-                            QApplication, QStyle, QMessageBox)
+                            QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
