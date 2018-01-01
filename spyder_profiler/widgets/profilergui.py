@@ -17,6 +17,7 @@ http://docs.python.org/library/profile.html
 from __future__ import with_statement
 import os
 import os.path as osp
+from itertools import islice
 import sys
 import time
 import re
@@ -535,8 +536,10 @@ class ProfilerDataTree(QTreeWidget):
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
 
-    def format_measure(self, measure):
+    @staticmethod
+    def format_measure(measure):
         """Get format and units for data coming from profiler task."""
+        measure = abs(measure)
         # For number of calls
         if isinstance(measure, int):
             return to_text_string(measure)
@@ -563,8 +566,7 @@ class ProfilerDataTree(QTreeWidget):
             measure = u"{0:.0f}h:{1:.0f}min".format(h, m)
         return measure
 
-    def color_string(self, args):
-        x, fmt = args
+    def color_string(self, x):
         diff_str = ""
         color = "black"
 
@@ -572,18 +574,14 @@ class ProfilerDataTree(QTreeWidget):
             difference = x[0] - x[1]
             if difference:
                 color, sign = ('green', '-') if difference < 0 else ('red', '+')
-                diff_str = "".join(
-                        [sign, fmt[1] % self.format_measure(abs(difference))])
-        return [fmt[0] % self.format_measure(x[0]), [diff_str, color]]
+                diff_str = '{}{}'.format(sign, self.format_measure(difference))
+        return [self.format_measure(x[0]), [diff_str, color]]
 
     def format_output(self, child_key):
         """ Formats the data"""
-        if True:
-            data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-            format_data = zip(list(zip(*data))[1:4],
-                              [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])
-            return (map(self.color_string, format_data))
-            
+        data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
+        return (map(self.color_string, islice(zip(*data), 1, 4)))
+
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
         for child_key in children_list:
