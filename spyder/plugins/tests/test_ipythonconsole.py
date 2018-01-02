@@ -554,7 +554,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
     # Test clear magic
     shell.clear_console()
-    qtbot.wait(500)
+    qtbot.wait(1000)
     assert '\nipdb> ' == control.toPlainText()
 
     # Test reset magic
