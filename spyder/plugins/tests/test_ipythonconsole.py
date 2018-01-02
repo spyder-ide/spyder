@@ -103,6 +103,58 @@ def ipyconsole(request):
 #==============================================================================
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_tab_rename_for_slaves(ipyconsole, qtbot):
+    """Test slave clients are renamed correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    cf = ipyconsole.get_current_client().connection_file
+    ipyconsole._create_client_for_kernel(cf, None, None, None)
+    qtbot.wait(1000)
+
+    # Rename slave
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Assert both clients have the same name
+    assert 'foo' in ipyconsole.get_clients()[0].get_name()
+    assert 'foo' in ipyconsole.get_clients()[1].get_name()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_no_repeated_tabs_name(ipyconsole, qtbot):
+    """Test that tabs can't have repeated given names."""
+    # Rename first client
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Create a new client and try to rename it
+    ipyconsole.create_new_client()
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Assert the rename didn't take place
+    client_name = ipyconsole.get_current_client().get_name()
+    assert '2' in client_name
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
+    """Test that tabs preserve their names after they are moved."""
+    # Create a new client
+    ipyconsole.create_new_client()
+
+    # Move tabs
+    ipyconsole.tabwidget.tabBar().moveTab(0, 1)
+
+    # Assert the second client is in the first position
+    client_name = ipyconsole.get_clients()[0].get_name()
+    assert '2' in client_name
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_conf_env_vars(ipyconsole, qtbot):
     """Test that kernels have env vars set by our kernel spec."""
     # Wait until the window is fully up
