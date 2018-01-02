@@ -5,12 +5,12 @@
 #
 """Tests for the Editor plugin."""
 
-# Third party imports
-import pytest
+# Standard library imports
 import os
 import os.path as osp
-from flaky import flaky
 
+# Third party imports
+import pytest
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -58,7 +58,6 @@ def setup_editor(qtbot, monkeypatch):
     editor.introspector.plugin_manager.close()
 
 
-@flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is not None,
                     reason="This test fails too much in the CI :(")
 @pytest.mark.skipif(not JEDI_010,
