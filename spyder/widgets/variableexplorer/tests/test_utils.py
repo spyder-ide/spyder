@@ -17,9 +17,10 @@ import pytest
 
 # Local imports
 from spyder.config.base import get_supported_types
+from spyder.py3compat import PY2
 from spyder.widgets.variableexplorer.utils import (sort_against,
-    is_supported, value_to_display)
-
+                                                   is_supported,
+                                                   value_to_display)
 
 def generate_complex_object():
     """Taken from issue #4221."""
@@ -63,6 +64,16 @@ def test_none_values_are_supported():
     assert is_supported(none_list, filters=tuple(supported_types[mode]))
     assert is_supported(none_dict, filters=tuple(supported_types[mode]))
     assert is_supported(none_tuple, filters=tuple(supported_types[mode]))
+
+
+def test_str_subclass_display():
+    """Test for value_to_display of subclasses of str/basestring."""
+    class Test(str):
+        def __repr__(self):
+            return 'test'
+    value = Test()
+    value_display = value_to_display(value)
+    assert 'Test object' in value_display
 
 
 def test_default_display():
@@ -197,6 +208,18 @@ def test_datetime_display():
                               1: test_datetime,
                               2: test_timedelta_2}) ==
             ("{0:2017-12-18, 1:2017-12-18 13:43:02, 2:1:00:00}"))
+
+
+def test_str_in_container_display():
+    """Test that strings are displayed correctly inside lists or dicts."""
+    # Assert that both bytes and unicode return the right display
+    assert value_to_display([b'a', u'b']) == "['a', 'b']"
+
+    # Encoded unicode gives bytes and it can't be transformed to
+    # unicode again. So this test the except part of
+    # is_binary_string(value) in value_to_display
+    if PY2:
+        assert value_to_display([u'Э'.encode('cp1251')]) == "['\xdd']"
 
 
 def test_set_display():
