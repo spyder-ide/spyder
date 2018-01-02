@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, STDERR, STDOUT
+from spyder.config.base import _, DEBUG, PYTEST, STDERR, STDOUT
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -610,6 +610,9 @@ class EditorStack(QWidget):
         # File types and filters used by the Save As dialog
         self.edit_filetypes = None
         self.edit_filters = None
+
+        # For testing
+        self.save_dialog_on_tests = not PYTEST
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -1616,7 +1619,8 @@ class EditorStack(QWidget):
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(index):
                     return False
-            elif finfo.editor.document().isModified():
+            elif (finfo.editor.document().isModified() and
+                  self.save_dialog_on_tests):
 
                 self.msgbox = QMessageBox(
                         QMessageBox.Question,

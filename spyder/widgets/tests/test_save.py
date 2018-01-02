@@ -50,12 +50,17 @@ def base_editor_bot(qtbot):
 
 
 @pytest.fixture
-def editor_bot(base_editor_bot):
+def editor_bot(base_editor_bot, request):
     """
     Set up EditorStack with CodeEditors containing some Python code.
     The cursor is at the empty line below the code.
     """
     editor_stack, qtbot = base_editor_bot
+
+    show_save_dialog = request.node.get_marker('show_save_dialog')
+    if show_save_dialog:
+        editor_stack.save_dialog_on_tests = True
+
     qtbot.addWidget(editor_stack)
     add_files(editor_stack)
     return editor_stack, qtbot
@@ -84,6 +89,7 @@ def editor_splitter_layout_bot(editor_splitter_bot):
 
 # Tests
 # -------------------------------
+@pytest.mark.show_save_dialog
 def test_save_if_changed(editor_bot, mocker):
     """Test EditorStack.save_if_changed()."""
     editor_stack, qtbot = editor_bot
