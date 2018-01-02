@@ -88,10 +88,10 @@ def is_type_text_string(obj):
     like an instance of a class that extends the basestring class."""
     if PY2:
         # Python 2
-        return type(obj) == basestring
+        return type(obj) in [str, unicode]
     else:
         # Python 3
-        return type(obj) == str
+        return type(obj) in [str, bytes]
 
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,

@@ -411,17 +411,23 @@ def value_to_display(value, minmax=False, level=0):
             else:
                 display = 'DatetimeIndex'
         elif is_binary_string(value):
-            try:
-                display = to_text_string(value, 'utf8')
-            except:
+            if is_type_text_string(value):
+                try:
+                    display = to_text_string(value, 'utf8')
+                except:
+                    display = value
+                if level > 0:
+                    display = (to_binary_string("'") + display +
+                               to_binary_string("'"))
+            else:
+                display = default_display(value)
+        elif is_text_string(value):
+            if is_type_text_string(value):
                 display = value
-            if level > 0:
-                display = (to_binary_string("'") + display +
-                           to_binary_string("'"))
-        elif is_text_string(value) and is_type_text_string(value):
-            display = value
-            if level > 0:
-                display = u"'" + display + u"'"
+                if level > 0:
+                    display = u"'" + display + u"'"
+            else:
+                display = default_display(value)
         elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
               isinstance(value, datetime.date) or
               isinstance(value, datetime.timedelta) or
