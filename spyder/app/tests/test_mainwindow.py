@@ -532,8 +532,7 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt',
-                    reason="It times out in our CIs and fails on Windows.")
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
@@ -568,10 +567,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
 
     # Assert its contents are the expected ones
     file_text = editorstack.get_current_editor().toPlainText()
-    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n'
-
-    # Close last file (else tests hang here)
-    editorstack.close_file(force=True)
+    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
 
     # Close project
     projects.close_project()
