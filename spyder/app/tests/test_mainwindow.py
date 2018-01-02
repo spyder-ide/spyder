@@ -32,7 +32,6 @@ from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
-from spyder.utils.test import close_save_message_box
 
 #==============================================================================
 # Constants
@@ -167,7 +166,6 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
     main_window.editor.close_file()
 
 
@@ -532,8 +530,7 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt',
-                    reason="It times out in our CIs and fails on Windows.")
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
@@ -568,10 +565,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
 
     # Assert its contents are the expected ones
     file_text = editorstack.get_current_editor().toPlainText()
-    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n'
-
-    # Close last file (else tests hang here)
-    editorstack.close_file(force=True)
+    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
 
     # Close project
     projects.close_project()
@@ -751,7 +745,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT_WHEEL, reason="It times out sometimes on PyQt wheels")
 def test_close_when_file_is_changed(main_window, qtbot):
     """Test closing spyder when there is a file with modifications open."""
     # Wait until the window is fully up
@@ -765,13 +758,8 @@ def test_close_when_file_is_changed(main_window, qtbot):
     editor = editorstack.get_current_editor()
     editor.document().setModified(True)
 
-    # Close.main-window
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
-    main_window.close()
-
     # Wait for the segfault
     qtbot.wait(3000)
-
 
 
 @flaky(max_runs=3)

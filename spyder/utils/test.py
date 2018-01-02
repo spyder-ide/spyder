@@ -25,19 +25,3 @@ def close_message_box(qtbot):
     for w in top_level_widgets:
         if isinstance(w, QMessageBox):
             qtbot.keyClick(w, Qt.Key_Enter)
-
-def close_save_message_box(qtbot):
-    """
-    Closes QMessageBox's for save that can appear when testing.
-
-    You can use this with QTimer to close a QMessageBox for save functions.
-    Before calling anything that may show a QMessageBox for save call:
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
-    """
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, QMessageBox):
-            if os.name == 'nt':
-               qtbot.keyClick(w, Qt.Key_Enter)
-            else:
-               qtbot.keyClick(w, Qt.Key_N, modifier=Qt.ShiftModifier)
