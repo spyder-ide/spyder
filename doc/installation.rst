@@ -1,7 +1,7 @@
 Installation
 ============
 
-Spyder is quite easy to install on Windows, Linux and MacOS X. Just the read the
+Spyder is quite easy to install on Windows, Linux and macOS. Just the read the
 following instructions with care.
 
 Installing on Windows Vista/7/8/10
@@ -12,9 +12,9 @@ The easy way
 
 Spyder is already included in these *Python Scientific Distributions*:
 
-#. `Anaconda <http://continuum.io/downloads.html>`_
-#. `WinPython <https://winpython.github.io/>`_
-#. `Python(x,y) <https://code.google.com/p/pythonxy>`_
+* `Anaconda <https://www.anaconda.com/download/>`_
+* `WinPython <https://winpython.github.io/>`_
+* `Python(x,y) <https://code.google.com/p/pythonxy>`_
 
 You can start using it immediately after installing one of them (you only need
 to install one!).
@@ -54,24 +54,15 @@ You can update Spyder by:
 
 |
 
-Installing on MacOS X
-----------------------
+Installing on macOS
+-------------------
 
 The easy way
 ~~~~~~~~~~~~
 
-Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, you have
-two alternatives:
-
-#. Use the `Anaconda <http://continuum.io/downloads.html>`_ Python distribution.
-
-#. Use our DMG installers, which can be found
-   `here <https://github.com/spyder-ide/spyder/releases>`_.
-
-  .. note::
-     
-     The minimal version to run our DMG's is Mavericks (10.9) since
-     Spyder 2.3.5. Previous versions work on Lion (10.7) or higher.
+Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
+in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution,
+which comes with everything you need to get started in an all-in-one package.
 
 
 The hard way
@@ -98,10 +89,21 @@ __ http://www.macports.org/ports.php?by=name&substr=spyder
 Installing on Linux
 -------------------
 
+The easy way
+~~~~~~~~~~~~
+
+Thanks to the Spyder team and `Anaconda <https://www.anaconda.com/>`_, Spyder is included
+in the `Anaconda <https://www.anaconda.com/download/>`_ Python distribution,
+which comes with everything you need to get started in an all-in-one package.
+
+
+The harder way
+~~~~~~~~~~~~~~
+
 Please refer to the `Requirements`_ section to see what other packages you
 might need.
 
-#. **Ubuntu**:
+**Ubuntu**:
 
    * Using the official package manager: ``sudo apt-get install spyder``.
 
@@ -115,7 +117,8 @@ might need.
      * Installing: ``sudo pip install spyder``
      * Updating: ``sudo pip install -U spyder``
 
-#. **Debian Unstable**:
+     
+**Debian Unstable**:
   
    Using the package manager: ``sudo apt-get install spyder``
 
@@ -124,7 +127,7 @@ might need.
    __ http://packages.debian.org/fr/sid/spyder.
 
 
-#. **Other Distributions**
+**Other Distributions**
 
    Spyder is also available in other GNU/Linux distributions, like
 
@@ -200,6 +203,10 @@ The requirements to run Spyder are:
 * `Numpydoc <https://github.com/numpy/numpydoc>`_ Used by Jedi to get return types for
   functions with Numpydoc docstrings.
 
+* `Cloudpickle <https://github.com/cloudpipe/cloudpickle>`_ Serialize variables in the
+  IPython kernel to send them to Spyder.
+
+
 Optional modules
 ~~~~~~~~~~~~~~~~
 
@@ -225,11 +232,11 @@ Optional modules
 Installation procedure
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. If you use Anaconda, you need to run this command to install Spyder:
+If you use Anaconda, you need to run this command to install Spyder:
 
    ``conda install spyder``
 
-2. If you don't use Anaconda, you need to run:
+If you don't use Anaconda, you need to run:
 
    ``pip install --upgrade spyder``
 

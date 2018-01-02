@@ -33,6 +33,7 @@ requirements:
     - pyzmq
     - chardet >=2.0.0
     - numpydoc
+    - cloudpickle
 
 about:
   home: https://github.com/spyder-ide/spyder

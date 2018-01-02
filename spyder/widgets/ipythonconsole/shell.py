@@ -107,12 +107,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         if os.name == 'nt':
             dirname = dirname.replace(u"\\", u"\\\\")
 
-        code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
-        if self._reading:
-            self.kernel_client.input(u'!' + code)
-        else:
-            self.silent_execute(code)
-        self._cwd = dirname
+        if not self.external_kernel:
+            code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
+            if self._reading:
+                self.kernel_client.input(u'!' + code)
+            else:
+                self.silent_execute(code)
+            self._cwd = dirname
 
     def get_cwd(self):
         """Update current working directory.
@@ -226,18 +227,18 @@ the sympy module (e.g. plot)
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
         self.reset_namespace(silent=True, warning=warning)
 
-    def reset_namespace(self, warning=False, silent=True):
+    def reset_namespace(self, warning=False, silent=True, message=False):
         """Reset the namespace by removing all names defined by the user."""
-        reset_str = _("Reset IPython namespace")
-        warn_str = _("All user-defined variables will be removed."
-                     "<br>Are you sure you want to reset the namespace?")
+        reset_str = _("Remove all variables")
+        warn_str = _("All user-defined variables will be removed. "
+                     "Are you sure you want to proceed?")
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
             box.setWindowTitle(reset_str)
             box.set_checkbox_text(_("Don't show again."))
             box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            box.setDefaultButton(QMessageBox.No)
+            box.setDefaultButton(QMessageBox.Yes)
 
             box.set_checked(False)
             box.set_check_visible(True)
@@ -256,10 +257,19 @@ the sympy module (e.g. plot)
             self.dbg_exec_magic('reset', '-f')
         else:
             if silent:
+                if message:
+                    self.reset()
+                    self._append_html(_("<br><br>Removing all variables..."
+                                        "\n<hr>"),
+                                      before_prompt=False)
                 self.silent_execute("%reset -f")
                 self.refresh_namespacebrowser()
             else:
                 self.execute("%reset -f")
+
+            if not self.external_kernel:
+                self.silent_execute(
+                    'get_ipython().kernel.close_all_mpl_figures()')
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""

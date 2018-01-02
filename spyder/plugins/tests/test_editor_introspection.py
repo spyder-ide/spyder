@@ -5,12 +5,12 @@
 #
 """Tests for the Editor plugin."""
 
-# Third party imports
-import pytest
+# Standard library imports
 import os
 import os.path as osp
-from flaky import flaky
 
+# Third party imports
+import pytest
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -73,11 +73,11 @@ def test_introspection(setup_editor):
 
     # Complete fr --> from
     qtbot.keyClicks(code_editor, 'fr')
-    qtbot.wait(5000)
+    qtbot.wait(20000)
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=5000) as sig:
+                          timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "from" in sig.args[0]
 

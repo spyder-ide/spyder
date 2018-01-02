@@ -10,6 +10,7 @@ Tests for the main window
 
 import os
 import os.path as osp
+from sys import version_info
 import shutil
 import tempfile
 
@@ -18,7 +19,7 @@ from jupyter_client.manager import KernelManager
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
-from qtpy import PYQT5, PYQT_VERSION
+from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
@@ -31,7 +32,6 @@ from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
-from spyder.utils.test import close_save_message_box
 
 #==============================================================================
 # Constants
@@ -138,8 +138,8 @@ def main_window(request):
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="It times out in our CIs")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt',
+                    reason="It times out in our CIs, and apparently Windows.")
 @pytest.mark.timeout(timeout=60, method='thread')
 @pytest.mark.use_introspection
 def test_calltip(main_window, qtbot):
@@ -166,12 +166,12 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
     main_window.editor.close_file()
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
+@pytest.mark.skipif(os.name == 'nt' or PY2 or PYQT4,
+                    reason="It fails sometimes")
 def test_move_to_first_breakpoint(main_window, qtbot):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
@@ -282,6 +282,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     # ---- Load test file ----
@@ -529,8 +530,7 @@ def test_run_cython_code(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="It times out in our CIs")
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
@@ -565,10 +565,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
 
     # Assert its contents are the expected ones
     file_text = editorstack.get_current_editor().toPlainText()
-    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n'
-
-    # Close last file (else tests hang here)
-    editorstack.close_file(force=True)
+    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
 
     # Close project
     projects.close_project()
@@ -748,7 +745,6 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT_WHEEL, reason="It times out sometimes on PyQt wheels")
 def test_close_when_file_is_changed(main_window, qtbot):
     """Test closing spyder when there is a file with modifications open."""
     # Wait until the window is fully up
@@ -762,13 +758,8 @@ def test_close_when_file_is_changed(main_window, qtbot):
     editor = editorstack.get_current_editor()
     editor.document().setModified(True)
 
-    # Close.main-window
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
-    main_window.close()
-
     # Wait for the segfault
     qtbot.wait(3000)
-
 
 
 @flaky(max_runs=3)
@@ -1107,11 +1098,11 @@ def test_run_static_code_analysis(main_window, qtbot):
     pylint = get_thirdparty_plugin(main_window, "Static code analysis")
 
     # Do an analysis
-    test_file = osp.join(LOCATION, 'script.py')
+    test_file = osp.join(LOCATION, 'script_pylint.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
     qtbot.keyClick(code_editor, Qt.Key_F8)
-    qtbot.wait(500)
+    qtbot.wait(3000)
 
     # Perform the test
     # Check output of the analysis

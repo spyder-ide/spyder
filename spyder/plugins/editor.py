@@ -246,7 +246,8 @@ class EditorConfigPage(PluginConfigPage):
         pep8_label = QLabel(_("<i>(Refer to the {} page)</i>").format(pep_url))
         pep8_label.setOpenExternalLinks(True)
         is_pyflakes = codeanalysis.is_pyflakes_installed()
-        is_pep8 = codeanalysis.get_checker_executable('pep8') is not None
+        is_pep8 = codeanalysis.get_checker_executable(
+                'pycodestyle') is not None
         pyflakes_box = newcb(_("Real-time code analysis"),
                       'code_analysis/pyflakes', default=True,
                       tip=_("<p>If enabled, Python source code will be analyzed "
@@ -1364,20 +1365,22 @@ class Editor(SpyderPluginWidget):
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 
-    @Slot(str, int, str)
-    def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
+    @Slot(str, str, str)
+    def file_saved_in_editorstack(self, editorstack_id_str,
+                                  original_filename, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.file_saved_in_other_editorstack(index, filename)
+                editorstack.file_saved_in_other_editorstack(original_filename,
+                                                            filename)
 
-    @Slot(str, int, str)
+    @Slot(str, str, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            index, filename):
+                                            original_filename, filename):
         """A file was renamed in data in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.rename_in_data(index, filename)
+                editorstack.rename_in_data(original_filename, filename)
 
     def set_editorstack_for_introspection(self):
         """
@@ -1553,9 +1556,10 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_analysis_results()
         index = editorstack.get_stack_index()
         if index != -1:
+            filename = editorstack.data[index].filename
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
-                    other_editorstack.set_analysis_results(index, results)
+                    other_editorstack.set_analysis_results(filename, results)
         self.update_code_analysis_actions()
             
     def update_todo_menu(self):
@@ -1584,9 +1588,10 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_todo_results()
         index = editorstack.get_stack_index()
         if index != -1:
+            filename = editorstack.data[index].filename
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
-                    other_editorstack.set_todo_results(index, results)
+                    other_editorstack.set_todo_results(filename, results)
         self.update_todo_actions()
             
     def refresh_eol_chars(self, os_name):
@@ -1766,7 +1771,7 @@ class Editor(SpyderPluginWidget):
             # QString when triggered by a Qt signal
             fname = osp.abspath(to_text_string(fname))
             index = current_es.has_filename(fname)
-            if index and not current_es.close_file(index):
+            if index is not None and not current_es.close_file(index):
                 return
         
         # Creating the editor widget in the first editorstack (the one that
@@ -1788,7 +1793,7 @@ class Editor(SpyderPluginWidget):
         """Update recent file menu"""
         recent_files = []
         for fname in self.recent_files:
-            if not self.is_file_opened(fname) and osp.isfile(fname):
+            if self.is_file_opened(fname) is None and osp.isfile(fname):
                 recent_files.append(fname)
         self.recent_file_menu.clear()
         if recent_files:
@@ -1877,15 +1882,23 @@ class Editor(SpyderPluginWidget):
                 filenames = [osp.normpath(fname) for fname in filenames]
             else:
                 return
-            
+
         focus_widget = QApplication.focusWidget()
-        if self.dockwidget and not self.ismaximized and\
-           (not self.dockwidget.isAncestorOf(focus_widget)\
-            and not isinstance(focus_widget, CodeEditor)):
+        if self.editorwindows and not self.dockwidget.isVisible():
+            # We override the editorwindow variable to force a focus on
+            # the editor window instead of the hidden editor dockwidget.
+            # See PR #5742.
+            if editorwindow not in self.editorwindows:
+                editorwindow = self.editorwindows[0]
+            editorwindow.setFocus()
+            editorwindow.raise_()
+        elif (self.dockwidget and not self.ismaximized
+              and not self.dockwidget.isAncestorOf(focus_widget)
+              and not isinstance(focus_widget, CodeEditor)):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
-        
+
         def _convert(fname):
             fname = osp.abspath(encoding.to_unicode_from_fs(fname))
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
@@ -2072,7 +2085,7 @@ class Editor(SpyderPluginWidget):
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             for editorstack in self.editorstacks:
-                editorstack.rename_in_data(index,
+                editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
         
     

@@ -313,7 +313,7 @@ def isdefined(obj, force_import=False, namespace=None):
     for attr in attr_list:
         try:
             attr_not_found = not hasattr(eval(base, namespace), attr)
-        except SyntaxError:
+        except (SyntaxError, AttributeError):
             return False
         if attr_not_found:
             if force_import:

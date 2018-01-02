@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, STDERR, STDOUT
+from spyder.config.base import _, DEBUG, PYTEST, STDERR, STDOUT
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -440,8 +440,8 @@ class EditorStack(QWidget):
     zoom_out = Signal()
     zoom_reset = Signal()
     sig_close_file = Signal(str, str)
-    file_saved = Signal(str, int, str)
-    file_renamed_in_data = Signal(str, int, str)
+    file_saved = Signal(str, str, str)
+    file_renamed_in_data = Signal(str, str, str)
     create_new_window = Signal()
     opened_files_list_changed = Signal()
     analysis_results_changed = Signal()
@@ -595,6 +595,9 @@ class EditorStack(QWidget):
         # File types and filters used by the Save As dialog
         self.edit_filetypes = None
         self.edit_filters = None
+
+        # For testing
+        self.save_dialog_on_tests = not PYTEST
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -1231,7 +1234,10 @@ class EditorStack(QWidget):
             self.tabs.setTabToolTip(index, tab_tip)
         self.tabs.blockSignals(False)
 
-    def rename_in_data(self, index, new_filename):
+    def rename_in_data(self, original_filename, new_filename):
+        index = self.has_filename(original_filename)
+        if index is None:
+            return
         finfo = self.data[index]
         if osp.splitext(finfo.filename)[1] != osp.splitext(new_filename)[1]:
             # File type has changed!
@@ -1319,10 +1325,20 @@ class EditorStack(QWidget):
             return self.data[self.get_stack_index()].filename
 
     def has_filename(self, filename):
+        """Return the self.data index position for the filename.
+
+        Args:
+            filename: Name of the file to search for in self.data.
+
+        Returns:
+            The self.data index for the filename.  Returns None
+            if the filename is not found in self.data.
+        """
         fixpath = lambda path: osp.normcase(osp.realpath(path))
         for index, finfo in enumerate(self.data):
             if fixpath(filename) == fixpath(finfo.filename):
                 return index
+        return None
 
     def set_current_filename(self, filename):
         """Set current filename and return the associated editor instance"""
@@ -1334,6 +1350,18 @@ class EditorStack(QWidget):
             return editor
 
     def is_file_opened(self, filename=None):
+        """Return if filename is in the editor stack.
+
+        Args:
+            filename: Name of the file to search for.  If filename is None,
+                then checks if any file is open.
+
+        Returns:
+            True: If filename is None and a file is open.
+            False: If filename is None and no files are open.
+            None: If filename is not None and the file isn't found.
+            integer: Index of file name in editor stack.
+        """
         if filename is None:
             # Is there any file opened?
             return len(self.data) > 0
@@ -1469,7 +1497,21 @@ class EditorStack(QWidget):
 
     #------ Save
     def save_if_changed(self, cancelable=False, index=None):
-        """Ask user to save file if modified"""
+        """Ask user to save file if modified.
+
+        Args:
+            cancelable: Show Cancel button.
+            index: File to check for modification.
+
+        Returns:
+            False when save() fails or is cancelled.
+            True when save() is successful, there are no modifications,
+                or user selects No or NoToAll.
+
+        This function controls the message box prompt for saving
+        changed files.  The actual save is performed in save() for
+        each index processed.
+        """
         if index is None:
             indexes = list(range(self.get_stack_count()))
         else:
@@ -1491,9 +1533,10 @@ class EditorStack(QWidget):
             self.set_stack_index(index)
             finfo = self.data[index]
             if finfo.filename == self.tempfile_path or yes_all:
-                if not self.save():
+                if not self.save(index):
                     return False
-            elif finfo.editor.document().isModified():
+            elif (finfo.editor.document().isModified() and
+                  self.save_dialog_on_tests):
 
                 self.msgbox = QMessageBox(
                         QMessageBox.Question,
@@ -1506,10 +1549,10 @@ class EditorStack(QWidget):
 
                 answer = self.msgbox.exec_()
                 if answer == QMessageBox.Yes:
-                    if not self.save():
+                    if not self.save(index):
                         return False
                 elif answer == QMessageBox.YesAll:
-                    if not self.save():
+                    if not self.save(index):
                         return False
                     yes_all = True
                 elif answer == QMessageBox.NoAll:
@@ -1519,7 +1562,22 @@ class EditorStack(QWidget):
         return True
 
     def save(self, index=None, force=False):
-        """Save file"""
+        """Write text of editor to a file.
+
+        Args:
+            index: self.data index to save.  If None, defaults to
+                currentIndex().
+            force: Force save regardless of file state.
+
+        Returns:
+            True upon successful save or when file doesn't need to be saved.
+            False if save failed.
+
+        If the text isn't modified and it's not newly created, then the save
+        is aborted.  If the file hasn't been saved before, then save_as()
+        is invoked.  Otherwise, the file is written using the file name
+        currently in self.data.  This function doesn't change the file name.
+        """
         if index is None:
             # Save the currently edited file
             if not self.get_stack_count():
@@ -1547,7 +1605,10 @@ class EditorStack(QWidget):
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
             # (see Issue 1094, Issue 1098)
-            self.file_saved.emit(str(id(self)), index, finfo.filename)
+            # The filename is passed instead of an index in case the tabs
+            # have been rearranged (see issue 5703).
+            self.file_saved.emit(str(id(self)),
+                                 finfo.filename, finfo.filename)
 
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
@@ -1575,20 +1636,35 @@ class EditorStack(QWidget):
             self.msgbox.exec_()
             return False
 
-    def file_saved_in_other_editorstack(self, index, filename):
+    def file_saved_in_other_editorstack(self, original_filename, filename):
         """
         File was just saved in another editorstack, let's synchronize!
-        This avoid file to be automatically reloaded
+        This avoids file being automatically reloaded.
 
-        Filename is passed in case file was just saved as another name
+        The original filename is passed instead of an index in case the tabs
+        on the editor stacks were moved and are now in a different order - see
+        issue 5703.
+        Filename is passed in case file was just saved as another name.
         """
+        index = self.has_filename(original_filename)
+        if index is None:
+            return
         finfo = self.data[index]
         finfo.newly_created = False
         finfo.filename = to_text_string(filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
-        """Select a name to save a file."""
+        """Select a name to save a file.
+
+        Args:
+            original_filename: Used in the dialog to display the current file
+                    path and name.
+
+        Returns:
+            Normalized path for the selected file name or None if no name was
+            selected.
+        """
         if self.edit_filetypes is None:
             self.edit_filetypes = get_edit_filetypes()
         if self.edit_filters is None:
@@ -1614,9 +1690,28 @@ class EditorStack(QWidget):
         self.redirect_stdio.emit(True)
         if filename:
             return osp.normpath(filename)
+        return None
 
     def save_as(self, index=None):
-        """Save file as..."""
+        """Save file as...
+
+        Args:
+            index: self.data index for the file to save.
+
+        Returns:
+            False if no file name was selected or if save() was unsuccessful.
+            True is save() was successful.
+
+        Gets the new file name from select_savename().  If no name is chosen,
+        then the save_as() aborts.  Otherwise, the current stack is checked
+        to see if the selected name already exists and, if so, then the tab
+        with that name is closed.
+
+        The current stack (self.data) and current tabs are updated with the
+        new name and other file info.  The text is written with the new
+        name using save() and the name change is propagated to the other stacks
+        via the file_renamed_in_data signal.
+        """
         if index is None:
             # Save the currently edited file
             index = self.get_stack_index()
@@ -1625,23 +1720,26 @@ class EditorStack(QWidget):
         # While running __check_file_status
         # See issues 3678 and 3026
         finfo.newly_created = True
-        filename = self.select_savename(finfo.filename)
+        original_filename = finfo.filename
+        filename = self.select_savename(original_filename)
         if filename:
             ao_index = self.has_filename(filename)
             # Note: ao_index == index --> saving an untitled file
-            if ao_index and ao_index != index:
+            if ao_index is not None and ao_index != index:
                 if not self.close_file(ao_index):
                     return
                 if ao_index < index:
                     index -= 1
 
-            new_index = self.rename_in_data(index, new_filename=filename)
+            new_index = self.rename_in_data(original_filename,
+                                            new_filename=filename)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms
             # (see Issue 1094, Issue 1098)
-            self.file_renamed_in_data.emit(str(id(self)), index, filename)
+            self.file_renamed_in_data.emit(str(id(self)),
+                                           original_filename, filename)
 
             ok = self.save(index=new_index, force=True)
             self.refresh(new_index)
@@ -1651,16 +1749,34 @@ class EditorStack(QWidget):
             return False
 
     def save_copy_as(self, index=None):
-        """Save copy of file as..."""
+        """Save copy of file as...
+
+        Args:
+            index: self.data index for the file to save.
+
+        Returns:
+            False if no file name was selected or if save() was unsuccessful.
+            True is save() was successful.
+
+        Gets the new file name from select_savename().  If no name is chosen,
+        then the save_copy_as() aborts.  Otherwise, the current stack is
+        checked to see if the selected name already exists and, if so, then the
+        tab with that name is closed.
+
+        Unlike save_as(), this calls write() directly instead of using save().
+        The current file and tab aren't changed at all.  The copied file is
+        opened in a new tab.
+        """
         if index is None:
             # Save the currently edited file
             index = self.get_stack_index()
         finfo = self.data[index]
-        filename = self.select_savename(finfo.filename)
+        original_filename = finfo.filename
+        filename = self.select_savename(original_filename)
         if filename:
             ao_index = self.has_filename(filename)
             # Note: ao_index == index --> saving an untitled file
-            if ao_index and ao_index != index:
+            if ao_index is not None and ao_index != index:
                 if not self.close_file(ao_index):
                     return
                 if ao_index < index:
@@ -1668,8 +1784,6 @@ class EditorStack(QWidget):
             txt = to_text_string(finfo.editor.get_text_with_eol())
             try:
                 finfo.encoding = encoding.write(txt, filename, finfo.encoding)
-                self.file_saved.emit(str(id(self)), index, filename)
-
                 # open created copy file
                 self.plugin_load.emit(filename)
                 return True
@@ -1687,11 +1801,12 @@ class EditorStack(QWidget):
             return False
 
     def save_all(self):
-        """Save all opened files"""
-        folders = set()
+        """Save all opened files.
+
+        Iterate through self.data and call save() on any modified files.
+        """
         for index in range(self.get_stack_count()):
             if self.data[index].editor.document().isModified():
-                folders.add(osp.dirname(self.data[index].filename))
                 self.save(index)
 
     #------ Update UI
@@ -1716,16 +1831,22 @@ class EditorStack(QWidget):
                 finfo.run_todo_finder()
         self.is_analysis_done = True
 
-    def set_analysis_results(self, index, analysis_results):
+    def set_analysis_results(self, filename, analysis_results):
         """Synchronize analysis results between editorstacks"""
+        index = self.has_filename(filename)
+        if index is None:
+            return
         self.data[index].set_analysis_results(analysis_results)
 
     def get_analysis_results(self):
         if self.data:
             return self.data[self.get_stack_index()].analysis_results
 
-    def set_todo_results(self, index, todo_results):
+    def set_todo_results(self, filename, todo_results):
         """Synchronize todo results between editorstacks"""
+        index = self.has_filename(filename)
+        if index is None:
+            return
         self.data[index].set_todo_results(todo_results)
 
     def get_todo_results(self):
@@ -2778,22 +2899,24 @@ class EditorPluginExample(QSplitter):
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(str, int, str)
-    def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
+    @Slot(str, str, str)
+    def file_saved_in_editorstack(self, editorstack_id_str,
+                                  original_filename, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.file_saved_in_other_editorstack(index, filename)
+                editorstack.file_saved_in_other_editorstack(original_filename,
+                                                            filename)
 
     # This method is never called in this plugin example. It's here only
     # to show how to use the file_saved signal (see above).
-    @Slot(str, int, str)
+    @Slot(str, str, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            index, filename):
+                                            original_filename, filename):
         """A file was renamed in data in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.rename_in_data(index, filename)
+                editorstack.rename_in_data(original_filename, filename)
 
     def register_widget_shortcuts(self, widget):
         """Fake!"""

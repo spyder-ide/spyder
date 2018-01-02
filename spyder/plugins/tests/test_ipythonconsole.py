@@ -11,8 +11,8 @@ import shutil
 import tempfile
 from textwrap import dedent
 
+import cloudpickle
 from flaky import flaky
-from ipykernel.serialize import serialize_object
 from pygments.token import Name
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
@@ -101,6 +101,75 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_tab_rename_for_slaves(ipyconsole, qtbot):
+    """Test slave clients are renamed correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    cf = ipyconsole.get_current_client().connection_file
+    ipyconsole._create_client_for_kernel(cf, None, None, None)
+    qtbot.wait(1000)
+
+    # Rename slave
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Assert both clients have the same name
+    assert 'foo' in ipyconsole.get_clients()[0].get_name()
+    assert 'foo' in ipyconsole.get_clients()[1].get_name()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_no_repeated_tabs_name(ipyconsole, qtbot):
+    """Test that tabs can't have repeated given names."""
+    # Rename first client
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Create a new client and try to rename it
+    ipyconsole.create_new_client()
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Assert the rename didn't take place
+    client_name = ipyconsole.get_current_client().get_name()
+    assert '2' in client_name
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
+    """Test that tabs preserve their names after they are moved."""
+    # Create a new client
+    ipyconsole.create_new_client()
+
+    # Move tabs
+    ipyconsole.tabwidget.tabBar().moveTab(0, 1)
+
+    # Assert the second client is in the first position
+    client_name = ipyconsole.get_clients()[0].get_name()
+    assert '2' in client_name
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_conf_env_vars(ipyconsole, qtbot):
+    """Test that kernels have env vars set by our kernel spec."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Get a CONF env var
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; a = os.environ.get('SPY_SYMPY_O')")
+
+    # Assert we get the assigned value correctly
+    assert shell.get_value('a') == 'False'
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 @pytest.mark.no_stderr_file
@@ -323,7 +392,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 10
 
     # Change its value and verify
-    shell.set_value('д', serialize_object(20))
+    shell.set_value('д', [cloudpickle.dumps(20, protocol=2)])
     qtbot.wait(1000)
     assert shell.get_value('д') == 20
 
@@ -373,7 +442,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert shell.get_value('aa') == 10
 
     # Set value
-    shell.set_value('aa', serialize_object(20))
+    shell.set_value('aa', [cloudpickle.dumps(20, protocol=2)])
     qtbot.wait(1000)
     assert shell.get_value('aa') == 20
 
@@ -537,7 +606,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
     # Test clear magic
     shell.clear_console()
-    qtbot.wait(500)
+    qtbot.wait(1000)
     assert '\nipdb> ' == control.toPlainText()
 
     # Test reset magic

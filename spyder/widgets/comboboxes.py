@@ -210,6 +210,7 @@ class PathComboBox(EditableComboBox):
         self.setLineEdit(lineedit)
 
         # Signals
+        self.highlighted.connect(self.add_tooltip_to_highlighted_item)
         self.sig_tab_pressed.connect(self.tab_complete)
         self.sig_double_tab_pressed.connect(self.double_tab_complete)
         self.valid.connect(lineedit.update_status)
@@ -281,6 +282,13 @@ class PathComboBox(EditableComboBox):
             if text[-1] == os.sep:
                 text = text[:-1]
         self.add_text(text)
+
+    def add_tooltip_to_highlighted_item(self, index):
+        """
+        Add a tooltip showing the full path of the currently highlighted item
+        of the PathComboBox.
+        """
+        self.setItemData(index, self.itemText(index), Qt.ToolTipRole)
 
 
 class UrlComboBox(PathComboBox):

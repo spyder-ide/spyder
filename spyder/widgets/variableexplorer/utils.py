@@ -429,9 +429,11 @@ def value_to_display(value, minmax=False, level=0):
                     display = u"'" + display + u"'"
             else:
                 display = default_display(value)
-        elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
-              isinstance(value, datetime.date) or
-              isinstance(value, datetime.timedelta) or
+        elif (isinstance(value, datetime.date) or
+              isinstance(value, datetime.timedelta)):
+            display = str(value)
+        elif (isinstance(value, NUMERIC_TYPES) or
+              isinstance(value, bool) or
               isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:

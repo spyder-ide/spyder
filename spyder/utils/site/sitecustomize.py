@@ -34,7 +34,7 @@ if not hasattr(sys, 'argv'):
 #==============================================================================
 # Main constants
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 
 
 #==============================================================================
@@ -242,23 +242,6 @@ if os.environ["QT_API"] == 'pyqt':
     except:
         pass
 
-#==============================================================================
-# This prevents a kernel crash with the inline backend in our IPython
-# consoles on Linux and Python 3 (Fixes Issue 2257)
-#==============================================================================
-try:
-    import matplotlib
-except:
-    matplotlib = None   # analysis:ignore
-
-
-#==============================================================================
-# Matplotlib settings
-#==============================================================================
-if matplotlib is not None:
-    # To have mpl docstrings as rst
-    matplotlib.rcParams['docstring.hardcopy'] = True
-
 
 #==============================================================================
 # IPython kernel adjustments
@@ -279,13 +262,6 @@ class IPyTesProgram(TestProgram):
         kwargs['exit'] = False
         TestProgram.__init__(self, *args, **kwargs)
 unittest.main = IPyTesProgram
-
-# Filter warnings that appear for ipykernel when interacting with
-# the Variable explorer (i.e trying to see a variable)
-# Fixes Issue 5591
-warnings.filterwarnings(action='ignore', category=DeprecationWarning,
-                        module='ipykernel.datapub',
-                        message=".*ipykernel.datapub is deprecated.*")
 
 
 #==============================================================================
@@ -678,14 +654,14 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         # AttributeError --> systematically raised in Python 3
         pass
     global __umr__
-    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+    if os.environ.get("SPY_UMR_ENABLED", "").lower() == "true":
         if __umr__ is None:
-            namelist = os.environ.get("UMR_NAMELIST", None)
+            namelist = os.environ.get("SPY_UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
             __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            verbose = os.environ.get("SPY_UMR_VERBOSE", "").lower() == "true"
             __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
