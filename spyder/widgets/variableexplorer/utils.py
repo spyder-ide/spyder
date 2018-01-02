@@ -414,11 +414,12 @@ def value_to_display(value, minmax=False, level=0):
             if is_type_text_string(value):
                 try:
                     display = to_text_string(value, 'utf8')
+                    if level > 0:
+                        display = u"'" + display + u"'"
                 except:
                     display = value
-                if level > 0:
-                    display = (to_binary_string("'") + display +
-                               to_binary_string("'"))
+                    if level > 0:
+                        display = b"'" + display + b"'"
             else:
                 display = default_display(value)
         elif is_text_string(value):

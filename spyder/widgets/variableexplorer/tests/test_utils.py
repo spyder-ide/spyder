@@ -16,10 +16,10 @@ import pytest
 
 # Local imports
 from spyder.config.base import get_supported_types
+from spyder.py3compat import PY2
 from spyder.widgets.variableexplorer.utils import (sort_against,
                                                    is_supported,
                                                    value_to_display)
-
 
 def generate_complex_object():
     """Taken from issue #4221."""
@@ -172,6 +172,18 @@ def test_dict_display():
             '{builtin_function_or_method:builtin_function_or_method, 1:1}',
             '{1:1, builtin_function_or_method:builtin_function_or_method}')
     assert is_supported(di, filters=supported_types)
+
+
+def test_str_in_container_display():
+    """Test that strings are displayed correctly inside lists or dicts."""
+    # Assert that both bytes and unicode return the right display
+    assert value_to_display([b'a', u'b']) == "['a', 'b']"
+
+    # Encoded unicode gives bytes and it can't be transformed to
+    # unicode again. So this test the except part of
+    # is_binary_string(value) in value_to_display
+    if PY2:
+        assert value_to_display([u'Э'.encode('cp1251')]) == "['\xdd']"
 
 
 if __name__ == "__main__":
