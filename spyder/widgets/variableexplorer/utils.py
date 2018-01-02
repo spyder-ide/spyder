@@ -411,6 +411,8 @@ def value_to_display(value, minmax=False, level=0):
             else:
                 display = 'DatetimeIndex'
         elif is_binary_string(value):
+            # We don't apply this to classes that extend string types
+            # See issue 5636
             if is_type_text_string(value):
                 try:
                     display = to_text_string(value, 'utf8')
@@ -423,6 +425,8 @@ def value_to_display(value, minmax=False, level=0):
             else:
                 display = default_display(value)
         elif is_text_string(value):
+            # We don't apply this to classes that extend string types
+            # See issue 5636
             if is_type_text_string(value):
                 display = value
                 if level > 0:
