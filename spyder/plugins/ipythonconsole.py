@@ -653,7 +653,7 @@ class IPythonConsole(SpyderPluginWidget):
             # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
-        self.tabwidget.move_data.connect(self.move_tab)
+        self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
         self.tabwidget.tabBar().sig_change_name.connect(
             self.rename_tabs_after_change)
 
