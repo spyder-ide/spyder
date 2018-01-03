@@ -267,7 +267,8 @@ unittest.main = IPyTesProgram
 # backemd
 # Fixes Issue 6091
 import ipykernel
-if ipykernel.__version__ <= '4.7.0':
+import IPython
+if ipykernel.__version__ <= '4.7.0' and IPython.__version__ >= '5.5.0':
     from ipykernel import eventloops
     eventloops.loop_map['qt'] = eventloops.loop_map['qt5']
 
