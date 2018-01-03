@@ -317,9 +317,9 @@ class ArrayModel(QAbstractTableModel):
         try:
             self.test_array[0] = val # will raise an Exception eventually
         except OverflowError as e:
-            print(type(e.message))  # spyder: test-skip
+            print("OverflowError: " + str(e))  # spyder: test-skip
             QMessageBox.critical(self.dialog, "Error",
-                                 "Overflow error: %s" % e.message)
+                                 "Overflow error: %s" % str(e))
             return False
         
         # Add change to self.changes
