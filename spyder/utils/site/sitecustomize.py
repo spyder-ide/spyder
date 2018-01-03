@@ -10,6 +10,7 @@
 #
 
 import bdb
+from distutils.version import LooseVersion
 import io
 import os
 import os.path as osp
@@ -268,7 +269,8 @@ unittest.main = IPyTesProgram
 # Fixes Issue 6091
 import ipykernel
 import IPython
-if ipykernel.__version__ <= '4.7.0' and IPython.__version__ >= '5.5.0':
+if (LooseVersion(ipykernel.__version__) <= LooseVersion('4.7.0') and
+    LooseVersion(IPython.__version__) >= LooseVersion('5.5.0')):
     from ipykernel import eventloops
     eventloops.loop_map['qt'] = eventloops.loop_map['qt5']
 
