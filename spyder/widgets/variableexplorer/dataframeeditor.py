@@ -366,9 +366,9 @@ class DataFrameModel(QAbstractTableModel):
                     is_text_string(current_value)):
                 try:
                     self.df.iloc[row, column-1] = current_value.__class__(val)
-                except ValueError as e:
+                except (ValueError, OverflowError) as e:
                     QMessageBox.critical(self.dialog, "Error",
-                                         "Value error: %s" % str(e))
+                                         str(type(e)) + ": " + str(e))
                     return False
             else:
                 QMessageBox.critical(self.dialog, "Error",
