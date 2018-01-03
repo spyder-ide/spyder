@@ -539,7 +539,9 @@ class ProfilerDataTree(QTreeWidget):
     @staticmethod
     def format_measure(measure):
         """Get format and units for data coming from profiler task."""
+        # Convert to a positive value.
         measure = abs(measure)
+
         # For number of calls
         if isinstance(measure, int):
             return to_text_string(measure)
@@ -567,6 +569,17 @@ class ProfilerDataTree(QTreeWidget):
         return measure
 
     def color_string(self, x):
+        """Return a string formatted delta for the values in x.
+
+        Args:
+            x: 2-item list of integers (representing number of calls) or
+               2-item list of floats (representing seconds of runtime).
+
+        Returns:
+            A list with [formatted x[0], [color, formatted delta]], where
+            color reflects whether x[1] is lower, greater, or the same as
+            x[0].
+        """
         diff_str = ""
         color = "black"
 
@@ -578,8 +591,18 @@ class ProfilerDataTree(QTreeWidget):
         return [self.format_measure(x[0]), [diff_str, color]]
 
     def format_output(self, child_key):
-        """ Formats the data"""
-        data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
+        """ Formats the data.
+
+        self.stats1 contains a list of one or two pstat.Stats() instances, with
+        the first being the current run and the second, the saved run, if it
+        exists.  Each Stats instance is a dictionary mapping a function to
+        5 data points - cumulative calls, number of calls, total time,
+        cumulative time, and callers.
+
+        format_output() converts the number of calls, total time, and
+        cumulative time to a string format for the child_key parameter.
+        """
+        data = [x.stats.get(child_key, [0, 0, 0, 0, {}]) for x in self.stats1]
         return (map(self.color_string, islice(zip(*data), 1, 4)))
 
     def populate_tree(self, parentItem, children_list):
