@@ -7,8 +7,12 @@
 Tests for arrayeditor.py
 """
 
-# Stdlib imports
+# Standard library imports
 import os
+try:
+    from unittest.mock import Mock, ANY
+except ImportError:
+    from mock import Mock, ANY  # Python 2
 
 # Third party imports
 import numpy as np
@@ -177,6 +181,44 @@ def test_arrayeditor_edit_2d_array(qtbot):
     qtbot.keyPress(view, Qt.Key_Return)
 
     assert np.sum(diff_arr != dlg.get_value()) == 2
+
+
+def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
+    """Test #6114: entry of an overflow int is caught and handled properly"""
+    MockQMessageBox = Mock()
+    attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    expected_array = np.array([5, 6, 7, 3, 4])
+    error_text_32 = "Overflow error: Python int too large to convert to C long"
+    error_text_64 = "Overflow error: int too big to convert"
+    test_parameters = [(np.int32, error_text_32, 34),
+                       (np.int64, error_text_64, 66)]
+    for int_type, error_text, bit_exponet in test_parameters:
+        test_array = np.arange(0, 5).astype(int_type)
+        dialog = ArrayEditor()
+        assert dialog.setup_and_check(test_array, '1D array',
+                                      xlabels=None, ylabels=None)
+        dialog.show()
+        qtbot.waitForWindowShown(dialog)
+        view = dialog.arraywidget.view
+
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClicks(view, '5')
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", error_text)
+        assert MockQMessageBox.critical.call_count == (bit_exponet - 2) // 32
+        qtbot.keyClicks(view, '7')
+        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClicks(view, '6')
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Return)
+        assert np.sum(expected_array ==
+                      dialog.get_value()) == len(expected_array)
 
 
 if __name__ == "__main__":
