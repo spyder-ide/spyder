@@ -11,9 +11,9 @@ from __future__ import division
 
 # Standard library imports
 try:
-    from unittest.mock import Mock
+    from unittest.mock import Mock, ANY
 except ImportError:
-    from mock import Mock # Python 2
+    from mock import Mock, ANY  # Python 2
 import os
 
 # Third party imports
@@ -261,6 +261,43 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
     editor.dataModel.sort(1)
     assert data(dfm, 0, 1) == 'int64'
     assert data(dfm, 1, 1) == 'category'
+
+
+def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
+    """Test #6114: entry of an overflow int is caught and handled properly"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    expected_df = DataFrame([5, 6, 7, 3, 4])
+    error_text_32 = "OverflowError: Python int too large to convert to C long"
+    error_text_64 = "OverflowError: int too big to convert"
+    test_parameters = [(numpy.int32, error_text_32, 34),
+                       (numpy.int64, error_text_64, 66)]
+    for int_type, error_text, bit_exponet in test_parameters:
+        test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
+        dialog = DataFrameEditor()
+        assert dialog.setup_and_check(test_df, 'Test Dataframe')
+        dialog.show()
+        qtbot.waitForWindowShown(dialog)
+        view = dialog.dataTable
+
+        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyClicks(view, '5')
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", error_text)
+        assert MockQMessageBox.critical.call_count == (bit_exponet - 2) // 32
+        qtbot.keyClicks(view, '7')
+        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClicks(view, '6')
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Return)
+        assert numpy.sum(expected_df[0].as_matrix() ==
+                         dialog.get_value().as_matrix()) == len(expected_df)
 
 
 if __name__ == "__main__":

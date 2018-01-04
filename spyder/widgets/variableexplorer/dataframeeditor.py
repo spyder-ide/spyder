@@ -368,7 +368,7 @@ class DataFrameModel(QAbstractTableModel):
                     self.df.iloc[row, column-1] = current_value.__class__(val)
                 except (ValueError, OverflowError) as e:
                     QMessageBox.critical(self.dialog, "Error",
-                                         str(type(e)) + ": " + str(e))
+                                         str(type(e).__name__) + ": " + str(e))
                     return False
             else:
                 QMessageBox.critical(self.dialog, "Error",
