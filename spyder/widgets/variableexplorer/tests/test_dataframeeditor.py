@@ -276,14 +276,15 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
-    for int_type, bit_exponent in [(numpy.int32, int32_bit_exponent),
-                                   (numpy.int64, 66)]:
+    test_parameters = [(1, numpy.int32, int32_bit_exponent),
+                       (2, numpy.int64, 66)]
+    for idx, int_type, bit_exponent in test_parameters:
         test_df = DataFrame(numpy.arange(7, 11), dtype=int_type)
         model = DataFrameModel(test_df.copy())
         index = model.createIndex(2, 1)
         assert not model.setData(index, str(int(2 ** bit_exponent)))
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
-        assert MockQMessageBox.critical.call_count == (bit_exponent - 2) // 32
+        assert MockQMessageBox.critical.call_count == idx
         assert numpy.sum(test_df[0].as_matrix() ==
                          model.df.as_matrix()) == len(test_df)
 
@@ -301,8 +302,9 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     else:
         int32_bit_exponent = 34
     expected_df = DataFrame([5, 6, 7, 3, 4])
-    test_parameters = [(numpy.int32, int32_bit_exponent), (numpy.int64, 66)]
-    for int_type, bit_exponet in test_parameters:
+    test_parameters = [(1, numpy.int32, int32_bit_exponent),
+                       (2, numpy.int64, 66)]
+    for idx, int_type, bit_exponet in test_parameters:
         test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
@@ -317,7 +319,7 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
         qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
-        assert MockQMessageBox.critical.call_count == (bit_exponet - 2) // 32
+        assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
         qtbot.keyPress(view, Qt.Key_Up)
         qtbot.keyClicks(view, '6')

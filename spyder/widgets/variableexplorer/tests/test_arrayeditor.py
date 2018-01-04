@@ -195,14 +195,14 @@ def test_arraymodel_set_data_overflow(monkeypatch):
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
-    for int_type, bit_exponent in [(np.int32, int32_bit_exponent),
-                                   (np.int64, 66)]:
+    test_parameters = [(1, np.int32, int32_bit_exponent), (2, np.int64, 66)]
+    for idx, int_type, bit_exponent in test_parameters:
         test_array = np.array([[5], [6], [7], [3], [4]], dtype=int_type)
         model = ArrayModel(test_array.copy())
         index = model.createIndex(0, 2)
         assert not model.setData(index, str(int(2 ** bit_exponent)))
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
-        assert MockQMessageBox.critical.call_count == (bit_exponent - 2) // 32
+        assert MockQMessageBox.critical.call_count == idx
         assert np.sum(test_array == model._data) == len(test_array)
 
 
@@ -218,8 +218,8 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
-    test_parameters = [(np.int32, int32_bit_exponent), (np.int64, 66)]
-    for int_type, bit_exponent in test_parameters:
+    test_parameters = [(1, np.int32, int32_bit_exponent), (2, np.int64, 66)]
+    for idx, int_type, bit_exponent in test_parameters:
         test_array = np.arange(0, 5).astype(int_type)
         dialog = ArrayEditor()
         assert dialog.setup_and_check(test_array, '1D array',
@@ -236,7 +236,7 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponent)))
         qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
-        assert MockQMessageBox.critical.call_count == (bit_exponent - 2) // 32
+        assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
         qtbot.keyPress(view, Qt.Key_Up)
         qtbot.keyClicks(view, '6')
