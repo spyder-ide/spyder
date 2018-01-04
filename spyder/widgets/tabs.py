@@ -385,6 +385,16 @@ class BaseTabs(QTabWidget):
                 handled = True
         if not handled:
             QTabWidget.keyPressEvent(self, event)
+
+    def tab_navigate(self, delta=1):
+        """Ctrl+Tab"""
+        if delta > 0 and self.currentIndex() == self.count()-1:
+            index = delta-1
+        elif delta < 0 and self.currentIndex() == 0:
+            index = self.count()+delta
+        else:
+            index = self.currentIndex()+delta
+        self.setCurrentIndex(index)
         
     def set_close_function(self, func):
         """Setting Tabs close function
@@ -434,16 +444,6 @@ class Tabs(BaseTabs):
                         context='editor', name='close file 1', parent=parent)
         config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
                         context='editor', name='close file 2', parent=parent)
-
-    def tab_navigate(self, delta=1):
-        """Ctrl+Tab"""
-        if delta > 0 and self.currentIndex() == self.count()-1:
-            index = delta-1
-        elif delta < 0 and self.currentIndex() == 0:
-            index = self.count()+delta
-        else:
-            index = self.currentIndex()+delta
-        self.setCurrentIndex(index)
 
     @Slot(int, int)
     def move_tab(self, index_from, index_to):

@@ -447,10 +447,9 @@ class ShortcutEditor(QDialog):
         self.key_text = [k.upper() for k in self.key_text]
 
         # Fix Backtab, Tab issue
-        if os.name == 'nt':
-            if Qt.Key_Backtab in self.key_non_modifiers:
-                idx = self.key_non_modifiers.index(Qt.Key_Backtab)
-                self.key_non_modifiers[idx] = Qt.Key_Tab
+        if Qt.Key_Backtab in self.key_non_modifiers:
+            idx = self.key_non_modifiers.index(Qt.Key_Backtab)
+            self.key_non_modifiers[idx] = Qt.Key_Tab
 
         if len(self.key_modifiers) == 0:
             # Filter single key allowed

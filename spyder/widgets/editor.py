@@ -626,6 +626,12 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = config_shortcut(self.tab_navigation_mru, context='Editor',
                                    name='Go to next file', parent=self)
+        prevtab = config_shortcut(lambda: self.tabs.tab_navigate(-1),
+                                  context='Editor',
+                                  name='Cycle to previous file', parent=self)
+        nexttab = config_shortcut(lambda: self.tabs.tab_navigate(1),
+                                  context='Editor',
+                                  name='Cycle to next file', parent=self)
         run_selection = config_shortcut(self.run_selection, context='Editor',
                                         name='Run selection', parent=self)
         new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
@@ -706,7 +712,8 @@ class EditorStack(QWidget):
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell]
+                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+                prevtab, nexttab]
 
     def get_shortcut_data(self):
         """
