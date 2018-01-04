@@ -23,6 +23,7 @@ from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy
 import pytest
+from flaky import flaky
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -263,6 +264,25 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
     assert data(dfm, 1, 1) == 'category'
 
 
+def test_dataframemodel_set_data_overflow(monkeypatch):
+    """Unit test #6114: entry of an overflow int caught and handled properly"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    for int_type, bit_exponent in [(numpy.int32, 34), (numpy.int64, 66)]:
+        test_df = DataFrame(numpy.arange(2, 7), dtype=int_type)
+        model = DataFrameModel(test_df.copy())
+        index = model.createIndex(2, 1)
+        assert not model.setData(index, str(int(2 ** bit_exponent)))
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
+        assert MockQMessageBox.critical.call_count == (bit_exponent - 2) // 32
+        assert numpy.sum(test_df[0].as_matrix() ==
+                         model.df.as_matrix()) == len(test_df)
+
+
+@flaky(max_runs=3)
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     """Test #6114: entry of an overflow int is caught and handled properly"""
     MockQMessageBox = Mock()
@@ -271,11 +291,8 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
     expected_df = DataFrame([5, 6, 7, 3, 4])
-    error_text_32 = "OverflowError: Python int too large to convert to C long"
-    error_text_64 = "OverflowError: int too big to convert"
-    test_parameters = [(numpy.int32, error_text_32, 34),
-                       (numpy.int64, error_text_64, 66)]
-    for int_type, error_text, bit_exponet in test_parameters:
+    test_parameters = [(numpy.int32, 34), (numpy.int64, 66)]
+    for int_type, bit_exponet in test_parameters:
         test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
@@ -289,7 +306,7 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.keyPress(view, Qt.Key_Space)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
         qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
-        MockQMessageBox.critical.assert_called_with(ANY, "Error", error_text)
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == (bit_exponet - 2) // 32
         qtbot.keyClicks(view, '7')
         qtbot.keyPress(view, Qt.Key_Up)

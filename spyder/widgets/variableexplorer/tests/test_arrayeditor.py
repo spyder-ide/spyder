@@ -19,9 +19,10 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy.QtCore import Qt
+from flaky import flaky
 
 # Local imports
-from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
+from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor, ArrayModel
 
 
 def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
@@ -183,18 +184,32 @@ def test_arrayeditor_edit_2d_array(qtbot):
     assert np.sum(diff_arr != dlg.get_value()) == 2
 
 
+def test_arraymodel_set_data_overflow(monkeypatch):
+    """Unit test #6114: entry of an overflow int caught and handled properly"""
+    MockQMessageBox = Mock()
+    attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    for int_type, bit_exponent in [(np.int32, 34), (np.int64, 66)]:
+        test_array = np.array([[5], [6], [7], [3], [4]], dtype=int_type)
+        model = ArrayModel(test_array.copy())
+        index = model.createIndex(0, 2)
+        assert not model.setData(index, str(int(2 ** bit_exponent)))
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
+        assert MockQMessageBox.critical.call_count == (bit_exponent - 2) // 32
+        assert np.sum(test_array == model._data) == len(test_array)
+
+
+@flaky(max_runs=3)
 def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
-    """Test #6114: entry of an overflow int is caught and handled properly"""
+    """Int. test #6114: entry of an overflow int caught and handled properly"""
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
     expected_array = np.array([5, 6, 7, 3, 4])
-    error_text_32 = "Overflow error: Python int too large to convert to C long"
-    error_text_64 = "Overflow error: int too big to convert"
-    test_parameters = [(np.int32, error_text_32, 34),
-                       (np.int64, error_text_64, 66)]
-    for int_type, error_text, bit_exponet in test_parameters:
+    test_parameters = [(np.int32, 34), (np.int64, 66)]
+    for int_type, bit_exponent in test_parameters:
         test_array = np.arange(0, 5).astype(int_type)
         dialog = ArrayEditor()
         assert dialog.setup_and_check(test_array, '1D array',
@@ -208,10 +223,10 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.keyClicks(view, '5')
         qtbot.keyPress(view, Qt.Key_Down)
         qtbot.keyPress(view, Qt.Key_Space)
-        qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
+        qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponent)))
         qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
-        MockQMessageBox.critical.assert_called_with(ANY, "Error", error_text)
-        assert MockQMessageBox.critical.call_count == (bit_exponet - 2) // 32
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
+        assert MockQMessageBox.critical.call_count == (bit_exponent - 2) // 32
         qtbot.keyClicks(view, '7')
         qtbot.keyPress(view, Qt.Key_Up)
         qtbot.keyClicks(view, '6')
