@@ -361,7 +361,7 @@ class DataFrameModel(QAbstractTableModel):
             current_value = self.get_value(row, column-1)
             if isinstance(current_value, bool):
                 val = bool_false_check(val)
-            supported_types = (bool,) + REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES
+            supported_types = (bool,) + REAL_NUMBER_TYPES
             if (isinstance(current_value, supported_types) or
                     is_text_string(current_value)):
                 try:
