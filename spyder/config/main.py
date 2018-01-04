@@ -389,6 +389,8 @@ DEFAULTS = [
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': 'Ctrl+Shift+Tab',
               'editor/go to next file': 'Ctrl+Tab',
+              'editor/cycle to previous file': 'Ctrl+PgUp',
+              'editor/cycle to next file': 'Ctrl+PgDown',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
