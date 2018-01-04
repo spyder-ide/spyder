@@ -104,6 +104,27 @@ def ipyconsole(request):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_qt5_backend(ipyconsole, qtbot):
+    """Test slave clients are renamed correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Get control
+    control = ipyconsole.get_focus_widget()
+
+    # Activate qt5 backend
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%matplotlib qt5")
+
+    # Assert there qre no errors in the console
+    assert 'NOTE' not in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_tab_rename_for_slaves(ipyconsole, qtbot):
     """Test slave clients are renamed correctly."""
     # Wait until the window is fully up
