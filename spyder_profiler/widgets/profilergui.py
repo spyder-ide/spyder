@@ -17,6 +17,7 @@ http://docs.python.org/library/profile.html
 from __future__ import with_statement
 import os
 import os.path as osp
+from itertools import islice
 import sys
 import time
 import re
@@ -541,8 +542,12 @@ class ProfilerDataTree(QTreeWidget):
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
 
-    def format_measure(self, measure):
+    @staticmethod
+    def format_measure(measure):
         """Get format and units for data coming from profiler task."""
+        # Convert to a positive value.
+        measure = abs(measure)
+
         # For number of calls
         if isinstance(measure, int):
             return to_text_string(measure)
@@ -569,29 +574,43 @@ class ProfilerDataTree(QTreeWidget):
             measure = u"{0:.0f}h:{1:.0f}min".format(h, m)
         return measure
 
-    def color_string(self, args):
-        x, fmt = args
+    def color_string(self, x):
+        """Return a string formatted delta for the values in x.
+
+        Args:
+            x: 2-item list of integers (representing number of calls) or
+               2-item list of floats (representing seconds of runtime).
+
+        Returns:
+            A list with [formatted x[0], [color, formatted delta]], where
+            color reflects whether x[1] is lower, greater, or the same as
+            x[0].
+        """
         diff_str = ""
         color = "black"
 
         if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
-            if difference < 0:
-                diff_str = "".join(['', fmt[1] % self.format_measure(difference)])
-                color = "green"
-            elif difference > 0:
-                diff_str = "".join(['+', fmt[1] % self.format_measure(difference)])
-                color = "red"
-        return [fmt[0] % self.format_measure(x[0]), [diff_str, color]]
+            if difference:
+                color, sign = ('green', '-') if difference < 0 else ('red', '+')
+                diff_str = '{}{}'.format(sign, self.format_measure(difference))
+        return [self.format_measure(x[0]), [diff_str, color]]
 
     def format_output(self, child_key):
-        """ Formats the data"""
-        if True:
-            data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-            format_data = zip(list(zip(*data))[1:4],
-                              [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])
-            return (map(self.color_string, format_data))
-            
+        """ Formats the data.
+
+        self.stats1 contains a list of one or two pstat.Stats() instances, with
+        the first being the current run and the second, the saved run, if it
+        exists.  Each Stats instance is a dictionary mapping a function to
+        5 data points - cumulative calls, number of calls, total time,
+        cumulative time, and callers.
+
+        format_output() converts the number of calls, total time, and
+        cumulative time to a string format for the child_key parameter.
+        """
+        data = [x.stats.get(child_key, [0, 0, 0, 0, {}]) for x in self.stats1]
+        return (map(self.color_string, islice(zip(*data), 1, 4)))
+
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
         for child_key in children_list:
