@@ -20,15 +20,30 @@ import pytest
 os.environ['SPYDER_PYTEST'] = 'True'
 
 
+# To run our slow tests only in our CIs
+run_slow = False
+if os.environ.get('CI', None) is not None:
+    run_slow = True
+
+
 def main():
     """
     Run pytest tests.
     """
-    errno = pytest.main(['-x', 'spyder',  'spyder_profiler',
-                         '-vv', '-rw',
-                         '--durations=10', '--cov=spyder',
-                         '--cov=spyder_profiler',
-                         '--cov-report=term-missing'])
+    pytest_args = ['spyder',
+                   'spyder_profiler',
+                   '-x',
+                   '-vv',
+                   '-rw',
+                   '--durations=10',
+                   '--cov=spyder',
+                   '--cov=spyder_profiler',
+                   '--cov-report=term-missing']
+
+    if run_slow:
+        pytest_args.append('--run-slow')
+
+    errno = pytest.main(pytest_args)
 
     # sys.exit doesn't work here because some things could be running
     # in the background (e.g. closing the main window) when this point
