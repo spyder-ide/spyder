@@ -10,7 +10,7 @@ Tests for dataframeeditor.py
 from __future__ import division
 
 # Standard library imports
-from platform import system
+from sys import platform
 try:
     from unittest.mock import Mock, ANY
 except ImportError:
@@ -272,12 +272,14 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    if system() == 'Linux':
+    # Numpy doesn't raise the OverflowError for ints smaller than 64 bits
+    if platform.startswith('linux'):
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
     test_parameters = [(1, numpy.int32, int32_bit_exponent),
                        (2, numpy.int64, 66)]
+
     for idx, int_type, bit_exponent in test_parameters:
         test_df = DataFrame(numpy.arange(7, 11), dtype=int_type)
         model = DataFrameModel(test_df.copy())
@@ -291,8 +293,8 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is not None and
-                    system() == "Linux",
-                    reason="Fails on Travis CI for some reason.")
+                    platform.startswith('linux'),
+                    reason="Fails on Travis CI for unknown reasons.")
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     """Test #6114: entry of an overflow int is caught and handled properly"""
     MockQMessageBox = Mock()
@@ -300,13 +302,15 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    if system() == 'Linux':
+    # Numpy doesn't raise the OverflowError for ints smaller than 64 bits
+    if platform.startswith('linux'):
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
-    expected_df = DataFrame([5, 6, 7, 3, 4])
     test_parameters = [(1, numpy.int32, int32_bit_exponent),
                        (2, numpy.int64, 66)]
+    expected_df = DataFrame([5, 6, 7, 3, 4])
+
     for idx, int_type, bit_exponet in test_parameters:
         test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
         dialog = DataFrameEditor()

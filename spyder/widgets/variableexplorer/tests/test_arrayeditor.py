@@ -9,7 +9,7 @@ Tests for arrayeditor.py
 
 # Standard library imports
 import os
-from platform import system
+from sys import platform
 try:
     from unittest.mock import Mock, ANY
 except ImportError:
@@ -191,11 +191,13 @@ def test_arraymodel_set_data_overflow(monkeypatch):
     attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    if system() == 'Linux':
+    # Numpy doesn't raise OverflowError on Linux for ints smaller than 64 bits
+    if platform.startswith('linux'):
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
     test_parameters = [(1, np.int32, int32_bit_exponent), (2, np.int64, 66)]
+
     for idx, int_type, bit_exponent in test_parameters:
         test_array = np.array([[5], [6], [7], [3], [4]], dtype=int_type)
         model = ArrayModel(test_array.copy())
@@ -213,12 +215,14 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    expected_array = np.array([5, 6, 7, 3, 4])
-    if system() == 'Linux':
+    # Numpy doesn't raise the OverflowError for ints smaller than 64 bits
+    if platform.startswith('linux'):
         int32_bit_exponent = 66
     else:
         int32_bit_exponent = 34
     test_parameters = [(1, np.int32, int32_bit_exponent), (2, np.int64, 66)]
+    expected_array = np.array([5, 6, 7, 3, 4])
+
     for idx, int_type, bit_exponent in test_parameters:
         test_array = np.arange(0, 5).astype(int_type)
         dialog = ArrayEditor()
