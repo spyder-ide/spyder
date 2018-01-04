@@ -9,6 +9,7 @@ Tests for arrayeditor.py
 
 # Standard library imports
 import os
+from platform import system
 try:
     from unittest.mock import Mock, ANY
 except ImportError:
@@ -190,7 +191,12 @@ def test_arraymodel_set_data_overflow(monkeypatch):
     attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    for int_type, bit_exponent in [(np.int32, 34), (np.int64, 66)]:
+    if system() == 'Linux':
+        int32_bit_exponent = 66
+    else:
+        int32_bit_exponent = 34
+    for int_type, bit_exponent in [(np.int32, int32_bit_exponent),
+                                   (np.int64, 66)]:
         test_array = np.array([[5], [6], [7], [3], [4]], dtype=int_type)
         model = ArrayModel(test_array.copy())
         index = model.createIndex(0, 2)
@@ -208,7 +214,11 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
     expected_array = np.array([5, 6, 7, 3, 4])
-    test_parameters = [(np.int32, 34), (np.int64, 66)]
+    if system() == 'Linux':
+        int32_bit_exponent = 66
+    else:
+        int32_bit_exponent = 34
+    test_parameters = [(np.int32, int32_bit_exponent), (np.int64, 66)]
     for int_type, bit_exponent in test_parameters:
         test_array = np.arange(0, 5).astype(int_type)
         dialog = ArrayEditor()

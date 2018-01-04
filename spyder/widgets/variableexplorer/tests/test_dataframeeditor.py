@@ -10,6 +10,7 @@ Tests for dataframeeditor.py
 from __future__ import division
 
 # Standard library imports
+from platform import system
 try:
     from unittest.mock import Mock, ANY
 except ImportError:
@@ -271,8 +272,13 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
-    for int_type, bit_exponent in [(numpy.int32, 34), (numpy.int64, 66)]:
-        test_df = DataFrame(numpy.arange(2, 7), dtype=int_type)
+    if system() == 'Linux':
+        int32_bit_exponent = 66
+    else:
+        int32_bit_exponent = 34
+    for int_type, bit_exponent in [(numpy.int32, int32_bit_exponent),
+                                   (numpy.int64, 66)]:
+        test_df = DataFrame(numpy.arange(7, 11), dtype=int_type)
         model = DataFrameModel(test_df.copy())
         index = model.createIndex(2, 1)
         assert not model.setData(index, str(int(2 ** bit_exponent)))
@@ -290,8 +296,12 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
+    if system() == 'Linux':
+        int32_bit_exponent = 66
+    else:
+        int32_bit_exponent = 34
     expected_df = DataFrame([5, 6, 7, 3, 4])
-    test_parameters = [(numpy.int32, 34), (numpy.int64, 66)]
+    test_parameters = [(numpy.int32, int32_bit_exponent), (numpy.int64, 66)]
     for int_type, bit_exponet in test_parameters:
         test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
         dialog = DataFrameEditor()
