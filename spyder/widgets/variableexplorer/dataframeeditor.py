@@ -362,13 +362,13 @@ class DataFrameModel(QAbstractTableModel):
             if isinstance(current_value, bool):
                 val = bool_false_check(val)
             supported_types = (bool,) + REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES
-            if (isinstance(current_value, supported_types) or 
+            if (isinstance(current_value, supported_types) or
                     is_text_string(current_value)):
                 try:
                     self.df.iloc[row, column-1] = current_value.__class__(val)
-                except ValueError as e:
+                except (ValueError, OverflowError) as e:
                     QMessageBox.critical(self.dialog, "Error",
-                                         "Value error: %s" % str(e))
+                                         str(type(e).__name__) + ": " + str(e))
                     return False
             else:
                 QMessageBox.critical(self.dialog, "Error",
