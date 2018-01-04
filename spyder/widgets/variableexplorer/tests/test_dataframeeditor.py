@@ -396,7 +396,7 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
     for idx, int_type, bit_exponent in test_parameters:
         test_df = DataFrame(numpy.arange(7, 11), dtype=int_type)
         model = DataFrameModel(test_df.copy())
-        index = model.createIndex(2, 1)
+        index = model.createIndex(2, 0)
         assert not model.setData(index, str(int(2 ** bit_exponent)))
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
