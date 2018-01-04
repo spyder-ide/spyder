@@ -429,7 +429,8 @@ def test_read_stderr(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or PY2,
+@pytest.mark.no_xvfb
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
                     reason="It times out in our CIs")
 def test_values_dbg(ipyconsole, qtbot):
     """
