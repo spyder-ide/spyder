@@ -390,6 +390,7 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
                            .format(type(test_df.iloc[1, 0]).__name__)))
         assert MockQMessageBox.critical.call_count == count * 2
         qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.wait(1000)
         assert numpy.sum(test_df[0].as_matrix() ==
                          dialog.get_value().as_matrix()) == len(test_df)
 
@@ -405,7 +406,7 @@ def test_dataframemodel_set_data_bool(monkeypatch):
     test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
     expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
 
-    for count, bool_type in test_params:
+    for bool_type in test_params:
         test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
         model = DataFrameModel(test_df.copy())
         for idx, test_str in enumerate(test_strs):
@@ -427,7 +428,7 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
     test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
     expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
 
-    for count, bool_type in test_params:
+    for bool_type in test_params:
         test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
         dialog = DataFrameEditor()
         assert dialog.setup_and_check(test_df, 'Test Dataframe')
@@ -443,6 +444,7 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
             qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
             assert not MockQMessageBox.critical.called
         qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.wait(1000)
         assert (numpy.sum(expected_df[0].as_matrix() ==
                           dialog.get_value().as_matrix()[:, 0]) ==
                 len(expected_df))
