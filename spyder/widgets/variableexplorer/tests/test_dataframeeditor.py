@@ -396,5 +396,59 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
                          dialog.get_value().as_matrix()) == len(test_df)
 
 
+def test_dataframemodel_set_data_bool(monkeypatch):
+    """Unit test that bools are editible in df and false-y strs are detected"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [(1, numpy.bool_), (2, numpy.bool), (3, bool)]
+    test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
+    expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+
+    for count, bool_type in test_params:
+        test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
+        model = DataFrameModel(test_df.copy())
+        for idx, test_str in enumerate(test_strs):
+            assert model.setData(model.createIndex(idx, 1), test_str)
+            assert not MockQMessageBox.critical.called
+        assert numpy.sum(expected_df[0].as_matrix() ==
+                         model.df.as_matrix()[:, 0]) == len(expected_df)
+
+
+@flaky(max_runs=3)
+def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
+    """Unit test that bools are editible in df and false-y strs are detected"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [(1, numpy.bool_), (2, numpy.bool), (3, bool)]
+    test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
+    expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+
+    for count, bool_type in test_params:
+        test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
+        dialog = DataFrameEditor()
+        assert dialog.setup_and_check(test_df, 'Test Dataframe')
+        dialog.show()
+        qtbot.waitForWindowShown(dialog)
+        view = dialog.dataTable
+
+        qtbot.keyPress(view, Qt.Key_Right)
+        for test_str in test_strs:
+            qtbot.keyPress(view, Qt.Key_Space)
+            qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClicks(view.focusWidget(), test_str)
+            qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+            assert not MockQMessageBox.critical.called
+        qtbot.keyPress(view, Qt.Key_Return)
+        assert (numpy.sum(expected_df[0].as_matrix() ==
+                          dialog.get_value().as_matrix()[:, 0]) ==
+                len(expected_df))
+
+
 if __name__ == "__main__":
     pytest.main()
