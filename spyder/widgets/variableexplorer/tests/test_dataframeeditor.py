@@ -322,6 +322,7 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.keyClicks(view, '5')
         qtbot.keyPress(view, Qt.Key_Down)
         qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
         qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
@@ -378,6 +379,7 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
         qtbot.keyPress(view, Qt.Key_Right)
         qtbot.keyPress(view, Qt.Key_Down)
         qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), "42")
         qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(
