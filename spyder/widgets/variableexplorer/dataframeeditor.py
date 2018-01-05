@@ -42,7 +42,7 @@ from spyder.widgets.variableexplorer.arrayeditor import get_idx_rect
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
-_bool_false = ['false', 'f', '0', '0.', '0.0']
+_bool_false = ['false', 'f', '0', '0.', '0.0', ' ']
 
 # Default format for data frames with floats
 DEFAULT_FORMAT = '%.6g'
