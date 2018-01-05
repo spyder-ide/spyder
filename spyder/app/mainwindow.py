@@ -2408,14 +2408,14 @@ class MainWindow(QMainWindow):
         # Store and format the reminder message for the troubleshooting guide
         reminder_message = (
             "**PLEASE READ:** Before posting this report, *please* carefully "
-            "read our **Troubleshooting Guide** at {0!s} and search the issue "
+            "read our **Troubleshooting Guide**: <{0!s}> and search the issue "
             "page here for your error message and problem description, as the "
             "great majority of bugs are either duplicates, or can be fixed on "
             "the user side with a few easy steps.\n\n"
             "Also, if you do post an issue here, please describe step by step "
-            "what you were doing when the error occured, in as much detail as "
-            "possible. Otherwise, your issue will likely be closed after one "
-            "week (7 days) if we can't reproduce it. Thanks.\n\n"
+            "what you were doing when the error occurred, in as much detail "
+            "as possible. Otherwise, your issue will likely be closed after "
+            "one week (7 days) if we can't reproduce it. Thanks.\n\n"
             "**Note:** You should delete this message before submitting."
             ).format(__trouble_url__)
 
@@ -2434,7 +2434,7 @@ class MainWindow(QMainWindow):
         issue_template = """\
 {reminder_message}
 
-## Description
+## Description of your problem
 
 {description}
 
