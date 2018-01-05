@@ -217,6 +217,16 @@ Everyone is welcome to contribute. Please read our
 to get started!
 
 
+## Troubleshooting
+
+Before posting a report, *please* carefully read our
+**[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
+
+
 ## More information
 
 * For code development please go to:

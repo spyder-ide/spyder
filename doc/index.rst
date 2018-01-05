@@ -19,6 +19,7 @@ Spyder websites:
 
 * Downloads, bug reports and feature requests: https://github.com/spyder-ide/spyder
 * Discussions: http://groups.google.com/group/spyderlib
+* Troubleshooting Guide and FAQ: https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ
             
 
 Contents:

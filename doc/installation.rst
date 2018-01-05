@@ -8,6 +8,48 @@ This section explains how to install the latest stable release of
 Spyder. If you prefer testing the development version, please use
 the `bootstrap` script (see next section).
 
+If you run into problems, before posting a
+report, *please* consult our comprehensive
+**[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as these methods are known to
+fix or at least isolate the vast majority of install-related problems.
+Thanks!
+
+
+Installing on Windows Vista/7/8/10
+----------------------------------
+
+The easy way
+~~~~~~~~~~~~
+
+Spyder is already included in these *Python Scientific Distributions*:
+
+* `Anaconda <https://www.anaconda.com/download/>`_
+* `WinPython <https://winpython.github.io/>`_
+* `Python(x,y) <https://code.google.com/p/pythonxy>`_
+
+You can start using it immediately after installing one of them (you only need
+to install one!).
+
+
+The hard way
+~~~~~~~~~~~~
+
+If you want to install Spyder directly, you need to follow these steps:
+
+#. Install the essential requirements:
+
+   * `The Python programming language <http://www.python.org/>`_
+   * `PyQt5 <http://www.riverbankcomputing.co.uk/software/pyqt/download5>`_ (recommended)
+     or `PyQt4 <http://www.riverbankcomputing.co.uk/software/pyqt/download>`_
+
+#. Install Spyder and its dependencies by running this command::
+
+       pip install spyder
+
+>>>>>>> 6a9dad480... Add FAQ link and blurb to docs, contributing and readme
+
 
 The Easy/Recommended Way: Anaconda
 ----------------------------------
@@ -311,6 +353,9 @@ Help and support
 
 Spyder websites:
 
+* For a comprehensive guide to spyder troubleshooting, including
+  installation issues, read our Troubleshooting Guide and FAQ
+  <https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ>
 * For bug reports and feature requests you can go to our
   `website <https://github.com/spyder-ide/spyder/issues>`_.
 * For general and development-oriented information, visit

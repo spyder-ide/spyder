@@ -10,6 +10,21 @@ Please check the
 for a more detailed guide on how to do so.
 
 
+## Submitting a Helpful Issue
+
+Submitting useful, effective and to-the-point issue reports can go a long
+way toward improving Spyder for everyone. Accordingly, please read the
+[relevant section](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ#calling-for-help-still-have-a-problem)
+of the Spyder Troubleshooting Guide, which describes in detail how to do
+just that.
+
+Most importantly, aside from the error message/traceback and the requested
+environment/dependency information, *please* be sure you include a detailed,
+step by step description of exactly what triggered the problem. Otherwise,
+we likely won't be able to find and fix it, and your issue will have to be
+closed after a week (7 days). Thanks!
+
+
 ## Setting Up a Development Environment
 
 
@@ -139,3 +154,13 @@ To run the Spyder test suite, please use (from the root spyder directory):
 ```bash
   $ python runtests.py
 ```
+
+
+## Troubleshooting
+
+Before posting a report, *please* carefully read our
+**[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
