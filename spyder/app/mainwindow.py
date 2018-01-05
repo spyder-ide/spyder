@@ -140,7 +140,8 @@ else:
 #==============================================================================
 # Local utility imports
 #==============================================================================
-from spyder import __version__, __project_url__, __forum_url__, get_versions
+from spyder import (__version__, __project_url__, __forum_url__,
+                    __trouble_url__, get_versions)
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
                                 debug_print, MAC_APP_NAME, get_home_dir,
