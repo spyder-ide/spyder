@@ -335,5 +335,66 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
                          dialog.get_value().as_matrix()) == len(expected_df)
 
 
+def test_dataframemodel_set_data_complex(monkeypatch):
+    """Unit test #6115: editing complex dtypes raises error in df editor"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [(1, numpy.complex128), (2, numpy.complex64), (3, complex)]
+
+    for count, complex_type in test_params:
+        test_df = DataFrame(numpy.arange(10, 15), dtype=complex_type)
+        model = DataFrameModel(test_df.copy())
+        index = model.createIndex(2, 1)
+        assert not model.setData(index, '42')
+        MockQMessageBox.critical.assert_called_with(
+            ANY, "Error", ("Editing dtype {0!s} not yet supported."
+                           .format(type(test_df.iloc[2, 0]).__name__)))
+        assert MockQMessageBox.critical.call_count == count
+        assert numpy.sum(test_df[0].as_matrix() ==
+                         model.df.as_matrix()) == len(test_df)
+
+
+@flaky(max_runs=3)
+def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
+    """Test for #6115: editing complex dtypes raises error in df editor"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [(1, numpy.complex128), (2, numpy.complex64), (3, complex)]
+
+    for count, complex_type in test_params:
+        test_df = DataFrame(numpy.arange(10, 15), dtype=complex_type)
+        dialog = DataFrameEditor()
+        assert dialog.setup_and_check(test_df, 'Test Dataframe')
+        dialog.show()
+        qtbot.waitForWindowShown(dialog)
+        view = dialog.dataTable
+
+        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyClicks(view.focusWidget(), "42")
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        MockQMessageBox.critical.assert_called_with(
+            ANY, "Error", ("Editing dtype {0!s} not yet supported."
+                           .format(type(test_df.iloc[1, 0]).__name__)))
+        assert MockQMessageBox.critical.call_count == count * 2 - 1
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyClick(view, '1')
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        MockQMessageBox.critical.assert_called_with(
+            ANY, "Error", ("Editing dtype {0!s} not yet supported."
+                           .format(type(test_df.iloc[1, 0]).__name__)))
+        assert MockQMessageBox.critical.call_count == count * 2
+        qtbot.keyPress(view, Qt.Key_Return)
+        assert numpy.sum(test_df[0].as_matrix() ==
+                         dialog.get_value().as_matrix()) == len(test_df)
+
+
 if __name__ == "__main__":
     pytest.main()
