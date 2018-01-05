@@ -292,9 +292,8 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or
-                    platform.startswith('linux'),
-                    reason="Fails on Travis CI for unknown reasons.")
+@pytest.mark.skipif(platform.startswith('linux'),
+                    reason="Fails on some Linux platforms locally and Travis.")
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     """Test #6114: entry of an overflow int is caught and handled properly"""
     MockQMessageBox = Mock()
