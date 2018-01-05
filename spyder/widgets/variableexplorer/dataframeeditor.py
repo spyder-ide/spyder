@@ -42,7 +42,7 @@ from spyder.widgets.variableexplorer.arrayeditor import get_idx_rect
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
-_bool_false = ['false', '0']
+_bool_false = ['false', 'f', '0', '0.', '0.0', ' ']
 
 # Default format for data frames with floats
 DEFAULT_FORMAT = '%.6g'
@@ -359,9 +359,9 @@ class DataFrameModel(QAbstractTableModel):
         else:
             val = from_qvariant(value, str)
             current_value = self.get_value(row, column-1)
-            if isinstance(current_value, bool):
+            if isinstance(current_value, (bool, np.bool_)):
                 val = bool_false_check(val)
-            supported_types = (bool,) + REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES
+            supported_types = (bool, np.bool_) + REAL_NUMBER_TYPES
             if (isinstance(current_value, supported_types) or
                     is_text_string(current_value)):
                 try:
@@ -372,8 +372,8 @@ class DataFrameModel(QAbstractTableModel):
                     return False
             else:
                 QMessageBox.critical(self.dialog, "Error",
-                                     "The type of the cell is not a supported "
-                                     "type")
+                                     "Editing dtype {0!s} not yet supported."
+                                     .format(type(current_value).__name__))
                 return False
         self.max_min_col_update()
         return True
