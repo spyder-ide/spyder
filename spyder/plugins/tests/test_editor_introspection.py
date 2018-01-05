@@ -58,6 +58,7 @@ def setup_editor(qtbot, monkeypatch):
     editor.introspector.plugin_manager.close()
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(os.environ.get('CI', None) is not None,
                     reason="This test fails too much in the CI :(")
 @pytest.mark.skipif(not JEDI_010,
