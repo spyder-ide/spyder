@@ -372,8 +372,8 @@ class DataFrameModel(QAbstractTableModel):
                     return False
             else:
                 QMessageBox.critical(self.dialog, "Error",
-                                     "The type of the cell is not a supported "
-                                     "type")
+                                     "Editing dtype {0!s} not yet supported."
+                                     .format(type(current_value).__name__))
                 return False
         self.max_min_col_update()
         return True
