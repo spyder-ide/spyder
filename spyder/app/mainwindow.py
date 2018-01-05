@@ -937,6 +937,9 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Setting up main window..."))
 
         # Help menu
+        trouble_action = create_action(self,
+                                        _("Troubleshooting..."),
+                                        triggered=self.trouble_guide)
         dep_action = create_action(self, _("Dependencies..."),
                                     triggered=self.show_dependencies,
                                     icon=ima.icon('advanced'))
@@ -1011,7 +1014,8 @@ class MainWindow(QMainWindow):
 
         self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
                                   self.tours_menu,
-                                  MENU_SEPARATOR, report_action, dep_action,
+                                  MENU_SEPARATOR, trouble_action,
+                                  report_action, dep_action,
                                   self.check_updates_action, support_action,
                                   MENU_SEPARATOR]
         # Python documentation
@@ -2459,6 +2463,9 @@ class MainWindow(QMainWindow):
             if title:
                 url.addEncodedQueryItem("title", quote(title))
 
+    @Slot()
+    def trouble_guide(self):
+        url = QUrl(__trouble_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
