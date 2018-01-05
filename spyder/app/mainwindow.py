@@ -2350,9 +2350,10 @@ class MainWindow(QMainWindow):
             <br>Developed and maintained by the
             <a href="%s/blob/master/AUTHORS">Spyder Project Contributors</a>.
             <br>Many thanks to all the Spyder beta testers and regular users.
-            <p>For bug reports and feature requests, please go
-            to our <a href="%s">Github website</a>. For discussions around the
-            project, please go to our <a href="%s">Google Group</a>
+            <p>For help with Spyder errors and crashes, please read our
+            <a href="%s">Troubleshooting page</a>, and for bug reports and
+            feature requests, visit our <a href="%s">Github website</a>.
+            For project discussion, see our <a href="%s">Google Group</a>.
             <p>This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development. The popular Python distributions
@@ -2368,7 +2369,7 @@ class MainWindow(QMainWindow):
             <a href="http://www.oxygen-icons.org/">
             The Oxygen icon theme</a></small>.
             """
-            % (versions['spyder'], revlink, __project_url__,
+            % (versions['spyder'], revlink, __project_url__, __trouble_url__,
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
