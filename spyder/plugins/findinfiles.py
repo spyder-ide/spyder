@@ -141,8 +141,9 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.main.projects.sig_project_closed.connect(self.unset_project_path)
         self.main.editor.open_file_update.connect(self.set_current_opened_file)
 
-        findinfiles_action = create_action(self, _("&Find in files"),
-                                   icon=ima.icon('findf'),        
+        findinfiles_action = create_action(
+                                   self, _("&Find in files"),
+                                   icon=ima.icon('findf'),
                                    triggered=self.switch_to_plugin,
                                    shortcut=QKeySequence(self.shortcut),
                                    context=Qt.WidgetShortcut,
