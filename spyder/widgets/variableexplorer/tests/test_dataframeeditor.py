@@ -350,9 +350,7 @@ def test_dataframemodel_set_data_complex(monkeypatch):
         model = DataFrameModel(test_df.copy())
         index = model.createIndex(2, 1)
         assert not model.setData(index, '42')
-        MockQMessageBox.critical.assert_called_with(
-            ANY, "Error", ("Editing dtype {0!s} not yet supported."
-                           .format(type(test_df.iloc[2, 0]).__name__)))
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == count
         assert numpy.sum(test_df[0].as_matrix() ==
                          model.df.as_matrix()) == len(test_df)
@@ -382,9 +380,7 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
         qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), "42")
         qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
-        MockQMessageBox.critical.assert_called_with(
-            ANY, "Error", ("Editing dtype {0!s} not yet supported."
-                           .format(type(test_df.iloc[1, 0]).__name__)))
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == count * 2 - 1
         qtbot.keyPress(view, Qt.Key_Down)
         qtbot.keyClick(view, '1')
