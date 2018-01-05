@@ -111,10 +111,13 @@ def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
 @pytest.fixture
 def main_window(request):
     """Main Window fixture"""
+    # Tests assume inline backend
+    CONF.set('ipython_console', 'pylab/backend', 0)
+
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
-    marker = request.node.get_marker('use_introspection')
-    if marker:
+    use_introspection = request.node.get_marker('use_introspection')
+    if use_introspection:
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     else:
         try:
