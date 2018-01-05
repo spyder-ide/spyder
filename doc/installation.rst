@@ -10,8 +10,8 @@ the `bootstrap` script (see next section).
 
 If you run into problems, before posting a
 report, *please* consult our comprehensive
-**[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
-and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+`Troubleshooting Guide <https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ>`_
+and search the `issue tracker <https://github.com/spyder-ide/spyder/issues>`_
 for your error message and problem description, as these methods are known to
 fix or at least isolate the vast majority of install-related problems.
 Thanks!
@@ -354,8 +354,8 @@ Help and support
 Spyder websites:
 
 * For a comprehensive guide to spyder troubleshooting, including
-  installation issues, read our Troubleshooting Guide and FAQ
-  <https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ>
+  installation issues, read our `Troubleshooting Guide and FAQ
+  <https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ>`_.
 * For bug reports and feature requests you can go to our
   `website <https://github.com/spyder-ide/spyder/issues>`_.
 * For general and development-oriented information, visit
