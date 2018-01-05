@@ -3125,7 +3125,8 @@ def main():
         CONF.set('main', 'crash', False)
         if SPLASH is not None:
             SPLASH.hide()
-        QMessageBox.information(None, "Spyder",
+        QMessageBox.information(
+            None, "Spyder",
             "Spyder crashed during last session.<br><br>"
             "If Spyder does not start at all and <u>before submitting a "
             "bug report</u>, please try to reset settings to defaults by "
@@ -3135,12 +3136,15 @@ def main():
             "<span style=\'color: #ff5555\'><b>Warning:</b></span> "
             "this command will remove all your Spyder configuration files "
             "located in '%s').<br><br>"
-            "If restoring the default settings does not help, please take "
+            "If Spyder still fails to launch, you should consult our "
+            "comprehensive <b><a href=\"%s\">Troubleshooting Guide</a></b>, "
+            "which when followed carefully solves the vast majority of "
+            "crashes; also, take "
             "the time to search for <a href=\"%s\">known bugs</a> or "
             "<a href=\"%s\">discussions</a> matching your situation before "
-            "eventually creating a new issue <a href=\"%s\">here</a>. "
+            "submitting a report to our <a href=\"%s\">issue tracker</a>. "
             "Your feedback will always be greatly appreciated."
-            "" % (get_conf_path(), __project_url__,
+            "" % (get_conf_path(), __trouble_url__, __project_url__,
                   __forum_url__, __project_url__))
 
     # Create main window
