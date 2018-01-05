@@ -67,6 +67,8 @@ def get_console_background_color(style_sheet):
 @pytest.fixture
 def ipyconsole(request):
     """IPython console fixture."""
+    # Tests assume inline backend
+    CONF.set('ipython_console', 'pylab/backend', 0)
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_marker('non_ascii_dir')
@@ -81,6 +83,10 @@ def ipyconsole(request):
         test_no_stderr = True
     else:
         test_no_stderr = False
+
+    auto_backend = request.node.get_marker('auto_backend')
+    if auto_backend:
+        CONF.set('ipython_console', 'pylab/backend', 1)
 
     # Create the console and a new client
     console = IPythonConsole(parent=None,
@@ -101,6 +107,28 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.auto_backend
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
+                    reason="It times out sometimes on Windows and it's not needed in PyQt4")
+def test_auto_backend(ipyconsole, qtbot):
+    """Test that the automatic backend is working correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # This is here to generate further errors
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%matplotlib qt5")
+
+    # Assert there are no errors in the console
+    control = ipyconsole.get_focus_widget()
+    assert 'NOTE' not in control.toPlainText()
+    assert 'Error' not in control.toPlainText()
+
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
