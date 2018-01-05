@@ -2405,8 +2405,21 @@ class MainWindow(QMainWindow):
         if versions['revision']:
             revision = versions['revision']
 
-        # Make a description header in case no description
-        # is supplied
+        # Store and format the reminder message for the troubleshooting guide
+        reminder_message = (
+            "**PLEASE READ:** Before posting this report, *please* carefully "
+            "read our **Troubleshooting Guide** at {0!s} and search the issue "
+            "page here for your error message and problem description, as the "
+            "great majority of bugs are either duplicates, or can be fixed on "
+            "the user side with a few easy steps.\n\n"
+            "Also, if you do post an issue here, please describe step by step "
+            "what you were doing when the error occured, in as much detail as "
+            "possible. Otherwise, your issue will likely be closed after one "
+            "week (7 days) if we can't reproduce it. Thanks.\n\n"
+            "**Note:** You should delete this message before submitting."
+            ).format(__trouble_url__)
+
+        # Make a description header in case no description is supplied
         if not description:
             description = "**What steps will reproduce your problem?**"
 
@@ -2419,6 +2432,8 @@ class MainWindow(QMainWindow):
         else:
             error_section = ''
         issue_template = """\
+{reminder_message}
+
 ## Description
 
 {description}
@@ -2436,7 +2451,8 @@ class MainWindow(QMainWindow):
 ```
 {dependencies}
 ```
-""".format(description=description,
+""".format(reminder_message=reminder_message,
+           description=description,
            error_section=error_section,
            spyder_version=versions['spyder'],
            commit=revision,
