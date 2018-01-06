@@ -15,6 +15,7 @@ try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock  # Python 2
+from qtpy import PYQT4
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtCore import Qt
 
@@ -60,7 +61,8 @@ def setup_editor(qtbot, monkeypatch):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(PY2, reason="Strange segfaults with other tests on Py2.")
+@pytest.mark.skipif(PY2 or PYQT4,
+                    reason="Segfaults with other tests on Py2 and PyQt4.")
 @pytest.mark.skipif(not JEDI_010,
                     reason="This feature is only supported in jedy >= 0.10")
 def test_introspection(setup_editor):
