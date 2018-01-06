@@ -15,12 +15,13 @@ try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock  # Python 2
-
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtCore import Qt
 
+# Local imports
 from spyder.utils.introspection.jedi_plugin import JEDI_010
 from spyder.utils.qthelpers import qapplication
+from spyder.py3compat import PY2
 
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -59,6 +60,7 @@ def setup_editor(qtbot, monkeypatch):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="Strange segfaults with other tests on Py2.")
 @pytest.mark.skipif(not JEDI_010,
                     reason="This feature is only supported in jedy >= 0.10")
 def test_introspection(setup_editor):
