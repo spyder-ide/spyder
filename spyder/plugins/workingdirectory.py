@@ -109,6 +109,7 @@ class WorkingDirectory(SpyderPluginWidget):
 
         # Initialize plugin
         self.initialize_plugin()
+        self.options_button.hide()
         
         self.toolbar.setWindowTitle(self.get_plugin_title())
         # Used to save Window state

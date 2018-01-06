@@ -453,6 +453,7 @@ class Editor(SpyderPluginWidget):
         
         # Initialize plugin
         self.initialize_plugin()
+        self.options_button.hide()
         
         # Configuration dialog size
         self.dialog_size = None
