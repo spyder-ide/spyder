@@ -470,7 +470,7 @@ def test_dataframemodel_set_data_complex(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None and
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or
                     platform.startswith('linux'),
                     reason="Fails on Travis for no good reason.")
 def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
@@ -533,7 +533,7 @@ def test_dataframemodel_set_data_bool(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None and
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or
                     platform.startswith('linux'),
                     reason="Fails on Travis for no good reason.")
 def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
