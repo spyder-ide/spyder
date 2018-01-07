@@ -60,9 +60,8 @@ def setup_editor(qtbot, monkeypatch):
     editor.introspector.plugin_manager.close()
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(PY2 or PYQT4,
-                    reason="Segfaults with other tests on Py2 and PyQt4.")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It makes other tests to segfault in our CIs")
 @pytest.mark.skipif(not JEDI_010,
                     reason="This feature is only supported in jedy >= 0.10")
 def test_introspection(setup_editor):
