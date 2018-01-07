@@ -15,7 +15,8 @@
 import sys
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Signal, Slot, Qt
+from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QApplication, QVBoxLayout
 
 # Local imports
@@ -150,11 +151,14 @@ class FindInFiles(SpyderPluginWidget):
         self.main.projects.sig_project_closed.connect(self.unset_project_path)
         self.main.editor.open_file_update.connect(self.set_current_opened_file)
 
-        findinfiles_action = create_action(self, _("&Find in files"),
+        findinfiles_action = create_action(
+                                   self, _("&Find in files"),
                                    icon=ima.icon('findf'),
-                                   triggered=self.findinfiles_callback,
-                                   tip=_("Search text in multiple files"))        
-        
+                                   triggered=self.switch_to_plugin,
+                                   shortcut=QKeySequence(self.shortcut),
+                                   context=Qt.WidgetShortcut,
+                                   tip=_("Search text in multiple files"))
+
         self.main.search_menu_actions += [MENU_SEPARATOR, findinfiles_action]
         self.main.search_toolbar_actions += [MENU_SEPARATOR,
                                              findinfiles_action]
