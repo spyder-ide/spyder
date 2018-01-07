@@ -2407,16 +2407,15 @@ class MainWindow(QMainWindow):
 
         # Store and format the reminder message for the troubleshooting guide
         reminder_message = (
-            "**PLEASE READ:** Before posting this report, *please* carefully "
+            "**PLEASE READ:** Before reporting here, *please* carefully "
             "read our **Troubleshooting Guide**: <{0!s}> and search the issue "
-            "page here for your error message and problem description, as the "
-            "great majority of bugs are either duplicates, or can be fixed on "
-            "the user side with a few easy steps.\n\n"
-            "Also, if you do post an issue here, please describe step by step "
-            "what you were doing when the error occurred, in as much detail "
-            "as possible. Otherwise, your issue will likely be closed after "
-            "one week (7 days) if we can't reproduce it. Thanks.\n\n"
-            "**Note:** You should delete this message before submitting."
+            "page for your error/problem, as most "
+            "posted bugs are duplicates or easy fixes.\n\n"
+            "Also, if you do post here, please describe step by step in "
+            "detail what you were doing when the error occurred. "
+            "Otherwise, your issue will likely be closed after 7 days. "
+            "Thanks.\n\n"
+            "**Note:** Delete this message before submitting."
             ).format(__trouble_url__)
 
         # Make a description header in case no description is supplied
@@ -2440,11 +2439,13 @@ class MainWindow(QMainWindow):
 
 {error_section}
 
-## Version and main components
+## Key Versions
 
-* Spyder Version: {spyder_version} {commit}
-* Python Version: {python_version}
-* Qt Versions: {qt_version}, {qt_api} {qt_api_ver} on {system_version}
+* Spyder: {spyder_version} {commit}
+* Python: {python_version}
+* Qt: {qt_version}
+* Qt API: {qt_api} {qt_api_ver}
+* Operating System: {system_version} {system_release}
 
 ## Dependencies
 
@@ -2461,6 +2462,7 @@ class MainWindow(QMainWindow):
            qt_api=versions['qt_api'],
            qt_api_ver=versions['qt_api_ver'],
            system_version=versions['system'],
+           system_release=versions['release'],
            dependencies=dependencies.status())
 
         return issue_template
