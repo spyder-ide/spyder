@@ -5,22 +5,24 @@
 #
 """Tests for the Editor plugin."""
 
-# Third party imports
-import pytest
+# Standard library imports
 import os
 import os.path as osp
-from flaky import flaky
 
+# Third party imports
+import pytest
 try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock  # Python 2
-
+from qtpy import PYQT4
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtCore import Qt
 
+# Local imports
 from spyder.utils.introspection.jedi_plugin import JEDI_010
 from spyder.utils.qthelpers import qapplication
+from spyder.py3compat import PY2
 
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -58,9 +60,8 @@ def setup_editor(qtbot, monkeypatch):
     editor.introspector.plugin_manager.close()
 
 
-@flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="This test fails too much in the CI :(")
+                    reason="It makes other tests to segfault in our CIs")
 @pytest.mark.skipif(not JEDI_010,
                     reason="This feature is only supported in jedy >= 0.10")
 def test_introspection(setup_editor):

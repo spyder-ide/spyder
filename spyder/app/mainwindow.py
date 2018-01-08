@@ -1410,7 +1410,8 @@ class MainWindow(QMainWindow):
             self.setWindowState(Qt.WindowMaximized)
         self.setUpdatesEnabled(True)
 
-    def save_current_window_settings(self, prefix, section='main'):
+    def save_current_window_settings(self, prefix, section='main',
+                                     none_state=False):
         """Save current window settings with *prefix* in
         the userconfig-based configuration, under *section*"""
         win_size = self.window_size
@@ -1424,8 +1425,11 @@ class MainWindow(QMainWindow):
         pos = self.window_position
         CONF.set(section, prefix+'position', (pos.x(), pos.y()))
         self.maximize_dockwidget(restore=True)# Restore non-maximized layout
-        qba = self.saveState()
-        CONF.set(section, prefix+'state', qbytearray_to_str(qba))
+        if none_state:
+            CONF.set(section, prefix + 'state', None)
+        else:
+            qba = self.saveState()
+            CONF.set(section, prefix + 'state', qbytearray_to_str(qba))
         CONF.set(section, prefix+'statusbar',
                     not self.statusBar().isHidden())
 
@@ -1463,15 +1467,14 @@ class MainWindow(QMainWindow):
 
             for index, name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
-                self.save_current_window_settings(prefix, section)
-                CONF.set(section, prefix+'state', None)        
+                self.save_current_window_settings(prefix, section,
+                                                  none_state=True)
 
             # store the initial layout as the default in spyder
             prefix = 'layout_default/'
             section = 'quick_layouts'
-            self.save_current_window_settings(prefix, section)
+            self.save_current_window_settings(prefix, section, none_state=True)
             self.current_quick_layout = 'default'
-            CONF.set(section, prefix+'state', None)
             
             # Regenerate menu
             self.quick_layout_set_menu()

@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, STDERR, STDOUT
+from spyder.config.base import _, DEBUG, PYTEST, STDERR, STDOUT
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -596,6 +596,9 @@ class EditorStack(QWidget):
         self.edit_filetypes = None
         self.edit_filters = None
 
+        # For testing
+        self.save_dialog_on_tests = not PYTEST
+
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
@@ -623,6 +626,12 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = config_shortcut(self.tab_navigation_mru, context='Editor',
                                    name='Go to next file', parent=self)
+        prevtab = config_shortcut(lambda: self.tabs.tab_navigate(-1),
+                                  context='Editor',
+                                  name='Cycle to previous file', parent=self)
+        nexttab = config_shortcut(lambda: self.tabs.tab_navigate(1),
+                                  context='Editor',
+                                  name='Cycle to next file', parent=self)
         run_selection = config_shortcut(self.run_selection, context='Editor',
                                         name='Run selection', parent=self)
         new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
@@ -703,7 +712,8 @@ class EditorStack(QWidget):
                 save_all, save_as, close_all, prev_edit_pos, prev_cursor,
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
-                go_to_next_cell, go_to_previous_cell, re_run_last_cell]
+                go_to_next_cell, go_to_previous_cell, re_run_last_cell,
+                prevtab, nexttab]
 
     def get_shortcut_data(self):
         """
@@ -1532,7 +1542,8 @@ class EditorStack(QWidget):
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(index):
                     return False
-            elif finfo.editor.document().isModified():
+            elif (finfo.editor.document().isModified() and
+                  self.save_dialog_on_tests):
 
                 self.msgbox = QMessageBox(
                         QMessageBox.Question,

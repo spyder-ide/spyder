@@ -289,7 +289,9 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'pyqt5',
+    # Packages for pyqt5 are only available in
+    # Python 3
+    'pyqt5;python_version>="3"',
     # This is only needed for our wheels on Linux.
     # See issue #3332
     'pyopengl;platform_system=="Linux"'

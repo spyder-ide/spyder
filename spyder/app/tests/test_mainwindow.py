@@ -32,7 +32,6 @@ from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
-from spyder.utils.test import close_save_message_box
 
 #==============================================================================
 # Constants
@@ -112,10 +111,13 @@ def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
 @pytest.fixture
 def main_window(request):
     """Main Window fixture"""
+    # Tests assume inline backend
+    CONF.set('ipython_console', 'pylab/backend', 0)
+
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
-    marker = request.node.get_marker('use_introspection')
-    if marker:
+    use_introspection = request.node.get_marker('use_introspection')
+    if use_introspection:
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     else:
         try:
@@ -138,11 +140,11 @@ def main_window(request):
 #==============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
+@pytest.mark.use_introspection
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt',
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt' or PY2,
                     reason="It times out in our CIs, and apparently Windows.")
 @pytest.mark.timeout(timeout=60, method='thread')
-@pytest.mark.use_introspection
 def test_calltip(main_window, qtbot):
     """Hide the calltip in the editor when a matching ')' is found."""
     # Load test file
@@ -167,10 +169,10 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
     main_window.editor.close_file()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2 or PYQT4,
                     reason="It fails sometimes")
@@ -228,6 +230,7 @@ def test_move_to_first_breakpoint(main_window, qtbot):
     main_window.editor.close_file()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="It's not meant to be run locally")
@@ -283,6 +286,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     CONF.set('run', 'configurations', [])
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and PY2, reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
@@ -333,6 +337,7 @@ def test_dedicated_consoles(main_window, qtbot):
     CONF.set('run', 'configurations', [])
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
@@ -372,6 +377,7 @@ def test_connection_to_external_kernel(main_window, qtbot):
     km.shutdown_kernel(now=True)
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_np_threshold(main_window, qtbot):
@@ -398,6 +404,7 @@ def test_np_threshold(main_window, qtbot):
     assert np.isnan(shell.get_value('t'))
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_change_types_in_varexp(main_window, qtbot):
@@ -424,6 +431,7 @@ def test_change_types_in_varexp(main_window, qtbot):
     assert shell.get_value('a') == 10
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
@@ -453,6 +461,7 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(temp_dir)
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
 def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
@@ -481,6 +490,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
                     reason="It times out sometimes on Windows and Cython is needed")
@@ -531,9 +541,9 @@ def test_run_cython_code(main_window, qtbot):
     main_window.editor.close_file()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt',
-                    reason="It times out in our CIs and fails on Windows.")
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
 def test_open_notebooks_from_project_explorer(main_window, qtbot):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
@@ -568,15 +578,13 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
 
     # Assert its contents are the expected ones
     file_text = editorstack.get_current_editor().toPlainText()
-    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n'
-
-    # Close last file (else tests hang here)
-    editorstack.close_file(force=True)
+    assert file_text == '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
 
     # Close project
     projects.close_project()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_set_new_breakpoints(main_window, qtbot):
@@ -614,6 +622,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     main_window.editor.close_file()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
@@ -722,6 +731,7 @@ def test_run_code(main_window, qtbot):
     main_window.editor.close_file()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None or PYQT5,
                     reason="It times out sometimes on Windows, it's not "
@@ -750,8 +760,8 @@ def test_open_files_in_new_editor_window(main_window, qtbot):
     assert editorstack.get_stack_count() == 2
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PYQT_WHEEL, reason="It times out sometimes on PyQt wheels")
 def test_close_when_file_is_changed(main_window, qtbot):
     """Test closing spyder when there is a file with modifications open."""
     # Wait until the window is fully up
@@ -765,15 +775,11 @@ def test_close_when_file_is_changed(main_window, qtbot):
     editor = editorstack.get_current_editor()
     editor.document().setModified(True)
 
-    # Close.main-window
-    QTimer.singleShot(1000, lambda: close_save_message_box(qtbot))
-    main_window.close()
-
     # Wait for the segfault
     qtbot.wait(3000)
 
 
-
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working correctly."""
@@ -834,6 +840,7 @@ def test_issue_4066(main_window, qtbot):
     qtbot.wait(3000)
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_varexp_edit_inline(main_window, qtbot):
@@ -865,6 +872,7 @@ def test_varexp_edit_inline(main_window, qtbot):
     qtbot.wait(3000)
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_c_and_n_pdb_commands(main_window, qtbot):
@@ -931,6 +939,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     main_window.editor.close_file()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_stop_dbg(main_window, qtbot):
@@ -972,6 +981,7 @@ def test_stop_dbg(main_window, qtbot):
     main_window.editor.close_file()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_change_cwd_dbg(main_window, qtbot):
@@ -1011,6 +1021,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     assert tempfile.gettempdir() in control.toPlainText()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2, reason="It times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
@@ -1043,6 +1054,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="It's not meant to be run outside of a CI")
@@ -1097,6 +1109,7 @@ def test_fileswitcher(main_window, qtbot):
        assert '...' in item_text
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not PYQT5, reason="It times out.")
 def test_run_static_code_analysis(main_window, qtbot):
