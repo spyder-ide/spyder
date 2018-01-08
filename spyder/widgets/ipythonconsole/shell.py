@@ -262,7 +262,7 @@ the sympy module (e.g. plot)
                         self.reset()
                         self._append_html(_("<br><br>Removing all variables..."
                                             "\n<hr>"),
-                                        before_prompt=False)
+                                          before_prompt=False)
                     self.silent_execute("%reset -f")
                     self.refresh_namespacebrowser()
                 else:
