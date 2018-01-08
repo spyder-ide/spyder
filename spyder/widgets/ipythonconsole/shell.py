@@ -253,23 +253,26 @@ the sympy module (e.g. plot)
             if answer != QMessageBox.Yes:
                 return
 
-        if self._reading:
-            self.dbg_exec_magic('reset', '-f')
-        else:
-            if silent:
-                if message:
-                    self.reset()
-                    self._append_html(_("<br><br>Removing all variables..."
-                                        "\n<hr>"),
-                                      before_prompt=False)
-                self.silent_execute("%reset -f")
-                self.refresh_namespacebrowser()
+        try:
+            if self._reading:
+                self.dbg_exec_magic('reset', '-f')
             else:
-                self.execute("%reset -f")
+                if silent:
+                    if message:
+                        self.reset()
+                        self._append_html(_("<br><br>Removing all variables..."
+                                            "\n<hr>"),
+                                        before_prompt=False)
+                    self.silent_execute("%reset -f")
+                    self.refresh_namespacebrowser()
+                else:
+                    self.execute("%reset -f")
 
-            if not self.external_kernel:
-                self.silent_execute(
-                    'get_ipython().kernel.close_all_mpl_figures()')
+                if not self.external_kernel:
+                    self.silent_execute(
+                        'get_ipython().kernel.close_all_mpl_figures()')
+        except AttributeError:
+            pass
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
