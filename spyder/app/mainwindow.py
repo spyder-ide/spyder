@@ -2253,16 +2253,29 @@ class MainWindow(QMainWindow):
         if self.state_before_maximizing is None:
             if restore:
                 return
-            # No plugin is currently maximized: maximizing focus plugin
+
+            # Select plugin to maximize
             self.state_before_maximizing = self.saveState()
             focus_widget = QApplication.focusWidget()
             for plugin in self.widgetlist:
                 plugin.dockwidget.hide()
                 if plugin.isAncestorOf(focus_widget):
                     self.last_plugin = plugin
+
+            # Only plugins that have a dockwidget are part of widgetlist,
+            # so last_plugin can be None after the above "for" cycle.
+            # For example, this happens if, after Spyder has started, focus
+            # is set to the Working directory toolbar (which doesn't have
+            # a dockwidget) and then you press the Maximize button
+            if self.last_plugin is None:
+                # Using the Editor as default plugin to maximize
+                self.last_plugin = self.editor
+
+            # Maximize last_plugin
             self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
             self.setCentralWidget(self.last_plugin)
             self.last_plugin.ismaximized = True
+
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline explorer
             #  and the latter won't be refreshed if not visible)
