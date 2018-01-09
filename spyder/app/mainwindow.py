@@ -2477,7 +2477,7 @@ class MainWindow(QMainWindow):
         if body is None:
             body = self.render_issue()
 
-        url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
+        url = QUrl(__project_url__ + '/issues/new')
         if PYQT5:
             from qtpy.QtCore import QUrlQuery
             query = QUrlQuery()
@@ -2497,7 +2497,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def google_group(self):
-        url = QUrl("http://groups.google.com/group/spyderlib")
+        url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
@@ -2915,7 +2915,7 @@ class MainWindow(QMainWindow):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        url_r = 'https://github.com/spyder-ide/spyder/releases'
+        url_r = __project_url__ + '/releases'
         url_i = 'http://pythonhosted.org/spyder/installation.html'
 
         # Define the custom QMessageBox
