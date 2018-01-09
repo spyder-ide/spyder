@@ -2,14 +2,12 @@ Installation
 ============
 
 Spyder is quite easy to install on Windows, Linux and macOS. Just the read the
-following instructions with care.
+following instructions with care. This section explains how to install the 
+latest stable release of Spyder. If you prefer testing the development version,
+please use the ``bootstrap`` script (see next section).
 
-This section explains how to install the latest stable release of
-Spyder. If you prefer testing the development version, please use
-the `bootstrap` script (see next section).
-
-If you run into problems, before posting a
-report, *please* consult our comprehensive
+If you run into problems, before posting a report, 
+*please* consult our comprehensive
 `Troubleshooting Guide <https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ>`_
 and search the `issue tracker <https://github.com/spyder-ide/spyder/issues>`_
 for your error message and problem description, as these methods are known to
