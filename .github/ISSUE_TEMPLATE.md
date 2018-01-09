@@ -8,16 +8,20 @@ Also, if you do post an issue here, please describe step by step in detail what 
 
 
 
-**What steps will reproduce the problem?**
+## What steps will reproduce the problem?
 
 1. 
 2. 
 3. 
 
-**What is the expected output? What do you see instead?**
+## What is the expected output? What do you see instead?
 
 
-**Please provide any additional information below**
+### Paste Traceback/Error Below
+*(Copy from error dialog or `View > Panes > Internal Console`*
+```
+PASTE HERE
+```
 
 
 
