@@ -18,7 +18,7 @@ Also, if you do post an issue here, please describe step by step in detail what 
 
 
 ### Paste Traceback/Error Below
-*(Copy from error dialog or `View > Panes > Internal Console`*
+*(Copy from error dialog or `View > Panes > Internal Console`)*
 ```
 PASTE HERE
 ```
