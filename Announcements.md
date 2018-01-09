@@ -1,36 +1,33 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.5 is released!
+**Subject**: [ANN] Spyder 3.2.6 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.5** has been released and is available for
+I'm pleased to announce that Spyder **3.2.6** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 10 weeks after version 3.2.4 and it adds the following new
+This release comes 2 weeks after version 3.2.5 and it adds the following new
 features:
 
-- IPython Console
-    * Improve kernel startup time.
-    * Add option to show kernel elapsed time.
-    * Add button and option to remove all user-defined variables.
-    * Load `%autoreload` magic at kernel startup to make changes to
-      modules take effect instantly in the console.
-    * Use `cloudpickle` to serialize/deserialize data between kernels
-      and Spyder.
+- Editor
+    * Make `Shift+Del` to cut text if users have some text
+      selected.
+    * Make `Shift+Ins` to paste text.
+    * Make `Ctrl+PgUp`, `Ctrl+PgDn` and `Ctrl+Tab` shortcuts
+      configurable.
 
 - Variable Explorer
-    * Add support for `datetime.timedelta` objects.
+    * Display date/times in human readable format.
+    * Disable editing for immutable types (e.g. tuples).
 
 - Under the hood
-    * Add `pyqt5` as a new wheel dependency.
-    * Add a new `--hide-console` option and deprecate `--show-console`
-      on Windows.
+    * Fix installation of wheels with `pip`.
 
-In this release we fixed 45 issues and merged 54 pull requests that amount
-to more than 200 commits. For a full list of fixes, please see our
+In this release we fixed 23 issues and merged 32 pull requests that amount
+to more than 140 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
