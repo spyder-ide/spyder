@@ -15,6 +15,9 @@
 * Display date/times in human readable format.
 * Disable editing for immutable types (e.g. tuples).
 
+#### Under the hood
+* Fix installation of wheels with `pip`.
+
 ### Bugs fixed
 
 **Issues**
