@@ -30,8 +30,8 @@ from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 
 from spyder import __trouble_url__
-from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.app import start
+from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins import TabFilter
@@ -1171,9 +1171,9 @@ def test_fileswitcher(main_window, qtbot):
 
     # Assert that the path shown in the fileswitcher is shorter
     if PYQT5:
-       main_window.open_fileswitcher()
-       item_text = main_window.fileswitcher.list.currentItem().text()
-       assert '...' in item_text
+        main_window.open_fileswitcher()
+        item_text = main_window.fileswitcher.list.currentItem().text()
+        assert '...' in item_text
 
 
 @pytest.mark.slow
