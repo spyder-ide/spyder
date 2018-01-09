@@ -579,8 +579,7 @@ class FindOptions(QWidget):
         return self.path_selection_combo.path
 
     def set_directory(self, directory):
-        self.path_selection_combo.path = to_text_string(osp.abspath(
-                to_text_string(directory)))
+        self.path_selection_combo.path = osp.abspath(directory)
 
     @property
     def project_path(self):
