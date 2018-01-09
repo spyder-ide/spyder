@@ -2444,8 +2444,8 @@ class MainWindow(QMainWindow):
 * Spyder: {spyder_version} {commit}
 * Python: {python_version}
 * Qt: {qt_version}
-* Qt API: {qt_api} {qt_api_ver}
-* Operating System: {system_version} {system_release}
+* Qt API: {qt_api_name} {qt_api_version}
+* Operating System: {os_name} {os_version}
 
 ## Dependencies
 
@@ -2459,10 +2459,10 @@ class MainWindow(QMainWindow):
            commit=revision,
            python_version=versions['python'],
            qt_version=versions['qt'],
-           qt_api=versions['qt_api'],
-           qt_api_ver=versions['qt_api_ver'],
-           system_version=versions['system'],
-           system_release=versions['release'],
+           qt_api_name=versions['qt_api'],
+           qt_api_version=versions['qt_api_ver'],
+           os_name=versions['system'],
+           os_version=versions['release'],
            dependencies=dependencies.status())
 
         return issue_template
