@@ -98,7 +98,7 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
     text = ""
     for index in range(len(deps)):
         text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + linesep
-    return text
+    return text[:-1]
 
 
 def missing_dependencies():
