@@ -142,6 +142,7 @@ class SpyderErrorDlg(QDialog):
             self.details_btn.setText(_('Show details'))
         else:
             self.resize(500, 550)
+            self.details.document().setPlainText('')
             self.details.append_text_to_shell(self.error_traceback,
                                               error=True,
                                               prompt=False)
