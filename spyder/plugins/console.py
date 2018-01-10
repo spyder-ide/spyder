@@ -220,10 +220,11 @@ class Console(SpyderPluginWidget):
         else:
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDlg(self)
-                self.error_dlg.append_traceback(text)
                 self.error_dlg.dimiss_btn.clicked.connect(
                     self.dismiss_error_dlg)
-                self.error_dlg.exec_()
+                self.error_dlg.show()
+
+            self.error_dlg.append_traceback(text)
 
     def dismiss_error_dlg(self):
         """Dismiss error dialog."""
