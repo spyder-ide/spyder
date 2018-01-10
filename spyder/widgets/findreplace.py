@@ -571,11 +571,11 @@ class FindReplace(QWidget):
     def change_number_matches(self, current_match=0, total_matches=0):
         """Change number of match and total matches."""
         if current_match and total_matches:
-            matches_string = "{} {} {}".format(current_match, _("of"),
+            matches_string = u"{} {} {}".format(current_match, _(u"of"),
                                                total_matches)
             self.number_matches_text.setText(matches_string)
         elif total_matches:
-            matches_string = "{} {}".format(total_matches, _("matches"))
+            matches_string = u"{} {}".format(total_matches, _(u"matches"))
             self.number_matches_text.setText(matches_string)
         else:
-            self.number_matches_text.setText(_("no matches"))
+            self.number_matches_text.setText(_(u"no matches"))
