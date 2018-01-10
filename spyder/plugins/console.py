@@ -205,8 +205,11 @@ class Console(SpyderPluginWidget):
         self.shell.exception_occurred.connect(self.exception_occurred)
     
     def exception_occurred(self, text, is_traceback):
-        """Exception ocurred in the internal console.
-        Show a QMessageBox or the internal console to warn the user"""
+        """
+        Exception ocurred in the internal console.
+
+        Show a QDialog or the internal console to warn the user.
+        """
         # Skip errors without traceback
         if (not is_traceback and self.error_dlg is None) or self.dimiss_error:
             return
@@ -217,15 +220,15 @@ class Console(SpyderPluginWidget):
         else:
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDlg(self)
+                self.error_dlg.append_traceback(text)
                 self.error_dlg.dimiss_btn.clicked.connect(
                     self.dismiss_error_dlg)
                 self.error_dlg.exec_()
 
-            self.error_dlg.append_traceback(text)
-
     def dismiss_error_dlg(self):
         """Dismiss error dialog."""
         self.dimiss_error = True
+        self.error_dlg.reject()
         self.error_dlg = None
 
     #------ Public API ---------------------------------------------------------
