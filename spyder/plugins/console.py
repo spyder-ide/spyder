@@ -34,7 +34,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
-from spyder.widgets.reporterror import SpyderErrorMsgBox
+from spyder.widgets.reporterror import SpyderErrorDlg
 from spyder.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 
@@ -95,7 +95,7 @@ class Console(SpyderPluginWidget):
         self.setAcceptDrops(True)
 
         # Traceback MessageBox
-        self.msgbox_error= None
+        self.error_dlg = None
         self.error_traceback = ""
         self.dimiss_error = False
 
@@ -208,23 +208,25 @@ class Console(SpyderPluginWidget):
         """Exception ocurred in the internal console.
         Show a QMessageBox or the internal console to warn the user"""
         # Skip errors without traceback
-        if (not is_traceback and self.msgbox_error is None) or self.dimiss_error:
+        if (not is_traceback and self.error_dlg is None) or self.dimiss_error:
             return
 
-        if CONF.get('main', 'show_internal_console_if_traceback', False):
+        if False: #CONF.get('main', 'show_internal_console_if_traceback'):
             self.dockwidget.show()
             self.dockwidget.raise_()
         else:
-            if self.msgbox_error is None:
-                self.msgbox_error = SpyderErrorMsgBox(self)
-                self.msgbox_error.finished.connect(self.close_msg)
+            if self.error_dlg is None:
+                self.error_dlg = SpyderErrorDlg(self)
+                self.error_dlg.dimiss_btn.clicked.connect(
+                    self.dismiss_error_dlg)
+                self.error_dlg.exec_()
 
-            self.msgbox_error.append_traceback(text)
+            self.error_dlg.append_traceback(text)
 
-    def close_msg(self, result):
-        if result == 1:  # submited to github or dialog dismissed
-            self.dimiss_error = True
-        self.msgbox_error = None
+    def dismiss_error_dlg(self):
+        """Dismiss error dialog."""
+        self.dimiss_error = True
+        self.error_dlg = None
 
     #------ Public API ---------------------------------------------------------
     @Slot()
