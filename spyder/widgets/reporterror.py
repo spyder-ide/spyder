@@ -102,7 +102,12 @@ class SpyderErrorDlg(QDialog):
         QApplication.clipboard().setText(issue_text)
 
         # Submit issue to Github
-        main.report_issue(body="", title="Automatic error report")
+        issue_body=("<!--- "
+                    "Please paste the contents of your clipboard "
+                    "below to complete reporting your problem. "
+                    "--->\n\n")
+        main.report_issue(body=issue_body,
+                          title="Automatic error report")
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in details."""
