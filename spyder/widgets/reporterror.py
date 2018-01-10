@@ -64,7 +64,7 @@ class SpyderErrorDlg(QDialog):
         # Dialog buttons
         self.submit_btn = QPushButton(_('Submit to Github'))
         self.submit_btn.setEnabled(False)
-        self.submit_btn.clicked.connect(self._press_submit_btn)
+        self.submit_btn.clicked.connect(self._submit_to_github)
 
         self.details_btn = QPushButton(_('Show details'))
         self.details_btn.clicked.connect(self._show_details)
@@ -86,12 +86,22 @@ class SpyderErrorDlg(QDialog):
 
         self.error_traceback = ""
 
-    def _press_submit_btn(self):
+    def _submit_to_github(self):
+        """Action to take when pressing the submit button."""
         main = self.parent().main
+
+        # Getting description and traceback
         description = self.input_description.toPlainText()
+        traceback = self.error_traceback[:-1] # Remove last eol
+
+        # Render issue
         issue_text  = main.render_issue(description=description,
-                                        traceback=self.error_traceback)
+                                        traceback=traceback)
+
+        # Copy issue to clipboard
         QApplication.clipboard().setText(issue_text)
+
+        # Submit issue to Github
         main.report_issue(body="", title="Automatic error report")
 
     def append_traceback(self, text):
