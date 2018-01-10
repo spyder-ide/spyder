@@ -88,10 +88,11 @@ class SpyderErrorDlg(QDialog):
 
     def _press_submit_btn(self):
         main = self.parent().main
-        issue_text  = main.render_issue(traceback=self.error_traceback)
+        description = self.input_description.toPlainText()
+        issue_text  = main.render_issue(description=description,
+                                        traceback=self.error_traceback)
         QApplication.clipboard().setText(issue_text)
-        main.report_issue(body="", title="Spyder Error Report")
-        self.accept()
+        main.report_issue(body="", title="Automatic error report")
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in details."""

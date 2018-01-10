@@ -2380,7 +2380,7 @@ class MainWindow(QMainWindow):
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 
-    def render_issue(self, traceback=""):
+    def render_issue(self, description, traceback):
         versions = get_versions()
         # Get git revision for development version
         revision = ''
@@ -2389,38 +2389,35 @@ class MainWindow(QMainWindow):
         issue_template = """\
 ## Description
 
-**What steps will reproduce the problem?**
+{description}
 
-1. 
-2. 
-3. 
+## Traceback
 
-**What is the expected output? What do you see instead?**
-
-
-**Please provide any additional information below**
-
-%s
+```python-traceback
+{traceback}
+```
 
 ## Version and main components
 
-* Spyder Version: %s %s
-* Python Version: %s
-* Qt Versions: %s, %s %s on %s
+* Spyder Version: {spyder_version} {commit}
+* Python Version: {python_version}
+* Qt Versions: {qt_version}, {qt_api} {qt_api_ver} on {system_version}
 
 ## Dependencies
+
 ```
-%s
+{dependencies}
 ```
-""" % (traceback,
-       versions['spyder'],
-       revision,
-       versions['python'],
-       versions['qt'],
-       versions['qt_api'],
-       versions['qt_api_ver'],
-       versions['system'],
-       dependencies.status())
+""".format(description=description,
+           traceback=traceback,
+           spyder_version=versions['spyder'],
+           commit=revision,
+           python_version=versions['python'],
+           qt_version=versions['qt'],
+           qt_api=versions['qt_api'],
+           qt_api_ver=versions['qt_api_ver'],
+           system_version=versions['system'],
+           dependencies=dependencies.status())
 
         return issue_template
 
