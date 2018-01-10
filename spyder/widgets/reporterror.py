@@ -42,7 +42,7 @@ class SpyderErrorDlg(QDialog):
         # Field to input the description of the problem
         self.description_header = (
             "**What steps will reproduce your problem?**\n\n"
-            "You can use Markdown here\n\n")
+            "<!--- You can use Markdown here --->\n\n")
         self.input_description = CodeEditor()
         self.input_description.setup_editor(
             language='md',
