@@ -41,7 +41,7 @@ class SpyderErrorMsgBox(QMessageBox):
         self.error_traceback = ""
         self.setDetailedText(' ')
 
-        # open show details (iterate over all buttons and click it)
+        # Open show details (iterate over all buttons and click it)
         for button in self.buttons():
             if self.buttonRole(button) == QMessageBox.ActionRole:
                 button.click()
@@ -59,3 +59,15 @@ class SpyderErrorMsgBox(QMessageBox):
         """Append text to the traceback, to be displayed in show details."""
         self.error_traceback += text
         self.setDetailedText(self.error_traceback)
+
+
+def test():
+    from spyder.utils.qthelpers import qapplication
+    app = qapplication()
+    report_dialog = SpyderErrorMsgBox()
+    report_dialog.show()
+    app.exec_()
+
+
+if __name__ == "__main__":
+    test()
