@@ -44,7 +44,7 @@ class SpyderErrorDlg(QDialog):
         self.setModal(True)
 
         # Dialog main label
-        self.label = QLabel(
+        self.main_label = QLabel(
             _("""<b>Spyder has encountered a problem!!</b><hr>
               Please enter below a step-by-step description 
               of your problem (in English). If you fail to 
@@ -52,8 +52,8 @@ class SpyderErrorDlg(QDialog):
               <br><br>
               <b>Note</b>: You need a Github account for this.
               """))
-        self.label.setWordWrap(True)
-        self.label.setAlignment(Qt.AlignJustify)
+        self.main_label.setWordWrap(True)
+        self.main_label.setAlignment(Qt.AlignJustify)
 
         # Field to input the description of the problem
         self.description_header = (
@@ -92,15 +92,20 @@ class SpyderErrorDlg(QDialog):
 
         self.dimiss_btn = QPushButton(_('Dimiss'))
 
+        # Label to show missing chars
+        self.initial_chars = len(self.input_description.toPlainText())
+        self.chars_label = QLabel(_("Enter at least 15 characters"))
+
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.submit_btn)
         hlayout.addWidget(self.details_btn)
         hlayout.addWidget(self.dimiss_btn)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(self.label)
+        vlayout.addWidget(self.main_label)
         vlayout.addWidget(self.input_description)
         vlayout.addWidget(self.details)
+        vlayout.addWidget(self.chars_label)
         vlayout.addLayout(hlayout)
         self.resize(500, 420)
 
@@ -151,9 +156,13 @@ class SpyderErrorDlg(QDialog):
 
     def _description_changed(self):
         """Activate submit_btn if we have a long enough description."""
-        ini_words = len(self.description_header.split())
-        words_in_description = len(self.input_description.toPlainText().split())
-        self.submit_btn.setEnabled(words_in_description - ini_words > 10)
+        chars = len(self.input_description.toPlainText()) - self.initial_chars
+        if chars < 15:
+            self.chars_label.setText(
+                u"{} {}".format(15 - chars, _("more characters to go...")))
+        else:
+            self.chars_label.setText(_("Ready to submit"))
+        self.submit_btn.setEnabled(chars > 15)
 
 
 def test():
