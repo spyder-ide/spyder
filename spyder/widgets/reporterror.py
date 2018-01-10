@@ -46,9 +46,9 @@ class SpyderErrorDlg(QDialog):
         # Dialog main label
         self.main_label = QLabel(
             _("""<b>Spyder has encountered a problem!!</b><hr>
-              Please enter below a step-by-step description 
-              of your problem (in English). If you fail to 
-              do it, you won't be able to send your report.
+              Please enter below a step-by-step description of 
+              your problem (in English). Issue reports without 
+              a clear way to reproduce them will be closed.
               <br><br>
               <b>Note</b>: You need a Github account for this.
               """))
@@ -161,8 +161,8 @@ class SpyderErrorDlg(QDialog):
             self.chars_label.setText(
                 u"{} {}".format(15 - chars, _("more characters to go...")))
         else:
-            self.chars_label.setText(_("Ready to submit"))
-        self.submit_btn.setEnabled(chars > 15)
+            self.chars_label.setText(_("Ready to submit! Thanks!"))
+        self.submit_btn.setEnabled(chars >= 15)
 
 
 def test():
