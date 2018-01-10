@@ -25,12 +25,10 @@ class SpyderErrorMsgBox(QMessageBox):
             _("<b>Spyder has encountered a problem.</b><br>"
               "Sorry for the inconvenience."
               "<br><br>"
-              "You can create a new issue in our Github "
-              "issues tracker.<br><br>"
-              "The issue dependencies and traceback "
-              "will be  copied  in the clipboard, "
-              "paste them when submiting the issue.<br><br>"
-              "<i>Note: You need a Github account for that.</i>"),
+              "All the information about this error "
+              "will be copied to the clipboard. Please "
+              "paste it when submiting the issue to Github.<br><br>"
+              "<b>Note</b>: You need a Github account for that."),
             parent=parent)
 
         self.submit_btn = self.addButton(
