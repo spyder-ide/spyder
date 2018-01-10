@@ -11,12 +11,28 @@ import sys
 
 # Third party imports
 from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLabel,
-                            QPushButton, QVBoxLayout)
-from qtpy.QtCore import Qt
+                            QPlainTextEdit, QPushButton, QVBoxLayout)
+from qtpy.QtCore import Qt, Signal
 
 # Local Imports
 from spyder.config.base import _
+from spyder.config.gui import get_font
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
+from spyder.widgets.sourcecode.base import ConsoleBaseWidget
+
+
+class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
+    """"""
+    QT_CLASS = QPlainTextEdit
+    go_to_error = Signal(str)
+
+    def __init__(self, parent=None):
+        ConsoleBaseWidget.__init__(self, parent)
+        BaseEditMixin.__init__(self)
+        TracebackLinksMixin.__init__(self)
+
+        self.setReadOnly(True)
 
 
 class SpyderErrorDlg(QDialog):
@@ -61,6 +77,11 @@ class SpyderErrorDlg(QDialog):
         # Only allow to submit to Github if we have a long enough description
         self.input_description.textChanged.connect(self._description_changed)
 
+        # Widget to show errors
+        self.details = ShowErrorWidget(self)
+        self.details.set_pythonshell_font(get_font())
+        self.details.hide()
+
         # Dialog buttons
         self.submit_btn = QPushButton(_('Submit to Github'))
         self.submit_btn.setEnabled(False)
@@ -79,6 +100,7 @@ class SpyderErrorDlg(QDialog):
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.label)
         vlayout.addWidget(self.input_description)
+        vlayout.addWidget(self.details)
         vlayout.addLayout(hlayout)
         self.resize(500, 420)
 
@@ -115,7 +137,16 @@ class SpyderErrorDlg(QDialog):
 
     def _show_details(self):
         """Show traceback on its own dialog"""
-        pass
+        if self.details.isVisible():
+            self.details.hide()
+            self.details_btn.setText(_('Show details'))
+        else:
+            self.resize(500, 550)
+            self.details.append_text_to_shell(self.error_traceback,
+                                              error=True,
+                                              prompt=False)
+            self.details.show()
+            self.details_btn.setText(_('Hide details'))
 
     def _description_changed(self):
         """Activate submit_btn if we have a long enough description."""

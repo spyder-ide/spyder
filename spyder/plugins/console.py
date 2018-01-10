@@ -222,6 +222,7 @@ class Console(SpyderPluginWidget):
                 self.error_dlg = SpyderErrorDlg(self)
                 self.error_dlg.dimiss_btn.clicked.connect(
                     self.dismiss_error_dlg)
+                self.error_dlg.details.go_to_error.connect(self.go_to_error)
                 self.error_dlg.show()
 
             self.error_dlg.append_traceback(text)
