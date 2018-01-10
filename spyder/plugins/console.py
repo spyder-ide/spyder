@@ -210,7 +210,7 @@ class Console(SpyderPluginWidget):
 
         Show a QDialog or the internal console to warn the user.
         """
-        # Skip errors without traceback
+        # Skip errors without traceback or dismiss
         if (not is_traceback and self.error_dlg is None) or self.dimiss_error:
             return
 
@@ -220,9 +220,12 @@ class Console(SpyderPluginWidget):
         else:
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDlg(self)
+
                 self.error_dlg.dimiss_btn.clicked.connect(
                     self.dismiss_error_dlg)
+                self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
+
                 self.error_dlg.show()
 
             self.error_dlg.append_traceback(text)
@@ -231,6 +234,9 @@ class Console(SpyderPluginWidget):
         """Dismiss error dialog."""
         self.dimiss_error = True
         self.error_dlg.reject()
+
+    def remove_error_dlg(self):
+        """Remove error dialog."""
         self.error_dlg = None
 
     #------ Public API ---------------------------------------------------------
