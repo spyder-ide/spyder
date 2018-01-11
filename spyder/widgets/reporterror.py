@@ -67,7 +67,11 @@ class SpyderErrorDlg(QDialog):
             scrollflagarea=False,
             wrap=True,
             edge_line=False,
-            highlight_current_line=False)
+            highlight_current_line=False,
+            highlight_current_cell=False,
+            occurrence_highlighting=False,
+            auto_unindent=False)
+        self.input_description.set_font(get_font())
 
         # Set default text for description
         self.input_description.set_text(
