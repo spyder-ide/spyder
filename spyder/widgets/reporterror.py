@@ -62,7 +62,7 @@ class SpyderErrorDialog(QDialog):
         self.input_description = CodeEditor()
         self.input_description.setup_editor(
             language='md',
-            color_scheme='IDLE',
+            color_scheme='Scintilla',
             linenumbers=False,
             scrollflagarea=False,
             wrap=True,
