@@ -34,7 +34,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
-from spyder.widgets.reporterror import SpyderErrorDlg
+from spyder.widgets.reporterror import SpyderErrorDialog
 from spyder.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 
@@ -214,12 +214,12 @@ class Console(SpyderPluginWidget):
         if (not is_traceback and self.error_dlg is None) or self.dimiss_error:
             return
 
-        if False: #CONF.get('main', 'show_internal_console_if_traceback'):
+        if CONF.get('main', 'show_internal_console_if_traceback'):
             self.dockwidget.show()
             self.dockwidget.raise_()
         else:
             if self.error_dlg is None:
-                self.error_dlg = SpyderErrorDlg(self)
+                self.error_dlg = SpyderErrorDialog(self)
 
                 self.error_dlg.dimiss_btn.clicked.connect(
                     self.dismiss_error_dlg)

@@ -35,8 +35,8 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
         self.setReadOnly(True)
 
 
-class SpyderErrorDlg(QDialog):
-    """Custom message box for error reporting"""
+class SpyderErrorDialog(QDialog):
+    """Custom error dialog for error reporting."""
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -172,7 +172,7 @@ class SpyderErrorDlg(QDialog):
 def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    dlg = SpyderErrorDlg()
+    dlg = SpyderErrorDialog()
     dlg.show()
     sys.exit(dlg.exec_())
 
