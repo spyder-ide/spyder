@@ -2380,22 +2380,35 @@ class MainWindow(QMainWindow):
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 
-    def render_issue(self, description, traceback):
+    def render_issue(self, description='', traceback=''):
+        """Render issue before sending it to Github"""
+        # Get component versions
         versions = get_versions()
+
         # Get git revision for development version
         revision = ''
         if versions['revision']:
             revision = versions['revision']
+
+        # Make a description header in case no description
+        # is supplied
+        if not description:
+            description = "**What steps will reproduce your problem?**"
+
+        # Make error section from traceback
+        if traceback:
+            error_section = ("## Traceback\n"
+                             "```python-traceback\n"
+                             "{}\n"
+                             "```".format(traceback))
+        else:
+            error_section = ''
         issue_template = """\
 ## Description
 
 {description}
 
-## Traceback
-
-```python-traceback
-{traceback}
-```
+{error_section}
 
 ## Version and main components
 
@@ -2409,7 +2422,7 @@ class MainWindow(QMainWindow):
 {dependencies}
 ```
 """.format(description=description,
-           traceback=traceback,
+           error_section=error_section,
            spyder_version=versions['spyder'],
            commit=revision,
            python_version=versions['python'],
