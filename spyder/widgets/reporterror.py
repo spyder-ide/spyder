@@ -53,6 +53,17 @@ class DescriptionWidget(CodeEditor):
         self.move_cursor(len(self.header))
         self.header_end_pos = self.get_position('eof')
 
+    def remove_text(self):
+        """Remove selected text."""
+        self.truncate_selection(self.header_end_pos)
+        self.remove_selected_text()
+
+    def cut(self):
+        """Cut text"""
+        self.truncate_selection(self.header_end_pos)
+        if self.has_selected_text():
+            CodeEditor.cut(self)
+
     def keyPressEvent(self, event):
         """Reimplemented Qt Method to avoid removing the header."""
         event, text, key, ctrl, shift = restore_keyevent(event)
@@ -62,18 +73,18 @@ class DescriptionWidget(CodeEditor):
             self.restrict_cursor_position(self.header_end_pos, 'eof')
         elif key == Qt.Key_Delete:
             if self.has_selected_text():
-                self.truncate_selection(self.header_end_pos)
-                self.remove_selected_text()
+                self.remove_text()
             else:
                 self.stdkey_clear()
         elif key == Qt.Key_Backspace:
             if self.has_selected_text():
-                self.truncate_selection(self.header_end_pos)
-                self.remove_selected_text()
+                self.remove_text()
             elif self.header_end_pos == cursor_position:
                 return
             else:
                 self.stdkey_backspace()
+        elif key == Qt.Key_X and ctrl:
+            self.cut()
         else:
             CodeEditor.keyPressEvent(self, event)
 
