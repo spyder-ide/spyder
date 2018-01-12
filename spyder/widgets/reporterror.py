@@ -17,9 +17,65 @@ from qtpy.QtCore import Qt, Signal
 # Local Imports
 from spyder.config.base import _
 from spyder.config.gui import get_font
+from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
+
+
+class DescriptionWidget(CodeEditor):
+    """Widget to enter error description."""
+
+    def __init__(self, parent=None):
+        CodeEditor.__init__(self, parent)
+
+        # Editor options
+        self.setup_editor(
+            language='md',
+            color_scheme='Scintilla',
+            linenumbers=False,
+            scrollflagarea=False,
+            wrap=True,
+            edge_line=False,
+            highlight_current_line=False,
+            highlight_current_cell=False,
+            occurrence_highlighting=False,
+            auto_unindent=False)
+
+        # Set font
+        self.set_font(get_font())
+
+        # Header
+        self.header = (
+            "**What steps will reproduce your problem?**\n\n"
+            "<!--- You can use Markdown here --->\n\n")
+        self.set_text(self.header)
+        self.move_cursor(len(self.header))
+        self.header_end_pos = self.get_position('eof')
+
+    def keyPressEvent(self, event):
+        """Reimplemented Qt Method to avoid removing the header."""
+        event, text, key, ctrl, shift = restore_keyevent(event)
+        cursor_position = self.get_position('cursor')
+
+        if cursor_position < self.header_end_pos:
+            self.restrict_cursor_position(self.header_end_pos, 'eof')
+        elif key == Qt.Key_Delete:
+            if self.has_selected_text():
+                self.truncate_selection(self.header_end_pos)
+                self.remove_selected_text()
+            else:
+                self.stdkey_clear()
+        elif key == Qt.Key_Backspace:
+            if self.has_selected_text():
+                self.truncate_selection(self.header_end_pos)
+                self.remove_selected_text()
+            elif self.header_end_pos == cursor_position:
+                return
+            else:
+                self.stdkey_backspace()
+        else:
+            CodeEditor.keyPressEvent(self, event)
 
 
 class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
@@ -31,7 +87,6 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
         ConsoleBaseWidget.__init__(self, parent)
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
-
         self.setReadOnly(True)
 
 
@@ -56,27 +111,7 @@ class SpyderErrorDialog(QDialog):
         self.main_label.setAlignment(Qt.AlignJustify)
 
         # Field to input the description of the problem
-        self.description_header = (
-            "**What steps will reproduce your problem?**\n\n"
-            "<!--- You can use Markdown here --->\n\n")
-        self.input_description = CodeEditor()
-        self.input_description.setup_editor(
-            language='md',
-            color_scheme='Scintilla',
-            linenumbers=False,
-            scrollflagarea=False,
-            wrap=True,
-            edge_line=False,
-            highlight_current_line=False,
-            highlight_current_cell=False,
-            occurrence_highlighting=False,
-            auto_unindent=False)
-        self.input_description.set_font(get_font())
-
-        # Set default text for description
-        self.input_description.set_text(
-            "{0}1. \n2. \n3. ".format(self.description_header))
-        self.input_description.move_cursor(len(self.description_header) + 3)
+        self.input_description = DescriptionWidget()
 
         # Only allow to submit to Github if we have a long enough description
         self.input_description.textChanged.connect(self._description_changed)
