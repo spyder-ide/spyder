@@ -2376,62 +2376,83 @@ class MainWindow(QMainWindow):
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 
-    @Slot()
-    def report_issue(self, traceback=""):
-        if PY3:
-            from urllib.parse import quote
-        else:
-            from urllib import quote     # analysis:ignore
+    def render_issue(self, description='', traceback=''):
+        """Render issue before sending it to Github"""
+        # Get component versions
         versions = get_versions()
+
         # Get git revision for development version
         revision = ''
         if versions['revision']:
             revision = versions['revision']
+
+        # Make a description header in case no description
+        # is supplied
+        if not description:
+            description = "**What steps will reproduce your problem?**"
+
+        # Make error section from traceback
+        if traceback:
+            error_section = ("## Traceback\n"
+                             "```python-traceback\n"
+                             "{}\n"
+                             "```".format(traceback))
+        else:
+            error_section = ''
         issue_template = """\
 ## Description
 
-**What steps will reproduce the problem?**
+{description}
 
-1. 
-2. 
-3. 
-
-**What is the expected output? What do you see instead?**
-
-
-**Please provide any additional information below**
-
-%s
+{error_section}
 
 ## Version and main components
 
-* Spyder Version: %s %s
-* Python Version: %s
-* Qt Versions: %s, %s %s on %s
+* Spyder Version: {spyder_version} {commit}
+* Python Version: {python_version}
+* Qt Versions: {qt_version}, {qt_api} {qt_api_ver} on {system_version}
 
 ## Dependencies
+
 ```
-%s
+{dependencies}
 ```
-""" % (traceback,
-       versions['spyder'],
-       revision,
-       versions['python'],
-       versions['qt'],
-       versions['qt_api'],
-       versions['qt_api_ver'],
-       versions['system'],
-       dependencies.status())
+""".format(description=description,
+           error_section=error_section,
+           spyder_version=versions['spyder'],
+           commit=revision,
+           python_version=versions['python'],
+           qt_version=versions['qt'],
+           qt_api=versions['qt_api'],
+           qt_api_ver=versions['qt_api_ver'],
+           system_version=versions['system'],
+           dependencies=dependencies.status())
+
+        return issue_template
+
+    @Slot()
+    def report_issue(self, body=None, title=None):
+        if PY3:
+            from urllib.parse import quote
+        else:
+            from urllib import quote     # analysis:ignore
+
+        if body is None:
+            body = self.render_issue()
 
         url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
         if PYQT5:
             from qtpy.QtCore import QUrlQuery
             query = QUrlQuery()
-            query.addQueryItem("body", quote(issue_template))
+            query.addQueryItem("body", quote(body))
+            if title:
+                query.addQueryItem("title", quote(title))
             url.setQuery(query)
         else:
-            url.addEncodedQueryItem("body", quote(issue_template))
-            
+            url.addEncodedQueryItem("body", quote(body))
+            if title:
+                url.addEncodedQueryItem("title", quote(title))
+
         QDesktopServices.openUrl(url)
 
     @Slot()

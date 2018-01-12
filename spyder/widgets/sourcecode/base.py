@@ -1034,6 +1034,31 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.endEditBlock()
         self.ensureCursorVisible()
 
+    def set_selection(self, start, end):
+        cursor = self.textCursor()
+        cursor.setPosition(start)
+        cursor.setPosition(end, QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
+
+    def truncate_selection(self, position_from):
+        """Unselect read-only parts in shell, like prompt"""
+        position_from = self.get_position(position_from)
+        cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        if start < end:
+            start = max([position_from, start])
+        else:
+            end = max([position_from, end])
+        self.set_selection(start, end)
+
+    def restrict_cursor_position(self, position_from, position_to):
+        """In shell, avoid editing text except between prompt and EOF"""
+        position_from = self.get_position(position_from)
+        position_to = self.get_position(position_to)
+        cursor = self.textCursor()
+        cursor_position = cursor.position()
+        if cursor_position < position_from or cursor_position > position_to:
+            self.set_cursor_position(position_to)
 
     #------Code completion / Calltips
     def hide_tooltip_if_necessary(self, key):
@@ -1361,32 +1386,6 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                              foreground=QColor(Qt.lightGray))
         self.ansi_handler.set_light_background(state)
         self.set_pythonshell_font()
-        
-    def set_selection(self, start, end):
-        cursor = self.textCursor()
-        cursor.setPosition(start)
-        cursor.setPosition(end, QTextCursor.KeepAnchor)
-        self.setTextCursor(cursor)
-
-    def truncate_selection(self, position_from):
-        """Unselect read-only parts in shell, like prompt"""
-        position_from = self.get_position(position_from)
-        cursor = self.textCursor()
-        start, end = cursor.selectionStart(), cursor.selectionEnd()
-        if start < end:
-            start = max([position_from, start])
-        else:
-            end = max([position_from, end])
-        self.set_selection(start, end)
-
-    def restrict_cursor_position(self, position_from, position_to):
-        """In shell, avoid editing text except between prompt and EOF"""
-        position_from = self.get_position(position_from)
-        position_to = self.get_position(position_to)
-        cursor = self.textCursor()
-        cursor_position = cursor.position()
-        if cursor_position < position_from or cursor_position > position_to:
-            self.set_cursor_position(position_to)
 
     #------Python shell
     def insert_text(self, text):
