@@ -4,9 +4,7 @@
 # Licensed under the terms of the MIT License
 #
 
-"""
-Tests for error dialog
-"""
+"""Tests for report error dialog."""
 
 # 3rd party imports
 import pytest
@@ -18,14 +16,14 @@ from spyder.widgets.reporterror import SpyderErrorDialog
 
 @pytest.fixture
 def setup_dialog(qtbot):
-    """Set up dependency widget test."""
+    """Set up dialog."""
     widget = SpyderErrorDialog(None)
     qtbot.addWidget(widget)
     return widget
 
 
 def test_dialog(qtbot):
-    """Run dependency widget test."""
+    """Run dialog tests."""
     dlg = setup_dialog(qtbot)
     text = "123456789123456"
 

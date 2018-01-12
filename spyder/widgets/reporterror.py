@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Repport Error Dialog"""
+"""Report Error Dialog"""
 
 # Stdlib imports
 import sys
