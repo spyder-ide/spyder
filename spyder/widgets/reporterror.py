@@ -132,7 +132,7 @@ class SpyderErrorDialog(QDialog):
         self.details_btn = QPushButton(_('Show details'))
         self.details_btn.clicked.connect(self._show_details)
 
-        self.dimiss_btn = QPushButton(_('Dimiss'))
+        self.dimiss_btn = QPushButton(_('Dismiss'))
 
         # Label to show missing chars
         self.initial_chars = len(self.input_description.toPlainText())
