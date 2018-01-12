@@ -98,6 +98,9 @@ class SpyderErrorDialog(QDialog):
         self.setWindowTitle(_("Spyder internal error"))
         self.setModal(True)
 
+        # To save the traceback sent to the internal console
+        self.error_traceback = ""
+
         # Dialog main label
         self.main_label = QLabel(
             _("""<b>Spyder has encountered a problem!!</b><hr>
@@ -111,7 +114,7 @@ class SpyderErrorDialog(QDialog):
         self.main_label.setAlignment(Qt.AlignJustify)
 
         # Field to input the description of the problem
-        self.input_description = DescriptionWidget()
+        self.input_description = DescriptionWidget(self)
 
         # Only allow to submit to Github if we have a long enough description
         self.input_description.textChanged.connect(self._description_changed)
@@ -135,22 +138,23 @@ class SpyderErrorDialog(QDialog):
         self.initial_chars = len(self.input_description.toPlainText())
         self.chars_label = QLabel(_("Enter at least 15 characters"))
 
+        # Buttons layout
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.submit_btn)
         hlayout.addWidget(self.details_btn)
         hlayout.addWidget(self.dimiss_btn)
 
+        # Main layout
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.main_label)
         vlayout.addWidget(self.input_description)
         vlayout.addWidget(self.details)
         vlayout.addWidget(self.chars_label)
         vlayout.addLayout(hlayout)
-        self.resize(500, 420)
-
         self.setLayout(vlayout)
 
-        self.error_traceback = ""
+        self.resize(500, 420)
+        self.input_description.setFocus()
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
