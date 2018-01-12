@@ -54,7 +54,7 @@ class DescriptionWidget(CodeEditor):
         self.header_end_pos = self.get_position('eof')
 
     def remove_text(self):
-        """Remove selected text."""
+        """Remove text."""
         self.truncate_selection(self.header_end_pos)
         self.remove_selected_text()
 
@@ -87,6 +87,10 @@ class DescriptionWidget(CodeEditor):
             self.cut()
         else:
             CodeEditor.keyPressEvent(self, event)
+
+    def contextMenuEvent(self, event):
+        """Reimplemented Qt Method to not show the context menu."""
+        pass
 
 
 class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
