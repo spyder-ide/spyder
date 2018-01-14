@@ -83,7 +83,10 @@ class JediPlugin(IntrospectionPlugin):
                 call_def = cd
                 break
         else:
-            call_def = call_def[0]
+            try:
+                call_def = call_def[0]
+            except IndexError:
+                return
         name = call_def.name
         if name is None:
             return
