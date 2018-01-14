@@ -97,7 +97,7 @@ class Console(SpyderPluginWidget):
         # Traceback MessageBox
         self.error_dlg = None
         self.error_traceback = ""
-        self.dimiss_error = False
+        self.dismiss_error = False
 
     #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):
@@ -211,7 +211,7 @@ class Console(SpyderPluginWidget):
         Show a QDialog or the internal console to warn the user.
         """
         # Skip errors without traceback or dismiss
-        if (not is_traceback and self.error_dlg is None) or self.dimiss_error:
+        if (not is_traceback and self.error_dlg is None) or self.dismiss_error:
             return
 
         if CONF.get('main', 'show_internal_console_if_traceback'):
@@ -220,19 +220,16 @@ class Console(SpyderPluginWidget):
         else:
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
-
-                self.error_dlg.dimiss_btn.clicked.connect(
-                    self.dismiss_error_dlg)
+                self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
-
                 self.error_dlg.show()
-
             self.error_dlg.append_traceback(text)
 
-    def dismiss_error_dlg(self):
-        """Dismiss error dialog."""
-        self.dimiss_error = True
+    def close_error_dlg(self):
+        """Close error dialog."""
+        if self.error_dlg.dismiss_box.isChecked():
+            self.dismiss_error = True
         self.error_dlg.reject()
 
     def remove_error_dlg(self):

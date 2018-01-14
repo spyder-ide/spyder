@@ -10,8 +10,8 @@
 import sys
 
 # Third party imports
-from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLabel,
-                            QPlainTextEdit, QPushButton, QVBoxLayout)
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QHBoxLayout,
+                            QLabel, QPlainTextEdit, QPushButton, QVBoxLayout)
 from qtpy.QtCore import Qt, Signal
 
 # Local Imports
@@ -139,6 +139,19 @@ class SpyderErrorDialog(QDialog):
         self.details.set_pythonshell_font(get_font())
         self.details.hide()
 
+        # Label to show missing chars
+        self.initial_chars = len(self.input_description.toPlainText())
+        self.chars_label = QLabel(_("Enter at least 15 characters"))
+
+        # Checkbox to dismiss future errors
+        self.dismiss_box = QCheckBox()
+        self.dismiss_box.setText(_("Don't show again"))
+
+        # Labels layout
+        labels_layout = QHBoxLayout()
+        labels_layout.addWidget(self.chars_label)
+        labels_layout.addWidget(self.dismiss_box, 0, Qt.AlignRight)
+
         # Dialog buttons
         self.submit_btn = QPushButton(_('Submit to Github'))
         self.submit_btn.setEnabled(False)
@@ -147,28 +160,24 @@ class SpyderErrorDialog(QDialog):
         self.details_btn = QPushButton(_('Show details'))
         self.details_btn.clicked.connect(self._show_details)
 
-        self.dimiss_btn = QPushButton(_('Dismiss'))
-
-        # Label to show missing chars
-        self.initial_chars = len(self.input_description.toPlainText())
-        self.chars_label = QLabel(_("Enter at least 15 characters"))
+        self.close_btn = QPushButton(_('Close'))
 
         # Buttons layout
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(self.submit_btn)
-        hlayout.addWidget(self.details_btn)
-        hlayout.addWidget(self.dimiss_btn)
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.submit_btn)
+        buttons_layout.addWidget(self.details_btn)
+        buttons_layout.addWidget(self.close_btn)
 
         # Main layout
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.main_label)
         vlayout.addWidget(self.input_description)
         vlayout.addWidget(self.details)
-        vlayout.addWidget(self.chars_label)
-        vlayout.addLayout(hlayout)
+        vlayout.addLayout(labels_layout)
+        vlayout.addLayout(buttons_layout)
         self.setLayout(vlayout)
 
-        self.resize(500, 420)
+        self.resize(550, 420)
         self.input_description.setFocus()
 
     def _submit_to_github(self):
@@ -204,7 +213,7 @@ class SpyderErrorDialog(QDialog):
             self.details.hide()
             self.details_btn.setText(_('Show details'))
         else:
-            self.resize(500, 550)
+            self.resize(550, 550)
             self.details.document().setPlainText('')
             self.details.append_text_to_shell(self.error_traceback,
                                               error=True,
