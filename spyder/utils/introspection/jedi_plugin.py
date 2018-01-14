@@ -90,17 +90,20 @@ class JediPlugin(IntrospectionPlugin):
         name = call_def.name
         if name is None:
             return
+
         if call_def.module_path:
             mod_name = get_parent_until(call_def.module_path)
         else:
             mod_name = None
+
         if not mod_name:
             mod_name = call_def.module_name
+
         if call_def.doc.startswith(name + '('):
             calltip = getsignaturefromtext(call_def.doc, name)
             argspec = calltip[calltip.find('('):]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
-        elif '(' in call_def.doc.splitlines()[0]:
+        elif call_def.doc and '(' in call_def.doc.splitlines()[0]:
             calltip = call_def.doc.splitlines()[0]
             name = call_def.doc.split('(')[0]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
@@ -109,6 +112,7 @@ class JediPlugin(IntrospectionPlugin):
             calltip = name + '(...)'
             argspec = '()'
             docstring = call_def.doc
+
         if call_def.type == 'module':
             note = 'Module %s' % mod_name
             argspec = ''
@@ -122,6 +126,7 @@ class JediPlugin(IntrospectionPlugin):
         else:
             note = '%s in %s module' % (call_def.type.capitalize(),
                                         mod_name)
+
         argspec = argspec.replace(' = ', '=')
         calltip = calltip.replace(' = ', '=')
         debug_print(call_def.name)
