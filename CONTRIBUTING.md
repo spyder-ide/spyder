@@ -2,6 +2,7 @@
 
 :+1::tada: First off, thanks for taking the time to contribute to Spyder! :tada::+1:
 
+
 ## General Guidelines
 
 This page documents at a very high level how to contribute to Spyder.
@@ -37,14 +38,14 @@ closed after a week (7 days). Thanks!
 ### Creating a conda environment or virtualenv
 
 If you use Anaconda you can create a conda environment with
-these commands:
+the following commands:
 
 ```bash
   $ conda create -n spyder-dev python=3
   $ source activate spyder-dev
 ```
 
-On Windows, you'll want to run them under the Anaconda Prompt,
+On Windows, you'll want to run the commands with the Anaconda Prompt,
 and use just ```activate spyder-dev``` for the second command.
 
 You can also use `virtualenv` on Linux, but `conda` is strongly
@@ -58,7 +59,7 @@ recommended:
 ### Installing dependencies
 
 After you have created your development environment, you need to install
-Spyder's necessary dependencies. For that, the easiest way to do so is
+Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 
 ```bash
   $ conda install spyder
@@ -75,7 +76,8 @@ the directory where your git clone is stored and run:
   $ pip install -r requirements/requirements.txt
 ```
 
-If you are using pip, you also need to install a Qt binding package.
+If you are using `pip` and Python 2, you also need to install a Qt binding
+package (PyQt4 or PyQt5, with the latter strongly recommended).
 This can be achieved by running:
 
 ```bash
@@ -92,43 +94,52 @@ your environment, you need to run
   $ python bootstrap.py
 ```
 
-**Important Note**: You need to restart Spyder after any change you do to its
-source code. This is the only way to test your new code.
+To start Spyder in debug mode, useful for tracking down an issue, you can run:
+
+```bash
+  $ python bootstrap.py --debug
+```
+
+**Important Note**: To test any changes you've made to the Spyder source code,
+you need to restart Spyder or start a fresh instance (you can run multiple
+copies simultaneously by unchecking the Preferences option
+<kbd>Use a single instance</kbd> under
+<kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
+
 
 ## Spyder Branches
 
 When you start to work on a new pull request (PR), you need to be sure that your
-feature branch is a child of the right Spyder branch, and also that you make
-your PR on Github against it.
+work is done on top of the correct Spyder branch, and that you base your
+PR on Github against it.
 
-Besides, issues are marked with a milestone that indicates the correct branch
-to use, like this:
+To guide you, issues on Github are marked with a milestone that indicates
+the correct branch to use. If not, follow these guidelines:
 
-* Use the `3.x` branch for bugfixes only (milestones `v3.2.1`, `v3.2.2`, `v3.2.3`,
-  etc)
+* Use the `3.x` branch for bugfixes only (*e.g.* milestones `v3.2.1`, `v3.2.2`,
+  or `v3.2.3`)
+* Use `master` to introduce new features or break compatibility with previous
+  Spyder versions (*e.g.* milestones `v4.0beta1` or `v4.0beta2`).
 
-* Use `master` to introduce new features that break compatibility with previous
-  Spyder versions (Milestone `v4.0beta1`, `v4.0beta2`, etc).
+You should also submit bugfixes to `3.x` or `master` for errors that are
+only present in those respective branches.
 
-
-You can also submit bugfixes to `3.x` or `master` for errors that are
-only present in those branches.
-
-So to start working on a new PR, you need to follow these commands:
+To start working on a new PR, you need to execute these commands, filling in
+the branch names where appropriate:
 
 ```bash
-  $ git checkout <branch>
-  $ git pull upstream <branch>
-  $ git checkout -b name-new-branch
+  $ git checkout <SPYDER-BASE-BRANCH>
+  $ git pull upstream <SPYDER-BASE-BRANC>
+  $ git checkout -b NAME-NEW-BRANCH
 ```
 
-### Changing base branch
+### Changing the base branch
 
-If you started your work in the wrong branch, or want to backport it, you could
-change the base branch using `git rebase --onto`, like this:
+If you started your work in the wrong base branch, or want to backport it,
+you can change the base branch using `git rebase --onto`, like this:
 
 ```bash
-  $ git rebase --onto <new_base> <old_base> <branch>
+  $ git rebase --onto <NEW-BASE-BRANCH> <OLD-BASE-BRANCH> <YOUR-BRANCH>
 ```
 
 For example, backporting `my_branch` from `master` to `3.x`:
@@ -137,20 +148,22 @@ For example, backporting `my_branch` from `master` to `3.x`:
   $ git rebase --onto 3.x master my_branch
 ```
 
+
 ##  Running Tests
 
-Install our test dependencies:
+To install our test dependencies under Anaconda:
 
 ```bash
   $ conda install --file requirements/test_requirements.txt -c spyder-ide
 ```
 
-or using `pip` (not recommended):
+If using `pip` (for experts only), run the following from the directory
+where your git clone is stored:
 ```bash
   $ pip install -r requirements/test_requirements.txt
 ```
 
-To run the Spyder test suite, please use (from the root spyder directory):
+To run the Spyder test suite, please use (from the `spyder` root directory):
 ```bash
   $ python runtests.py
 ```
