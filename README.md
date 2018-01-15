@@ -74,14 +74,8 @@ You can read the Spyder documentation online on
 
 ## Installation
 
-This section explains how to install the latest stable release of
-Spyder. If you prefer testing the development version, please use
-the `bootstrap` script (see the [appropriate section](#running-from-source) ).
-
-For a more detail guide to installing Spyder, please refer to our
+For a detailed guide to installing Spyder, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
-
-### The Easy/Recommended Way: Anaconda
 
 The easiest way to install Spyder on any of our supported platforms
 is to download it as part of the [Anaconda](https://www.anaconda.com/download/)
@@ -93,50 +87,16 @@ unexpected issues we are unable to help you with; it generally has the
 least likelihood of potential pitfalls for non-experts, and we may be
 able to provide limited assistance if you do run into trouble.
 
-### The Harder Way: Alternative distributions
+Other install options exist, including the 
 
-**Important Note:** While we offer alternative Spyder installation options
-for users who desire them, we currently lack the resources to offer individual
-assistance for problems specific to installing via these alternative distributions.
-Therefore, we recommend you switch to Anaconda if you encounter installation
-issues you are unable to solve on your own.
+* The [WinPython](https://winpython.github.io/) distribution for Windows
+* The [MacPorts](http://www.macports.org/), project for macOS, and
+* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux, and
+* The `pip` package manager, included with most Python installations
 
-**Windows**
-
-Spyder is also included in the [WinPython](https://winpython.github.io/)
-scientific Python distribution, although some users have reported bugs
-specific to it.
-
-**macOS**
-
-Spyder can also be obtained through through [MacPorts](http://www.macports.org/),
-though like its WinPython counterpart, the included version may be out of date
-or have other MacPorts specific issues outside of Spyder's control.
-
-**GNU/Linux**
-
-You can often install Spyder through your distribution's package
-manager (i.e. `apt-get`, `yum`, etc).
-
-### The Expert Way: Installing with pip
-
-**Warning:** While this installation method is a viable option for
-experienced users, installing Spyder (and other SciPy stack packages)
-with `pip` can lead to a number of tricky issues. While you are welcome
-to try this on your own, we unfortunately do not have the resources to help you
-if you do run into problems, except to recommend using Anaconda instead.
-
-You can install Spyder with the `pip` package manager, which comes by
-default with most Python installations, with the command:
-
-`pip install spyder`
-
-Once installed, you can upgrade Spyder to its latest version, by running:
-
-`pip install --upgrade spyder`
-
-Also, you may need to install a Qt binding with `pip` if running Python 2;
-PyQt5 is strongly recommended though the legacy PyQt4 is also still supported.
+**However,** we lack the resources to provide individual support for users who
+install via these methods, and they may be out of date or contain bugs outside
+our control, so we recommend the Anaconda version instead if you run into issues.
 
 
 ## Running from a Github clone
@@ -169,9 +129,8 @@ for more details.
 ## Dependencies
 
 **Important note**: Most if not all the dependencies listed below come
-with *Anaconda* or other scien, so you don't need to install
-them separately when installing one of these Scientific Python
-distributions.
+with *Anaconda* or other scientific Python distributions, so you don't need 
+to install them seperatly in those cases.
 
 ### Build dependencies
 
