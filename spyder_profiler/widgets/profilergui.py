@@ -471,7 +471,7 @@ class ProfilerDataTree(QTreeWidget):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
         try:
-            stats_indi = [pstats.Stats(profdatafile),]
+            stats_indi = [pstats.Stats(profdatafile), ]
         except (OSError, IOError):
             return
         self.profdata = stats_indi[0]
