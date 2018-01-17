@@ -262,7 +262,7 @@ class ProfilerWidget(QWidget):
                                           lambda: self.read_output(error=True))
         self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
                                       self.finished(ec, es))
-        self.stop_button.clicked.connect(self.process.kill)
+        self.stop_button.clicked.connect(self.kill)
 
         if pythonpath is not None:
             env = [to_text_string(_pth)
@@ -276,6 +276,7 @@ class ProfilerWidget(QWidget):
         
         self.output = ''
         self.error_output = ''
+        self.stopped = False
         
         p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
         if os.name == 'nt':
@@ -298,7 +299,12 @@ class ProfilerWidget(QWidget):
         if not running:
             QMessageBox.critical(self, _("Error"),
                                  _("Process failed to start"))
-    
+
+    def kill(self):
+        """Stop button pressed."""
+        self.process.kill()
+        self.stopped = True
+
     def set_running_state(self, state=True):
         self.start_button.setEnabled(not state)
         self.stop_button.setEnabled(state)
@@ -342,6 +348,11 @@ class ProfilerWidget(QWidget):
         self.kill_if_running()
         filename = to_text_string(self.filecombo.currentText())
         if not filename:
+            return
+
+        if self.stopped:
+            self.datelabel.setText(_('Run stopped by user.'))
+            self.datatree.initialize_view()
             return
 
         self.datelabel.setText(_('Sorting data, please wait...'))
@@ -459,13 +470,16 @@ class ProfilerDataTree(QTreeWidget):
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
-        stats_indi = [pstats.Stats(profdatafile),]
+        try:
+            stats_indi = [pstats.Stats(profdatafile),]
+        except (OSError, IOError):
+            return
         self.profdata = stats_indi[0]
         
         if self.compare_file is not None:
             try:
                 stats_indi.append(pstats.Stats(self.compare_file))
-            except IOError as e:
+            except (OSError, IOError) as e:
                 QMessageBox.critical(
                     self, _("Error"),
                     _("Error when trying to load profiler results"))
