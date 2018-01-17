@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QHeaderView)
 
 from pandas import DataFrame, DatetimeIndex, Series
+from pandas._libs.tslib import OutOfBoundsDatetime
 import numpy as np
 
 # Local imports
@@ -258,6 +259,8 @@ class DataFrameModel(QAbstractTableModel):
         # handling, so fallback uses iloc
         try:
             value = self.df.iat[row, column]
+        except OutOfBoundsDatetime:
+            value = self.df.iloc[:, column].astype(str).iat[row]
         except:
             value = self.df.iloc[row, column]
         return value
