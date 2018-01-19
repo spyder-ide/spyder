@@ -211,7 +211,7 @@ class ShortcutEditor(QDialog):
         # buttons, if the cancel button was clicked without first setting focus
         # to the button, it would cause a seg fault crash.
         self.button_cancel.setFocus()
-        super().reject()
+        super(ShortcutEditor, self).reject()
 
     @Slot()
     def accept(self):
@@ -220,7 +220,7 @@ class ShortcutEditor(QDialog):
         # buttons, if the ok button was clicked without first setting focus to
         # the button, it would cause a seg fault crash.
         self.button_ok.setFocus()
-        super().accept()
+        super(ShortcutEditor, self).accept()
 
     def keyPressEvent(self, e):
         """Qt override."""
