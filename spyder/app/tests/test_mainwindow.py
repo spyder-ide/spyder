@@ -13,6 +13,10 @@ import os.path as osp
 from sys import version_info
 import shutil
 import tempfile
+try:
+    from unittest.mock import Mock, MagicMock
+except ImportError:
+    from mock import Mock, MagicMock  # Python 2
 
 from flaky import flaky
 from jupyter_client.manager import KernelManager
@@ -24,6 +28,7 @@ from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
+from spyder import __trouble_url__
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.app import start
 from spyder.config.base import get_home_dir
@@ -32,6 +37,14 @@ from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
+
+# For testing various Spyder urls
+if not PY2:
+    from urllib.request import urlopen
+    from urllib.error import URLError
+else:
+    from urllib2 import urlopen, URLError
+
 
 #==============================================================================
 # Constants
@@ -1138,6 +1151,34 @@ def test_run_static_code_analysis(main_window, qtbot):
 
     # Close the file
     main_window.editor.close_file()
+
+
+@flaky(max_runs=3)
+def test_troubleshooting_menu_item_and_url(monkeypatch):
+    """Test that the troubleshooting menu item calls the valid URL."""
+    MockMainWindow = MagicMock(spec=MainWindow)
+    mockMainWindow_instance = MockMainWindow()
+    mockMainWindow_instance.__class__ = MainWindow
+    MockQDesktopServices = Mock()
+    mockQDesktopServices_instance = MockQDesktopServices()
+    attr_to_patch = ('spyder.app.mainwindow.QDesktopServices')
+    monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
+
+    # Unit test of help menu item: Make sure the correct URL is called.
+    MainWindow.trouble_guide(mockMainWindow_instance)
+    assert MockQDesktopServices.openUrl.call_count == 1
+    mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
+
+    # Check that the URL resolves correctly. Ignored if no internet connection.
+    try:
+        urlopen("https://www.github.com", timeout=1)
+    except Exception:
+        pass
+    else:
+        try:
+            urlopen(__trouble_url__, timeout=1)
+        except URLError:
+            raise
 
 
 if __name__ == "__main__":
