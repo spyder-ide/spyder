@@ -24,7 +24,10 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
                             QHeaderView)
 
 from pandas import DataFrame, DatetimeIndex, Series
-from pandas._libs.tslib import OutOfBoundsDatetime
+try:
+    from pandas._libs.tslib import OutOfBoundsDatetime
+except ImportError:  # For pandas version < 0.20
+    from pandas.tslib import OutOfBoundsDatetime
 import numpy as np
 
 # Local imports
