@@ -24,8 +24,8 @@ from qtpy.QtCore import Qt, QTimer
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
-from spyder.app.cli_options import get_options
-from spyder.app.mainwindow import initialize, run_spyder
+from spyder.app.mainwindow import MainWindow  # Tests fail without this import
+from spyder.app import start
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
@@ -126,9 +126,7 @@ def main_window(request):
             pass
 
     # Start the window
-    app = initialize()
-    options, args = get_options()
-    window = run_spyder(app, options, args)
+    window = start.main()
     def close_window():
         window.close()
     request.addfinalizer(close_window)
