@@ -11,6 +11,7 @@ from __future__ import division
 
 # Standard library imports
 from sys import platform
+from datetime import datetime
 try:
     from unittest.mock import Mock, ANY
 except ImportError:
@@ -231,6 +232,14 @@ def test_dataframeeditor_with_datetimeindex():
     assert data(dfm, 1, 1) == '2015-01-02 00:00:00'
     assert data(dfm, 2, 1) == '2015-01-03 00:00:00'
 
+def test_dataframeeditor_with_OutOfBoundsDatetime():  # Test for #6177
+    df = DataFrame([{'DATETIME': datetime.strptime("9999-1-1T00:00",
+                                                   "%Y-%m-%dT%H:%M")}])
+    model = DataFrameModel(df)
+    try:
+        model.get_value(0, 0)
+    except Exception:
+        assert False
 
 @pytest.mark.skipif(not os.name == 'nt',
                     reason="It segfaults too much on Linux")
