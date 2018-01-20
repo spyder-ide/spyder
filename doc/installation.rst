@@ -14,7 +14,7 @@ Spyder is already included in these *Python Scientific Distributions*:
 
 * `Anaconda <https://www.anaconda.com/download/>`_
 * `WinPython <https://winpython.github.io/>`_
-* `Python(x,y) <https://code.google.com/p/pythonxy>`_
+* `Python(x,y) <https://python-xy.github.io/>`_
 
 You can start using it immediately after installing one of them (you only need
 to install one!).
