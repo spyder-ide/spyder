@@ -232,10 +232,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
         # To apply style
-        if not create_qss_style(self.shellwidget.syntax_style)[1]:
-            self.shellwidget.silent_execute("%colors linux")
-        else:
-            self.shellwidget.silent_execute("%colors lightbg")
+        self.set_console_scheme(self.shellwidget)
 
         # To hide the loading page
         self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
@@ -436,6 +433,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Set IPython color scheme."""
         self.shellwidget.set_color_scheme(color_scheme)
 
+    def set_console_scheme(self, sw):
+        """Set scheme for %colors."""
+        sw.set_console_scheme(create_qss_style(sw.syntax_style)[1])
+
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
@@ -450,7 +451,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @Slot()
     def restart_kernel(self):
         """
-        Restart the associanted kernel
+        Restart the associated kernel.
 
         Took this code from the qtconsole project
         Licensed under the BSD license
@@ -478,6 +479,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     sw.reset(clear=True)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
                                     before_prompt=False)
+                    # For issue 6235.  IPython was changing the setting of
+                    # %colors on windows by assuming it was using a dark
+                    # background.  This corrects it based on the scheme.
+                    self.set_console_scheme(sw)
             else:
                 sw._append_plain_text(
                     _('Cannot restart a kernel not started by Spyder\n'),

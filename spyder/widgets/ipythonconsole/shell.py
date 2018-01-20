@@ -141,10 +141,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         self._style_sheet_changed()
         self._syntax_style_changed()
         self.reset(clear=True)
-        if not dark_color:
-            self.silent_execute("%colors linux")
-        else:
-            self.silent_execute("%colors lightbg")
+        self.set_console_scheme(dark_color)
+
+    def set_console_scheme(self, dark=True):
+        """Apply highlight style to console.
+
+        lightbg is dark coloring for light backgrounds and linux is light
+        coloring for dark backgrounds.
+
+        Args:
+            dark: Boolean for console scheme to use.
+        """
+        scheme = 'lightbg' if dark else 'linux'
+        self.silent_execute('%colors {}'.format(scheme))
 
     def get_syspath(self):
         """Ask the kernel for sys.path contents."""
