@@ -159,9 +159,9 @@ def main():
     else:
         from spyder.app import mainwindow
         if PYTEST:
-            mainwindow.main()
-        else:
             return mainwindow.main()
+        else:
+            mainwindow.main()
 
 
 if __name__ == "__main__":
