@@ -188,7 +188,6 @@ def test_calltip(main_window, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
 @pytest.mark.single_instance
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and for %edit magic."""
@@ -218,6 +217,8 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     qtbot.wait(3000)
     assert editorstack.get_stack_count() == n_editors + 1
     assert editorstack.get_current_editor().toPlainText() == lock_code
+
+    main_window.editor.close_file()
 
 
 @pytest.mark.slow

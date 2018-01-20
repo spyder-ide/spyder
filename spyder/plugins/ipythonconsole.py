@@ -1087,15 +1087,15 @@ class IPythonConsole(SpyderPluginWidget):
             editor = u'"{0}" "{1}" --'.format(python, bootstrap)
         else:
             if PYTEST:
-                import1 = 'import sys; sys.path.append("{}")'.format(spy_dir)
+                import1 = 'import sys; sys.path.append(""{}"")'.format(spy_dir)
             else:
                 import1 = "import sys"
             import2 = "from spyder.app.start import send_args_to_spyder"
             code = "send_args_to_spyder([sys.argv[-1]])"
-            editor = u"\"{0}\" -c '{1}; {2}; {3}'".format(python,
-                                                          import1,
-                                                          import2,
-                                                          code)
+            editor = u"\"{0}\" -c \"{1}; {2}; {3}\"".format(python,
+                                                            import1,
+                                                            import2,
+                                                            code)
 
         return editor
 
