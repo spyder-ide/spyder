@@ -64,9 +64,6 @@ COMPILE_AND_EVAL_TIMEOUT=30000
 # miliseconds)
 EVAL_TIMEOUT = 3000
 
-# Test for PyQt 5 wheels
-PYQT_WHEEL = PYQT_VERSION > '5.6'
-
 # Temporary directory
 TEMP_DIRECTORY = tempfile.gettempdir()
 
