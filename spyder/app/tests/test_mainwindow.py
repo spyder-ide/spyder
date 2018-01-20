@@ -138,6 +138,13 @@ def main_window(request):
         except KeyError:
             pass
 
+    # Only use single_instance mode for tests that require it
+    single_instance = request.node.get_marker('single_instance')
+    if single_instance:
+        CONF.set('main', 'single_instance', True)
+    else:
+        CONF.set('main', 'single_instance', False)
+
     # Start the window
     window = start.main()
     def close_window():
@@ -181,6 +188,39 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.single_instance
+def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
+    """Test single instance mode and for %edit magic."""
+    editorstack = main_window.editor.get_current_editorstack()
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    lock_code = ("from spyder.config.base import get_conf_path\n"
+                 "from spyder.utils.external import lockfile\n"
+                 "lock_file = get_conf_path('spyder.lock')\n"
+                 "lock = lockfile.FilesystemLock(lock_file)\n"
+                 "lock_created = lock.lock()")
+
+    # Test single instance
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(lock_code)
+    assert not shell.get_value('lock_created')
+
+    # Test %edit magic
+    n_editors = editorstack.get_stack_count()
+    p = tmpdir.mkdir("foo").join("bar.py")
+    p.write(lock_code)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%edit {}'.format(to_text_string(p)))
+
+    qtbot.wait(3000)
+    assert editorstack.get_stack_count() == n_editors + 1
+    assert editorstack.get_current_editor().toPlainText() == lock_code
 
 
 @pytest.mark.slow

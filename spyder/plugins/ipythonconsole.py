@@ -43,7 +43,7 @@ except ImportError:
 # Local imports
 from spyder import dependencies
 from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
-                                get_module_path)
+                                get_module_path, PYTEST)
 from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
@@ -1079,14 +1079,17 @@ class IPythonConsole(SpyderPluginWidget):
             python = encoding.to_unicode_from_fs(python)
 
         # Compose command for %edit
+        spy_dir = osp.dirname(get_module_path('spyder'))
         if DEV:
-            spy_dir = get_module_path('spyder')
-            bootstrap = osp.join(osp.dirname(spy_dir), 'bootstrap.py')
+            bootstrap = osp.join(spy_dir, 'bootstrap.py')
             if PY2:
                 bootstrap = encoding.to_unicode_from_fs(bootstrap)
             editor = u'"{0}" "{1}" --'.format(python, bootstrap)
         else:
-            import1 = "import sys"
+            if PYTEST:
+                import1 = 'import sys; sys.path.append("{}")'.format(spy_dir)
+            else:
+                import1 = "import sys"
             import2 = "from spyder.app.start import send_args_to_spyder"
             code = "send_args_to_spyder([sys.argv[-1]])"
             editor = u"\"{0}\" -c '{1}; {2}; {3}'".format(python,
