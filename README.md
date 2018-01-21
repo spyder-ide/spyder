@@ -2,10 +2,12 @@
 
 Copyright © Spyder Project Contributors.
 
+
 ## Project details
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
 [![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
+
 
 ## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
@@ -14,11 +16,13 @@ Copyright © Spyder Project Contributors.
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
+
 ## Overview
 
 ![screenshot](./img_src/screenshot.png)
 
-Spyder is a Python development environment with a lot of features:
+Spyder is a Python development environment with many features for research,
+data analysis, and scientific package creation:
 
 * **Editor**
 
@@ -28,9 +32,9 @@ Spyder is a Python development environment with a lot of features:
 
 * **Interactive console**
 
-    Python or IPython consoles with workspace and debugging support to
-    instantly evaluate the code written in the Editor. It also comes
-    with Matplotlib figures integration. 
+    IPython consoles with workspace and debugging support to
+    instantly evaluate the code written in the Editor.
+    Spyder consoles also come with Matplotlib figures integration.
 
 * **Documentation viewer**
 
@@ -45,97 +49,93 @@ Spyder is a Python development environment with a lot of features:
 
 * **Find in files**
 
-    Supporting regular expressions and mercurial repositories
+    Search for queries across multiple files in your project,
+    with full support for regular expressions.
 
 * **File explorer**
 
+    Interact with your filesystem from within the IDE.
+
 * **History log**
 
-Spyder may also be used as a PyQt5/PyQt4 extension library (module
-`spyder`). For example, the Python interactive shell widget used in
+    Browse an automatically de-duplicated listing of every command you run
+    on any Spyder console.
+
+Spyder may also be used as a PyQt5/PyQt4 extension library (module `spyder`).
+For example, the Python interactive shell widget used in
 Spyder may be embedded in your own PyQt5/PyQt4 application.
 
 
 ## Documentation
 
-You can read the Spyder documentation at:
-
-http://pythonhosted.org/spyder/
+You can read the Spyder documentation online on
+[PythonHosted](http://pythonhosted.org/spyder/).
 
 
 ## Installation
 
-This section explains how to install the latest stable release of
-Spyder. If you prefer testing the development version, please use
-the `bootstrap` script (see next section).
-
-The easiest way to install Spyder is:
-
-### On Windows:
-
-Using one (and only one) of these scientific Python distributions:
-
-1. [Anaconda](http://continuum.io/downloads)
-2. [WinPython](https://winpython.github.io/)
-3. [Python(x,y)](http://python-xy.github.io)
-
-### On Mac OSX:
-
-- Using the [Anaconda Distribution](http://continuum.io/downloads).
-- Through [MacPorts](http://www.macports.org/).
-
-### On GNU/Linux
-
-- Through your distribution package manager (i.e. `apt-get`, `yum`,
-  etc).
-- Using the [Anaconda Distribution](http://continuum.io/downloads).
-- Installing from source (see below).
-
-### Cross-platform way from source
-
-You can also install Spyder with the `pip` package manager, which comes by
-default with most Python installations. For that you need to use the
-command:
-
-    pip install spyder
-
-To upgrade Spyder to its latest version, if it was installed before, you need
-to run
-
-    pip install --upgrade spyder
-
-For more details on supported platforms, please refer to our
+For a detailed guide to installing Spyder, please refer to our
 [installation instructions](http://pythonhosted.org/spyder/installation.html).
 
-**Important note**: This does not install the graphical Python libraries (i.e.
-PyQt5 or PyQt4) that Spyder depends on. Those have to be installed separately
-after installing Python.
+The easiest way to install Spyder on any of our supported platforms
+is to download it as part of the [Anaconda](https://www.anaconda.com/download/)
+distribution, and use the `conda` package and environment manager to keep it
+and your other packages installed and up to date.
+
+If in doubt, you should always install Spyder via this method to avoid
+unexpected issues we are unable to help you with; it generally has the
+least likelihood of potential pitfalls for non-experts, and we may be
+able to provide limited assistance if you do run into trouble.
+
+Other install options exist, including the 
+
+* The [WinPython](https://winpython.github.io/) distribution for Windows
+* The [MacPorts](http://www.macports.org/), project for macOS, and
+* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux, and
+* The `pip` package manager, included with most Python installations
+
+**However,** we lack the resources to provide individual support for users who
+install via these methods, and they may be out of date or contain bugs outside
+our control, so we recommend the Anaconda version instead if you run into issues.
 
 
-## Running from source
+## Running from a Github clone
 
-The fastest way to run Spyder is to get the source code using git, install
-PyQt5 or PyQt4, and run these commands:
-
-1. Install our *runtime dependencies* (see below).
-2. `cd /your/spyder/git-clone`
-3. `python bootstrap.py`
-
+Spyder can be run directly from the source code, hosted on the
+[Spyder github repo](https://github.com/spyder-ide/spyder).
 You may want to do this for fixing bugs in Spyder, adding new
-features, learning how Spyder works or just getting a taste of it.
+features, learning how Spyder works or to try out development versions before
+they are officially released.
+
+If using `conda` (strongly recommended), this can be done by running the
+following from the command line (the Anaconda Prompt, if on Windows):
+
+```
+conda install spyder
+conda remove spyder
+git clone https://github.com/spyder-ide/spyder.git
+cd spyder
+python bootstrap.py
+```
+
+Alternatively, you can use `pip` to install PyQt5 (or PyQt4) separately and
+the other *runtime dependencies* listed below. However, beware:
+this method is recommended for experts only, and you'll need to solve any
+problems on your own. See the
+[installation instructions](http://pythonhosted.org/spyder/installation.html)
+for more details.
 
 
 ## Dependencies
 
 **Important note**: Most if not all the dependencies listed below come
-with *Anaconda*, *WinPython* and *Python(x,y)*, so you don't need to install
-them separately when installing one of these Scientific Python
-distributions.
+with *Anaconda* or other scientific Python distributions, so you don't need 
+to install them seperatly in those cases.
 
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version greater than 2.7 (Python 3.2 is not supported anymore).
+a Python version greater than 2.7 or 3.3 (Python <=3.2 is not supported anymore).
 
 ### Runtime dependencies
 
@@ -172,14 +172,23 @@ a Python version greater than 2.7 (Python 3.2 is not supported anymore).
 
 ## Contributing
 
-Everyone is welcome to contribute. Please read our
-[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md),
-then get started!
+Everyone is welcome to help with Spyder. Please read our
+[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md)
+to get started!
+
+
+## Troubleshooting
+
+Before posting a report, *please* carefully read our **[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
 
 
 ## More information
 
-* For code development please go to:
+* For Spyder development details:
 
     <https://github.com/spyder-ide/spyder>
 
