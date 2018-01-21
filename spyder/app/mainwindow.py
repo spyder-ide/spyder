@@ -3093,6 +3093,11 @@ def run_spyder(app, options, args):
 #==============================================================================
 def main():
     """Main function"""
+    if PYTEST:
+        options, args = get_options()
+        app = initialize()
+        window = run_spyder(app, options, args)
+        return window
 
     # **** Collect command line options ****
     # Note regarding Options:
