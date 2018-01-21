@@ -70,7 +70,7 @@ class FallbackPlugin(IntrospectionPlugin):
                  for i in items]
         # get path completions
         # get last word back to a space or a quote character
-        match = re.search('''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
+        match = re.search(r'''[ "\']([\w\.\\\\/]+)\Z''', info['line'])
         if match:
             items += _complete_path(match.groups()[0])
         return [(i, '') for i in sorted(items)]
@@ -202,25 +202,25 @@ def get_definition_with_regex(source, token, start_line=-1):
     if DEBUG_EDITOR:
         t0 = time.time()
     patterns = [  # python / cython keyword definitions
-                '^c?import.*\W{0}{1}',
-                'from.*\W{0}\W.*c?import ',
-                'from .* c?import.*\W{0}{1}',
-                'class\s*{0}{1}',
-                'c?p?def[^=]*\W{0}{1}',
-                'cdef.*\[.*\].*\W{0}{1}',
+                r'^c?import.*\W{0}{1}',
+                r'from.*\W{0}\W.*c?import ',
+                r'from .* c?import.*\W{0}{1}',
+                r'class\s*{0}{1}',
+                r'c?p?def[^=]*\W{0}{1}',
+                r'cdef.*\[.*\].*\W{0}{1}',
                 # enaml keyword definitions
-                'enamldef.*\W{0}{1}',
-                'attr.*\W{0}{1}',
-                'event.*\W{0}{1}',
-                'id\s*:.*\W{0}{1}']
+                r'enamldef.*\W{0}{1}',
+                r'attr.*\W{0}{1}',
+                r'event.*\W{0}{1}',
+                r'id\s*:.*\W{0}{1}']
 
     matches = get_matches(patterns, source, token, start_line)
 
     if not matches:
-        patterns = ['.*\Wself.{0}{1}[^=!<>]*=[^=]',
-                    '.*\W{0}{1}[^=!<>]*=[^=]',
-                    'self.{0}{1}[^=!<>]*=[^=]',
-                    '{0}{1}[^=!<>]*=[^=]']
+        patterns = [r'.*\Wself.{0}{1}[^=!<>]*=[^=]',
+                    r'.*\W{0}{1}[^=!<>]*=[^=]',
+                    r'self.{0}{1}[^=!<>]*=[^=]',
+                    r'{0}{1}[^=!<>]*=[^=]']
         matches = get_matches(patterns, source, token, start_line)
     # find the one closest to the start line (prefer before the start line)
     if matches:
@@ -244,8 +244,8 @@ def get_definition_with_regex(source, token, start_line=-1):
 
 def get_matches(patterns, source, token, start_line):
     patterns = [pattern.format(token, r'[^0-9a-zA-Z.[]')
-            for pattern in patterns]
-    pattern = re.compile('|^'.join(patterns))
+                for pattern in patterns]
+    pattern = re.compile(r'|^'.join(patterns))
     # add the trailing space to allow some regexes to match
     lines = [line.strip() + ' ' for line in source.splitlines()]
     if start_line == -1:

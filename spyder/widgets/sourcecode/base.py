@@ -605,11 +605,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines.pop(0)
             else:
                 break
-        
-        # Add an EOL character after indentation blocks that start with some 
+
+        # Add an EOL character after indentation blocks that start with some
         # Python reserved words, so that it gets evaluated automatically
         # by the console
-        varname = re.compile('[a-zA-Z0-9_]*') # matches valid variable names
+        varname = re.compile(r'[a-zA-Z0-9_]*')  # Matches valid variable names.
         maybe = False
         nextexcept = ()
         for n, line in enumerate(lines):
@@ -1312,7 +1312,7 @@ class ConsoleFontStyle(object):
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
-    COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
+    COLOR_PATTERN = re.compile(r'\x01?\x1b\[(.*?)m\x02?')
     exception_occurred = Signal(str, bool)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
