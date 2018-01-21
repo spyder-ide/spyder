@@ -28,8 +28,8 @@ from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
 
 from spyder import __trouble_url__
-from spyder.app.cli_options import get_options
-from spyder.app.mainwindow import initialize, run_spyder, MainWindow
+from spyder.app.mainwindow import MainWindow  # Tests fail without this import
+from spyder.app import start
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins.runconfig import RunConfiguration
@@ -62,9 +62,6 @@ COMPILE_AND_EVAL_TIMEOUT=30000
 # Time to wait for the IPython console to evaluate something (in
 # miliseconds)
 EVAL_TIMEOUT = 3000
-
-# Test for PyQt 5 wheels
-PYQT_WHEEL = PYQT_VERSION > '5.6'
 
 # Temporary directory
 TEMP_DIRECTORY = tempfile.gettempdir()
@@ -139,10 +136,15 @@ def main_window(request):
         except KeyError:
             pass
 
+    # Only use single_instance mode for tests that require it
+    single_instance = request.node.get_marker('single_instance')
+    if single_instance:
+        CONF.set('main', 'single_instance', True)
+    else:
+        CONF.set('main', 'single_instance', False)
+
     # Start the window
-    app = initialize()
-    options, args = get_options()
-    window = run_spyder(app, options, args)
+    window = start.main()
 
     # Teardown
     def close_window():
@@ -185,6 +187,40 @@ def test_calltip(main_window, qtbot):
     assert not calltip.isVisible()
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
+
+    main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@pytest.mark.single_instance
+def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
+    """Test single instance mode and for %edit magic."""
+    editorstack = main_window.editor.get_current_editorstack()
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    lock_code = ("from spyder.config.base import get_conf_path\n"
+                 "from spyder.utils.external import lockfile\n"
+                 "lock_file = get_conf_path('spyder.lock')\n"
+                 "lock = lockfile.FilesystemLock(lock_file)\n"
+                 "lock_created = lock.lock()")
+
+    # Test single instance
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(lock_code)
+    assert not shell.get_value('lock_created')
+
+    # Test %edit magic
+    n_editors = editorstack.get_stack_count()
+    p = tmpdir.mkdir("foo").join("bar.py")
+    p.write(lock_code)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%edit {}'.format(to_text_string(p)))
+
+    qtbot.wait(3000)
+    assert editorstack.get_stack_count() == n_editors + 1
+    assert editorstack.get_current_editor().toPlainText() == lock_code
 
     main_window.editor.close_file()
 

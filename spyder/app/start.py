@@ -21,7 +21,7 @@ except:
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import get_conf_path, running_in_mac_app
+from spyder.config.base import PYTEST, get_conf_path, running_in_mac_app
 from spyder.config.main import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
@@ -135,13 +135,19 @@ def main():
             # executing this script because it doesn't make
             # sense
             from spyder.app import mainwindow
-            mainwindow.main()
-            return
+            if PYTEST:
+                return mainwindow.main()
+            else:
+                mainwindow.main()
+                return
 
         if lock_created:
             # Start a new instance
             from spyder.app import mainwindow
-            mainwindow.main()
+            if PYTEST:
+                return mainwindow.main()
+            else:
+                mainwindow.main()
         else:
             # Pass args to Spyder or print an informative
             # message
@@ -152,7 +158,10 @@ def main():
                       "instance, please pass to it the --new-instance option")
     else:
         from spyder.app import mainwindow
-        mainwindow.main()
+        if PYTEST:
+            return mainwindow.main()
+        else:
+            mainwindow.main()
 
 
 if __name__ == "__main__":

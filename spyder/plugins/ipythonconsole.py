@@ -42,7 +42,7 @@ except ImportError:
 # Local imports
 from spyder import dependencies
 from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
-                                get_module_path)
+                                get_module_path, PYTEST)
 from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
@@ -51,7 +51,7 @@ from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
-from spyder.utils import programs, sourcecode
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
@@ -1072,21 +1072,37 @@ class IPythonConsole(SpyderPluginWidget):
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
+        # Get Python executable used by Spyder
         python = sys.executable
+        if PY2:
+            python = encoding.to_unicode_from_fs(python)
+
+        # Compose command for %edit
+        spy_dir = osp.dirname(get_module_path('spyder'))
         if DEV:
-            spyder_start_directory = get_module_path('spyder')
-            bootstrap_script = osp.join(osp.dirname(spyder_start_directory),
-                                        'bootstrap.py')
-            editor = u'{0} {1} --'.format(python, bootstrap_script)
+            bootstrap = osp.join(spy_dir, 'bootstrap.py')
+            if PY2:
+                bootstrap = encoding.to_unicode_from_fs(bootstrap)
+            editor = u'"{0}" "{1}" --'.format(python, bootstrap)
         else:
             import1 = "import sys"
+            # We need to add spy_dir to sys.path so this test can be
+            # run in our CIs
+            if PYTEST:
+                if os.name == 'nt':
+                    import1 = (import1 +
+                               '; sys.path.append(""{}"")'.format(spy_dir))
+                else:
+                    import1 = (import1 +
+                               "; sys.path.append('{}')".format(spy_dir))
             import2 = "from spyder.app.start import send_args_to_spyder"
             code = "send_args_to_spyder([sys.argv[-1]])"
-            editor = u"{0} -c '{1}; {2}; {3}'".format(python,
-                                                      import1,
-                                                      import2,
-                                                      code)
-        return to_text_string(editor)
+            editor = u"\"{0}\" -c \"{1}; {2}; {3}\"".format(python,
+                                                            import1,
+                                                            import2,
+                                                            code)
+
+        return editor
 
     def config_options(self):
         """

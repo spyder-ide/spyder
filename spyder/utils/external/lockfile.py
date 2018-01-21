@@ -20,6 +20,7 @@ import errno, os
 from time import time as _uniquefloat
 
 import psutil
+from spyder.config.base import PYTEST
 from spyder.py3compat import PY2, to_binary_string
 
 def unique():
@@ -178,16 +179,16 @@ class FilesystemLock:
                         # Verify that the running process corresponds to
                         # a Spyder one
                         p = psutil.Process(int(pid))
-                        if os.name == 'nt':
-                            conditions = ['spyder' in c.lower()
-                                          for c in p.cmdline()]
-                        else:
-                            # Valid names for main script
-                            names = set(['spyder', 'spyder3', 'bootstrap.py'])
-                            # Check the first three command line arguments
-                            arguments = set(os.path.basename(arg)
-                                            for arg in p.cmdline()[:3])
-                            conditions = [names & arguments]
+
+                        # Valid names for main script
+                        names = set(['spyder', 'spyder3', 'bootstrap.py'])
+                        if PYTEST:
+                            names.add('runtests.py')
+
+                        # Check the first three command line arguments
+                        arguments = set(os.path.basename(arg)
+                                        for arg in p.cmdline()[:3])
+                        conditions = [names & arguments]
                         if not any(conditions):
                             raise(OSError(errno.ESRCH, 'No such process'))
                     except OSError as e:
