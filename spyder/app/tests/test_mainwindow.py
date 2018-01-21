@@ -10,7 +10,6 @@ Tests for the main window
 
 import os
 import os.path as osp
-from sys import version_info
 import shutil
 import tempfile
 try:
@@ -84,11 +83,13 @@ def open_file_in_editor(main_window, fname, directory=None):
             input_field.setText(fname)
             QTest.keyClick(w, Qt.Key_Enter)
 
+
 def get_thirdparty_plugin(main_window, plugin_title):
     """Get a reference to the thirdparty plugin with the title given."""
     for plugin in main_window.thirdparty_plugins:
         if plugin.get_plugin_title() == plugin_title:
             return plugin
+
 
 def reset_run_code(qtbot, shell, code_editor, nsb):
     """Reset state after a run code test"""
@@ -142,9 +143,12 @@ def main_window(request):
     app = initialize()
     options, args = get_options()
     window = run_spyder(app, options, args)
+
+    # Teardown
     def close_window():
         window.close()
     request.addfinalizer(close_window)
+
     return window
 
 
