@@ -80,7 +80,7 @@ def create_script(fname):
     encoding.write(to_text_string(text), fname, 'utf-8')
 
 
-def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
+def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', show_all=False,
             folders_only=False):
     """List files and directories"""
     namelist = []

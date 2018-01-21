@@ -298,9 +298,9 @@ class NumpyArrayDialog(QDialog):
             # cleans repeated spaces
             exp = r'(\s*)' + ROW_SEPARATOR + r'(\s*)'
             values = re.sub(exp, ROW_SEPARATOR, values)
-            values = re.sub("\s+", " ", values)
-            values = re.sub("]$", "", values)
-            values = re.sub("^\[", "", values)
+            values = re.sub(r"\s+", " ", values)
+            values = re.sub(r"]$", "", values)
+            values = re.sub(r"^\[", "", values)
             values = re.sub(ROW_SEPARATOR + r'*$', '', values)
 
             # replaces spaces by commas

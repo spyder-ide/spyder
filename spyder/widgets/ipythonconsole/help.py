@@ -35,7 +35,7 @@ class HelpWidget(RichJupyterWidget):
 
         Taken from http://stackoverflow.com/a/3305731/438386
         """
-        return re.sub('\W|^(?=\d)', '_', var)
+        return re.sub(r'\W|^(?=\d)', '_', var)
 
     def get_signature(self, content):
         """Get signature from inspect reply content"""

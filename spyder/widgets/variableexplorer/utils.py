@@ -193,10 +193,10 @@ def str_to_timedelta(value):
         ValueError for strings not matching the above criterion.
 
     """
-    m = re.match('^(?:(?:datetime\.)?timedelta)?'
-                 '\(?'
-                 '([^)]*)'
-                 '\)?$', value)
+    m = re.match(r'^(?:(?:datetime\.)?timedelta)?'
+                 r'\(?'
+                 r'([^)]*)'
+                 r'\)?$', value)
     if not m:
         raise ValueError('Invalid string for datetime.timedelta')
     args = [int(a.strip()) for a in m.group(1).split(',')]

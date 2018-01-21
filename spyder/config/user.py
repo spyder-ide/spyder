@@ -187,7 +187,8 @@ class UserConfig(DefaultsConfig):
                  remove_obsolete=False):
         DefaultsConfig.__init__(self, name, subfolder)
         self.raw = 1 if raw_mode else 0
-        if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
+        if (version is not None and
+                re.match(r'^(\d+).(\d+).(\d+)$', version) is None):
             raise ValueError("Version number %r is incorrect - must be in X.Y.Z format" % version)
         if isinstance(defaults, dict):
             defaults = [ (self.DEFAULT_SECTION_NAME, defaults) ]

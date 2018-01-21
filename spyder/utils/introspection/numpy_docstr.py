@@ -30,7 +30,7 @@ def _expand_typestr(p_type):
     Attempts to interpret the possible types
     """
     # Check if alternative types are specified
-    if re.search('\\bor\\b', p_type):
+    if re.search(r'\bor\b', p_type):
         types = [t.strip() for t in p_type.split('or')]
     # Check if type has a set of valid literal values
     elif p_type.startswith('{'):
@@ -68,7 +68,7 @@ def _search_param_in_numpydocstr(docstr, param_str):
     params = NumpyDocString(docstr)._parsed_data['Parameters']
     for p_name, p_type, p_descr in params:
         if p_name == param_str:
-            m = re.match('([^,]+(,[^,]+)*?)(,[ ]*optional)?$', p_type)
+            m = re.match(r'([^,]+(,[^,]+)*?)(,[ ]*optional)?$', p_type)
             if m:
                 p_type = m.group(1)
             return _expand_typestr(p_type)
@@ -101,7 +101,7 @@ def _search_return_in_numpydocstr(docstr):
             p_type = p_name
             p_name = ''
 
-        m = re.match('([^,]+(,[^,]+)*?)$', p_type)
+        m = re.match(r'([^,]+(,[^,]+)*?)$', p_type)
         if m:
             p_type = m.group(1)
         found.extend(_expand_typestr(p_type))

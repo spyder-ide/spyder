@@ -102,7 +102,7 @@ class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
     PROG = None
-    BLANKPROG = re.compile("\s+")
+    BLANKPROG = re.compile(r"\s+")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     # Syntax highlighting parameters.
@@ -413,7 +413,7 @@ class PythonSH(BaseSH):
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
-    OECOMMENT = re.compile('^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
+    OECOMMENT = re.compile(r'^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
     
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)

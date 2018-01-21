@@ -373,7 +373,7 @@ def gettime_s(text):
     
     The text is of the format 0h : 0.min:0.0s:0 ms:0us:0 ns. 
     Spaces are not taken into account and any of the specifiers can be ignored"""
-    pattern = '([+-]?\d+\.?\d*) ?([munsecinh]+)'
+    pattern = r'([+-]?\d+\.?\d*) ?([munsecinh]+)'
     matches = re.findall(pattern, text)
     if len(matches) == 0:
         return None
