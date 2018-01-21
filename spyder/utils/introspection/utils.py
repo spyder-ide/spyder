@@ -203,7 +203,7 @@ def get_keywords(lexer):
                     ini_val = val[0]
                     if ')\\b' in val[0] or ')(\\s+)' in val[0]:
                         val = re.sub(r'\\.', '', val[0])
-                        val = re.sub('[^0-9a-zA-Z|]+', '', val)
+                        val = re.sub(r'[^0-9a-zA-Z|]+', '', val)
                         if '|' in ini_val:
                             keywords.extend(val.split('|'))
                         else:

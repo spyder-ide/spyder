@@ -1722,7 +1722,7 @@ class Editor(SpyderPluginWidget):
         if text is None:
             default_content = True
             text, enc = encoding.read(self.TEMPLATE_PATH)
-            enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+            enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
             if enc_match:
                 enc = enc_match.group(1)
             # Initialize template variables

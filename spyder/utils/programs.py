@@ -328,7 +328,7 @@ def is_stable_version(version):
         version = version.split('.')
     last_part = version[-1]
 
-    if not re.search('[a-zA-Z]', last_part):
+    if not re.search(r'[a-zA-Z]', last_part):
         return True
     else:
         return False
@@ -449,7 +449,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
                 for ver in version.split(';'):
                     output = output and is_module_installed(module_name, ver)
                 return output
-            match = re.search('[0-9]', version)
+            match = re.search(r'[0-9]', version)
             assert match is not None, "Invalid version number"
             symb = version[:match.start()]
             if not symb:

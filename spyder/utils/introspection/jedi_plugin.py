@@ -218,7 +218,7 @@ class JediPlugin(IntrospectionPlugin):
             if DEBUG_EDITOR:
                 log_last_error(LOG_FILENAME, 'Get Defintion: %s' % e)
             return None
-        pattern = 'class\s+{0}|def\s+{0}|self.{0}\s*=|{0}\s*='.format(name)
+        pattern = r'class\s+{0}|def\s+{0}|self.{0}\s*=|{0}\s*='.format(name)
         if not re.match(pattern, description):
             goto_next = True
         else:
@@ -242,7 +242,7 @@ class JediPlugin(IntrospectionPlugin):
                 info['module_path'] = module_path = path
                 info['line_nr'] = line_nr = 1
         if ext in self.all_editable_exts():
-            pattern = 'from.*\W{0}\W?.*c?import|import.*\W{0}'
+            pattern = r'from.*\W{0}\W?.*c?import|import.*\W{0}'
             if not re.match(pattern.format(info['name']), desc):
                 line_nr = self.get_definition_from_file(module_path, name,
                                                         line_nr)
