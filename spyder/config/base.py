@@ -118,9 +118,16 @@ def get_home_dir():
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
-    # This makes us follow the XDG standard to save our settings
-    # on Linux, as it was requested on Issue 2629
-    if sys.platform.startswith('linux'):
+    # Define conf_dir
+    if PYTEST:
+        import py
+        from _pytest.tmpdir import get_user
+        conf_dir = osp.join(str(py.path.local.get_temproot()),
+                            'pytest-of-{}'.format(get_user()),
+                            SUBFOLDER)
+    elif sys.platform.startswith('linux'):
+        # This makes us follow the XDG standard to save our settings
+        # on Linux, as it was requested on Issue 2629
         xdg_config_home = os.environ.get('XDG_CONFIG_HOME', '')
         if not xdg_config_home:
             xdg_config_home = osp.join(get_home_dir(), '.config')
@@ -129,8 +136,13 @@ def get_conf_path(filename=None):
         conf_dir = osp.join(xdg_config_home, SUBFOLDER)
     else:
         conf_dir = osp.join(get_home_dir(), SUBFOLDER)
+
+    # Create conf_dir
     if not osp.isdir(conf_dir):
-        os.mkdir(conf_dir)
+        if PYTEST:
+            os.makedirs(conf_dir)
+        else:
+            os.mkdir(conf_dir)
     if filename is None:
         return conf_dir
     else:
