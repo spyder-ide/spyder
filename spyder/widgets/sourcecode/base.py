@@ -605,11 +605,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines.pop(0)
             else:
                 break
-        
-        # Add an EOL character after indentation blocks that start with some 
+
+        # Add an EOL character after indentation blocks that start with some
         # Python reserved words, so that it gets evaluated automatically
         # by the console
-        varname = re.compile(r'[a-zA-Z0-9_]*') # matches valid variable names
+        varname = re.compile(r'[a-zA-Z0-9_]*')  # Matches valid variable names.
         maybe = False
         nextexcept = ()
         for n, line in enumerate(lines):
