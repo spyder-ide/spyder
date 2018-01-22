@@ -151,9 +151,10 @@ class JediPlugin(IntrospectionPlugin):
             def_info = self.get_definition_info(gotos[0])
         if def_info and def_info['goto_next']:
             defns = self.get_jedi_object('goto_definitions', info)
+            new_info = None
             if defns:
                 new_info = self.get_definition_info(defns[0])
-            if not new_info['in_builtin']:
+            if new_info and not new_info['in_builtin']:
                 def_info = new_info
         elif not def_info:
             return
