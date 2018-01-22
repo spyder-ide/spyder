@@ -158,14 +158,20 @@ class JediPlugin(IntrospectionPlugin):
                 def_info = new_info
         elif not def_info:
             return
+
         # handle builtins -> try and find the module
         if def_info and def_info['in_builtin']:
             module_path, line_nr = self.find_in_builtin(def_info)
         elif def_info:
             module_path = def_info['module_path']
             line_nr = def_info['line_nr']
+
+        # Handle failures to find module_path and line_nr
         if module_path == filename and line_nr == line:
             return
+        elif module_path is None:
+            return
+
         return module_path, line_nr
 
     # ---- Private API -------------------------------------------------------
@@ -240,6 +246,10 @@ class JediPlugin(IntrospectionPlugin):
         """Find a definition in a builtin file"""
         module_path = info['module_path']
         line_nr = info['line_nr']
+
+        if module_path is None:
+            return None, None
+
         ext = osp.splitext(info['module_path'])[1]
         desc = info['description']
         name = info['name']
@@ -250,6 +260,7 @@ class JediPlugin(IntrospectionPlugin):
             if path:
                 info['module_path'] = module_path = path
                 info['line_nr'] = line_nr = 1
+
         if ext in self.all_editable_exts():
             pattern = 'from.*\W{0}\W?.*c?import|import.*\W{0}'
             if not re.match(pattern.format(info['name']), desc):
@@ -257,6 +268,8 @@ class JediPlugin(IntrospectionPlugin):
                                                         line_nr)
                 if not line_nr:
                     module_path = None
+
         if not ext in self.all_editable_exts():
             line_nr = None
+
         return module_path, line_nr
