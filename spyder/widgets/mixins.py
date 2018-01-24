@@ -787,12 +787,12 @@ class BrowseHistoryMixin(object):
         if self.is_cursor_before('eol') and self.hist_wholeline:
             self.hist_wholeline = False
         tocursor = self.get_current_line_to_cursor()
-        
+
         if self.hist_wholeline:
             start_text = self.get_text(self.current_prompt_pos, 'eol')
         else:
             start_text = self.get_text('cursor', 'eol')
-        
+
         text = start_text
         while text == start_text and self.histidx != 0:
             text, self.histidx = self.find_in_history(tocursor, self.histidx,
