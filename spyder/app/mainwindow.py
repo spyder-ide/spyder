@@ -257,6 +257,7 @@ class MainWindow(QMainWindow):
          ('winpython', "https://winpython.github.io/",
           _("WinPython"))
                 )
+    DEFAULT_LAYOUTS = 4
 
     # Signals
     restore_scrollbar_position = Signal()
@@ -1498,7 +1499,7 @@ class MainWindow(QMainWindow):
         self.setUpdatesEnabled(False)
 
         # IMPORTANT: order has to be the same as defined in the config file
-        MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(4)
+        MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(self.DEFAULT_LAYOUTS)
 
         # define widgets locally
         editor = self.editor
@@ -1901,10 +1902,21 @@ class MainWindow(QMainWindow):
             (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
              is_fullscreen) = settings
 
-            # The defaults layouts will alwyas be regenerated unless there was
+            # The defaults layouts will always be regenerated unless there was
             # an overwrite, either by rewriting with same name, or by deleting
             # and then creating a new one
             if hexstate is None:
+                # The value for hexstate shouldn't be None for a custom saved
+                # layout (ie, where the index is greater than the number of
+                # defaults).  See issue 6202.
+                if index != 'default' and index >= self.DEFAULT_LAYOUTS:
+                    QMessageBox.critical(
+                            self, _("Warning"),
+                            _("Error opening the custom layout.  Please close"
+                              " Spyder and try again.  If the issue persists,"
+                              " then you must use 'Reset to Spyder default' "
+                              "from the layout menu."))
+                    return
                 self.setup_default_layouts(index, settings)
         except cp.NoOptionError:
             QMessageBox.critical(self, _("Warning"),
