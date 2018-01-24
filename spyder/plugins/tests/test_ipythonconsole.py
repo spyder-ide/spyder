@@ -458,8 +458,9 @@ def test_read_stderr(ipyconsole, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="It times out in our CIs")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
+                    reason="It times out on AppVeyor.")
+@pytest.mark.timeout(timeout=20, method='thread')
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while
