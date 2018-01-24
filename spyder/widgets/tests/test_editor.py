@@ -9,6 +9,7 @@ Tests for editor.py
 """
 
 # Standard library imports
+import os
 from sys import platform
 try:
     from unittest.mock import Mock, MagicMock
@@ -120,7 +121,7 @@ def test_find_number_matches(qtbot):
 
 def test_move_current_line_up(editor_bot):
     editor_stack, editor, qtbot = editor_bot
-        
+
     # Move second line up when nothing is selected.
     editor.go_to_line(2)
     editor.move_line_up()
@@ -129,26 +130,26 @@ def test_move_current_line_up(editor_bot):
                          '\n'
                          'x = 2\n')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move line up when already at the top.
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move fourth line up when part of the line is selected.
-    editor.go_to_line(4)    
+    editor.go_to_line(4)
     editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
     for i in range(2):
         editor.moveCursor(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.move_line_up()
     expected_new_text = ('print(a)\n'
-                         'a = 1\n'                         
+                         'a = 1\n'
                          'x = 2\n'
                          '\n')
     assert editor.toPlainText()[:] == expected_new_text
-    
+
 def test_move_current_line_down(editor_bot):
     editor_stack, editor, qtbot = editor_bot
-        
+
     # Move fourth line down when nothing is selected.
     editor.go_to_line(4)
     editor.move_line_down()
@@ -158,11 +159,11 @@ def test_move_current_line_down(editor_bot):
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move line down when already at the bottom.
     editor.move_line_down()
     assert editor.toPlainText() == expected_new_text
-        
+
     # Move first line down when part of the line is selected.
     editor.go_to_line(1)
     editor.moveCursor(QTextCursor.Right, QTextCursor.MoveAnchor)
@@ -175,10 +176,10 @@ def test_move_current_line_down(editor_bot):
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
 def test_move_multiple_lines_up(editor_bot):
     editor_stack, editor, qtbot = editor_bot
-    
+
     # Move second and third lines up.
     editor.go_to_line(2)
     cursor = editor.textCursor()
@@ -186,20 +187,20 @@ def test_move_multiple_lines_up(editor_bot):
     cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
     editor.move_line_up()
-    
+
     expected_new_text = ('print(a)\n'
                          '\n'
                          'a = 1\n'
                          'x = 2\n')
-    assert editor.toPlainText() == expected_new_text     
- 
+    assert editor.toPlainText() == expected_new_text
+
     # Move first and second lines up (to test already at top condition).
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
 
 def test_move_multiple_lines_down(editor_bot):
     editor_stack, editor, qtbot = editor_bot
-    
+
     # Move third and fourth lines down.
     editor.go_to_line(3)
     cursor = editor.textCursor()
@@ -207,18 +208,18 @@ def test_move_multiple_lines_down(editor_bot):
     cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor)
     editor.setTextCursor(cursor)
     editor.move_line_down()
-    
+
     expected_new_text = ('a = 1\n'
                          'print(a)\n'
                          '\n'
                          '\n'
                          'x = 2')
     assert editor.toPlainText() == expected_new_text
-    
+
     # Move fourht and fifth lines down (to test already at bottom condition).
     editor.move_line_down()
     assert editor.toPlainText() == expected_new_text
-    
+
 def test_run_top_line(editor_bot):
     editor_stack, editor, qtbot = editor_bot
     editor.go_to_line(1) # line number is one based
@@ -471,7 +472,7 @@ def test_editor_splitter_init(editor_splitter_bot):
 
 
 def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
-    """Check that tab works in find/replace dialog. Regression test #3674.
+    """Test that tab works in find/replace dialog. Regression test for #3674.
     Mock test—more isolated but less flimsy."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
@@ -485,10 +486,11 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(platform.startswith('linux'),
-                    reason="This test fails on Linux, for unknown reasons.")
+@pytest.mark.skipif(os.environ.get('CI', None) is None and
+                    platform.startswith('linux'),
+                    reason="Fails on some Linux platforms locally.")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
-    """Check that tab works in find/replace dialog. Regression test #3674.
+    """Test that tab works in find/replace dialog. Regression test for #3674.
     "Real world" test—more comprehensive but potentially less robust."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
