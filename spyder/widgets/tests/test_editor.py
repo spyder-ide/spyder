@@ -9,6 +9,7 @@ Tests for editor.py
 """
 
 # Standard library imports
+import os
 from sys import platform
 try:
     from unittest.mock import Mock, MagicMock
@@ -471,7 +472,7 @@ def test_editor_splitter_init(editor_splitter_bot):
 
 
 def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
-    """Check that tab works in find/replace dialog. Regression test #3674.
+    """Test that tab works in find/replace dialog. Regression test for #3674.
     Mock test—more isolated but less flimsy."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
@@ -485,10 +486,11 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(platform.startswith('linux'),
-                    reason="This test fails on Linux, for unknown reasons.")
+@pytest.mark.skipif(os.environ.get('CI', None) is None and
+                    platform.startswith('linux'),
+                    reason="Fails on some Linux platforms locally.")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
-    """Check that tab works in find/replace dialog. Regression test #3674.
+    """Test that tab works in find/replace dialog. Regression test for #3674.
     "Real world" test—more comprehensive but potentially less robust."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
