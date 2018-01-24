@@ -159,13 +159,14 @@ def main_window(request):
 #==============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
+@pytest.mark.slow
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or os.name == 'nt' or PY2,
-                    reason="It times out in our CIs, and apparently Windows.")
-@pytest.mark.timeout(timeout=60, method='thread')
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="It times out on Windows locally and on AppVeyor.")
+@pytest.mark.timeout(timeout=45, method='thread')
 def test_calltip(main_window, qtbot):
-    """Hide the calltip in the editor when a matching ')' is found."""
+    """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file
     text = 'a = [1,2,3]\n(max'
     main_window.editor.new(fname="test.py", text=text)

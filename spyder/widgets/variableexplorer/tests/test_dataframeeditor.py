@@ -388,7 +388,7 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
 
 
 def test_dataframemodel_set_data_overflow(monkeypatch):
-    """Unit test #6114: entry of an overflow int caught and handled properly"""
+    """Test for #6114: Overflowing ints are caught and handled properly"""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -414,10 +414,11 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(platform.startswith('linux'),
-                    reason="Fails on some Linux platforms locally and Travis.")
+@pytest.mark.skipif(os.environ.get('CI', None) is None and
+                    platform.startswith('linux'),
+                    reason="Fails on some Linux platforms locally.")
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
-    """Test #6114: entry of an overflow int is caught and handled properly"""
+    """Test #6114: Entry of an overflow int is caught and handled properly"""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -459,7 +460,7 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
 
 
 def test_dataframemodel_set_data_complex(monkeypatch):
-    """Unit test #6115: editing complex dtypes raises error in df editor"""
+    """Test for #6115: Editing complex dtypes raises error in df editor"""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -479,9 +480,6 @@ def test_dataframemodel_set_data_complex(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or
-                    platform.startswith('linux'),
-                    reason="Fails on Travis for no good reason.")
 def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
     """Test for #6115: editing complex dtypes raises error in df editor"""
     MockQMessageBox = Mock()
@@ -521,7 +519,7 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
 
 
 def test_dataframemodel_set_data_bool(monkeypatch):
-    """Unit test that bools are editible in df and false-y strs are detected"""
+    """Test that bools are editible in df and false-y strs are detected"""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -542,11 +540,8 @@ def test_dataframemodel_set_data_bool(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is not None or
-                    platform.startswith('linux'),
-                    reason="Fails on Travis for no good reason.")
 def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
-    """Unit test that bools are editible in df and false-y strs are detected"""
+    """Test that bools are editible in df and false-y strs are detected"""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
