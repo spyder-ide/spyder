@@ -159,6 +159,7 @@ def main_window(request):
 #==============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
+@pytest.mark.slow
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt',

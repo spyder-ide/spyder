@@ -456,6 +456,7 @@ def test_read_stderr(ipyconsole, qtbot):
     assert content == client._read_stderr()
 
 
+@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
 @pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
