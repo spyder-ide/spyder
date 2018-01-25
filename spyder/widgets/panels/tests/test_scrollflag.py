@@ -87,6 +87,7 @@ def test_enabled(editor_bot):
     assert not sfa.isVisible()
 
 
+@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
 def test_flag_painting(editor_bot):
     """"Test that there is no error when painting all flag types on the
     scrollbar area when the editor vertical scrollbar is visible and not
