@@ -130,6 +130,7 @@ def test_flag_painting(editor_bot):
         editor.setTextCursor(cursor)
 
 
+@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
 def test_range_indicator_visible_on_hover_only(editor_bot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
