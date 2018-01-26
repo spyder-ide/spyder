@@ -123,7 +123,7 @@ class SpyderErrorDialog(QDialog):
 
         # Dialog main label
         self.main_label = QLabel(
-            _("""<b>Spyder has encountered a problem!!</b><hr>
+            _("""<b>Spyder has encountered an internal problem</b><hr>
               Please enter below a step-by-step description of 
               your problem (in English). Issue reports without 
               a clear way to reproduce them will be closed.
