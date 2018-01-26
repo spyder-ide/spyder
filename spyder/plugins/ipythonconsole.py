@@ -1048,28 +1048,36 @@ class IPythonConsole(SpyderPluginWidget):
 
     def connect_client_to_kernel(self, client):
         """Connect a client to its kernel"""
-        connection_file = client.connection_file
+        # Needed to prevent any error that could appear.
+        # See issue 6267
+        try:
+            connection_file = client.connection_file
 
-        if self.test_no_stderr:
-            stderr_file = None
-        else:
-            stderr_file = client.stderr_file
+            if self.test_no_stderr:
+                stderr_file = None
+            else:
+                stderr_file = client.stderr_file
 
-        km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
-                                                              stderr_file)
-        # An error occurred if this is True
-        if is_string(km) and kc is None:
-            client.shellwidget.kernel_manager = None
-            client.show_kernel_error(km)
-            return
+            km, kc = self.create_kernel_manager_and_kernel_client(
+                                                    connection_file,
+                                                    stderr_file)
+            # An error occurred if this is True
+            if is_string(km) and kc is None:
+                client.shellwidget.kernel_manager = None
+                client.show_kernel_error(km)
+                return
 
-        kc.started_channels.connect(lambda c=client: self.process_started(c))
-        kc.stopped_channels.connect(lambda c=client: self.process_finished(c))
-        kc.start_channels(shell=True, iopub=True)
+            kc.started_channels.connect(
+                                    lambda c=client: self.process_started(c))
+            kc.stopped_channels.connect(
+                                    lambda c=client: self.process_finished(c))
+            kc.start_channels(shell=True, iopub=True)
 
-        shellwidget = client.shellwidget
-        shellwidget.kernel_manager = km
-        shellwidget.kernel_client = kc
+            shellwidget = client.shellwidget
+            shellwidget.kernel_manager = km
+            shellwidget.kernel_client = kc
+        except Exception:
+            pass
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
