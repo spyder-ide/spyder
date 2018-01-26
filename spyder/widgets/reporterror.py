@@ -23,6 +23,11 @@ from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 
+# Minimum number of characters to introduce in the description
+# field before being able to send the report to Github.
+MIN_CHARS = 20
+
+
 class DescriptionWidget(CodeEditor):
     """Widget to enter error description."""
 
@@ -141,7 +146,8 @@ class SpyderErrorDialog(QDialog):
 
         # Label to show missing chars
         self.initial_chars = len(self.input_description.toPlainText())
-        self.chars_label = QLabel(_("Enter at least 15 characters"))
+        self.chars_label = QLabel(_("Enter at least {} "
+                                    "characters".format(MIN_CHARS)))
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox()
@@ -224,12 +230,13 @@ class SpyderErrorDialog(QDialog):
     def _description_changed(self):
         """Activate submit_btn if we have a long enough description."""
         chars = len(self.input_description.toPlainText()) - self.initial_chars
-        if chars < 15:
+        if chars < MIN_CHARS:
             self.chars_label.setText(
-                u"{} {}".format(15 - chars, _("more characters to go...")))
+                u"{} {}".format(MIN_CHARS - chars,
+                                _("more characters to go...")))
         else:
             self.chars_label.setText(_("Ready to submit! Thanks!"))
-        self.submit_btn.setEnabled(chars >= 15)
+        self.submit_btn.setEnabled(chars >= MIN_CHARS)
 
 
 def test():
