@@ -73,7 +73,7 @@ class DebuggingWidget(RichJupyterWidget):
 
         def callback(line):
             # Save history to browse it later
-            if not (len(self._control.history) > 0 
+            if not (len(self._control.history) > 0
                     and self._control.history[-1] == line):
                 self._control.history.append(line)
 
