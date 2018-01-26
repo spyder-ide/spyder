@@ -830,9 +830,8 @@ class MainConfigPage(GeneralConfigPage):
                                           "Python files in an already running "
                                           "instance (Requires a restart)"))
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
-        popup_console_box = newcb(_("Pop up internal console when internal "
-                                    "errors appear"),
-                                  'show_internal_console_if_traceback')
+        popup_console_box = newcb(_("Show internal Spyder errors to report "
+                                    "them to Github"), 'show_internal_errors')
         check_updates = newcb(_("Check for updates on startup"),
                               'check_updates_on_startup')
 

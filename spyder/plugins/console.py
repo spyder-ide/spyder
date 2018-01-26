@@ -23,7 +23,7 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 
 # Local imports
-from spyder.config.base import _, debug_print
+from spyder.config.base import _, DEV, debug_print
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
@@ -214,10 +214,7 @@ class Console(SpyderPluginWidget):
         if (not is_traceback and self.error_dlg is None) or self.dismiss_error:
             return
 
-        if CONF.get('main', 'show_internal_console_if_traceback'):
-            self.dockwidget.show()
-            self.dockwidget.raise_()
-        else:
+        if CONF.get('main', 'show_internal_errors'):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
@@ -225,6 +222,9 @@ class Console(SpyderPluginWidget):
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
                 self.error_dlg.show()
             self.error_dlg.append_traceback(text)
+        elif DEV:
+            self.dockwidget.show()
+            self.dockwidget.raise_()
 
     def close_error_dlg(self):
         """Close error dialog."""

@@ -464,10 +464,9 @@ class MainWindow(QMainWindow):
         if options.window_title is not None:
             title += ' -- ' + options.window_title
 
-        if DEBUG or PYTEST:
-            # Show errors in internal console when developing or testing.
-            CONF.set('main', 'show_internal_console_if_traceback', True)
-
+        if PYTEST:
+            # Show errors in internal console when testing.
+            CONF.set('main', 'show_internal_errors', False)
 
         self.base_title = title
         self.update_window_title()
