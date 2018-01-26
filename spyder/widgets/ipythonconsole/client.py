@@ -232,7 +232,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
         # To apply style
-        self.set_color_scheme(self.shellwidget.syntax_style)
+        self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
         # To hide the loading page
         self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
@@ -429,9 +429,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
-    def set_color_scheme(self, color_scheme):
+    def set_color_scheme(self, color_scheme, reset=True):
         """Set IPython color scheme."""
-        self.shellwidget.set_color_scheme(color_scheme)
+        self.shellwidget.set_color_scheme(color_scheme, reset)
 
     def shutdown(self):
         """Shutdown kernel"""
