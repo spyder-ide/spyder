@@ -11,7 +11,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.widgets.reporterror import SpyderErrorDialog
+from spyder.widgets.reporterror import MIN_CHARS, SpyderErrorDialog
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def setup_dialog(qtbot):
 def test_dialog(qtbot):
     """Run dialog tests."""
     dlg = setup_dialog(qtbot)
-    text = "123456789123456"
+    text = "1" * MIN_CHARS
 
     # Assert Submit button is disabled at first
     assert not dlg.submit_btn.isEnabled()
@@ -57,7 +57,7 @@ def test_dialog(qtbot):
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
     # Assert chars label works as expected
-    assert dlg.chars_label.text() == '15 more characters to go...'
+    assert dlg.chars_label.text() == '{} more characters to go...'.format(MIN_CHARS)
     qtbot.keyClicks(dlg.input_description, text)
     assert dlg.chars_label.text() == 'Ready to submit! Thanks!'
 
