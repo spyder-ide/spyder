@@ -10,8 +10,8 @@
 import sys
 
 # Third party imports
-from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLabel,
-                            QPlainTextEdit, QPushButton, QVBoxLayout)
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QHBoxLayout,
+                            QLabel, QPlainTextEdit, QPushButton, QVBoxLayout)
 from qtpy.QtCore import Qt, Signal
 
 # Local Imports
@@ -21,6 +21,11 @@ from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
+
+
+# Minimum number of characters to introduce in the description
+# field before being able to send the report to Github.
+MIN_CHARS = 20
 
 
 class DescriptionWidget(CodeEditor):
@@ -118,7 +123,7 @@ class SpyderErrorDialog(QDialog):
 
         # Dialog main label
         self.main_label = QLabel(
-            _("""<b>Spyder has encountered a problem!!</b><hr>
+            _("""<b>Spyder has encountered an internal problem</b><hr>
               Please enter below a step-by-step description of 
               your problem (in English). Issue reports without 
               a clear way to reproduce them will be closed.
@@ -139,6 +144,20 @@ class SpyderErrorDialog(QDialog):
         self.details.set_pythonshell_font(get_font())
         self.details.hide()
 
+        # Label to show missing chars
+        self.initial_chars = len(self.input_description.toPlainText())
+        self.chars_label = QLabel(_("Enter at least {} "
+                                    "characters".format(MIN_CHARS)))
+
+        # Checkbox to dismiss future errors
+        self.dismiss_box = QCheckBox()
+        self.dismiss_box.setText(_("Don't show again during this session"))
+
+        # Labels layout
+        labels_layout = QHBoxLayout()
+        labels_layout.addWidget(self.chars_label)
+        labels_layout.addWidget(self.dismiss_box, 0, Qt.AlignRight)
+
         # Dialog buttons
         self.submit_btn = QPushButton(_('Submit to Github'))
         self.submit_btn.setEnabled(False)
@@ -147,28 +166,24 @@ class SpyderErrorDialog(QDialog):
         self.details_btn = QPushButton(_('Show details'))
         self.details_btn.clicked.connect(self._show_details)
 
-        self.dimiss_btn = QPushButton(_('Dismiss'))
-
-        # Label to show missing chars
-        self.initial_chars = len(self.input_description.toPlainText())
-        self.chars_label = QLabel(_("Enter at least 15 characters"))
+        self.close_btn = QPushButton(_('Close'))
 
         # Buttons layout
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(self.submit_btn)
-        hlayout.addWidget(self.details_btn)
-        hlayout.addWidget(self.dimiss_btn)
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.submit_btn)
+        buttons_layout.addWidget(self.details_btn)
+        buttons_layout.addWidget(self.close_btn)
 
         # Main layout
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.main_label)
         vlayout.addWidget(self.input_description)
         vlayout.addWidget(self.details)
-        vlayout.addWidget(self.chars_label)
-        vlayout.addLayout(hlayout)
+        vlayout.addLayout(labels_layout)
+        vlayout.addLayout(buttons_layout)
         self.setLayout(vlayout)
 
-        self.resize(500, 420)
+        self.resize(600, 420)
         self.input_description.setFocus()
 
     def _submit_to_github(self):
@@ -204,7 +219,7 @@ class SpyderErrorDialog(QDialog):
             self.details.hide()
             self.details_btn.setText(_('Show details'))
         else:
-            self.resize(500, 550)
+            self.resize(600, 550)
             self.details.document().setPlainText('')
             self.details.append_text_to_shell(self.error_traceback,
                                               error=True,
@@ -215,12 +230,13 @@ class SpyderErrorDialog(QDialog):
     def _description_changed(self):
         """Activate submit_btn if we have a long enough description."""
         chars = len(self.input_description.toPlainText()) - self.initial_chars
-        if chars < 15:
+        if chars < MIN_CHARS:
             self.chars_label.setText(
-                u"{} {}".format(15 - chars, _("more characters to go...")))
+                u"{} {}".format(MIN_CHARS - chars,
+                                _("more characters to go...")))
         else:
             self.chars_label.setText(_("Ready to submit! Thanks!"))
-        self.submit_btn.setEnabled(chars >= 15)
+        self.submit_btn.setEnabled(chars >= MIN_CHARS)
 
 
 def test():
