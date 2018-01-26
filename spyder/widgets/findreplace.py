@@ -194,6 +194,9 @@ class FindReplace(QWidget):
                     self.return_pressed.emit()
 
             if key == Qt.Key_Tab:
+                if self.search_text.hasFocus():
+                    self.replace_text.set_current_text(
+                        self.search_text.currentText())
                 self.focusNextChild()
 
         return super(FindReplace, self).eventFilter(widget, event)
