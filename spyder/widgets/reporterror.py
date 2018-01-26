@@ -151,7 +151,7 @@ class SpyderErrorDialog(QDialog):
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox()
-        self.dismiss_box.setText(_("Don't show again"))
+        self.dismiss_box.setText(_("Don't show again during this session"))
 
         # Labels layout
         labels_layout = QHBoxLayout()
@@ -183,7 +183,7 @@ class SpyderErrorDialog(QDialog):
         vlayout.addLayout(buttons_layout)
         self.setLayout(vlayout)
 
-        self.resize(550, 420)
+        self.resize(600, 420)
         self.input_description.setFocus()
 
     def _submit_to_github(self):
@@ -219,7 +219,7 @@ class SpyderErrorDialog(QDialog):
             self.details.hide()
             self.details_btn.setText(_('Show details'))
         else:
-            self.resize(550, 550)
+            self.resize(600, 550)
             self.details.document().setPlainText('')
             self.details.append_text_to_shell(self.error_traceback,
                                               error=True,
