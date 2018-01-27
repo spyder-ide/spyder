@@ -446,7 +446,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
-        self.shellwidget.request_interrupt_kernel()
+        # Needed to prevent a crash when a kernel is not running.
+        # See issue 6299
+        try:
+            self.shellwidget.request_interrupt_kernel()
+        except RuntimeError:
+            pass
 
     @Slot()
     def restart_kernel(self):
