@@ -1494,7 +1494,12 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Save stderr in a file to read it later in case of errors
         if stderr_file is not None:
-            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+            # Needed to prevent any error that could appear.
+            # See issue 6267
+            try:
+                stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+            except Exception:
+                stderr = None
         else:
             stderr = None
         kernel_manager.start_kernel(stderr=stderr)
