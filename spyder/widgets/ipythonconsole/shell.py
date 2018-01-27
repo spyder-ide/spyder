@@ -133,14 +133,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         mpcolor = bsh.get_matched_p_color()
         self._bracket_matcher.format.setBackground(mpcolor)
 
-    def set_color_scheme(self, color_scheme):
+    def set_color_scheme(self, color_scheme, reset=True):
         """Set color scheme of the shell."""
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
         self._syntax_style_changed()
-        self.reset(clear=True)
+        if reset:
+            self.reset(clear=True)
         if not dark_color:
             self.silent_execute("%colors linux")
         else:
