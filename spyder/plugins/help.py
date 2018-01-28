@@ -299,9 +299,11 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '' and \
-                      any([doc['name'], doc['argspec'], doc['note']]):
-                        msg = _("No further documentation available")
+                    if doc['docstring'] == '':
+                        if any([doc['name'], doc['argspec'], doc['note']]):
+                            msg = _("No further documentation available")
+                        else:
+                            msg = _("No documentation available")
                         html_text += '<div class="hr"></div>'
                         html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
