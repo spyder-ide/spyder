@@ -817,7 +817,7 @@ class Help(SpyderPluginWidget):
                and (force or text != self._last_texts[index]):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
                 if (self.console.dockwidget not in dockwidgets and \
-                        self.main.ipyconsole is not None and
+                        self.ipyconsole is not None and
                         self.ipyconsole.dockwidget not in dockwidgets):
                     self.dockwidget.show()
                     self.dockwidget.raise_()

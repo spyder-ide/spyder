@@ -31,7 +31,7 @@ def help_plugin(qtbot):
     return help_plugin
 
 
-def check_text(widget, text):
+def check_text(widget, text):
     """Check if some text is present in a widget."""
     if WEBENGINE:
         def callback(data):
