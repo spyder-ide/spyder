@@ -18,7 +18,8 @@ from spyder.utils.debug import log_last_error, log_dt
 from spyder.utils.dochelpers import getsignaturefromtext
 from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
-from spyder.utils.introspection.utils import get_parent_until
+from spyder.utils.introspection.utils import (default_info_response,
+                                              get_parent_until)
 from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
@@ -72,6 +73,7 @@ class JediPlugin(IntrospectionPlugin):
             'calltip': 'ones(shape, dtype=None, order='C')'}
         """
         call_def = self.get_jedi_object('goto_definitions', info)
+
         for cd in call_def:
             # For compatibility with Jedi 0.11
             try:
@@ -86,10 +88,11 @@ class JediPlugin(IntrospectionPlugin):
             try:
                 call_def = call_def[0]
             except IndexError:
-                return
+                return default_info_response()
+
         name = call_def.name
         if name is None:
-            return
+            return default_info_response()
 
         if call_def.module_path:
             mod_name = get_parent_until(call_def.module_path)

@@ -19,10 +19,12 @@ from pygments.token import Token
 
 from spyder.utils.debug import log_dt
 from spyder.utils import sourcecode, encoding
-from spyder.utils.introspection.manager import (
-    DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
-from spyder.utils.introspection.utils import (
-    get_parent_until, memoize, find_lexer_for_filename, get_keywords)
+from spyder.utils.introspection.manager import (DEBUG_EDITOR, LOG_FILENAME,
+                                                IntrospectionPlugin)
+from spyder.utils.introspection.utils import (default_info_response,
+                                              get_parent_until, memoize,
+                                              find_lexer_for_filename,
+                                              get_keywords)
 
 
 class FallbackPlugin(IntrospectionPlugin):
@@ -137,6 +139,8 @@ class FallbackPlugin(IntrospectionPlugin):
                         argspec='',
                         calltip=None)
             return resp
+        else:
+            return default_info_response()
 
 
 @memoize
