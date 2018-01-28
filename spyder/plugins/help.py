@@ -302,9 +302,9 @@ class SphinxThread(QThread):
                     if doc['docstring'] == '':
                         if any([doc['name'], doc['argspec'], doc['note']]):
                             msg = _("No further documentation available")
+                            html_text += '<div class="hr"></div>'
                         else:
                             msg = _("No documentation available")
-                        html_text += '<div class="hr"></div>'
                         html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))
