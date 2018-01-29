@@ -263,3 +263,8 @@ def get_parent_until(path):
         except ImportError:
             break
     return '.'.join(reversed(items))
+
+
+def default_info_response():
+    """Default response when asking for info."""
+    return dict(name='', argspec='', note='', docstring='', calltip='')

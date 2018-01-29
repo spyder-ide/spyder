@@ -18,7 +18,8 @@ from spyder.utils.debug import log_last_error, log_dt
 from spyder.utils.dochelpers import getsignaturefromtext
 from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
-from spyder.utils.introspection.utils import get_parent_until
+from spyder.utils.introspection.utils import (default_info_response,
+                                              get_parent_until)
 from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
@@ -72,6 +73,7 @@ class JediPlugin(IntrospectionPlugin):
             'calltip': 'ones(shape, dtype=None, order='C')'}
         """
         call_def = self.get_jedi_object('goto_definitions', info)
+
         for cd in call_def:
             # For compatibility with Jedi 0.11
             try:
@@ -83,21 +85,28 @@ class JediPlugin(IntrospectionPlugin):
                 call_def = cd
                 break
         else:
-            call_def = call_def[0]
+            try:
+                call_def = call_def[0]
+            except IndexError:
+                return default_info_response()
+
         name = call_def.name
         if name is None:
-            return
+            return default_info_response()
+
         if call_def.module_path:
             mod_name = get_parent_until(call_def.module_path)
         else:
             mod_name = None
+
         if not mod_name:
             mod_name = call_def.module_name
+
         if call_def.doc.startswith(name + '('):
             calltip = getsignaturefromtext(call_def.doc, name)
             argspec = calltip[calltip.find('('):]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
-        elif '(' in call_def.doc.splitlines()[0]:
+        elif call_def.doc and '(' in call_def.doc.splitlines()[0]:
             calltip = call_def.doc.splitlines()[0]
             name = call_def.doc.split('(')[0]
             docstring = call_def.doc[call_def.doc.find(')') + 3:]
@@ -106,6 +115,7 @@ class JediPlugin(IntrospectionPlugin):
             calltip = name + '(...)'
             argspec = '()'
             docstring = call_def.doc
+
         if call_def.type == 'module':
             note = 'Module %s' % mod_name
             argspec = ''
@@ -119,6 +129,7 @@ class JediPlugin(IntrospectionPlugin):
         else:
             note = '%s in %s module' % (call_def.type.capitalize(),
                                         mod_name)
+
         argspec = argspec.replace(' = ', '=')
         calltip = calltip.replace(' = ', '=')
         debug_print(call_def.name)
@@ -143,20 +154,27 @@ class JediPlugin(IntrospectionPlugin):
             def_info = self.get_definition_info(gotos[0])
         if def_info and def_info['goto_next']:
             defns = self.get_jedi_object('goto_definitions', info)
+            new_info = None
             if defns:
                 new_info = self.get_definition_info(defns[0])
-            if not new_info['in_builtin']:
+            if new_info and not new_info['in_builtin']:
                 def_info = new_info
         elif not def_info:
             return
+
         # handle builtins -> try and find the module
         if def_info and def_info['in_builtin']:
             module_path, line_nr = self.find_in_builtin(def_info)
         elif def_info:
             module_path = def_info['module_path']
             line_nr = def_info['line_nr']
+
+        # Handle failures to find module_path and line_nr
         if module_path == filename and line_nr == line:
             return
+        elif module_path is None:
+            return
+
         return module_path, line_nr
 
     # ---- Private API -------------------------------------------------------
@@ -231,6 +249,10 @@ class JediPlugin(IntrospectionPlugin):
         """Find a definition in a builtin file"""
         module_path = info['module_path']
         line_nr = info['line_nr']
+
+        if module_path is None:
+            return None, None
+
         ext = osp.splitext(info['module_path'])[1]
         desc = info['description']
         name = info['name']
@@ -241,6 +263,7 @@ class JediPlugin(IntrospectionPlugin):
             if path:
                 info['module_path'] = module_path = path
                 info['line_nr'] = line_nr = 1
+
         if ext in self.all_editable_exts():
             pattern = r'from.*\W{0}\W?.*c?import|import.*\W{0}'
             if not re.match(pattern.format(info['name']), desc):
@@ -248,6 +271,8 @@ class JediPlugin(IntrospectionPlugin):
                                                         line_nr)
                 if not line_nr:
                     module_path = None
+
         if not ext in self.all_editable_exts():
             line_nr = None
+
         return module_path, line_nr

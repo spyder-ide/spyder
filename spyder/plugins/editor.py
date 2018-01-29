@@ -1393,14 +1393,14 @@ class Editor(SpyderPluginWidget):
 
             # Disconnect active signals
             try:
-                self.introspector.send_to_help.disconnect()
-                self.introspector.edit_goto.disconnect()
+                self.introspector.sig_send_to_help.disconnect()
+                self.introspector.sig_edit_goto.disconnect()
             except TypeError:
                 pass
 
             # Reconnect signals again
-            self.introspector.send_to_help.connect(editorstack.send_to_help)
-            self.introspector.edit_goto.connect(
+            self.introspector.sig_send_to_help.connect(editorstack.send_to_help)
+            self.introspector.sig_edit_goto.connect(
                 lambda fname, lineno, name:
                 editorstack.edit_goto.emit(fname, lineno, name))
 
