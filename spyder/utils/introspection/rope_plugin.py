@@ -22,6 +22,7 @@ from spyder.utils.introspection.manager import (
 from spyder.utils.introspection.module_completion import (
     get_preferred_submodules)
 from spyder.utils.introspection.manager import ROPE_REQVER
+from spyder.utils.introspection.utils import default_info_response
 
 try:
     try:
@@ -123,7 +124,7 @@ class RopePlugin(IntrospectionPlugin):
     def get_info(self, info):
         """Get a formatted calltip and docstring from Rope"""
         if self.project is None:
-            return
+            return default_info_response()
         filename = info['filename']
         source_code = info['source_code']
         offset = info['position']
@@ -209,10 +210,10 @@ class RopePlugin(IntrospectionPlugin):
                 note = 'Present in %s module' % module
 
         if not doc_text and not calltip:
-            return
+            return default_info_response()
 
         return dict(name=obj_fullname, argspec=argspec, note=note,
-            docstring=doc_text, calltip=calltip)
+                    docstring=doc_text, calltip=calltip)
 
     def get_definition(self, info):
         """Find a definition location using Rope"""

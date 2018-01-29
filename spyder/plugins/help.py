@@ -299,10 +299,12 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '' and \
-                      any([doc['name'], doc['argspec'], doc['note']]):
-                        msg = _("No further documentation available")
-                        html_text += '<div class="hr"></div>'
+                    if doc['docstring'] == '':
+                        if any([doc['name'], doc['argspec'], doc['note']]):
+                            msg = _("No further documentation available")
+                            html_text += '<div class="hr"></div>'
+                        else:
+                            msg = _("No documentation available")
                         html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))
@@ -328,10 +330,13 @@ class Help(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
         self.internal_shell = None
+        self.console = None
+        self.ipyconsole = None
+        self.editor = None
 
         # Initialize plugin
         self.initialize_plugin()
@@ -494,7 +499,11 @@ class Help(SpyderPluginWidget):
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         self.main.console.set_help(self)
+
         self.internal_shell = self.main.console.shell
+        self.console = self.main.console
+        self.ipyconsole = self.main.ipyconsole
+        self.editor = self.main.editor
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -535,8 +544,8 @@ class Help(SpyderPluginWidget):
             self.toggle_math_mode(math_o)
 
         # To make auto-connection changes take place instantly
-        self.main.editor.apply_plugin_settings(options=[connect_n])
-        self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
+        self.editor.apply_plugin_settings(options=[connect_n])
+        self.ipyconsole.apply_plugin_settings(options=[connect_n])
 
     #------ Public API (related to Help's source) -------------------------
     def source_is_console(self):
@@ -798,13 +807,13 @@ class Help(SpyderPluginWidget):
         index = self.source_combo.currentIndex()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
-            if self.dockwidget and (force or self.dockwidget.isVisible()) \
-               and not self.ismaximized \
-               and (force or text != self._last_texts[index]):
+            if (self.dockwidget and (force or self.dockwidget.isVisible()) and
+                    not self.ismaximized and
+                    (force or text != self._last_texts[index])):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
-                if self.main.console.dockwidget not in dockwidgets and \
-                   (hasattr(self.main, 'ipyconsole') and \
-                    self.main.ipyconsole.dockwidget not in dockwidgets):
+                if (self.console.dockwidget not in dockwidgets and
+                        self.ipyconsole is not None and
+                        self.ipyconsole.dockwidget not in dockwidgets):
                     self.dockwidget.show()
                     self.dockwidget.raise_()
         self._last_texts[index] = text
@@ -886,8 +895,8 @@ class Help(SpyderPluginWidget):
                 (hasattr(self.shell, 'is_running') and
                  not self.shell.is_running())):
             self.shell = None
-            if self.main.ipyconsole is not None:
-                shell = self.main.ipyconsole.get_current_shellwidget()
+            if self.ipyconsole is not None:
+                shell = self.ipyconsole.get_current_shellwidget()
                 if shell is not None and shell.kernel_client is not None:
                     self.shell = shell
             if self.shell is None:
@@ -897,8 +906,11 @@ class Help(SpyderPluginWidget):
     def render_sphinx_doc(self, doc, context=None):
         """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
-        fname = self.parent().parent().editor.get_current_filename()
-        dname = osp.dirname(fname)
+        if self.editor is not None:
+            fname = self.editor.get_current_filename()
+            dname = osp.dirname(fname)
+        else:
+            dname = ''
         self._sphinx_thread.render(doc, context, self.get_option('math'),
                                    dname)
 
