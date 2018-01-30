@@ -56,6 +56,26 @@ def main_window(request):
 # =============================================================================
 # Tests
 # =============================================================================
+def test_tabfilter_typeerror_simple():
+    """Test for #5813 ; event filter handles None indicies when moving tabs."""
+    MockEvent = MagicMock()
+    MockEvent.return_value.type.return_value = QEvent.MouseMove
+    MockEvent.return_value.pos.return_value = 0
+    mockEvent_instance = MockEvent()
+
+    MockTabBar = MagicMock()
+    MockTabBar.return_value.tabAt.return_value = 0
+    mockTabBar_instance = MockTabBar()
+
+    test_tabfilter = TabFilter(mockTabBar_instance, main_window)
+    test_tabfilter.from_index = None
+    test_tabfilter.moving = True
+
+    assert test_tabfilter.eventFilter(None, mockEvent_instance)
+    mockEvent_instance.pos.assert_called_once()
+    mockTabBar_instance.tabAt.called_once()
+
+
 @flaky(max_runs=3)
 @pytest.mark.slow
 def test_tabfilter_typeerror_full(main_window):
