@@ -109,9 +109,9 @@ class TabFilter(QObject):
         if event_type == QEvent.MouseMove:
             try:
                 self.tab_moved(event)
-                return True
             except TypeError:
                 pass
+            return True
         if event_type == QEvent.MouseButtonRelease:
             self.tab_released(event)
             return True
@@ -141,11 +141,11 @@ class TabFilter(QObject):
             QApplication.setOverrideCursor(Qt.ClosedHandCursor)
             self.moving = True
 
-        if self.to_index == -1:
+        if self.to_index in (-1, None):
             self.to_index = self.from_index
 
         from_index, to_index = self.from_index, self.to_index
-        if from_index != to_index and from_index != -1 and to_index != -1:
+        if from_index not in (to_index, -1, None):
             self.move_tab(from_index, to_index)
             self._fix_cursor(from_index, to_index)
             self.from_index = to_index
