@@ -16,6 +16,7 @@ from jupyter_client.kernelspec import KernelSpec
 from spyder.config.base import get_module_source_path
 from spyder.config.main import CONF
 from spyder.utils.encoding import to_unicode_from_fs
+from spyder.utils.programs import is_python_interpreter
 from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
 from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
                                get_python_executable)
@@ -43,6 +44,8 @@ class SpyderKernelSpec(KernelSpec):
             # to the kernel sys.path
             os.environ.pop('VIRTUAL_ENV', None)
             pyexec = CONF.get('main_interpreter', 'executable')
+            if not is_python_interpreter(pyexec):
+                pyexec = get_python_executable()
 
         # Fixes Issue #3427
         if os.name == 'nt':
