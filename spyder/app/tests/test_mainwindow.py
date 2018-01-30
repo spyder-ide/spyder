@@ -163,7 +163,7 @@ def main_window(request):
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or (not PY2 and PYQT_VERSION < "5.9.0"),
-                    reason="It times out on AppVeyor and fails on PY3 and PyQt 5.6")
+                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
 @pytest.mark.timeout(timeout=45, method='thread')
 def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
@@ -181,7 +181,7 @@ def test_calltip(main_window, qtbot):
 
     qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
     qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Space)
