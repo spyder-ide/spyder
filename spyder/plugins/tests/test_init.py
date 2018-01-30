@@ -72,8 +72,8 @@ def test_tabfilter_typeerror_simple():
     test_tabfilter.moving = True
 
     assert test_tabfilter.eventFilter(None, mockEvent_instance)
-    mockEvent_instance.pos.assert_called_once()
-    mockTabBar_instance.tabAt.called_once()
+    assert mockEvent_instance.pos.call_count == 1
+    assert mockTabBar_instance.tabAt.call_count == 1
 
 
 @flaky(max_runs=3)
@@ -91,7 +91,7 @@ def test_tabfilter_typeerror_full(main_window):
     test_tabfilter.moving = True
 
     assert test_tabfilter.eventFilter(None, mockEvent_instance)
-    mockEvent_instance.pos.assert_called_once()
+    assert mockEvent_instance.pos.call_count == 1
 
 
 if __name__ == "__main__":
