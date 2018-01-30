@@ -22,8 +22,9 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.widgets.editor import EditorStack, EditorSplitter
 
-# Qt Test Fixtures
-#--------------------------------
+
+# ---- Qt Test Fixtures
+
 @pytest.fixture
 def base_editor_bot(qtbot):
     editor_stack = EditorStack(None, [])
@@ -39,8 +40,7 @@ def editor_splitter_bot(qtbot):
     es = editor_splitter = EditorSplitter(None, Mock(), [], first=True)
     qtbot.addWidget(es)
     es.show()
-    yield es
-    es.destroy()
+    return es
 
 
 @pytest.fixture
@@ -67,8 +67,8 @@ def editor_splitter_layout_bot(editor_splitter_bot):
     return es
 
 
-# Tests
-#-------------------------------
+# ---- Tests
+
 def test_init(editor_splitter_bot):
     """"Test __init__."""
     es = editor_splitter_bot
@@ -94,33 +94,83 @@ def test_init(editor_splitter_bot):
     assert es.widget(0) == es.editorstack
 
 
-def test_close(editor_splitter_bot):
-    """Test close().
+def test_close(qtbot):
+    """Test the inteface for closing the editor splitters."""
+    # Split the main editorspliter once, than split the second editorsplitter
+    # twice.
+    es = editor_splitter_bot(qtbot)
 
-    This is a widget close function that only hides the split
-    panel.  It does not close the files on the tabs or close any plugin.
-    """
-    es = editor_splitter_bot
     es.split()
-    es.widget(1).split()
-    es.widget(1).split()
-    esw1w2 = es.widget(1).widget(2)
-    esw1w2.split(Qt.Horizontal)
-    assert not es.isHidden()
-    assert not es.widget(1).isHidden()
-    assert not es.widget(1).widget(1).isHidden()
-    assert not esw1w2.isHidden()
+    esw1 = es.widget(1)
+    esw1.editorstack.set_closable(True)
+    assert es.count() == 2
+    assert esw1.count() == 1
 
-    # Close last split only.
-    esw1w2.editorstack.sig_close_split.emit()  # Signal call.
-    assert not es.isHidden()
-    assert not es.widget(1).isHidden()
-    assert not es.widget(1).widget(1).isHidden()
-    assert esw1w2.isHidden()
+    esw1.split()
+    esw1w1 = esw1.widget(1)
+    esw1w1.editorstack.set_closable(True)
+    assert es.count() == 2
+    assert esw1.count() == 2
+    assert esw1w1.count() == 1
 
-    # Close all splits.
-    assert es.widget(1).close()  # Call directly.
-    assert es.widget(1).isHidden()
+    esw1.split()
+    esw1w2 = esw1.widget(2)
+    esw1w2.editorstack.set_closable(True)
+    assert es.count() == 2
+    assert esw1.count() == 3
+    assert esw1w1.count() == esw1w2.count() == 1
+
+    # Assert that all the editorsplitters are visible.
+    assert es.isVisible()
+    assert esw1.isVisible()
+    assert esw1w1.isVisible()
+    assert esw1w2.isVisible()
+
+    # Close the editorstack of the editorsplitter esw1 and assert that it is
+    # not destroyed because it still contains the editorsplitters esw1w1 and
+    # esw1w2.
+    with qtbot.waitSignal(esw1.editorstack.destroyed, timeout=1000):
+        esw1.editorstack.close_split()
+    assert es.count() == 2
+    assert esw1.count() == 2
+    assert esw1.editorstack is None
+
+    assert es.isVisible()
+    assert esw1.isVisible()
+    assert esw1w1.isVisible()
+    assert esw1w2.isVisible()
+
+    # Close the editorstack of the editorsplitter esw1w1, assert it is
+    # correctly destroyed afterwards on the Qt side and that it is correctly
+    # removed from the editorsplitter esw1.
+    with qtbot.waitSignal(esw1w1.destroyed, timeout=1000):
+        esw1w1.editorstack.close_split()
+    with pytest.raises(RuntimeError):
+        esw1w1.count()
+    assert es.count() == 2
+    assert esw1.count() == 1
+
+    assert es.isVisible()
+    assert esw1.isVisible()
+    assert esw1w2.isVisible()
+
+    # Close the editorstack of the editorsplitter esw1w2 and assert that
+    # editorsplitters esw1w2 AND esw1 are correctly destroyed afterward on
+    # the Qt side.
+    with qtbot.waitSignal(esw1.destroyed, timeout=1000):
+        esw1w2.editorstack.close_split()
+    with pytest.raises(RuntimeError):
+        esw1.count()
+    with pytest.raises(RuntimeError):
+        esw1w2.count()
+
+    assert es.isVisible()
+    assert es.count() == 1
+
+    # Test that the editorstack of the main editorsplitter es cannot be closed.
+    es.editorstack.close_split()
+    assert es.isVisible()
+    assert es.count() == 1
 
 
 def test_split(editor_splitter_layout_bot):
@@ -288,4 +338,5 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    import os.path as osp
+    pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])
