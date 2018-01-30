@@ -965,7 +965,12 @@ class IPythonConsole(SpyderPluginWidget):
                     sw.reset_namespace(warning=False, silent=True)
                 elif current_client and clear_variables:
                     sw.reset_namespace(warning=False, silent=True)
-                sw.execute(to_text_string(lines))
+                # Needed to handle an error when kernel_client is none
+                # See issue 6308
+                try:
+                    sw.execute(to_text_string(lines))
+                except AttributeError:
+                    pass
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
