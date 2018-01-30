@@ -306,7 +306,7 @@ def isdefined(obj, force_import=False, namespace=None):
                 if base not in globals():
                     globals()[base] = module
                 namespace[base] = module
-            except (ImportError, NameError, SyntaxError, SystemExit):
+            except Exception:
                 return False
         else:
             return False
