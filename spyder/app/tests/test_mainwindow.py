@@ -35,6 +35,7 @@ from spyder.app import start
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins import TabFilter
+from spyder.plugins.help import ObjectComboBox
 from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
@@ -117,6 +118,15 @@ def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
         raise
 
     return km, kc
+
+
+def find_desired_tab_in_window(tab_name, window):
+    all_tabbars = window.findChildren(QTabBar)
+    for current_tabbar in all_tabbars:
+        for tab_index in range(current_tabbar.count()):
+            if current_tabbar.tabText(tab_index) == str(tab_name):
+                return current_tabbar, tab_index
+    return None, None
 
 
 #==============================================================================
@@ -1243,6 +1253,57 @@ def test_tabfilter_typeerror_full(main_window):
 
     assert test_tabfilter.eventFilter(None, mockEvent_instance)
     assert mockEvent_instance.pos.call_count == 1
+
+
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_help_opens_when_show_tutorial(main_window, qtbot):
+    """Test that 'Show tutorial' opens the help plugin if its not open."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Test opening tutorial with Help plguin closed
+    main_window.help.plugin_closed()
+    qtbot.wait(500)
+    help_tabbar, help_index = find_desired_tab_in_window("Help", main_window)
+
+    assert help_tabbar is None and help_index is None
+    assert not isinstance(main_window.focusWidget(), ObjectComboBox)
+
+    main_window.help.show_tutorial()
+    qtbot.wait(500)
+
+    help_tabbar, help_index = find_desired_tab_in_window("Help", main_window)
+    assert None not in (help_tabbar, help_index)
+    assert help_index == help_tabbar.currentIndex()
+    assert isinstance(main_window.focusWidget(), ObjectComboBox)
+
+    # Test opening tutorial with help plugin open, but not selected
+    help_tabbar.setCurrentIndex((help_tabbar.currentIndex() + 1)
+                                % help_tabbar.count())
+    qtbot.wait(500)
+    help_tabbar, help_index = find_desired_tab_in_window("Help", main_window)
+    assert None not in (help_tabbar, help_index)
+    assert help_index != help_tabbar.currentIndex()
+    assert not isinstance(main_window.focusWidget(), ObjectComboBox)
+
+    main_window.help.show_tutorial()
+    qtbot.wait(500)
+    help_tabbar, help_index = find_desired_tab_in_window("Help", main_window)
+    assert None not in (help_tabbar, help_index)
+    assert help_index == help_tabbar.currentIndex()
+    assert isinstance(main_window.focusWidget(), ObjectComboBox)
+
+    # Test opening tutorial with help plugin open and the active tab
+    qtbot.wait(500)
+    main_window.help.show_tutorial()
+    help_tabbar, help_index = find_desired_tab_in_window("Help", main_window)
+    qtbot.wait(500)
+    assert None not in (help_tabbar, help_index)
+    assert help_index == help_tabbar.currentIndex()
+    assert isinstance(main_window.focusWidget(), ObjectComboBox)
 
 
 if __name__ == "__main__":
