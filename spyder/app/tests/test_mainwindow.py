@@ -1257,7 +1257,7 @@ def test_tabfilter_typeerror_full(main_window):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
-def test_help_opens_when_show_tutorial(main_window, qtbot):
+def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     HELP_STR = "Help"
 
