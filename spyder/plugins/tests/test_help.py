@@ -5,9 +5,11 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
-"""Test scripts for `findinfiles` plugin."""
+"""
+Tests for the Spyder `help` plugn, `help.py`.
+"""
 
-# 3rd party imports
+# Third party imports
 from qtpy.QtWebEngineWidgets import WEBENGINE
 import pytest
 
@@ -16,6 +18,9 @@ from spyder.plugins.help import Help
 from spyder.utils.introspection.utils import default_info_response
 
 
+# =============================================================================
+# Fixtures
+# =============================================================================
 @pytest.fixture
 def help_plugin(qtbot):
     """Help plugin fixture"""
@@ -31,6 +36,9 @@ def help_plugin(qtbot):
     return help_plugin
 
 
+# =============================================================================
+# Tests
+# =============================================================================
 def check_text(widget, text):
     """Check if some text is present in a widget."""
     if WEBENGINE:
@@ -54,7 +62,7 @@ def test_no_docs_message(help_plugin, qtbot):
     help_plugin.render_sphinx_doc(default_info_response())
     qtbot.waitUntil(lambda: check_text(help_plugin._webpage,
                                        "No documentation available"),
-                                       timeout=2000)
+                    timeout=2000)
 
 
 def test_no_further_docs_message(help_plugin, qtbot):
@@ -69,7 +77,7 @@ def test_no_further_docs_message(help_plugin, qtbot):
     help_plugin.render_sphinx_doc(info)
     qtbot.waitUntil(lambda: check_text(help_plugin._webpage,
                                        "No further documentation available"),
-                                       timeout=2000)
+                    timeout=2000)
 
 
 if __name__ == "__main__":
