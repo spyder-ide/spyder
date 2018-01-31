@@ -463,7 +463,6 @@ class EditorStack(QWidget):
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
     sig_split_horizontally = Signal()
-    sig_close_split = Signal()
     sig_new_file = Signal((str,), ())
     sig_save_as = Signal()
     sig_prev_edit_pos = Signal()
@@ -736,7 +735,7 @@ class EditorStack(QWidget):
                                              context="Editor",
                                              name="split horizontally",
                                              parent=self)
-        close_split = config_shortcut(lambda: self.sig_close_split.emit(),
+        close_split = config_shortcut(self.close_split,
                                       context="Editor",
                                       name="close split panel",
                                       parent=self)
@@ -819,7 +818,14 @@ class EditorStack(QWidget):
     def add_corner_widgets_to_tabbar(self, widgets):
         self.tabs.add_corner_widgets(widgets)
 
+    @Slot()
+    def close_split(self):
+        """Closes the editorstack if it is not the last one opened."""
+        if self.is_closable:
+            self.close()
+
     def closeEvent(self, event):
+        """Overrides QWidget closeEvent()."""
         self.threadmanager.close_all_threads()
         self.analysis_timer.timeout.disconnect(self.analyze_script)
 
@@ -1380,7 +1386,7 @@ class EditorStack(QWidget):
                 context=Qt.WidgetShortcut)
         self.close_action = create_action(self, _("Close this panel"),
                 icon=ima.icon('close_panel'),
-                triggered=lambda: self.sig_close_split.emit(),
+                triggered=self.close_split,
                 shortcut=get_shortcut(context='Editor', name='close split panel'),
                 context=Qt.WidgetShortcut)
         actions = [MENU_SEPARATOR, self.undock_action,
@@ -2564,7 +2570,6 @@ class EditorSplitter(QSplitter):
                      lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(
                      lambda: self.split(orientation=Qt.Horizontal))
-        self.editorstack.sig_close_split.connect(lambda: self.close())
         self.addWidget(self.editorstack)
 
     def closeEvent(self, event):
