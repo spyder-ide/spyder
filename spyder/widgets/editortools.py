@@ -528,10 +528,11 @@ class OutlineExplorerWidget(QWidget):
             current_editor.setFocus()
             if state:
                 self.outlineexplorer_is_visible.emit()
-        
+
     def setup_buttons(self):
-        fromcursor_btn = create_toolbutton(self,
-                             icon=ima.icon('fromcursor'),
+        """Setup the buttons of the outline explorer widget toolbar."""
+        fromcursor_btn = create_toolbutton(
+                             self, icon=ima.icon('fromcursor'),
                              tip=_('Go to cursor position'),
                              triggered=self.treewidget.go_to_cursor_position)
 
@@ -544,7 +545,7 @@ class OutlineExplorerWidget(QWidget):
             buttons.append(create_toolbutton(self))
             buttons[-1].setDefaultAction(action)
         return buttons
-        
+
     def set_current_editor(self, editor, fname, update, clear):
         if clear:
             self.remove_editor(editor)
