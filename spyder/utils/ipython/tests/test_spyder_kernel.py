@@ -9,13 +9,35 @@ Tests for the Spyder kernel
 """
 
 import os
-
+import os.path as osp
 import pytest
+import tempfile
 
 from spyder.config.main import CONF
 from spyder.py3compat import PY2, is_binary_string
 from spyder.utils.encoding import to_fs_from_unicode
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
+from spyder.utils.misc import get_python_executable
+
+# Temporary directory
+TEMPLOCATION = tempfile.gettempdir()
+INTERPRETER = osp.join(TEMPLOCATION, "interpreter")
+
+
+def test_python_interpreter():
+    """Test the validation of the python interpreter."""
+    # Set a non existing python interpreter
+    CONF.set('main_interpreter', 'default', False)
+    CONF.set('main_interpreter', 'custom', True)
+    CONF.set('main_interpreter', 'executable', INTERPRETER)
+
+    # Create a kernel spec
+    kernel_spec = SpyderKernelSpec()
+
+    # Assert that the python interprerter is the default one
+    assert get_python_executable() in kernel_spec.argv
+    assert CONF.get('main_interpreter', 'default')
+    assert not CONF.get('main_interpreter', 'custom')
 
 
 @pytest.mark.skipif(os.name != 'nt' or not PY2,
