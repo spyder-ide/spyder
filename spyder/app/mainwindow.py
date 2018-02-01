@@ -222,6 +222,7 @@ def get_focus_python_shell():
     elif isinstance(widget, ExternalPythonShell):
         return widget.shell
 
+
 def get_environment_infostr():
     """Find if running inside a conda and/or venv
     Return None if not the case or anything fails"""
@@ -232,7 +233,9 @@ def get_environment_infostr():
         except AttributeError:
             return ""
     except Exception as e:
-        debug_print("Exception {} while trying to obtain environment information".format(e))
+        debug_print(
+        "Exception {} while trying to obtain environment information".format(e)
+        )
 
     return ""
 
