@@ -534,13 +534,16 @@ class OutlineExplorerWidget(QWidget):
                              icon=ima.icon('fromcursor'),
                              tip=_('Go to cursor position'),
                              triggered=self.treewidget.go_to_cursor_position)
-        collapse_btn = create_toolbutton(self)
-        collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)
-        expand_btn = create_toolbutton(self)
-        expand_btn.setDefaultAction(self.treewidget.expand_selection_action)
-        restore_btn = create_toolbutton(self)
-        restore_btn.setDefaultAction(self.treewidget.restore_action)
-        return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
+
+        buttons = [fromcursor_btn]
+        for action in [self.treewidget.collapse_all_action,
+                       self.treewidget.expand_all_action,
+                       self.treewidget.restore_action,
+                       self.treewidget.collapse_selection_action,
+                       self.treewidget.expand_selection_action]:
+            buttons.append(create_toolbutton(self))
+            buttons[-1].setDefaultAction(action)
+        return buttons
         
     def set_current_editor(self, editor, fname, update, clear):
         if clear:
