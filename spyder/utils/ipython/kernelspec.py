@@ -46,7 +46,9 @@ class SpyderKernelSpec(KernelSpec):
             pyexec = CONF.get('main_interpreter', 'executable')
             if not is_python_interpreter(pyexec):
                 pyexec = get_python_executable()
-                CONF.reset_to_defaults(section='main_interpreter')
+                CONF.set('main_interpreter', 'executable', '')
+                CONF.set('main_interpreter', 'default', True)
+                CONF.set('main_interpreter', 'custom', False)
 
         # Fixes Issue #3427
         if os.name == 'nt':
