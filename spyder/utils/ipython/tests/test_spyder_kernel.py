@@ -35,7 +35,7 @@ def test_python_interpreter():
     kernel_spec = SpyderKernelSpec()
 
     # Assert that the python interprerter is the default one
-    assert get_python_executable() in kernel_spec.argv
+    assert INTERPRETER not in kernel_spec.argv
     assert CONF.get('main_interpreter', 'default')
     assert not CONF.get('main_interpreter', 'custom')
 
