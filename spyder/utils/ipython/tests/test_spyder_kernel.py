@@ -20,7 +20,7 @@ from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 def test_python_interpreter(tmpdir):
     """Test the validation of the python interpreter."""
     # Set a non existing python interpreter
-    interpreter = tmpdir.mkdir('interpreter')
+    interpreter = str(tmpdir.mkdir('interpreter').join('python'))
     CONF.set('main_interpreter', 'default', False)
     CONF.set('main_interpreter', 'custom', True)
     CONF.set('main_interpreter', 'executable', interpreter)
