@@ -96,7 +96,7 @@ class TabFilter(QObject):
             new_pos = self.dock_tabbar.mapToGlobal(QPoint(x + delta, y))
             cursor.setPos(new_pos)
 
-    def eventFilter(self,  obj,  event):
+    def eventFilter(self, obj, event):
         """Filter mouse press events.
 
         Events that are captured and not propagated return True. Events that
@@ -107,7 +107,10 @@ class TabFilter(QObject):
             self.tab_pressed(event)
             return False
         if event_type == QEvent.MouseMove:
-            self.tab_moved(event)
+            try:
+                self.tab_moved(event)
+            except TypeError:
+                pass
             return True
         if event_type == QEvent.MouseButtonRelease:
             self.tab_released(event)
@@ -138,11 +141,11 @@ class TabFilter(QObject):
             QApplication.setOverrideCursor(Qt.ClosedHandCursor)
             self.moving = True
 
-        if self.to_index == -1:
+        if self.to_index in (-1, None):
             self.to_index = self.from_index
 
         from_index, to_index = self.from_index, self.to_index
-        if from_index != to_index and from_index != -1 and to_index != -1:
+        if from_index not in (to_index, -1, None):
             self.move_tab(from_index, to_index)
             self._fix_cursor(from_index, to_index)
             self.from_index = to_index

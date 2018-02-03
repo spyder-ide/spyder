@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
 #
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
 """
 Tests for the main window
@@ -23,15 +25,16 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import Qt, QTimer, QEvent
 from qtpy.QtTest import QTest
-from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
+from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 
 from spyder import __trouble_url__
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.app import start
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
+from spyder.plugins import TabFilter
 from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
@@ -163,7 +166,7 @@ def main_window(request):
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or (not PY2 and PYQT_VERSION < "5.9.0"),
-                    reason="It times out on AppVeyor and fails on PY3 and PyQt 5.6")
+                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
 @pytest.mark.timeout(timeout=45, method='thread')
 def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
@@ -181,7 +184,7 @@ def test_calltip(main_window, qtbot):
 
     qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
     qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Space)
@@ -1222,6 +1225,24 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
             urlopen(__trouble_url__, timeout=1)
         except URLError:
             raise
+
+
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_tabfilter_typeerror_full(main_window):
+    """Test for #5813 ; event filter handles None indicies when moving tabs."""
+    MockEvent = MagicMock()
+    MockEvent.return_value.type.return_value = QEvent.MouseMove
+    MockEvent.return_value.pos.return_value = 0
+    mockEvent_instance = MockEvent()
+
+    test_tabbar = main_window.findChildren(QTabBar)[0]
+    test_tabfilter = TabFilter(test_tabbar, main_window)
+    test_tabfilter.from_index = None
+    test_tabfilter.moving = True
+
+    assert test_tabfilter.eventFilter(None, mockEvent_instance)
+    assert mockEvent_instance.pos.call_count == 1
 
 
 if __name__ == "__main__":

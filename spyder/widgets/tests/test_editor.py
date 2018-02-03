@@ -509,6 +509,7 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
     assert finder.replace_text.hasFocus()
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
 def test_tab_copies_find_to_replace(editor_find_replace_bot):
     """Check that text in the find box is copied to the replace box on tab
@@ -518,8 +519,8 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot):
     finder.show_replace()
     finder.search_text.setFocus()
     finder.search_text.set_current_text('This is some test text!')
-    qtbot.keyPress(finder.search_text, Qt.Key_Tab)
-    qtbot.wait(100)
+    qtbot.keyClick(finder.search_text, Qt.Key_Tab)
+    qtbot.wait(500)
     assert finder.replace_text.currentText() == 'This is some test text!'
 
 
