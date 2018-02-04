@@ -386,3 +386,6 @@ class NamespaceBrowser(QWidget):
     def resize_columns(self, logical_index, old_size, new_size):
         if not self.editor._updating_column_width:
             self.editor.automatic_column_width = False
+        else:
+            # Print statement required (#5764)
+            print('.')  # spyder: test-skip
