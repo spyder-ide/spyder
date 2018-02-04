@@ -1874,7 +1874,8 @@ class Editor(SpyderPluginWidget):
         if text is None:
             default_content = True
             text, enc = encoding.read(self.TEMPLATE_PATH)
-            enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+            enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+            annotation_match = re.search('"""(?:(?!""").|[\n\r])*"""', text)
             if enc_match:
                 enc = enc_match.group(1)
             # Initialize template variables
@@ -1886,11 +1887,15 @@ class Editor(SpyderPluginWidget):
                 username = encoding.to_unicode_from_fs(os.environ.get('USER',
                                                                       '-'))
             VARS = {
-                'date': time.ctime(),
+                'date': time.strftime("%Y-%m-%d %H:%M"),
                 'username': username,
             }
             try:
-                text = text % VARS
+                #text = text % VARS
+                text = re.sub('"""(?:(?!""").|[\n\r])*"""',
+                              annotation_match[0] % VARS,
+                              text,
+                              count=1)
             except:
                 pass
         else:
