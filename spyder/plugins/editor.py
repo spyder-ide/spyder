@@ -1860,13 +1860,22 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks[1:]:
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts(editor)
+    
+    def _replace_tripe_quote(self, m, v=None):
+        try:
+            ans = m[0] % v
+        except:
+            ans = m[0]
+            return ans
+        else:
+            return ans
 
     @Slot()
     @Slot(str)
     def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
-        
+
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
@@ -1875,7 +1884,6 @@ class Editor(SpyderPluginWidget):
             default_content = True
             text, enc = encoding.read(self.TEMPLATE_PATH)
             enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
-            annotation_match = re.search('"""(?:(?!""").|[\n\r])*"""', text)
             if enc_match:
                 enc = enc_match.group(1)
             # Initialize template variables
@@ -1887,17 +1895,18 @@ class Editor(SpyderPluginWidget):
                 username = encoding.to_unicode_from_fs(os.environ.get('USER',
                                                                       '-'))
             VARS = {
-                'date': time.strftime("%Y-%m-%d %H:%M"),
-                'username': username,
+                'date-spyder': time.ctime(),
+                'username-spyder': username,
             }
             try:
-                #text = text % VARS
-                text = re.sub('"""(?:(?!""").|[\n\r])*"""',
-                              annotation_match[0] % VARS,
-                              text,
-                              count=1)
+                text = text % VARS
             except:
-                pass
+                from functools import partial
+                replace = partial(self._replace_tripe_quote, v=VARS)
+                pat = '"""(?:(?!""").|[\n\r])*"""'
+                text = re.sub(pat,
+                              replace,
+                              text)
         else:
             default_content = False
             enc = encoding.read(self.TEMPLATE_PATH)[1]
