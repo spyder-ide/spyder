@@ -734,6 +734,10 @@ class Help(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
+        """Show the Spyder tutorial in the Help plugin, opening it if needed"""
+        if not self.dockwidget.isVisible():
+            self.dockwidget.show()
+            self.toggle_view_action.setChecked(True)
         tutorial_path = get_module_source_path('spyder.utils.help')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
