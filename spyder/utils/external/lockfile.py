@@ -88,8 +88,11 @@ else:
         try:
             rename(newlinkname, filename)
         except:
-            os.remove(newvalname)
-            os.rmdir(newlinkname)
+            try:
+                os.remove(newvalname)
+                os.rmdir(newlinkname)
+            except (IOError, OSError):
+                pass
             raise
 
     def readlink(filename):   #analysis:ignore
