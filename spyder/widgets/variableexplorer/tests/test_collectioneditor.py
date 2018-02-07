@@ -25,7 +25,8 @@ from flaky import flaky
 from spyder.widgets.variableexplorer.collectionseditor import (
     CollectionsEditorTableView, CollectionsModel, CollectionsEditor,
     LARGE_NROWS, ROWS_TO_LOAD)
-
+from spyder.widgets.variableexplorer.tests.test_dataframeeditor import \
+    generate_pandas_indexes
 
 # Helper functions
 def data(cm, i, j):
@@ -82,26 +83,27 @@ def test_collectionsmodel_with_two_ints():
     assert data(cm, row_with_y, 2) == '1'
     assert data(cm, row_with_y, 3) == '2'
 
-def test_collectionsmodel_with_datetimeindex():
-    # Regression test for issue #3380
-    rng = pandas.date_range('10/1/2016', periods=25, freq='bq')
-    coll = {'rng': rng}
-    cm = CollectionsModel(None, coll)
-    assert data(cm, 0, 0) == 'rng'
-    assert data(cm, 0, 1) == 'DatetimeIndex'
-    assert data(cm, 0, 2) == '(25,)' or data(cm, 0, 2) == '(25L,)'
-    assert data(cm, 0, 3) == rng.summary()
+def test_collectionsmodel_with_index():
+    # Regression test for issue #3380, modified for #3758
+    for rng_name, rng in generate_pandas_indexes().items():
+        coll = {'rng': rng}
+        cm = CollectionsModel(None, coll)
+        assert data(cm, 0, 0) == 'rng'
+        assert data(cm, 0, 1) == rng_name
+        assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
+        assert data(cm, 0, 3) == rng.summary()
 
-def test_shows_dataframeeditor_when_editing_datetimeindex(qtbot, monkeypatch):
-    MockDataFrameEditor = Mock()
-    mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.widgets.variableexplorer.collectionseditor.DataFrameEditor',
-                        MockDataFrameEditor)
-    rng = pandas.date_range('10/1/2016', periods=25, freq='bq')
-    coll = {'rng': rng}
-    editor = CollectionsEditorTableView(None, coll)
-    editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
-    mockDataFrameEditor_instance.show.assert_called_once_with()
+def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
+    for rng_name, rng in generate_pandas_indexes().items():
+        MockDataFrameEditor = Mock()
+        mockDataFrameEditor_instance = MockDataFrameEditor()
+        monkeypatch.setattr('spyder.widgets.variableexplorer.collectionseditor.DataFrameEditor',
+                            MockDataFrameEditor)
+        coll = {'rng': rng}
+        editor = CollectionsEditorTableView(None, coll)
+        editor.delegate.createEditor(None, None,
+                                     editor.model.createIndex(0, 3))
+        mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
 def test_sort_collectionsmodel():
@@ -277,7 +279,6 @@ def test_view_module_in_coledit():
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
     assert editor.widget.editor.readonly
-
 
 if __name__ == "__main__":
     pytest.main()

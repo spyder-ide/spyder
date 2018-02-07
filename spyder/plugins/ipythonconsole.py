@@ -26,7 +26,6 @@ from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
 from qtconsole.manager import QtKernelManager
-from qtpy import PYQT5
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBox,
@@ -45,8 +44,8 @@ from spyder import dependencies
 from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
                                 get_module_path, PYTEST)
 from spyder.config.main import CONF
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import is_string, PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
@@ -608,10 +607,7 @@ class IPythonConsole(SpyderPluginWidget):
     def __init__(self, parent, testing=False, test_dir=TEMPDIR,
                  test_no_stderr=False):
         """Ipython Console constructor."""
-        if PYQT5:
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.tabwidget = None
         self.menu_actions = None
@@ -633,10 +629,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.test_dir = test_dir
         self.test_no_stderr = test_no_stderr
 
-        # Initialize plugin
-        if not self.testing:
-            self.initialize_plugin()
-
         # Create temp dir on testing to save kernel errors
         if self.testing:
             if not osp.isdir(osp.join(test_dir)):
@@ -644,7 +636,8 @@ class IPythonConsole(SpyderPluginWidget):
 
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions, rename_tabs=True,
+        self.tabwidget = Tabs(self, menu=self.options_menu, actions=self.menu_actions,
+                              rename_tabs=True,
                               split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
@@ -680,6 +673,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Accepting drops
         self.setAcceptDrops(True)
+
+        # Initialize plugin
+        if not self.testing:
+            self.initialize_plugin()
+
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
@@ -775,7 +773,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.variableexplorer.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
         self.update_tabs_text()
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin."""
@@ -808,12 +806,19 @@ class IPythonConsole(SpyderPluginWidget):
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
-                               connect_to_kernel_action]
-        
+                               connect_to_kernel_action,
+                               MENU_SEPARATOR]
+
         # Plugin actions
         self.menu_actions = [create_client_action, MENU_SEPARATOR,
                              restart_action, connect_to_kernel_action,
-                             MENU_SEPARATOR, rename_tab_action]
+                             MENU_SEPARATOR, rename_tab_action,
+                             MENU_SEPARATOR]
+
+        # Check for a current client. Since it manages more actions.
+        client = self.get_current_client()
+        if client:
+            return client.get_options_menu()
         
         return self.menu_actions
 
@@ -840,13 +845,6 @@ class IPythonConsole(SpyderPluginWidget):
                                      self.set_current_client_working_directory)
 
         self.tabwidget.currentChanged.connect(self.update_working_directory)
-
-        self.explorer.open_interpreter.connect(self.create_client_from_path)
-        self.explorer.run.connect(lambda fname: self.run_script(
-            fname, osp.dirname(fname), '', False, False, False, True))
-        self.projects.open_interpreter.connect(self.create_client_from_path)
-        self.projects.run.connect(lambda fname: self.run_script(
-            fname, osp.dirname(fname), '', False, False, False, True))
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -1000,6 +998,7 @@ class IPythonConsole(SpyderPluginWidget):
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions,
+                              options_button=self.options_button,
                               show_elapsed_time=show_elapsed_time,
                               reset_warning=reset_warning)
         if self.testing:
@@ -1344,7 +1343,7 @@ class IPythonConsole(SpyderPluginWidget):
         if not self.tabwidget.count() and self.create_new_client_if_empty:
             self.create_new_client()
 
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
@@ -1548,7 +1547,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.clients.insert(index_to, client)
         self.update_tabs_text()
-        self.update_plugin_title.emit()
+        self.sig_update_plugin_title.emit()
 
     def disambiguate_fname(self, fname):
         """Generate a file name without ambiguation."""

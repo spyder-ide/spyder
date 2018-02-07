@@ -34,7 +34,7 @@ from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.app import start
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
-from spyder.plugins import TabFilter
+from spyder.widgets.dock import TabFilter
 from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
@@ -497,7 +497,7 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     changing cwd in the IPython console.
     """
     wdir = main_window.workingdirectory
-    treewidget = main_window.explorer.treewidget
+    treewidget = main_window.explorer.fileexplorer.treewidget
     shell = main_window.ipyconsole.get_current_shellwidget()
 
     # Wait until the window is fully up
@@ -618,17 +618,17 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot):
         projects._create_project(project_dir)
 
     # Select notebook in the project explorer
-    idx = projects.treewidget.get_index('notebook.ipynb')
-    projects.treewidget.setCurrentIndex(idx)
+    idx = projects.explorer.treewidget.get_index('notebook.ipynb')
+    projects.explorer.treewidget.setCurrentIndex(idx)
 
     # Prese Enter there
-    qtbot.keyClick(projects.treewidget, Qt.Key_Enter)
+    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
 
     # Assert that notebook was open
     assert 'notebook.ipynb' in editorstack.get_current_filename()
 
     # Convert notebook to a Python file
-    projects.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
+    projects.explorer.treewidget.convert_notebook(osp.join(project_dir, 'notebook.ipynb'))
 
     # Assert notebook was open
     assert 'untitled0.py' in editorstack.get_current_filename()
@@ -1104,7 +1104,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Generate the plot from the Variable Explorer
-    nsb.plot('li', 'plot')
+    nsb.editor.plot('li', 'plot')
     qtbot.wait(1000)
 
     # Assert that there's a plot in the console
