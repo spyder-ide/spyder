@@ -11,5 +11,5 @@ Icon=spyder
 Terminal=false
 StartupNotify=true
 MimeType=text/x-python;
-Keywords=Editor;IDE;Scientific;Python;
+Keywords=Development;Science;IDE;Qt;
 X-AppStream-Ignore=True
