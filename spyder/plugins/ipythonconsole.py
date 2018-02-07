@@ -60,7 +60,7 @@ from spyder.widgets.tabs import Tabs
 
 
 # Dependencies
-SYMPY_REQVER = '>=0.7.3'
+SYMPY_REQVER = '>=0.7.3,<=1.0'
 dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
                  required_version=SYMPY_REQVER, optional=True)
 
