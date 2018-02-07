@@ -10,4 +10,5 @@ Categories=Development;Science;IDE;Qt;
 Icon=spyder3
 Terminal=false
 StartupNotify=true
+Keywords=Development;Science;IDE;Qt;
 MimeType=text/x-python;
