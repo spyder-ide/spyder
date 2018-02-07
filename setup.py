@@ -79,11 +79,11 @@ def get_data_files():
     if sys.platform.startswith('linux'):
         if PY3:
             data_files = [('share/applications', ['scripts/spyder3.desktop']),
-                          ('share/pixmaps', ['img_src/spyder3.png']),
+                          ('share/icons', ['img_src/spyder3.png']),
                           ('share/metainfo', ['scripts/spyder3.appdata.xml'])]
         else:
             data_files = [('share/applications', ['scripts/spyder.desktop']),
-                          ('share/pixmaps', ['img_src/spyder.png'])]
+                          ('share/icons', ['img_src/spyder.png'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
                                    'img_src/spyder_reset.ico'])]
