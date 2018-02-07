@@ -1,15 +1,15 @@
 [Desktop Entry]
-Version=1.0
 Type=Application
+Version=1.0
 Name=Spyder
 GenericName=Spyder
 Comment=Scientific PYthon Development EnviRonment
+Icon=spyder
 TryExec=spyder
 Exec=spyder %F
-Categories=Development;Science;IDE;Qt;
-Icon=spyder
 Terminal=false
-StartupNotify=true
 MimeType=text/x-python;
+Categories=Development;Science;IDE;Qt;
 Keywords=Development;Science;IDE;Qt;
+StartupNotify=true
 X-AppStream-Ignore=True
