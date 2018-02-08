@@ -64,7 +64,7 @@ class FigureBrowserWidget(RichJupyterWidget):
             # TODO: Support for svg is not implemented in the figure browser
             #       widget yet.
             if fmt in ['image/png', 'image/jpeg']:
-                self.sig_new_inline_figure.emit(img)
+                self.sig_new_inline_figure.emit(img, fmt)
             if self.mute_inline_plotting:
                 del msg['content']['data'][fmt]
 
