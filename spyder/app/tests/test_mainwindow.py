@@ -206,6 +206,44 @@ def test_calltip(main_window, qtbot):
 
 
 @pytest.mark.slow
+@flaky(max_runs=3)
+def test_change_directory_in_project_explorer(main_window, qtbot):
+    """Test changing a file from directory in the Project explorer."""
+    projects = main_window.projects
+
+    # Create a temp project directory
+    project_dir = tempfile.mkdtemp()
+    project_dir_tmp = osp.join(project_dir, 'tmpá')
+
+    # Create an empty file in the project dir
+    project_file = osp.join(LOCATION, 'script.py')
+    shutil.copy(project_file, osp.join(project_dir, 'script.py'))
+    os.mkdir(project_dir_tmp)
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects._create_project(project_dir)
+
+    # Select file in the project explorer
+    idx = projects.treewidget.get_index('script.py')
+    projects.treewidget.setCurrentIndex(idx)
+
+    # Set a timer to manipulate the select directory dialog while it's running
+    QTimer.singleShot(2000, lambda: open_file_in_editor(
+                                                main_window,
+                                                '',
+                                                directory=project_dir_tmp))
+    # Move Python file
+    projects.treewidget.move()
+
+    # Assert content was moved
+    assert osp.isfile(osp.join(project_dir_tmp, 'script.py'))
+
+    # Close project
+    projects.close_project()
+
+
+@pytest.mark.slow
 @pytest.mark.single_instance
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and for %edit magic."""
