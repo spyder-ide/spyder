@@ -45,7 +45,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_show_env = Signal(object)
 
     # For FigureBrowserWidget
-    sig_new_inline_figure = Signal(object)
+    sig_new_inline_figure = Signal(object, str)
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
