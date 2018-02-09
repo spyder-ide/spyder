@@ -73,6 +73,18 @@ TEMP_DIRECTORY = tempfile.gettempdir()
 # =============================================================================
 # Utility functions
 # =============================================================================
+
+
+def select_directory(main_window, directory=None):
+    """Open a file using the Editor and its open file dialog"""
+    top_level_widgets = QApplication.topLevelWidgets()
+    for w in top_level_widgets:
+        if isinstance(w, QFileDialog):
+            if directory is not None:
+                w.setDirectory(directory)
+            QTest.keyClick(w, Qt.Key_Enter)
+
+
 def open_file_in_editor(main_window, fname, directory=None):
     """Open a file using the Editor and its open file dialog"""
     top_level_widgets = QApplication.topLevelWidgets()
@@ -228,13 +240,9 @@ def test_change_directory_in_project_explorer(main_window, qtbot, tmpdir):
     idx = projects.treewidget.get_index('script.py')
     projects.treewidget.setCurrentIndex(idx)
 
-    # Set a timer to manipulate the select directory dialog while it's running
-    QTimer.singleShot(2000, lambda: open_file_in_editor(
-                                                main_window,
-                                                '',
-                                                directory=project_dir_tmp))
     # Move Python file
-    projects.treewidget.move(fnames=[osp.join(project_dir, 'script.py')])
+    projects.treewidget.move(fnames=[osp.join(project_dir, 'script.py')],
+                             directory=project_dir_tmp)
 
     # Assert content was moved
     assert osp.isfile(osp.join(project_dir_tmp, 'script.py'))
