@@ -207,12 +207,12 @@ def test_calltip(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_change_directory_in_project_explorer(main_window, qtbot):
+def test_change_directory_in_project_explorer(main_window, qtbot, tmpdir):
     """Test changing a file from directory in the Project explorer."""
     projects = main_window.projects
 
     # Create a temp project directory
-    project_dir = tempfile.mkdtemp()
+    project_dir = str(tmpdir.mkdir('project'))
     project_dir_tmp = osp.join(project_dir, 'tmpá')
 
     # Create an empty file in the project dir
@@ -234,7 +234,7 @@ def test_change_directory_in_project_explorer(main_window, qtbot):
                                                 '',
                                                 directory=project_dir_tmp))
     # Move Python file
-    projects.treewidget.move()
+    projects.treewidget.move(fnames=[osp.join(project_dir, 'script.py')])
 
     # Assert content was moved
     assert osp.isfile(osp.join(project_dir_tmp, 'script.py'))
