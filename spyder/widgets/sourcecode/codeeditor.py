@@ -2596,6 +2596,9 @@ class CodeEditor(TextEditBaseWidget):
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
+            elif shift and ctrl:
+                self.stdkey_end(False, False)  # Go to end of line
+                self.insert_text(self.get_line_seperator())  # Add new line
             elif shift:
                 self.run_cell_and_advance.emit()
             elif ctrl:
