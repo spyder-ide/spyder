@@ -1861,14 +1861,14 @@ class Editor(SpyderPluginWidget):
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts(editor)
     
-    def _replace_tripe_quote(self, m, v=None):
-        try:
-            ans = m[0] % v
-        except:
-            ans = m[0]
-            return ans
-        else:
-            return ans
+    def _render_linebyline(self, text, _VARS=None):
+        text = text.split('\n')
+        for i, line in enumerate(t):
+            try:
+                text[i] = line % _VARS
+            except:
+                pass
+        return '\n'.join(text)
 
     @Slot()
     @Slot(str)
@@ -1895,18 +1895,13 @@ class Editor(SpyderPluginWidget):
                 username = encoding.to_unicode_from_fs(os.environ.get('USER',
                                                                       '-'))
             VARS = {
-                'date-spyder': time.ctime(),
+                'date-spyder': time.strftime("%Y-%m-%d %H:%M"),
                 'username-spyder': username,
             }
             try:
                 text = text % VARS
-            except:
-                from functools import partial
-                replace = partial(self._replace_tripe_quote, v=VARS)
-                pat = '"""(?:(?!""").|[\n\r])*"""'
-                text = re.sub(pat,
-                              replace,
-                              text)
+            except (KeyError,TypeError):
+                text = self._render_linebyline(text, _VARS=VARS)
         else:
             default_content = False
             enc = encoding.read(self.TEMPLATE_PATH)[1]
