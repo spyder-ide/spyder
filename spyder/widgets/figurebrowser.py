@@ -38,6 +38,84 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout)
 
 
+
+class FigureThumbnail(QWidget):
+    """
+    A widget that consists of a FigureCanvas, a side toolbar, and a context
+    menu that is used to show preview of figures in the ThumbnailScrollBar.
+    """
+
+    sig_canvas_clicked = Signal(object)
+    sig_remove_figure = Signal(object)
+    sig_save_figure = Signal(object, str)
+
+    def __init__(self, parent=None):
+        super(FigureThumbnail, self).__init__(parent)
+        self.canvas = FigureCanvas(self)
+        self.canvas.installEventFilter(self)
+        self.setup_gui()
+
+    def setup_gui(self):
+        """Setups the main layout of the widget."""
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(1)
+        layout.addWidget(self.canvas)
+        layout.addLayout(self.setup_toolbar())
+
+    def setup_toolbar(self):
+        """Setups the toolbar."""
+        savefig_btn = create_toolbutton(
+                self, icon=ima.icon('filesave'),
+                tip=_("Save Image As..."),
+                triggered=self.emit_save_figure)
+        delfig_btn = create_toolbutton(
+                self, icon=ima.icon('editclear'),
+                tip=_("Delete image"),
+                triggered=self.emit_remove_figure)
+
+        toolbar = QVBoxLayout()
+        toolbar.setContentsMargins(0, 0, 0, 0)
+        toolbar.addWidget(savefig_btn)
+        toolbar.addWidget(delfig_btn)
+        toolbar.addStretch(2)
+
+        return toolbar
+
+    def highlight_canvas(self, highlight):
+        """
+        Sets a colored frame around the FigureCanvas if highlight is True.
+        """
+        colorname = self.canvas.palette().highlight().color().name()
+        if highlight:
+            self.canvas.setStyleSheet(
+                    "FigureCanvas{border: 1px solid %s;}" % colorname)
+        else:
+            self.canvas.setStyleSheet("FigureCanvas{}")
+
+    def eventFilter(self, widget, event):
+        """
+        A filter that is used to send a signal when the figure canvas is
+        clicked.
+        """
+        if event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.LeftButton:
+                self.sig_canvas_clicked.emit(self)
+        return super(FigureThumbnail, self).eventFilter(widget, event)
+
+    def emit_save_figure(self):
+        """
+        Emits a signal when the toolbutton to save the figure is clicked.
+        """
+        self.sig_save_figure.emit(self.canvas.fig, self.canvas.fmt)
+
+    def emit_remove_figure(self):
+        """
+        Emits a signal when the toolbutton to close the figure is clicked.
+        """
+        self.sig_remove_figure.emit(self)
+
+
 class FigureCanvas(QFrame):
     """
     A basic widget on which can be painted a custom png, jpg, or svg image.
