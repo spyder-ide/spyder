@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
 #
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
 """
 Tests for the main window
@@ -23,15 +25,17 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import Qt, QTimer, QEvent
 from qtpy.QtTest import QTest
-from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit
+from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 
 from spyder import __trouble_url__
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.app import start
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
+from spyder.widgets.dock import TabFilter
+from spyder.plugins.help import ObjectComboBox
 from spyder.plugins.runconfig import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
@@ -45,9 +49,9 @@ else:
     from urllib2 import urlopen, URLError
 
 
-#==============================================================================
+# =============================================================================
 # Constants
-#==============================================================================
+# =============================================================================
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
@@ -57,7 +61,7 @@ SHELL_TIMEOUT = 20000
 
 # Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
 # before import and eval it
-COMPILE_AND_EVAL_TIMEOUT=30000
+COMPILE_AND_EVAL_TIMEOUT = 30000
 
 # Time to wait for the IPython console to evaluate something (in
 # miliseconds)
@@ -66,9 +70,9 @@ EVAL_TIMEOUT = 3000
 # Temporary directory
 TEMP_DIRECTORY = tempfile.gettempdir()
 
-#==============================================================================
+# =============================================================================
 # Utility functions
-#==============================================================================
+# =============================================================================
 def open_file_in_editor(main_window, fname, directory=None):
     """Open a file using the Editor and its open file dialog"""
     top_level_widgets = QApplication.topLevelWidgets()
@@ -116,9 +120,18 @@ def start_new_kernel(startup_timeout=60, kernel_name='python', spykernel=False,
     return km, kc
 
 
-#==============================================================================
+def find_desired_tab_in_window(tab_name, window):
+    all_tabbars = window.findChildren(QTabBar)
+    for current_tabbar in all_tabbars:
+        for tab_index in range(current_tabbar.count()):
+            if current_tabbar.tabText(tab_index) == str(tab_name):
+                return current_tabbar, tab_index
+    return None, None
+
+
+# =============================================================================
 # Fixtures
-#==============================================================================
+# =============================================================================
 @pytest.fixture
 def main_window(request):
     """Main Window fixture"""
@@ -154,16 +167,16 @@ def main_window(request):
     return window
 
 
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
+# =============================================================================
 # IMPORTANT NOTE: Please leave this test to be the first one here to
 # avoid possible timeouts in Appveyor
 @pytest.mark.slow
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or (not PY2 and PYQT_VERSION < "5.9.0"),
-                    reason="It times out on AppVeyor and fails on PY3 and PyQt 5.6")
+                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
 @pytest.mark.timeout(timeout=45, method='thread')
 def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
@@ -181,7 +194,7 @@ def test_calltip(main_window, qtbot):
 
     qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
     qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=1000)
+    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Space)
@@ -1222,6 +1235,91 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
             urlopen(__trouble_url__, timeout=1)
         except URLError:
             raise
+
+
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_tabfilter_typeerror_full(main_window):
+    """Test for #5813 ; event filter handles None indicies when moving tabs."""
+    MockEvent = MagicMock()
+    MockEvent.return_value.type.return_value = QEvent.MouseMove
+    MockEvent.return_value.pos.return_value = 0
+    mockEvent_instance = MockEvent()
+
+    test_tabbar = main_window.findChildren(QTabBar)[0]
+    test_tabfilter = TabFilter(test_tabbar, main_window)
+    test_tabfilter.from_index = None
+    test_tabfilter.moving = True
+
+    assert test_tabfilter.eventFilter(None, mockEvent_instance)
+    assert mockEvent_instance.pos.call_count == 1
+
+
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_help_opens_when_show_tutorial_full(main_window, qtbot):
+    """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
+    HELP_STR = "Help"
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    help_pane_menuitem = None
+    for action in main_window.plugins_menu.actions():
+        if action.text() == HELP_STR:
+            help_pane_menuitem = action
+            break
+
+    # Test opening tutorial with Help plguin closed
+    try:
+        main_window.help.plugin_closed()
+    except Exception:
+        pass
+    qtbot.wait(500)
+    help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
+
+    assert help_tabbar is None and help_index is None
+    assert not isinstance(main_window.focusWidget(), ObjectComboBox)
+    assert not help_pane_menuitem.isChecked()
+
+    main_window.help.show_tutorial()
+    qtbot.wait(500)
+
+    help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
+    assert None not in (help_tabbar, help_index)
+    assert help_index == help_tabbar.currentIndex()
+    assert isinstance(main_window.focusWidget(), ObjectComboBox)
+    assert help_pane_menuitem.isChecked()
+
+    # Test opening tutorial with help plugin open, but not selected
+    help_tabbar.setCurrentIndex((help_tabbar.currentIndex() + 1)
+                                % help_tabbar.count())
+    qtbot.wait(500)
+    help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
+    assert None not in (help_tabbar, help_index)
+    assert help_index != help_tabbar.currentIndex()
+    assert not isinstance(main_window.focusWidget(), ObjectComboBox)
+    assert help_pane_menuitem.isChecked()
+
+    main_window.help.show_tutorial()
+    qtbot.wait(500)
+    help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
+    assert None not in (help_tabbar, help_index)
+    assert help_index == help_tabbar.currentIndex()
+    assert isinstance(main_window.focusWidget(), ObjectComboBox)
+    assert help_pane_menuitem.isChecked()
+
+    # Test opening tutorial with help plugin open and the active tab
+    qtbot.wait(500)
+    main_window.help.show_tutorial()
+    help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
+    qtbot.wait(500)
+    assert None not in (help_tabbar, help_index)
+    assert help_index == help_tabbar.currentIndex()
+    assert isinstance(main_window.focusWidget(), ObjectComboBox)
+    assert help_pane_menuitem.isChecked()
 
 
 if __name__ == "__main__":
