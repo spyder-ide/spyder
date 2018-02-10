@@ -614,4 +614,4 @@ class FindReplace(QWidget):
             matches_string = u"{} {}".format(total_matches, _(u"matches"))
             self.number_matches_text.setText(matches_string)
         else:
-            self.number_matches_text.setText(_(u"No mathes"))
+            self.number_matches_text.setText(_(u"No matches"))
