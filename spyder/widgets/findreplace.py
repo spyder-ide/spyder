@@ -64,8 +64,10 @@ class FindReplace(QWidget):
         glayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(glayout)
         
-        self.close_button = create_toolbutton(self, triggered=self.hide,
-                                      icon=ima.icon('DialogCloseButton'))
+        self.close_button = create_toolbutton(
+            self,
+            triggered=self.hide,
+            icon=ima.icon('DialogCloseButton'))
         glayout.addWidget(self.close_button, 0, 2)
         
         # Find layout
@@ -89,8 +91,8 @@ class FindReplace(QWidget):
 
         self.number_matches_text = QLabel(self)
         self.previous_button = create_toolbutton(self,
-                                             triggered=self.find_previous,
-                                             icon=ima.icon('ArrowUp'))
+                                                 triggered=self.find_previous,
+                                                 icon=ima.icon('ArrowUp'))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
                                              icon=ima.icon('ArrowDown'))
@@ -102,21 +104,24 @@ class FindReplace(QWidget):
         self.re_button.setCheckable(True)
         self.re_button.toggled.connect(lambda state: self.find())
         
-        self.case_button = create_toolbutton(self,
-                                             icon=get_icon("upper_lower.png"),
-                                             tip=_("Case Sensitive"))
+        self.case_button = create_toolbutton(
+            self,
+            icon=get_icon("upper_lower.png"),
+            tip=_("Case Sensitive"))
         self.case_button.setCheckable(True)
         self.case_button.toggled.connect(lambda state: self.find())
                      
-        self.words_button = create_toolbutton(self,
-                                              icon=get_icon("whole_words.png"),
-                                              tip=_("Whole words"))
+        self.words_button = create_toolbutton(
+            self,
+            icon=get_icon("whole_words.png"),
+            tip=_("Whole words"))
         self.words_button.setCheckable(True)
         self.words_button.toggled.connect(lambda state: self.find())
                      
-        self.highlight_button = create_toolbutton(self,
-                                              icon=get_icon("highlight.png"),
-                                              tip=_("Highlight matches"))
+        self.highlight_button = create_toolbutton(
+            self,
+            icon=get_icon("highlight.png"),
+            tip=_("Highlight matches"))
         self.highlight_button.setCheckable(True)
         self.highlight_button.toggled.connect(self.toggle_highlighting)
 
@@ -137,30 +142,34 @@ class FindReplace(QWidget):
         glayout.addLayout(self.find_buttons, 1, 0)
 
         # Replace layout
-        self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
-                                         tip=_('Replace string'))
+        self.replace_text = PatternComboBox(
+            self, adjust_to_minimum=False,
+            tip=_('Replace string'))
         self.replace_text.lineEdit().setPlaceholderText(
             '...and replace text here')
         self.replace_text.valid.connect(
                     lambda _: self.replace_find(focus_replace_text=True))
-        self.replace_button = create_toolbutton(self,
-                                     text=_('Replace and find next'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find,
-                                     text_beside_icon=True)
-        self.replace_sel_button = create_toolbutton(self,
-                                     text=_('Replace selection'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_selection,
-                                     text_beside_icon=True)
+        self.replace_button = create_toolbutton(
+            self,
+            text=_('Replace and find next'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find,
+            text_beside_icon=True)
+        self.replace_sel_button = create_toolbutton(
+            self,
+            text=_('Replace selection'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find_selection,
+            text_beside_icon=True)
         self.replace_sel_button.clicked.connect(self.update_replace_combo)
         self.replace_sel_button.clicked.connect(self.update_search_combo)
 
-        self.replace_all_button = create_toolbutton(self,
-                                     text=_('Replace all'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_all,
-                                     text_beside_icon=True)
+        self.replace_all_button = create_toolbutton(
+            self,
+            text=_('Replace all'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find_all,
+            text_beside_icon=True)
         self.replace_all_button.clicked.connect(self.update_replace_combo)
         self.replace_all_button.clicked.connect(self.update_search_combo)
         
@@ -170,7 +179,7 @@ class FindReplace(QWidget):
 
         self.replace_buttons = QHBoxLayout()
         replace_widgets = [self.replace_button, self.replace_sel_button,
-                        self.replace_all_button]
+                           self.replace_all_button]
         for widget in replace_widgets:
             self.replace_buttons.addWidget(widget)
         self.replace_buttons.addStretch(0)
@@ -229,7 +238,8 @@ class FindReplace(QWidget):
         togglereplace = config_shortcut(self.show_replace,
                                         context='_', name='Replace text',
                                         parent=parent)
-        hide = config_shortcut(self.hide, context='_', name='hide find and replace',
+        hide = config_shortcut(self.hide, context='_',
+                               name='hide find and replace',
                                parent=self)
 
         return [findnext, findprev, togglefind, togglereplace, hide]
@@ -398,11 +408,12 @@ class FindReplace(QWidget):
             self.editor.clear_found_results()
 
     def find(self, changed=True, forward=True,
-             rehighlight=True, start_highlight_timer=False, multiline_replace_check=True):
+             rehighlight=True, start_highlight_timer=False,
+             multiline_replace_check=True):
         """Call the find function"""
-        # When several lines are selected in the editor and replace box is activated,
-        # dynamic search is deactivated to prevent changing the selection. Otherwise
-        # we show matching items.
+        # When several lines are selected and replace box is activated,
+        # dynamic search is deactivated to prevent changing the selection.
+        # Otherwise we show matching items.
         def regexp_error_msg(pattern):
             """Returns None if the pattern is a valid regular expression or
             a string describing why the pattern is invalid.
@@ -413,8 +424,9 @@ class FindReplace(QWidget):
                 return str(e)
             return None
 
-        if multiline_replace_check and self.replace_widgets[0].isVisible() and \
-           len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
+        if (multiline_replace_check and self.replace_widgets[0].isVisible()
+                and len(to_text_string(
+                    self.editor.get_selected_text()).splitlines())>1):
             return None
         text = self.search_text.currentText()
         if len(text) == 0:
@@ -579,7 +591,8 @@ class FindReplace(QWidget):
                 cursor.beginEditBlock()
                 cursor.removeSelectedText()
                 if not self.re_button.isChecked():
-                    replacement = re.sub(r'\\(?![nrtf])(.)', r'\1', replacement)
+                    replacement = re.sub(r'\\(?![nrtf])(.)', r'\1',
+                                         replacement)
                 cursor.insertText(replacement)
                 cursor.endEditBlock()
             if focus_replace_text:
@@ -591,7 +604,7 @@ class FindReplace(QWidget):
         """Change number of match and total matches."""
         if current_match and total_matches:
             matches_string = u"{} {} {}".format(current_match, _(u"of"),
-                                               total_matches)
+                                                total_matches)
             self.number_matches_text.setText(matches_string)
         elif total_matches:
             matches_string = u"{} {}".format(total_matches, _(u"matches"))
