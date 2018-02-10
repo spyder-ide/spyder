@@ -39,6 +39,169 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 
 
 
+class ThumbnailScrollBar(QFrame):
+    """
+    A widget that manages the display of the FigureThumbnails that are
+    created when a figure is sent to the IPython console by the kernel and
+    that controls what is displayed in the FigureViewer.
+    """
+
+    def __init__(self, figure_viewer, parent=None):
+        super(ThumbnailScrollBar, self).__init__(parent)
+        self._thumbnails = []
+        self.set_figureviewer(figure_viewer)
+        self.setup_gui()
+
+    def setup_gui(self):
+        """Setups the main layout of the widget."""
+        scrollarea = self.setup_scrollarea()
+        up_btn, down_btn = self.setup_arrow_buttons()
+
+        self.setFixedWidth(135)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(up_btn)
+        layout.addWidget(scrollarea)
+        layout.addWidget(down_btn)
+
+    def setup_scrollarea(self):
+        """Setup the scrollarea that will contain the FigureThumbnails."""
+        self.view = QWidget()
+
+        self.scene = QGridLayout(self.view)
+        self.scene.setColumnStretch(0, 100)
+        self.scene.setColumnStretch(2, 100)
+
+        self.scrollarea = QScrollArea()
+        self.scrollarea.setWidget(self.view)
+        self.scrollarea.setWidgetResizable(True)
+        self.scrollarea.setFrameStyle(0)
+        self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollarea.setSizePolicy(QSizePolicy(QSizePolicy.Ignored,
+                                                  QSizePolicy.Preferred))
+
+        return self.scrollarea
+
+    def setup_arrow_buttons(self):
+        """
+        Setup the up and down arrow buttons that are placed at the top and
+        bottom of the scrollarea.
+        """
+        # Get the height of the up/down arrow of the default vertical
+        # scrollbar :
+
+        vsb = self.scrollarea.verticalScrollBar()
+        style = vsb.style()
+        opt = QStyleOptionSlider()
+        vsb.initStyleOption(opt)
+        vsb_up_arrow = style.subControlRect(
+                QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarAddLine, self)
+
+        # Setup the up and down arrow button :
+
+        up_btn = up_btn = QPushButton(icon=ima.icon('last_edit_location'))
+        up_btn.setFlat(True)
+        up_btn.setFixedHeight(vsb_up_arrow.size().height())
+        up_btn.clicked.connect(self.go_up)
+
+        down_btn = QPushButton(icon=ima.icon('folding.arrow_down_on'))
+        down_btn.setFlat(True)
+        down_btn.setFixedHeight(vsb_up_arrow.size().height())
+        down_btn.clicked.connect(self.go_down)
+
+        return up_btn, down_btn
+
+    def set_figureviewer(self, figure_viewer):
+        """Sets the bamespace for the FigureViewer."""
+        self.figure_viewer = figure_viewer
+
+    # ---- Thumbails Handlers
+
+    def add_thumbnail(self, fig, fmt):
+        fig_manager = FigureThumbnail()
+        fig_manager.canvas.setFixedSize(100, 75)
+        fig_manager.canvas.load_figure(fig, fmt)
+        fig_manager.sig_canvas_clicked.connect(self.set_current_thumbnail)
+        fig_manager.sig_remove_figure.connect(self.remove_thumbnail)
+        self._thumbnails.append(fig_manager)
+
+        self.scene.setRowStretch(self.scene.rowCount()-1, 0)
+        self.scene.addWidget(fig_manager, self.scene.rowCount()-1, 1)
+        self.scene.setRowStretch(self.scene.rowCount(), 100)
+        self.set_current_thumbnail(fig_manager)
+
+    def remove_current_thumbnail(self):
+        """Removes the currently selected thumbnail."""
+        if self.current_thumbnail is not None:
+            self.remove_thumbnail(self.current_thumbnail)
+
+    def remove_all_thumbnails(self):
+        """Removes all thumbnails."""
+        for thumbnail in self._thumbnails:
+            self.layout().removeWidget(thumbnail)
+            thumbnail.deleteLater()
+        self._thumbnails = []
+        self.current_thumbnail = None
+        self.figure_viewer.imageCanvas.clear_canvas()
+
+    def remove_thumbnail(self, thumbnail):
+        """Removes thumbnail."""
+        if thumbnail in self._thumbnails:
+            index = self._thumbnails.index(thumbnail)
+            self._thumbnails.remove(thumbnail)
+        self.layout().removeWidget(thumbnail)
+        thumbnail.deleteLater()
+
+        # Select a new thumbnail if any :
+
+        if thumbnail == self.current_thumbnail:
+            if len(self._thumbnails) > 0:
+                self.set_current_index(min(index, len(self._thumbnails)-1))
+            else:
+                self.current_thumbnail = None
+                self.figure_viewer.imageCanvas.clear_canvas()
+
+    def set_current_index(self, index):
+        """Sets the currently selected thumbnail by its index."""
+        self.set_current_thumbnail(self._thumbnails[index])
+
+    def set_current_thumbnail(self, thumbnail):
+        """Sets the currently selected thumbnail."""
+        self.current_thumbnail = thumbnail
+        self.figure_viewer.load_figure(
+                thumbnail.canvas.fig, thumbnail.canvas.fmt)
+        for thumbnail in self._thumbnails:
+            thumbnail.highlight_canvas(thumbnail == self.current_thumbnail)
+
+    def go_previous_thumbnail(self):
+        """Select the thumbnail previous to the currently selected one."""
+        if self.current_thumbnail is not None:
+            index = self._thumbnails.index(self.current_thumbnail) - 1
+            index = index if index >= 0 else len(self._thumbnails) - 1
+            self.set_current_index(index)
+
+    def go_next_thumbnail(self):
+        """Select thumbnail next to the currently selected one."""
+        if self.current_thumbnail is not None:
+            index = self._thumbnails.index(self.current_thumbnail) + 1
+            index = 0 if index >= len(self._thumbnails) else index
+            self.set_current_index(index)
+
+    # ---- ScrollBar Handlers
+
+    def go_up(self):
+        """Scrolls the scrollbar of the scrollarea up by a single step."""
+        vsb = self.scrollarea.verticalScrollBar()
+        vsb.setValue(int(vsb.value() - vsb.singleStep()))
+
+    def go_down(self):
+        """Scrolls the scrollbar of the scrollarea down by a single step."""
+        vsb = self.scrollarea.verticalScrollBar()
+        vsb.setValue(int(vsb.value() + vsb.singleStep()))
+
+
 class FigureThumbnail(QWidget):
     """
     A widget that consists of a FigureCanvas, a side toolbar, and a context
