@@ -101,21 +101,21 @@ class FindReplace(QWidget):
         self.re_btn = create_toolbutton(self,
                                         icon=ima.icon('advanced'),
                                         text=_('RegEx'),
-                                        text_beside_icon=True)
+                                        text_beside_icon=False)
         self.re_btn.setCheckable(True)
         self.re_btn.toggled.connect(lambda state: self.find())
 
         self.case_btn = create_toolbutton(self,
                                           icon=get_icon("upper_lower.png"),
                                           text=_("Case sensitive"),
-                                          text_beside_icon=True)
+                                          text_beside_icon=False)
         self.case_btn.setCheckable(True)
         self.case_btn.toggled.connect(lambda state: self.find())
 
         self.words_btn = create_toolbutton(self,
                                            icon=get_icon("whole_words.png"),
                                            text=_("Whole words"),
-                                           text_beside_icon=True)
+                                           text_beside_icon=False)
         self.words_btn.setCheckable(True)
         self.words_btn.toggled.connect(lambda state: self.find())
 
@@ -123,7 +123,7 @@ class FindReplace(QWidget):
                                                icon=get_icon(
                                                    "highlight.png"),
                                                text=_("Highlight"),
-                                               text_beside_icon=True)
+                                               text_beside_icon=False)
         self.highlight_btn.setCheckable(True)
         self.highlight_btn.toggled.connect(self.toggle_highlighting)
 
