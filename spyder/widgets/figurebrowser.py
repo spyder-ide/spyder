@@ -39,6 +39,141 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 
 
 
+class FigureViewer(QScrollArea):
+    """
+    A scrollarea that displays a single FigureCanvas with zooming and panning
+    capability with CTRL + Mouse_wheel and Left-press mouse button event.
+    """
+
+    sig_zoom_changed = Signal(float)
+
+    def __init__(self, parent=None):
+        super(FigureViewer, self).__init__(parent)
+        self.setAlignment(Qt.AlignCenter)
+        self.viewport().setStyleSheet("background-color: white")
+        self.setFrameStyle(0)
+
+        self._scalefactor = 0
+        self._scalestep = 1.2
+        self._sfmax = 3
+        self._sfmin = -10
+
+        # An internal flag that tracks when the figure is being panned.
+        self._ispanning = False
+
+        self.setup_figcanvas()
+
+    def setup_figcanvas(self):
+        """Setups the FigureCanvas."""
+        self.figcanvas = FigureCanvas()
+        self.figcanvas.installEventFilter(self)
+        self.setWidget(self.figcanvas)
+
+    def load_figure(self, fig, fmt):
+        """Sets a new figure in the figure canvas."""
+        self.figcanvas.load_figure(fig, fmt)
+        self.scale_image()
+
+    def eventFilter(self, widget, event):
+        """A filter to control the zooming and panning of the figure canvas."""
+
+        # ---- Zooming
+
+        if event.type() == QEvent.Wheel:
+            modifiers = QApplication.keyboardModifiers()
+            if modifiers == Qt.ControlModifier:
+                if event.angleDelta().y() > 0:
+                    self.zoom_in()
+                else:
+                    self.zoom_out()
+                return True
+            else:
+                return False
+
+        # ---- Panning
+
+        # Set ClosedHandCursor:
+
+        elif event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.LeftButton:
+                QApplication.setOverrideCursor(Qt.ClosedHandCursor)
+                self._ispanning = True
+                self.xclick = event.globalX()
+                self.yclick = event.globalY()
+
+        # Reset Cursor:
+
+        elif event.type() == QEvent.MouseButtonRelease:
+            QApplication.restoreOverrideCursor()
+            self._ispanning = False
+
+        # Move  ScrollBar:
+
+        elif event.type() == QEvent.MouseMove:
+            if self._ispanning:
+                dx = self.xclick - event.globalX()
+                self.xclick = event.globalX()
+
+                dy = self.yclick - event.globalY()
+                self.yclick = event.globalY()
+
+                scrollBarH = self.horizontalScrollBar()
+                scrollBarH.setValue(scrollBarH.value() + dx)
+
+                scrollBarV = self.verticalScrollBar()
+                scrollBarV.setValue(scrollBarV.value() + dy)
+
+        return QWidget.eventFilter(self, widget, event)
+
+    # ---- Figure Scaling Handlers
+
+    def zoom_in(self):
+        """Scales the image up by one scale step."""
+        if self._scalefactor <= self._sfmax:
+            self._scalefactor += 1
+            self.scale_image()
+            self._adjust_scrollbar(self._scalestep)
+            self.sig_zoom_changed.emit(self.get_scaling())
+
+    def zoom_out(self):
+        """Scales the image down by one scale step."""
+        if self._scalefactor >= self._sfmin:
+            self._scalefactor -= 1
+            self.scale_image()
+            self._adjust_scrollbar(1/self._scalestep)
+            self.sig_zoom_changed.emit(self.get_scaling())
+
+    def scale_image(self):
+        """Scales the image size."""
+        new_width = int(self.figcanvas.fwidth *
+                        self._scalestep ** self._scalefactor)
+        new_height = int(self.figcanvas.fheight *
+                         self._scalestep ** self._scalefactor)
+        self.figcanvas.setFixedSize(new_width, new_height)
+
+    def get_scaling(self):
+        """Gets the current scaling of the figure in percent."""
+        return self._scalestep**self._scalefactor*100
+
+    def reset_original_image(self):
+        """Resets the image to its original size."""
+        self._scalefactor = 0
+        self.scale_image()
+
+    def _adjust_scrollbar(self, f):
+        """
+        Adjust the scrollbar position to take into account the zooming of
+        the figure.
+        """
+        # Adjust horizontal scrollbar :
+        hb = self.horizontalScrollBar()
+        hb.setValue(int(f * hb.value() + ((f - 1) * hb.pageStep()/2)))
+
+        # Adjust the vertical scrollbar :
+        vb = self.verticalScrollBar()
+        vb.setValue(int(f * vb.value() + ((f - 1) * vb.pageStep()/2)))
+
+
 class ThumbnailScrollBar(QFrame):
     """
     A widget that manages the display of the FigureThumbnails that are
@@ -144,7 +279,7 @@ class ThumbnailScrollBar(QFrame):
             thumbnail.deleteLater()
         self._thumbnails = []
         self.current_thumbnail = None
-        self.figure_viewer.imageCanvas.clear_canvas()
+        self.figure_viewer.figcanvas.clear_canvas()
 
     def remove_thumbnail(self, thumbnail):
         """Removes thumbnail."""
@@ -161,7 +296,7 @@ class ThumbnailScrollBar(QFrame):
                 self.set_current_index(min(index, len(self._thumbnails)-1))
             else:
                 self.current_thumbnail = None
-                self.figure_viewer.imageCanvas.clear_canvas()
+                self.figure_viewer.figcanvas.clear_canvas()
 
     def set_current_index(self, index):
         """Sets the currently selected thumbnail by its index."""
