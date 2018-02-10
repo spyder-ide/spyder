@@ -974,6 +974,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Move down current line or selected text"""
         self.__move_line_or_selection(after_current_line=True)
         
+    def go_to_new_line(self):
+        """Go to the end of the current line and create a new line"""
+        self.stdkey_end(False, False)
+        self.insert_text(self.get_line_separator())
+        
     def extend_selection_to_complete_lines(self):
         """Extend current selection to complete lines"""
         cursor = self.textCursor()

@@ -546,6 +546,8 @@ class CodeEditor(TextEditBaseWidget):
                                      name='Move line up', parent=self)
         movelinedown = config_shortcut(self.move_line_down, context='Editor',
                                        name='Move line down', parent=self)
+        gotonewline = config_shortcut(self.go_to_new_line, context='Editor',
+                                      name='Go to new line', parent=self)
         gotodef = config_shortcut(self.do_go_to_definition, context='Editor',
                                   name='Go to definition', parent=self)
         toggle_comment = config_shortcut(self.toggle_comment, context='Editor',
@@ -646,7 +648,7 @@ class CodeEditor(TextEditBaseWidget):
                                       name='enter array table', parent=self)
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
-                movelinedown, gotodef, toggle_comment, blockcomment,
+                movelinedown, gotonewline, gotodef, toggle_comment, blockcomment,
                 unblockcomment, transform_uppercase, transform_lowercase, 
                 line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
@@ -2834,9 +2836,6 @@ class CodeEditor(TextEditBaseWidget):
                     TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
-            elif shift and ctrl:
-                self.stdkey_end(False, False)  # Go to end of the line
-                self.insert_text(self.get_line_separator())  # Add a new line
             elif shift:
                 self.run_cell_and_advance.emit()
             elif ctrl:
