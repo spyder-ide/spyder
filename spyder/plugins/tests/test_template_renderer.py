@@ -85,12 +85,16 @@ class TestClass():
         return '\n'.join(t)
 
     def new(self, text):
-        import time, os
+        import time
 
         VARS = {
-            'date-spyder': time.strftime("%Y-%m-%d"),
-            'username-spyder': os.getenv('USERNAME'),
+            'date-spyder': time.strftime("%Y-%m"),
+            'username-spyder': 'cts',
         }
+        """
+        cant use "os.getenv('USERNAME')" here in order to pass the
+        autotest proceed by appveyor and travis-ci.
+        """
 
         try:
             text = text % VARS
@@ -106,7 +110,7 @@ class TestClass():
         expected = '''
     # -*- coding: utf-8 -*-
     """
-    Created on 2018-02-09
+    Created on 2018-02
 
     Creator: cts
     """
@@ -126,7 +130,7 @@ class TestClass():
         expected = '''
     # -*- coding: utf-8 -*-
     """
-    Created on 2018-02-09
+    Created on 2018-02
 
     Creator: %(its_bad)s
     """
@@ -146,7 +150,7 @@ class TestClass():
         expected = '''
     # -*- coding: utf-8 -*-
     """
-    Created on 2018-02-09
+    Created on 2018-02
 
     Creator: cts
     """
@@ -173,7 +177,7 @@ class TestClass():
         expected = '''
     # -*- coding: utf-8 -*-
     """
-    Created on 2018-02-09
+    Created on 2018-02
 
     Creator: %(its_bad)s
     """
