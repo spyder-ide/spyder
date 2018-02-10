@@ -116,7 +116,7 @@ def test_find_number_matches(qtbot):
                                   rehighlight=False,
                                   multiline_replace_check=False)
     editor_text = editor_stack.find_widget.number_matches_text.text()
-    assert editor_text == 'no matches'
+    assert editor_text == 'No matches'
 
 
 def test_move_current_line_up(editor_bot):
