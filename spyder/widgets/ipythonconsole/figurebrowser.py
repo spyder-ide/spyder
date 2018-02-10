@@ -37,7 +37,7 @@ class FigureBrowserWidget(RichJupyterWidget):
     # ---- Public API
 
     def set_figurebrowser(self, figurebrowser):
-        """Sets the namespace for the figurebrowser widget."""
+        """Set the namespace for the figurebrowser widget."""
         self.figurebrowser = figurebrowser
 
     # ---- Private API (overrode by us)

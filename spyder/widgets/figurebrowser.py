@@ -57,7 +57,7 @@ class FigureBrowser(QWidget):
 
     def setup(self):
         """
-        Setups the figure browser with provided settings.
+        Setup the figure browser with provided settings.
         """
         assert self.shellwidget is not None
 
@@ -107,17 +107,17 @@ class FigureBrowser(QWidget):
         self.setLayout(layout)
 
     def set_shellwidget(self, shellwidget):
-        """Binds shellwidget instance to figure browser"""
+        """Bind the shellwidget instance to the figure browser"""
         self.shellwidget = shellwidget
         shellwidget.set_figurebrowser(self)
         shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
 
     def get_actions(self):
-        """Gets the actions of the widget."""
+        """Get the actions of the widget."""
         return self.actions
 
     def setup_toolbar(self):
-        """Setups the toolbar"""
+        """Setup the toolbar"""
         savefig_btn = create_toolbutton(
                 self, icon=ima.icon('filesave'),
                 tip=_("Save Image As..."),
@@ -185,7 +185,7 @@ class FigureBrowser(QWidget):
 
     def _handle_new_figure(self, fig, fmt):
         """
-        Handles when a new figure is sent to the ipython console by the
+        Handle when a new figure is sent to the ipython console by the
         kernel.
         """
         self.thumnails_sb.add_thumbnail(fig, fmt)
@@ -197,36 +197,36 @@ class FigureBrowser(QWidget):
 
     def zoom_in(self):
         """
-        Zooms the figure in by a single step in the figure viewer.
+        Zoom the figure in by a single step in the figure viewer.
         """
         self.figviewer.zoom_in()
 
     def zoom_out(self):
         """
-        Zooms the figure out by a single step in the figure viewer.
+        Zoom the figure out by a single step in the figure viewer.
         """
         self.figviewer.zoom_out()
 
     def go_previous_thumbnail(self):
         """
-        Selects the thumbnail previous to the currently selected one in the
+        Select the thumbnail previous to the currently selected one in the
         thumbnail scrollbar.
         """
         self.thumnails_sb.go_previous_thumbnail()
 
     def go_next_thumbnail(self):
         """
-        Selects the thumbnail next to the currently selected one in the
+        Select the thumbnail next to the currently selected one in the
         thumbnail scrollbar.
         """
         self.thumnails_sb.go_next_thumbnail()
 
     def close_figure(self):
-        """Closes the currently selected figure in the thumbnail scrollbar."""
+        """Close the currently selected figure in the thumbnail scrollbar."""
         self.thumnails_sb.remove_current_thumbnail()
 
     def close_all_figures(self):
-        """Closes all the figures in the thumbnail scrollbar."""
+        """Close all the figures in the thumbnail scrollbar."""
         self.thumnails_sb.remove_all_thumbnails()
 
 
@@ -255,13 +255,13 @@ class FigureViewer(QScrollArea):
         self.setup_figcanvas()
 
     def setup_figcanvas(self):
-        """Setups the FigureCanvas."""
+        """Setup the FigureCanvas."""
         self.figcanvas = FigureCanvas()
         self.figcanvas.installEventFilter(self)
         self.setWidget(self.figcanvas)
 
     def load_figure(self, fig, fmt):
-        """Sets a new figure in the figure canvas."""
+        """Set a new figure in the figure canvas."""
         self.figcanvas.load_figure(fig, fmt)
         self.scale_image()
 
@@ -319,7 +319,7 @@ class FigureViewer(QScrollArea):
     # ---- Figure Scaling Handlers
 
     def zoom_in(self):
-        """Scales the image up by one scale step."""
+        """Scale the image up by one scale step."""
         if self._scalefactor <= self._sfmax:
             self._scalefactor += 1
             self.scale_image()
@@ -327,7 +327,7 @@ class FigureViewer(QScrollArea):
             self.sig_zoom_changed.emit(self.get_scaling())
 
     def zoom_out(self):
-        """Scales the image down by one scale step."""
+        """Scale the image down by one scale step."""
         if self._scalefactor >= self._sfmin:
             self._scalefactor -= 1
             self.scale_image()
@@ -335,7 +335,7 @@ class FigureViewer(QScrollArea):
             self.sig_zoom_changed.emit(self.get_scaling())
 
     def scale_image(self):
-        """Scales the image size."""
+        """Scale the image size."""
         new_width = int(self.figcanvas.fwidth *
                         self._scalestep ** self._scalefactor)
         new_height = int(self.figcanvas.fheight *
@@ -343,11 +343,11 @@ class FigureViewer(QScrollArea):
         self.figcanvas.setFixedSize(new_width, new_height)
 
     def get_scaling(self):
-        """Gets the current scaling of the figure in percent."""
+        """Get the current scaling of the figure in percent."""
         return self._scalestep**self._scalefactor*100
 
     def reset_original_image(self):
-        """Resets the image to its original size."""
+        """Reset the image to its original size."""
         self._scalefactor = 0
         self.scale_image()
 
@@ -379,7 +379,7 @@ class ThumbnailScrollBar(QFrame):
         self.setup_gui()
 
     def setup_gui(self):
-        """Setups the main layout of the widget."""
+        """Setup the main layout of the widget."""
         scrollarea = self.setup_scrollarea()
         up_btn, down_btn = self.setup_arrow_buttons()
 
@@ -392,7 +392,7 @@ class ThumbnailScrollBar(QFrame):
         layout.addWidget(down_btn)
 
     def setup_scrollarea(self):
-        """Setups the scrollarea that will contain the FigureThumbnails."""
+        """Setup the scrollarea that will contain the FigureThumbnails."""
         self.view = QWidget()
 
         self.scene = QGridLayout(self.view)
@@ -418,7 +418,7 @@ class ThumbnailScrollBar(QFrame):
 
     def setup_arrow_buttons(self):
         """
-        Setups the up and down arrow buttons that are placed at the top and
+        Setup the up and down arrow buttons that are placed at the top and
         bottom of the scrollarea.
         """
         # Get the height of the up/down arrow of the default vertical
@@ -446,7 +446,7 @@ class ThumbnailScrollBar(QFrame):
         return up_btn, down_btn
 
     def set_figureviewer(self, figure_viewer):
-        """Sets the bamespace for the FigureViewer."""
+        """Set the bamespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
 
     # ---- Thumbails Handlers
@@ -465,12 +465,12 @@ class ThumbnailScrollBar(QFrame):
         self.set_current_thumbnail(fig_manager)
 
     def remove_current_thumbnail(self):
-        """Removes the currently selected thumbnail."""
+        """Remove the currently selected thumbnail."""
         if self.current_thumbnail is not None:
             self.remove_thumbnail(self.current_thumbnail)
 
     def remove_all_thumbnails(self):
-        """Removes all thumbnails."""
+        """Remove all thumbnails."""
         for thumbnail in self._thumbnails:
             self.layout().removeWidget(thumbnail)
             thumbnail.deleteLater()
@@ -479,7 +479,7 @@ class ThumbnailScrollBar(QFrame):
         self.figure_viewer.figcanvas.clear_canvas()
 
     def remove_thumbnail(self, thumbnail):
-        """Removes thumbnail."""
+        """Remove thumbnail."""
         if thumbnail in self._thumbnails:
             index = self._thumbnails.index(thumbnail)
             self._thumbnails.remove(thumbnail)
@@ -496,11 +496,11 @@ class ThumbnailScrollBar(QFrame):
                 self.figure_viewer.figcanvas.clear_canvas()
 
     def set_current_index(self, index):
-        """Sets the currently selected thumbnail by its index."""
+        """Set the currently selected thumbnail by its index."""
         self.set_current_thumbnail(self._thumbnails[index])
 
     def set_current_thumbnail(self, thumbnail):
-        """Sets the currently selected thumbnail."""
+        """Set the currently selected thumbnail."""
         self.current_thumbnail = thumbnail
         self.figure_viewer.load_figure(
                 thumbnail.canvas.fig, thumbnail.canvas.fmt)
@@ -524,12 +524,12 @@ class ThumbnailScrollBar(QFrame):
     # ---- ScrollBar Handlers
 
     def go_up(self):
-        """Scrolls the scrollbar of the scrollarea up by a single step."""
+        """Scroll the scrollbar of the scrollarea up by a single step."""
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(int(vsb.value() - vsb.singleStep()))
 
     def go_down(self):
-        """Scrolls the scrollbar of the scrollarea down by a single step."""
+        """Scroll the scrollbar of the scrollarea down by a single step."""
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(int(vsb.value() + vsb.singleStep()))
 
@@ -551,7 +551,7 @@ class FigureThumbnail(QWidget):
         self.setup_gui()
 
     def setup_gui(self):
-        """Setups the main layout of the widget."""
+        """Setup the main layout of the widget."""
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(1)
@@ -559,7 +559,7 @@ class FigureThumbnail(QWidget):
         layout.addLayout(self.setup_toolbar())
 
     def setup_toolbar(self):
-        """Setups the toolbar."""
+        """Setup the toolbar."""
         savefig_btn = create_toolbutton(
                 self, icon=ima.icon('filesave'),
                 tip=_("Save Image As..."),
@@ -579,7 +579,7 @@ class FigureThumbnail(QWidget):
 
     def highlight_canvas(self, highlight):
         """
-        Sets a colored frame around the FigureCanvas if highlight is True.
+        Set a colored frame around the FigureCanvas if highlight is True.
         """
         colorname = self.canvas.palette().highlight().color().name()
         if highlight:
@@ -600,13 +600,13 @@ class FigureThumbnail(QWidget):
 
     def emit_save_figure(self):
         """
-        Emits a signal when the toolbutton to save the figure is clicked.
+        Emit a signal when the toolbutton to save the figure is clicked.
         """
         self.sig_save_figure.emit(self.canvas.fig, self.canvas.fmt)
 
     def emit_remove_figure(self):
         """
-        Emits a signal when the toolbutton to close the figure is clicked.
+        Emit a signal when the toolbutton to close the figure is clicked.
         """
         self.sig_remove_figure.emit(self)
 
@@ -638,8 +638,8 @@ class FigureCanvas(QFrame):
 
     def load_figure(self, fig, fmt):
         """
-        Loads the figure from a png, jpg, or svg image, converts it in
-        a QPixmap, and forces a repaint of the widget.
+        Load the figure from a png, jpg, or svg image, convert it in
+        a QPixmap, and force a repaint of the widget.
         """
         self.fig = fig
         self.fmt = fmt
