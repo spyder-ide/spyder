@@ -38,6 +38,201 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout)
 
 
+class FigureBrowser(QWidget):
+    """
+    Widget to browse the figures that were sent by the kernel to the ipython
+    console to be plotted inline.
+    """
+    sig_option_changed = Signal(str, object)
+    sig_collapse = Signal()
+
+    def __init__(self, parent, options_button=None, menu=None,
+                 plugin_actions=None):
+        super(FigureBrowser, self).__init__(parent)
+
+        self.shellwidget = None
+        self.is_visible = True
+        self.figviewer = None
+        self.setup_in_progress = None
+
+        self.options_button = options_button
+        self.menu = menu
+        self.plugin_actions = plugin_actions
+
+    def setup(self):
+        """
+        Setups the figure browser with provided settings.
+        """
+        assert self.shellwidget is not None
+
+        # Options menu :
+
+        actions = []
+        if self.plugin_actions:
+            actions = actions + self.plugin_actions
+        self.actions = actions
+        if not self.options_button:
+            self.options_button = create_toolbutton(
+                    self, text=_('Options'), icon=ima.icon('tooloptions'))
+        if not self.menu:
+            self.menu = QMenu(self)
+
+        mute_inline_chbox = QCheckBox("Mute inline plotting")
+        mute_inline_chbox.setChecked(True)
+
+        # Setup the blayout :
+
+        blayout = QHBoxLayout()
+        toolbar = self.setup_toolbar()
+        for widget in toolbar:
+            blayout.addWidget(widget)
+        blayout.addStretch()
+        blayout.addWidget(mute_inline_chbox)
+        blayout.addWidget(self.options_button)
+
+        # Create the main layout :
+
+        self.figviewer = FigureViewer()
+        self.figviewer.setStyleSheet("FigureViewer{"
+                                     "border: 1px solid lightgrey;"
+                                     "border-top-width: 0px;"
+                                     "border-bottom-width: 0px;"
+                                     "border-left-width: 0px;"
+                                     "}")
+        self.figviewer.sig_zoom_changed.connect(self.zoom_disp.setValue)
+        self.thumnails_sb = ThumbnailScrollBar(self.figviewer)
+
+        splitter = QSplitter()
+        splitter.addWidget(self.figviewer)
+        splitter.addWidget(self.thumnails_sb)
+        splitter.setFrameStyle(QScrollArea().frameStyle())
+
+        layout = create_plugin_layout(blayout, splitter)
+        self.setLayout(layout)
+
+    def set_shellwidget(self, shellwidget):
+        """Binds shellwidget instance to figure browser"""
+        self.shellwidget = shellwidget
+        shellwidget.set_figurebrowser(self)
+        shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
+
+    def get_actions(self):
+        """Gets the actions of the widget."""
+        return self.actions
+
+    def setup_toolbar(self):
+        """Setups the toolbar"""
+        savefig_btn = create_toolbutton(
+                self, icon=ima.icon('filesave'),
+                tip=_("Save Image As..."),
+                triggered=self.save_image_as)
+
+        saveall_btn = create_toolbutton(
+                self, icon=ima.icon('save_all'),
+                tip=_("Save All Image..."),
+                triggered=self.save_image_as)
+
+        closefig_btn = create_toolbutton(
+                self, icon=ima.icon('editclear'),
+                tip=_("Remove image"),
+                triggered=self.close_figure)
+
+        closeall_btn = create_toolbutton(
+                self, icon=ima.icon('filecloseall'),
+                tip=_("Remove all images from the explorer"),
+                triggered=self.close_all_figures)
+
+        vsep1 = QFrame()
+        vsep1.setFrameStyle(53)
+
+        goback_btn = create_toolbutton(
+                self, icon=ima.icon('ArrowBack'),
+                tip=_("Previous Figure"),
+                triggered=self.go_previous_thumbnail)
+
+        gonext_btn = create_toolbutton(
+                self, icon=ima.icon('ArrowForward'),
+                tip=_("Next Figure"),
+                triggered=self.go_next_thumbnail)
+
+        vsep2 = QFrame()
+        vsep2.setFrameStyle(53)
+
+        zoom_out_btn = create_toolbutton(
+                self, icon=ima.icon('zoom_out'),
+                tip=_("Zoom out (ctrl + mouse-wheel-down)"),
+                triggered=self.zoom_out)
+
+        zoom_in_btn = create_toolbutton(
+                self, icon=ima.icon('zoom_in'),
+                tip=_("Zoom in (ctrl + mouse-wheel-up)"),
+                triggered=self.zoom_in)
+
+        self.zoom_disp = QSpinBox()
+        self.zoom_disp.setAlignment(Qt.AlignCenter)
+        self.zoom_disp.setButtonSymbols(QSpinBox.NoButtons)
+        self.zoom_disp.setReadOnly(True)
+        self.zoom_disp.setSuffix(' %')
+        self.zoom_disp.setRange(0, 9999)
+        self.zoom_disp.setValue(100)
+
+        zoom_pan = QWidget()
+        layout = QHBoxLayout(zoom_pan)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(zoom_out_btn)
+        layout.addWidget(zoom_in_btn)
+        layout.addWidget(self.zoom_disp)
+
+        return [savefig_btn, saveall_btn, closefig_btn, closeall_btn, vsep1,
+                goback_btn, gonext_btn, vsep2, zoom_pan]
+
+    def _handle_new_figure(self, fig, fmt):
+        """
+        Handles when a new figure is sent to the ipython console by the
+        kernel.
+        """
+        self.thumnails_sb.add_thumbnail(fig, fmt)
+
+    # ---- Toolbar Handlers
+
+    def save_image_as(self):
+        pass
+
+    def zoom_in(self):
+        """
+        Zooms the figure in by a single step in the figure viewer.
+        """
+        self.figviewer.zoom_in()
+
+    def zoom_out(self):
+        """
+        Zooms the figure out by a single step in the figure viewer.
+        """
+        self.figviewer.zoom_out()
+
+    def go_previous_thumbnail(self):
+        """
+        Selects the thumbnail previous to the currently selected one in the
+        thumbnail scrollbar.
+        """
+        self.thumnails_sb.go_previous_thumbnail()
+
+    def go_next_thumbnail(self):
+        """
+        Selects the thumbnail next to the currently selected one in the
+        thumbnail scrollbar.
+        """
+        self.thumnails_sb.go_next_thumbnail()
+
+    def close_figure(self):
+        """Closes the currently selected figure in the thumbnail scrollbar."""
+        self.thumnails_sb.remove_current_thumbnail()
+
+    def close_all_figures(self):
+        """Closes all the figures in the thumbnail scrollbar."""
+        self.thumnails_sb.remove_all_thumbnails()
+
 
 class FigureViewer(QScrollArea):
     """
