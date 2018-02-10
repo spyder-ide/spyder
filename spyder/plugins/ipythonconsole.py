@@ -615,6 +615,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
+        self.figureexplorer = None   # Variable explorer plugin
         self.editor = None             # Editor plugin
         self.projects = None           # Projects plugin
 
