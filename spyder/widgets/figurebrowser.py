@@ -23,8 +23,8 @@ from qtpy.QtCore import Qt, Signal, Slot, QRect, QEvent
 from qtpy.QtGui import QImage, QPixmap, QPainter
 from qtpy.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
-                            QScrollArea, QPushButton, QSizePolicy, QSpinBox,
-                            QSplitter, QStyleOptionSlider, QStyle)
+                            QScrollArea, QPushButton, QScrollBar, QSizePolicy,
+                            QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
 
 
 # ---- Local library imports
@@ -407,6 +407,12 @@ class ThumbnailScrollBar(QFrame):
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setSizePolicy(QSizePolicy(QSizePolicy.Ignored,
                                                   QSizePolicy.Preferred))
+
+        # Set the vertical scrollbar explicitely :
+
+        # This is required to avoid a "RuntimeError: no access to protected
+        # functions or signals for objects not created from Python" in Linux.
+        self.scrollarea.setVerticalScrollBar(QScrollBar())
 
         return self.scrollarea
 
