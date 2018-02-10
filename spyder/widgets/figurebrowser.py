@@ -72,9 +72,9 @@ class FigureBrowser(QWidget):
                     self, text=_('Options'), icon=ima.icon('tooloptions'))
         if not self.menu:
             self.menu = QMenu(self)
-
-        mute_inline_chbox = QCheckBox("Mute inline plotting")
-        mute_inline_chbox.setChecked(True)
+        self.mute_inline_chbox = QCheckBox(_("Mute inline plotting"))
+        self.mute_inline_chbox.setToolTip(
+                _("Mute inline plotting in the ipython console."))
 
         # Setup the blayout :
 
@@ -83,7 +83,7 @@ class FigureBrowser(QWidget):
         for widget in toolbar:
             blayout.addWidget(widget)
         blayout.addStretch()
-        blayout.addWidget(mute_inline_chbox)
+        blayout.addWidget(self.mute_inline_chbox)
         blayout.addWidget(self.options_button)
 
         # Create the main layout :
@@ -105,6 +105,10 @@ class FigureBrowser(QWidget):
 
         layout = create_plugin_layout(blayout, splitter)
         self.setLayout(layout)
+
+    @property
+    def mute_inline_plotting(self):
+        return self.mute_inline_chbox.isChecked()
 
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""

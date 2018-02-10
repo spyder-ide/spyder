@@ -31,9 +31,6 @@ class FigureBrowserWidget(RichJupyterWidget):
     # Reference to the figurebrowser widget connected to this client
     figurebrowser = None
 
-    # TODO: Implement this as an option of the figure explorer plugin instead.
-    mute_inline_plotting = True
-
     # ---- Public API
 
     def set_figurebrowser(self, figurebrowser):
@@ -65,7 +62,8 @@ class FigureBrowserWidget(RichJupyterWidget):
             #       widget yet.
             if fmt in ['image/png', 'image/jpeg']:
                 self.sig_new_inline_figure.emit(img, fmt)
-            if self.mute_inline_plotting:
+            if (self.figurebrowser is not None and
+                    self.figurebrowser.mute_inline_plotting):
                 del msg['content']['data'][fmt]
 
         return super(FigureBrowserWidget, self)._handle_display_data(msg)
