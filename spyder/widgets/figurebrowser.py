@@ -66,7 +66,7 @@ class ThumbnailScrollBar(QFrame):
         layout.addWidget(down_btn)
 
     def setup_scrollarea(self):
-        """Setup the scrollarea that will contain the FigureThumbnails."""
+        """Setups the scrollarea that will contain the FigureThumbnails."""
         self.view = QWidget()
 
         self.scene = QGridLayout(self.view)
@@ -86,7 +86,7 @@ class ThumbnailScrollBar(QFrame):
 
     def setup_arrow_buttons(self):
         """
-        Setup the up and down arrow buttons that are placed at the top and
+        Setups the up and down arrow buttons that are placed at the top and
         bottom of the scrollarea.
         """
         # Get the height of the up/down arrow of the default vertical
