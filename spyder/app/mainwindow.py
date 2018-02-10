@@ -348,6 +348,7 @@ class MainWindow(QMainWindow):
         self.historylog = None
         self.ipyconsole = None
         self.variableexplorer = None
+        self.figureexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
 
@@ -889,6 +890,12 @@ class MainWindow(QMainWindow):
         from spyder.plugins.variableexplorer import VariableExplorer
         self.variableexplorer = VariableExplorer(self)
         self.variableexplorer.register_plugin()
+
+        # Figure browser
+        self.set_splash(_("Loading figure browser..."))
+        from spyder.plugins.figureexplorer import FigureExplorer
+        self.figureexplorer = FigureExplorer(self)
+        self.figureexplorer.register_plugin()
 
         # History log widget
         if CONF.get('historylog', 'enable'):
