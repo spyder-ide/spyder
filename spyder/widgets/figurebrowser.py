@@ -293,7 +293,7 @@ class FigureCanvas(QFrame):
         self.fig = None
         self.fmt = None
         self.qpix = None
-        self._qpix_store = []
+        self._qpix_buffer = []
         self.fwidth, self.fheight = 200, 200
 
     def clear_canvas(self):
@@ -301,7 +301,7 @@ class FigureCanvas(QFrame):
         self.fig = None
         self.fmt = None
         self.qpix = None
-        self._qpix_store = []
+        self._qpix_buffer = []
         self.repaint()
 
     def load_figure(self, fig, fmt):
@@ -321,7 +321,7 @@ class FigureCanvas(QFrame):
         self.qpix = QPixmap(qimg)
         self.fwidth = self.qpix.width()
         self.fheight = self.qpix.height()
-        self._qpix_store = []
+        self._qpix_buffer = []
         self.repaint()
 
     def save_figure_tofile(self, filename):
@@ -337,10 +337,10 @@ class FigureCanvas(QFrame):
                      self.size().width() - 2 * fw,
                      self.size().height() - 2 * fw)
 
-        # Check/update the image buffer :
+        # Check/update the qpixmap buffer :
 
         qpix2paint = None
-        for qpix in self._qpix_store:
+        for qpix in self._qpix_buffer:
             if qpix.size().width() == rect.width():
                 qpix2paint = qpix
                 break
@@ -348,7 +348,7 @@ class FigureCanvas(QFrame):
             if self.qpix is not None:
                 qpix2paint = self.qpix.scaledToWidth(
                     rect.width(), mode=Qt.SmoothTransformation)
-                self._qpix_store.append(qpix2paint)
+                self._qpix_buffer.append(qpix2paint)
 
         if qpix2paint is not None:
             # Paint the image on the widget :
