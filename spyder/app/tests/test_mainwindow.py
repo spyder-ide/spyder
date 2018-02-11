@@ -73,18 +73,6 @@ TEMP_DIRECTORY = tempfile.gettempdir()
 # =============================================================================
 # Utility functions
 # =============================================================================
-
-
-def select_directory(main_window, directory=None):
-    """Open a file using the Editor and its open file dialog"""
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, QFileDialog):
-            if directory is not None:
-                w.setDirectory(directory)
-            QTest.keyClick(w, Qt.Key_Enter)
-
-
 def open_file_in_editor(main_window, fname, directory=None):
     """Open a file using the Editor and its open file dialog"""
     top_level_widgets = QApplication.topLevelWidgets()
