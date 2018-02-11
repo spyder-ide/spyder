@@ -3105,9 +3105,21 @@ def run_spyder(app, options, args):
 def main():
     """Main function"""
     if PYTEST:
-        options, args = get_options()
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock  # Python 2
+
+        options = Mock()
+        options.working_directory = None
+        options.profile = False
+        options.multithreaded = False
+        options.new_instance = False
+        options.open_project = None
+        options.window_title = None
+
         app = initialize()
-        window = run_spyder(app, options, args)
+        window = run_spyder(app, options, None)
         return window
 
     # **** Collect command line options ****
