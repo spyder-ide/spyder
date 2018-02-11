@@ -64,7 +64,18 @@ def main():
     options to the application.
     """
     # Parse command line options
-    options, args = get_options()
+    if PYTEST:
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock # Python 2
+
+        options = Mock()
+        options.new_instance = False
+        options.reset_config_files = False
+        args = None
+    else:
+        options, args = get_options()
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
