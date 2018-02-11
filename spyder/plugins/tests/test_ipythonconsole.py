@@ -66,7 +66,7 @@ def get_console_background_color(style_sheet):
 # Qt Test Fixtures
 #==============================================================================
 @pytest.fixture
-def ipyconsole(request):
+def ipyconsole(qtbot, request):
     """IPython console fixture."""
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -85,6 +85,7 @@ def ipyconsole(request):
     else:
         test_no_stderr = False
 
+    # Use the automatic backend if requested
     auto_backend = request.node.get_marker('auto_backend')
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
@@ -96,12 +97,14 @@ def ipyconsole(request):
                              test_no_stderr=test_no_stderr)
     console.create_new_client()
 
+    # Close callback
     def close_console():
         console.closing_plugin()
         console.close()
     request.addfinalizer(close_console)
-    console.show()
 
+    qtbot.addWidget(console)
+    console.show()
     return console
 
 
