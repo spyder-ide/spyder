@@ -2489,6 +2489,7 @@ class MainWindow(QMainWindow):
             url.addEncodedQueryItem("body", quote(body))
             if title:
                 url.addEncodedQueryItem("title", quote(title))
+        QDesktopServices.openUrl(url)
 
     @Slot()
     def trouble_guide(self):
