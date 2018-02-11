@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
 """Report Error Dialog"""
 
-# Stdlib imports
+# Standard library imports
 import sys
 
 # Third party imports
@@ -23,8 +25,8 @@ from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 
-# Minimum number of characters to introduce in the description
-# field before being able to send the report to Github.
+# Minimum number of characters to introduce in the description field
+# before being able to send the report to Github.
 MIN_CHARS = 20
 
 
@@ -192,20 +194,20 @@ class SpyderErrorDialog(QDialog):
 
         # Getting description and traceback
         description = self.input_description.toPlainText()
-        traceback = self.error_traceback[:-1] # Remove last eol
+        traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        issue_text  = main.render_issue(description=description,
-                                        traceback=traceback)
+        issue_text = main.render_issue(description=description,
+                                       traceback=traceback)
 
         # Copy issue to clipboard
         QApplication.clipboard().setText(issue_text)
 
         # Submit issue to Github
-        issue_body=("<!--- "
-                    "Please paste the contents of your clipboard "
-                    "below to complete reporting your problem. "
-                    "--->\n\n")
+        issue_body = ("<!--- "
+                      "Please paste the contents of your clipboard "
+                      "below to complete reporting your problem. "
+                      "--->\n\n")
         main.report_issue(body=issue_body,
                           title="Automatic error report")
 

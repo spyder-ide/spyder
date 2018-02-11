@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
 #
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
-"""Tests for report error dialog."""
+"""Tests for the report error dialog."""
 
-# 3rd party imports
+# Third party imports
 import pytest
 from qtpy.QtCore import Qt
 
@@ -16,14 +18,14 @@ from spyder.widgets.reporterror import MIN_CHARS, SpyderErrorDialog
 
 @pytest.fixture
 def setup_dialog(qtbot):
-    """Set up dialog."""
+    """Set up error report dialog."""
     widget = SpyderErrorDialog(None)
     qtbot.addWidget(widget)
     return widget
 
 
 def test_dialog(qtbot):
-    """Run dialog tests."""
+    """Test that error report dialog UI behaves properly."""
     dlg = setup_dialog(qtbot)
     text = "1" * MIN_CHARS
 

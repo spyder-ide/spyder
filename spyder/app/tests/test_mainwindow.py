@@ -1323,7 +1323,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
 
 
 def test_report_issue_clipboard_and_url(monkeypatch):
-    """Test that report_issue send the issue to correct url."""
+    """Test that report_issue sends the data, and to correct url."""
     MockMainWindow = MagicMock(spec=MainWindow)
     mockMainWindow_instance = MockMainWindow()
     mockMainWindow_instance.__class__ = MainWindow

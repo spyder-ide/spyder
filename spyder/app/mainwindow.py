@@ -2469,6 +2469,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def report_issue(self, body=None, title=None):
+        """Report a Spyder issue to github, generating body text if needed."""
         if PY3:
             from urllib.parse import quote
         else:
@@ -2509,7 +2510,7 @@ class MainWindow(QMainWindow):
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.widgets.editor import TextEditBaseWidget
 
-        # if focused widget isn't valid try the last focused^M
+        # If focused widget isn't valid try the last focused
         if not isinstance(widget, TextEditBaseWidget):
             widget = self.previous_focused_widget
 
