@@ -23,6 +23,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox
 from spyder.config.base import _, get_home_dir
 from spyder.plugins import SpyderPluginMixin
 from spyder.py3compat import is_text_string
+from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
@@ -243,6 +244,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             path = getexistingdirectory(parent=self,
                                         caption=_("Open project"),
                                         basedir=basedir)
+            path = encoding.to_unicode_from_fs(path)
             if not self.is_valid_project(path):
                 if path:
                     QMessageBox.critical(self, _('Error'),
