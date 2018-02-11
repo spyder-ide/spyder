@@ -2411,7 +2411,7 @@ class MainWindow(QMainWindow):
             "read our **Troubleshooting Guide**: <{0!s}> and search the issue "
             "page for your error/problem, as most "
             "posted bugs are duplicates or easy fixes.\n\n"
-            "Also, if you do post here, please describe step by step in "
+            "If you do post here, please describe step by step in "
             "detail what you were doing when the error occurred. "
             "Otherwise, your issue will likely be closed after 7 days. "
             "Thanks.\n\n"
