@@ -754,8 +754,12 @@ class SaveHistoryMixin(object):
         if self.history_filename not in self.HISTORY_FILENAMES:
             self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
-        
-        encoding.write(text, self.history_filename, mode='ab')
+        # Needed to prevent errors from the history.py
+        # See issue 6431
+        try:
+            encoding.write(text, self.history_filename, mode='ab')
+        except (IOError, OSError):
+            pass
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)
 
