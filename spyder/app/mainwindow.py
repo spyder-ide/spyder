@@ -2407,12 +2407,12 @@ class MainWindow(QMainWindow):
 
         # Store and format the reminder message for the troubleshooting guide
         reminder_message = (
-            "**PLEASE READ:** Before submitting here, *please* carefully "
-            "consult our **Troubleshooting Guide**: <{0!s}> and search the "
+            "**PLEASE READ:** Before submitting here, please carefully "
+            "consult our **Troubleshooting Guide**: <{0}> and search the "
             "issue page for your error/problem, as most "
             "posted bugs are duplicates or easy fixes.\n\n"
             "If you don't find anything, enter a step-by-step description "
-            "(in English) of what led up to the problem below; issue reports "
+            "(in English) of what led up to the problem; issue reports "
             "without a clear way to reproduce them will be closed. Thanks.\n\n"
             "**Note:** Please delete this message before submitting."
             ).format(__trouble_url__)
@@ -2440,11 +2440,11 @@ class MainWindow(QMainWindow):
 
 ## Key Versions
 
-* Spyder: {spyder_version} `{commit}`
-* Python: {python_version}
-* Qt: {qt_version}
-* Qt API: {qt_api_name} {qt_api_version}
-* Operating System: {os_name} {os_version}
+* Spyder {spyder_version} `{commit}`
+* Python {python_version}
+* Qt {qt_version}
+* {qt_api_name} {qt_api_version}
+* {os_name} {os_version}
 
 ## Dependencies
 
