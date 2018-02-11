@@ -13,11 +13,13 @@ from textwrap import dedent
 
 import cloudpickle
 from flaky import flaky
+import ipykernel
 from pygments.token import Name
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
+import zmq
 
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
@@ -35,7 +37,6 @@ from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 # Constants
 #==============================================================================
 SHELL_TIMEOUT = 20000
-PYQT_WHEEL = PYQT_VERSION > '5.6'
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 
@@ -112,6 +113,8 @@ def ipyconsole(request):
 @pytest.mark.auto_backend
 @pytest.mark.skipif(os.name == 'nt' or PYQT4,
                     reason="It times out sometimes on Windows and it's not needed in PyQt4")
+@pytest.mark.xfail(zmq.__version__ >= '17.0.0' and ipykernel.__version__ <= "4.8.1",
+                   reason="A bug with pyzmq 17 and ipykernel 4.8.1")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend is working correctly."""
     # Wait until the window is fully up
