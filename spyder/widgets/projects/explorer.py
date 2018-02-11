@@ -261,13 +261,16 @@ class ProjectExplorerWidget(QWidget):
 # Tests
 #==============================================================================
 class ProjectExplorerTest(QWidget):
-    def __init__(self):
+    def __init__(self, directory=None):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
 
         self.explorer = ProjectExplorerWidget(None, show_all=True)
-        self.explorer.setup_project(osp.dirname(osp.abspath(__file__)))
+        if directory:
+            self.explorer.setup_project(directory)
+        else:
+            self.explorer.setup_project(osp.dirname(osp.abspath(__file__)))
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()
