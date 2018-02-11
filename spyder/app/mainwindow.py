@@ -283,6 +283,7 @@ class MainWindow(QMainWindow):
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
         self.open_project = options.open_project
+        self.window_title = options.window_title
 
         self.debug_print("Start of MainWindow constructor")
 
@@ -450,26 +451,12 @@ class MainWindow(QMainWindow):
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
 
-
-        # Set Window title and icon
-        if DEV is not None:
-            title = "Spyder %s (Python %s.%s)" % (__version__,
-                                                  sys.version_info[0],
-                                                  sys.version_info[1])
-        else:
-            title = "Spyder (Python %s.%s)" % (sys.version_info[0],
-                                               sys.version_info[1])
-        if DEBUG:
-            title += " [DEBUG MODE %d]" % DEBUG
-        if options.window_title is not None:
-            title += ' -- ' + options.window_title
-
         if PYTEST:
             # Show errors in internal console when testing.
             CONF.set('main', 'show_internal_errors', False)
 
-        self.base_title = title
-        self.update_window_title()
+        # Set window title
+        self.set_window_title()
 
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
@@ -1303,15 +1290,30 @@ class MainWindow(QMainWindow):
 
         self.is_setting_up = False
 
-    def update_window_title(self):
-        """Update window title based on projects."""
-        title = self.base_title
+    def set_window_title(self):
+        """Set window title."""
+        if DEV is not None:
+            title = u"Spyder %s (Python %s.%s)" % (__version__,
+                                                   sys.version_info[0],
+                                                   sys.version_info[1])
+        else:
+            title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
+                                                sys.version_info[1])
+
+        if DEBUG:
+            title += u" [DEBUG MODE %d]" % DEBUG
+
+        if self.window_title is not None:
+            title += u' -- ' + to_text_string(self.window_title)
+
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
-                path = path.replace(get_home_dir(), '~')
+                path = path.replace(get_home_dir(), u'~')
                 title = u'{0} - {1}'.format(path, title)
-        self.setWindowTitle(title)
+
+        self.base_title = title
+        self.setWindowTitle(self.base_title)
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
