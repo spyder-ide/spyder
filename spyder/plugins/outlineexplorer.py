@@ -26,13 +26,12 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'outline_explorer'
     sig_option_changed = Signal(str, object)
     
-    def __init__(self, parent=None, fullpath_sorting=True):
+    def __init__(self, parent=None):
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
         show_comments = self.get_option('show_comments')
         OutlineExplorerWidget.__init__(self, parent=parent,
                                        show_fullpath=show_fullpath,
-                                       fullpath_sorting=fullpath_sorting,
                                        show_all_files=show_all_files,
                                        show_comments=show_comments)
         SpyderPluginMixin.__init__(self, parent)
