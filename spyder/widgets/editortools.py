@@ -180,10 +180,9 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
         print("unable to remove tree item: ", debug, file=STDOUT)
 
 class OutlineExplorerTreeWidget(OneColumnTree):
-    def __init__(self, parent, show_fullpath=False, fullpath_sorting=True,
+    def __init__(self, parent, show_fullpath=False,
                  show_all_files=True, show_comments=True):
         self.show_fullpath = show_fullpath
-        self.fullpath_sorting = fullpath_sorting
         self.show_all_files = show_all_files
         self.show_comments = show_comments
         OneColumnTree.__init__(self, parent)
@@ -241,10 +240,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def toggle_show_comments(self, state):
         self.show_comments = state
         self.update_all()
-            
-    def set_fullpath_sorting(self, state):
-        self.fullpath_sorting = state
-        self.__sort_toplevel_items()
 
     @Slot()
     def go_to_cursor_position(self):
@@ -323,10 +318,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     pass
         
     def __sort_toplevel_items(self):
-        if self.fullpath_sorting:
-            sort_func = lambda item: osp.dirname(item.path.lower())
-        else:
-            sort_func = lambda item: osp.basename(item.path.lower())
+        sort_func = lambda item: osp.basename(item.path.lower())
         self.sort_top_level_items(key=sort_func)
             
     def populate_branch(self, editor, root_item, tree_cache=None):
@@ -495,13 +487,12 @@ class OutlineExplorerWidget(QWidget):
     edit = Signal(str)
     outlineexplorer_is_visible = Signal()
     
-    def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
+    def __init__(self, parent=None, show_fullpath=True,
                  show_all_files=True, show_comments=True):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(self,
                                             show_fullpath=show_fullpath,
-                                            fullpath_sorting=fullpath_sorting,
                                             show_all_files=show_all_files,
                                             show_comments=show_comments)
 
@@ -558,7 +549,6 @@ class OutlineExplorerWidget(QWidget):
     def get_options(self):
         """
         Return outline explorer options
-        except for fullpath sorting option which is more global
         """
         return dict(show_fullpath=self.treewidget.show_fullpath,
                     show_all_files=self.treewidget.show_all_files,
@@ -569,9 +559,6 @@ class OutlineExplorerWidget(QWidget):
     
     def update(self):
         self.treewidget.update_all()
-
-    def set_fullpath_sorting(self, state):
-        self.treewidget.set_fullpath_sorting(state)
 
     def file_renamed(self, editor, new_filename):
         self.treewidget.file_renamed(editor, new_filename)
