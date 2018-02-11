@@ -635,13 +635,13 @@ def test_run_cython_code(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
-def test_open_notebooks_from_project_explorer(main_window, qtbot):
+def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
-    project_dir = tempfile.mkdtemp()
+    project_dir = to_text_string(tmpdir.mkdir('test'))
 
     # Create an empty notebook in the project dir
     nb = osp.join(LOCATION, 'notebook.ipynb')
