@@ -160,7 +160,7 @@ class SpyderErrorDialog(QDialog):
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox()
-        self.dismiss_box.setText(_("Don't show again during this session"))
+        self.dismiss_box.setText(_("Hide all future errors this session"))
 
         # Labels layout
         labels_layout = QHBoxLayout()
@@ -211,10 +211,8 @@ class SpyderErrorDialog(QDialog):
         QApplication.clipboard().setText(issue_text)
 
         # Submit issue to Github
-        issue_body = ("<!--- "
-                      "Please paste the contents of your clipboard "
-                      "below to complete reporting your problem. "
-                      "--->\n\n")
+        issue_body = ("<!--- IMPORTANT: Paste the contents of your clipboard "
+                      "here to complete reporting the problem. --->\n\n")
         main.report_issue(body=issue_body,
                           title="Automatic error report")
 
@@ -244,7 +242,7 @@ class SpyderErrorDialog(QDialog):
                 u"{} {}".format(MIN_CHARS - chars,
                                 _("more characters to go...")))
         else:
-            self.chars_label.setText(_("Ready to submit! Thanks!"))
+            self.chars_label.setText(_("Submission enabled; thanks!"))
         self.submit_btn.setEnabled(chars >= MIN_CHARS)
 
 

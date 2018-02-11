@@ -32,7 +32,7 @@ def test_dialog(qtbot):
     # Assert Submit button is disabled at first
     assert not dlg.submit_btn.isEnabled()
 
-    # Introduce 15 chars to input_description
+    # Introduce MIN_CHARS to input_description
     qtbot.keyClicks(dlg.input_description, text)
 
     # Assert Submit button is now enabled
