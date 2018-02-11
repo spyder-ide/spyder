@@ -16,6 +16,9 @@ from qtpy.QtCore import Qt
 from spyder.widgets.reporterror import MIN_CHARS, SpyderErrorDialog
 
 
+# =============================================================================
+# Fixtures
+# =============================================================================
 @pytest.fixture
 def setup_dialog(qtbot):
     """Set up error report dialog."""
@@ -24,6 +27,9 @@ def setup_dialog(qtbot):
     return widget
 
 
+# =============================================================================
+# Tests
+# =============================================================================
 def test_dialog(qtbot):
     """Test that error report dialog UI behaves properly."""
     dlg = setup_dialog(qtbot)

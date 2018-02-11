@@ -10,6 +10,7 @@
 Tests for the main window
 """
 
+# Standard library imports
 import os
 import os.path as osp
 import shutil
@@ -19,6 +20,7 @@ try:
 except ImportError:
     from mock import Mock, MagicMock  # Python 2
 
+# Third party imports
 from flaky import flaky
 from jupyter_client.manager import KernelManager
 import numpy as np
@@ -29,6 +31,7 @@ from qtpy.QtCore import Qt, QTimer, QEvent
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 
+# Local imports
 from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
@@ -69,6 +72,7 @@ EVAL_TIMEOUT = 3000
 
 # Temporary directory
 TEMP_DIRECTORY = tempfile.gettempdir()
+
 
 # =============================================================================
 # Utility functions
@@ -1322,7 +1326,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     assert help_pane_menuitem.isChecked()
 
 
-def test_report_issue_clipboard_and_url(monkeypatch):
+def test_report_issue_url(monkeypatch):
     """Test that report_issue sends the data, and to correct url."""
     MockMainWindow = MagicMock(spec=MainWindow)
     mockMainWindow_instance = MockMainWindow()
