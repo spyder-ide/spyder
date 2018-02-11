@@ -29,7 +29,7 @@ from qtpy.QtCore import Qt, QTimer, QEvent
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 
-from spyder import __trouble_url__
+from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir
@@ -1320,6 +1320,44 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     assert help_index == help_tabbar.currentIndex()
     assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
+
+
+def test_report_issue_clipboard_and_url(monkeypatch):
+    """Test that report_issue send the issue to correct url."""
+    MockMainWindow = MagicMock(spec=MainWindow)
+    mockMainWindow_instance = MockMainWindow()
+    mockMainWindow_instance.__class__ = MainWindow
+    mockMainWindow_instance.render_issue.return_value = "Auto-generated text."
+
+    MockQDesktopServices = Mock()
+    mockQDesktopServices_instance = MockQDesktopServices()
+    attr_to_patch = ('spyder.app.mainwindow.QDesktopServices')
+    monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
+
+    body = 'This is an example error report body text.'
+    title = 'Uncreative issue title here'
+
+    # Test when body=None, i.e. when Help > Report Issue is chosen
+    MainWindow.report_issue(mockMainWindow_instance, body=None, title=None)
+    mockQDesktopServices_instance.openUrl.called_once_with(__project_url__ +
+                                                           '/issues/new')
+    assert MockQDesktopServices.openUrl.call_count == 1
+
+    MainWindow.report_issue(mockMainWindow_instance, body=None, title=title)
+    mockQDesktopServices_instance.openUrl.called_once_with(__project_url__ +
+                                                           '/issues/new')
+    assert MockQDesktopServices.openUrl.call_count == 2
+
+    # Test when body != None, i.e. when auto-submitting error to Github
+    MainWindow.report_issue(mockMainWindow_instance, body=body, title=None)
+    mockQDesktopServices_instance.openUrl.called_with(__project_url__ +
+                                                      '/issues/new')
+    assert MockQDesktopServices.openUrl.call_count == 3
+
+    MainWindow.report_issue(mockMainWindow_instance, body=body, title=title)
+    mockQDesktopServices_instance.openUrl.called_with(__project_url__ +
+                                                      '/issues/new')
+    assert MockQDesktopServices.openUrl.call_count == 4
 
 
 if __name__ == "__main__":
