@@ -206,6 +206,30 @@ def test_calltip(main_window, qtbot):
 
 
 @pytest.mark.slow
+def test_window_title(main_window, tmpdir):
+    """Test window title with non-ascii characters."""
+    projects = main_window.projects
+
+    # Create a project in non-ascii path
+    path = to_text_string(tmpdir.mkdir(u'測試'))
+    projects.open_project(path=path)
+
+    # Set non-ascii window title
+    main_window.window_title = u'اختبار'
+
+    # Assert window title is computed without errors
+    # and has the expected strings
+    main_window.set_window_title()
+    title = main_window.base_title
+    assert u'Spyder' in title
+    assert u'Python' in title
+    assert u'اختبار' in title
+    assert u'測試' in title
+    assert not u'~' in title
+
+    projects.close_project()
+
+@pytest.mark.slow
 @pytest.mark.single_instance
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and for %edit magic."""
