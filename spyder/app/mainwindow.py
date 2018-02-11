@@ -1304,13 +1304,13 @@ class MainWindow(QMainWindow):
         self.is_setting_up = False
 
     def update_window_title(self):
-        """Update main spyder window title based on projects."""
+        """Update window title based on projects."""
         title = self.base_title
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
                 path = path.replace(get_home_dir(), '~')
-                title = '{0} - {1}'.format(path, title)
+                title = u'{0} - {1}'.format(path, title)
         self.setWindowTitle(title)
 
     def report_missing_dependencies(self):
