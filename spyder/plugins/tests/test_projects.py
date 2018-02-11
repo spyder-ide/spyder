@@ -14,8 +14,8 @@ Tests for the Projects plugin.
 import pytest
 
 # Local imports
-from spyder.utils import encoding
 from spyder.plugins.projects import Projects
+from spyder.py3compat import to_text_string
 
 
 # =============================================================================
@@ -36,7 +36,7 @@ def projects(qtbot):
 def test_open_project(projects, tmpdir, test_directory):
     """Test that we can create a project in a given directory."""
     # Create the directory
-    path = str(tmpdir.mkdir(test_directory))
+    path = to_text_string(tmpdir.mkdir(test_directory))
 
     # Open project in path
     projects.open_project(path=path)
