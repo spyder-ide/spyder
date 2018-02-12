@@ -68,8 +68,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
         self.editor = None
         self.workingdirectory = None
-        self.ipyconsole = None
 
+        # For testing
         self.testing = testing
 
         # Initialize plugin
@@ -128,7 +128,6 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.editor = self.main.editor
         self.workingdirectory = self.main.workingdirectory
-        self.ipyconsole = self.main.ipyconsole
 
         self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
@@ -409,8 +408,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        if self.ipyconsole is not None:
-            self.ipyconsole.restart()
+        if not self.testing and self.main.ipyconsole is not None:
+            self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):
         """Check if a directory is a valid Spyder project"""
