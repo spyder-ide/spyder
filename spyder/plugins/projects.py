@@ -38,7 +38,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'project_explorer'
 
     open_interpreter = Signal(str)
-    pythonpath_changed = Signal()
+    sig_pythonpath_changed = Signal()
 
     # File operations
     create_module = Signal(str)
@@ -133,7 +133,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
-        self.pythonpath_changed.connect(self.main.pythonpath_changed)
+        self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
         self.create_module.connect(self.editor.new)
         self.edit.connect(self.editor.load)
         self.removed.connect(self.editor.removed)
@@ -232,7 +232,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             pass
             if active_project is None:
                 self.show_explorer()
-            self.pythonpath_changed.emit()
+            self.sig_pythonpath_changed.emit()
             self.restart_consoles()
 
     def _create_project(self, path):
@@ -279,7 +279,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         if not self.testing:
             self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
-        self.pythonpath_changed.emit()
+        self.sig_pythonpath_changed.emit()
 
         if restart_consoles:
             self.restart_consoles()
@@ -298,7 +298,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                 self.setup_menu_actions()
 
             self.sig_project_closed.emit(path)
-            self.pythonpath_changed.emit()
+            self.sig_pythonpath_changed.emit()
 
             if self.dockwidget is not None:
                 self.dockwidget.close()
