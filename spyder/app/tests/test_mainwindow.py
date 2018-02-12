@@ -225,7 +225,6 @@ def test_window_title(main_window, tmpdir):
     assert u'Python' in title
     assert u'اختبار' in title
     assert u'測試' in title
-    assert not u'~' in title
 
     projects.close_project()
 
