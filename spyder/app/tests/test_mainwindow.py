@@ -1370,5 +1370,28 @@ def test_report_issue_url(monkeypatch):
     mockQDesktopServices_instance.openUrl.called_with(target_url)
 
 
+def test_render_issue():
+    """Test that render issue works without errors and returns text."""
+    test_description = "This is a test description"
+    test_traceback = "An error occured. Oh no!"
+
+    MockMainWindow = MagicMock(spec=MainWindow)
+    mockMainWindow_instance = MockMainWindow()
+    mockMainWindow_instance.__class__ = MainWindow
+
+    # Test when description and traceback are not provided
+    test_issue_1 = MainWindow.render_issue(mockMainWindow_instance)
+    assert type(test_issue_1) == str
+    assert len(test_issue_1) > 100
+
+    # Test when description and traceback are provided
+    test_issue_2 = MainWindow.render_issue(mockMainWindow_instance,
+                                           test_description, test_traceback)
+    assert type(test_issue_2) == str
+    assert len(test_issue_2) > 100
+    assert test_description in test_issue_2
+    assert test_traceback in test_issue_2
+
+
 if __name__ == "__main__":
     pytest.main()
