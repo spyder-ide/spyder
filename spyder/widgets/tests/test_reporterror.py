@@ -67,7 +67,7 @@ def test_dialog(qtbot):
     # Assert chars label works as expected
     assert dlg.chars_label.text() == '{} more characters to go...'.format(MIN_CHARS)
     qtbot.keyClicks(dlg.input_description, text)
-    assert dlg.chars_label.text() == 'Ready to submit! Thanks!'
+    assert dlg.chars_label.text() == 'Submission enabled; thanks!'
 
 
 if __name__ == "__main__":
