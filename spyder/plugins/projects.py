@@ -293,10 +293,16 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             path = self.current_active_project.root_path
             self.current_active_project = None
             self.set_option('current_project_path', None)
-            self.setup_menu_actions()
+
+            if not self.testing:
+                self.setup_menu_actions()
+
             self.sig_project_closed.emit(path)
             self.pythonpath_changed.emit()
-            self.dockwidget.close()
+
+            if self.dockwidget is not None:
+                self.dockwidget.close()
+
             self.clear()
             self.restart_consoles()
 

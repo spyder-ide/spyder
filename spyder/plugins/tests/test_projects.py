@@ -44,6 +44,8 @@ def test_open_project(projects, tmpdir, test_directory):
     # Verify that we created a valid project
     assert projects.is_valid_project(path)
 
+    # Close project
+    projects.close_project()
 
 if __name__ == "__main__":
     pytest.main()
