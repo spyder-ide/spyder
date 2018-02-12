@@ -2493,11 +2493,13 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def trouble_guide(self):
+        """Open Spyder troubleshooting guide in a web browser"""
         url = QUrl(__trouble_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
     def google_group(self):
+        """Open Spyder troubleshooting guide in a web browser"""
         url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
