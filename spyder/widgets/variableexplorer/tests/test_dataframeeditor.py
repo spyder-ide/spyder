@@ -414,9 +414,7 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None and
-                    platform.startswith('linux'),
-                    reason="Fails on some Linux platforms locally.")
+@pytest.mark.no_xvfb
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     """Test #6114: Entry of an overflow int is caught and handled properly"""
     MockQMessageBox = Mock()
@@ -480,6 +478,7 @@ def test_dataframemodel_set_data_complex(monkeypatch):
 
 
 @flaky(max_runs=3)
+@pytest.mark.no_xvfb
 def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
     """Test for #6115: editing complex dtypes raises error in df editor"""
     MockQMessageBox = Mock()
@@ -540,6 +539,7 @@ def test_dataframemodel_set_data_bool(monkeypatch):
 
 
 @flaky(max_runs=3)
+@pytest.mark.no_xvfb
 def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
     """Test that bools are editible in df and false-y strs are detected"""
     MockQMessageBox = Mock()

@@ -18,9 +18,6 @@ import pytest
 # To activate/deactivate certain things for pytest's only
 os.environ['SPYDER_PYTEST'] = 'True'
 
-# Tests expect English as the interface language
-os.environ['LANG'] = 'en'
-
 # Remove temp conf_dir before starting the tests
 from spyder.config.base import get_conf_path
 conf_dir = get_conf_path()
