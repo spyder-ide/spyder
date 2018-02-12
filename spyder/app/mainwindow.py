@@ -2571,10 +2571,9 @@ class MainWindow(QMainWindow):
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
-        sys_path = sys.path
-        for path in self.path:
-            while path in sys_path:
-                sys_path.remove(path)
+        for path in self.path + self.project_path:
+            while path in sys.path:
+                sys.path.remove(path)
 
     @Slot()
     def path_manager_callback(self):
