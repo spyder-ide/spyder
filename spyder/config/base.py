@@ -292,6 +292,10 @@ def get_interface_language():
     except ValueError:
         locale_language = DEFAULT_LANGUAGE
 
+    # Tests expect English as the interface language
+    if PYTEST:
+        locale_language = DEFAULT_LANGUAGE
+
     language = DEFAULT_LANGUAGE
 
     if locale_language is not None:
