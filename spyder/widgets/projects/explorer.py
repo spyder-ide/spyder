@@ -169,6 +169,7 @@ class ExplorerTreeWidget(FilteredDirView):
 
 class ProjectExplorerWidget(QWidget):
     """Project Explorer"""
+    redirect_stdio = Signal(bool)
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
 
@@ -266,7 +267,7 @@ class ProjectExplorerTest(QWidget):
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
 
-        self.explorer = ProjectExplorerWidget(None, show_all=True)
+        self.explorer = ProjectExplorerWidget(parent=self, show_all=True)
         if directory:
             self.explorer.setup_project(directory)
         else:
