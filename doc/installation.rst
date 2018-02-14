@@ -187,7 +187,7 @@ The requirements to run Spyder are:
 Optional modules
 ~~~~~~~~~~~~~~~~
 
-* `Matplotlib <http://matplotlib.sourceforge.net/>`_ >=1.0 -- for 2D and 3D plotting
+* `Matplotlib <https://matplotlib.org/>`_ >=1.0 -- for 2D and 3D plotting
   in the consoles.
 
 * `Pandas <http://pandas.pydata.org/>`_ >=0.13.1 -- for view and editing DataFrames
