@@ -694,14 +694,18 @@ class DirView(QTreeView):
             self.rename_file(fname)
 
     @Slot()
-    def move(self, fnames=None):
+    def move(self, fnames=None, directory=None):
         """Move files/directories"""
         if fnames is None:
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
             self.parent_widget.redirect_stdio.emit(False)
-            folder = getexistingdirectory(self, _("Select directory"), orig)
+            if directory is None:
+                folder = getexistingdirectory(self, _("Select directory"),
+                                              orig)
+            else:
+                folder = directory
             self.parent_widget.redirect_stdio.emit(True)
             if folder:
                 folder = fixpath(folder)
