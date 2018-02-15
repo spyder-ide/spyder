@@ -40,7 +40,7 @@ def test_change_directory_in_project_explorer(project_explorer, qtbot):
     project_dir = project.directory
 
     # Create a temp project directory and file
-    project_dir_tmp = osp.join(project_dir, 'tmpá')
+    project_dir_tmp = osp.join(project_dir, u'測試')
     project_file = osp.join(project_dir, 'script.py')
 
     # Create an empty file in the project dir
