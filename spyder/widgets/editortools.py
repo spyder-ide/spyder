@@ -13,7 +13,7 @@ import re
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
 
 # Local imports
@@ -179,6 +179,7 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
         #XXX: remove this debug-related fragment of code
         print("unable to remove tree item: ", debug, file=STDOUT)
 
+
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False,
                  show_all_files=True, show_comments=True):
@@ -322,6 +323,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sort_top_level_items(key=sort_func)
             
     def populate_branch(self, editor, root_item, tree_cache=None):
+        """
+        Generates an outline of the editor's content and stores the result
+        in a cache.
+        """
         if tree_cache is None:
             tree_cache = {}
         
@@ -342,10 +347,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
             data = oe_data.get(block_nb)
-            if data is None:
-                level = None
-            else:
-                level = data.fold_level
+            level = None if data is None else data.fold_level
             citem, clevel, _d = tree_cache.get(line_nb, (None, None, ""))
             
             # Skip iteration if line is not the first line of a foldable block
@@ -364,7 +366,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         if citem is not None:
                             remove_from_tree_cache(tree_cache, line=line_nb)
                         continue
-                
+
+            # Skip iteration for if/else/try/for/etc foldable blocks.
+            if not_class_nor_function and not data.is_comment():
+                if citem is not None:
+                    remove_from_tree_cache(tree_cache, line=line_nb)
+                continue
+
             if previous_level is not None:
                 if level == previous_level:
                     pass
@@ -382,8 +390,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 cname = to_text_string(citem.text(0))
                 
             preceding = root_item if previous_item is None else previous_item
-            if not_class_nor_function:
-                if data.is_comment() and not self.show_comments:
+            if not_class_nor_function and data.is_comment():
+                if not self.show_comments:
                     if citem is not None:
                         remove_from_tree_cache(tree_cache, line=line_nb)
                     continue
@@ -394,14 +402,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-                if data.is_comment():
-                    if data.def_type == data.CELL:
-                        item = CellItem(data.text, line_nb, parent, preceding)
-                    else:
-                        item = CommentItem(
-                            data.text, line_nb, parent, preceding)
+                if data.def_type == data.CELL:
+                    item = CellItem(data.text, line_nb, parent, preceding)
                 else:
-                    item = TreeItem(data.text, line_nb, parent, preceding)
+                    item = CommentItem(data.text, line_nb, parent, preceding)
             elif class_name is not None:
                 if citem is not None:
                     if class_name == cname and level == clevel:
@@ -485,10 +489,10 @@ class OutlineExplorerWidget(QWidget):
     """Class browser"""
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
-    outlineexplorer_is_visible = Signal()
+    is_visible = Signal()
     
     def __init__(self, parent=None, show_fullpath=True,
-                 show_all_files=True, show_comments=True):
+                 show_all_files=True, show_comments=True, options_button=None):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(self,
@@ -503,9 +507,13 @@ class OutlineExplorerWidget(QWidget):
         self.visibility_action.setChecked(True)
         
         btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
         for btn in self.setup_buttons():
+            btn.setAutoRaise(True)
+            btn.setIconSize(QSize(16, 16))
             btn_layout.addWidget(btn)
+        if options_button:
+            btn_layout.addStretch()
+            btn_layout.addWidget(options_button, Qt.AlignRight)
 
         layout = create_plugin_layout(btn_layout, self.treewidget)
         self.setLayout(layout)
@@ -518,7 +526,7 @@ class OutlineExplorerWidget(QWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             if state:
-                self.outlineexplorer_is_visible.emit()
+                self.is_visible.emit()
 
     def setup_buttons(self):
         """Setup the buttons of the outline explorer widget toolbar."""

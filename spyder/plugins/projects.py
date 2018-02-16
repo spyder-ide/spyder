@@ -17,12 +17,12 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QMenu, QMessageBox
+from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.plugins import SpyderPluginMixin
-from spyder.py3compat import is_text_string
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
@@ -32,35 +32,29 @@ from spyder.widgets.projects.projectdialog import ProjectDialog
 from spyder.widgets.projects import EmptyProject
 
 
-class Projects(ProjectExplorerWidget, SpyderPluginMixin):
-    """Projects plugin"""
+class Projects(SpyderPluginWidget):
+    """Projects plugin."""
 
     CONF_SECTION = 'project_explorer'
-
-    open_interpreter = Signal(str)
     sig_pythonpath_changed = Signal()
-
-    # File operations
-    create_module = Signal(str)
-    edit = Signal(str)
-    removed = Signal(str)
-    removed_tree = Signal(str)
-    renamed = Signal(str, str)
-    redirect_stdio = Signal(bool)
-    run = Signal(str)
-
-    # Project handling
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
-    sig_new_file = Signal(str)
 
     def __init__(self, parent=None, testing=False):
-        ProjectExplorerWidget.__init__(self, parent=parent,
-                    name_filters=self.get_option('name_filters'),
-                    show_all=self.get_option('show_all'),
-                    show_hscrollbar=self.get_option('show_hscrollbar'))
-        SpyderPluginMixin.__init__(self, parent)
+        """Initialization."""
+        SpyderPluginWidget.__init__(self, parent)
+
+        self.explorer = ProjectExplorerWidget(
+                            self,
+                            name_filters=self.get_option('name_filters'),
+                            show_all=self.get_option('show_all'),
+                            show_hscrollbar=self.get_option('show_hscrollbar'),
+                            options_button=self.options_button)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.explorer)
+        self.setLayout(layout)
 
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
@@ -75,7 +69,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         # Initialize plugin
         if not self.testing:
             self.initialize_plugin()
-        self.setup_project(self.get_active_project_path())
+        self.explorer.setup_project(self.get_active_project_path())
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -87,7 +81,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.treewidget
+        return self.explorer.treewidget
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -102,7 +96,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                     triggered=self.close_project)
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
-                                    triggered=self.delete_project)
+                                    triggered=self.explorer.delete_project)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -110,7 +104,6 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             create_action(self, _("Project Preferences"),
                           triggered=self.edit_project_preferences)
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
-        explorer_action = self.toggle_view_action
 
         self.main.projects_menu_actions += [self.new_project_action,
                                             MENU_SEPARATOR,
@@ -119,7 +112,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                             self.delete_project_action,
                                             MENU_SEPARATOR,
                                             self.recent_project_menu,
-                                            explorer_action]
+                                            self.toggle_view_action]
 
         self.setup_menu_actions()
         return []
@@ -128,22 +121,27 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.editor = self.main.editor
         self.workingdirectory = self.main.workingdirectory
+        ipyconsole = self.main.ipyconsole
+        treewidget = self.explorer.treewidget
 
-        self.main.pythonpath_changed()
-        self.main.restore_scrollbar_position.connect(
-                                               self.restore_scrollbar_position)
-        self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
-        self.create_module.connect(self.editor.new)
-        self.edit.connect(self.editor.load)
-        self.removed.connect(self.editor.removed)
-        self.removed_tree.connect(self.editor.removed_tree)
-        self.renamed.connect(self.editor.renamed)
-        self.editor.set_projects(self)
         self.main.add_dockwidget(self)
+        self.explorer.sig_open_file.connect(self.main.open_file)
 
-        self.sig_open_file.connect(self.main.open_file)
-
-        self.sig_new_file.connect(lambda x: self.editor.new(text=x))
+        treewidget.sig_edit.connect(self.editor.load)
+        treewidget.sig_removed.connect(self.editor.removed)
+        treewidget.sig_removed_tree.connect(self.editor.removed_tree)
+        treewidget.sig_renamed.connect(self.editor.renamed)
+        treewidget.sig_create_module.connect(self.editor.new)
+        treewidget.sig_new_file.connect(
+            lambda t: self.main.editor.new(text=t))
+        treewidget.sig_open_interpreter.connect(
+            ipyconsole.create_client_from_path)
+        treewidget.redirect_stdio.connect(
+            self.main.redirect_internalshell_stdio)
+        treewidget.sig_run.connect(
+            lambda fname:
+            ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
+                                  False, True))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
@@ -161,6 +159,12 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             lambda v: self.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
+        self.main.pythonpath_changed()
+        self.main.restore_scrollbar_position.connect(
+                                               self.restore_scrollbar_position)
+        self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
+        self.editor.set_projects(self)
+
     def refresh_plugin(self):
         """Refresh project explorer widget"""
         pass
@@ -168,7 +172,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
-        self.closing_widget()
+        self.explorer.closing_widget()
         return True
 
     #------ Public API ---------------------------------------------------------
@@ -302,7 +306,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             if self.dockwidget is not None:
                 self.dockwidget.close()
 
-            self.clear()
+            self.explorer.clear()
             self.restart_consoles()
 
             if self.editor is not None:
@@ -373,9 +377,10 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""
         self.set_option('recent_projects', self.recent_projects)
-        self.set_option('expanded_state', self.treewidget.get_expanded_state())
+        self.set_option('expanded_state',
+                        self.explorer.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
-                        self.treewidget.get_scrollbar_position())
+                        self.explorer.treewidget.get_scrollbar_position())
 
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
@@ -386,17 +391,17 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         if is_text_string(expanded_state):
             expanded_state = None
         if expanded_state is not None:
-            self.treewidget.set_expanded_state(expanded_state)
+            self.explorer.treewidget.set_expanded_state(expanded_state)
 
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = self.get_option('scrollbar_position', None)
         if scrollbar_pos is not None:
-            self.treewidget.set_scrollbar_position(scrollbar_pos)
+            self.explorer.treewidget.set_scrollbar_position(scrollbar_pos)
 
     def update_explorer(self):
         """Update explorer tree"""
-        self.setup_project(self.get_active_project_path())
+        self.explorer.setup_project(self.get_active_project_path())
 
     def show_explorer(self):
         """Show the explorer"""

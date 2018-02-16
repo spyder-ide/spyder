@@ -65,7 +65,7 @@ class ProfilerWidget(QWidget):
     VERSION = '0.0.1'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100):
+    def __init__(self, parent, max_entries=100, options_button=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Profiler")
@@ -139,6 +139,8 @@ class ProfilerWidget(QWidget):
         hlayout1.addWidget(browse_button)
         hlayout1.addWidget(self.start_button)
         hlayout1.addWidget(self.stop_button)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addWidget(self.collapse_button)
@@ -426,8 +428,12 @@ class ProfilerDataTree(QTreeWidget):
     [4] = A dictionary indicating for each function name, the number of times
           it was called by us.
     """
+
+    sig_edit_goto = Signal(str, int, str)
+
     SEP = r"<[=]>"  # separator between filename and linenumber
     # (must be improbable as a filename to avoid splitting the filename itself)
+
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
@@ -685,7 +691,7 @@ class ProfilerDataTree(QTreeWidget):
         
     def item_activated(self, item):
         filename, line_number = self.get_item_data(item)
-        self.parent().edit_goto.emit(filename, line_number, '')
+        self.sig_edit_goto.emit(filename, line_number, '')
             
     def item_expanded(self, item):
         if item.childCount() == 0 and id(item) in self.items_to_be_shown:

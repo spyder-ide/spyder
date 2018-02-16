@@ -7,6 +7,8 @@ Copyright © Spyder Project Contributors.
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
 [![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
+[![OpenCollective Backers](https://opencollective.com/spyder/backers/badge.svg?color=blue)](#backers)
+[![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
 
 
 ## Build status
@@ -16,6 +18,26 @@ Copyright © Spyder Project Contributors.
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
+----
+
+## Important Announcement: Spyder is unfunded!
+
+Since mid November/2017, [Anaconda, Inc](https://www.anaconda.com/) has
+stopped funding Spyder development, after doing it for the past 18
+months. Because of that, development will focus from now on maintaining
+Spyder 3 at a much slower pace than before.
+
+If you want to contribute to maintain Spyder, please consider donating at
+
+https://opencollective.com/spyder
+
+We appreciate all the help you can provide us and can't thank you enough for
+supporting the work of Spyder devs and Spyder development.
+
+If you want to know more about this, please read this
+[page](https://github.com/spyder-ide/spyder/wiki/Anaconda-stopped-funding-Spyder).
+
+----
 
 ## Overview
 
@@ -184,6 +206,20 @@ and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
 for your error message and problem description, as the great majority of bugs
 are either duplicates, or can be fixed on the user side with a few easy steps.
 Thanks!
+
+
+## Backers
+
+Support us with a monthly donation and help us continue our activities.
+
+[![Backers](https://opencollective.com/spyder/backers.svg)](https://opencollective.com/spyder#support)
+
+
+## Sponsors
+
+Become a sponsor to get your logo on our README on Github.
+
+[![Sponsors](https://opencollective.com/spyder/sponsors.svg)](https://opencollective.com/spyder#support)
 
 
 ## More information

@@ -96,6 +96,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
                  external_kernel=False, given_name=None,
+                 options_button=None,
                  show_elapsed_time=False,
                  reset_warning=True):
         super(ClientWidget, self).__init__(plugin)
@@ -113,7 +114,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.reset_warning = reset_warning
 
         # --- Other attrs
-        self.options_button = None
+        self.options_button = options_button
         self.stop_button = None
         self.reset_button = None
         self.stop_icon = ima.icon('stop')

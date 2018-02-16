@@ -14,6 +14,7 @@ from __future__ import print_function
 import keyword
 import os
 import re
+import weakref
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -25,10 +26,10 @@ from qtpy.QtWidgets import QApplication
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.py3compat import builtins, is_text_string, to_text_string
+from spyder.py3compat import builtins, is_text_string, to_text_string, PY3
 from spyder.utils.sourcecode import CELL_LANGUAGES
+from spyder.utils.editor import TextBlockHelper as tbh
 from spyder.utils.workers import WorkerManager
-
 
 PYGMENTS_REQVER = '>=2.0'
 dependencies.add("pygments", _("Syntax highlighting for Matlab, Julia and "
@@ -131,6 +132,8 @@ class BaseSH(QSyntaxHighlighter):
         self.setup_formats(font)
         
         self.cell_separators = None
+        self.fold_detector = None
+        self.editor = None
         
     def get_background_color(self):
         return QColor(self.background_color)
@@ -201,8 +204,43 @@ class BaseSH(QSyntaxHighlighter):
         self.setup_formats()
         self.rehighlight()
 
+    @staticmethod
+    def _find_prev_non_blank_block(current_block):
+        previous_block = (current_block.previous()
+                          if current_block.blockNumber() else None)
+        # find the previous non-blank block
+        while (previous_block and previous_block.blockNumber() and
+               previous_block.text().strip() == ''):
+            previous_block = previous_block.previous()
+        return previous_block
+
     def highlightBlock(self, text):
-        raise NotImplementedError
+        """
+        Highlights a block of text. Please do not override, this method.
+        Instead you should implement
+        :func:`spyder.utils.syntaxhighplighters.SyntaxHighlighter.highlight_block`.
+
+        :param text: text to highlight.
+        """
+        self.highlight_block(text)
+
+        # Process blocks for fold detection
+        current_block = self.currentBlock()
+        previous_block = self._find_prev_non_blank_block(current_block)
+        if self.editor:
+            if self.fold_detector is not None:
+                self.fold_detector._editor = weakref.ref(self.editor)
+                self.fold_detector.process_block(
+                    current_block, previous_block, text)
+
+    def highlight_block(self, text):
+        """
+        Abstract method. Override this to apply syntax highlighting.
+
+        :param text: Line of text to highlight.
+        :param block: current block
+        """
+        raise NotImplementedError()
 
     def highlight_spaces(self, text, offset=0):
         """
@@ -246,7 +284,8 @@ class BaseSH(QSyntaxHighlighter):
 
 class TextSH(BaseSH):
     """Simple Text Syntax Highlighter Class (only highlight spaces)"""
-    def highlightBlock(self, text):
+    def highlight_block(self, text):
+        """Implement highlight, only highlight spaces."""
         self.highlight_spaces(text)
 
 
@@ -254,7 +293,9 @@ class GenericSH(BaseSH):
     """Generic Syntax Highlighter"""
     # Syntax highlighting rules:
     PROG = None  # to be redefined in child classes
-    def highlightBlock(self, text):
+
+    def highlight_block(self, text):
+        """Implement highlight using regex defined in children classes."""
         text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
         
@@ -299,14 +340,20 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                   r"\b[+-]?0[oO][0-7]+[lL]?\b",
                   r"\b[+-]?0[bB][01]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"])
-    sqstring =     r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
-    dqstring =     r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
-    uf_sqstring =  r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$"
-    uf_dqstring =  r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$'
-    sq3string =    r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?"
-    dq3string =    r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
-    uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$"
-    uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$'
+    if PY3:
+        prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
+    else:
+        prefix = "r|u|ur|R|U|UR|Ur|uR|b|B|br|Br|bR|BR"
+    sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
+    dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
+    uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
+    uf_dqstring =  r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$' % prefix
+    sq3string =    r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?" % prefix
+    dq3string =    r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?' % prefix
+    uf_sq3string = r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$" \
+                   % prefix
+    uf_dq3string = r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$' \
+                   % prefix
     string = any("string", [sq3string, dq3string, sqstring, dqstring])
     ufstring1 = any("uf_sqstring", [uf_sqstring])
     ufstring2 = any("uf_dqstring", [uf_dqstring])
@@ -374,9 +421,10 @@ class PythonSH(BaseSH):
         self.found_cell_separators = False
         self.cell_separators = CELL_LANGUAGES['Python']
 
-    def highlightBlock(self, text):
+    def highlight_block(self, text):
+        """Implement specific highlight for Python."""
         text = to_text_string(text)
-        prev_state = self.previousBlockState()
+        prev_state = tbh.get_state(self.currentBlock().previous())
         if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
             text = r'""" '+text
@@ -482,7 +530,7 @@ class PythonSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
         
-        self.setCurrentBlockState(state)
+        tbh.set_state(self.currentBlock(), state)
         
         # Use normal format for indentation and trailing spaces.
         self.formats['leading'] = self.formats['normal']
@@ -509,7 +557,7 @@ class PythonSH(BaseSH):
 #==============================================================================
 # Cython syntax highlighter
 #==============================================================================
-C_TYPES = 'bool char double enum float int long mutable short signed struct unsigned void'
+C_TYPES = 'bool char double enum float int long mutable short signed struct unsigned void NULL'
 
 class CythonSH(PythonSH):
     """Cython Syntax Highlighter"""
@@ -582,9 +630,10 @@ class CppSH(BaseSH):
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
 
-    def highlightBlock(self, text):
+    def highlight_block(self, text):
+        """Implement highlight specific for C/C++."""
         text = to_text_string(text)
-        inside_comment = self.previousBlockState() == self.INSIDE_COMMENT
+        inside_comment = tbh.get_state(self.currentBlock().previous()) == self.INSIDE_COMMENT
         self.setFormat(0, len(text),
                        self.formats["comment" if inside_comment else "normal"])
         
@@ -617,7 +666,7 @@ class CppSH(BaseSH):
         self.highlight_spaces(text)
         
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
-        self.setCurrentBlockState(last_state)
+        tbh.set_state(self.currentBlock(), last_state)
 
 
 def make_opencl_patterns():
@@ -670,7 +719,8 @@ class FortranSH(BaseSH):
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
 
-    def highlightBlock(self, text):
+    def highlight_block(self, text):
+        """Implement highlight specific for Fortran."""
         text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
         
@@ -695,13 +745,14 @@ class FortranSH(BaseSH):
 
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
-    def highlightBlock(self, text):
+    def highlight_block(self, text):
+        """Implement highlight specific for Fortran77."""
         text = to_text_string(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, len(text), self.formats["comment"])
             self.highlight_spaces(text)
         else:
-            FortranSH.highlightBlock(self, text)
+            FortranSH.highlight_block(self, text)
             self.setFormat(0, 5, self.formats["comment"])
             self.setFormat(73, max([73, len(text)]),
                            self.formats["comment"])
@@ -743,7 +794,8 @@ class IdlSH(GenericSH):
 
 class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
-    def highlightBlock(self, text):
+    def highlight_block(self, text):
+        """Implement highlight specific Diff/Patch files."""
         text = to_text_string(text)
         if text.startswith("+++"):
             self.setFormat(0, len(text), self.formats["keyword"])
@@ -844,9 +896,10 @@ class BaseWebSH(BaseSH):
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
     
-    def highlightBlock(self, text):
+    def highlight_block(self, text):
+        """Implement highlight specific for CSS and HTML."""
         text = to_text_string(text)
-        previous_state = self.previousBlockState()
+        previous_state = tbh.get_state(self.currentBlock().previous())
         
         if previous_state == self.COMMENT:
             self.setFormat(0, len(text), self.formats["comment"])
@@ -854,7 +907,7 @@ class BaseWebSH(BaseSH):
             previous_state = self.NORMAL
             self.setFormat(0, len(text), self.formats["normal"])
         
-        self.setCurrentBlockState(previous_state)
+        tbh.set_state(self.currentBlock(), previous_state)
         match = self.PROG.search(text)        
 
         match_count = 0
@@ -867,20 +920,20 @@ class BaseWebSH(BaseSH):
                     start, end = match.span(key)
                     if previous_state == self.COMMENT:
                         if key == "multiline_comment_end":
-                            self.setCurrentBlockState(self.NORMAL)
+                            tbh.set_state(self.currentBlock(), self.NORMAL)
                             self.setFormat(end, len(text),
                                            self.formats["normal"])
                         else:
-                            self.setCurrentBlockState(self.COMMENT)
+                            tbh.set_state(self.currentBlock(), self.COMMENT)
                             self.setFormat(0, len(text),
                                            self.formats["comment"])
                     else:
                         if key == "multiline_comment_start":
-                            self.setCurrentBlockState(self.COMMENT)
+                            tbh.set_state(self.currentBlock(), self.COMMENT)
                             self.setFormat(start, len(text),
                                            self.formats["comment"])
                         else:
-                            self.setCurrentBlockState(self.NORMAL)
+                            tbh.set_state(self.currentBlock(), self.NORMAL)
                             try:
                                 self.setFormat(start, end-start,
                                                self.formats[key])

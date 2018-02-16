@@ -19,7 +19,7 @@ import pytest
 from qtpy.QtCore import QEvent
 
 # Local imports
-from spyder.plugins import TabFilter
+from spyder.widgets.dock import TabFilter
 
 
 # =============================================================================

@@ -85,6 +85,7 @@ COLORS = {
           bool: Qt.magenta,
           tuple([float] + list(INT_TYPES)): Qt.blue,
           list: Qt.yellow,
+          set: Qt.darkGreen,
           dict: Qt.cyan,
           tuple: Qt.lightGray,
           TEXT_TYPES: Qt.darkRed,

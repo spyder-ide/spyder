@@ -11,21 +11,19 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog,
+                            QVBoxLayout, QWidget)
 
 
 # Local imports
 from spyder.utils import encoding
 from spyder.config.base import _
-from spyder.plugins import SpyderPluginWidget
-from spyder.plugins.configdialog import PluginConfigPage
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.api.preferences import PluginConfigPage
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+from spyder.utils.qthelpers import add_actions, create_action
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.sourcecode import codeeditor
 from spyder.widgets.findreplace import FindReplace
@@ -44,6 +42,8 @@ class HistoryConfigPage(PluginConfigPage):
 
         sourcecode_group = QGroupBox(_("Source code"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
+        linenumbers_mode_box = self.create_checkbox(_("Show line numbers"),
+                                                    'line_numbers')
         go_to_eof_box = self.create_checkbox(
                         _("Scroll automatically to last entry"), 'go_to_eof')
 
@@ -53,6 +53,7 @@ class HistoryConfigPage(PluginConfigPage):
 
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_layout.addWidget(linenumbers_mode_box)
         sourcecode_layout.addWidget(go_to_eof_box)
         sourcecode_group.setLayout(sourcecode_layout)
 
@@ -72,23 +73,21 @@ class HistoryLog(SpyderPluginWidget):
     focus_changed = Signal()
     
     def __init__(self, parent):
+        SpyderPluginWidget.__init__(self, parent)
+
         self.tabwidget = None
-        self.menu_actions = None
         self.dockviewer = None
         self.wrap_action = None
+        self.linenumbers_action = None
         
         self.editors = []
         self.filenames = []
-        if PYQT5:        
-            SpyderPluginWidget.__init__(self, parent, main = parent)
-        else:
-            SpyderPluginWidget.__init__(self, parent)
 
-        # Initialize plugin
+        # Initialize plugin actions, toolbutton and general signals
         self.initialize_plugin()
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, self.menu_actions)
+        self.tabwidget = Tabs(self, self.plugin_actions)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.move_data.connect(self.move_tab)
 
@@ -103,13 +102,7 @@ class HistoryLog(SpyderPluginWidget):
             layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
-        options_button = create_toolbutton(self, text=_('Options'),
-                                           icon=ima.icon('tooloptions'))
-        options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, self.menu_actions)
-        options_button.setMenu(menu)
-        self.tabwidget.setCornerWidget(options_button)
+        self.tabwidget.setCornerWidget(self.options_button)
         
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -150,15 +143,20 @@ class HistoryLog(SpyderPluginWidget):
         
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        history_action = create_action(self, _("History..."),
+        self.history_action = create_action(self, _("History..."),
                                        None, ima.icon('history'),
                                        _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked( self.get_option('wrap') )
-        self.menu_actions = [history_action, self.wrap_action]
-        return self.menu_actions
+        self.linenumbers_action = create_action(
+                self, _("Show line numbers"), toggled=self.toggle_line_numbers)
+        self.linenumbers_action.setChecked(self.get_option('line_numbers'))
+
+        menu_actions = [self.history_action, self.wrap_action,
+                        self.linenumbers_action]
+        return menu_actions
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
@@ -187,6 +185,8 @@ class HistoryLog(SpyderPluginWidget):
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
+        linenb_n = 'line_numbers'
+        linenb_o = self.get_option(linenb_n)
         for editor in self.editors:
             if font_n in options:
                 scs = color_scheme_o if color_scheme_n in options else None
@@ -195,7 +195,9 @@ class HistoryLog(SpyderPluginWidget):
                 editor.set_color_scheme(color_scheme_o)
             if wrap_n in options:
                 editor.toggle_wrap_mode(wrap_o)
-        
+            if linenb_n in options:
+                editor.toggle_line_numbers(linenumbers=linenb_o, markers=False)
+
     #------ Private API --------------------------------------------------------
     def move_tab(self, index_from, index_to):
         """
@@ -221,7 +223,8 @@ class HistoryLog(SpyderPluginWidget):
             language = 'py'
         else:
             language = 'bat'
-        editor.setup_editor(linenumbers=False, language=language,
+        editor.setup_editor(linenumbers=self.get_option('line_numbers'),
+                            language=language,
                             scrollflagarea=False)
         editor.focus_changed.connect(lambda: self.focus_changed.emit())
         editor.setReadOnly(True)
@@ -239,7 +242,8 @@ class HistoryLog(SpyderPluginWidget):
         self.find_widget.set_editor(editor)
         self.tabwidget.setTabToolTip(index, filename)
         self.tabwidget.setCurrentIndex(index)
-        
+
+    @Slot(str, str)
     def append_to_history(self, filename, command):
         """
         Append an entry to history filename
@@ -272,3 +276,12 @@ class HistoryLog(SpyderPluginWidget):
         for editor in self.editors:
             editor.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
+
+    @Slot(bool)
+    def toggle_line_numbers(self, checked):
+        """Toggle line numbers."""
+        if self.tabwidget is None:
+            return
+        for editor in self.editors:
+            editor.toggle_line_numbers(linenumbers=checked, markers=False)
+        self.set_option('line_numbers', checked)

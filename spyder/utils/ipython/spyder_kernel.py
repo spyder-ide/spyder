@@ -120,6 +120,7 @@ class SpyderKernel(IPythonKernel):
                 properties[name] = {
                     'is_list':  isinstance(value, (tuple, list)),
                     'is_dict':  isinstance(value, dict),
+                    'is_set': isinstance(value, set),
                     'len': self._get_len(value),
                     'is_array': self._is_array(value),
                     'is_image': self._is_image(value),
