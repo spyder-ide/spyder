@@ -1,28 +1,42 @@
-## Description of your problem
+<!--- **PLEASE READ:** Before submitting here, please carefully consult our *Troubleshooting Guide* at https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ and search the issues page for your error/problem, as most posted bugs are duplicates or easy fixes.
 
-**What steps will reproduce the problem?**
+If you don't find anything, please provide a detailed step-by-step description (in English) of the problem and what led up to it below. Issue reports without a clear way to reproduce them will be closed. Thanks! --->
+
+## Problem Description
+
+
+
+### What steps will reproduce the problem?
 
 1. 
 2. 
 3. 
 
-**What is the expected output? What do you see instead?**
+### What is the expected output? What do you see instead?
 
 
-**Please provide any additional information below**
 
+### Paste Traceback/Error Below (if applicable)
+<!--- Copy from error dialog or View > Panes > Internal Console --->
 
-## Versions and main components
+```python-traceback
 
-* Spyder Version:
-* Python Version:
-* Qt Version:
-* PyQt Version:
-* Operating system:
+PASTE TRACEBACK HERE
 
+```
 
-## Dependencies
+## Package Versions
 
-Please go to the menu entry `Help > Optional Dependencies` (or
-`Help > Dependencies`), press the button `Copy to clipboard`
-and paste the contents below:
+* Spyder:
+* Python:
+* Qt:
+* PyQt:
+* Operating System:
+
+### Dependencies
+<!--- Please go to the menu entry Help > Dependencies,
+press the Copy to clipboard button and paste below --->
+
+```
+PASTE DEPENDENCIES HERE
+```

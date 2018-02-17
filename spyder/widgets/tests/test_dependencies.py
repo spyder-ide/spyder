@@ -31,7 +31,7 @@ def test_dependencies(qtbot):
 
     dlg = setup_dependencies(qtbot)
     dlg.set_data(dependencies.DEPENDENCIES)
-    dlg.show()    
+    dlg.show()
     assert dlg
 
 
