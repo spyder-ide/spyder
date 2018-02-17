@@ -2407,23 +2407,23 @@ class MainWindow(QMainWindow):
 
         # Store and format the reminder message for the troubleshooting guide
         reminder_message = (
-            "**PLEASE READ:** Before submitting here, please carefully "
-            "consult our **Troubleshooting Guide**: <{0}> and search the "
-            "issue page for your error/problem, as most "
-            "posted bugs are duplicates or easy fixes.\n\n"
-            "If you don't find anything, enter a step-by-step description "
-            "(in English) of what led up to the problem; issue reports "
-            "without a clear way to reproduce them will be closed. Thanks.\n\n"
-            "**Note:** Please delete this message before submitting."
+            "<!--- **PLEASE READ:** Before submitting here, please carefully "
+            "consult our *Troubleshooting Guide*: {0!s} and search the "
+            "issues page for your error/problem, as most posted bugs are "
+            "duplicates or easy fixes.\n\n"
+            "If you don't find anything, please provide a detailed step-by-"
+            "step description (in English) of the problem and what led up to "
+            "it below. Issue reports without a clear way to reproduce them "
+            "will be closed. Thanks! --->"
             ).format(__trouble_url__)
 
         # Make a description header in case no description is supplied
         if not description:
-            description = "**What steps will reproduce your problem?**"
+            description = "### What steps will reproduce the problem?"
 
         # Make error section from traceback
         if traceback:
-            error_section = ("## Traceback\n"
+            error_section = ("### Traceback\n"
                              "```python-traceback\n"
                              "{}\n"
                              "```".format(traceback))
@@ -2432,13 +2432,13 @@ class MainWindow(QMainWindow):
         issue_template = """\
 {reminder_message}
 
-## Description of your problem
+## Problem Description
 
 {description}
 
 {error_section}
 
-## Key Versions
+## Package Versions
 
 * Spyder {spyder_version} `{commit}`
 * Python {python_version}
@@ -2446,7 +2446,7 @@ class MainWindow(QMainWindow):
 * {qt_api_name} {qt_api_version}
 * {os_name} {os_version}
 
-## Dependencies
+### Dependencies
 
 ```
 {dependencies}

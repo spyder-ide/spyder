@@ -55,7 +55,7 @@ class DescriptionWidget(CodeEditor):
 
         # Header
         self.header = (
-            "**What steps will reproduce your problem?**\n\n"
+            "### What steps will reproduce the problem?\n\n"
             "<!--- You can use Markdown here --->\n\n")
         self.set_text(self.header)
         self.move_cursor(len(self.header))
@@ -133,7 +133,7 @@ class SpyderErrorDialog(QDialog):
               <b><a href=\"{1!s}\">known bugs</a></b> matching your error 
               message or problem description for a quicker solution.
               <br><br>
-              If you don't find anything, please enter a step-by-step 
+              If you don't find anything, please enter a detailed step-by-step 
               description (in English) of what led up to the problem below. 
               Issue reports without a clear way to reproduce them will be 
               closed.<br><br>
