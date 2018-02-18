@@ -11,8 +11,9 @@ import pytest
 import os
 import os.path as osp
 
-from spyder.utils.introspection.manager import CodeInfo
 from spyder.utils.introspection import jedi_plugin
+from spyder.utils.introspection.jedi_plugin import JEDI_010
+from spyder.utils.introspection.manager import CodeInfo
 
 try:
     import numpydoc
@@ -118,6 +119,8 @@ def test_matplotlib_fig_returns():
     assert ('add_axes', 'function') in completions
 
 
+@pytest.mark.skipif(not JEDI_010,
+                    reason="This feature is only supported in jedi >= 0.10")
 def test_completions_custom_path():
     source_code = dedent('import test_')
     completions = p.get_completions(CodeInfo('completions', source_code,
