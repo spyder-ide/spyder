@@ -116,7 +116,7 @@ class HelpConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.8.1')
+        jedi_installed = programs.is_module_installed('jedi', '>=0.11.0')
         editor_box.setEnabled(rope_installed or jedi_installed)
         if not rope_installed and not jedi_installed:
             editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
@@ -382,7 +382,7 @@ class Help(SpyderPluginWidget):
         self.source_combo.addItems([_("Console"), _("Editor")])
         self.source_combo.currentIndexChanged.connect(self.source_changed)
         if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.8.1')):
+                not programs.is_module_installed('jedi', '>=0.11.0')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)

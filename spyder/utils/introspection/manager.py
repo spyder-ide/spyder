@@ -34,7 +34,7 @@ dependencies.add('rope',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=ROPE_REQVER)
 
-JEDI_REQVER = '>=0.9.0'
+JEDI_REQVER = '>=0.11.0'
 dependencies.add('jedi',
                  _("Editor's code completion, go-to-definition and help"),
                  required_version=JEDI_REQVER)
