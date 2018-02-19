@@ -179,7 +179,7 @@ def main_window(request):
 @pytest.mark.slow
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (not PY2 and PYQT_VERSION < "5.9.0"),
+@pytest.mark.skipif(os.name == 'nt' or not PY2,
                     reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
 @pytest.mark.timeout(timeout=45, method='thread')
 def test_calltip(main_window, qtbot):
@@ -231,6 +231,7 @@ def test_window_title(main_window, tmpdir):
     assert u'測試' in title
 
     projects.close_project()
+
 
 @pytest.mark.slow
 @pytest.mark.single_instance
