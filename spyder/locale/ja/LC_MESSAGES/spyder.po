@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-19 11:56+-05\n"
-"PO-Revision-Date: 2017-12-18 19:05+0900\n"
+"PO-Revision-Date: 2018-02-21 16:33+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
 "Language: ja\n"
@@ -367,7 +367,7 @@ msgstr "メインウインドウを設定中..."
 
 #: spyder/app/mainwindow.py:926
 msgid "Troubleshooting..."
-msgstr ""
+msgstr "トラブルシュート..."
 
 #: spyder/app/mainwindow.py:928
 msgid "Dependencies..."
@@ -542,6 +542,9 @@ msgid ""
 "issue persists, then you must use 'Reset to Spyder default' from the layout "
 "menu."
 msgstr ""
+"カスタムレイアウトを開く時にエラーが発生しました。Spyderを一旦閉じて再試行し"
+"て下さい。この問題が解決しない場合、レイアウトメニューから「Spyderのデフォル"
+"ト値に戻す」を選択して下さい。"
 
 #: spyder/app/mainwindow.py:1922
 msgid "Quick switch layout #%s has not yet been defined."
@@ -1039,7 +1042,7 @@ msgstr "終了時に確認する"
 
 #: spyder/plugins/configdialog.py:833
 msgid "Show internal Spyder errors to report them to Github"
-msgstr ""
+msgstr "GithubにレポートするためにSpyderの内部エラーを表示"
 
 #: spyder/plugins/configdialog.py:852 spyder/plugins/editor.py:114
 #: spyder/plugins/ipythonconsole.py:290
@@ -3030,14 +3033,12 @@ msgid "Run Settings dialog"
 msgstr "設定ダイアログを実行"
 
 #: spyder/plugins/shortcuts.py:65
-#, fuzzy
 msgid "Currently used to delete lines on editor/Cut a word"
-msgstr "エディタで行削除をするために使われています"
+msgstr "現在エディタで行を削除するために使われています"
 
 #: spyder/plugins/shortcuts.py:66
-#, fuzzy
 msgid "Currently used to paste a word"
-msgstr "エディタで行削除をするために使われています"
+msgstr "現在文字の貼り付けに使われています。"
 
 #: spyder/plugins/shortcuts.py:70
 msgid "We cannot support this shortcut on Windows"
@@ -3953,12 +3954,12 @@ msgid "Project"
 msgstr "プロジェクト"
 
 #: spyder/widgets/findinfiles.py:231
-#, fuzzy
 msgid ""
 "Search in all files and directories present on the current project path (if "
 "opened)"
 msgstr ""
-"現在のプロジェクトパス内に存在している全てのファイルとディレクトリを検索"
+"現在のプロジェクトパス内に存在している(open可能な)全てのファイルとディレクト"
+"リを検索"
 
 #: spyder/widgets/findinfiles.py:236
 msgid "File"
@@ -3977,19 +3978,16 @@ msgid "Search in other folder present on the file system"
 msgstr "ファイルシステム上の他フォルダを検索"
 
 #: spyder/widgets/findinfiles.py:247
-#, fuzzy
 msgid "Clear the list of other directories"
-msgstr "他のディレクトリを選択"
+msgstr "ディレクトリリストをクリア"
 
 #: spyder/widgets/findinfiles.py:318
-#, fuzzy
 msgid "Clear other directories"
-msgstr "他のディレクトリを選択"
+msgstr "他のディレクトリをクリア"
 
 #: spyder/widgets/findinfiles.py:319
-#, fuzzy
 msgid "Do you want to clear the list of other directories?"
-msgstr "本当にこのコンソールを閉じますか？"
+msgstr "本当にディレクトリリストをクリアしますか？"
 
 #: spyder/widgets/findinfiles.py:415
 msgid "Search pattern"
@@ -4478,9 +4476,8 @@ msgid "Module or package:"
 msgstr "モジュールあるいはパッケージ:"
 
 #: spyder/widgets/reporterror.py:121
-#, fuzzy
 msgid "Spyder internal error"
-msgstr "Spyder実行エラー"
+msgstr "Spyder内部エラー"
 
 #: spyder/widgets/reporterror.py:129
 msgid ""
@@ -4500,37 +4497,47 @@ msgid ""
 "              Thanks for helping us making Spyder better for everyone!\n"
 "              "
 msgstr ""
+"<b>Spyderで内部エラーが生じています</b><hr>\n"
+"        これをレポートする前に <i>なるべく</i> \n"
+"              <b><a href=\"{0!s}\">トラブルシュートガイド</a></b> \n"
+"        を参照し、<b><a href=\"{1!s}\">既知のバグ</a></b>に該当していない"
+"か \n"
+"        あるいは解決方法の記載がないか確認して下さい。\n"
+"              <br><br>\n"
+"        見つからない場合には、どのような原因で生じたかを以下の一問一答式の\n"
+"        記述(英語)に詳細に入力して下さい。\n"
+"        再現するための情報が不足しているレポートは回答前にcloseされる\n"
+"        場合があります。<br><br>\n"
+"              Spyderの品質向上にご協力頂きありがとうございます!\n"
+"              "
 
 #: spyder/widgets/reporterror.py:163
 msgid "Hide all future errors this session"
-msgstr ""
+msgstr "このセッションでの以後のエラー全てを隠す"
 
 #: spyder/widgets/reporterror.py:171
 msgid "Submit to Github"
 msgstr "Githubへ送信する"
 
 #: spyder/widgets/reporterror.py:175 spyder/widgets/reporterror.py:227
-#, fuzzy
 msgid "Show details"
-msgstr "全てのファイルを表示"
+msgstr "詳細の表示"
 
 #: spyder/widgets/reporterror.py:178
-#, fuzzy
 msgid "Close"
-msgstr "閉じる(&C)"
+msgstr "閉じる"
 
 #: spyder/widgets/reporterror.py:235
-#, fuzzy
 msgid "Hide details"
-msgstr "ツールバーを隠す"
+msgstr "詳細を非表示"
 
 #: spyder/widgets/reporterror.py:243
 msgid "more characters to go..."
-msgstr ""
+msgstr "まだ入力可能です…"
 
 #: spyder/widgets/reporterror.py:245
 msgid "Submission enabled; thanks!"
-msgstr ""
+msgstr "レポートの送信が完了しました。ありがとう！"
 
 #: spyder/widgets/shell.py:131
 msgid "Save history log..."
