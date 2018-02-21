@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2018-02-19 11:56+-05\n"
-"PO-Revision-Date: 2017-12-17 21:09+0100\n"
+"PO-Revision-Date: 2018-02-21 23:25+0100\n"
 "Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -369,7 +369,7 @@ msgstr "Configuration de la fenêtre principale..."
 
 #: spyder/app/mainwindow.py:926
 msgid "Troubleshooting..."
-msgstr ""
+msgstr "Résolution des problèmes..."
 
 #: spyder/app/mainwindow.py:928
 msgid "Dependencies..."
@@ -545,6 +545,9 @@ msgid ""
 "issue persists, then you must use 'Reset to Spyder default' from the layout "
 "menu."
 msgstr ""
+"Erreur lors de l'ouverture de la disposition personnalisée. Fermer Spyder et "
+"essayer de nouveau. Si le problème persiste, utiliser la commande 'Rétablir "
+"les valeurs par défaut' dans le menu des préférences."
 
 #: spyder/app/mainwindow.py:1922
 msgid "Quick switch layout #%s has not yet been defined."
@@ -1053,7 +1056,7 @@ msgstr "Demander à la sortie"
 
 #: spyder/plugins/configdialog.py:833
 msgid "Show internal Spyder errors to report them to Github"
-msgstr ""
+msgstr "Montrer les erreurs internes à Spyder pour les signaler sur Github"
 
 #: spyder/plugins/configdialog.py:852 spyder/plugins/editor.py:114
 #: spyder/plugins/ipythonconsole.py:290
@@ -3094,14 +3097,13 @@ msgid "Run Settings dialog"
 msgstr "la fenêtre Options d'exécution"
 
 #: spyder/plugins/shortcuts.py:65
-#, fuzzy
 msgid "Currently used to delete lines on editor/Cut a word"
-msgstr "Actuellement utilisé pour supprimer des lignes sur l’éditeur"
+msgstr ""
+"Actuellement utilisé pour supprimer des lignes sur l’éditeur/Couper un mot"
 
 #: spyder/plugins/shortcuts.py:66
-#, fuzzy
 msgid "Currently used to paste a word"
-msgstr "Actuellement utilisé pour supprimer des lignes sur l’éditeur"
+msgstr "Actuellement utilisé pour coller un mot"
 
 #: spyder/plugins/shortcuts.py:70
 msgid "We cannot support this shortcut on Windows"
@@ -4040,13 +4042,12 @@ msgid "Project"
 msgstr "Projets"
 
 #: spyder/widgets/findinfiles.py:231
-#, fuzzy
 msgid ""
 "Search in all files and directories present on the current project path (if "
 "opened)"
 msgstr ""
-"Recherchez dans tous les fichiers et répertoires présents sur le chemin de "
-"projet actuel (si ouvert)"
+"Rechercher dans tous les fichiers et répertoires présents sur le chemin du "
+"projet en cours (si ouvert)"
 
 #: spyder/widgets/findinfiles.py:236
 msgid "File"
@@ -4065,19 +4066,16 @@ msgid "Search in other folder present on the file system"
 msgstr "Rechercher dans un autre répertoire du système"
 
 #: spyder/widgets/findinfiles.py:247
-#, fuzzy
 msgid "Clear the list of other directories"
-msgstr "Sélectionner un autre répertoire"
+msgstr "Effacer la liste des autre répertoires"
 
 #: spyder/widgets/findinfiles.py:318
-#, fuzzy
 msgid "Clear other directories"
-msgstr "Sélectionner un autre répertoire"
+msgstr "Effacer les autres répertoires"
 
 #: spyder/widgets/findinfiles.py:319
-#, fuzzy
 msgid "Do you want to clear the list of other directories?"
-msgstr "Souhaitez-vous fermer cette console ?"
+msgstr "Souhaitez-vous effacer la liste des autres répertoires ?"
 
 #: spyder/widgets/findinfiles.py:415
 msgid "Search pattern"
@@ -4576,9 +4574,8 @@ msgid "Module or package:"
 msgstr "Module ou paquet :"
 
 #: spyder/widgets/reporterror.py:121
-#, fuzzy
 msgid "Spyder internal error"
-msgstr "Erreur de sortie de Spyder"
+msgstr "Erreur interne de Spyder"
 
 #: spyder/widgets/reporterror.py:129
 msgid ""
@@ -4598,36 +4595,52 @@ msgid ""
 "              Thanks for helping us making Spyder better for everyone!\n"
 "              "
 msgstr ""
+"<b>Spyder a rencontré un problème interne</b><hr>\n"
+"              Avant de le signaler, veuillez d'abord consulter notre \n"
+"              <b><a href=\"{0!s}\">Guide de Dépannage</a></b> détaillé \n"
+"              qui permet de résoudre la majorité des problèmes et chercher \n"
+"              des <b><a href=\"{1!s}\">problèmes déjà signalés</a></b> "
+"correspondant \n"
+"              au message d'erreur ou à la description de votre problème. "
+"Cela permet \n"
+"              souvent d'obtenir une solution rapidement.\n"
+"              <br><br>\n"
+"              Si cela n'aide pas, veuillez décrire étape par étape (en "
+"anglais) \n"
+"              ce qui a conduit au problème ci-dessous. \n"
+"              Les rapports d'erreurs sans description claire permettant de "
+"les reproduire \n"
+"              seront fermés.<br><br>\n"
+"              Merci de nous aider à améliorer Spyder !\n"
+"              "
 
 #: spyder/widgets/reporterror.py:163
 msgid "Hide all future errors this session"
-msgstr ""
+msgstr "Masquer toutes les futures erreurs pour cette session"
 
 #: spyder/widgets/reporterror.py:171
 msgid "Submit to Github"
 msgstr "Soumettre à Github"
 
 #: spyder/widgets/reporterror.py:175 spyder/widgets/reporterror.py:227
-#, fuzzy
 msgid "Show details"
-msgstr "Afficher tous les fichiers"
+msgstr "Afficher les détails"
 
 #: spyder/widgets/reporterror.py:178
 msgid "Close"
 msgstr "Fermer"
 
 #: spyder/widgets/reporterror.py:235
-#, fuzzy
 msgid "Hide details"
-msgstr "Masquer les barres d'outils"
+msgstr "Masquer les détails"
 
 #: spyder/widgets/reporterror.py:243
 msgid "more characters to go..."
-msgstr ""
+msgstr "ajouter encore des caractères..."
 
 #: spyder/widgets/reporterror.py:245
 msgid "Submission enabled; thanks!"
-msgstr ""
+msgstr "Contribution possible; merci !"
 
 #: spyder/widgets/shell.py:131
 msgid "Save history log..."
