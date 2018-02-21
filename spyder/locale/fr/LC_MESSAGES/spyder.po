@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2018-02-19 11:56+-05\n"
-"PO-Revision-Date: 2018-02-21 23:25+0100\n"
+"PO-Revision-Date: 2018-02-21 23:36+0100\n"
 "Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -1056,7 +1056,7 @@ msgstr "Demander à la sortie"
 
 #: spyder/plugins/configdialog.py:833
 msgid "Show internal Spyder errors to report them to Github"
-msgstr "Montrer les erreurs internes à Spyder pour les signaler sur Github"
+msgstr "Montrer les erreurs internes de Spyder pour les signaler sur Github"
 
 #: spyder/plugins/configdialog.py:852 spyder/plugins/editor.py:114
 #: spyder/plugins/ipythonconsole.py:290
@@ -4055,7 +4055,7 @@ msgstr "Fichier"
 
 #: spyder/widgets/findinfiles.py:237
 msgid "Search in current opened file"
-msgstr "Recherche dans le fichier ouvert actuel"
+msgstr "Rechercher dans le fichier en cours"
 
 #: spyder/widgets/findinfiles.py:242
 msgid "Select other directory"
@@ -4067,7 +4067,7 @@ msgstr "Rechercher dans un autre répertoire du système"
 
 #: spyder/widgets/findinfiles.py:247
 msgid "Clear the list of other directories"
-msgstr "Effacer la liste des autre répertoires"
+msgstr "Effacer la liste des autres répertoires"
 
 #: spyder/widgets/findinfiles.py:318
 msgid "Clear other directories"
@@ -4312,13 +4312,12 @@ msgstr "Arguments"
 #: spyder/widgets/ipythonconsole/namespacebrowser.py:129
 msgid "Loading this kind of data while debugging is not supported."
 msgstr ""
-"Le chargement de ce type de données alors que le déboggage n’est pas pris en "
+"Le chargement de ce type de données pendant le débogage n’est pas pris en "
 "charge."
 
 #: spyder/widgets/ipythonconsole/namespacebrowser.py:148
 msgid "Saving data while debugging is not supported."
-msgstr ""
-"L’enregistrement de données lors du déboggage n’est pas pris en charge."
+msgstr "L’enregistrement de données lors du débogage n’est pas pris en charge."
 
 #: spyder/widgets/ipythonconsole/shell.py:234
 msgid ""
@@ -4349,7 +4348,7 @@ msgstr "Le noyau est mort, redémarrage en cours"
 
 #: spyder/widgets/ipythonconsole/shell.py:475
 msgid "Kernel restarting"
-msgstr "Redémarrage du kernel"
+msgstr "Redémarrage du noyau"
 
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
