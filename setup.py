@@ -274,7 +274,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'rope>=0.10.5',
-    'jedi>=0.9.0',
+    'jedi>=0.11.0',
     'pyflakes',
     'pygments>=2.0',
     'qtconsole>=4.2.0',
