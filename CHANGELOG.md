@@ -29,6 +29,10 @@
 * Add a `Clear this list` option below `Select other
   directory`.
 
+#### Under the hood
+
+* Demand PyQt less than 5.10 for our wheels.
+
 ### Issues Closed
 
 * [Issue 6484](https://github.com/spyder-ide/spyder/issues/6484) - Update translations for 3.2.7 ([PR 6491](https://github.com/spyder-ide/spyder/pull/6491))
