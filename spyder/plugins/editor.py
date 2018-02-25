@@ -30,7 +30,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, get_conf_path, PYTEST
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -452,7 +452,8 @@ class Editor(SpyderPluginWidget):
 
         # Don't start IntrospectionManager when running tests because
         # it consumes a lot of memory
-        if PYTEST and not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+        if (running_under_pytest()
+                and not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
             try:
                 from unittest.mock import Mock
             except ImportError:
@@ -1861,7 +1862,7 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            if not PYTEST:
+            if not running_under_pytest():
                 filenames, _sf = getopenfilenames(
                                     parent_widget,
                                     _("Open file"), basedir,
@@ -2370,7 +2371,8 @@ class Editor(SpyderPluginWidget):
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
-                if CONF.get('run', 'open_at_least_once', not PYTEST):
+                if CONF.get('run', 'open_at_least_once',
+                            not running_under_pytest()):
                     # Open Run Config dialog at least once: the first time 
                     # a script is ever run in Spyder, so that the user may 
                     # see it at least once and be conscious that it exists

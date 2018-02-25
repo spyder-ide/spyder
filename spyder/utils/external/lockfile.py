@@ -20,7 +20,7 @@ import errno, os
 from time import time as _uniquefloat
 
 import psutil
-from spyder.config.base import PYTEST
+from spyder.config.base import running_under_pytest
 from spyder.py3compat import PY2, to_binary_string
 
 def unique():
@@ -185,7 +185,7 @@ class FilesystemLock:
 
                         # Valid names for main script
                         names = set(['spyder', 'spyder3', 'bootstrap.py'])
-                        if PYTEST:
+                        if running_under_pytest():
                             names.add('runtests.py')
 
                         # Check the first three command line arguments
