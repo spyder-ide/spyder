@@ -139,6 +139,7 @@ class SpyderErrorDialog(QDialog):
               closed.<br><br>
               Thanks for helping us making Spyder better for everyone!
               """).format(__trouble_url__, __project_url__))
+        self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
 
@@ -156,7 +157,7 @@ class SpyderErrorDialog(QDialog):
         # Label to show missing chars
         self.initial_chars = len(self.input_description.toPlainText())
         self.chars_label = QLabel(_("Enter at least {} "
-                                    "characters".format(MIN_CHARS)))
+                                    "characters").format(MIN_CHARS))
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox()
