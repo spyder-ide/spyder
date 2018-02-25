@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2018-02-19 11:56+-05\n"
-"PO-Revision-Date: 2018-02-24 21:38-0500\n"
+"PO-Revision-Date: 2018-02-25 10:23-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -1053,7 +1053,7 @@ msgstr "Preguntar antes de salir"
 
 #: spyder/plugins/configdialog.py:833
 msgid "Show internal Spyder errors to report them to Github"
-msgstr "Mostrar error internos de Spyder para reportarlos en Github"
+msgstr "Mostrar errores internos de Spyder para reportarlos en Github"
 
 #: spyder/plugins/configdialog.py:852 spyder/plugins/editor.py:114
 #: spyder/plugins/ipythonconsole.py:290
