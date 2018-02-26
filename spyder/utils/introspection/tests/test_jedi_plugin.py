@@ -41,6 +41,13 @@ def test_get_info():
     assert docs['calltip'].startswith('walk(') and docs['name'] == 'walk'
 
 
+def test_get_info_from_method():
+    """Regression test for issue 6516."""
+    source_code = "L = [1]; L.append"
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
+    assert docs['calltip'].startswith('L.append(') and docs['name'] == 'L.append'
+
+
 def test_get_completions():
     source_code = "import o"
     completions = p.get_completions(CodeInfo('completions', source_code,
