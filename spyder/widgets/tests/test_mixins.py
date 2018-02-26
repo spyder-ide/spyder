@@ -7,7 +7,6 @@
 # Third party imports
 from qtpy.QtWidgets import QPlainTextEdit
 
-from pytestqt import qtbot
 import pytest
 
 # Local imports
@@ -19,6 +18,8 @@ class BaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
+
+
 @pytest.fixture
 def mixinsbot(qtbot):
     widget = BaseWidget()
@@ -28,6 +29,7 @@ def mixinsbot(qtbot):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+
 
 def test_get_number_matches(mixinsbot):
     # Test get_number_matches().
@@ -65,6 +67,7 @@ def test_get_number_matches(mixinsbot):
     assert get('(', source_text=code, regexp=True) is None
     assert get('(', source_text=code, case=True, regexp=True) is None
 
+
 def test_get_match_number(mixinsbot):
     # Test get_match_number().
     qtbot, widget = mixinsbot
@@ -96,4 +99,3 @@ def test_get_match_number(mixinsbot):
     widget.find_text('self')
     assert get('self') == 2
     assert get('self', case=True) == 2
-
