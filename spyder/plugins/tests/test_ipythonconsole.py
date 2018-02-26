@@ -325,7 +325,8 @@ def test_console_coloring(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
+                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_get_env(ipyconsole, qtbot):
     """Test that showing env var contents is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
@@ -353,7 +354,8 @@ def test_get_env(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
+                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_get_syspath(ipyconsole, qtbot):
     """Test that showing sys.path contents is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
@@ -682,7 +684,8 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
+                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_restart_kernel(ipyconsole, qtbot):
     """
     Test that kernel is restarted correctly
@@ -706,7 +709,8 @@ def test_restart_kernel(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
+                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
     Test that a new client is created using its id
@@ -729,7 +733,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
                     reason="It segfaults frequently")
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
