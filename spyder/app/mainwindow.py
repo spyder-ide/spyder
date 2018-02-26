@@ -2442,11 +2442,11 @@ class MainWindow(QMainWindow):
 
 ## Package Versions
 
-* Spyder {spyder_version} `{commit}`
-* Python {python_version}
-* Qt {qt_version}
-* {qt_api_name} {qt_api_version}
-* {os_name} {os_version}
+* Spyder version: {spyder_version} {commit}
+* Python version: {python_version}
+* Qt version: {qt_version}
+* {qt_api_name} version: {qt_api_version}
+* Operating system: {os_name} {os_version}
 
 ### Dependencies
 
