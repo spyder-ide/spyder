@@ -435,9 +435,11 @@ class FindReplace(QWidget):
             else:
                 self.clear_matches()
 
-            number_matches = self.editor.get_number_matches(text, case=case)
+            number_matches = self.editor.get_number_matches(text, case=case,
+                                                            regexp=regexp)
             if hasattr(self.editor, 'get_match_number'):
-                match_number = self.editor.get_match_number(text, case=case)
+                match_number = self.editor.get_match_number(text, case=case,
+                                                            regexp=regexp)
             else:
                 match_number = 0
             self.change_number_matches(current_match=match_number,

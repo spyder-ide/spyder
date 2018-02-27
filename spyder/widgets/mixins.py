@@ -523,11 +523,14 @@ class BaseEditMixin(object):
         """Needs to be overloaded in the codeeditor where it will be True"""
         return False
 
-    def get_number_matches(self, pattern, source_text='', case=False):
+    def get_number_matches(self, pattern, source_text='', case=False,
+                           regexp=False):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
             return 0
+        if not regexp:
+            pattern = re.escape(pattern)
         if not source_text:
             source_text = to_text_string(self.toPlainText())
         try:
@@ -536,7 +539,7 @@ class BaseEditMixin(object):
             else:
                 regobj = re.compile(pattern, re.IGNORECASE)
         except sre_constants.error:
-            return
+            return None
 
         number_matches = 0
         for match in regobj.finditer(source_text):
@@ -544,13 +547,13 @@ class BaseEditMixin(object):
 
         return number_matches
 
-    def get_match_number(self, pattern, case=False):
+    def get_match_number(self, pattern, case=False, regexp=False):
         """Get number of the match for the searched text."""
         position = self.textCursor().position()
         source_text = self.get_text(position_from='sof', position_to=position)
         match_number = self.get_number_matches(pattern,
                                                source_text=source_text,
-                                               case=case)
+                                               case=case, regexp=regexp)
         return match_number
 
     # --- Numpy matrix/array helper / See 'spyder/widgets/arraybuilder.py'
