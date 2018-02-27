@@ -924,9 +924,14 @@ class CodeEditor(TextEditBaseWidget):
 
     @Slot()
     def delete(self):
-        """Remove selected text"""
-        if self.has_selected_text():
-            self.remove_selected_text()
+        """Remove selected text or next character."""
+        if not self.has_selected_text():
+            cursor = self.textCursor()
+            position = cursor.position()
+            if not cursor.atEnd():
+                cursor.setPosition(position + 1, QTextCursor.KeepAnchor)
+            self.setTextCursor(cursor)
+        self.remove_selected_text()
 
     #------Find occurrences
     def __find_first(self, text):
