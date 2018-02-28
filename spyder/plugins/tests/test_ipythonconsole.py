@@ -320,6 +320,62 @@ def test_console_coloring(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_set_cwd(ipyconsole, qtbot):
+    """Test kernel when changing cwd."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Issue 6451.
+    savetemp = shell._cwd
+    tempdir = tempfile.mkdtemp(suffix="queen's")
+    shell.set_cwd(tempdir)
+
+    # Get current directory.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; cwd = os.getcwd()")
+
+    # Assert we get the assigned value correctly
+    assert shell.get_value('cwd') == tempdir
+    os.rmdir(tempdir)
+
+    # Restore original.
+    shell.set_cwd(savetemp)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_get_cwd(ipyconsole, qtbot):
+    """Test current working directory."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Issue 6451.
+    savetemp = shell._cwd
+    tempdir = tempfile.mkdtemp(suffix="queen's")
+    assert shell._cwd != tempdir
+
+    # Change directory in the console.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; os.chdir('''{}''')".format(tempdir))
+
+    # Ask for directory.
+    with qtbot.waitSignal(shell.sig_change_cwd):
+        shell.get_cwd()
+    assert shell._cwd == tempdir
+
+    shell.set_cwd(savetemp)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
+                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_get_env(ipyconsole, qtbot):
     """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
