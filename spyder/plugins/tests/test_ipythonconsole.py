@@ -320,8 +320,7 @@ def test_console_coloring(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-def test_set_cwd(ipyconsole, qtbot):
+def test_set_cwd(ipyconsole, qtbot, tmpdir):
     """Test kernel when changing cwd."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
@@ -330,7 +329,7 @@ def test_set_cwd(ipyconsole, qtbot):
 
     # Issue 6451.
     savetemp = shell._cwd
-    tempdir = tempfile.mkdtemp(suffix="queen's")
+    tempdir = to_text_string(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
 
     # Get current directory.
@@ -347,8 +346,7 @@ def test_set_cwd(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-def test_get_cwd(ipyconsole, qtbot):
+def test_get_cwd(ipyconsole, qtbot, tmpdir):
     """Test current working directory."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
@@ -357,7 +355,7 @@ def test_get_cwd(ipyconsole, qtbot):
 
     # Issue 6451.
     savetemp = shell._cwd
-    tempdir = tempfile.mkdtemp(suffix="queen's")
+    tempdir = to_text_string(tmpdir.mkdir("queen's"))
     assert shell._cwd != tempdir
 
     # Change directory in the console.
