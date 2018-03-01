@@ -1,7 +1,4 @@
-# Spyder - The Scientific PYthon Development EnviRonment
-
-Copyright © Spyder Project Contributors.
-
+<p  align="left"><img width="100%" src="./img_src/readme_banner.png"></p>
 
 ## Project details
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
