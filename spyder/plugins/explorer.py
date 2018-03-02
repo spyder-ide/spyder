@@ -34,6 +34,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     removed = Signal(str)
     removed_tree = Signal(str)
     renamed = Signal(str, str)
+    renamed_tree = Signal(str, str)
     create_module = Signal(str)
     run = Signal(str)
     open_dir = Signal(str)
@@ -71,6 +72,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         self.removed.connect(self.main.editor.removed)
         self.removed_tree.connect(self.main.editor.removed_tree)
         self.renamed.connect(self.main.editor.renamed)
+        self.renamed_tree.connect(self.main.editor.renamed_tree)
         self.main.editor.open_dir.connect(self.chdir)
         self.create_module.connect(self.main.editor.new)
         # Signal "set_explorer_cwd(QString)" will refresh only the

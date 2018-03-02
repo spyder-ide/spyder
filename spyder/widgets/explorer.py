@@ -668,7 +668,10 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                self.parent_widget.renamed.emit(fname, path)
+                if osp.isfile(fname):
+                    self.parent_widget.renamed.emit(fname, path)
+                else:
+                    self.parent_widget.renamed_tree.emit(fname, path)
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),
