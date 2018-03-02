@@ -97,10 +97,10 @@ html_static_path = ['static']
 # pages
 html_context = {}
 
-# If true, SmartyPants will be used to convert quotes and dashes to
+# If true, Smart Quotes will be used to convert quotes and dashes to
 # typographically correct entities.
 # Spyder: Disabled to fix conflict with qtwebview and mathjax. See issue #5514
-html_use_smartypants = False
+smartquotes = False
 
 # If false, no module index is generated.
 html_use_modindex = False
