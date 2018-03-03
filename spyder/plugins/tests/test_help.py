@@ -32,9 +32,9 @@ from spyder.utils.introspection.utils import default_info_response
 @pytest.fixture
 def help_plugin(qtbot):
     """Help plugin fixture"""
-    help_plugin = Help()
-    webview = help_plugin.rich_text.webview._webview
+    help_plugin = Help(testing=True)
 
+    webview = help_plugin.rich_text.webview._webview
     if WEBENGINE:
         help_plugin._webpage = webview.page()
     else:
@@ -93,7 +93,7 @@ def test_no_further_docs_message(help_plugin, qtbot):
                     timeout=3000)
 
 
-def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot,):
+def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     MockDockwidget = MagicMock()
     MockDockwidget.return_value.isVisible.return_value = False
