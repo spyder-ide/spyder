@@ -2076,7 +2076,7 @@ class Editor(SpyderPluginWidget):
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
                 self.close_file_from_name(fname)
-    
+
     def renamed(self, source, dest):
         """File was renamed in file explorer widget or in project explorer"""
         filename = osp.abspath(to_text_string(source))
@@ -2085,8 +2085,16 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
-        
-    
+
+    def renamed_tree(self, source, dest):
+        """Directory was renamed in file explorer or in project explorer."""
+        dirname = osp.abspath(to_text_string(source))
+        tofile = to_text_string(dest)
+        for fname in self.get_filenames():
+            if osp.abspath(fname).startswith(dirname):
+                new_filename = fname.replace(dirname, tofile)
+                self.renamed(source=fname, dest=new_filename)
+
     #------ Source code
     @Slot()
     def indent(self):

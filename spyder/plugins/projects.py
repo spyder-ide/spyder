@@ -46,6 +46,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
     removed = Signal(str)
     removed_tree = Signal(str)
     renamed = Signal(str, str)
+    renamed_tree = Signal(str, str)
     redirect_stdio = Signal(bool)
     run = Signal(str)
 
@@ -138,6 +139,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         self.removed.connect(self.editor.removed)
         self.removed_tree.connect(self.editor.removed_tree)
         self.renamed.connect(self.editor.renamed)
+        self.renamed_tree.connect(self.editor.renamed_tree)
         self.editor.set_projects(self)
         self.main.add_dockwidget(self)
 
