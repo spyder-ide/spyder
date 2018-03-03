@@ -39,9 +39,14 @@ DEV = os.environ.get('SPYDER_DEV')
 TEST = os.environ.get('SPYDER_TEST')
 
 
-# To do some adjustments for pytest
-# This env var is defined in runtests.py
-PYTEST = os.environ.get('SPYDER_PYTEST')
+def running_under_pytest():
+    """
+    Return True if currently running under py.test.
+
+    This function is used to do some adjustment for testing. The environment
+    variable SPYDER_PYTEST is defined in conftest.py.
+    """
+    return bool(os.environ.get('SPYDER_PYTEST'))
 
 
 #==============================================================================
@@ -119,7 +124,7 @@ def get_home_dir():
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
     # Define conf_dir
-    if PYTEST:
+    if running_under_pytest():
         import py
         from _pytest.tmpdir import get_user
         conf_dir = osp.join(str(py.path.local.get_temproot()),
@@ -139,7 +144,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if PYTEST:
+        if running_under_pytest():
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
@@ -295,7 +300,7 @@ def get_interface_language():
         locale_language = DEFAULT_LANGUAGE
 
     # Tests expect English as the interface language
-    if PYTEST:
+    if running_under_pytest():
         locale_language = DEFAULT_LANGUAGE
 
     language = DEFAULT_LANGUAGE

@@ -42,7 +42,7 @@ except ImportError:
 # Local imports
 from spyder import dependencies
 from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
-                                get_module_path, PYTEST)
+                                get_module_path, running_under_pytest)
 from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
@@ -1093,7 +1093,7 @@ class IPythonConsole(SpyderPluginWidget):
             import1 = "import sys"
             # We need to add spy_dir to sys.path so this test can be
             # run in our CIs
-            if PYTEST:
+            if running_under_pytest():
                 if os.name == 'nt':
                     import1 = (import1 +
                                '; sys.path.append(""{}"")'.format(spy_dir))

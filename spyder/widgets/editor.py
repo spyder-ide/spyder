@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, PYTEST, STDERR, STDOUT
+from spyder.config.base import _, DEBUG, STDERR, STDOUT, running_under_pytest
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -609,7 +609,7 @@ class EditorStack(QWidget):
         self.edit_filters = None
 
         # For testing
-        self.save_dialog_on_tests = not PYTEST
+        self.save_dialog_on_tests = not running_under_pytest()
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
