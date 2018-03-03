@@ -1859,13 +1859,22 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks[1:]:
             editor = editorstack.clone_editor_from(finfo, set_current=False)
             self.register_widget_shortcuts(editor)
+    
+    def _render_linebyline(self, text, _VARS=None):
+        text = text.split('\n')
+        for i, line in enumerate(t):
+            try:
+                text[i] = line % _VARS
+            except:
+                pass
+        return '\n'.join(text)
 
     @Slot()
     @Slot(str)
     def new(self, fname=None, editorstack=None, text=None):
         """
         Create a new file - Untitled
-        
+
         fname=None --> fname will be 'untitledXX.py' but do not create file
         fname=<basestring> --> create file
         """
@@ -1873,7 +1882,7 @@ class Editor(SpyderPluginWidget):
         if text is None:
             default_content = True
             text, enc = encoding.read(self.TEMPLATE_PATH)
-            enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+            enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
             if enc_match:
                 enc = enc_match.group(1)
             # Initialize template variables
@@ -1885,13 +1894,13 @@ class Editor(SpyderPluginWidget):
                 username = encoding.to_unicode_from_fs(os.environ.get('USER',
                                                                       '-'))
             VARS = {
-                'date': time.ctime(),
-                'username': username,
+                'date-spyder': time.strftime("%Y-%m-%d %H:%M"),
+                'username-spyder': username,
             }
             try:
                 text = text % VARS
-            except:
-                pass
+            except (KeyError,TypeError):
+                text = self._render_linebyline(text, _VARS=VARS)
         else:
             default_content = False
             enc = encoding.read(self.TEMPLATE_PATH)[1]
