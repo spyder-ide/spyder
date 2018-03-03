@@ -354,6 +354,7 @@ DEFAULTS = [
               'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
+              'editor/go to new line': "Ctrl+Shift+Return",
               'editor/go to definition': "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
               'editor/blockcomment': "Ctrl+4",
