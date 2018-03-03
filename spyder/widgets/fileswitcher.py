@@ -672,7 +672,7 @@ class FileSwitcher(QDialog):
         # Sort the obtained scores and populate the list widget
         self.filtered_path = []
         plugin = None
-        for result in sorted(results):
+        for result in sorted(results, key=lambda tes: tes[2]):
             index = result[1]
             path = paths[index]
             icon = icons[index]
