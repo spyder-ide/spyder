@@ -330,25 +330,14 @@ class Help(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
 
-    def __init__(self, parent=None, testing=False):
+    def __init__(self, parent=None):
         if PYQT5:
             SpyderPluginWidget.__init__(self, parent, main = parent)
         else:
             SpyderPluginWidget.__init__(self, parent)
-        self.testing = testing
 
         self.internal_shell = None
         self.console = None
-
-        # Mock ipyconsole and editor while testing
-        if self.testing:
-            try:
-                from unittest.mock import Mock
-            except ImportError:
-                from mock import Mock # Python 2
-            self.main = Mock()
-            self.main.ipyconsole = None
-            self.main.editor = None
 
         # Initialize plugin
         self.initialize_plugin()
