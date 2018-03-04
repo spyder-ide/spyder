@@ -1,2 +1,2 @@
 import numpy
-numpy.
+# numpy.

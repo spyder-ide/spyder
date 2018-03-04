@@ -11,6 +11,7 @@ import os
 import os.path as osp
 
 from spyder.config.base import _
+from spyder.widgets.explorer import fixpath
 from spyder.widgets.projects.type import EmptyProject
 
 
