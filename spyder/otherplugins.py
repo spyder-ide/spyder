@@ -118,7 +118,12 @@ def _import_module_from_path(module_name, plugin_path):
             module_name,
             [plugin_path])
         if spec:
-            module = spec.loader.load_module(module_name)
+            # Needed to prevent an error when 'spec.loader' is None
+            # See issue 6518
+            try:
+                module = spec.loader.load_module(module_name)
+            except AttributeError:
+                module = None
     return module
 
 
