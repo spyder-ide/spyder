@@ -1740,7 +1740,7 @@ class Editor(SpyderPluginWidget):
                 }
                 try:
                     text = text % VARS
-                except:
+                except Exception:
                     pass
             else:
                 default_content = False

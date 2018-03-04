@@ -76,6 +76,7 @@ def test_renamed_tree(setup_editor, mocker):
     assert editor.renamed.called_with(source='/test/directory/file4.rst',
                                       dest='test/dir/file4.rst')
 
+
 def test_no_template(setup_editor):
     """
     Test that new files can be opened when no template is found.
