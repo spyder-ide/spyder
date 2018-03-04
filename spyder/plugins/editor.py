@@ -1870,31 +1870,39 @@ class Editor(SpyderPluginWidget):
         fname=<basestring> --> create file
         """
         # If no text is provided, create default content
-        if text is None:
+        empty = False
+        try:
+            if text is None:
+                default_content = True
+                text, enc = encoding.read(self.TEMPLATE_PATH)
+                enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-',
+                                      text)
+                if enc_match:
+                    enc = enc_match.group(1)
+                # Initialize template variables
+                # Windows
+                username = encoding.to_unicode_from_fs(
+                                os.environ.get('USERNAME', ''))
+                # Linux, Mac OS X
+                if not username:
+                    username = encoding.to_unicode_from_fs(
+                                   os.environ.get('USER', '-'))
+                VARS = {
+                    'date': time.ctime(),
+                    'username': username,
+                }
+                try:
+                    text = text % VARS
+                except Exception:
+                    pass
+            else:
+                default_content = False
+                enc = encoding.read(self.TEMPLATE_PATH)[1]
+        except (IOError, OSError):
+            text = ''
+            enc = 'utf-8'
             default_content = True
-            text, enc = encoding.read(self.TEMPLATE_PATH)
-            enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
-            if enc_match:
-                enc = enc_match.group(1)
-            # Initialize template variables
-            # Windows
-            username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
-                                                                  ''))
-            # Linux, Mac OS X
-            if not username:
-                username = encoding.to_unicode_from_fs(os.environ.get('USER',
-                                                                      '-'))
-            VARS = {
-                'date': time.ctime(),
-                'username': username,
-            }
-            try:
-                text = text % VARS
-            except:
-                pass
-        else:
-            default_content = False
-            enc = encoding.read(self.TEMPLATE_PATH)[1]
+            empty = True
 
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
@@ -1928,7 +1936,8 @@ class Editor(SpyderPluginWidget):
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
-        finfo = self.editorstacks[0].new(fname, enc, text, default_content)
+        finfo = self.editorstacks[0].new(fname, enc, text, default_content,
+                                         empty)
         finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)

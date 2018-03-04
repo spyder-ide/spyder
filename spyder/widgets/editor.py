@@ -2317,14 +2317,15 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.setFocus()
 
-    def new(self, filename, encoding, text, default_content=False):
+    def new(self, filename, encoding, text, default_content=False,
+            empty=False):
         """
         Create new filename with *encoding* and *text*
         """
         finfo = self.create_new_editor(filename, encoding, text,
                                        set_current=False, new=True)
         finfo.editor.set_cursor_position('eof')
-        if not default_content:
+        if not empty:
             finfo.editor.insert_text(os.linesep)
         if default_content:
             finfo.default = True
