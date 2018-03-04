@@ -23,16 +23,16 @@ import os
 import sys
 
 PY2 = sys.version[0] == '2'
-PY3 = sys.version[0] == '3'
+PY3 = sys.version[0] >= '3'
 
 #==============================================================================
 # Data types
 #==============================================================================
-if PY2:
+try:
     # Python 2
     TEXT_TYPES = (str, unicode)
     INT_TYPES = (int, long)
-else:
+except NameError:
     # Python 3
     TEXT_TYPES = (str,)
     INT_TYPES = (int,)
@@ -86,20 +86,20 @@ else:
 def is_type_text_string(obj):
     """Return True if `obj` is type text string, False if it is anything else,
     like an instance of a class that extends the basestring class."""
-    if PY2:
+    try:
         # Python 2
         return type(obj) in [str, unicode]
-    else:
+    except NameError:
         # Python 3
         return type(obj) in [str, bytes]
 
 def is_text_string(obj):
     """Return True if `obj` is a text string, False if it is anything else,
     like binary data (Python 3) or QString (Python 2, PyQt API #1)"""
-    if PY2:
+    try:
         # Python 2
         return isinstance(obj, basestring)
-    else:
+    except NameError:
         # Python 3
         return isinstance(obj, str)
 
@@ -119,22 +119,22 @@ def is_string(obj):
 
 def is_unicode(obj):
     """Return True if `obj` is unicode"""
-    if PY2:
+    try:
         # Python 2
         return isinstance(obj, unicode)
-    else:
+    except NameError:
         # Python 3
         return isinstance(obj, str)
 
 def to_text_string(obj, encoding=None):
     """Convert `obj` to (unicode) text string"""
-    if PY2:
+    try:
         # Python 2
         if encoding is None:
             return unicode(obj)
         else:
             return unicode(obj, encoding)
-    else:
+    except NameError:
         # Python 3
         if encoding is None:
             return str(obj)
@@ -222,20 +222,26 @@ def get_meth_class(obj):
 #==============================================================================
 # Misc.
 #==============================================================================
-if PY2:
+try:
     # Python 2
     input = raw_input
-    getcwd = os.getcwdu
     cmp = cmp
+except NameError:
+    # Python 3
+    input = input
+
+    def cmp(a, b):
+        return (a > b) - (a < b)
+
+if PY2:
+    # Python 2
+    getcwd = os.getcwdu
     import string
     str_lower = string.lower
     from itertools import izip_longest as zip_longest
 else:
     # Python 3
-    input = input
     getcwd = os.getcwd
-    def cmp(a, b):
-        return (a > b) - (a < b)
     str_lower = str.lower
     from itertools import zip_longest
 
