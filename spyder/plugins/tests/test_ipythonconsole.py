@@ -338,7 +338,6 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
 
     # Assert we get the assigned value correctly
     assert shell.get_value('cwd') == tempdir
-    os.rmdir(tempdir)
 
     # Restore original.
     shell.set_cwd(savetemp)
