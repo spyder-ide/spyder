@@ -21,7 +21,7 @@ import time
 # Third party imports
 from qtpy import API
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot
+from qtpy.QtCore import QByteArray, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
@@ -523,6 +523,9 @@ class Editor(SpyderPluginWidget):
         self.find_widget.visibility_changed.connect(
                                           lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts(self.find_widget)
+
+        # Start autosave component
+        self.autosave = AutosaveComponent(self)
 
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
@@ -2954,3 +2957,27 @@ class Editor(SpyderPluginWidget):
         """Change the value of create_new_file_if_empty"""
         for editorstack in self.editorstacks:
             editorstack.create_new_file_if_empty = value
+
+
+class AutosaveComponent:
+    """Component of editor plugin implementing autosave functionality."""
+
+    # Delay (in ms) before autosave
+    AUTOSAVE_DELAY = 60 * 1000
+
+    def __init__(self, editor):
+        """
+        Constructor.
+
+        Args:
+            editor (Editor): editor plugin.
+        """
+        self.editor = editor
+        self.start_autosave_timer()
+
+    def start_autosave_timer(self):
+        """Start a timer which calls do_autosave() after AUTOSAVE_DELAY."""
+        QTimer.singleShot(self.AUTOSAVE_DELAY, self.do_autosave)
+
+    def do_autosave(self):
+        self.start_autosave_timer()

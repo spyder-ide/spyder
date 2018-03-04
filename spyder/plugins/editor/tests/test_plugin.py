@@ -23,6 +23,8 @@ from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
+app = qapplication()
+from spyder.plugins.editor.plugin import AutosaveComponent, Editor
 
 
 # =============================================================================
@@ -31,9 +33,7 @@ from spyder.utils.qthelpers import qapplication
 @pytest.fixture
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
-    qapplication()
-    from spyder.plugins.editor.plugin import Editor
-
+    # monkeypatch.setattr('spyder.dependencies', Mock())
     monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
 
     class MainMock(QMainWindow):
@@ -215,6 +215,22 @@ def test_no_template(setup_editor):
 
     # Revert template back
     shutil.move(osp.join(osp.dirname(template), 'template.py.old'), template)
+
+
+def test_editor_has_autosave_component(setup_editor):
+    """Test that Editor includes an AutosaveComponent."""
+    editor, qtbot = setup_editor
+    assert type(editor.autosave) == AutosaveComponent
+
+
+def test_autosave_component_timer(qtbot, mocker):
+    """Test that AutosaveCompenent calls do_autosave() on timer."""
+    mocker.patch.object(AutosaveComponent, 'AUTOSAVE_DELAY', 100)
+    mocker.patch.object(AutosaveComponent, 'do_autosave')
+    addon = AutosaveComponent(None)
+    addon.do_autosave.assert_not_called()
+    qtbot.wait(500)
+    addon.do_autosave.assert_called()
 
 
 if __name__ == "__main__":
