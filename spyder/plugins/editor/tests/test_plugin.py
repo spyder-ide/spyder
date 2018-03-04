@@ -233,5 +233,15 @@ def test_autosave_component_timer(qtbot, mocker):
     addon.do_autosave.assert_called()
 
 
+def test_autosave_component_do_autosave(setup_editor, mocker):
+    """Test that AutosaveComponent's do_autosave() calls the current editor
+    stack's autosave_all()."""
+    editor, qtbot = setup_editor
+    editorStack = editor.get_current_editorstack()
+    mocker.patch.object(editorStack.autosave, 'autosave_all')
+    editor.autosave.do_autosave()
+    editorStack.autosave.autosave_all.assert_called()
+
+
 if __name__ == "__main__":
     pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])

@@ -571,6 +571,9 @@ class EditorStack(QWidget):
         # For testing
         self.save_dialog_on_tests = not running_under_pytest()
 
+        # Autusave component
+        self.autosave = AutosaveComponent(self)
+
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
@@ -2545,6 +2548,23 @@ class EditorStack(QWidget):
         else:
             event.ignore()
         event.acceptProposedAction()
+
+
+class AutosaveComponent:
+    """Component of EditorStack implementing autosave functionality."""
+
+    def __init__(self, editorstack):
+        """
+        Constructor.
+
+        Args:
+            editorstack (EditorStack): editor stack this component belongs to.
+        """
+        self.stack = editorstack
+
+    def autosave_all(self):
+        """Autosave all opened files."""
+        pass
 
 
 class EditorSplitter(QSplitter):
