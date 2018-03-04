@@ -17,6 +17,7 @@ except ImportError:
     from mock import Mock, MagicMock  # Python 2
 
 # Third party imports
+from qtpy.QtWidgets import QWidget
 from qtpy.QtWebEngineWidgets import WEBENGINE
 import pytest
 from flaky import flaky
@@ -32,9 +33,17 @@ from spyder.utils.introspection.utils import default_info_response
 @pytest.fixture
 def help_plugin(qtbot):
     """Help plugin fixture"""
-    help_plugin = Help()
-    webview = help_plugin.rich_text.webview._webview
 
+    class MainMock(QWidget):
+        def __getattr__(self, attr):
+            if attr == 'ipyconsole' or attr == 'editor':
+                return None
+            else:
+                return Mock()
+
+    help_plugin = Help(parent=MainMock())
+
+    webview = help_plugin.rich_text.webview._webview
     if WEBENGINE:
         help_plugin._webpage = webview.page()
     else:
@@ -93,7 +102,7 @@ def test_no_further_docs_message(help_plugin, qtbot):
                     timeout=3000)
 
 
-def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot,):
+def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     MockDockwidget = MagicMock()
     MockDockwidget.return_value.isVisible.return_value = False

@@ -30,6 +30,7 @@ from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -40,6 +41,7 @@ from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.plugins.help import ObjectComboBox
 from spyder.plugins.runconfig import RunConfiguration
+from spyder.plugins.tests.test_help import check_text
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
@@ -207,6 +209,52 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+def test_get_help(main_window, qtbot):
+    """
+    Test that Help is working when called from the Editor and the
+    IPython console.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    if WEBENGINE:
+        webpage = webview.page()
+    else:
+        webpage = webview.page().mainFrame()
+
+    # --- From the console ---
+    # Write some object in the console
+    qtbot.keyClicks(control, 'runfile')
+
+    # Get help
+    control.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=4000)
+
+    # --- From the editor ---
+    qtbot.wait(2000)
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Write some object in the editor
+    code_editor.set_text('range')
+    code_editor.move_cursor(len('range'))
+
+    # Get help
+    editorstack.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=4000)
 
 
 @pytest.mark.slow
