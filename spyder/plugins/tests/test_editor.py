@@ -6,6 +6,8 @@
 """Tests for the Editor plugin."""
 
 # Standard library imports
+import os.path as osp
+import shutil
 
 # Third party imports
 import pytest
@@ -31,6 +33,10 @@ def setup_editor(qtbot, monkeypatch):
         def __getattr__(self, attr):
             if attr.endswith('actions'):
                 return []
+            elif attr == 'projects':
+                projects = Mock()
+                projects.get_active_project.return_value = None
+                return projects
             else:
                 return Mock()
 
@@ -69,3 +75,27 @@ def test_renamed_tree(setup_editor, mocker):
                                       dest='test/dir/file2.txt')
     assert editor.renamed.called_with(source='/test/directory/file4.rst',
                                       dest='test/dir/file4.rst')
+
+
+def test_no_template(setup_editor):
+    """
+    Test that new files can be opened when no template is found.
+    """
+    editor, qtbot = setup_editor
+
+    # Move template to another file to simulate the lack of it
+    template = editor.TEMPLATE_PATH
+    shutil.move(template, osp.join(osp.dirname(template), 'template.py.old'))
+
+    # Open a new file
+    editor.new()
+
+    # Get contents
+    code_editor = editor.get_focus_widget()
+    contents = code_editor.get_text('sof', 'eof')
+
+    # Assert contents are empty
+    assert not contents
+
+    # Revert template back
+    shutil.move(osp.join(osp.dirname(template), 'template.py.old'), template)
