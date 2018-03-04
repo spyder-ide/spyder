@@ -441,7 +441,7 @@ class IOFunctions(object):
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
                                     mod.FORMAT_LOAD, mod.FORMAT_SAVE))
             except AttributeError as error:
-                print("%s: %s" % (mod, str(error)), file=STDERR)
+                print("%s: %s" % (mod, str(error)), file=sys.stderr)
         return other_funcs
 
     def save(self, data, filename):
