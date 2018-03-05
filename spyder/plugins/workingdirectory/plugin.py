@@ -91,12 +91,12 @@ class WorkingDirectory(SpyderPluginWidget):
         self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
-            if self.get_option('startup/use_project_or_home_directory'):
+            if self.get_option('console/use_project_or_home_directory'):
                 workdir = get_home_dir()
             else:
-                workdir = self.get_option('startup/fixed_directory', ".")
+                workdir = self.get_option('console/fixed_directory', default='')
                 if not osp.isdir(workdir):
-                    workdir = "."
+                    workdir = get_home_dir()
         self.chdir(workdir)
         self.pathedit.addItems(wdhistory)
         self.pathedit.selected_text = self.pathedit.currentText()

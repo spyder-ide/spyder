@@ -2179,8 +2179,9 @@ class Editor(SpyderPluginWidget):
 
     @Slot(bool)
     def toggle_show_blanks(self, checked):
-        for editorstack in self.editorstacks:
-            editorstack.set_blanks_enabled(checked)
+        if self.editorstacks:
+            for editorstack in self.editorstacks:
+                editorstack.set_blanks_enabled(checked)
 
     @Slot(bool)
     def toggle_show_indent_guides(self, checked):
