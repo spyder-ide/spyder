@@ -126,7 +126,6 @@ def test_auto_backend(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_tab_rename_for_slaves(ipyconsole, qtbot):
     """Test slave clients are renamed correctly."""
     # Wait until the window is fully up
@@ -148,7 +147,6 @@ def test_tab_rename_for_slaves(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_no_repeated_tabs_name(ipyconsole, qtbot):
     """Test that tabs can't have repeated given names."""
     shell = ipyconsole.get_current_shellwidget()
@@ -168,7 +166,6 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     """Test that tabs preserve their names after they are moved."""
     shell = ipyconsole.get_current_shellwidget()
@@ -187,7 +184,6 @@ def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_conf_env_vars(ipyconsole, qtbot):
     """Test that kernels have env vars set by our kernel spec."""
     # Wait until the window is fully up
@@ -205,7 +201,6 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 @pytest.mark.no_stderr_file
 def test_no_stderr_file(ipyconsole, qtbot):
     """Test that consoles can run without an stderr."""
@@ -225,7 +220,7 @@ def test_no_stderr_file(ipyconsole, qtbot):
 @pytest.mark.slow
 @pytest.mark.non_ascii_dir
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
 def test_non_ascii_stderr_file(ipyconsole, qtbot):
     """Test the creation of a console with a stderr file in a non-ascii dir."""
     # Wait until the window is fully up
@@ -243,7 +238,6 @@ def test_non_ascii_stderr_file(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_console_import_namespace(ipyconsole, qtbot):
     """Test an import of the form 'from foo import *'."""
     # Wait until the window is fully up
@@ -410,8 +404,7 @@ def test_browse_history_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2,
-                    reason="It times out sometimes on Windows and doesn't work on PY2")
+@pytest.mark.skipif(PY2, reason="It doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):
     """
     Test that the Variable Explorer Works with unicode variables.
@@ -533,7 +526,6 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_run_doctest(ipyconsole, qtbot):
     """
     Test that doctests can be run without problems
@@ -758,7 +750,6 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
     shell = ipyconsole.get_current_shellwidget()
