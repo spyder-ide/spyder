@@ -189,9 +189,6 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
-SCIENTIFIC_STARTUP = get_module_source_path('spyder', 'scientific_startup.py')
-
-
 #==============================================================================
 # Image path list
 #==============================================================================

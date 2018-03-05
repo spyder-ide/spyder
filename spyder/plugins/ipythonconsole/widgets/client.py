@@ -208,8 +208,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_syspath.connect(self.show_syspath)
         self.shellwidget.sig_show_env.connect(self.show_env)
 
-        #To sync global working directory
-        self.shellwidget.executing.connect(self.shellwidget.capture_dir_change)
+        # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
@@ -438,7 +437,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 stderr = self._read_stderr()
             except:
                 stderr = None
-        except OSError:
+        except (OSError, IOError):
             stderr = None
 
         if stderr:

@@ -79,6 +79,21 @@ def ipyconsole(request):
 # Tests
 #==============================================================================
 @flaky(max_runs=3)
+def test_console_import_namespace(ipyconsole, qtbot):
+    """Test an import of the form 'from foo import *'."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Import numpy
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('from numpy import *')
+
+    # Assert we get the e value correctly
+    assert shell.get_value('e') == 2.718281828459045
+
+
+@flaky(max_runs=3)
 def test_console_disambiguation(ipyconsole, qtbot):
     """Test the disambiguation of dedicated consoles."""
     # Create directories and file for TEMP_DIRECTORY/a/b/c.py

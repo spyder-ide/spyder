@@ -58,6 +58,7 @@ from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
+from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.widgets.panels.linenumber import LineNumberArea
 from spyder.widgets.panels.edgeline import EdgeLine
 from spyder.widgets.panels.indentationguides import IndentationGuide
@@ -271,6 +272,8 @@ class CodeEditor(TextEditBaseWidget):
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
+
+        self.text_helper = TextHelper(self)
 
         self._panels = PanelsManager(self)
 
@@ -568,6 +571,7 @@ class CodeEditor(TextEditBaseWidget):
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
+        self.eol_chars = editor.eol_chars
         self._apply_highlighter_color_scheme()
 
     #-----Widget setup and options
@@ -1042,9 +1046,10 @@ class CodeEditor(TextEditBaseWidget):
 
         while block.isValid() and top < event.pos().y():
             block = block.next()
-            top = bottom
-            bottom = top + self.blockBoundingRect(block).height()
-            line_number += 1
+            if block.isVisible():  # skip collapsed blocks
+                top = bottom
+                bottom = top + self.blockBoundingRect(block).height()
+                line_number += 1
 
         return line_number
 
@@ -1316,15 +1321,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
-        block = self.document().findBlockByNumber(line-1)
-        self.setTextCursor(QTextCursor(block))
-        if self.isVisible():
-            self.centerCursor()
-        else:
-            self.focus_in.connect(self.center_cursor_on_next_focus)
-        self.horizontalScrollBar().setValue(0)
-        if word and to_text_string(word) in to_text_string(block.text()):
-            self.find(word, QTextDocument.FindCaseSensitively)
+        self.text_helper.goto_line(line, move=True, word=word)
 
     def exec_gotolinedialog(self):
         """Execute the GoToLineDialog dialog box"""
@@ -2429,6 +2426,7 @@ class CodeEditor(TextEditBaseWidget):
         """Override Qt method."""
         self.timer_syntax_highlight.start()
         super(CodeEditor, self).keyReleaseEvent(event)
+        event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -2784,7 +2782,7 @@ class CodeEditor(TextEditBaseWidget):
         ebottom_bottom = self.height()
 
         while block.isValid():
-            visible = (top >= ebottom_top and bottom <= ebottom_bottom)
+            visible = bottom <= ebottom_bottom
             if not visible:
                 break
             if block.isVisible():

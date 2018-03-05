@@ -18,7 +18,7 @@ from spyder.utils.programs import (run_python_script_in_terminal,
 
 
 if os.name == 'nt':
-    python_dir = os.environ['PYTHON']
+    python_dir = os.environ['PYTHON'] if os.environ.get('CI', None) else ''
     VALID_INTERPRETER = os.path.join(python_dir, 'python.exe')
     INVALID_INTERPRETER = os.path.join(python_dir, 'Scripts', 'ipython.exe')
 else:

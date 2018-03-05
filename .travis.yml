@@ -29,14 +29,10 @@ before_install:
 
 install:
   - ./continuous_integration/travis/install.sh;
+  - ./continuous_integration/travis/install-qt.sh;
 
 script:
-  - |
-    if [ "$USE_PYQT" = "pyqt5" ]; then
-        ./continuous_integration/travis/test-qt5.sh || ./continuous_integration/travis/test-qt5.sh
-    else
-        ./continuous_integration/travis/test-qt4.sh || ./continuous_integration/travis/test-qt4.sh
-    fi
+  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh;
 
 after_success:
   - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls

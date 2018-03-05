@@ -886,61 +886,70 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cursor.beginEditBlock()
         start_pos, end_pos = self.__save_selection()
-        add_linesep = False
-        if to_text_string(cursor.selectedText()):
-            # Check if start_pos is at the start of a block
-            cursor.setPosition(start_pos)
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            start_pos = cursor.position()
-
-            cursor.setPosition(end_pos)
-            # Check if end_pos is at the start of a block: if so, starting
-            # changes from the previous block
-            cursor.movePosition(QTextCursor.StartOfBlock,
-                                QTextCursor.KeepAnchor)
-            if to_text_string(cursor.selectedText()):
-                cursor.movePosition(QTextCursor.NextBlock)
-                end_pos = cursor.position()
-        else:
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            start_pos = cursor.position()
-            cursor.movePosition(QTextCursor.NextBlock)
-            end_pos = cursor.position()
-            # check if on last line
-            if end_pos == start_pos:
-                cursor.movePosition(QTextCursor.End)
-                end_pos = cursor.position()
-                if start_pos == end_pos:
-                    cursor.endEditBlock()
-                    return
-                add_linesep = True
+        last_line = False
+        
+        # ------ Select text
+        
+        # Get selection start location
         cursor.setPosition(start_pos)
-        cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-
-        sel_text = to_text_string(cursor.selectedText())
-        if add_linesep:
-            sel_text += os.linesep
-        cursor.removeSelectedText()
-
-        if after_current_line:
-            text = to_text_string(cursor.block().text())
-            if len(text) == 0:
-                #If the next line is blank
-                sel_text = sel_text[0:-1]
-                sel_text = os.linesep + sel_text
-            if not text:
-                cursor.insertText(sel_text)
-                cursor.endEditBlock()
-                return
-            start_pos += len(text)+1
-            end_pos += len(text)+1
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        start_pos = cursor.position()
+        
+        # Get selection end location
+        cursor.setPosition(end_pos)
+        if not cursor.atBlockStart() or end_pos == start_pos:
+            cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.movePosition(QTextCursor.NextBlock)
-            if cursor.position() < start_pos:
-                cursor.movePosition(QTextCursor.End)
-                sel_text = os.linesep + sel_text
-                end_pos -= 1
+        end_pos = cursor.position()
+        
+        # Check if selection ends on the last line of the document
+        if cursor.atEnd():
+            if not cursor.atBlockStart() or end_pos == start_pos:
+                last_line = True
+                
+        # ------ Stop if at document boundary
+        
+        cursor.setPosition(start_pos)
+        if cursor.atStart() and not after_current_line:
+            # Stop if selection is already at top of the file while moving up
+            cursor.endEditBlock()
+            self.setTextCursor(cursor)
+            self.__restore_selection(start_pos, end_pos)
+            return
+                
+        cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+        if last_line and after_current_line:
+            # Stop if selection is already at end of the file while moving down
+            cursor.endEditBlock()
+            self.setTextCursor(cursor)
+            self.__restore_selection(start_pos, end_pos)
+            return
+        
+        # ------ Move text
+        
+        sel_text = to_text_string(cursor.selectedText())
+        cursor.removeSelectedText()
+        
+        
+        if after_current_line:
+            # Shift selection down
+            text = to_text_string(cursor.block().text())  
+            sel_text = os.linesep + sel_text[0:-1]  # Move linesep at the start
+            cursor.movePosition(QTextCursor.EndOfBlock)
+            start_pos += len(text)+1
+            end_pos += len(text)
+            if not cursor.atEnd():
+                end_pos += 1        
         else:
-            cursor.movePosition(QTextCursor.PreviousBlock)
+            # Shift selection up
+            if last_line:
+                # Remove the last linesep and add it to the selected text
+                cursor.deletePreviousChar()
+                sel_text = sel_text + os.linesep
+                cursor.movePosition(QTextCursor.StartOfBlock)
+                end_pos += 1
+            else:
+                cursor.movePosition(QTextCursor.PreviousBlock)
             text = to_text_string(cursor.block().text())
             start_pos -= len(text)+1
             end_pos -= len(text)+1
