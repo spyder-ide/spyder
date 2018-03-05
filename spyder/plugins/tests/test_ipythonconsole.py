@@ -16,21 +16,17 @@ from flaky import flaky
 import ipykernel
 from pygments.token import Name
 import pytest
-from qtpy import PYQT4, PYQT5, PYQT_VERSION
+from qtpy import PYQT4, PYQT5
 from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import QApplication
 import zmq
 
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
-from spyder.py3compat import PY2, PY3, to_text_string
-from spyder.plugins.ipythonconsole import (IPythonConsole,
-                                           KernelConnectionDialog)
-from spyder.utils.environ import listdict2envdict
+from spyder.py3compat import PY2, to_text_string
+from spyder.plugins.ipythonconsole import IPythonConsole
 from spyder.utils.ipython.style import create_style_class
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.test import close_message_box
-from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
 
 
 #==============================================================================
@@ -319,10 +315,8 @@ def test_console_coloring(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_get_env(ipyconsole, qtbot):
-    """Test that showing env var contents is working as expected."""
+    """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
@@ -331,25 +325,23 @@ def test_get_env(ipyconsole, qtbot):
         shell.execute("import os; os.environ['FOO'] = 'bar'" )
 
     # Ask for os.environ contents
-    with qtbot.waitSignal(shell.sig_show_env):
+    with qtbot.waitSignal(shell.sig_show_env) as blocker:
         shell.get_env()
 
-    # Get env contents from the generated widget
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, CollectionsEditor):
-            env_contents = w.get_value()
-            qtbot.keyClick(w, Qt.Key_Enter)
+    # Get env contents from the signal
+    env_contents = blocker.args[0]
 
     # Assert that our added entry is part of os.environ
-    env_contents = listdict2envdict(env_contents)
     assert env_contents['FOO'] == 'bar'
 
 
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_get_syspath(ipyconsole, qtbot, tmpdir):
-    """Test that showing sys.path contents is working as expected."""
+    """
+    Test that getting sys.path contents from the kernel is working as
+    expected.
+    """
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
