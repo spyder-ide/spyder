@@ -60,15 +60,3 @@ class IndentationGuide(Panel):
     def set_indentation_width(self, indentation_width):
         """Set indentation width to be used to draw indent guides."""
         self.i_width = indentation_width
-
-    def set_geometry(self, cr):
-        """Calculate and set geometry of indentation guides panel."""
-        offset = self.editor.contentOffset()
-        x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock()) \
-            .translated(offset.x(), offset.y()).left() + 5
-
-        top_left = QPoint(x, cr.top())
-        top_left = self.editor.calculate_real_position(top_left)
-        bottom_right = QPoint(top_left.x() + cr.width(), cr.bottom())
-
-        self.setGeometry(QRect(top_left, bottom_right))

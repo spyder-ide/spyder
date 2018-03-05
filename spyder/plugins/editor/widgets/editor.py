@@ -555,7 +555,7 @@ class EditorStack(QWidget):
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width_spaces = 4
-        self.show_class_func_dropdown = True
+        self.show_class_func_dropdown = False
         self.help_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -776,6 +776,12 @@ class EditorStack(QWidget):
     def closeEvent(self, event):
         self.threadmanager.close_all_threads()
         self.analysis_timer.timeout.disconnect(self.analyze_script)
+
+        # Remove editor references from the outline explorer settings
+        if self.outlineexplorer is not None:
+            for finfo in self.data:
+                self.outlineexplorer.remove_editor(finfo.editor)
+
         QWidget.closeEvent(self, event)
         if is_pyqt46:
             self.destroyed.emit()
@@ -1727,8 +1733,13 @@ class EditorStack(QWidget):
 
         self.update_plugin_title.emit()
         if editor is not None:
-            self.current_file_changed.emit(self.data[index].filename,
+            # Needed in order to handle the close of files open in a directory
+            # that has been renamed. See issue 5157
+            try:
+                self.current_file_changed.emit(self.data[index].filename,
                                            editor.get_position('cursor'))
+            except IndexError:
+                pass
 
     def _get_previous_file_index(self):
         if len(self.stack_history) > 1:
@@ -2042,10 +2053,6 @@ class EditorStack(QWidget):
         editor.zoom_out.connect(lambda: self.zoom_out.emit())
         editor.zoom_reset.connect(lambda: self.zoom_reset.emit())
         editor.sig_eol_chars_changed.connect(lambda eol_chars: self.refresh_eol_chars(eol_chars))
-        if self.outlineexplorer is not None:
-            # Removing editor reference from outline explorer settings:
-            editor.destroyed.connect(lambda obj=editor.oe_proxy:
-                                     self.outlineexplorer.remove_editor(obj))
 
         self.find_widget.set_editor(editor)
 

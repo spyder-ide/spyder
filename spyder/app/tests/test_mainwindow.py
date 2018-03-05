@@ -887,6 +887,26 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 2
 
+    # Verify that doesn't go to sitecustomize.py with next and stops
+    # the debugging session.
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    assert nsb.editor.model.rowCount() == 3
+
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Assert that the prompt appear
+    shell.clear_console()
+    assert 'In [2]:' in control.toPlainText()
+
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
     main_window.editor.close_file()
