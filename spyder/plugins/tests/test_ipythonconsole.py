@@ -17,7 +17,7 @@ import ipykernel
 from pygments.token import Name
 import pytest
 from qtpy import PYQT4, PYQT5
-from qtpy.QtCore import Qt, QTimer
+from qtpy.QtCore import Qt
 import zmq
 
 from spyder.config.gui import get_color_scheme
@@ -26,7 +26,6 @@ from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.ipythonconsole import IPythonConsole
 from spyder.utils.ipython.style import create_style_class
 from spyder.utils.programs import TEMPDIR
-from spyder.utils.test import close_message_box
 
 
 #==============================================================================
@@ -658,8 +657,6 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_restart_kernel(ipyconsole, qtbot):
     """
     Test that kernel is restarted correctly
@@ -674,10 +671,10 @@ def test_restart_kernel(ipyconsole, qtbot):
 
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
-    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
     client.restart_kernel()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
+    assert 'Restarting kernel...' in shell._control.toPlainText()
     assert not shell.is_defined('a')
 
 
