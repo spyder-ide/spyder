@@ -23,7 +23,7 @@ import zmq
 
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
-from spyder.py3compat import PY2, PY3
+from spyder.py3compat import PY2, PY3, to_text_string
 from spyder.plugins.ipythonconsole import (IPythonConsole,
                                            KernelConnectionDialog)
 from spyder.utils.environ import listdict2envdict
@@ -44,23 +44,17 @@ NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 #==============================================================================
 # Utillity Functions
 #==============================================================================
-def open_client_from_connection_info(connection_info, qtbot):
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, KernelConnectionDialog):
-            w.cf.setText(connection_info)
-            qtbot.keyClick(w, Qt.Key_Enter)
-
 def get_console_font_color(syntax_style):
     styles = create_style_class(syntax_style).styles
     font_color = styles[Name]
-
     return font_color
+
 
 def get_console_background_color(style_sheet):
     background_color = style_sheet.split('background-color:')[1]
     background_color = background_color.split(';')[0]
     return background_color
+
 
 #==============================================================================
 # Qt Test Fixtures
@@ -709,8 +703,6 @@ def test_restart_kernel(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
     Test that a new client is created using its id
@@ -722,9 +714,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     connection_file = osp.basename(client.connection_file)
     id_ = connection_file.split('kernel-')[-1].split('.json')[0]
 
-    QTimer.singleShot(2000, lambda: open_client_from_connection_info(
-                                        id_, qtbot))
-    ipyconsole.create_client_for_kernel()
+    ipyconsole._create_client_for_kernel(id_, None, None, None)
     qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
@@ -733,9 +723,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It segfaults frequently")
-def test_load_kernel_file_from_location(ipyconsole, qtbot):
+def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     """
     Test that a new client is created using a connection file
     placed in a different location from jupyter_runtime_dir
@@ -744,14 +732,11 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    connection_file = osp.join(tempfile.gettempdir(),
-                               osp.basename(client.connection_file))
+    fname = osp.basename(client.connection_file)
+    connection_file = to_text_string(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
-    QTimer.singleShot(2000, lambda: open_client_from_connection_info(
-                                        connection_file,
-                                        qtbot))
-    ipyconsole.create_client_for_kernel()
+    ipyconsole._create_client_for_kernel(connection_file, None, None, None)
     qtbot.wait(1000)
 
     assert len(ipyconsole.get_clients()) == 2
@@ -759,9 +744,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It segfaults frequently")
-def test_load_kernel_file(ipyconsole, qtbot):
+def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     """
     Test that a new client is created using the connection file
     of an existing client
@@ -770,10 +753,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    QTimer.singleShot(2000, lambda: open_client_from_connection_info(
-                                        client.connection_file,
-                                        qtbot))
-    ipyconsole.create_client_for_kernel()
+    ipyconsole._create_client_for_kernel(client.connection_file, None, None, None)
     qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
