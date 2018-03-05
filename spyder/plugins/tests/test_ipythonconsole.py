@@ -348,6 +348,8 @@ def test_get_env(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="Fails due to differences in path handling")
 def test_get_syspath(ipyconsole, qtbot, tmpdir):
     """
     Test that getting sys.path contents from the kernel is working as
