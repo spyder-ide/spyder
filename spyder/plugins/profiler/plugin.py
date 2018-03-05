@@ -62,7 +62,8 @@ class Profiler(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         max_entries = self.get_option('max_entries', 50)
-        self.profiler = ProfilerWidget(self, max_entries)
+        self.profiler = ProfilerWidget(self, max_entries,
+                                       options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.profiler)

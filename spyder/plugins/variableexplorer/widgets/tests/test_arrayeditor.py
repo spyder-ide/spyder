@@ -38,6 +38,18 @@ def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_type_errors(qtbot):
+    """Verify that we don't get a TypeError for certain structured arrays.
+
+    Fixes issue 5254.
+    """
+    arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
+    dlg = setup_arrayeditor(qtbot, arr)
+    qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
+    contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
+    assert_array_equal(contents, np.ones(10))
+
+
 def test_arrayeditor_format(qtbot):
     """Changes the format of the array and validates its selected content."""
     arr = np.array([1, 2, 3], dtype=np.float32)

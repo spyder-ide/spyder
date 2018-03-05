@@ -26,6 +26,7 @@ from spyder.plugins.ipythonconsole.plugin import (IPythonConsole,
                                                   KernelConnectionDialog)
 from spyder.utils.environ import listdict2envdict
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
+from spyder.utils.programs import TEMPDIR
 from spyder.utils.test import close_message_box
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
@@ -37,6 +38,7 @@ from spyder.plugins.variableexplorer.widgets.collectionseditor import (
 SHELL_TIMEOUT = 20000
 PYQT_WHEEL = PYQT_VERSION > '5.6'
 TEMP_DIRECTORY = tempfile.gettempdir()
+NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 
 
 #==============================================================================
@@ -65,41 +67,74 @@ def get_console_background_color(style_sheet):
 #==============================================================================
 @pytest.fixture
 def ipyconsole(request):
-    try:
-        console = IPythonConsole(None, testing=True, test_dir=request.param)
-    except AttributeError:
-        console = IPythonConsole(None, testing=True)
+    """IPython console fixture."""
+
+    # Test the console with a non-ascii temp dir
+    non_ascii_dir = request.node.get_marker('non_ascii_dir')
+    if non_ascii_dir:
+        test_dir = NON_ASCII_DIR
+    else:
+        test_dir = TEMPDIR
+
+    # Instruct the console to not use a stderr file
+    no_stderr_file = request.node.get_marker('no_stderr_file')
+    if no_stderr_file:
+        test_no_stderr = True
+    else:
+        test_no_stderr = False
+
+    # Create the console and a new client
+    console = IPythonConsole(parent=None,
+                             testing=True,
+                             test_dir=test_dir,
+                             test_no_stderr=test_no_stderr)
     console.create_new_client()
+
     def close_console():
         console.closing_plugin()
         console.close()
     request.addfinalizer(close_console)
     console.show()
+
     return console
 
 
 #==============================================================================
 # Tests
 #==============================================================================
-@pytest.mark.parametrize('ipyconsole', [osp.join(TEMP_DIRECTORY, u'測試',
-                                                 u'اختبار')], indirect=True)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-def test_console_stderr_file(ipyconsole, qtbot):
-    """Test a the creation of a console with a stderr file in ascii dir."""
+@pytest.mark.no_stderr_file
+def test_no_stderr_file(ipyconsole, qtbot):
+    """Test that consoles can run without an stderr."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Create a new client with s stderr file in a non-ascii dir
-    ipyconsole.create_new_client()
-    shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    # Execute a simple assignment
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 1')
 
-    # Assert we get the a value correctly
+    # Assert we get the assigned value correctly
+    assert shell.get_value('a') == 1
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.non_ascii_dir
+def test_non_ascii_stderr_file(ipyconsole, qtbot):
+    """Test the creation of a console with a stderr file in a non-ascii dir."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute a simple assignment
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 1')
+
+    # Assert we get the assigned value
     assert shell.get_value('a') == 1
 
 
@@ -424,7 +459,7 @@ def test_run_doctest(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
+@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5) or PYQT4,
                     reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
@@ -532,7 +567,7 @@ def test_restart_kernel(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    # Do an assigment to verify that it's not there after restarting
+    # Do an assignment to verify that it's not there after restarting
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 10')
 
@@ -568,7 +603,8 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
+                    reason="It segfaults frequently")
 def test_load_kernel_file_from_location(ipyconsole, qtbot):
     """
     Test that a new client is created using a connection file

@@ -19,11 +19,16 @@ import pytest
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-    CollectionsEditorTableView, CollectionsModel)
+    CollectionsEditorTableView, CollectionsModel, LARGE_NROWS, ROWS_TO_LOAD)
+from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
+    generate_pandas_indexes
 
 # Helper functions
 def data(cm, i, j):
     return cm.data(cm.createIndex(i, j))
+
+def data_table(cm, n_rows, n_cols):
+    return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
 
 # --- Tests
 # -----------------------------------------------------------------------------
@@ -73,27 +78,71 @@ def test_collectionsmodel_with_two_ints():
     assert data(cm, row_with_y, 2) == '1'
     assert data(cm, row_with_y, 3) == '2'
 
-def test_collectionsmodel_with_datetimeindex():
-    # Regression test for issue #3380
-    rng = pandas.date_range('10/1/2016', periods=25, freq='bq')
-    coll = {'rng': rng}
+def test_collectionsmodel_with_index():
+    # Regression test for issue #3380, modified for #3758
+    for rng_name, rng in generate_pandas_indexes().items():
+        coll = {'rng': rng}
+        cm = CollectionsModel(None, coll)
+        assert data(cm, 0, 0) == 'rng'
+        assert data(cm, 0, 1) == rng_name
+        assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
+        assert data(cm, 0, 3) == rng.summary()
+
+def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
+    for rng_name, rng in generate_pandas_indexes().items():
+        MockDataFrameEditor = Mock()
+        mockDataFrameEditor_instance = MockDataFrameEditor()
+        monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
+                            MockDataFrameEditor)
+        coll = {'rng': rng}
+        editor = CollectionsEditorTableView(None, coll)
+        editor.delegate.createEditor(None, None,
+                                     editor.model.createIndex(0, 3))
+        mockDataFrameEditor_instance.show.assert_called_once_with()
+
+
+def test_sort_collectionsmodel():
+    coll = [1, 3, 2]
     cm = CollectionsModel(None, coll)
-    assert data(cm, 0, 0) == 'rng'
-    assert data(cm, 0, 1) == 'DatetimeIndex'
-    assert data(cm, 0, 2) == '(25,)' or data(cm, 0, 2) == '(25L,)'
-    assert data(cm, 0, 3) == rng.summary()
+    assert cm.rowCount() == 3
+    assert cm.columnCount() == 4
+    cm.sort(0)  # sort by index
+    assert data_table(cm, 3, 4) == [['0', '1', '2'],
+                                    ['int', 'int', 'int'],
+                                    ['1', '1', '1'],
+                                    ['1', '3', '2']]
+    cm.sort(3)  # sort by value
+    assert data_table(cm, 3, 4) == [['0', '2', '1'],
+                                    ['int', 'int', 'int'],
+                                    ['1', '1', '1'],
+                                    ['1', '2', '3']]
+    coll = [[1, 2], 3]
+    cm = CollectionsModel(None, coll)
+    assert cm.rowCount() == 2
+    assert cm.columnCount() == 4
+    cm.sort(1)  # sort by type
+    assert data_table(cm, 2, 4) == [['1', '0'],
+                                    ['int', 'list'],
+                                    ['1', '2'],
+                                    ['3', '[1, 2]']]
+    cm.sort(2)  # sort by size
+    assert data_table(cm, 2, 4) == [['1', '0'],
+                                    ['int', 'list'],
+                                    ['1', '2'],
+                                    ['3', '[1, 2]']]
 
-def test_shows_dataframeeditor_when_editing_datetimeindex(qtbot, monkeypatch):
-    MockDataFrameEditor = Mock()
-    mockDataFrameEditor_instance = MockDataFrameEditor()
-    monkeypatch.setattr('spyder.plugins.variableexplorer.widgets.collectionseditor.DataFrameEditor',
-                        MockDataFrameEditor)
-    rng = pandas.date_range('10/1/2016', periods=25, freq='bq')
-    coll = {'rng': rng}
-    editor = CollectionsEditorTableView(None, coll)
-    editor.delegate.createEditor(None, None, editor.model.createIndex(0, 3))
-    mockDataFrameEditor_instance.show.assert_called_once_with()
 
+def test_sort_collectionsmodel_with_many_rows():
+    coll = list(range(2*LARGE_NROWS))
+    cm = CollectionsModel(None, coll)
+    assert cm.rowCount() == cm.rows_loaded == ROWS_TO_LOAD
+    assert cm.columnCount() == 4
+    cm.sort(1)  # This was causing an issue (#5232)
+    cm.fetchMore()
+    assert cm.rowCount() == 2 * ROWS_TO_LOAD
+    for _ in range(3):
+        cm.fetchMore()
+    assert cm.rowCount() == len(coll)
 
 if __name__ == "__main__":
     pytest.main()

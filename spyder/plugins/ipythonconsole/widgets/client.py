@@ -97,7 +97,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                  additional_options, interpreter_versions,
                  connection_file=None, hostname=None,
                  menu_actions=None, slave=False,
-                 external_kernel=False, given_name=None):
+                 external_kernel=False, given_name=None,
+                 options_button=None):
         super(ClientWidget, self).__init__(plugin)
         SaveHistoryMixin.__init__(self, history_filename)
 
@@ -110,7 +111,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.given_name = given_name
 
         # --- Other attrs
-        self.options_button = None
+        self.options_button = options_button
         self.stop_button = None
         self.stop_icon = ima.icon('stop')
         self.history = []
@@ -144,12 +145,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # --- Exit function
         self.exit_callback = lambda: plugin.close_client(client=self)
 
-        # --- Signals
-        # As soon as some content is printed in the console, stop
-        # our loading animation
-        document = self.get_control().document()
-        document.contentsChange.connect(self._hide_loading_page)
-
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
@@ -164,15 +159,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     @property
     def stderr_file(self):
         """Filename to save kernel stderr output."""
+        stderr_file = None
         if self.connection_file is not None:
             stderr_file = self.kernel_id + '.stderr'
             if self.stderr_dir is not None:
                 stderr_file = osp.join(self.stderr_dir, stderr_file)
             else:
-                if not osp.isdir(TEMPDIR):
-                    os.makedirs(TEMPDIR)
-                stderr_file = osp.join(TEMPDIR, stderr_file)
-            return stderr_file
+                try:
+                    if not osp.isdir(TEMPDIR):
+                        os.makedirs(TEMPDIR)
+                    stderr_file = osp.join(TEMPDIR, stderr_file)
+                except (IOError, OSError):
+                    stderr_file = None
+        return stderr_file
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is started"""
@@ -217,10 +216,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
+        # To apply style
         if not create_qss_style(self.shellwidget.syntax_style)[1]:
             self.shellwidget.silent_execute("%colors linux")
         else:
             self.shellwidget.silent_execute("%colors lightbg")
+
+        # To hide the loading page
+        self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -518,9 +521,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.infowidget.hide()
         self.shellwidget.show()
         self.infowidget.setHtml(BLANK)
-
-        document = self.get_control().document()
-        document.contentsChange.disconnect(self._hide_loading_page)
+        self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""

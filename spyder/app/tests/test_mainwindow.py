@@ -166,7 +166,7 @@ def test_calltip(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
 def test_move_to_first_breakpoint(main_window, qtbot):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
@@ -295,6 +295,7 @@ def test_dedicated_consoles(main_window, qtbot):
     qtbot.keyClick(code_editor, Qt.Key_F5)
     qtbot.wait(500)
     shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     nsb = main_window.variableexplorer.get_focus_widget()
 
@@ -304,12 +305,20 @@ def test_dedicated_consoles(main_window, qtbot):
     qtbot.wait(500)
     assert nsb.editor.model.rowCount() == 3
 
+    # --- Assert only runfile text is present and there's no banner text ---
+    # See PR #5301
+    text = control.toPlainText()
+    assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
+
     # --- Clean namespace after re-execution ---
     with qtbot.waitSignal(shell.executed):
         shell.execute('zz = -1')
     qtbot.keyClick(code_editor, Qt.Key_F5)
     qtbot.wait(500)
     assert not shell.is_defined('zz')
+
+    # --- Assert runfile text is present after reruns ---
+    assert 'runfile' in control.toPlainText()
 
     # ---- Closing test file and resetting config ----
     main_window.editor.close_file()

@@ -33,9 +33,10 @@ from spyder.config.gui import get_font, set_font
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.config.utils import is_gtk_desktop
-from spyder.py3compat import to_text_string, is_text_string, getcwd
+from spyder.py3compat import to_text_string, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
@@ -521,7 +522,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Select directory"""
         basedir = to_text_string(edit.text())
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         title = _("Select directory")
         directory = getexistingdirectory(self, title, basedir)
         if directory:
@@ -551,7 +552,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Select File"""
         basedir = osp.dirname(to_text_string(edit.text()))
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         if filters is None:
             filters = _("All files (*)")
         title = _("Select file")
@@ -1249,6 +1250,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 '        print(bar)\n'
                 )
         show_blanks = CONF.get('editor', 'blank_spaces')
+        update_scrollbar = CONF.get('editor', 'scroll_past_end')
         if scheme_name is None:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
@@ -1256,7 +1258,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                          tab_mode=False,
                                          font=get_font(),
                                          show_blanks=show_blanks,
-                                         color_scheme=scheme_name)
+                                         color_scheme=scheme_name,
+                                         scroll_past_end=update_scrollbar)
         self.preview_editor.set_text(text)
         self.preview_editor.set_language('Python')
 

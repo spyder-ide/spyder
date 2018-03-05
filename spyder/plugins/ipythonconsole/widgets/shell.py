@@ -15,7 +15,6 @@ import uuid
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 from spyder.config.main import CONF
-from qtpy import PYQT4
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import PY2, to_text_string
@@ -55,6 +54,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
     sig_got_reply = Signal()
     sig_is_spykernel = Signal(object)
     sig_kernel_restarted = Signal(str)
+    sig_prompt_ready = Signal()
 
     # For global working directory
     sig_change_cwd = Signal(str)
@@ -292,7 +292,10 @@ the sympy module (e.g. plot)
     # --- To communicate with the kernel
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
-        self.kernel_client.execute(to_text_string(code), silent=True)
+        try:
+            self.kernel_client.execute(to_text_string(code), silent=True)
+        except AttributeError:
+            pass
 
     def silent_exec_method(self, code):
         """Silently execute a kernel method and save its reply
@@ -467,6 +470,12 @@ the sympy module (e.g. plot)
             self._highlighter._clear_caches()
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
+
+    def _prompt_started_hook(self):
+        """Emit a signal when the prompt is ready."""
+        if not self._reading:
+            self._highlighter.highlighting_on = True
+            self.sig_prompt_ready.emit()
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):

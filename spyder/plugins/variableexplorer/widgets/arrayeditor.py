@@ -18,7 +18,7 @@ from __future__ import print_function
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QItemSelection,
+from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
@@ -264,17 +264,24 @@ class ArrayModel(QAbstractTableModel):
             if value is np.ma.masked:
                 return ''
             else:
-                return to_qvariant(self._format % value)
+                try:
+                    return to_qvariant(self._format % value)
+                except TypeError:
+                    self.readonly = True
+                    return repr(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
           and value is not np.ma.masked:
-            hue = self.hue0+\
-                  self.dhue*(float(self.vmax)-self.color_func(value)) \
-                  /(float(self.vmax)-self.vmin) #float convert to handle bool arrays
-            hue = float(np.abs(hue))
-            color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
-            return to_qvariant(color)
+            try:
+                hue = (self.hue0 +
+                       self.dhue * (float(self.vmax) - self.color_func(value))
+                       / (float(self.vmax) - self.vmin))
+                hue = float(np.abs(hue))
+                color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
+                return to_qvariant(color)
+            except TypeError:
+                return to_qvariant()
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
         return to_qvariant()
@@ -366,7 +373,9 @@ class ArrayDelegate(QItemDelegate):
             editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
-                editor.setValidator(QDoubleValidator(editor))
+                validator = QDoubleValidator(editor)
+                validator.setLocale(QLocale('C'))
+                editor.setValidator(validator)
             editor.returnPressed.connect(self.commitAndCloseEditor)
             return editor
 

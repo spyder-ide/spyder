@@ -32,6 +32,8 @@ class HistoryConfigPage(PluginConfigPage):
 
         sourcecode_group = QGroupBox(_("Source code"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
+        linenumbers_mode_box = self.create_checkbox(_("Show line numbers"),
+                                                    'line_numbers')
         go_to_eof_box = self.create_checkbox(
                         _("Scroll automatically to last entry"), 'go_to_eof')
 
@@ -41,6 +43,7 @@ class HistoryConfigPage(PluginConfigPage):
 
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_layout.addWidget(linenumbers_mode_box)
         sourcecode_layout.addWidget(go_to_eof_box)
         sourcecode_group.setLayout(sourcecode_layout)
 

@@ -36,7 +36,8 @@ except:
 
 # Local imports
 from spyder.config.base import _, get_conf_path
-from spyder.py3compat import pickle, to_text_string, getcwd, PY2
+from spyder.py3compat import pickle, to_text_string, PY2
+from spyder.utils.misc import getcwd_or_home
 
 
 class MatlabStruct(dict):
@@ -282,7 +283,7 @@ def load_json(filename):
 def save_dictionary(data, filename):
     """Save dictionary in a single file .spydata file"""
     filename = osp.abspath(filename)
-    old_cwd = getcwd()
+    old_cwd = getcwd_or_home()
     os.chdir(osp.dirname(filename))
     error_message = None
     try:
@@ -333,7 +334,7 @@ def save_dictionary(data, filename):
 def load_dictionary(filename):
     """Load dictionary from .spydata file"""
     filename = osp.abspath(filename)
-    old_cwd = getcwd()
+    old_cwd = getcwd_or_home()
     tmp_folder = tempfile.mkdtemp()
     os.chdir(tmp_folder)
     data = None

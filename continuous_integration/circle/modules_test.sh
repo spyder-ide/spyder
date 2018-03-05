@@ -80,6 +80,8 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/introspection/numpy_docstr.py ]]; then
         continue
     fi
+        continue
+    fi
     if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then
         continue
     fi

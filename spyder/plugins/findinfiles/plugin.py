@@ -22,7 +22,7 @@ from qtpy.QtWidgets import QApplication, QVBoxLayout
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.config.base import _
 from spyder.config.utils import get_edit_extensions
-from spyder.py3compat import getcwd
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.plugins.findinfiles.widgets import FindInFilesWidget
@@ -61,7 +61,8 @@ class FindInFiles(SpyderPluginWidget):
                                    exclude, exclude_idx, exclude_regexp,
                                    supported_encodings,
                                    in_python_path, more_options,
-                                   case_sensitive, path_history)
+                                   case_sensitive, path_history,
+                                   options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)
@@ -79,7 +80,8 @@ class FindInFiles(SpyderPluginWidget):
     
     def refreshdir(self):
         """Refresh search directory"""
-        self.findinfiles.find_options.set_directory(getcwd())
+        self.findinfiles.find_options.set_directory(
+            getcwd_or_home())
 
     def set_project_path(self, path):
         """Refresh current project path"""

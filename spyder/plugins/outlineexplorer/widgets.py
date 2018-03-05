@@ -12,7 +12,7 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget
 
 # Local imports
@@ -472,7 +472,7 @@ class OutlineExplorerWidget(QWidget):
     is_visible = Signal()
     
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
-                 show_all_files=True, show_comments=True):
+                 show_all_files=True, show_comments=True, options_button=None):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(self,
@@ -488,9 +488,13 @@ class OutlineExplorerWidget(QWidget):
         self.visibility_action.setChecked(True)
         
         btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignLeft)
         for btn in self.setup_buttons():
+            btn.setAutoRaise(True)
+            btn.setIconSize(QSize(16, 16))
             btn_layout.addWidget(btn)
+        if options_button:
+            btn_layout.addStretch()
+            btn_layout.addWidget(options_button, Qt.AlignRight)
 
         layout = create_plugin_layout(btn_layout, self.treewidget)
         self.setLayout(layout)

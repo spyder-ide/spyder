@@ -31,13 +31,13 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
 
 # Local imports
 from spyder.config.base import get_conf_path, get_translation
-from spyder.py3compat import getcwd, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                     set_item_user_text)
 from spyder.utils.programs import shell_split
 from spyder.widgets.comboboxes import PythonModulesComboBox
-from spyder.utils.misc import add_pathlist_to_PYTHONPATH
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
@@ -64,7 +64,7 @@ class ProfilerWidget(QWidget):
     VERSION = '0.0.1'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100):
+    def __init__(self, parent, max_entries=100, options_button=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Profiler")
@@ -138,6 +138,8 @@ class ProfilerWidget(QWidget):
         hlayout1.addWidget(browse_button)
         hlayout1.addWidget(self.start_button)
         hlayout1.addWidget(self.stop_button)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addWidget(self.collapse_button)
@@ -178,15 +180,16 @@ class ProfilerWidget(QWidget):
     def save_data(self):
         """Save data"""
         title = _( "Save profiler result")
-        filename, _selfilter = getsavefilename(self, title,
-                                               getcwd(),
-                                               _("Profiler result")+" (*.Result)")
+        filename, _selfilter = getsavefilename(
+                self, title, getcwd_or_home(),
+                _("Profiler result")+" (*.Result)")
         if filename:
             self.datatree.save_data(filename)
             
     def compare(self):
-        filename, _selfilter = getopenfilename(self, _("Select script to compare"),
-                                               getcwd(), _("Profiler result")+" (*.Result)")
+        filename, _selfilter = getopenfilename(
+                self, _("Select script to compare"),
+                getcwd_or_home(), _("Profiler result")+" (*.Result)")
         if filename:
             self.datatree.compare(filename)
             self.show_data()
@@ -217,8 +220,9 @@ class ProfilerWidget(QWidget):
             
     def select_file(self):
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getopenfilename(self, _("Select Python script"),
-                           getcwd(), _("Python scripts")+" (*.py ; *.pyw)")
+        filename, _selfilter = getopenfilename(
+                self, _("Select Python script"),
+                getcwd_or_home(), _("Python scripts")+" (*.py ; *.pyw)")
         self.redirect_stdio.emit(True)
         if filename:
             self.analyze(filename)
@@ -661,8 +665,8 @@ class ProfilerDataTree(QTreeWidget):
         while ancestor:
             if (child_item.data(0, Qt.DisplayRole
                                 ) == ancestor.data(0, Qt.DisplayRole) and
-                child_item.data(4, Qt.DisplayRole
-                                ) == ancestor.data(4, Qt.DisplayRole)):
+                child_item.data(7, Qt.DisplayRole
+                                ) == ancestor.data(7, Qt.DisplayRole)):
                 return True
             else:
                 ancestor = ancestor.parent()

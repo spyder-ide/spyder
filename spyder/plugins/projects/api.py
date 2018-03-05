@@ -29,7 +29,7 @@ class BaseProject(object):
     This base class must not be used directly, but inherited from. It does not
     assume that python is specific to this project.
     """
-    PROJECT_FOLDER = '.spyderproject'
+    PROJECT_FOLDER = '.spyproject'
     PROJECT_TYPE_NAME = None
     IGNORE_FILE = ""
     CONFIG_SETUP = {WORKSPACE: {'filename': '{0}.ini'.format(WORKSPACE),

@@ -112,6 +112,11 @@ def test_list_display():
     result = '[defaultdict, Panel, 1, {1:2, 3:4}, Dataframe]'
     assert value_to_display(li) == result
 
+    # List starting with a non-supported object (#5313)
+    supported_types = tuple(get_supported_types()['editable'])
+    li = [len, 1]
+    assert value_to_display(li) == '[builtin_function_or_method, 1]'
+    assert is_supported(li, filters=supported_types)
 
 def test_dict_display():
     """Tests for display of dicts."""
@@ -148,6 +153,33 @@ def test_dict_display():
     result = '{0:defaultdict, 1:Panel, 2:2, 3:{0:0, 1:1}, 4:Dataframe}'
     assert value_to_display(li) == result
 
+    # Dict starting with a non-supported object (#5313)
+    supported_types = tuple(get_supported_types()['editable'])
+    di = {max: len, 1: 1}
+    assert value_to_display(di) in (
+            '{builtin_function_or_method:builtin_function_or_method, 1:1}',
+            '{1:1, builtin_function_or_method:builtin_function_or_method}')
+    assert is_supported(di, filters=supported_types)
+
+
+def test_set_display():
+    """Tests for display of sets."""
+    long_set = {i for i in range(100)}
+
+    # Simple set
+    assert value_to_display({1, 2, 3}) == '{1, 2, 3}'
+
+    # Long set
+    disp = '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...}'
+    assert value_to_display(long_set) == disp
+
+    # Short list of sets
+    disp = '[{0, 1, 2, 3, 4, ...}, {0, 1, 2, 3, 4, ...}, {0, 1, 2, 3, 4, ...}]'
+    assert value_to_display([long_set] * 3) == disp
+
+    # Long list of sets
+    disp = '[' + ''.join('{0, 1, 2, 3, 4, ...}, '*10)[:-2] + ']'
+    assert value_to_display([long_set] * 10) == disp[:70] + ' ...'
 
 if __name__ == "__main__":
     pytest.main()
