@@ -167,33 +167,33 @@ if sys.platform == 'darwin':
 
 
 #==============================================================================
-# Add Cython files import and runfile support
+# Cython support
 #==============================================================================
-try:
-    # Import pyximport for enable Cython files support for import statement
-    import pyximport
-    HAS_PYXIMPORT = True
-    pyx_setup_args = {}
-except:
-    HAS_PYXIMPORT = False
+RUN_CYTHON = os.environ.get("SPY_RUN_CYTHON") == "True"
+HAS_CYTHON = False
 
-if HAS_PYXIMPORT:
-    # Add Numpy include dir to pyximport/distutils
+if RUN_CYTHON:
     try:
-        import numpy
-        pyx_setup_args['include_dirs'] = numpy.get_include()
-    except:
+        __import__('Cython')
+        HAS_CYTHON = True
+    except Exception:
         pass
 
-    # Setup pyximport and enable Cython files reload
-    pyximport.install(setup_args=pyx_setup_args, reload_support=True)
-    
-try:
-    # Import cython_inline for runfile function
-    from Cython.Build.Inline import cython_inline
-    HAS_CYTHON = True
-except:
-    HAS_CYTHON = False
+    if HAS_CYTHON:
+        # Import pyximport to enable Cython files support for
+        # import statement
+        import pyximport
+        pyx_setup_args = {}
+
+        # Add Numpy include dir to pyximport/distutils
+        try:
+            import numpy
+            pyx_setup_args['include_dirs'] = numpy.get_include()
+        except Exception:
+            pass
+
+        # Setup pyximport and enable Cython files reload
+        pyximport.install(setup_args=pyx_setup_args, reload_support=True)
 
 
 #==============================================================================
@@ -546,7 +546,7 @@ class UserModuleReloader(object):
         self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
-        if modname.startswith('_cython_inline'):
+        if HAS_CYTHON:
             # Don't return cached inline compiled .PYX files
             return True
         for path in [sys.prefix]+self.pathlist:
@@ -695,7 +695,7 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         os.chdir(wdir)
     if post_mortem:
         set_post_mortem()
-    if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
+    if HAS_CYTHON:
         # Cython files
         with io.open(filename, encoding='utf-8') as f:
             from IPython.core.getipython import get_ipython
