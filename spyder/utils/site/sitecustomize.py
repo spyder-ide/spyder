@@ -546,7 +546,7 @@ class UserModuleReloader(object):
         self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
-        if modname.startswith('_cython_inline'):
+        if HAS_CYTHON:
             # Don't return cached inline compiled .PYX files
             return True
         for path in [sys.prefix]+self.pathlist:
