@@ -79,7 +79,7 @@ from qtpy import API, PYQT5
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import QColor, QDesktopServices, QKeySequence, QPixmap
+from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
                             QStyleFactory)
@@ -111,13 +111,21 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 # splash screen created below
 #==============================================================================
 from spyder.utils.qthelpers import qapplication, MENU_SEPARATOR
+from spyder.config.base import get_image_path
 MAIN_APP = qapplication()
 
+if PYQT5:
+    APP_ICON = QIcon(get_image_path("spyder.svg"))
+else:
+    APP_ICON = QIcon(get_image_path("spyder.png"))
+
+MAIN_APP.setWindowIcon(APP_ICON)
 
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
 from spyder.config.base import _, get_image_path, DEV, PYTEST
+
 if not PYTEST:
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
     SPLASH_FONT = SPLASH.font()
@@ -129,7 +137,6 @@ if not PYTEST:
     QApplication.processEvents()
 else:
     SPLASH = None
-
 
 #==============================================================================
 # Local utility imports
@@ -223,7 +230,9 @@ def get_focus_python_shell():
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
+    CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
     SPYDER_PATH = get_conf_path('path')
+    SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
     BOOKMARKS = (
          ('numpy', "http://docs.scipy.org/doc/",
           _("Numpy and Scipy documentation")),
@@ -298,10 +307,16 @@ class MainWindow(QMainWindow):
 
         # Loading Spyder path
         self.path = []
+        self.not_active_path = []
         self.project_path = []
         if osp.isfile(self.SPYDER_PATH):
             self.path, _x = encoding.readlines(self.SPYDER_PATH)
             self.path = [name for name in self.path if osp.isdir(name)]
+        if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
+            self.not_active_path, _x = \
+                encoding.readlines(self.SPYDER_NOT_ACTIVE_PATH)
+            self.not_active_path = \
+                [name for name in self.not_active_path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
 
@@ -439,10 +454,7 @@ class MainWindow(QMainWindow):
 
         self.base_title = title
         self.update_window_title()
-        resample = os.name != 'nt'
-        icon = ima.icon('spyder', resample=resample)
-        # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
-        self.setWindowIcon(icon)
+
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
             debug_print("appusermodelid: " + str(res))
@@ -2492,7 +2504,8 @@ class MainWindow(QMainWindow):
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
         for path in reversed(self.get_spyder_pythonpath()):
-            sys.path.insert(1, path)
+            if path not in self.not_active_path:
+                sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
@@ -2506,11 +2519,13 @@ class MainWindow(QMainWindow):
         from spyder.widgets.pathmanager import PathManager
         self.remove_path_from_sys_path()
         project_path = self.projects.get_pythonpath()
-        dialog = PathManager(self, self.path, project_path, sync=True)
+        dialog = PathManager(self, self.path, project_path,
+                             self.not_active_path, sync=True)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
+        encoding.writelines(self.not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):
@@ -2537,8 +2552,11 @@ class MainWindow(QMainWindow):
             except:
                 pass
         else:
-            qapp.setStyle(CONF.get('main', 'windows_style',
-                                   self.default_style))
+            style_name = CONF.get('main', 'windows_style',
+                                  self.default_style)
+            style = QStyleFactory.create(style_name)
+            style.setProperty('name', style_name)
+            qapp.setStyle(style)
         
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
@@ -2549,6 +2567,11 @@ class MainWindow(QMainWindow):
 
         self.apply_panes_settings()
         self.apply_statusbar_settings()
+
+        if CONF.get('main', 'use_custom_cursor_blinking'):
+            qapp.setCursorFlashTime(CONF.get('main', 'custom_cursor_blinking'))
+        else:
+            qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
 
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
@@ -2913,6 +2936,9 @@ def initialize():
     # possible
     app = qapplication()
 
+    # --- Set application icon
+    app.setWindowIcon(APP_ICON)
+
     #----Monkey patching QApplication
     class FakeQApplication(QApplication):
         """Spyder's fake QApplication"""
@@ -3027,10 +3053,10 @@ def main():
     options, args = get_options()
 
     if set_attached_console_visible is not None:
-        set_attached_console_visible(DEBUG or options.show_console \
-                                     or options.reset_config_files \
-                                     or options.reset_to_defaults \
-                                     or options.optimize)
+        set_attached_console_visible(options.show_console
+                                     or options.reset_config_files
+                                     or options.reset_to_defaults
+                                     or options.optimize or bool(DEBUG))
 
     app = initialize()
     if options.reset_config_files:

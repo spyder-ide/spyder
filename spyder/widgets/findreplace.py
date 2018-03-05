@@ -17,7 +17,7 @@ import re
 # Third party imports
 from qtpy.QtCore import Qt, QTimer, Signal, Slot, QEvent
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLabel,
+from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
                             QSizePolicy, QWidget)
 
 # Local imports
@@ -28,6 +28,14 @@ from spyder.utils import icon_manager as ima
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
+
+
+CONTROL_CHARACTERS = {
+    '\\n': '\n',
+    '\\r': '\r',
+    '\\t': '\t',
+    '\\f': '\f'
+}
 
 
 def is_position_sup(pos1, pos2):
@@ -78,7 +86,8 @@ class FindReplace(QWidget):
 
         self.search_text.lineEdit().textEdited.connect(
                                                      self.text_has_been_edited)
-        
+
+        self.number_matches_text = QLabel(self)
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
                                              icon=ima.icon('ArrowUp'))
@@ -113,9 +122,9 @@ class FindReplace(QWidget):
 
         hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.search_text,
-                        self.previous_button, self.next_button,
-                        self.re_button, self.case_button, self.words_button,
-                        self.highlight_button]
+                        self.number_matches_text, self.previous_button,
+                        self.next_button, self.re_button, self.case_button,
+                        self.words_button, self.highlight_button]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
         glayout.addLayout(hlayout, 0, 1)
@@ -245,6 +254,7 @@ class FindReplace(QWidget):
         """Overrides Qt Method"""
         QWidget.show(self)
         self.visibility_changed.emit(True)
+        self.change_number_matches()
         if self.editor is not None:
             if hide_replace:
                 if self.replace_widgets[0].isVisible():
@@ -383,6 +393,7 @@ class FindReplace(QWidget):
             if not self.is_code_editor:
                 # Clears the selection for WebEngine
                 self.editor.find_text('')
+            self.change_number_matches()
             return None
         else:
             case = self.case_button.isChecked()
@@ -403,6 +414,14 @@ class FindReplace(QWidget):
                         self.highlight_matches()
             else:
                 self.clear_matches()
+
+            number_matches = self.editor.get_number_matches(text, case=case)
+            if hasattr(self.editor, 'get_match_number'):
+                match_number = self.editor.get_match_number(text, case=case)
+            else:
+                match_number = 0
+            self.change_number_matches(current_match=match_number,
+                                       total_matches=number_matches)
             return found
 
     @Slot()
@@ -519,9 +538,25 @@ class FindReplace(QWidget):
                 replacement = re.sub(pattern, replace_text, seltxt, flags=re_flags)
             if replacement != seltxt:
                 cursor.removeSelectedText()
+                for plain_char in CONTROL_CHARACTERS:
+                    replacement = replacement.replace(
+                        plain_char, CONTROL_CHARACTERS[plain_char])
+                replacement = re.sub(r'\\(.)', r'\1', replacement)
                 cursor.insertText(replacement)
             cursor.endEditBlock()
             if focus_replace_text:
                 self.replace_text.setFocus()
             else:
                 self.editor.setFocus()
+
+    def change_number_matches(self, current_match=0, total_matches=0):
+        """Change number of match and total matches."""
+        if current_match and total_matches:
+            matches_string = "{} {} {}".format(current_match, _("of"),
+                                               total_matches)
+            self.number_matches_text.setText(matches_string)
+        elif total_matches:
+            matches_string = "{} {}".format(total_matches, _("matches"))
+            self.number_matches_text.setText(matches_string)
+        else:
+            self.number_matches_text.setText(_("no matches"))

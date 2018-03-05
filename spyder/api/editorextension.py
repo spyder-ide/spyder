@@ -12,15 +12,12 @@ Adapted from https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/m
 from spyder.config.base import debug_print
 
 
-class Mode(object):
+class EditorExtension(object):
     """
     Base class for editor extensions.
 
     An extension is a "thing" that can be installed on an editor to add new
     behaviours or to modify its appearance.
-
-    At the current states Modes can't be added to an Editor but this class
-    is needed because Panels can be added to an editor.
 
     A panel (model child class) is added to an editor by using the
     PanelsManager:
@@ -29,12 +26,13 @@ class Mode(object):
 
     Subclasses may/should override the following methods:
 
-        - :meth:`spyder.api.Mode.on_install`
-        - :meth:`spyder.api.Mode.on_uninstall`
-        - :meth:`spyder.api.Mode.on_state_changed`
+        - :meth:`spyder.api.EditorExtension.on_install`
+        - :meth:`spyder.api.EditorExtension.on_uninstall`
+        - :meth:`spyder.api.EditorExtension.on_state_changed`
 
-    ..warning: The mode will be identified by its class name, this means that
-    **there cannot be two modes of the same type on the same editor instance!**
+    ..warning: The editor extension will be identified by its class name, this
+    means that **there cannot be two editor extensions of the same type on the
+    same editor instance!**
     """
 
     @property
@@ -54,10 +52,10 @@ class Mode(object):
     @property
     def enabled(self):
         """
-        Tells if the mode is enabled.
+        Tells if the editor extension is enabled.
 
-        :meth:`spyder.api.Mode.on_state_changed` will be called as soon
-        as the mode state changed.
+        :meth:`spyder.api.EditorExtension.on_state_changed` will be called as
+        soon as the editor extension state changed.
 
         :type: bool
         """
@@ -71,12 +69,12 @@ class Mode(object):
 
     def __init__(self):
         """
-        Mode name/identifier.
-        :class:`spyder.plugins.editor.widgets.codeeditor.CodeEditor`
-        uses that as the attribute key when you install a mode.
+        EditorExtension name/identifier.
+        :class:`spyder.widgets.sourcecode.CodeEditor` uses that as the
+        attribute key when you install a editor extension.
         """
         self.name = self.__class__.__name__
-        # Mode description
+        # EditorExtension description
         self.description = self.__doc__
         self._enabled = False
         self._editor = None
@@ -92,7 +90,8 @@ class Mode(object):
         :param editor: editor widget instance
         :type editor: spyder.plugins.editor.widgets.codeeditor.CodeEditor
 
-        .. note:: This method is called by editor when you install a Mode.
+        .. note:: This method is called by editor when you install a
+                  EditorExtension.
                   You should never call it yourself, even in a subclasss.
 
         .. warning:: Don't forget to call **super** when subclassing
@@ -101,7 +100,7 @@ class Mode(object):
         self.enabled = True
 
     def on_uninstall(self):
-        """Uninstalls the mode from the editor."""
+        """Uninstalls the editor extension from the editor."""
         self._on_close = True
         self.enabled = False
         self._editor = None
@@ -121,15 +120,16 @@ class Mode(object):
 
     def clone_settings(self, original):
         """
-        Clone the settings from another mode (same class).
+        Clone the settings from another editor extension (same class).
 
         This method is called when splitting an editor widget.
+        # TODO at the current estate this is not working
 
-        :param original: other mode (must be the same class).
+        :param original: other editor extension (must be the same class).
 
         .. note:: The base method does not do anything, you must implement
-            this method for every new mode/panel (if you plan on using the
-            split feature). You should also make sure any properties will be
-            propagated to the clones.
+            this method for every new editor extension/panel (if you plan on
+            using the split feature). You should also make sure any properties
+            will be propagated to the clones.
         """
         pass

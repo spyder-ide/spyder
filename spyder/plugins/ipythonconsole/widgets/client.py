@@ -115,6 +115,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_icon = ima.icon('stop')
         self.history = []
         self.allow_rename = True
+        self.stderr_dir = None
 
         # --- Widgets
         self.shellwidget = ShellWidget(config=config_options,
@@ -165,7 +166,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Filename to save kernel stderr output."""
         if self.connection_file is not None:
             stderr_file = self.kernel_id + '.stderr'
-            stderr_file = osp.join(TEMPDIR, stderr_file)
+            if self.stderr_dir is not None:
+                stderr_file = osp.join(self.stderr_dir, stderr_file)
+            else:
+                if not osp.isdir(TEMPDIR):
+                    os.makedirs(TEMPDIR)
+                stderr_file = osp.join(TEMPDIR, stderr_file)
             return stderr_file
 
     def configure_shellwidget(self, give_focus=True):

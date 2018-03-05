@@ -67,6 +67,11 @@ from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
+from spyder.widgets.sourcecode.extensions.manager import (
+        EditorExtensionsManager)
+from spyder.widgets.sourcecode.extensions.closequotes import (
+        CloseQuotesExtension)
+
 from spyder.api.panel import Panel
 
 try:
@@ -427,6 +432,11 @@ class CodeEditor(TextEditBaseWidget):
 
         self.oe_proxy = None
 
+        # Editor Extensions
+        self.editor_extensions = EditorExtensionsManager(self)
+
+        self.editor_extensions.add(CloseQuotesExtension())
+
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
                                    name='Code Completion', parent=self)
@@ -691,6 +701,9 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_quotes_enabled(self, enable):
         """Enable/disable automatic quote insertion feature"""
         self.close_quotes_enabled = enable
+        quote_extension = self.editor_extensions.get(CloseQuotesExtension)
+        if quote_extension is not None:
+            quote_extension.enabled = enable
 
     def set_add_colons_enabled(self, enable):
         """Enable/disable automatic colons insertion feature"""
@@ -1419,7 +1432,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.__show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
 
     def go_to_previous_warning(self):
@@ -1436,7 +1449,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.__show_code_analysis_results(line_number, data.code_analysis)
+        self.show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
 
 
@@ -2237,39 +2250,14 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return True
 
-    def __unmatched_quotes_in_line(self, text):
-        """Return whether a string has open quotes.
-        This simply counts whether the number of quote characters of either
-        type in the string is odd.
-
-        Take from the IPython project (in IPython/core/completer.py in v0.13)
-        Spyder team: Add some changes to deal with escaped quotes
-
-        - Copyright (C) 2008-2011 IPython Development Team
-        - Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
-        - Copyright (C) 2001 Python Software Foundation, www.python.org
-
-        Distributed under the terms of the BSD License.
-        """
-        # We check " first, then ', so complex cases with nested quotes will
-        # get the " to take precedence.
-        text = text.replace("\\'", "")
-        text = text.replace('\\"', '')
-        if text.count('"') % 2:
-            return '"'
-        elif text.count("'") % 2:
-            return "'"
-        else:
-            return ''
-
-    def __next_char(self):
+    def next_char(self):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.NextCharacter,
                             QTextCursor.KeepAnchor)
         next_char = to_text_string(cursor.selectedText())
         return next_char
 
-    def __in_comment(self):
+    def in_comment(self):
         if self.highlighter:
             current_color = self.__get_current_color()
             comment_color = self.highlighter.get_color_name('comment')
@@ -2280,52 +2268,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def autoinsert_quotes(self, key):
-        """Control how to automatically insert quotes in various situations"""
-        char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
-
-        line_text = self.get_text('sol', 'eol')
-        line_to_cursor = self.get_text('sol', 'cursor')
-        cursor = self.textCursor()
-        last_three = self.get_text('sol', 'cursor')[-3:]
-        last_two = self.get_text('sol', 'cursor')[-2:]
-        trailing_text = self.get_text('cursor', 'eol').strip()
-
-        if self.has_selected_text():
-            text = ''.join([char, self.get_selected_text(), char])
-            self.insert_text(text)
-        elif self.__in_comment():
-            self.insert_text(char)
-        elif len(trailing_text) > 0 and not \
-          self.__unmatched_quotes_in_line(line_to_cursor) == char:
-            self.insert_text(char)
-        elif self.__unmatched_quotes_in_line(line_text) and \
-          (not last_three == 3*char):
-            self.insert_text(char)
-        # Move to the right if we are before a quote
-        elif self.__next_char() == char:
-            cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor, 1)
-            cursor.clearSelection()
-            self.setTextCursor(cursor)
-        # Automatic insertion of triple double quotes (for docstrings)
-        elif last_three == 3*char:
-            self.insert_text(3*char)
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter,
-                                QTextCursor.KeepAnchor, 3)
-            cursor.clearSelection()
-            self.setTextCursor(cursor)
-        # If last two chars are quotes, just insert one more because most
-        # probably the user wants to write a docstring
-        elif last_two == 2*char:
-            self.insert_text(char)
-        # Automatic insertion of quotes
-        else:
-            self.insert_text(2*char)
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter)
-            self.setTextCursor(cursor)
 
 #===============================================================================
 #    Qt Event handlers
@@ -2430,6 +2372,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+        event.ignore()
         self.key_pressed.emit(event)
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -2559,9 +2502,6 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             else:
                 TextEditBaseWidget.keyPressEvent(self, event)
-        elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
-          self.close_quotes_enabled:
-            self.autoinsert_quotes(key)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
           and not self.has_selected_text() and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
@@ -2611,8 +2551,9 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 # indent the selected text
                 self.unindent()
-        else:
+        elif not event.isAccepted():
             TextEditBaseWidget.keyPressEvent(self, event)
+            event.accept()
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
 

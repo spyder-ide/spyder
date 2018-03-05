@@ -286,6 +286,7 @@ extras_require = {
     'test:python_version == "2.7"': ['mock'],
     'test': ['pytest',
              'pytest-qt',
+             'pytest-mock',
              'pytest-cov',
              'pytest-xvfb',
              'pytest-timeout',

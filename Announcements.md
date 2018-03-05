@@ -1,36 +1,45 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.1 is released!
+**Subject**: [ANN] Spyder 3.2.2 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.1** has been released and is available for
+I'm pleased to announce that Spyder **3.2.2** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three weeks after version 3.2.0 and it fixes several important
-problems:
+This release comes three weeks after version 3.2.1 and it adds the following new
+features:
 
-* An error when using non-ascii directories to run code in Python 2 and
+* A button to Find in Files to make searches case sensitive.
+* An option to set cursor blinking speed in miliseconds in
+  `Preferences > General > Interface > Cursor blinking`.
+* Checkboxes to the PYTHONPATH manager to enable/disable paths.
+* Extend Find in Files to select other search directories.
+* Show the number of matches in the Find/Replace widget.
+
+It also fixes several important problems:
+
+* Lack of autocompletion in the Editor when using projects on
   Windows.
-* An error when setting a custom scale factor on HiDPI screens.
-* A blockage in the IPython console when running statements of the form
-  `from foo import *`.
+* Slowness in the IPython console when complex objects are shown in
+  the Variable Explorer.
+* Disappearance of the prompt in the IPython console after errors.
 
-In this release we also fixed 22 issues and merged 28 pull requests that amount
-to more than 100 commits. For a full list of fixes, please see our
-[changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md)
+In this release we fixed 31 issues and merged 39 pull requests that amount
+to more than 200 commits. For a full list of fixes, please see our
+[Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
-[Github website](https://github.com/spyder-ide/spyder)
+[Github website](https://github.com/spyder-ide/spyder).
 
 Last, but not least, we welcome any contribution that helps making Spyder an
 efficient scientific development and computing environment. Join us to help
 creating your favorite environment!
 
-Enjoy!<br>
-- Carlos
+Enjoy!
+Carlos
 
 
 ----

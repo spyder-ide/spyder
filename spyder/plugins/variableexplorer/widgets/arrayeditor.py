@@ -42,15 +42,15 @@ from spyder.utils.qthelpers import add_actions, create_action, keybinding
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
-                     'single': '%.3f',
-                     'double': '%.3f',
-                     'float_': '%.3f',
-                     'longfloat': '%.3f',
-                     'float16': '%.3f',
-                     'float32': '%.3f',
-                     'float64': '%.3f',
-                     'float96': '%.3f',
-                     'float128': '%.3f',
+                     'single': '%.6g',
+                     'double': '%.6g',
+                     'float_': '%.6g',
+                     'longfloat': '%.6g',
+                     'float16': '%.6g',
+                     'float32': '%.6g',
+                     'float64': '%.6g',
+                     'float96': '%.6g',
+                     'float128': '%.6g',
                      'csingle': '%r',
                      'complex_': '%r',
                      'clongfloat': '%r',
@@ -119,7 +119,7 @@ class ArrayModel(QAbstractTableModel):
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
 
-    def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
+    def __init__(self, data, format="%.6g", xlabels=None, ylabels=None,
                  readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
@@ -244,7 +244,11 @@ class ArrayModel(QAbstractTableModel):
     def get_value(self, index):
         i = index.row()
         j = index.column()
-        return self.changes.get((i, j), self._data[i, j])
+        if len(self._data.shape) == 1:
+            value = self._data[j]
+        else:
+            value = self._data[i, j]
+        return self.changes.get((i, j), value)
 
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""

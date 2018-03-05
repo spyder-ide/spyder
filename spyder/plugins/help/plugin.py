@@ -28,7 +28,7 @@ from spyder.utils import programs
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton)
+                                    create_toolbutton, create_plugin_layout)
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
@@ -168,9 +168,8 @@ class Help(SpyderPluginWidget):
         self.source_changed()
 
         # Main layout
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(layout_edit)
+        layout = create_plugin_layout(layout_edit)
+        # we have two main widgets, but only one of them is shown at a time
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)
         self.setLayout(layout)
