@@ -1643,6 +1643,19 @@ class EditorStack(QWidget):
                     return False
         return True
 
+    def _write_to_file(self, fileinfo, filename):
+        """Low-level function for writing text of editor to file.
+
+        Args:
+            fileinfo: FileInfo object associated to editor to be saved
+            filename: str with filename to save to
+
+        This is a low-level function that only saves the text to file in the
+        correct encoding without doing any error handling.
+        """
+        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
+
     def save(self, index=None, force=False):
         """Write text of editor to a file.
 
@@ -1681,10 +1694,8 @@ class EditorStack(QWidget):
             osname_lookup = {'LF': 'posix', 'CRLF': 'nt', 'CR': 'mac'}
             osname = osname_lookup[self.convert_eol_on_save_to]
             self.set_os_eol_chars(osname=osname)
-        txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
-            finfo.encoding = encoding.write(txt, finfo.filename,
-                                            finfo.encoding)
+            self._write_to_file(finfo, finfo.filename)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
@@ -1870,9 +1881,8 @@ class EditorStack(QWidget):
                     return
                 if ao_index < index:
                     index -= 1
-            txt = to_text_string(finfo.editor.get_text_with_eol())
             try:
-                finfo.encoding = encoding.write(txt, filename, finfo.encoding)
+                self._write_to_file(finfo, filename)
                 # open created copy file
                 self.plugin_load.emit(filename)
                 return True
