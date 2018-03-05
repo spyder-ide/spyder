@@ -877,6 +877,11 @@ class IPythonConsole(SpyderPluginWidget):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
 
+        # Run Cython files in a dedicated console
+        is_cython = osp.splitext(filename)[1] == '.pyx'
+        if is_cython:
+            current_client = False
+
         # Select client to execute code on it
         is_new_client = False
         if current_client:
@@ -884,7 +889,7 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             client = self.get_client_for_file(filename)
             if client is None:
-                self.create_client_for_file(filename)
+                self.create_client_for_file(filename, is_cython=is_cython)
                 client = self.get_current_client()
                 is_new_client = True
 
@@ -907,6 +912,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
+
             try:
                 if current_client:
                     self.execute_code(line, current_client, clear_variables)
@@ -985,7 +991,9 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
-    def create_new_client(self, give_focus=True, filename=''):
+    @Slot(bool, bool)
+    @Slot(bool, str, bool)
+    def create_new_client(self, give_focus=True, filename='', is_cython=False):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -1035,7 +1043,7 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel cloudpickle</tt>"))
                 return
 
-        self.connect_client_to_kernel(client)
+        self.connect_client_to_kernel(client, is_cython=is_cython)
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client)
@@ -1051,7 +1059,7 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client):
+    def connect_client_to_kernel(self, client, is_cython=False):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
 
@@ -1060,8 +1068,11 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             stderr_file = client.stderr_file
 
-        km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
-                                                              stderr_file)
+        km, kc = self.create_kernel_manager_and_kernel_client(
+                     connection_file,
+                     stderr_file,
+                     is_cython=is_cython)
+
         # An error occurred if this is True
         if is_string(km) and kc is None:
             client.shellwidget.kernel_manager = None
@@ -1412,10 +1423,10 @@ class IPythonConsole(SpyderPluginWidget):
         sw = self.get_current_shellwidget()
         sw.set_cwd(path)
 
-    def create_client_for_file(self, filename):
+    def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
         # Create client
-        self.create_new_client(filename=filename)
+        self.create_new_client(filename=filename, is_cython=is_cython)
 
         # Don't increase the count of master clients
         self.master_clients -= 1
@@ -1470,20 +1481,20 @@ class IPythonConsole(SpyderPluginWidget):
                             timeout)
         return tuple(lports)
 
-    def create_kernel_spec(self):
+    def create_kernel_spec(self, is_cython=False):
         """Create a kernel spec for our own kernels"""
         # Before creating our kernel spec, we always need to
         # set this value in spyder.ini
         if not self.testing:
             CONF.set('main', 'spyder_pythonpath',
                      self.main.get_spyder_pythonpath())
-        return SpyderKernelSpec()
+        return SpyderKernelSpec(is_cython=is_cython)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
-                                                stderr_file):
+                                                stderr_file, is_cython=False):
         """Create kernel manager and client."""
         # Kernel spec
-        kernel_spec = self.create_kernel_spec()
+        kernel_spec = self.create_kernel_spec(is_cython=is_cython)
         if not kernel_spec.env.get('PYTHONPATH'):
             error_msg = _("This error was most probably caused by installing "
                           "Spyder in a directory with non-ascii characters "

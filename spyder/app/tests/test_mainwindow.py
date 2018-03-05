@@ -636,17 +636,10 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
-                    reason="It times out sometimes on Windows and Cython is needed")
+                    reason="Hard to test on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
-    # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
-
     # Get a reference to the code editor widget
     code_editor = main_window.editor.get_focus_widget()
 
@@ -654,12 +647,18 @@ def test_run_cython_code(main_window, qtbot):
     # Load test file
     main_window.editor.load(osp.join(LOCATION, 'pyx_script.pyx'))
 
-    # run file
+    # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Wait until an object appears
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
+    shell = main_window.ipyconsole.get_current_shellwidget()
     assert shell.get_value('a') == 3628800
 
     # Reset and close file

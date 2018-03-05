@@ -27,8 +27,10 @@ class SpyderKernelSpec(KernelSpec):
 
     spy_path = get_module_source_path('spyder')
 
-    def __init__(self, **kwargs):
+    def __init__(self, is_cython=False, **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
+        self.is_cython = is_cython
+
         self.display_name = 'Python 2 (Spyder)' if PY2 else 'Python 3 (Spyder)'
         self.language = 'python2' if PY2 else 'python3'
         self.resource_dir = ''
@@ -122,7 +124,8 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_RUN_FILE_O': CONF.get('ipython_console', 'startup/run_file'),
             'SPY_AUTOCALL_O': CONF.get('ipython_console', 'autocall'),
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
-            'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math')
+            'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
+            'SPY_RUN_CYTHON': self.is_cython
         }
 
         # Add our PYTHONPATH to env_vars
