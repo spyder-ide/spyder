@@ -151,6 +151,9 @@ def test_tab_rename_for_slaves(ipyconsole, qtbot):
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_no_repeated_tabs_name(ipyconsole, qtbot):
     """Test that tabs can't have repeated given names."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # Rename first client
     ipyconsole.rename_tabs_after_change('foo')
 
@@ -168,6 +171,9 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     """Test that tabs preserve their names after they are moved."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # Create a new client
     ipyconsole.create_new_client()
 
@@ -256,6 +262,9 @@ def test_console_import_namespace(ipyconsole, qtbot):
 @flaky(max_runs=3)
 def test_console_disambiguation(ipyconsole, qtbot):
     """Test the disambiguation of dedicated consoles."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # Create directories and file for TEMP_DIRECTORY/a/b/c.py
     # and TEMP_DIRECTORY/a/d/c.py
     dir_b = osp.join(TEMP_DIRECTORY, 'a', 'b')
@@ -290,6 +299,9 @@ def test_console_disambiguation(ipyconsole, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_console_coloring(ipyconsole, qtbot):
+    """Test that console gets the same coloring present in the Editor."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     config_options = ipyconsole.config_options()
 
