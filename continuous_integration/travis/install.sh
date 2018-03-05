@@ -30,4 +30,7 @@ if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
 
     # Install Spyder and its dependencies
     pip install -q -e .[test]
+
+    # Run with tornado < 5.0 for now
+    pip install tornado==4.5.3
 fi
