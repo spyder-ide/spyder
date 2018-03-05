@@ -27,13 +27,13 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _, get_image_path, get_module_source_path
+from spyder.config.base import (_, get_image_path, get_module_source_path,
+                                running_under_pytest)
 from spyder.config.gui import get_font, get_shortcut
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, DialogManager,
@@ -460,12 +460,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         sw = self.shellwidget
 
-        message = _('Are you sure you want to restart the kernel?')
-        buttons = QMessageBox.Yes | QMessageBox.No
-        result = QMessageBox.question(self, _('Restart kernel?'),
-                                      message, buttons)
+        if not running_under_pytest():
+            message = _('Are you sure you want to restart the kernel?')
+            buttons = QMessageBox.Yes | QMessageBox.No
+            result = QMessageBox.question(self, _('Restart kernel?'),
+                                          message, buttons)
+        else:
+            result = None
 
-        if result == QMessageBox.Yes:
+        if result == QMessageBox.Yes or running_under_pytest():
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
