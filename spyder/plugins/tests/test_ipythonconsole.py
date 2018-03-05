@@ -348,37 +348,25 @@ def test_get_env(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It doesn't work on Windows and segfaults in PyQt4")
-def test_get_syspath(ipyconsole, qtbot):
+def test_get_syspath(ipyconsole, qtbot, tmpdir):
     """Test that showing sys.path contents is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Add a new entry to sys.path
     with qtbot.waitSignal(shell.executed):
-        tmp_dir = tempfile.mkdtemp()
-        shell.execute("import sys, tempfile; sys.path.append('%s')" % tmp_dir)
+        tmp_dir = to_text_string(tmpdir)
+        shell.execute("import sys; sys.path.append('%s')" % tmp_dir)
 
     # Ask for sys.path contents
-    with qtbot.waitSignal(shell.sig_show_syspath):
+    with qtbot.waitSignal(shell.sig_show_syspath) as blocker:
         shell.get_syspath()
 
-    # Get sys.path contents from the generated widget
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, CollectionsEditor):
-            syspath_contents = w.get_value()
-            qtbot.keyClick(w, Qt.Key_Enter)
+    # Get sys.path contents from the signal
+    syspath_contents = blocker.args[0]
 
     # Assert that our added entry is part of sys.path
     assert tmp_dir in syspath_contents
-
-    # Remove temporary directory
-    try:
-        os.rmdir(tmp_dir)
-    except:
-        pass
 
 
 @pytest.mark.slow
