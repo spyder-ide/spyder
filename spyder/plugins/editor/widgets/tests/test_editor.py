@@ -23,8 +23,9 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
+from spyder.config.base import get_conf_path
 from spyder.plugins.editor.widgets.tests.fixtures import setup_editor
-from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
+from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
 
@@ -572,6 +573,26 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     qtbot.wait(500)
     assert finder.replace_text.currentText() == 'This is some test text!'
+
+
+def test_autosave_all(editor_bot, mocker):
+    """Check that autosave_all() calls autosave() on all open buffers. The
+    editor_bot fixture is constructed with one open file and the test opens
+    another one with new(), so autosave should be called twice."""
+    editor_stack, editor, qtbot = editor_bot
+    editor_stack.new('ham.py', 'utf-8', '')
+    mocker.patch.object(editor_stack.autosave, 'autosave')
+    editor_stack.autosave.autosave_all()
+    expected_calls = [mocker.call(0), mocker.call(1)]
+    assert editor_stack.autosave.autosave.call_args_list == expected_calls
+
+
+def test_autosave(editor_bot):
+    """Check that autosave() saves text to correct file."""
+    editor_stack, editor, qtbot = editor_bot
+    editor_stack.autosave.autosave(0)
+    contents = open(os.path.join(get_conf_path('autosave'), 'foo.py')).read()
+    assert contents.startswith('a = 1')
 
 
 if __name__ == "__main__":

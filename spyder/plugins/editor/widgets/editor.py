@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -2572,9 +2572,29 @@ class AutosaveComponent:
         """
         self.stack = editorstack
 
+    def autosave(self, index):
+        """
+        Autosave a file.
+
+        Save copy of file with same name in `autosave` subdirectory of config
+        dir.
+
+        Args:
+            index (int): index into self.stack.data
+        """
+        finfo = self.stack.data[index]
+        autosave_dir = get_conf_path('autosave')
+        if not osp.isdir(autosave_dir):
+            os.mkdir(autosave_dir)
+        autosave_filename = osp.join(autosave_dir,
+                                     osp.basename(finfo.filename))
+        logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
+        self.stack._write_to_file(finfo, autosave_filename)
+
     def autosave_all(self):
         """Autosave all opened files."""
-        pass
+        for index in range(self.stack.get_stack_count()):
+            self.autosave(index)
 
 
 class EditorSplitter(QSplitter):
