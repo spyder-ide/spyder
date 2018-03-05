@@ -877,10 +877,14 @@ class IPythonConsole(SpyderPluginWidget):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
 
+        # Run Cython files in a dedicated console
+        is_cython = osp.splitext(filename)[1] == '.pyx'
+        if is_cython:
+            current_client = False
+
         # Select client to execute code on it
         is_new_client = False
-        is_cython = osp.splitext(filename)[1] == '.pyx'
-        if current_client and not is_cython:
+        if current_client:
             client = self.get_current_client()
         else:
             client = self.get_client_for_file(filename)
@@ -908,6 +912,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
+
             try:
                 if current_client:
                     self.execute_code(line, current_client, clear_variables)
