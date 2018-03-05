@@ -170,13 +170,14 @@ if sys.platform == 'darwin':
 # Cython support
 #==============================================================================
 RUN_CYTHON = os.environ.get("SPY_RUN_CYTHON") == "True"
+HAS_CYTHON = False
 
 if RUN_CYTHON:
     try:
         __import__('Cython')
         HAS_CYTHON = True
     except Exception:
-        HAS_CYTHON = False
+        pass
 
     if HAS_CYTHON:
         # Import pyximport to enable Cython files support for
