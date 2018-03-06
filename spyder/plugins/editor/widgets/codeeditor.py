@@ -67,9 +67,9 @@ from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.widgets.sourcecode.extensions.manager import (
+from spyder.plugins.editor.extensions.manager import (
         EditorExtensionsManager)
-from spyder.widgets.sourcecode.extensions.closequotes import (
+from spyder.plugins.editor.extensions.closequotes import (
         CloseQuotesExtension)
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.api.panel import Panel
