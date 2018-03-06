@@ -20,7 +20,7 @@ from qtpy import PYQT4
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.widgets.editor import EditorStack, EditorSplitter
+from spyder.plugins.editor.widgets.editor import EditorStack, EditorSplitter
 
 
 # ---- Qt Test Fixtures
