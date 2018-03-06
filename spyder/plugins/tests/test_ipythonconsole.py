@@ -357,15 +357,21 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     tempdir = to_text_string(tmpdir.mkdir("queen's"))
     assert shell._cwd != tempdir
 
+    # Need to escape \ on Windows.
+    if os.name == 'nt':
+        tempdir = tempdir.replace(u"\\", u"\\\\")
+
     # Change directory in the console.
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; os.chdir('''{}''')".format(tempdir))
+        shell.execute(u"import os; os.chdir(u'''{}''')".format(tempdir))
 
     # Ask for directory.
     with qtbot.waitSignal(shell.sig_change_cwd):
         shell.get_cwd()
 
-    qtbot.wait(1000)
+    if os.name == 'nt':
+        tempdir = tempdir.replace(u"\\\\", u"\\")
+
     assert shell._cwd == tempdir
 
     shell.set_cwd(savetemp)
