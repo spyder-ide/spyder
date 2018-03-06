@@ -184,6 +184,7 @@ class FileInfo(QObject):
     def text_changed(self):
         """Editor's text has changed"""
         self.default = False
+        self.editor.document().changed_since_autosave = True
         self.text_changed_at.emit(self.filename,
                                   self.editor.get_position('cursor'))
 
@@ -2576,13 +2577,16 @@ class AutosaveComponent:
         """
         Autosave a file.
 
-        Save copy of file with same name in `autosave` subdirectory of config
-        dir.
+        If `changed_since_autosave` flag is set, then save copy of file with
+        same name in `autosave` subdirectory of config dir and clear the flag.
 
         Args:
             index (int): index into self.stack.data
         """
         finfo = self.stack.data[index]
+        document = finfo.editor.document()
+        if not document.changed_since_autosave:
+            return
         autosave_dir = get_conf_path('autosave')
         if not osp.isdir(autosave_dir):
             os.mkdir(autosave_dir)
@@ -2590,6 +2594,7 @@ class AutosaveComponent:
                                      osp.basename(finfo.filename))
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
         self.stack._write_to_file(finfo, autosave_filename)
+        document.changed_since_autosave = False
 
     def autosave_all(self):
         """Autosave all opened files."""

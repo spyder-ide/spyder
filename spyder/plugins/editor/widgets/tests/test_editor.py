@@ -595,5 +595,22 @@ def test_autosave(editor_bot):
     assert contents.startswith('a = 1')
 
 
+def test_autosave_saves_only_if_changed(editor_bot, mocker):
+    """Check that autosave() only saves text if text has changed. The
+    editor_bot fixture changes the text, so the first call to autosave()
+    should indeed autosave. The text is not changed after call #1, so call #2
+    should not autosave. After call #2 we change the text, so call #3 should
+    again autosave."""
+    editor_stack, editor, qtbot = editor_bot
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.autosave(0)  # call #1, should write
+    assert editor_stack._write_to_file.call_count == 1
+    editor_stack.autosave.autosave(0)  # call #2, should not write
+    assert editor_stack._write_to_file.call_count == 1
+    editor.set_text('ham\n')
+    editor_stack.autosave.autosave(0)  # call #3, should write
+    assert editor_stack._write_to_file.call_count == 2
+
+
 if __name__ == "__main__":
     pytest.main()
