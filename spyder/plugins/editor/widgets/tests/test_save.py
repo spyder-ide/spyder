@@ -18,7 +18,7 @@ except ImportError:
 import pytest
 
 # Local imports
-from spyder.widgets import editor
+from spyder.plugins.editor.widgets import editor
 
 
 # Helpers
