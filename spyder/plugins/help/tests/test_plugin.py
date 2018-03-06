@@ -22,7 +22,7 @@ import pytest
 from flaky import flaky
 
 # Local imports
-from spyder.plugins.help import Help
+from spyder.plugins.help.plugin import Help
 from spyder.utils.introspection.utils import default_info_response
 
 
