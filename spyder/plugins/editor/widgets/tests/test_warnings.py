@@ -12,7 +12,7 @@ import pytest
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.py3compat import to_binary_string
 from spyder.utils.codeanalysis import check_with_pyflakes, check_with_pep8
 

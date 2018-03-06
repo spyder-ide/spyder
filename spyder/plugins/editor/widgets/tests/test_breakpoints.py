@@ -20,7 +20,7 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder import version_info
 from spyder.py3compat import to_text_string
-import spyder.widgets.sourcecode.codeeditor as codeeditor
+import spyder.plugins.editor.widgets.codeeditor as codeeditor
 
 
 # --- Helper methods
