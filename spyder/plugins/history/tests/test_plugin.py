@@ -8,7 +8,7 @@ import pytest
 
 from qtpy.QtGui import QTextOption
 
-from spyder.plugins import history
+from spyder.plugins.history import plugin as history
 
 #==============================================================================
 # Utillity Functions
