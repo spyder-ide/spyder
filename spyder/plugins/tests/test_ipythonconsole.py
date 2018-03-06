@@ -364,6 +364,8 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     # Ask for directory.
     with qtbot.waitSignal(shell.sig_change_cwd):
         shell.get_cwd()
+
+    qtbot.wait(1000)
     assert shell._cwd == tempdir
 
     shell.set_cwd(savetemp)
