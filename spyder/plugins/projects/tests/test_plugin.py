@@ -14,7 +14,7 @@ Tests for the Projects plugin.
 import pytest
 
 # Local imports
-from spyder.plugins.projects import Projects
+from spyder.plugins.projects.plugin import Projects
 from spyder.py3compat import to_text_string
 
 
