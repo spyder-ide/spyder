@@ -12,10 +12,10 @@ Tests for editortool.py
 import pytest
 
 # Local imports
-from spyder.widgets.editortools import (OutlineExplorerWidget, FileRootItem,
-                                        FunctionItem, CommentItem, CellItem,
-                                        ClassItem)
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
+from spyder.plugins.outlineexplorer.widgets import (OutlineExplorerWidget,
+    FileRootItem, FunctionItem, CommentItem, CellItem, ClassItem)
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 text = ("# -*- coding: utf-8 -*-\n"
@@ -64,14 +64,15 @@ text = ("# -*- coding: utf-8 -*-\n"
 
 @pytest.fixture
 def outline_explorer_bot(qtbot):
-    editor = CodeEditor()
-    editor = CodeEditor(None)
-    editor.set_language('py', 'test_outline_explorer.py')
-    editor.set_text(text)
+    code_editor = CodeEditor(None)
+    code_editor.set_language('py', 'test_outline_explorer.py')
+    code_editor.set_text(text)
+
+    editor = OutlineExplorerProxyEditor(code_editor,
+                                        'test_outline_explorer.py')
 
     outline_explorer = OutlineExplorerWidget()
-    outline_explorer.set_current_editor(
-            editor, 'test_outline_explorer.py', False, False)
+    outline_explorer.set_current_editor(editor, False, False)
 
     qtbot.addWidget(outline_explorer)
 
