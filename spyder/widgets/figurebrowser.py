@@ -75,6 +75,13 @@ class FigureBrowser(QWidget):
         self.mute_inline_chbox = QCheckBox(_("Mute inline plotting"))
         self.mute_inline_chbox.setToolTip(
                 _("Mute inline plotting in the ipython console."))
+        self.mute_inline_chbox.setChecked(True)
+
+        self.show_outline_chbox = QCheckBox(_("Show outline"))
+        self.show_outline_chbox.setToolTip(_("Show the figure outline."))
+        self.show_outline_chbox.setChecked(False)
+        self.show_outline_chbox.stateChanged.connect(
+            self.show_fig_outline_in_viewer)
 
         # Setup the blayout :
 
@@ -83,6 +90,7 @@ class FigureBrowser(QWidget):
         for widget in toolbar:
             blayout.addWidget(widget)
         blayout.addStretch()
+        blayout.addWidget(self.show_outline_chbox)
         blayout.addWidget(self.mute_inline_chbox)
         blayout.addWidget(self.options_button)
 
@@ -109,6 +117,13 @@ class FigureBrowser(QWidget):
     @property
     def mute_inline_plotting(self):
         return self.mute_inline_chbox.isChecked()
+
+    def show_fig_outline_in_viewer(self, state):
+        if state == Qt.Checked:
+            self.figviewer.figcanvas.setStyleSheet(
+                    "FigureCanvas{border: 1px solid lightgrey;}")
+        else:
+            self.figviewer.figcanvas.setStyleSheet("FigureCanvas{}")
 
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""
