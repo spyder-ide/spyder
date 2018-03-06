@@ -17,7 +17,7 @@ import pdb
 import shlex
 import sys
 import time
-
+import warnings
 
 PY2 = sys.version[0] == '2'
 
@@ -34,7 +34,7 @@ if not hasattr(sys, 'argv'):
 #==============================================================================
 # Main constants
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 
 
 #==============================================================================
@@ -242,23 +242,6 @@ if os.environ["QT_API"] == 'pyqt':
     except:
         pass
 
-#==============================================================================
-# This prevents a kernel crash with the inline backend in our IPython
-# consoles on Linux and Python 3 (Fixes Issue 2257)
-#==============================================================================
-try:
-    import matplotlib
-except:
-    matplotlib = None   # analysis:ignore
-
-
-#==============================================================================
-# Matplotlib settings
-#==============================================================================
-if matplotlib is not None:
-    # To have mpl docstrings as rst
-    matplotlib.rcParams['docstring.hardcopy'] = True
-
 
 #==============================================================================
 # IPython kernel adjustments
@@ -295,7 +278,6 @@ try:
     # >>> import pandas as pd, numpy as np
     # >>> pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
     # Fixes Issue 2991
-    import warnings
     # For 0.18-
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.core.format',
@@ -672,14 +654,14 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         # AttributeError --> systematically raised in Python 3
         pass
     global __umr__
-    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+    if os.environ.get("SPY_UMR_ENABLED", "").lower() == "true":
         if __umr__ is None:
-            namelist = os.environ.get("UMR_NAMELIST", None)
+            namelist = os.environ.get("SPY_UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
             __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            verbose = os.environ.get("SPY_UMR_VERBOSE", "").lower() == "true"
             __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")

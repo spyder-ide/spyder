@@ -132,6 +132,13 @@ def test_arrayeditor_with_3d_array(qtbot):
     assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
 
 
+def test_arrayeditor_with_empty_3d_array(qtbot):
+    arr = np.zeros((0, 10, 2))
+    assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
+    arra = np.zeros((1, 10, 2))
+    assert_array_equal(arr, launch_arrayeditor(arr, "3D array"))
+
+
 def test_arrayeditor_edit_1d_array(qtbot):
     exp_arr = np.array([1, 0, 2, 3, 4])
     arr = np.arange(0, 5)

@@ -96,8 +96,8 @@ class ExplorerTreeWidget(FilteredDirView):
         src_list = [to_text_string(url.toString())
                     for url in event.mimeData().urls()]
         if len(src_list) > 1:
-            buttons = QMessageBox.Yes|QMessageBox.YesAll| \
-                      QMessageBox.No|QMessageBox.NoAll|QMessageBox.Cancel
+            buttons = QMessageBox.Yes|QMessageBox.YesToAll| \
+                      QMessageBox.No|QMessageBox.NoToAll|QMessageBox.Cancel
         else:
             buttons = QMessageBox.Yes|QMessageBox.No
         for src in src_list:
@@ -117,9 +117,9 @@ class ExplorerTreeWidget(FilteredDirView):
                         continue
                     elif answer == QMessageBox.Cancel:
                         break
-                    elif answer == QMessageBox.YesAll:
+                    elif answer == QMessageBox.YesToAll:
                         yes_to_all = True
-                    elif answer == QMessageBox.NoAll:
+                    elif answer == QMessageBox.NoToAll:
                         no_to_all = True
                         continue
                 else:

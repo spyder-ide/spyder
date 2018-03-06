@@ -11,8 +11,8 @@ import shutil
 import tempfile
 from textwrap import dedent
 
+import cloudpickle
 from flaky import flaky
-from ipykernel.serialize import serialize_object
 from pygments.token import Name
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
@@ -102,6 +102,23 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_conf_env_vars(ipyconsole, qtbot):
+    """Test that kernels have env vars set by our kernel spec."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Get a CONF env var
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; a = os.environ.get('SPY_SYMPY_O')")
+
+    # Assert we get the assigned value correctly
+    assert shell.get_value('a') == 'False'
+
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 @pytest.mark.no_stderr_file
@@ -324,7 +341,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 10
 
     # Change its value and verify
-    shell.set_value('д', serialize_object(20))
+    shell.set_value('д', [cloudpickle.dumps(20, protocol=2)])
     qtbot.wait(1000)
     assert shell.get_value('д') == 20
 
@@ -374,7 +391,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert shell.get_value('aa') == 10
 
     # Set value
-    shell.set_value('aa', serialize_object(20))
+    shell.set_value('aa', [cloudpickle.dumps(20, protocol=2)])
     qtbot.wait(1000)
     assert shell.get_value('aa') == 20
 
@@ -628,7 +645,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
                     reason="It segfaults frequently")
 def test_load_kernel_file(ipyconsole, qtbot):
     """

@@ -42,7 +42,7 @@ WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
-CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
+CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
 

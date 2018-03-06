@@ -99,7 +99,8 @@ html_context = {}
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+# Spyder: Disabled to fix conflict with qtwebview and mathjax. See issue #5514
+html_use_smartypants = False
 
 # If false, no module index is generated.
 html_use_modindex = False

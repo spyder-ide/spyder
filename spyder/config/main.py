@@ -162,8 +162,7 @@ DEFAULTS = [
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
-              'light_color': True,
-              'dark_color': False
+              'show_elapsed_time': False
               }),
             ('variable_explorer',
              {
@@ -211,6 +210,8 @@ DEFAULTS = [
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
               'check_eol_chars': True,
+              'convert_eol_on_save': False,
+              'convert_eol_on_save_to': 'LF',
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'highlight_current_line': True,
@@ -607,7 +608,7 @@ DEFAULTS = [
               'solarized/light/background':  '#fdf6e3',
               'solarized/light/currentline': '#f5efdB',
               'solarized/light/currentcell': '#eee8d5',
-              'solarized/light/occurence':   '#839496',
+              'solarized/light/occurrence':   '#839496',
               'solarized/light/ctrlclick':   '#d33682',
               'solarized/light/sideareas':   '#eee8d5',
               'solarized/light/matched_p':   '#586e75',
@@ -626,7 +627,7 @@ DEFAULTS = [
               'solarized/dark/background':  '#002b36',
               'solarized/dark/currentline': '#083f4d',
               'solarized/dark/currentcell': '#073642',
-              'solarized/dark/occurence':   '#657b83',
+              'solarized/dark/occurrence':   '#657b83',
               'solarized/dark/ctrlclick':   '#d33682',
               'solarized/dark/sideareas':   '#073642',
               'solarized/dark/matched_p':   '#93a1a1',
@@ -653,7 +654,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '40.3.0'
+CONF_VERSION = '42.0.0'
 
 # Main configuration instance
 try:

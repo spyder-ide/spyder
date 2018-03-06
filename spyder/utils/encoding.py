@@ -94,7 +94,7 @@ def to_fs_from_unicode(unic):
 
 # Codecs for working with files and text.
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
-CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r',
+CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r', 'cp1251',
           'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5',
           'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9',
           'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1',

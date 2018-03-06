@@ -760,8 +760,11 @@ class ArrayEditor(QDialog):
         stack_index = self.dim_indexes[self.last_dim].get(data_index)
         if stack_index == None:
             stack_index = self.stack.count()
-            self.stack.addWidget(ArrayEditorWidget(self,
-                                                   self.data[slice_index]))
+            try:
+                self.stack.addWidget(ArrayEditorWidget(self,
+                                                       self.data[slice_index]))
+            except IndexError:  # Handle arrays of size 0 in one axis
+                self.stack.addWidget(ArrayEditorWidget(self, self.data))
             self.dim_indexes[self.last_dim][data_index] = stack_index
             self.stack.update()
         self.stack.setCurrentIndex(stack_index)

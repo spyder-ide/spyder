@@ -175,6 +175,34 @@ def datestr_to_datetime(value):
     return v
 
 
+def str_to_timedelta(value):
+    """Convert a string to a datetime.timedelta value.
+
+    The following strings are accepted:
+
+        - 'datetime.timedelta(1, 5, 12345)'
+        - 'timedelta(1, 5, 12345)'
+        - '(1, 5, 12345)'
+        - '1, 5, 12345'
+        - '1'
+
+    if there are less then three parameters, the missing parameters are
+    assumed to be 0. Variations in the spacing of the parameters are allowed.
+
+    Raises:
+        ValueError for strings not matching the above criterion.
+
+    """
+    m = re.match('^(?:(?:datetime\.)?timedelta)?'
+                 '\(?'
+                 '([^)]*)'
+                 '\)?$', value)
+    if not m:
+        raise ValueError('Invalid string for datetime.timedelta')
+    args = [int(a.strip()) for a in m.group(1).split(',')]
+    return datetime.timedelta(*args)
+
+
 #==============================================================================
 # Background colors for supported types
 #==============================================================================
@@ -196,6 +224,7 @@ COLORS = {
            Index):            ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
+          datetime.timedelta: "#808000",
           }
 CUSTOM_TYPE_COLOR = "#7755aa"
 UNSUPPORTED_COLOR = "#ffffff"
@@ -399,6 +428,7 @@ def value_to_display(value, minmax=False, level=0):
                 display = u"'" + display + u"'"
         elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
               isinstance(value, datetime.date) or
+              isinstance(value, datetime.timedelta) or
               isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:
@@ -456,6 +486,8 @@ def display_to_value(value, default_value, ignore_errors=True):
             value = datestr_to_datetime(value)
         elif isinstance(default_value, datetime.date):
             value = datestr_to_datetime(value).date()
+        elif isinstance(default_value, datetime.timedelta):
+            value = str_to_timedelta(value)
         elif ignore_errors:
             value = try_to_eval(value)
         else:

@@ -259,7 +259,8 @@ class EditorConfigPage(PluginConfigPage):
         pep8_label = QLabel(_("<i>(Refer to the {} page)</i>").format(pep_url))
         pep8_label.setOpenExternalLinks(True)
         is_pyflakes = codeanalysis.is_pyflakes_installed()
-        is_pep8 = codeanalysis.get_checker_executable('pep8') is not None
+        is_pep8 = codeanalysis.get_checker_executable(
+                'pycodestyle') is not None
         pyflakes_box = newcb(_("Real-time code analysis"),
                       'code_analysis/pyflakes', default=True,
                       tip=_("<p>If enabled, Python source code will be analyzed "
@@ -358,10 +359,29 @@ class EditorConfigPage(PluginConfigPage):
         check_eol_box = newcb(_("Fix automatically and show warning "
                                 "message box"),
                               'check_eol_chars', default=True)
+        convert_eol_on_save_box = newcb(_("On Save: convert EOL characters"
+                                          " to"),
+                                        'convert_eol_on_save', default=False)
+        eol_combo_choices = ((_("LF (UNIX)"), 'LF'),
+                             (_("CRLF (Windows)"), 'CRLF'),
+                             (_("CR (Mac)"), 'CR'),
+                             )
+        convert_eol_on_save_combo = self.create_combobox("",
+                                                         eol_combo_choices,
+                                                         'convert_eol_on_save_to',
+                                                         )
+        convert_eol_on_save_box.toggled.connect(convert_eol_on_save_combo.setEnabled)
+        convert_eol_on_save_combo.setEnabled(
+                self.get_option('convert_eol_on_save'))
+
+        eol_on_save_layout = QHBoxLayout()
+        eol_on_save_layout.addWidget(convert_eol_on_save_box)
+        eol_on_save_layout.addWidget(convert_eol_on_save_combo)
 
         eol_layout = QVBoxLayout()
         eol_layout.addWidget(eol_label)
         eol_layout.addWidget(check_eol_box)
+        eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
         
         tabs = QTabWidget()
@@ -1020,11 +1040,16 @@ class Editor(SpyderPluginWidget):
                 _("Show selector for classes and functions."),
                 'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
 
+        showcode_analysis_pep8_action = self._create_checkable_action(
+                _("Show code style warnings (pep8)"),
+                'code_analysis/pep8', 'set_pep8_enabled')
+
         self.checkable_actions = {
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
-                'show_class_func_dropdown': show_classfunc_dropdown_action}
+                'show_class_func_dropdown': show_classfunc_dropdown_action,
+                'code_analysis/pep8': showcode_analysis_pep8_action}
 
         fixindentation_action = create_action(self, _("Fix indentation"),
                       tip=_("Replace tab characters by space characters"),
@@ -1148,6 +1173,7 @@ class Editor(SpyderPluginWidget):
                                scrollpastend_action,
                                showindentguides_action,
                                show_classfunc_dropdown_action,
+                               showcode_analysis_pep8_action,
                                trailingspaces_action,
                                fixindentation_action,
                                MENU_SEPARATOR,
@@ -1266,6 +1292,12 @@ class Editor(SpyderPluginWidget):
                     editorstack.__getattribute__(editorstack_method)(checked)
                 except AttributeError as e:
                     debug_print("Error {}".format(str))
+                # Run code analysis when `set_pep8_enabled` is toggled
+                if editorstack_method == 'set_pep8_enabled':
+                    for finfo in editorstack.data:
+                        finfo.run_code_analysis(
+                                self.get_option('code_analysis/pyflakes'),
+                                checked)
         CONF.set('editor', conf_name, checked)
 
     #------ Focus tabwidget
@@ -1297,10 +1329,17 @@ class Editor(SpyderPluginWidget):
                 if win.isAncestorOf(editorstack):
                     self.set_last_focus_editorstack(win, editorstack)
 
-    #------ Handling editorstacks
+    # ------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
+        if len(self.editorstacks) > 1 and self.main is not None:
+            # The first editostack is registered automatically with Spyder's
+            # main window through the `register_plugin` method. Only additional
+            # editors added by splitting need to be registered.
+            # See Issue #5057.
+            self.main.fileswitcher.sig_goto_file.connect(
+                      editorstack.set_stack_index)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1362,6 +1401,8 @@ class Editor(SpyderPluginWidget):
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
+            ('set_convert_eol_on_save',             'convert_eol_on_save'),
+            ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
@@ -1444,20 +1485,22 @@ class Editor(SpyderPluginWidget):
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 
-    @Slot(str, int, str)
-    def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
+    @Slot(str, str, str)
+    def file_saved_in_editorstack(self, editorstack_id_str,
+                                  original_filename, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.file_saved_in_other_editorstack(index, filename)
+                editorstack.file_saved_in_other_editorstack(original_filename,
+                                                            filename)
 
-    @Slot(str, int, str)
+    @Slot(str, str, str)
     def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
-                                            index, filename):
+                                            original_filename, filename):
         """A file was renamed in data in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.rename_in_data(index, filename)
+                editorstack.rename_in_data(original_filename, filename)
 
     def set_editorstack_for_introspection(self):
         """
@@ -1664,9 +1707,10 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_analysis_results()
         index = editorstack.get_stack_index()
         if index != -1:
+            filename = editorstack.data[index].filename
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
-                    other_editorstack.set_analysis_results(index, results)
+                    other_editorstack.set_analysis_results(filename, results)
         self.update_code_analysis_actions()
             
     def update_todo_menu(self):
@@ -1695,9 +1739,10 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_todo_results()
         index = editorstack.get_stack_index()
         if index != -1:
+            filename = editorstack.data[index].filename
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
-                    other_editorstack.set_todo_results(index, results)
+                    other_editorstack.set_todo_results(filename, results)
         self.update_todo_actions()
             
     def refresh_eol_chars(self, os_name):
@@ -1877,7 +1922,7 @@ class Editor(SpyderPluginWidget):
             # QString when triggered by a Qt signal
             fname = osp.abspath(to_text_string(fname))
             index = current_es.has_filename(fname)
-            if index and not current_es.close_file(index):
+            if index is not None and not current_es.close_file(index):
                 return
         
         # Creating the editor widget in the first editorstack (the one that
@@ -1899,7 +1944,7 @@ class Editor(SpyderPluginWidget):
         """Update recent file menu"""
         recent_files = []
         for fname in self.recent_files:
-            if not self.is_file_opened(fname) and osp.isfile(fname):
+            if self.is_file_opened(fname) is None and osp.isfile(fname):
                 recent_files.append(fname)
         self.recent_file_menu.clear()
         if recent_files:
@@ -1988,15 +2033,23 @@ class Editor(SpyderPluginWidget):
                 filenames = [osp.normpath(fname) for fname in filenames]
             else:
                 return
-            
+
         focus_widget = QApplication.focusWidget()
-        if self.dockwidget and not self.ismaximized and\
-           (not self.dockwidget.isAncestorOf(focus_widget)\
-            and not isinstance(focus_widget, CodeEditor)):
+        if self.editorwindows and not self.dockwidget.isVisible():
+            # We override the editorwindow variable to force a focus on
+            # the editor window instead of the hidden editor dockwidget.
+            # See PR #5742.
+            if editorwindow not in self.editorwindows:
+                editorwindow = self.editorwindows[0]
+            editorwindow.setFocus()
+            editorwindow.raise_()
+        elif (self.dockwidget and not self.ismaximized
+              and not self.dockwidget.isAncestorOf(focus_widget)
+              and not isinstance(focus_widget, CodeEditor)):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
-        
+
         def _convert(fname):
             fname = osp.abspath(encoding.to_unicode_from_fs(fname))
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
@@ -2188,7 +2241,7 @@ class Editor(SpyderPluginWidget):
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             for editorstack in self.editorstacks:
-                editorstack.rename_in_data(index,
+                editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
         
     
@@ -2389,11 +2442,11 @@ class Editor(SpyderPluginWidget):
         self.__move_cursor_position(1)
 
     @Slot()
-    def go_to_line(self):
+    def go_to_line(self, line=None):
         """Open 'go to line' dialog"""
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
-            editorstack.go_to_line()
+            editorstack.go_to_line(line)
 
     @Slot()
     def set_or_clear_breakpoint(self):
@@ -2644,6 +2697,10 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
+            converteol_n = 'convert_eol_on_save'
+            converteol_o = self.get_option(converteol_n)
+            converteolto_n = 'convert_eol_on_save_to'
+            converteolto_o = self.get_option(converteolto_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
@@ -2706,6 +2763,10 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
                     editorstack.set_always_remove_trailing_spaces(removetrail_o)
+                if converteol_n in options:
+                    editorstack.set_convert_eol_on_save(converteol_o)
+                if converteolto_n in options:
+                    editorstack.set_convert_eol_on_save_to(converteolto_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:

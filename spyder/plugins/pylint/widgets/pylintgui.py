@@ -169,9 +169,6 @@ class PylintWidget(QWidget):
                 pass
 
         self.filecombo = PythonModulesComboBox(self)
-        if self.rdata:
-            self.remove_obsolete_items()
-            self.filecombo.addItems(self.get_filenames())
         
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
@@ -222,7 +219,13 @@ class PylintWidget(QWidget):
         self.process = None
         self.set_running_state(False)
         self.show_data()
-        
+
+        if self.rdata:
+            self.remove_obsolete_items()
+            self.filecombo.addItems(self.get_filenames())
+        else:
+            self.start_button.setEnabled(False)
+
     def analyze(self, filename):
         filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
