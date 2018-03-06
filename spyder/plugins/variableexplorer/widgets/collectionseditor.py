@@ -484,38 +484,41 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = QDateTimeEdit
-        elif isinstance(value, datetime.datetime):
-            editor = QDateTimeEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
-        #---editor = QDateEdit
+        #---editor = QDateEdit or QDateTimeEdit
         elif isinstance(value, datetime.date):
-            editor = QDateEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
+            if readonly:
+                return None
+            else:
+                if isinstance(value, datetime.datetime):
+                    editor = QDateTimeEdit(value, parent)
+                else:
+                    editor = QDateEdit(value, parent)
+                editor.setCalendarPopup(True)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                return editor
         #---editor = TextEditor
         elif is_text_string(value) and len(value) > 40:
             te = TextEditor(None)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key)
+                editor = TextEditor(value, key, readonly=readonly)
                 self.create_dialog(editor, dict(model=index.model(),
                                                 editor=editor, key=key,
                                                 readonly=readonly))
             return None
         #---editor = QLineEdit
         elif is_editable_type(value):
-            editor = QLineEdit(parent)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            editor.setAlignment(Qt.AlignLeft)
-            # This is making Spyder crash because the QLineEdit that it's
-            # been modified is removed and a new one is created after
-            # evaluation. So the object on which this method is trying to
-            # act doesn't exist anymore.
-            # editor.returnPressed.connect(self.commitAndCloseEditor)
-            return editor
+            if readonly:
+                return None
+            else:
+                editor = QLineEdit(parent)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setAlignment(Qt.AlignLeft)
+                # This is making Spyder crash because the QLineEdit that it's
+                # been modified is removed and a new one is created after
+                # evaluation. So the object on which this method is trying to
+                # act doesn't exist anymore.
+                # editor.returnPressed.connect(self.commitAndCloseEditor)
+                return editor
         #---editor = CollectionsEditor for an arbitrary object
         else:
             editor = CollectionsEditor()
@@ -680,7 +683,7 @@ class BaseTableView(QTableView):
                                           triggered=self.paste)
         self.copy_action = create_action(self, _("Copy"),
                                          icon=ima.icon('editcopy'),
-                                         triggered=self.copy)                                      
+                                         triggered=self.copy)
         self.edit_action = create_action(self, _("Edit"),
                                          icon=ima.icon('edit'),
                                          triggered=self.edit_item)
@@ -1334,14 +1337,18 @@ class CollectionsEditor(QDialog):
                 self.data_copy = copy.deepcopy(data)
             except NotImplementedError:
                 self.data_copy = copy.copy(data)
+            except (TypeError, AttributeError):
+                readonly = True
+                self.data_copy = data
             datalen = len(get_object_attrs(data))
-        self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
-                                              readonly=readonly, remote=remote)
+        self.widget = CollectionsEditorWidget(self, self.data_copy,
+                                              title=title, readonly=readonly,
+                                              remote=remote)
 
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
-        
+
         # Buttons configuration
         buttons = QDialogButtonBox.Ok
         if not readonly:

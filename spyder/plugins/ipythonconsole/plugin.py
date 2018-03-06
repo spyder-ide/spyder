@@ -646,7 +646,7 @@ class IPythonConsole(SpyderPluginWidget):
             # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
-        self.tabwidget.move_data.connect(self.move_tab)
+        self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
         self.tabwidget.tabBar().sig_change_name.connect(
             self.rename_tabs_after_change)
 
@@ -1553,16 +1553,25 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.setTabText(index, client.get_name())
 
     def rename_tabs_after_change(self, given_name):
+        """Rename tabs after a change in name."""
         client = self.get_current_client()
 
+        # Prevent renames that want to assign the same name of
+        # a previous tab
+        repeated = False
+        for cl in self.get_clients():
+            if id(client) != id(cl) and given_name == cl.given_name:
+                repeated = True
+                break
+
         # Rename current client tab to add str_id
-        if client.allow_rename and not u'/' in given_name:
+        if client.allow_rename and not u'/' in given_name and not repeated:
             self.rename_client_tab(client, given_name)
         else:
             self.rename_client_tab(client, None)
 
         # Rename related clients
-        if client.allow_rename and not u'/' in given_name:
+        if client.allow_rename and not u'/' in given_name and not repeated:
             for cl in self.get_related_clients(client):
                 self.rename_client_tab(cl, given_name)
 

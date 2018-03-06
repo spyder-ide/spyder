@@ -1,5 +1,94 @@
 # History of changes
 
+## Version 3.2.6 (2018-01-09)
+
+### New features
+
+#### Editor
+* Make `Shift+Del` to cut text if users have some text
+  selected.
+* Make `Shift+Ins` to paste text.
+* Make `Ctrl+PgUp`, `Ctrl+PgDn` and `Ctrl+Tab` shortcuts
+  configurable.
+
+#### Variable Explorer
+* Display date/times in human readable format.
+* Disable editing for immutable types (e.g. tuples).
+
+#### Under the hood
+* Fix installation of wheels with `pip`.
+
+### Bugs fixed
+
+**Issues**
+
+* [Issue 6169](https://github.com/spyder-ide/spyder/issues/6169) - Error on Maximize Current Pane
+* [Issue 6163](https://github.com/spyder-ide/spyder/issues/6163) - AttributeError when resetting console namespace
+* [Issue 6152](https://github.com/spyder-ide/spyder/issues/6152) - Not able to change layouts after resetting
+* [Issue 6115](https://github.com/spyder-ide/spyder/issues/6115) - DataFrame Editor raises TypeError when editing any complex type
+* [Issue 6114](https://github.com/spyder-ide/spyder/issues/6114) - Fix errors when entering a value for a cell larger than the max int in Array and Dataframe editors
+* [Issue 6098](https://github.com/spyder-ide/spyder/issues/6098) - Consoles get renamed when moved in the IPython console
+* [Issue 6091](https://github.com/spyder-ide/spyder/issues/6091) - 3.2.5 fails to activate Matplotlib Qt5 backend
+* [Issue 6080](https://github.com/spyder-ide/spyder/issues/6080) - Variable Explorer throws an error instead of displaying contents when attempting to inspect any loaded modules
+* [Issue 6076](https://github.com/spyder-ide/spyder/issues/6076) - Spyder not starting in macOS because pyopengl is present
+* [Issue 6075](https://github.com/spyder-ide/spyder/issues/6075) - Update to 3.2.5 with pip fails for Python 2.7 as it pulls pyqt5 
+* [Issue 6060](https://github.com/spyder-ide/spyder/issues/6060) - Spyder crashes upon typing `net(` in editor
+* [Issue 6032](https://github.com/spyder-ide/spyder/issues/6032) - When comparing a generated and loaded profile, any negative deltas show (actual_value - ?) 1h:60min, not actual value
+* [Issue 6003](https://github.com/spyder-ide/spyder/issues/6003) - Improve how we detect that Spyder is running under Anaconda
+* [Issue 5973](https://github.com/spyder-ide/spyder/issues/5973) - Shift+del should delete line only when empty selection, otherwise clipboard cut
+* [Issue 5953](https://github.com/spyder-ide/spyder/issues/5953) - Tuples can be "edited" in Variable Explorer but changes are discarded
+* [Issue 5636](https://github.com/spyder-ide/spyder/issues/5636) - "ValueError: malformed node or string" when evaluating code that contains Path elements
+* [Issue 5477](https://github.com/spyder-ide/spyder/issues/5477) - Window layout setting error
+* [Issue 5426](https://github.com/spyder-ide/spyder/issues/5426) - Segmentation fault when trying to change keyboard shortcuts in Preferences
+* [Issue 5384](https://github.com/spyder-ide/spyder/issues/5384) - File switcher error
+* [Issue 5080](https://github.com/spyder-ide/spyder/issues/5080) - ValueError: not enough values to unpack in the File Explorer
+* [Issue 4842](https://github.com/spyder-ide/spyder/issues/4842) - Add ability to change Ctrl+PgUp and PgDn shortcuts
+* [Issue 4111](https://github.com/spyder-ide/spyder/issues/4111) - Keyboard shortcut hint is missing from menu item Search/Find in files
+* [Issue 3674](https://github.com/spyder-ide/spyder/issues/3674) - Tab in-between find and replace text boxes
+
+In this release 23 issues were closed
+
+**Pull requests**
+
+* [PR 6173](https://github.com/spyder-ide/spyder/pull/6173) - PR: Fix error when trying to maximize plugins that don't have a dock widget
+* [PR 6170](https://github.com/spyder-ide/spyder/pull/6170) - PR: Catch error when resetting console namespace and no kernel_client is available
+* [PR 6158](https://github.com/spyder-ide/spyder/pull/6158) - PR: Skip some tests because they are failing locally or segfaulting
+* [PR 6153](https://github.com/spyder-ide/spyder/pull/6153) - PR: Cannot change windows layout on first start after reset
+* [PR 6141](https://github.com/spyder-ide/spyder/pull/6141) - PR: Add shortcut to Find in Files in Search menu
+* [PR 6138](https://github.com/spyder-ide/spyder/pull/6138) - PR: Mark introspection test slow and re-enable it on certain CIs
+* [PR 6135](https://github.com/spyder-ide/spyder/pull/6135) - PR: Add test to verify that the Automatic backend is working correctly
+* [PR 6134](https://github.com/spyder-ide/spyder/pull/6134) - PR: Run slow tests only in our CIs
+* [PR 6132](https://github.com/spyder-ide/spyder/pull/6132) - PR: Fix TypeError editing any complex val in DataFrameEditor, and bug resulting in bool_s being treated as uneditable
+* [PR 6125](https://github.com/spyder-ide/spyder/pull/6125) - PR: Prevent an error in the FileSwitcher when all tabs are closed in the last focused widget.
+* [PR 6123](https://github.com/spyder-ide/spyder/pull/6123) - PR: Allow tab cycling shortcuts to be configurable in Editor
+* [PR 6121](https://github.com/spyder-ide/spyder/pull/6121) - PR: Patch ipykernel to avoid errors when setting the Qt5 Matplotlib backend
+* [PR 6118](https://github.com/spyder-ide/spyder/pull/6118) - PR: Fix crash and error dialog when triggering OverflowError (too large int) when editing arrays and dataframes
+* [PR 6108](https://github.com/spyder-ide/spyder/pull/6108) - PR: Fix renames when moving IPython console tabs
+* [PR 6106](https://github.com/spyder-ide/spyder/pull/6106) - PR: Fix negative deltas on profiler
+* [PR 6104](https://github.com/spyder-ide/spyder/pull/6104) - PR: Avoid a calltip crash when docstring is None
+* [PR 6100](https://github.com/spyder-ide/spyder/pull/6100) - PR: Fix mime type error detection in the File Explorer
+* [PR 6099](https://github.com/spyder-ide/spyder/pull/6099) - PR: Remove unnecessary flaky from introspection test, minor cleanup
+* [PR 6094](https://github.com/spyder-ide/spyder/pull/6094) - PR: Make Tab key properly switch between find and replace fields
+* [PR 6092](https://github.com/spyder-ide/spyder/pull/6092) - PR: Fix segfault on shortcut preferences when using mouse
+* [PR 6090](https://github.com/spyder-ide/spyder/pull/6090) - PR: Improve how we detect if we are running under Anaconda
+* [PR 6089](https://github.com/spyder-ide/spyder/pull/6089) - PR: Avoid errors when importing pyopengl at startup
+* [PR 6088](https://github.com/spyder-ide/spyder/pull/6088) - PR: Make pyqt5 a wheel dependency only for Python 3
+* [PR 6081](https://github.com/spyder-ide/spyder/pull/6081) - PR: Fix error when attempting to view module contents in CollectionsEditor
+* [PR 6062](https://github.com/spyder-ide/spyder/pull/6062) - PR: Add expected default behavior for Shift+Del and Shift+Ins
+* [PR 6057](https://github.com/spyder-ide/spyder/pull/6057) - PR: Add coverage files and Notepad++ backups to gitignore
+* [PR 6044](https://github.com/spyder-ide/spyder/pull/6044) - PR: Skip several failing tests on Windows and one on a specific CI build
+* [PR 6042](https://github.com/spyder-ide/spyder/pull/6042) - PR: Add test coverage reporting with AppVeyor to Codecov
+* [PR 6000](https://github.com/spyder-ide/spyder/pull/6000) - PR: Display date/times in human readable format in Variable Explorer
+* [PR 5992](https://github.com/spyder-ide/spyder/pull/5992) - PR: Make bullets/numbers/headings more consistent and add Anaconda for Linux in install doc 
+* [PR 5991](https://github.com/spyder-ide/spyder/pull/5991) - PR: Properly disable editing in Variable Explorer for values in immutable collections (e.g. tuples)
+* [PR 5746](https://github.com/spyder-ide/spyder/pull/5746) - PR: Manage types that extend str in value_to_display
+
+In this release 32 pull requests were merged
+
+
+----
+
+
 ## Version 3.2.5 (2017-12-25)
 
 ### New features

@@ -10,10 +10,11 @@ Tests for dataframeeditor.py
 from __future__ import division
 
 # Standard library imports
+from sys import platform
 try:
-    from unittest.mock import Mock
+    from unittest.mock import Mock, ANY
 except ImportError:
-    from mock import Mock # Python 2
+    from mock import Mock, ANY  # Python 2
 import os
 
 # Third party imports
@@ -24,6 +25,7 @@ from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy
 import pytest
+from flaky import flaky
 
 # Local imports
 from spyder.utils.programs import is_module_installed
@@ -374,6 +376,197 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
     editor.dataModel.sort(0)
     assert data(dfm, 0, 0) == 'int64'
     assert data(dfm, 1, 0) == 'category'
+
+
+def test_dataframemodel_set_data_overflow(monkeypatch):
+    """Unit test #6114: entry of an overflow int caught and handled properly"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    # Numpy doesn't raise the OverflowError for ints smaller than 64 bits
+    if platform.startswith('linux'):
+        int32_bit_exponent = 66
+    else:
+        int32_bit_exponent = 34
+    test_parameters = [(1, numpy.int32, int32_bit_exponent),
+                       (2, numpy.int64, 66)]
+
+    for idx, int_type, bit_exponent in test_parameters:
+        test_df = DataFrame(numpy.arange(7, 11), dtype=int_type)
+        model = DataFrameModel(test_df.copy())
+        index = model.createIndex(2, 0)
+        assert not model.setData(index, str(int(2 ** bit_exponent)))
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
+        assert MockQMessageBox.critical.call_count == idx
+        assert numpy.sum(test_df[0].as_matrix() ==
+                         model.df.as_matrix()) == len(test_df)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(platform.startswith('linux'),
+                    reason="Fails on some Linux platforms locally and Travis.")
+def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
+    """Test #6114: entry of an overflow int is caught and handled properly"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    # Numpy doesn't raise the OverflowError for ints smaller than 64 bits
+    if platform.startswith('linux'):
+        int32_bit_exponent = 66
+    else:
+        int32_bit_exponent = 34
+    test_parameters = [(1, numpy.int32, int32_bit_exponent),
+                       (2, numpy.int64, 66)]
+    expected_df = DataFrame([5, 6, 7, 3, 4])
+
+    for idx, int_type, bit_exponet in test_parameters:
+        test_df = DataFrame(numpy.arange(0, 5), dtype=int_type)
+        dialog = DataFrameEditor()
+        assert dialog.setup_and_check(test_df, 'Test Dataframe')
+        dialog.show()
+        qtbot.waitForWindowShown(dialog)
+        view = dialog.dataTable
+
+        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyClicks(view, '5')
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
+        assert MockQMessageBox.critical.call_count == idx
+        qtbot.keyClicks(view, '7')
+        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClicks(view, '6')
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Return)
+        assert numpy.sum(expected_df[0].as_matrix() ==
+                         dialog.get_value().as_matrix()) == len(expected_df)
+
+
+def test_dataframemodel_set_data_complex(monkeypatch):
+    """Unit test #6115: editing complex dtypes raises error in df editor"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [(1, numpy.complex128), (2, numpy.complex64), (3, complex)]
+
+    for count, complex_type in test_params:
+        test_df = DataFrame(numpy.arange(10, 15), dtype=complex_type)
+        model = DataFrameModel(test_df.copy())
+        index = model.createIndex(2, 0)
+        assert not model.setData(index, '42')
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
+        assert MockQMessageBox.critical.call_count == count
+        assert numpy.sum(test_df[0].as_matrix() ==
+                         model.df.as_matrix()) == len(test_df)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or
+                    platform.startswith('linux'),
+                    reason="Fails on Travis for no good reason.")
+def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
+    """Test for #6115: editing complex dtypes raises error in df editor"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [(1, numpy.complex128), (2, numpy.complex64), (3, complex)]
+
+    for count, complex_type in test_params:
+        test_df = DataFrame(numpy.arange(10, 15), dtype=complex_type)
+        dialog = DataFrameEditor()
+        assert dialog.setup_and_check(test_df, 'Test Dataframe')
+        dialog.show()
+        qtbot.waitForWindowShown(dialog)
+        view = dialog.dataTable
+
+        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClicks(view.focusWidget(), "42")
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
+        assert MockQMessageBox.critical.call_count == count * 2 - 1
+        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyClick(view, '1')
+        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        MockQMessageBox.critical.assert_called_with(
+            ANY, "Error", ("Editing dtype {0!s} not yet supported."
+                           .format(type(test_df.iloc[1, 0]).__name__)))
+        assert MockQMessageBox.critical.call_count == count * 2
+        qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.wait(1000)
+        assert numpy.sum(test_df[0].as_matrix() ==
+                         dialog.get_value().as_matrix()) == len(test_df)
+
+
+def test_dataframemodel_set_data_bool(monkeypatch):
+    """Unit test that bools are editible in df and false-y strs are detected"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [numpy.bool_, numpy.bool, bool]
+    test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
+    expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+
+    for bool_type in test_params:
+        test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
+        model = DataFrameModel(test_df.copy())
+        for idx, test_str in enumerate(test_strs):
+            assert model.setData(model.createIndex(idx, 0), test_str)
+            assert not MockQMessageBox.critical.called
+        assert numpy.sum(expected_df[0].as_matrix() ==
+                         model.df.as_matrix()[:, 0]) == len(expected_df)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.environ.get('CI', None) is not None or
+                    platform.startswith('linux'),
+                    reason="Fails on Travis for no good reason.")
+def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
+    """Unit test that bools are editible in df and false-y strs are detected"""
+    MockQMessageBox = Mock()
+    attr_to_patch = ('spyder.widgets.variableexplorer' +
+                     '.dataframeeditor.QMessageBox')
+    monkeypatch.setattr(attr_to_patch, MockQMessageBox)
+
+    test_params = [numpy.bool_, numpy.bool, bool]
+    test_strs = ['foo', 'false', 'f', '0', '0.', '0.0', '', ' ']
+    expected_df = DataFrame([1, 0, 0, 0, 0, 0, 0, 0, 0], dtype=bool)
+
+    for bool_type in test_params:
+        test_df = DataFrame([0, 1, 1, 1, 1, 1, 1, 1, 0], dtype=bool_type)
+        dialog = DataFrameEditor()
+        assert dialog.setup_and_check(test_df, 'Test Dataframe')
+        dialog.show()
+        qtbot.waitForWindowShown(dialog)
+        view = dialog.dataTable
+
+        qtbot.keyPress(view, Qt.Key_Right)
+        for test_str in test_strs:
+            qtbot.keyPress(view, Qt.Key_Space)
+            qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClicks(view.focusWidget(), test_str)
+            qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+            assert not MockQMessageBox.critical.called
+        qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.wait(1000)
+        assert (numpy.sum(expected_df[0].as_matrix() ==
+                          dialog.get_value().as_matrix()[:, 0]) ==
+                len(expected_df))
 
 
 if __name__ == "__main__":

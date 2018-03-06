@@ -68,6 +68,8 @@ def get_console_background_color(style_sheet):
 @pytest.fixture
 def ipyconsole(request):
     """IPython console fixture."""
+    # Tests assume inline backend
+    CONF.set('ipython_console', 'pylab/backend', 0)
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_marker('non_ascii_dir')
@@ -82,6 +84,10 @@ def ipyconsole(request):
         test_no_stderr = True
     else:
         test_no_stderr = False
+
+    auto_backend = request.node.get_marker('auto_backend')
+    if auto_backend:
+        CONF.set('ipython_console', 'pylab/backend', 1)
 
     # Create the console and a new client
     console = IPythonConsole(parent=None,
@@ -102,6 +108,84 @@ def ipyconsole(request):
 #==============================================================================
 # Tests
 #==============================================================================
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.auto_backend
+@pytest.mark.skipif(os.name == 'nt' or PYQT4,
+                    reason="It times out sometimes on Windows and it's not needed in PyQt4")
+def test_auto_backend(ipyconsole, qtbot):
+    """Test that the automatic backend is working correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # This is here to generate further errors
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%matplotlib qt5")
+
+    # Assert there are no errors in the console
+    control = ipyconsole.get_focus_widget()
+    assert 'NOTE' not in control.toPlainText()
+    assert 'Error' not in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_tab_rename_for_slaves(ipyconsole, qtbot):
+    """Test slave clients are renamed correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    cf = ipyconsole.get_current_client().connection_file
+    ipyconsole._create_client_for_kernel(cf, None, None, None)
+    qtbot.wait(1000)
+
+    # Rename slave
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Assert both clients have the same name
+    assert 'foo' in ipyconsole.get_clients()[0].get_name()
+    assert 'foo' in ipyconsole.get_clients()[1].get_name()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_no_repeated_tabs_name(ipyconsole, qtbot):
+    """Test that tabs can't have repeated given names."""
+    # Rename first client
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Create a new client and try to rename it
+    ipyconsole.create_new_client()
+    ipyconsole.rename_tabs_after_change('foo')
+
+    # Assert the rename didn't take place
+    client_name = ipyconsole.get_current_client().get_name()
+    assert '2' in client_name
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
+    """Test that tabs preserve their names after they are moved."""
+    # Create a new client
+    ipyconsole.create_new_client()
+
+    # Move tabs
+    ipyconsole.tabwidget.tabBar().moveTab(0, 1)
+
+    # Assert the second client is in the first position
+    client_name = ipyconsole.get_clients()[0].get_name()
+    assert '2' in client_name
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_conf_env_vars(ipyconsole, qtbot):
@@ -119,6 +203,7 @@ def test_conf_env_vars(ipyconsole, qtbot):
     assert shell.get_value('a') == 'False'
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 @pytest.mark.no_stderr_file
@@ -137,9 +222,10 @@ def test_no_stderr_file(ipyconsole, qtbot):
     assert shell.get_value('a') == 1
 
 
+@pytest.mark.slow
+@pytest.mark.non_ascii_dir
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-@pytest.mark.non_ascii_dir
 def test_non_ascii_stderr_file(ipyconsole, qtbot):
     """Test the creation of a console with a stderr file in a non-ascii dir."""
     # Wait until the window is fully up
@@ -155,6 +241,7 @@ def test_non_ascii_stderr_file(ipyconsole, qtbot):
     assert shell.get_value('a') == 1
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_console_import_namespace(ipyconsole, qtbot):
@@ -171,6 +258,7 @@ def test_console_import_namespace(ipyconsole, qtbot):
     assert shell.get_value('e') == 2.718281828459045
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_console_disambiguation(ipyconsole, qtbot):
     """Test the disambiguation of dedicated consoles."""
@@ -205,6 +293,7 @@ def test_console_disambiguation(ipyconsole, qtbot):
     assert client.get_name() == 'c.py - b/A'
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_console_coloring(ipyconsole, qtbot):
 
@@ -229,6 +318,7 @@ def test_console_coloring(ipyconsole, qtbot):
     assert console_font_color.strip() == editor_font_color.strip()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_get_env(ipyconsole, qtbot):
@@ -256,6 +346,7 @@ def test_get_env(ipyconsole, qtbot):
     assert env_contents['FOO'] == 'bar'
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_get_syspath(ipyconsole, qtbot):
@@ -289,6 +380,7 @@ def test_get_syspath(ipyconsole, qtbot):
         pass
 
 
+@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_browse_history_dbg(ipyconsole, qtbot):
@@ -322,6 +414,7 @@ def test_browse_history_dbg(ipyconsole, qtbot):
     assert '!aa = 10' in control.toPlainText()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2,
                     reason="It times out sometimes on Windows and doesn't work on PY2")
@@ -346,6 +439,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 20
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_read_stderr(ipyconsole, qtbot):
     """
@@ -364,6 +458,7 @@ def test_read_stderr(ipyconsole, qtbot):
 
 
 @flaky(max_runs=10)
+@pytest.mark.no_xvfb
 @pytest.mark.skipif(os.environ.get('CI', None) is not None,
                     reason="It times out in our CIs")
 def test_values_dbg(ipyconsole, qtbot):
@@ -409,6 +504,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
+@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_plot_magic_dbg(ipyconsole, qtbot):
@@ -439,6 +535,7 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_run_doctest(ipyconsole, qtbot):
@@ -475,6 +572,7 @@ def test_run_doctest(ipyconsole, qtbot):
     assert "TestResults(failed=0, attempted=2)" in shell._control.toPlainText()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5) or PYQT4,
                     reason="It times out frequently")
@@ -533,6 +631,7 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
 
 
+@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
@@ -555,7 +654,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
     # Test clear magic
     shell.clear_console()
-    qtbot.wait(500)
+    qtbot.wait(1000)
     assert '\nipdb> ' == control.toPlainText()
 
     # Test reset magic
@@ -574,6 +673,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'bb' is not defined" in control.toPlainText()
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_restart_kernel(ipyconsole, qtbot):
@@ -597,6 +697,7 @@ def test_restart_kernel(ipyconsole, qtbot):
     assert not shell.is_defined('a')
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
@@ -619,6 +720,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     assert new_client.id_ == dict(int_id='1', str_id='B')
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
                     reason="It segfaults frequently")
@@ -644,6 +746,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
     assert len(ipyconsole.get_clients()) == 2
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PYQT4,
                     reason="It segfaults frequently")
@@ -671,6 +774,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     assert shell.get_value('a') == new_shell.get_value('a')
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_sys_argv_clear(ipyconsole, qtbot):

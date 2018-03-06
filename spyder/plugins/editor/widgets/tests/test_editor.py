@@ -9,13 +9,15 @@ Tests for editor.py
 """
 
 # Standard library imports
+from sys import platform
 try:
-    from unittest.mock import Mock
+    from unittest.mock import Mock, MagicMock
 except ImportError:
-    from mock import Mock # Python 2
+    from mock import Mock, MagicMock  # Python 2
 
 # Third party imports
 import pytest
+from flaky import flaky
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
@@ -101,16 +103,6 @@ def editor_folding_bot(base_editor_bot):
     find_replace.set_editor(finfo.editor)
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor, find_replace, qtbot
-
-
-@pytest.fixture
-def editor_splitter_bot(qtbot):
-    """Create editor splitter."""
-    editor_splitter = EditorSplitter(None, Mock(), [], first=True)
-    qtbot.addWidget(editor_splitter)
-    editor_splitter.show()
-    yield editor_splitter
-    editor_splitter.destroy()
 
 
 # Tests
@@ -496,29 +488,41 @@ def test_get_current_word(base_editor_bot):
     assert editor.get_current_word() == 'valid_python_word'
 
 
-def test_editor_splitter_init(editor_splitter_bot):
-    """"Test EditorSplitter.__init__."""
-    es = editor_splitter_bot
-    assert es.orientation() == Qt.Horizontal
-    assert es.testAttribute(Qt.WA_DeleteOnClose)
-    assert not es.childrenCollapsible()
-    assert not es.toolbar_list
-    assert not es.menu_list
-    assert es.register_editorstack_cb == es.plugin.register_editorstack
-    assert es.unregister_editorstack_cb == es.plugin.unregister_editorstack
+def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
+    """Check that tab works in find/replace dialog. Regression test #3674.
+    Mock test—more isolated but less flimsy."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    text = '  \nspam \nspam \nspam '
+    editor.set_text(text)
+    finder.show()
+    finder.show_replace()
 
-    # No menu actions in parameter call.
-    assert not es.menu_actions
-    # EditorStack adds its own menu actions to the existing actions.
-    assert es.editorstack.menu_actions
+    finder.focusNextChild = MagicMock(name="focusNextChild")
+    qtbot.keyPress(finder.search_text, Qt.Key_Tab)
+    finder.focusNextChild.assert_called_once_with()
 
-    assert isinstance(es.editorstack, EditorStack)
-    es.plugin.register_editorstack.assert_called_with(es.editorstack)
-    es.plugin.unregister_editorstack.assert_not_called()
-    es.plugin.clone_editorstack.assert_not_called()
 
-    assert es.count() == 1
-    assert es.widget(0) == es.editorstack
+@flaky(max_runs=3)
+@pytest.mark.skipif(platform.startswith('linux'),
+                    reason="This test fails on Linux, for unknown reasons.")
+def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
+    """Check that tab works in find/replace dialog. Regression test #3674.
+    "Real world" test—more comprehensive but potentially less robust."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    text = '  \nspam \nspam \nspam '
+    editor.set_text(text)
+    finder.show()
+    finder.show_replace()
+
+    qtbot.wait(100)
+    finder.search_text.setFocus()
+    qtbot.wait(100)
+    assert finder.search_text.hasFocus()
+    assert not finder.replace_text.hasFocus()
+    qtbot.keyPress(finder.search_text, Qt.Key_Tab)
+    qtbot.wait(100)
+    assert not finder.search_text.hasFocus()
+    assert finder.replace_text.hasFocus()
 
 
 if __name__ == "__main__":

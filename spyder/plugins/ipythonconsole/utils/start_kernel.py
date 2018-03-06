@@ -9,6 +9,7 @@ File used to start kernels for the IPython Console
 """
 
 # Standard library imports
+from distutils.version import LooseVersion
 import os
 import os.path as osp
 import sys
@@ -93,7 +94,7 @@ def kernel_config():
     # use our config system to configure the
     # inline backend but want to use
     # '%matplotlib inline' at runtime
-    if ipykernel.__version__ < '4.5':
+    if LooseVersion(ipykernel.__version__) < LooseVersion('4.5'):
         dpi_option = 'savefig.dpi'
     else:
         dpi_option = 'figure.dpi'

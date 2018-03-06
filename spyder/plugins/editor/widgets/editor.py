@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, STDERR, STDOUT
+from spyder.config.base import _, DEBUG, PYTEST, STDERR, STDOUT
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -462,8 +462,9 @@ class EditorStack(QWidget):
     current_file_changed = Signal(str ,int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
-    split_vertically = Signal()
-    split_horizontally = Signal()
+    sig_split_vertically = Signal()
+    sig_split_horizontally = Signal()
+    sig_close_split = Signal()
     sig_new_file = Signal((str,), ())
     sig_save_as = Signal()
     sig_prev_edit_pos = Signal()
@@ -611,6 +612,9 @@ class EditorStack(QWidget):
         self.edit_filetypes = None
         self.edit_filters = None
 
+        # For testing
+        self.save_dialog_on_tests = not PYTEST
+
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
         """Show file in external file explorer"""
@@ -638,6 +642,12 @@ class EditorStack(QWidget):
                               name='Go to previous file', parent=self)
         tabshift = config_shortcut(self.tab_navigation_mru, context='Editor',
                                    name='Go to next file', parent=self)
+        prevtab = config_shortcut(lambda: self.tabs.tab_navigate(-1),
+                                  context='Editor',
+                                  name='Cycle to previous file', parent=self)
+        nexttab = config_shortcut(lambda: self.tabs.tab_navigate(1),
+                                  context='Editor',
+                                  name='Cycle to next file', parent=self)
         run_selection = config_shortcut(self.run_selection, context='Editor',
                                         name='Run selection', parent=self)
         new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
@@ -719,6 +729,18 @@ class EditorStack(QWidget):
                                        context="Editor",
                                        name="Next warning",
                                        parent=self)
+        split_vertically = config_shortcut(lambda: self.sig_split_vertically.emit(),
+                                           context="Editor",
+                                           name="split vertically",
+                                           parent=self)
+        split_horizontally = config_shortcut(lambda: self.sig_split_horizontally.emit(),
+                                             context="Editor",
+                                             name="split horizontally",
+                                             parent=self)
+        close_split = config_shortcut(lambda: self.sig_close_split.emit(),
+                                      context="Editor",
+                                      name="close split panel",
+                                      parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -727,7 +749,8 @@ class EditorStack(QWidget):
                 next_cursor, zoom_in_1, zoom_in_2, zoom_out, zoom_reset,
                 close_file_1, close_file_2, run_cell, run_cell_and_advance,
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
-                prev_warning, next_warning]
+                prev_warning, next_warning, split_vertically,
+                split_horizontally, close_split, prevtab, nexttab]
 
     def get_shortcut_data(self):
         """
@@ -1347,13 +1370,20 @@ class EditorStack(QWidget):
         self.versplit_action = create_action(self, _("Split vertically"),
                 icon=ima.icon('versplit'),
                 tip=_("Split vertically this editor window"),
-                triggered=lambda: self.split_vertically.emit())
+                triggered=lambda: self.sig_split_vertically.emit(),
+                shortcut=get_shortcut(context='Editor', name='split vertically'),
+                context=Qt.WidgetShortcut)
         self.horsplit_action = create_action(self, _("Split horizontally"),
                 icon=ima.icon('horsplit'),
                 tip=_("Split horizontally this editor window"),
-                triggered=lambda: self.split_horizontally.emit())
+                triggered=lambda: self.sig_split_horizontally.emit(),
+                shortcut=get_shortcut(context='Editor', name='split horizontally'),
+                context=Qt.WidgetShortcut)
         self.close_action = create_action(self, _("Close this panel"),
-                icon=ima.icon('close_panel'), triggered=self.close)
+                icon=ima.icon('close_panel'),
+                triggered=lambda: self.sig_close_split.emit(),
+                shortcut=get_shortcut(context='Editor', name='close split panel'),
+                context=Qt.WidgetShortcut)
         actions = [MENU_SEPARATOR, self.undock_action,
                    MENU_SEPARATOR, self.versplit_action,
                    self.horsplit_action, self.close_action]
@@ -1596,7 +1626,8 @@ class EditorStack(QWidget):
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(index):
                     return False
-            elif finfo.editor.document().isModified():
+            elif (finfo.editor.document().isModified() and
+                  self.save_dialog_on_tests):
 
                 self.msgbox = QMessageBox(
                         QMessageBox.Question,
@@ -2309,7 +2340,8 @@ class EditorStack(QWidget):
         finfo = self.create_new_editor(filename, encoding, text,
                                        set_current=False, new=True)
         finfo.editor.set_cursor_position('eof')
-        finfo.editor.insert_text(os.linesep)
+        if not default_content:
+            finfo.editor.insert_text(os.linesep)
         if default_content:
             finfo.default = True
             finfo.editor.document().setModified(False)
@@ -2487,8 +2519,27 @@ class EditorStack(QWidget):
 
 
 class EditorSplitter(QSplitter):
+    """QSplitter for editor windows."""
+
     def __init__(self, parent, plugin, menu_actions, first=False,
                  register_editorstack_cb=None, unregister_editorstack_cb=None):
+        """Create a splitter for dividing an editor window into panels.
+
+        Adds a new EditorStack instance to this splitter.  If it's not
+        the first splitter, clones the current EditorStack from the plugin.
+
+        Args:
+            parent: Parent widget.
+            plugin: Plugin this widget belongs to.
+            menu_actions: QActions to include from the parent.
+            first: Boolean if this is the first splitter in the editor.
+            register_editorstack_cb: Callback to register the EditorStack.
+                        Defaults to plugin.register_editorstack() to
+                        register the EditorStack with the Editor plugin.
+            unregister_editorstack_cb: Callback to unregister the EditorStack.
+                        Defaults to plugin.unregister_editorstack() to
+                        unregister the EditorStack with the Editor plugin.
+        """
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
@@ -2511,13 +2562,19 @@ class EditorSplitter(QSplitter):
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
         self.editorstack.destroyed.connect(lambda: self.editorstack_closed())
-        self.editorstack.split_vertically.connect(
+        self.editorstack.sig_split_vertically.connect(
                      lambda: self.split(orientation=Qt.Vertical))
-        self.editorstack.split_horizontally.connect(
+        self.editorstack.sig_split_horizontally.connect(
                      lambda: self.split(orientation=Qt.Horizontal))
+        self.editorstack.sig_close_split.connect(lambda: self.close())
         self.addWidget(self.editorstack)
 
     def closeEvent(self, event):
+        """Override QWidget closeEvent().
+
+        This event handler is called with the given event when Qt
+        receives a window close request from a top-level widget.
+        """
         QSplitter.closeEvent(self, event)
         if is_pyqt46:
             self.destroyed.emit()
@@ -2568,6 +2625,16 @@ class EditorSplitter(QSplitter):
         self.__give_focus_to_remaining_editor()
 
     def split(self, orientation=Qt.Vertical):
+        """Create and attach a new EditorSplitter to the current EditorSplitter.
+
+        The new EditorSplitter widget will contain an EditorStack that
+        is a clone of the current EditorStack.
+
+        A single EditorSplitter instance can be split multiple times, but the
+        orientation will be the same for all the direct splits.  If one of
+        the child splits is split, then that split can have a different
+        orientation.
+        """
         self.setOrientation(orientation)
         self.editorstack.set_orientation(orientation)
         editorsplitter = EditorSplitter(self.parent(), self.plugin,
@@ -2581,6 +2648,14 @@ class EditorSplitter(QSplitter):
             current_editor.setFocus()
 
     def iter_editorstacks(self):
+        """Return the editor stacks for this splitter and every first child.
+
+        Note: If a splitter contains more than one splitter as a direct
+              child, only the first child's editor stack is included.
+
+        Returns:
+            List of tuples containing (EditorStack instance, orientation).
+        """
         editorstacks = [(self.widget(0), self.orientation())]
         if self.count() > 1:
             editorsplitter = self.widget(1)
@@ -2588,11 +2663,29 @@ class EditorSplitter(QSplitter):
         return editorstacks
 
     def get_layout_settings(self):
-        """Return layout state"""
+        """Return the layout state for this splitter and its children.
+
+        Record the current state, including file names and current line
+        numbers, of the splitter panels.
+
+        Returns:
+            A dictionary containing keys {hexstate, sizes, splitsettings}.
+                hexstate: String of saveState() for self.
+                sizes: List for size() for self.
+                splitsettings: List of tuples of the form
+                       (orientation, cfname, clines) for each EditorSplitter
+                       and its EditorStack.
+                           orientation: orientation() for the editor
+                                 splitter (which may be a child of self).
+                           cfname: EditorStack current file name.
+                           clines: Current line number for each file in the
+                               EditorStack.
+        """
         splitsettings = []
         for editorstack, orientation in self.iter_editorstacks():
             clines = []
             cfname = ''
+            # XXX - this overrides value from the loop to always be False?
             orientation = False
             if hasattr(editorstack, 'data'):
                 clines = [finfo.editor.get_cursor_line_number()
@@ -2603,7 +2696,27 @@ class EditorSplitter(QSplitter):
                     sizes=self.sizes(), splitsettings=splitsettings)
 
     def set_layout_settings(self, settings, dont_goto=None):
-        """Restore layout state."""
+        """Restore layout state for the splitter panels.
+
+        Apply the settings to restore a saved layout within the editor.  If
+        the splitsettings key doesn't exist, then return without restoring
+        any settings.
+
+        The current EditorSplitter (self) calls split() for each element
+        in split_settings, thus recreating the splitter panels from the saved
+        state.  split() also clones the editorstack, which is then
+        iterated over to restore the saved line numbers on each file.
+
+        The size and positioning of each splitter panel is restored from
+        hexstate.
+
+        Args:
+            settings: A dictionary with keys {hexstate, sizes, orientation}
+                    that define the layout for the EditorSplitter panels.
+            dont_goto: Defaults to None, which positions the cursor to the
+                    end of the editor.  If there's a value, positions the
+                    cursor on the saved line number for each editor.
+        """
         splitsettings = settings.get('splitsettings')
         if splitsettings is None:
             return

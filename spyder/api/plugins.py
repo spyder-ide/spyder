@@ -68,6 +68,8 @@ class PluginWidget(BasePluginWidget):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+
+        # Options button and menu
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
         self.options_button.setPopupMode(QToolButton.InstantPopup)
@@ -94,12 +96,17 @@ class PluginWidget(BasePluginWidget):
         It must be run at the end of __init__
         """
         self.create_toggle_view_action()
+
+        # Undock action
         self.create_undock_action()
         self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
                                                            self.undock_action]
+
+        # Options button and menu
         add_actions(self.options_menu, self.plugin_actions)
         self.options_button.setMenu(self.options_menu)
         self.options_menu.aboutToShow.connect(self.refresh_actions)
+
         self.sig_show_message.connect(self.show_message)
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.sig_option_changed.connect(self.set_option)

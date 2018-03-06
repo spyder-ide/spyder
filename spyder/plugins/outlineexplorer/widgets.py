@@ -307,6 +307,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sort_top_level_items(key=sort_func)
             
     def populate_branch(self, editor, root_item, tree_cache=None):
+        """
+        Generates an outline of the editor's content and stores the result
+        in a cache.
+        """
         if tree_cache is None:
             tree_cache = {}
         
@@ -326,10 +330,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
             data = oe_data.get(block_nb)
-            if data is None:
-                level = None
-            else:
-                level = data.fold_level
+            level = None if data is None else data.fold_level
             citem, clevel, _d = tree_cache.get(line_nb, (None, None, ""))
             
             # Skip iteration if line is not the first line of a foldable block
@@ -348,7 +349,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         if citem is not None:
                             remove_from_tree_cache(tree_cache, line=line_nb)
                         continue
-                
+
+            # Skip iteration for if/else/try/for/etc foldable blocks.
+            if not_class_nor_function and not data.is_comment():
+                if citem is not None:
+                    remove_from_tree_cache(tree_cache, line=line_nb)
+                continue
+
             if previous_level is not None:
                 if level == previous_level:
                     pass
@@ -366,8 +373,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 cname = to_text_string(citem.text(0))
                 
             preceding = root_item if previous_item is None else previous_item
-            if not_class_nor_function:
-                if data.is_comment() and not self.show_comments:
+            if not_class_nor_function and data.is_comment():
+                if not self.show_comments:
                     if citem is not None:
                         remove_from_tree_cache(tree_cache, line=line_nb)
                     continue
@@ -378,14 +385,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         continue
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
-                if data.is_comment():
-                    if data.def_type == data.CELL:
-                        item = CellItem(data.text, line_nb, parent, preceding)
-                    else:
-                        item = CommentItem(
-                            data.text, line_nb, parent, preceding)
+                if data.def_type == data.CELL:
+                    item = CellItem(data.text, line_nb, parent, preceding)
                 else:
-                    item = TreeItem(data.text, line_nb, parent, preceding)
+                    item = CommentItem(data.text, line_nb, parent, preceding)
             elif class_name is not None:
                 if citem is not None:
                     if class_name == cname and level == clevel:

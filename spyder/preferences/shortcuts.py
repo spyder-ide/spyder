@@ -16,7 +16,7 @@ import sys
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QRegExp,
-                         QSortFilterProxyModel, Qt)
+                         QSortFilterProxyModel, Qt, Slot)
 from qtpy.QtGui import (QKeySequence, QRegExpValidator)
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QDialogButtonBox, QGridLayout, QHBoxLayout, QLabel,
@@ -62,7 +62,8 @@ VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔ�
 VALID_FINDER_CHARS = "[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
 BLACKLIST = {
-    'Shift+Del': _('Currently used to delete lines on editor')
+    'Shift+Del': _('Currently used to delete lines on editor/Cut a word'),
+    'Shift+Ins': _('Currently used to paste a word')
 }
 
 if os.name == 'nt':
@@ -202,6 +203,24 @@ class ShortcutEditor(QDialog):
         # Signals
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
+
+    @Slot()
+    def reject(self):
+        """Slot for rejected signal."""
+        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
+        # buttons, if the cancel button was clicked without first setting focus
+        # to the button, it would cause a seg fault crash.
+        self.button_cancel.setFocus()
+        super().reject()
+
+    @Slot()
+    def accept(self):
+        """Slot for accepted signal."""
+        # Added for issue #5426.  Due to the focusPolicy of Qt.NoFocus for the
+        # buttons, if the ok button was clicked without first setting focus to
+        # the button, it would cause a seg fault crash.
+        self.button_ok.setFocus()
+        super().accept()
 
     def keyPressEvent(self, e):
         """Qt override."""
@@ -428,10 +447,9 @@ class ShortcutEditor(QDialog):
         self.key_text = [k.upper() for k in self.key_text]
 
         # Fix Backtab, Tab issue
-        if os.name == 'nt':
-            if Qt.Key_Backtab in self.key_non_modifiers:
-                idx = self.key_non_modifiers.index(Qt.Key_Backtab)
-                self.key_non_modifiers[idx] = Qt.Key_Tab
+        if Qt.Key_Backtab in self.key_non_modifiers:
+            idx = self.key_non_modifiers.index(Qt.Key_Backtab)
+            self.key_non_modifiers[idx] = Qt.Key_Tab
 
         if len(self.key_modifiers) == 0:
             # Filter single key allowed

@@ -1420,7 +1420,8 @@ class MainWindow(QMainWindow):
             self.setWindowState(Qt.WindowMaximized)
         self.setUpdatesEnabled(True)
 
-    def save_current_window_settings(self, prefix, section='main'):
+    def save_current_window_settings(self, prefix, section='main',
+                                     none_state=False):
         """Save current window settings with *prefix* in
         the userconfig-based configuration, under *section*"""
         win_size = self.window_size
@@ -1434,8 +1435,11 @@ class MainWindow(QMainWindow):
         pos = self.window_position
         CONF.set(section, prefix+'position', (pos.x(), pos.y()))
         self.maximize_dockwidget(restore=True)# Restore non-maximized layout
-        qba = self.saveState()
-        CONF.set(section, prefix+'state', qbytearray_to_str(qba))
+        if none_state:
+            CONF.set(section, prefix + 'state', None)
+        else:
+            qba = self.saveState()
+            CONF.set(section, prefix + 'state', qbytearray_to_str(qba))
         CONF.set(section, prefix+'statusbar',
                     not self.statusBar().isHidden())
 
@@ -1473,15 +1477,14 @@ class MainWindow(QMainWindow):
 
             for index, name, in enumerate(order):
                 prefix = 'layout_{0}/'.format(index)
-                self.save_current_window_settings(prefix, section)
-                CONF.set(section, prefix+'state', None)        
+                self.save_current_window_settings(prefix, section,
+                                                  none_state=True)
 
             # store the initial layout as the default in spyder
             prefix = 'layout_default/'
             section = 'quick_layouts'
-            self.save_current_window_settings(prefix, section)
+            self.save_current_window_settings(prefix, section, none_state=True)
             self.current_quick_layout = 'default'
-            CONF.set(section, prefix+'state', None)
             
             # Regenerate menu
             self.quick_layout_set_menu()
@@ -2264,16 +2267,29 @@ class MainWindow(QMainWindow):
         if self.state_before_maximizing is None:
             if restore:
                 return
-            # No plugin is currently maximized: maximizing focus plugin
+
+            # Select plugin to maximize
             self.state_before_maximizing = self.saveState()
             focus_widget = QApplication.focusWidget()
             for plugin in self.widgetlist:
                 plugin.dockwidget.hide()
                 if plugin.isAncestorOf(focus_widget):
                     self.last_plugin = plugin
+
+            # Only plugins that have a dockwidget are part of widgetlist,
+            # so last_plugin can be None after the above "for" cycle.
+            # For example, this happens if, after Spyder has started, focus
+            # is set to the Working directory toolbar (which doesn't have
+            # a dockwidget) and then you press the Maximize button
+            if self.last_plugin is None:
+                # Using the Editor as default plugin to maximize
+                self.last_plugin = self.editor
+
+            # Maximize last_plugin
             self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
             self.setCentralWidget(self.last_plugin)
             self.last_plugin.ismaximized = True
+
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline explorer
             #  and the latter won't be refreshed if not visible)

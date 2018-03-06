@@ -401,6 +401,8 @@ DEFAULTS = [
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': 'Ctrl+Shift+Tab',
               'editor/go to next file': 'Ctrl+Tab',
+              'editor/cycle to previous file': 'Ctrl+PgUp',
+              'editor/cycle to next file': 'Ctrl+PgDown',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
@@ -424,6 +426,9 @@ DEFAULTS = [
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
+              'editor/split vertically': "Ctrl+{",
+              'editor/split horizontally': "Ctrl+_",
+              'editor/close split panel': "Alt+Shift+W",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----

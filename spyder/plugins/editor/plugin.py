@@ -431,7 +431,7 @@ class Editor(SpyderPluginWidget):
             header = shebang + [
                 '# -*- coding: utf-8 -*-',
                 '"""', 'Created on %(date)s', '',
-                '@author: %(username)s', '"""', '']
+                '@author: %(username)s', '"""', '', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
         self.projects = None
@@ -453,6 +453,7 @@ class Editor(SpyderPluginWidget):
         
         # Initialize plugin
         self.initialize_plugin()
+        self.options_button.hide()
         
         # Configuration dialog size
         self.dialog_size = None

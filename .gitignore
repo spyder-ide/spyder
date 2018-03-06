@@ -4,6 +4,9 @@
 # gedit files
 *~
 
+# Notepad++ files
+nppBackup/
+
 # Special dirs and files
 build/
 dist/
@@ -16,7 +19,7 @@ spyder_crash.log
 .spyproject
 .idea/
 .cache
-.coverage
+.coverage*
 
 # git .orig files
 *.orig

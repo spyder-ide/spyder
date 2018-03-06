@@ -177,14 +177,14 @@ class FindReplace(QWidget):
         self.highlight_timer.timeout.connect(self.highlight_matches)
         self.search_text.installEventFilter(self)
 
-
     def eventFilter(self, widget, event):
         """Event filter for search_text widget.
 
         Emits signals when presing Enter and Shift+Enter.
         This signals are used for search forward and backward.
+        Also, a crude hack to get tab working in the Find/Replace boxes.
         """
-        if (event.type() == QEvent.KeyPress):
+        if event.type() == QEvent.KeyPress:
             key = event.key()
             shift = event.modifiers() & Qt.ShiftModifier
 
@@ -194,8 +194,10 @@ class FindReplace(QWidget):
                 else:
                     self.return_pressed.emit()
 
-        return super(FindReplace, self).eventFilter(widget, event)
+            if key == Qt.Key_Tab:
+                self.focusNextChild()
 
+        return super(FindReplace, self).eventFilter(widget, event)
 
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""

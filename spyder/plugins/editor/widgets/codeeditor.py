@@ -910,12 +910,14 @@ class CodeEditor(TextEditBaseWidget):
         cursor.endEditBlock()
 
     def fix_indentation(self):
-        """Replace tabs by spaces"""
+        """Replace tabs by spaces."""
         text_before = to_text_string(self.toPlainText())
-        text_after = sourcecode.fix_indentation(text_before)
+        text_after = sourcecode.fix_indentation(text_before, self.indent_chars)
         if text_before != text_after:
-            self.setPlainText(text_after)
-            self.document().setModified(True)
+            # We do the following rather than using self.setPlainText
+            # to benefit from QTextEdit's undo/redo feature.
+            self.selectAll()
+            self.insertPlainText(text_after)
 
     def get_current_object(self):
         """Return current object (string) """
@@ -2522,6 +2524,7 @@ class CodeEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         text = to_text_string(event.text())
+        has_selection = self.has_selected_text()
         if text:
             self.__clear_occurrences()
         if QToolTip.isVisible():
@@ -2537,6 +2540,10 @@ class CodeEditor(TextEditBaseWidget):
             seq = getattr(QKeySequence, qname)
             sc = get_shortcut('editor', name)
             default = QKeySequence(seq).toString()
+            # XXX - Using debug_print, it can be seen that event and seq
+            # will never be equal, so this code is never executed.
+            # Need to find out the intended purpose and if it should be
+            # retained.
             if event == seq and sc != default:
                 # if we have overridden it, call our action
                 for shortcut in self.shortcuts:
@@ -2587,14 +2594,25 @@ class CodeEditor(TextEditBaseWidget):
         elif shift and key == Qt.Key_Delete:
             # Shift + Del is a Key sequence reserved by most OSes
             # https://github.com/spyder-ide/spyder/issues/3405
-            self.delete_line()
+            # For now, add back reserved sequence for cut (issue 5973).
+            # Since Ctrl+X is configurable, this should also use preferences.
+            # https://doc.qt.io/qt-5/qkeysequence.html
+            if has_selection:
+                self.cut()
+            else:
+                self.delete_line()
+        elif shift and key == Qt.Key_Insert:
+            # For now, add back reserved sequence for paste (issue 5973).
+            # Since Ctrl+V is configurable, this should also use preferences.
+            # https://doc.qt.io/qt-5/qkeysequence.html
+            self.paste()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
-            if self.has_selected_text() or not self.intelligent_backspace:
+            if has_selection or not self.intelligent_backspace:
                 TextEditBaseWidget.keyPressEvent(self, event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
@@ -2632,10 +2650,10 @@ class CodeEditor(TextEditBaseWidget):
             # See Issue 495: on MacOS X, it is necessary to redefine this
             # basic action which should have been implemented natively
             self.stdkey_end(shift, ctrl)
-        elif text == '(' and not self.has_selected_text():
+        elif text == '(' and not has_selection:
             self.hide_completion_widget()
             self.handle_parentheses(text)
-        elif (text in ('[', '{') and not self.has_selected_text() and
+        elif (text in ('[', '{') and not has_selection and
               self.close_parentheses_enabled):
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
@@ -2647,7 +2665,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 TextEditBaseWidget.keyPressEvent(self, event)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
-          and not self.has_selected_text() and self.close_parentheses_enabled \
+          and not has_selection and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
@@ -2664,7 +2682,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             else:
                 TextEditBaseWidget.keyPressEvent(self, event)
-        elif key == Qt.Key_Colon and not self.has_selected_text() \
+        elif key == Qt.Key_Colon and not has_selection \
              and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
@@ -2675,7 +2693,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.unindent(force=True)
             TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Space and not shift and not ctrl \
-             and not self.has_selected_text() and self.auto_unindent_enabled:
+             and not has_selection and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
@@ -2687,7 +2705,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
-            if not self.has_selected_text() and not self.tab_mode:
+            if not has_selection and not self.tab_mode:
                 self.intelligent_tab()
             else:
                 # indent the selected text
@@ -2695,7 +2713,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
-            if not self.has_selected_text() and not self.tab_mode:
+            if not has_selection and not self.tab_mode:
                 self.intelligent_backtab()
             else:
                 # indent the selected text
