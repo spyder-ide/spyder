@@ -1,22 +1,36 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.4 is released!
+**Subject**: [ANN] Spyder 3.2.5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.4** has been released and is available for
+I'm pleased to announce that Spyder **3.2.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 7 weeks after version 3.2.3 and it adds the following new
+This release comes 10 weeks after version 3.2.4 and it adds the following new
 features:
 
-* Add compatibility with Jedi 0.11
-* Display lists with all types of elements in the Variable Explorer.
+- IPython Console
+    * Improve kernel startup time.
+    * Add option to show kernel elapsed time.
+    * Add button and option to remove all user-defined variables.
+    * Load `%autoreload` magic at kernel startup to make changes to
+      modules take effect instantly in the console.
+    * Use `cloudpickle` to serialize/deserialize data between kernels
+      and Spyder.
 
-In this release we fixed 26 issues and merged 30 pull requests that amount
-to more than 100 commits. For a full list of fixes, please see our
+- Variable Explorer
+    * Add support for `datetime.timedelta` objects.
+
+- Under the hood
+    * Add `pyqt5` as a new wheel dependency.
+    * Add a new `--hide-console` option and deprecate `--show-console`
+      on Windows.
+
+In this release we fixed 45 issues and merged 54 pull requests that amount
+to more than 200 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
