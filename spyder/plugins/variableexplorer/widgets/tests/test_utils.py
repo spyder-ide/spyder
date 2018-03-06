@@ -20,6 +20,7 @@ from spyder.config.base import get_supported_types
 from spyder.plugins.variableexplorer.utils import (sort_against,
                                                    is_supported,
                                                    value_to_display)
+from spyder.py3compat import PY2
 
 def generate_complex_object():
     """Taken from issue #4221."""

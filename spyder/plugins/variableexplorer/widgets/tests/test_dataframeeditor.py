@@ -390,7 +390,7 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
 def test_dataframemodel_set_data_overflow(monkeypatch):
     """Test for #6114: Overflowing ints are caught and handled properly"""
     MockQMessageBox = Mock()
-    attr_to_patch = ('spyder.widgets.variableexplorer' +
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
@@ -418,7 +418,7 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
     """Test #6114: Entry of an overflow int is caught and handled properly"""
     MockQMessageBox = Mock()
-    attr_to_patch = ('spyder.widgets.variableexplorer' +
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
@@ -460,7 +460,7 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
 def test_dataframemodel_set_data_complex(monkeypatch):
     """Test for #6115: Editing complex dtypes raises error in df editor"""
     MockQMessageBox = Mock()
-    attr_to_patch = ('spyder.widgets.variableexplorer' +
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
@@ -482,7 +482,7 @@ def test_dataframemodel_set_data_complex(monkeypatch):
 def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
     """Test for #6115: editing complex dtypes raises error in df editor"""
     MockQMessageBox = Mock()
-    attr_to_patch = ('spyder.widgets.variableexplorer' +
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
@@ -520,7 +520,7 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
 def test_dataframemodel_set_data_bool(monkeypatch):
     """Test that bools are editible in df and false-y strs are detected"""
     MockQMessageBox = Mock()
-    attr_to_patch = ('spyder.widgets.variableexplorer' +
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 
@@ -543,7 +543,7 @@ def test_dataframemodel_set_data_bool(monkeypatch):
 def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
     """Test that bools are editible in df and false-y strs are detected"""
     MockQMessageBox = Mock()
-    attr_to_patch = ('spyder.widgets.variableexplorer' +
+    attr_to_patch = ('spyder.plugins.variableexplorer.widgets' +
                      '.dataframeeditor.QMessageBox')
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
 

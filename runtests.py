@@ -27,13 +27,11 @@ def main():
     Run pytest tests.
     """
     pytest_args = ['spyder',
-                   'spyder_profiler',
                    '-x',
                    '-vv',
                    '-rw',
                    '--durations=10',
                    '--cov=spyder',
-                   '--cov=spyder_profiler',
                    '--cov-report=term-missing']
 
     if run_slow:

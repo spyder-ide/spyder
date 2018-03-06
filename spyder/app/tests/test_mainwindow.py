@@ -39,7 +39,7 @@ from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
-from spyder.plugins.help import ObjectComboBox
+from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
@@ -1199,8 +1199,8 @@ def test_fileswitcher(main_window, qtbot):
     # Assert that the path shown in the fileswitcher is shorter
     if PYQT5:
         main_window.open_fileswitcher()
-       for i in range(main_window.fileswitcher.list.count()):
-           item_text += main_window.fileswitcher.list.item(i).text()
+        for i in range(main_window.fileswitcher.list.count()):
+            item_text += main_window.fileswitcher.list.item(i).text()
         assert '...' in item_text
 
 
