@@ -39,7 +39,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
-from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
+from spyder.plugins.editor.panels.classfunctiondropdown import ClassFunctionDropdown
 
 # %% This line is for cell execution testing
 
@@ -59,12 +59,12 @@ from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.editor import TextHelper
-from spyder.widgets.panels.linenumber import LineNumberArea
-from spyder.widgets.panels.edgeline import EdgeLine
-from spyder.widgets.panels.indentationguides import IndentationGuide
-from spyder.widgets.panels.scrollflag import ScrollFlagArea
-from spyder.widgets.panels.manager import PanelsManager
-from spyder.widgets.panels.codefolding import FoldingPanel
+from spyder.plugins.editor.panels.linenumber import LineNumberArea
+from spyder.plugins.editor.panels.edgeline import EdgeLine
+from spyder.plugins.editor.panels.indentationguides import IndentationGuide
+from spyder.plugins.editor.panels.scrollflag import ScrollFlagArea
+from spyder.plugins.editor.panels.manager import PanelsManager
+from spyder.plugins.editor.panels.codefolding import FoldingPanel
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.extensions.manager import (

@@ -17,7 +17,7 @@ import pytest
 from pytestqt import qtbot
 
 # Local imports
-from spyder.widgets.panels import classfunctiondropdown as cfd
+from spyder.plugins.editor.panels import classfunctiondropdown as cfd
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
 from spyder.utils.syntaxhighlighters import PythonSH
 from spyder.plugins.editor.utils.folding import FoldScope
