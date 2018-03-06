@@ -12,10 +12,10 @@ import pytest
 import os.path as osp
 
 # Local imports
-from spyder.widgets.projects import EmptyProject
+from spyder.plugins.projects.api import EmptyProject
 
-from spyder.widgets.projects.config import (CODESTYLE, WORKSPACE, ENCODING,
-                                            VCS)
+from spyder.plugins.projects.utils.config import (CODESTYLE, WORKSPACE,
+                                                  ENCODING, VCS)
 
 
 @pytest.fixture(scope='session')
