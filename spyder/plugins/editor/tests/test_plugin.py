@@ -19,11 +19,11 @@ from qtpy.QtWidgets import QWidget
 @pytest.fixture
 def setup_editor(qtbot, monkeypatch):
     """Set up the Editor plugin."""
-    monkeypatch.setattr('spyder.dependencies', Mock())
-    from spyder.plugins.editor import Editor
+    # monkeypatch.setattr('spyder.dependencies', Mock())
+    from spyder.plugins.editor.plugin import Editor
 
-    monkeypatch.setattr('spyder.plugins.editor.IntrospectionManager', Mock())
-    monkeypatch.setattr('spyder.plugins.editor.add_actions', Mock())
+    monkeypatch.setattr('spyder.plugins.editor.plugin.IntrospectionManager', Mock())
+    monkeypatch.setattr('spyder.plugins.editor.plugin.add_actions', Mock())
 
     class MainMock(QWidget):
         def __getattr__(self, attr):
