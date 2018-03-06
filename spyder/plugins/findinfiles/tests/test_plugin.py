@@ -17,8 +17,8 @@ import pytest
 
 # Local imports
 from spyder.config.main import EXCLUDE_PATTERNS
-from spyder.plugins.findinfiles import FindInFiles
-from spyder.widgets.findinfiles import SELECT_OTHER
+from spyder.plugins.findinfiles.plugin import FindInFiles
+from spyder.plugins.findinfiles.widgets import SELECT_OTHER
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 NONASCII_DIR = osp.join(LOCATION, u"èáïü Øαôå 字分误")
@@ -75,7 +75,7 @@ def test_closing_plugin(qtbot, mocker):
             NONASCII_DIR
             ]
     for external_path in expected_results:
-        mocker.patch('spyder.widgets.findinfiles.getexistingdirectory',
+        mocker.patch('spyder.plugins.findinfiles.widgets.getexistingdirectory',
                      return_value=external_path)
         path_selection_combo.setCurrentIndex(SELECT_OTHER)
     assert path_selection_combo.get_external_paths() == expected_results
