@@ -27,7 +27,7 @@ class OutlineExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'outline_explorer'
 
-    def __init__(self, parent=None, fullpath_sorting=True):
+    def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
         show_fullpath = self.get_option('show_fullpath')
@@ -39,7 +39,6 @@ class OutlineExplorer(SpyderPluginWidget):
         self.explorer = OutlineExplorerWidget(
                                        self,
                                        show_fullpath=show_fullpath,
-                                       fullpath_sorting=fullpath_sorting,
                                        show_all_files=show_all_files,
                                        show_comments=show_comments,
                                        options_button=self.options_button)

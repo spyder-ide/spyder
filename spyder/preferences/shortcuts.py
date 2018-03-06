@@ -59,7 +59,7 @@ VALID_KEYS = [getattr(Qt, 'Key_{0}'.format(k)) for k in KEYSTRINGS+SINGLE_KEYS]
 
 # Valid finder chars. To be improved
 VALID_ACCENT_CHARS = "ÁÉÍOÚáéíúóàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜñÑ"
-VALID_FINDER_CHARS = "[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
+VALID_FINDER_CHARS = r"[A-Za-z\s{0}]".format(VALID_ACCENT_CHARS)
 
 BLACKLIST = {
     'Shift+Del': _('Currently used to delete lines on editor/Cut a word'),
@@ -211,7 +211,7 @@ class ShortcutEditor(QDialog):
         # buttons, if the cancel button was clicked without first setting focus
         # to the button, it would cause a seg fault crash.
         self.button_cancel.setFocus()
-        super().reject()
+        super(ShortcutEditor, self).reject()
 
     @Slot()
     def accept(self):
@@ -220,7 +220,7 @@ class ShortcutEditor(QDialog):
         # buttons, if the ok button was clicked without first setting focus to
         # the button, it would cause a seg fault crash.
         self.button_ok.setFocus()
-        super().accept()
+        super(ShortcutEditor, self).accept()
 
     def keyPressEvent(self, e):
         """Qt override."""
@@ -638,7 +638,7 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super(CustomSortFilterProxy, self).__init__(parent)
         self._parent = parent
-        self.pattern = re.compile(u'')
+        self.pattern = re.compile(r'')
 
     def set_filter(self, text):
         """Set regular expression for filter."""

@@ -19,7 +19,7 @@ except ImportError:
 import pytest
 
 # Local imports
-from spyder_profiler.widgets import profilergui
+from spyder.plugins.profiler.widgets import profilergui
 
 
 # --- Helper methods

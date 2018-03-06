@@ -141,7 +141,8 @@ else:
 #==============================================================================
 # Local utility imports
 #==============================================================================
-from spyder import __version__, __project_url__, __forum_url__, get_versions
+from spyder import (__version__, __project_url__, __forum_url__,
+                    __trouble_url__, get_versions)
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
                                 debug_print, MAC_APP_NAME, get_home_dir,
@@ -257,6 +258,7 @@ class MainWindow(QMainWindow):
          ('winpython', "https://winpython.github.io/",
           _("WinPython"))
                 )
+    DEFAULT_LAYOUTS = 4
 
     # Signals
     restore_scrollbar_position = Signal()
@@ -282,6 +284,7 @@ class MainWindow(QMainWindow):
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
         self.open_project = options.open_project
+        self.window_title = options.window_title
 
         self.debug_print("Start of MainWindow constructor")
 
@@ -448,27 +451,12 @@ class MainWindow(QMainWindow):
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
 
+        if PYTEST:
+            # Show errors in internal console when testing.
+            CONF.set('main', 'show_internal_errors', False)
 
-        # Set Window title and icon
-        if DEV is not None:
-            title = "Spyder %s (Python %s.%s)" % (__version__,
-                                                  sys.version_info[0],
-                                                  sys.version_info[1])
-        else:
-            title = "Spyder (Python %s.%s)" % (sys.version_info[0],
-                                               sys.version_info[1])
-        if DEBUG:
-            title += " [DEBUG MODE %d]" % DEBUG
-        if options.window_title is not None:
-            title += ' -- ' + options.window_title
-
-        if DEBUG or PYTEST:
-            # Show errors in internal console when developing or testing.
-            CONF.set('main', 'show_internal_console_if_traceback', True)
-
-
-        self.base_title = title
-        self.update_window_title()
+        # Set window title
+        self.set_window_title()
 
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
@@ -852,9 +840,7 @@ class MainWindow(QMainWindow):
         if CONF.get('outline_explorer', 'enable'):
             self.set_splash(_("Loading outline explorer..."))
             from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
-            fullpath_sorting = CONF.get('editor', 'fullpath_sorting', True)
-            self.outlineexplorer = OutlineExplorer(self,
-                                        fullpath_sorting=fullpath_sorting)
+            self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
 
         # Editor plugin
@@ -961,6 +947,9 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Setting up main window..."))
 
         # Help menu
+        trouble_action = create_action(self,
+                                        _("Troubleshooting..."),
+                                        triggered=self.trouble_guide)
         dep_action = create_action(self, _("Dependencies..."),
                                     triggered=self.show_dependencies,
                                     icon=ima.icon('advanced'))
@@ -1035,7 +1024,8 @@ class MainWindow(QMainWindow):
 
         self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
                                   self.tours_menu,
-                                  MENU_SEPARATOR, report_action, dep_action,
+                                  MENU_SEPARATOR, trouble_action,
+                                  report_action, dep_action,
                                   self.check_updates_action, support_action,
                                   MENU_SEPARATOR]
         # Python documentation
@@ -1310,15 +1300,30 @@ class MainWindow(QMainWindow):
         self.menuBar().raise_()
         self.is_setting_up = False
 
-    def update_window_title(self):
-        """Update main spyder window title based on projects."""
-        title = self.base_title
+    def set_window_title(self):
+        """Set window title."""
+        if DEV is not None:
+            title = u"Spyder %s (Python %s.%s)" % (__version__,
+                                                   sys.version_info[0],
+                                                   sys.version_info[1])
+        else:
+            title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
+                                                sys.version_info[1])
+
+        if DEBUG:
+            title += u" [DEBUG MODE %d]" % DEBUG
+
+        if self.window_title is not None:
+            title += u' -- ' + to_text_string(self.window_title)
+
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
-                path = path.replace(get_home_dir(), '~')
-                title = '{0} - {1}'.format(path, title)
-        self.setWindowTitle(title)
+                path = path.replace(get_home_dir(), u'~')
+                title = u'{0} - {1}'.format(path, title)
+
+        self.base_title = title
+        self.setWindowTitle(self.base_title)
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
@@ -1503,7 +1508,7 @@ class MainWindow(QMainWindow):
         self.setUpdatesEnabled(False)
 
         # IMPORTANT: order has to be the same as defined in the config file
-        MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(4)
+        MATLAB, RSTUDIO, VERTICAL, HORIZONTAL = range(self.DEFAULT_LAYOUTS)
 
         # define widgets locally
         editor = self.editor
@@ -1906,10 +1911,21 @@ class MainWindow(QMainWindow):
             (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
              is_fullscreen) = settings
 
-            # The defaults layouts will alwyas be regenerated unless there was
+            # The defaults layouts will always be regenerated unless there was
             # an overwrite, either by rewriting with same name, or by deleting
             # and then creating a new one
             if hexstate is None:
+                # The value for hexstate shouldn't be None for a custom saved
+                # layout (ie, where the index is greater than the number of
+                # defaults).  See issue 6202.
+                if index != 'default' and index >= self.DEFAULT_LAYOUTS:
+                    QMessageBox.critical(
+                            self, _("Warning"),
+                            _("Error opening the custom layout.  Please close"
+                              " Spyder and try again.  If the issue persists,"
+                              " then you must use 'Reset to Spyder default' "
+                              "from the layout menu."))
+                    return
                 self.setup_default_layouts(index, settings)
         except cp.NoOptionError:
             QMessageBox.critical(self, _("Warning"),
@@ -2359,9 +2375,10 @@ class MainWindow(QMainWindow):
             <br>Developed and maintained by the
             <a href="%s/blob/master/AUTHORS">Spyder Project Contributors</a>.
             <br>Many thanks to all the Spyder beta testers and regular users.
-            <p>For bug reports and feature requests, please go
-            to our <a href="%s">Github website</a>. For discussions around the
-            project, please go to our <a href="%s">Google Group</a>
+            <p>For help with Spyder errors and crashes, please read our
+            <a href="%s">Troubleshooting page</a>, and for bug reports and
+            feature requests, visit our <a href="%s">Github website</a>.
+            For project discussion, see our <a href="%s">Google Group</a>.
             <p>This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development. The popular Python distributions
@@ -2377,7 +2394,7 @@ class MainWindow(QMainWindow):
             <a href="http://www.oxygen-icons.org/">
             The Oxygen icon theme</a></small>.
             """
-            % (versions['spyder'], revlink, __project_url__,
+            % (versions['spyder'], revlink, __project_url__, __trouble_url__,
                __project_url__, __forum_url__, versions['python'],
                versions['bitness'], versions['qt'], versions['qt_api'],
                versions['qt_api_ver'], versions['system']))
@@ -2390,67 +2407,112 @@ class MainWindow(QMainWindow):
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 
-    @Slot()
-    def report_issue(self, traceback=""):
-        if PY3:
-            from urllib.parse import quote
-        else:
-            from urllib import quote     # analysis:ignore
+    def render_issue(self, description='', traceback=''):
+        """Render issue before sending it to Github"""
+        # Get component versions
         versions = get_versions()
+
         # Get git revision for development version
         revision = ''
         if versions['revision']:
             revision = versions['revision']
+
+        # Store and format the reminder message for the troubleshooting guide
+        reminder_message = (
+            "<!--- **PLEASE READ:** Before submitting here, please carefully "
+            "consult our *Troubleshooting Guide*: {0!s} and search the "
+            "issues page for your error/problem, as most posted bugs are "
+            "duplicates or easy fixes.\n\n"
+            "If you don't find anything, please provide a detailed step-by-"
+            "step description (in English) of the problem and what led up to "
+            "it below. Issue reports without a clear way to reproduce them "
+            "will be closed. Thanks! --->"
+            ).format(__trouble_url__)
+
+        # Make a description header in case no description is supplied
+        if not description:
+            description = "### What steps will reproduce the problem?"
+
+        # Make error section from traceback
+        if traceback:
+            error_section = ("### Traceback\n"
+                             "```python-traceback\n"
+                             "{}\n"
+                             "```".format(traceback))
+        else:
+            error_section = ''
         issue_template = """\
-## Description
+{reminder_message}
 
-**What steps will reproduce the problem?**
+## Problem Description
 
-1. 
-2. 
-3. 
+{description}
 
-**What is the expected output? What do you see instead?**
+{error_section}
 
+## Package Versions
 
-**Please provide any additional information below**
+* Spyder {spyder_version} `{commit}`
+* Python {python_version}
+* Qt {qt_version}
+* {qt_api_name} {qt_api_version}
+* {os_name} {os_version}
 
-%s
+### Dependencies
 
-## Version and main components
-
-* Spyder Version: %s %s
-* Python Version: %s
-* Qt Versions: %s, %s %s on %s
-
-## Dependencies
 ```
-%s
+{dependencies}
 ```
-""" % (traceback,
-       versions['spyder'],
-       revision,
-       versions['python'],
-       versions['qt'],
-       versions['qt_api'],
-       versions['qt_api_ver'],
-       versions['system'],
-       dependencies.status())
+""".format(reminder_message=reminder_message,
+           description=description,
+           error_section=error_section,
+           spyder_version=versions['spyder'],
+           commit=revision,
+           python_version=versions['python'],
+           qt_version=versions['qt'],
+           qt_api_name=versions['qt_api'],
+           qt_api_version=versions['qt_api_ver'],
+           os_name=versions['system'],
+           os_version=versions['release'],
+           dependencies=dependencies.status())
 
-        url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
+        return issue_template
+
+    @Slot()
+    def report_issue(self, body=None, title=None):
+        """Report a Spyder issue to github, generating body text if needed."""
+        if PY3:
+            from urllib.parse import quote
+        else:
+            from urllib import quote     # analysis:ignore
+
+        if body is None:
+            body = self.render_issue()
+
+        url = QUrl(__project_url__ + '/issues/new')
         if PYQT5:
             from qtpy.QtCore import QUrlQuery
             query = QUrlQuery()
-            query.addQueryItem("body", quote(issue_template))
+            query.addQueryItem("body", quote(body))
+            if title:
+                query.addQueryItem("title", quote(title))
             url.setQuery(query)
         else:
-            url.addEncodedQueryItem("body", quote(issue_template))
-            
+            url.addEncodedQueryItem("body", quote(body))
+            if title:
+                url.addEncodedQueryItem("title", quote(title))
+        QDesktopServices.openUrl(url)
+
+    @Slot()
+    def trouble_guide(self):
+        """Open Spyder troubleshooting guide in a web browser"""
+        url = QUrl(__trouble_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
     def google_group(self):
-        url = QUrl("http://groups.google.com/group/spyderlib")
+        """Open Spyder troubleshooting guide in a web browser"""
+        url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
@@ -2461,7 +2523,7 @@ class MainWindow(QMainWindow):
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.plugins.editor.widgets.editor import TextEditBaseWidget
 
-        # if focused widget isn't valid try the last focused^M
+        # If focused widget isn't valid try the last focused
         if not isinstance(widget, TextEditBaseWidget):
             widget = self.previous_focused_widget
 
@@ -2540,10 +2602,9 @@ class MainWindow(QMainWindow):
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
-        sys_path = sys.path
-        for path in self.path:
-            while path in sys_path:
-                sys_path.remove(path)
+        for path in self.path + self.project_path:
+            while path in sys.path:
+                sys.path.remove(path)
 
     @Slot()
     def path_manager_callback(self):
@@ -2868,7 +2929,7 @@ class MainWindow(QMainWindow):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        url_r = 'https://github.com/spyder-ide/spyder/releases'
+        url_r = __project_url__ + '/releases'
         url_i = 'http://pythonhosted.org/spyder/installation.html'
 
         # Define the custom QMessageBox
@@ -3073,6 +3134,23 @@ def run_spyder(app, options, args):
 #==============================================================================
 def main():
     """Main function"""
+    if PYTEST:
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock  # Python 2
+
+        options = Mock()
+        options.working_directory = None
+        options.profile = False
+        options.multithreaded = False
+        options.new_instance = False
+        options.open_project = None
+        options.window_title = None
+
+        app = initialize()
+        window = run_spyder(app, options, None)
+        return window
 
     # **** Collect command line options ****
     # Note regarding Options:
@@ -3112,7 +3190,8 @@ def main():
         CONF.set('main', 'crash', False)
         if SPLASH is not None:
             SPLASH.hide()
-        QMessageBox.information(None, "Spyder",
+        QMessageBox.information(
+            None, "Spyder",
             "Spyder crashed during last session.<br><br>"
             "If Spyder does not start at all and <u>before submitting a "
             "bug report</u>, please try to reset settings to defaults by "
@@ -3122,12 +3201,15 @@ def main():
             "<span style=\'color: #ff5555\'><b>Warning:</b></span> "
             "this command will remove all your Spyder configuration files "
             "located in '%s').<br><br>"
-            "If restoring the default settings does not help, please take "
+            "If Spyder still fails to launch, you should consult our "
+            "comprehensive <b><a href=\"%s\">Troubleshooting Guide</a></b>, "
+            "which when followed carefully solves the vast majority of "
+            "crashes; also, take "
             "the time to search for <a href=\"%s\">known bugs</a> or "
             "<a href=\"%s\">discussions</a> matching your situation before "
-            "eventually creating a new issue <a href=\"%s\">here</a>. "
+            "submitting a report to our <a href=\"%s\">issue tracker</a>. "
             "Your feedback will always be greatly appreciated."
-            "" % (get_conf_path(), __project_url__,
+            "" % (get_conf_path(), __trouble_url__, __project_url__,
                   __forum_url__, __project_url__))
 
     # Create main window

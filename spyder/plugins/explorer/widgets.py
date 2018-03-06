@@ -80,7 +80,7 @@ def create_script(fname):
     encoding.write(to_text_string(text), fname, 'utf-8')
 
 
-def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
+def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', show_all=False,
             folders_only=False):
     """List files and directories"""
     namelist = []
@@ -716,14 +716,18 @@ class DirView(QTreeView):
             self.rename_file(fname)
 
     @Slot()
-    def move(self, fnames=None):
+    def move(self, fnames=None, directory=None):
         """Move files/directories"""
         if fnames is None:
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
             self.redirect_stdio.emit(False)
-            folder = getexistingdirectory(self, _("Select directory"), orig)
+            if directory is None:
+                folder = getexistingdirectory(self, _("Select directory"),
+                                              orig)
+            else:
+                folder = directory
             self.redirect_stdio.emit(True)
             if folder:
                 folder = fixpath(folder)

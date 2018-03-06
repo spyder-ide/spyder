@@ -42,7 +42,7 @@ class ObjectComboBox(EditableComboBox):
             return True
         if qstr is None:
             qstr = self.currentText()
-        if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
+        if not re.search(r'^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         objtxt = to_text_string(qstr)
         if self.help.get_option('automatic_import'):

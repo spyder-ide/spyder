@@ -630,11 +630,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines.pop(0)
             else:
                 break
-        
-        # Add an EOL character after indentation blocks that start with some 
+
+        # Add an EOL character after indentation blocks that start with some
         # Python reserved words, so that it gets evaluated automatically
         # by the console
-        varname = re.compile('[a-zA-Z0-9_]*') # matches valid variable names
+        varname = re.compile(r'[a-zA-Z0-9_]*')  # Matches valid variable names.
         maybe = False
         nextexcept = ()
         for n, line in enumerate(lines):
@@ -1033,6 +1033,31 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.endEditBlock()
         self.ensureCursorVisible()
 
+    def set_selection(self, start, end):
+        cursor = self.textCursor()
+        cursor.setPosition(start)
+        cursor.setPosition(end, QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
+
+    def truncate_selection(self, position_from):
+        """Unselect read-only parts in shell, like prompt"""
+        position_from = self.get_position(position_from)
+        cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        if start < end:
+            start = max([position_from, start])
+        else:
+            end = max([position_from, end])
+        self.set_selection(start, end)
+
+    def restrict_cursor_position(self, position_from, position_to):
+        """In shell, avoid editing text except between prompt and EOF"""
+        position_from = self.get_position(position_from)
+        position_to = self.get_position(position_to)
+        cursor = self.textCursor()
+        cursor_position = cursor.position()
+        if cursor_position < position_from or cursor_position > position_to:
+            self.set_cursor_position(position_to)
 
     #------Code completion / Calltips
     def hide_tooltip_if_necessary(self, key):
@@ -1312,7 +1337,7 @@ class ConsoleFontStyle(object):
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
-    COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
+    COLOR_PATTERN = re.compile(r'\x01?\x1b\[(.*?)m\x02?')
     exception_occurred = Signal(str, bool)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
@@ -1360,32 +1385,6 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                              foreground=QColor(Qt.lightGray))
         self.ansi_handler.set_light_background(state)
         self.set_pythonshell_font()
-        
-    def set_selection(self, start, end):
-        cursor = self.textCursor()
-        cursor.setPosition(start)
-        cursor.setPosition(end, QTextCursor.KeepAnchor)
-        self.setTextCursor(cursor)
-
-    def truncate_selection(self, position_from):
-        """Unselect read-only parts in shell, like prompt"""
-        position_from = self.get_position(position_from)
-        cursor = self.textCursor()
-        start, end = cursor.selectionStart(), cursor.selectionEnd()
-        if start < end:
-            start = max([position_from, start])
-        else:
-            end = max([position_from, end])
-        self.set_selection(start, end)
-
-    def restrict_cursor_position(self, position_from, position_to):
-        """In shell, avoid editing text except between prompt and EOF"""
-        position_from = self.get_position(position_from)
-        position_to = self.get_position(position_to)
-        cursor = self.textCursor()
-        cursor_position = cursor.position()
-        if cursor_position < position_from or cursor_position > position_to:
-            self.set_cursor_position(position_to)
 
     #------Python shell
     def insert_text(self, text):

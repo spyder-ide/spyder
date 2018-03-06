@@ -9,6 +9,7 @@ Tests for editor.py
 """
 
 # Standard library imports
+import os
 from sys import platform
 try:
     from unittest.mock import Mock, MagicMock
@@ -489,7 +490,7 @@ def test_get_current_word(base_editor_bot):
 
 
 def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
-    """Check that tab works in find/replace dialog. Regression test #3674.
+    """Test that tab works in find/replace dialog. Regression test for #3674.
     Mock test—more isolated but less flimsy."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
@@ -503,10 +504,11 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(platform.startswith('linux'),
-                    reason="This test fails on Linux, for unknown reasons.")
+@pytest.mark.skipif(os.environ.get('CI', None) is None and
+                    platform.startswith('linux'),
+                    reason="Fails on some Linux platforms locally.")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
-    """Check that tab works in find/replace dialog. Regression test #3674.
+    """Test that tab works in find/replace dialog. Regression test for #3674.
     "Real world" test—more comprehensive but potentially less robust."""
     editor_stack, editor, finder, qtbot = editor_find_replace_bot
     text = '  \nspam \nspam \nspam '
@@ -523,6 +525,21 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot):
     qtbot.wait(100)
     assert not finder.search_text.hasFocus()
     assert finder.replace_text.hasFocus()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
+def test_tab_copies_find_to_replace(editor_find_replace_bot):
+    """Check that text in the find box is copied to the replace box on tab
+    keypress. Regression test #4482."""
+    editor_stack, editor, finder, qtbot = editor_find_replace_bot
+    finder.show()
+    finder.show_replace()
+    finder.search_text.setFocus()
+    finder.search_text.set_current_text('This is some test text!')
+    qtbot.keyClick(finder.search_text, Qt.Key_Tab)
+    qtbot.wait(500)
+    assert finder.replace_text.currentText() == 'This is some test text!'
 
 
 if __name__ == "__main__":

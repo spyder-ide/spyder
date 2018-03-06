@@ -464,7 +464,6 @@ class EditorStack(QWidget):
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
     sig_split_horizontally = Signal()
-    sig_close_split = Signal()
     sig_new_file = Signal((str,), ())
     sig_save_as = Signal()
     sig_prev_edit_pos = Signal()
@@ -578,9 +577,7 @@ class EditorStack(QWidget):
         self.always_remove_trailing_spaces = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
-        self.fullpath_sorting_enabled = None
         self.focus_to_editor = True
-        self.set_fullpath_sorting_enabled(False)
         self.create_new_file_if_empty = True
         self.indent_guides = False
         ccs = 'Spyder'
@@ -737,7 +734,7 @@ class EditorStack(QWidget):
                                              context="Editor",
                                              name="split horizontally",
                                              parent=self)
-        close_split = config_shortcut(lambda: self.sig_close_split.emit(),
+        close_split = config_shortcut(self.close_split,
                                       context="Editor",
                                       name="close split panel",
                                       parent=self)
@@ -820,7 +817,14 @@ class EditorStack(QWidget):
     def add_corner_widgets_to_tabbar(self, widgets):
         self.tabs.add_corner_widgets(widgets)
 
+    @Slot()
+    def close_split(self):
+        """Closes the editorstack if it is not the last one opened."""
+        if self.is_closable:
+            self.close()
+
     def closeEvent(self, event):
+        """Overrides QWidget closeEvent()."""
         self.threadmanager.close_all_threads()
         self.analysis_timer.timeout.disconnect(self.analyze_script)
 
@@ -1187,15 +1191,6 @@ class EditorStack(QWidget):
         # CONF.get(self.CONF_SECTION, 'check_eol_chars')
         self.checkeolchars_enabled = state
 
-    def set_fullpath_sorting_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'fullpath_sorting')
-        self.fullpath_sorting_enabled = state
-        if self.data:
-            finfo = self.data[self.get_stack_index()]
-            new_index = self.data.index(finfo)
-            self.__repopulate_stack()
-            self.set_stack_index(new_index)
-
     def set_always_remove_trailing_spaces(self, state):
         # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
         self.always_remove_trailing_spaces = state
@@ -1261,24 +1256,15 @@ class EditorStack(QWidget):
 
     def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
         """Return tab menu title"""
-        if self.fullpath_sorting_enabled:
-            text = filename
-        else:
-            text = u"%s — %s"
+        text = u"%s — %s"
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
         if self.tempfile_path is not None\
            and filename == encoding.to_unicode_from_fs(self.tempfile_path):
             temp_file_str = to_text_string(_("Temporary file"))
-            if self.fullpath_sorting_enabled:
-                return "%s (%s)" % (text, temp_file_str)
-            else:
-                return text % (temp_file_str, self.tempfile_path)
+            return text % (temp_file_str, self.tempfile_path)
         else:
-            if self.fullpath_sorting_enabled:
-                return text
-            else:
-                return text % (osp.basename(filename), osp.dirname(filename))
+            return text % (osp.basename(filename), osp.dirname(filename))
 
     def add_to_data(self, finfo, set_current):
         self.data.append(finfo)
@@ -1381,7 +1367,7 @@ class EditorStack(QWidget):
                 context=Qt.WidgetShortcut)
         self.close_action = create_action(self, _("Close this panel"),
                 icon=ima.icon('close_panel'),
-                triggered=lambda: self.sig_close_split.emit(),
+                triggered=self.close_split,
                 shortcut=get_shortcut(context='Editor', name='close split panel'),
                 context=Qt.WidgetShortcut)
         actions = [MENU_SEPARATOR, self.undock_action,
@@ -2566,7 +2552,6 @@ class EditorSplitter(QSplitter):
                      lambda: self.split(orientation=Qt.Vertical))
         self.editorstack.sig_split_horizontally.connect(
                      lambda: self.split(orientation=Qt.Horizontal))
-        self.editorstack.sig_close_split.connect(lambda: self.close())
         self.addWidget(self.editorstack)
 
     def closeEvent(self, event):
@@ -2754,7 +2739,7 @@ class EditorSplitter(QSplitter):
 
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions, show_fullpath,
-                 fullpath_sorting, show_all_files, show_comments):
+                 show_all_files, show_comments):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2773,7 +2758,6 @@ class EditorWidget(QSplitter):
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorerWidget(self,
                                             show_fullpath=show_fullpath,
-                                            fullpath_sorting=fullpath_sorting,
                                             show_all_files=show_all_files,
                                             show_comments=show_comments)
         self.outlineexplorer.edit_goto.connect(
@@ -2843,16 +2827,15 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, fullpath_sorting, show_all_files,
-                 show_comments):
+                 show_fullpath, show_all_files, show_comments):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.window_size = None
 
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         show_fullpath, fullpath_sorting,
-                                         show_all_files, show_comments)
+                                         show_fullpath, show_all_files,
+                                         show_comments)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
@@ -3028,7 +3011,6 @@ class EditorPluginExample(QSplitter):
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
-            editorstack.set_fullpath_sorting_enabled(True)
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
@@ -3063,8 +3045,8 @@ class EditorPluginExample(QSplitter):
     def create_new_window(self):
         window = EditorMainWindow(self, self.menu_actions,
                                   self.toolbar_list, self.menu_list,
-                                  show_fullpath=False, fullpath_sorting=True,
-                                  show_all_files=False, show_comments=True)
+                                  show_fullpath=False, show_all_files=False,
+                                  show_comments=True)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)

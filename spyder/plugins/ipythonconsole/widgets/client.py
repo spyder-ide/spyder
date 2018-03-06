@@ -235,10 +235,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.shellwidget.get_cwd)
 
         # To apply style
-        if not create_qss_style(self.shellwidget.syntax_style)[1]:
-            self.shellwidget.silent_execute("%colors linux")
-        else:
-            self.shellwidget.silent_execute("%colors lightbg")
+        self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
         # To hide the loading page
         self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
@@ -435,9 +432,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         font = get_font(option='rich_font')
         self.infowidget.set_font(font)
 
-    def set_color_scheme(self, color_scheme):
+    def set_color_scheme(self, color_scheme, reset=True):
         """Set IPython color scheme."""
-        self.shellwidget.set_color_scheme(color_scheme)
+        self.shellwidget.set_color_scheme(color_scheme, reset)
 
     def shutdown(self):
         """Shutdown kernel"""
@@ -448,12 +445,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
-        self.shellwidget.request_interrupt_kernel()
+        # Needed to prevent a crash when a kernel is not running.
+        # See issue 6299
+        try:
+            self.shellwidget.request_interrupt_kernel()
+        except RuntimeError:
+            pass
 
     @Slot()
     def restart_kernel(self):
         """
-        Restart the associanted kernel
+        Restart the associated kernel.
 
         Took this code from the qtconsole project
         Licensed under the BSD license
@@ -478,7 +480,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         before_prompt=True
                     )
                 else:
-                    sw.reset(clear=True)
+                    # For issue 6235.  IPython was changing the setting of
+                    # %colors on windows by assuming it was using a dark
+                    # background.  This corrects it based on the scheme.
+                    self.set_color_scheme(sw.syntax_style)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
                                     before_prompt=False)
             else:

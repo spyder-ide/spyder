@@ -10,21 +10,17 @@ File for running tests programmatically.
 
 # Standard library imports
 import os
+import sys
 
 # Third party imports
 import qtpy  # to ensure that Qt4 uses API v2
 import pytest
 
 
-# To activate/deactivate certain things for pytest's only
-os.environ['SPYDER_PYTEST'] = 'True'
-
-
 # To run our slow tests only in our CIs
 run_slow = False
-if os.environ.get('CI', None) is not None:
+if os.environ.get('CI', None) is not None or '--run-slow' in sys.argv:
     run_slow = True
-
 
 def main():
     """

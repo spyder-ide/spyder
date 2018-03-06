@@ -16,6 +16,7 @@ from spyder.config.base import _
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
 
+
 class HelpConfigPage(PluginConfigPage):
     def setup_page(self):
         # Connections group
@@ -75,3 +76,4 @@ class HelpConfigPage(PluginConfigPage):
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
+

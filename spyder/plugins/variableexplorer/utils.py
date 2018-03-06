@@ -51,14 +51,16 @@ class FakeObject(object):
 #==============================================================================
 try:
     from numpy import (ndarray, array, matrix, recarray,
-                       int64, int32, float64, float32,
-                       complex64, complex128)
+                       int64, int32, int16, int8, uint64, uint32, uint16, uint8,
+                       float64, float32, float16, complex64, complex128, bool_)
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
     from numpy import get_printoptions, set_printoptions
 except:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
-    int64 = int32 = float64 = float32 = complex64 = complex128 = FakeObject
+     int64 = int32 = int16 = int8 = uint64 = uint32 = uint16 = uint8 = \
+     float64 = float32 = float16 = complex64 = complex128 = bool_ = FakeObject
+
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -194,10 +196,10 @@ def str_to_timedelta(value):
         ValueError for strings not matching the above criterion.
 
     """
-    m = re.match('^(?:(?:datetime\.)?timedelta)?'
-                 '\(?'
-                 '([^)]*)'
-                 '\)?$', value)
+    m = re.match(r'^(?:(?:datetime\.)?timedelta)?'
+                 r'\(?'
+                 r'([^)]*)'
+                 r'\)?$', value)
     if not m:
         raise ValueError('Invalid string for datetime.timedelta')
     args = [int(a.strip()) for a in m.group(1).split(',')]
@@ -347,8 +349,10 @@ def value_to_display(value, minmax=False, level=0):
     np_threshold = FakeObject
 
     try:
-        numeric_numpy_types = (int64, int32, float64, float32,
-                               complex128, complex64)
+        numeric_numpy_types = (int64, int32, int16, int8,
+                               uint64, uint32, uint16, uint8,
+                               float64, float32, float16,
+                               complex128, complex64, bool_)
         if ndarray is not FakeObject:
             # Save threshold
             np_threshold = get_printoptions().get('threshold')
@@ -370,11 +374,11 @@ def value_to_display(value, minmax=False, level=0):
                         display = 'Min: %r\nMax: %r' % (value.min(), value.max())
                     except (TypeError, ValueError):
                         if value.dtype.type in numeric_numpy_types:
-                            display = repr(value)
+                            display = str(value)
                         else:
                             display = default_display(value)
                 elif value.dtype.type in numeric_numpy_types:
-                    display = repr(value)
+                    display = str(value)
                 else:
                     display = default_display(value)
             else:

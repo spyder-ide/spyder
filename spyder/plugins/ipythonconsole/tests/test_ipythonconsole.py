@@ -13,11 +13,13 @@ from textwrap import dedent
 
 import cloudpickle
 from flaky import flaky
+import ipykernel
 from pygments.token import Name
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QApplication
+import zmq
 
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
@@ -36,7 +38,6 @@ from spyder.plugins.variableexplorer.widgets.collectionseditor import (
 # Constants
 #==============================================================================
 SHELL_TIMEOUT = 20000
-PYQT_WHEEL = PYQT_VERSION > '5.6'
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 
@@ -66,7 +67,7 @@ def get_console_background_color(style_sheet):
 # Qt Test Fixtures
 #==============================================================================
 @pytest.fixture
-def ipyconsole(request):
+def ipyconsole(qtbot, request):
     """IPython console fixture."""
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -85,6 +86,7 @@ def ipyconsole(request):
     else:
         test_no_stderr = False
 
+    # Use the automatic backend if requested
     auto_backend = request.node.get_marker('auto_backend')
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
@@ -96,12 +98,14 @@ def ipyconsole(request):
                              test_no_stderr=test_no_stderr)
     console.create_new_client()
 
+    # Close callback
     def close_console():
         console.closing_plugin()
         console.close()
     request.addfinalizer(close_console)
-    console.show()
 
+    qtbot.addWidget(console)
+    console.show()
     return console
 
 
@@ -113,6 +117,8 @@ def ipyconsole(request):
 @pytest.mark.auto_backend
 @pytest.mark.skipif(os.name == 'nt' or PYQT4,
                     reason="It times out sometimes on Windows and it's not needed in PyQt4")
+@pytest.mark.xfail(zmq.__version__ >= '17.0.0' and ipykernel.__version__ <= "4.8.1",
+                   reason="A bug with pyzmq 17 and ipykernel 4.8.1")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend is working correctly."""
     # Wait until the window is fully up
@@ -457,10 +463,12 @@ def test_read_stderr(ipyconsole, qtbot):
     assert content == client._read_stderr()
 
 
+@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="It times out in our CIs")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
+                    reason="It times out on AppVeyor.")
+@pytest.mark.timeout(timeout=20, method='thread')
 def test_values_dbg(ipyconsole, qtbot):
     """
     Test that getting, setting, copying and removing values is working while

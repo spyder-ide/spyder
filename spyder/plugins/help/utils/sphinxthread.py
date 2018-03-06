@@ -18,7 +18,6 @@ from spyder.plugins.help.utils.sphinxify import generate_context, sphinxify
 class SphinxThread(QThread):
     """
     A worker thread for handling rich text rendering.
-
     Parameters
     ----------
     doc : str or dict
@@ -32,7 +31,6 @@ class SphinxThread(QThread):
         Text to be rendered if doc string cannot be extracted.
     math_option : bool
         Use LaTeX math rendering.
-
     """
     # Signals
     error_msg = Signal(str)
@@ -69,10 +67,12 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '' and \
-                      any([doc['name'], doc['argspec'], doc['note']]):
-                        msg = _("No further documentation available")
-                        html_text += '<div class="hr"></div>'
+                    if doc['docstring'] == '':
+                        if any([doc['name'], doc['argspec'], doc['note']]):
+                            msg = _("No further documentation available")
+                            html_text += '<div class="hr"></div>'
+                        else:
+                            msg = _("No documentation available")
                         html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))

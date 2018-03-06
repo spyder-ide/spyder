@@ -23,6 +23,7 @@ from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
 from spyder.config.base import _, get_home_dir
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
+from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
@@ -35,12 +36,12 @@ class Projects(SpyderPluginWidget):
     """Projects plugin."""
 
     CONF_SECTION = 'project_explorer'
-    pythonpath_changed = Signal()
+    sig_pythonpath_changed = Signal()
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, testing=False):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
@@ -62,8 +63,12 @@ class Projects(SpyderPluginWidget):
         self.editor = None
         self.workingdirectory = None
 
+        # For testing
+        self.testing = testing
+
         # Initialize plugin
-        self.initialize_plugin()
+        if not self.testing:
+            self.initialize_plugin()
         self.explorer.setup_project(self.get_active_project_path())
 
     #------ SpyderPluginWidget API ---------------------------------------------
@@ -142,14 +147,14 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.connect(
             lambda v: self.workingdirectory.chdir(v))
         self.sig_project_loaded.connect(
-            lambda v: self.main.update_window_title())
+            lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
             lambda v: self.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
         self.sig_project_closed[object].connect(
             lambda v: self.workingdirectory.chdir(self.get_last_working_dir()))
         self.sig_project_closed.connect(
-            lambda v: self.main.update_window_title())
+            lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
             lambda v: self.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
@@ -157,7 +162,7 @@ class Projects(SpyderPluginWidget):
         self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
-        self.pythonpath_changed.connect(self.main.pythonpath_changed)
+        self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
         self.editor.set_projects(self)
 
     def refresh_plugin(self):
@@ -230,7 +235,7 @@ class Projects(SpyderPluginWidget):
             pass
             if active_project is None:
                 self.show_explorer()
-            self.pythonpath_changed.emit()
+            self.sig_pythonpath_changed.emit()
             self.restart_consoles()
 
     def _create_project(self, path):
@@ -247,29 +252,38 @@ class Projects(SpyderPluginWidget):
             path = getexistingdirectory(parent=self,
                                         caption=_("Open project"),
                                         basedir=basedir)
+            path = encoding.to_unicode_from_fs(path)
             if not self.is_valid_project(path):
                 if path:
                     QMessageBox.critical(self, _('Error'),
                                 _("<b>%s</b> is not a Spyder project!") % path)
                 return
-            else:
-                self.add_to_recent(path)
+        else:
+            path = encoding.to_unicode_from_fs(path)
+
+        self.add_to_recent(path)
 
         # A project was not open before
         if self.current_active_project is None:
-            if save_previous_files:
+            if save_previous_files and self.editor is not None:
                 self.editor.save_open_files()
-            self.editor.set_option('last_working_dir', getcwd_or_home())
+            if self.editor is not None:
+                self.editor.set_option('last_working_dir', getcwd_or_home())
             self.show_explorer()
-        else: # we are switching projects
-            self.set_project_filenames(self.editor.get_open_filenames())
+        else:
+            # We are switching projects
+            if self.editor is not None:
+                self.set_project_filenames(self.editor.get_open_filenames())
 
         self.current_active_project = EmptyProject(path)
         self.latest_project = EmptyProject(path)
         self.set_option('current_project_path', self.get_active_project_path())
-        self.setup_menu_actions()
+
+        if not self.testing:
+            self.setup_menu_actions()
         self.sig_project_loaded.emit(path)
-        self.pythonpath_changed.emit()
+        self.sig_pythonpath_changed.emit()
+
         if restart_consoles:
             self.restart_consoles()
 
@@ -280,15 +294,23 @@ class Projects(SpyderPluginWidget):
         """
         if self.current_active_project:
             path = self.current_active_project.root_path
-            self.set_project_filenames(self.editor.get_open_filenames())
             self.current_active_project = None
             self.set_option('current_project_path', None)
-            self.setup_menu_actions()
+
+            if not self.testing:
+                self.setup_menu_actions()
+
             self.sig_project_closed.emit(path)
-            self.pythonpath_changed.emit()
-            self.dockwidget.close()
+            self.sig_pythonpath_changed.emit()
+
+            if self.dockwidget is not None:
+                self.dockwidget.close()
+
             self.explorer.clear()
             self.restart_consoles()
+
+            if self.editor is not None:
+                self.set_project_filenames(self.editor.get_open_filenames())
 
     def clear_recent_projects(self):
         """Clear the list of recent projects"""
@@ -383,14 +405,16 @@ class Projects(SpyderPluginWidget):
 
     def show_explorer(self):
         """Show the explorer"""
-        if self.dockwidget.isHidden():
-            self.dockwidget.show()
-        self.dockwidget.raise_()
-        self.dockwidget.update()
+        if self.dockwidget is not None:
+            if self.dockwidget.isHidden():
+                self.dockwidget.show()
+            self.dockwidget.raise_()
+            self.dockwidget.update()
 
     def restart_consoles(self):
         """Restart consoles when closing, opening and switching projects"""
-        self.main.ipyconsole.restart()
+        if not self.testing and self.main.ipyconsole is not None:
+            self.main.ipyconsole.restart()
 
     def is_valid_project(self, path):
         """Check if a directory is a valid Spyder project"""

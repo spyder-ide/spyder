@@ -1398,7 +1398,6 @@ class Editor(SpyderPluginWidget):
             ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
             ('set_occurrence_highlighting_timeout',  'occurrence_highlighting/timeout'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
-            ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
@@ -1514,14 +1513,14 @@ class Editor(SpyderPluginWidget):
 
             # Disconnect active signals
             try:
-                self.introspector.send_to_help.disconnect()
-                self.introspector.edit_goto.disconnect()
+                self.introspector.sig_send_to_help.disconnect()
+                self.introspector.sig_edit_goto.disconnect()
             except TypeError:
                 pass
 
             # Reconnect signals again
-            self.introspector.send_to_help.connect(editorstack.send_to_help)
-            self.introspector.edit_goto.connect(
+            self.introspector.sig_send_to_help.connect(editorstack.send_to_help)
+            self.introspector.sig_edit_goto.connect(
                 lambda fname, lineno, name:
                 editorstack.edit_goto.emit(fname, lineno, name))
 
@@ -1582,11 +1581,9 @@ class Editor(SpyderPluginWidget):
 
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
-        fullpath_sorting=self.get_option('fullpath_sorting', True),
         window = EditorMainWindow(self, self.stack_menu_actions,
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=oe_options['show_fullpath'],
-                                  fullpath_sorting=fullpath_sorting,
                                   show_all_files=oe_options['show_all_files'],
                                   show_comments=oe_options['show_comments'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
@@ -1874,7 +1871,7 @@ class Editor(SpyderPluginWidget):
         if text is None:
             default_content = True
             text, enc = encoding.read(self.TEMPLATE_PATH)
-            enc_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+            enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
             if enc_match:
                 enc = enc_match.group(1)
             # Initialize template variables
@@ -2638,7 +2635,6 @@ class Editor(SpyderPluginWidget):
     #------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # toggle_fullpath_sorting
         if self.editorstacks is not None:
             # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
@@ -2672,8 +2668,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_focus_to_editor(focus_to_editor_o)
 
             # --- everything else
-            fpsorting_n = 'fullpath_sorting'
-            fpsorting_o = self.get_option(fpsorting_n)
             tabbar_n = 'show_tab_bar'
             tabbar_o = self.get_option(tabbar_n)
             classfuncdropdown_n = 'show_class_func_dropdown'
@@ -2736,17 +2730,11 @@ class Editor(SpyderPluginWidget):
             rt_analysis_o = self.get_option(rt_analysis_n)
             rta_timeout_n = 'realtime_analysis/timeout'
             rta_timeout_o = self.get_option(rta_timeout_n)
+
             finfo = self.get_current_finfo()
-            if fpsorting_n in options:
-                if self.outlineexplorer is not None:
-                    self.outlineexplorer.explorer.set_fullpath_sorting(
-                        fpsorting_o)
-                for window in self.editorwindows:
-                    window.editorwidget.outlineexplorer.set_fullpath_sorting(
-                        fpsorting_o)
+
+
             for editorstack in self.editorstacks:
-                if fpsorting_n in options:
-                    editorstack.set_fullpath_sorting_enabled(fpsorting_o)
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
                 if linenb_n in options:

@@ -362,7 +362,7 @@ class PylintWidget(QWidget):
                 module = line[len(txt_module):]
                 continue
             # Supporting option include-ids: ('R3873:' instead of 'R:')
-            if not re.match('^[CRWE]+([0-9]{4})?:', line):
+            if not re.match(r'^[CRWE]+([0-9]{4})?:', line):
                 continue
             i1 = line.find(':')
             if i1 == -1:
