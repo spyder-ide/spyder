@@ -373,8 +373,6 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It doesn't work on Windows and segfaults in PyQt4")
 def test_get_env(ipyconsole, qtbot):
     """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
