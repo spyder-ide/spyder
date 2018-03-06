@@ -52,6 +52,7 @@ def editor_bot(base_editor_bot, qtbot):
             '\n'
             'x = 2')  # a newline is added at end
     finfo = editor_stack.new('foo.py', 'utf-8', text)
+    finfo.newly_created = False
     qtbot.addWidget(editor_stack)
     return editor_stack, finfo.editor
 
@@ -610,6 +611,15 @@ def test_autosave_saves_only_if_changed(editor_bot, mocker):
     editor.set_text('ham\n')
     editor_stack.autosave.autosave(0)  # call #3, should write
     assert editor_stack._write_to_file.call_count == 2
+
+
+def test_autosave_does_not_save_new_files(editor_bot, mocker):
+    """Check that autosave() does not save newly created files."""
+    editor_stack, editor, qtbot = editor_bot
+    editor_stack.data[0].newly_created = True
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.autosave(0)
+    editor_stack._write_to_file.assert_not_called()
 
 
 if __name__ == "__main__":

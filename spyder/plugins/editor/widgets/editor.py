@@ -2577,15 +2577,17 @@ class AutosaveComponent:
         """
         Autosave a file.
 
-        If `changed_since_autosave` flag is set, then save copy of file with
-        same name in `autosave` subdirectory of config dir and clear the flag.
+        Do nothing if the `changed_since_autosave` flag is not set or the file
+        is newly created (and thus not named by the user). Otherwise, save a
+        copy of the file with the same name in the `autosave` subdirectory of
+        Spyder's config dir and clear the `changed_since_autosave` flag.
 
         Args:
             index (int): index into self.stack.data
         """
         finfo = self.stack.data[index]
         document = finfo.editor.document()
-        if not document.changed_since_autosave:
+        if not document.changed_since_autosave or finfo.newly_created:
             return
         autosave_dir = get_conf_path('autosave')
         if not osp.isdir(autosave_dir):
