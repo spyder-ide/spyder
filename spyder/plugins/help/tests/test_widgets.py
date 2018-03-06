@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 #
 """
-Tests for help plugin.
+Tests for the Help widgets.
 """
 
 # Test library imports
