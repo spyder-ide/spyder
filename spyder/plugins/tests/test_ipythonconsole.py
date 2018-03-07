@@ -320,6 +320,65 @@ def test_console_coloring(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_set_cwd(ipyconsole, qtbot, tmpdir):
+    """Test kernel when changing cwd."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Issue 6451.
+    savetemp = shell._cwd
+    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    shell.set_cwd(tempdir)
+
+    # Get current directory.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; cwd = os.getcwd()")
+
+    # Assert we get the assigned value correctly
+    assert shell.get_value('cwd') == tempdir
+
+    # Restore original.
+    shell.set_cwd(savetemp)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_get_cwd(ipyconsole, qtbot, tmpdir):
+    """Test current working directory."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Issue 6451.
+    savetemp = shell._cwd
+    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    assert shell._cwd != tempdir
+
+    # Need to escape \ on Windows.
+    if os.name == 'nt':
+        tempdir = tempdir.replace(u"\\", u"\\\\")
+
+    # Change directory in the console.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(u"import os; os.chdir(u'''{}''')".format(tempdir))
+
+    # Ask for directory.
+    with qtbot.waitSignal(shell.sig_change_cwd):
+        shell.get_cwd()
+
+    if os.name == 'nt':
+        tempdir = tempdir.replace(u"\\\\", u"\\")
+
+    assert shell._cwd == tempdir
+
+    shell.set_cwd(savetemp)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_get_env(ipyconsole, qtbot):
     """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
