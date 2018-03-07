@@ -622,5 +622,16 @@ def test_autosave_does_not_save_new_files(editor_bot, mocker):
     editor_stack._write_to_file.assert_not_called()
 
 
+def test_autosave_does_not_save_after_open(base_editor_bot, mocker):
+    """Check that autosave() does not save files immediately after they are
+    opened, before the user made any changed."""
+    editor_stack, qtbot = base_editor_bot
+    txt = 'spam\n'
+    editor_stack.create_new_editor('ham.py', 'ascii', txt, set_current=True)
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.autosave(0)
+    editor_stack._write_to_file.assert_not_called()
+
+
 if __name__ == "__main__":
     pytest.main()

@@ -2279,6 +2279,7 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
+        editor.document().changed_since_autosave = False
         finfo.text_changed_at.connect(
                                     lambda fname, position:
                                     self.text_changed_at.emit(fname, position))
