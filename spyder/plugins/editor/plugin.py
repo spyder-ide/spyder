@@ -30,7 +30,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, get_conf_path, PYTEST, debug_print
+from spyder.config.base import (_, debug_print, get_conf_path,
+                                running_under_pytest)
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -483,7 +484,8 @@ class Editor(SpyderPluginWidget):
 
         # Don't start IntrospectionManager when running tests because
         # it consumes a lot of memory
-        if PYTEST and not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+        if (running_under_pytest()
+                and not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
             try:
                 from unittest.mock import Mock
             except ImportError:
@@ -1868,31 +1870,39 @@ class Editor(SpyderPluginWidget):
         fname=<basestring> --> create file
         """
         # If no text is provided, create default content
-        if text is None:
+        empty = False
+        try:
+            if text is None:
+                default_content = True
+                text, enc = encoding.read(self.TEMPLATE_PATH)
+                enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-',
+                                      text)
+                if enc_match:
+                    enc = enc_match.group(1)
+                # Initialize template variables
+                # Windows
+                username = encoding.to_unicode_from_fs(
+                                os.environ.get('USERNAME', ''))
+                # Linux, Mac OS X
+                if not username:
+                    username = encoding.to_unicode_from_fs(
+                                   os.environ.get('USER', '-'))
+                VARS = {
+                    'date': time.ctime(),
+                    'username': username,
+                }
+                try:
+                    text = text % VARS
+                except Exception:
+                    pass
+            else:
+                default_content = False
+                enc = encoding.read(self.TEMPLATE_PATH)[1]
+        except (IOError, OSError):
+            text = ''
+            enc = 'utf-8'
             default_content = True
-            text, enc = encoding.read(self.TEMPLATE_PATH)
-            enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
-            if enc_match:
-                enc = enc_match.group(1)
-            # Initialize template variables
-            # Windows
-            username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
-                                                                  ''))
-            # Linux, Mac OS X
-            if not username:
-                username = encoding.to_unicode_from_fs(os.environ.get('USER',
-                                                                      '-'))
-            VARS = {
-                'date': time.ctime(),
-                'username': username,
-            }
-            try:
-                text = text % VARS
-            except:
-                pass
-        else:
-            default_content = False
-            enc = encoding.read(self.TEMPLATE_PATH)[1]
+            empty = True
 
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
@@ -1926,7 +1936,8 @@ class Editor(SpyderPluginWidget):
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
-        finfo = self.editorstacks[0].new(fname, enc, text, default_content)
+        finfo = self.editorstacks[0].new(fname, enc, text, default_content,
+                                         empty)
         finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
@@ -2013,7 +2024,7 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            if not PYTEST:
+            if not running_under_pytest():
                 filenames, _sf = getopenfilenames(
                                     parent_widget,
                                     _("Open file"), basedir,
@@ -2232,7 +2243,7 @@ class Editor(SpyderPluginWidget):
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
                 self.close_file_from_name(fname)
-    
+
     def renamed(self, source, dest):
         """File was renamed in file explorer widget or in project explorer"""
         filename = osp.abspath(to_text_string(source))
@@ -2241,8 +2252,16 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
-        
-    
+
+    def renamed_tree(self, source, dest):
+        """Directory was renamed in file explorer or in project explorer."""
+        dirname = osp.abspath(to_text_string(source))
+        tofile = to_text_string(dest)
+        for fname in self.get_filenames():
+            if osp.abspath(fname).startswith(dirname):
+                new_filename = fname.replace(dirname, tofile)
+                self.renamed(source=fname, dest=new_filename)
+
     #------ Source code
     @Slot()
     def indent(self):
@@ -2522,7 +2541,8 @@ class Editor(SpyderPluginWidget):
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
-                if CONF.get('run', 'open_at_least_once', not PYTEST):
+                if CONF.get('run', 'open_at_least_once',
+                            not running_under_pytest()):
                     # Open Run Config dialog at least once: the first time 
                     # a script is ever run in Spyder, so that the user may 
                     # see it at least once and be conscious that it exists

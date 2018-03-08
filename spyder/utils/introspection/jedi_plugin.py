@@ -99,7 +99,7 @@ class JediPlugin(IntrospectionPlugin):
             calltip = getsignaturefromtext(docstring, name)
             argspec = calltip[calltip.find('('):]
             docstring = docstring[docstring.find(')') + 3:]
-        elif call_def.doc and '(' in call_def.doc.splitlines()[0]:
+        elif docstring and '(' in docstring.splitlines()[0]:
             calltip = docstring.splitlines()[0]
             name = docstring.split('(')[0]
             docstring = docstring[docstring.find(')') + 3:]

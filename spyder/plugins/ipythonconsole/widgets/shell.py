@@ -110,7 +110,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
             dirname = dirname.replace(u"\\", u"\\\\")
 
         if not self.external_kernel:
-            code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
+            code = u"get_ipython().kernel.set_cwd(u'''{}''')".format(dirname)
             if self._reading:
                 self.kernel_client.input(u'!' + code)
             else:

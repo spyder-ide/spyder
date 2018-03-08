@@ -76,6 +76,7 @@ class Explorer(SpyderPluginWidget):
         treewidget.sig_removed.connect(self.main.editor.removed)
         treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
         treewidget.sig_renamed.connect(self.main.editor.renamed)
+        treewidget.sig_renamed_tree.connect(self.main.editor.renamed_tree)
         treewidget.sig_create_module.connect(self.main.editor.new)
         treewidget.sig_new_file.connect(lambda t: self.main.editor.new(text=t))
         treewidget.sig_open_interpreter.connect(

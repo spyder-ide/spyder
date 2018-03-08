@@ -90,11 +90,14 @@ class WebView(QWebEngineView):
         """Set source text of the page. Callback for QWebEngineView."""
         self.source_text = source_text
 
-    def get_number_matches(self, pattern, source_text='', case=False):
+    def get_number_matches(self, pattern, source_text='', case=False,
+                           regexp=False):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
             return 0
+        if not regexp:
+            pattern = re.escape(pattern)
         if not source_text:
             if WEBENGINE:
                 self.page().toPlainText(self.set_source_text)

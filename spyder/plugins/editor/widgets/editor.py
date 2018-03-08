@@ -29,7 +29,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, PYTEST, STDERR, STDOUT
+from spyder.config.base import _, DEBUG, STDERR, STDOUT, running_under_pytest
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -610,7 +610,7 @@ class EditorStack(QWidget):
         self.edit_filters = None
 
         # For testing
-        self.save_dialog_on_tests = not PYTEST
+        self.save_dialog_on_tests = not running_under_pytest()
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -2319,14 +2319,15 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             editor.setFocus()
 
-    def new(self, filename, encoding, text, default_content=False):
+    def new(self, filename, encoding, text, default_content=False,
+            empty=False):
         """
         Create new filename with *encoding* and *text*
         """
         finfo = self.create_new_editor(filename, encoding, text,
                                        set_current=False, new=True)
         finfo.editor.set_cursor_position('eof')
-        if not default_content:
+        if not empty:
             finfo.editor.insert_text(os.linesep)
         if default_content:
             finfo.default = True

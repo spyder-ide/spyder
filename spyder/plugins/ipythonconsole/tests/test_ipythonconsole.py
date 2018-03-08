@@ -16,22 +16,16 @@ from flaky import flaky
 import ipykernel
 from pygments.token import Name
 import pytest
-from qtpy import PYQT4, PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer
-from qtpy.QtWidgets import QApplication
+from qtpy import PYQT4, PYQT5
+from qtpy.QtCore import Qt
 import zmq
 
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
-from spyder.py3compat import PY2, PY3
-from spyder.plugins.ipythonconsole.plugin import (IPythonConsole,
-                                                  KernelConnectionDialog)
-from spyder.utils.environ import listdict2envdict
+from spyder.py3compat import PY2, to_text_string
+from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import TEMPDIR
-from spyder.utils.test import close_message_box
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-        CollectionsEditor)
 
 
 #==============================================================================
@@ -45,23 +39,17 @@ NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 #==============================================================================
 # Utillity Functions
 #==============================================================================
-def open_client_from_connection_info(connection_info, qtbot):
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, KernelConnectionDialog):
-            w.cf.setText(connection_info)
-            qtbot.keyClick(w, Qt.Key_Enter)
-
 def get_console_font_color(syntax_style):
     styles = create_style_class(syntax_style).styles
     font_color = styles[Name]
-
     return font_color
+
 
 def get_console_background_color(style_sheet):
     background_color = style_sheet.split('background-color:')[1]
     background_color = background_color.split(';')[0]
     return background_color
+
 
 #==============================================================================
 # Qt Test Fixtures
@@ -138,7 +126,6 @@ def test_auto_backend(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_tab_rename_for_slaves(ipyconsole, qtbot):
     """Test slave clients are renamed correctly."""
     # Wait until the window is fully up
@@ -160,9 +147,11 @@ def test_tab_rename_for_slaves(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_no_repeated_tabs_name(ipyconsole, qtbot):
     """Test that tabs can't have repeated given names."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # Rename first client
     ipyconsole.rename_tabs_after_change('foo')
 
@@ -177,9 +166,11 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     """Test that tabs preserve their names after they are moved."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # Create a new client
     ipyconsole.create_new_client()
 
@@ -193,7 +184,6 @@ def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_conf_env_vars(ipyconsole, qtbot):
     """Test that kernels have env vars set by our kernel spec."""
     # Wait until the window is fully up
@@ -211,7 +201,6 @@ def test_conf_env_vars(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 @pytest.mark.no_stderr_file
 def test_no_stderr_file(ipyconsole, qtbot):
     """Test that consoles can run without an stderr."""
@@ -231,7 +220,7 @@ def test_no_stderr_file(ipyconsole, qtbot):
 @pytest.mark.slow
 @pytest.mark.non_ascii_dir
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
 def test_non_ascii_stderr_file(ipyconsole, qtbot):
     """Test the creation of a console with a stderr file in a non-ascii dir."""
     # Wait until the window is fully up
@@ -249,7 +238,6 @@ def test_non_ascii_stderr_file(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_console_import_namespace(ipyconsole, qtbot):
     """Test an import of the form 'from foo import *'."""
     # Wait until the window is fully up
@@ -268,6 +256,9 @@ def test_console_import_namespace(ipyconsole, qtbot):
 @flaky(max_runs=3)
 def test_console_disambiguation(ipyconsole, qtbot):
     """Test the disambiguation of dedicated consoles."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
     # Create directories and file for TEMP_DIRECTORY/a/b/c.py
     # and TEMP_DIRECTORY/a/d/c.py
     dir_b = osp.join(TEMP_DIRECTORY, 'a', 'b')
@@ -302,6 +293,9 @@ def test_console_disambiguation(ipyconsole, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_console_coloring(ipyconsole, qtbot):
+    """Test that console gets the same coloring present in the Editor."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     config_options = ipyconsole.config_options()
 
@@ -326,9 +320,67 @@ def test_console_coloring(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+def test_set_cwd(ipyconsole, qtbot, tmpdir):
+    """Test kernel when changing cwd."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Issue 6451.
+    savetemp = shell._cwd
+    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    shell.set_cwd(tempdir)
+
+    # Get current directory.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import os; cwd = os.getcwd()")
+
+    # Assert we get the assigned value correctly
+    assert shell.get_value('cwd') == tempdir
+
+    # Restore original.
+    shell.set_cwd(savetemp)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_get_cwd(ipyconsole, qtbot, tmpdir):
+    """Test current working directory."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Issue 6451.
+    savetemp = shell._cwd
+    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    assert shell._cwd != tempdir
+
+    # Need to escape \ on Windows.
+    if os.name == 'nt':
+        tempdir = tempdir.replace(u"\\", u"\\\\")
+
+    # Change directory in the console.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(u"import os; os.chdir(u'''{}''')".format(tempdir))
+
+    # Ask for directory.
+    with qtbot.waitSignal(shell.sig_change_cwd):
+        shell.get_cwd()
+
+    if os.name == 'nt':
+        tempdir = tempdir.replace(u"\\\\", u"\\")
+
+    assert shell._cwd == tempdir
+
+    shell.set_cwd(savetemp)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_get_env(ipyconsole, qtbot):
-    """Test that showing env var contents is working as expected."""
+    """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
@@ -337,53 +389,42 @@ def test_get_env(ipyconsole, qtbot):
         shell.execute("import os; os.environ['FOO'] = 'bar'" )
 
     # Ask for os.environ contents
-    with qtbot.waitSignal(shell.sig_show_env):
+    with qtbot.waitSignal(shell.sig_show_env) as blocker:
         shell.get_env()
 
-    # Get env contents from the generated widget
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, CollectionsEditor):
-            env_contents = w.get_value()
-            qtbot.keyClick(w, Qt.Key_Enter)
+    # Get env contents from the signal
+    env_contents = blocker.args[0]
 
     # Assert that our added entry is part of os.environ
-    env_contents = listdict2envdict(env_contents)
     assert env_contents['FOO'] == 'bar'
 
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
-def test_get_syspath(ipyconsole, qtbot):
-    """Test that showing sys.path contents is working as expected."""
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="Fails due to differences in path handling")
+def test_get_syspath(ipyconsole, qtbot, tmpdir):
+    """
+    Test that getting sys.path contents from the kernel is working as
+    expected.
+    """
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Add a new entry to sys.path
     with qtbot.waitSignal(shell.executed):
-        tmp_dir = tempfile.mkdtemp()
-        shell.execute("import sys, tempfile; sys.path.append('%s')" % tmp_dir)
+        tmp_dir = to_text_string(tmpdir)
+        shell.execute("import sys; sys.path.append('%s')" % tmp_dir)
 
     # Ask for sys.path contents
-    with qtbot.waitSignal(shell.sig_show_syspath):
+    with qtbot.waitSignal(shell.sig_show_syspath) as blocker:
         shell.get_syspath()
 
-    # Get sys.path contents from the generated widget
-    top_level_widgets = QApplication.topLevelWidgets()
-    for w in top_level_widgets:
-        if isinstance(w, CollectionsEditor):
-            syspath_contents = w.get_value()
-            qtbot.keyClick(w, Qt.Key_Enter)
+    # Get sys.path contents from the signal
+    syspath_contents = blocker.args[0]
 
     # Assert that our added entry is part of sys.path
     assert tmp_dir in syspath_contents
-
-    # Remove temporary directory
-    try:
-        os.rmdir(tmp_dir)
-    except:
-        pass
 
 
 @pytest.mark.slow
@@ -422,8 +463,7 @@ def test_browse_history_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2,
-                    reason="It times out sometimes on Windows and doesn't work on PY2")
+@pytest.mark.skipif(PY2, reason="It doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):
     """
     Test that the Variable Explorer Works with unicode variables.
@@ -545,7 +585,6 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_run_doctest(ipyconsole, qtbot):
     """
     Test that doctests can be run without problems
@@ -683,7 +722,6 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_restart_kernel(ipyconsole, qtbot):
     """
     Test that kernel is restarted correctly
@@ -698,16 +736,15 @@ def test_restart_kernel(ipyconsole, qtbot):
 
     # Restart kernel and wait until it's up again
     shell._prompt_html = None
-    QTimer.singleShot(1000, lambda: close_message_box(qtbot))
     client.restart_kernel()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
+    assert 'Restarting kernel...' in shell._control.toPlainText()
     assert not shell.is_defined('a')
 
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
     Test that a new client is created using its id
@@ -719,9 +756,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     connection_file = osp.basename(client.connection_file)
     id_ = connection_file.split('kernel-')[-1].split('.json')[0]
 
-    QTimer.singleShot(2000, lambda: open_client_from_connection_info(
-                                        id_, qtbot))
-    ipyconsole.create_client_for_kernel()
+    ipyconsole._create_client_for_kernel(id_, None, None, None)
     qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
@@ -730,9 +765,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY3 and PYQT4),
-                    reason="It segfaults frequently")
-def test_load_kernel_file_from_location(ipyconsole, qtbot):
+def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     """
     Test that a new client is created using a connection file
     placed in a different location from jupyter_runtime_dir
@@ -741,14 +774,11 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    connection_file = osp.join(tempfile.gettempdir(),
-                               osp.basename(client.connection_file))
+    fname = osp.basename(client.connection_file)
+    connection_file = to_text_string(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
-    QTimer.singleShot(2000, lambda: open_client_from_connection_info(
-                                        connection_file,
-                                        qtbot))
-    ipyconsole.create_client_for_kernel()
+    ipyconsole._create_client_for_kernel(connection_file, None, None, None)
     qtbot.wait(1000)
 
     assert len(ipyconsole.get_clients()) == 2
@@ -756,9 +786,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It segfaults frequently")
-def test_load_kernel_file(ipyconsole, qtbot):
+def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     """
     Test that a new client is created using the connection file
     of an existing client
@@ -767,10 +795,7 @@ def test_load_kernel_file(ipyconsole, qtbot):
     client = ipyconsole.get_current_client()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    QTimer.singleShot(2000, lambda: open_client_from_connection_info(
-                                        client.connection_file,
-                                        qtbot))
-    ipyconsole.create_client_for_kernel()
+    ipyconsole._create_client_for_kernel(client.connection_file, None, None, None)
     qtbot.wait(1000)
 
     new_client = ipyconsole.get_clients()[1]
@@ -784,7 +809,6 @@ def test_load_kernel_file(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
     shell = ipyconsole.get_current_shellwidget()

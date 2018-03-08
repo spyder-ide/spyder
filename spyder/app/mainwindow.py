@@ -124,9 +124,9 @@ MAIN_APP.setWindowIcon(APP_ICON)
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, PYTEST
+from spyder.config.base import _, get_image_path, DEV, running_under_pytest
 
-if not PYTEST:
+if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
     SPLASH_FONT = SPLASH.font()
     SPLASH_FONT.setPixelSize(10)
@@ -451,7 +451,7 @@ class MainWindow(QMainWindow):
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
 
-        if PYTEST:
+        if running_under_pytest():
             # Show errors in internal console when testing.
             CONF.set('main', 'show_internal_errors', False)
 
@@ -2452,11 +2452,11 @@ class MainWindow(QMainWindow):
 
 ## Package Versions
 
-* Spyder {spyder_version} `{commit}`
-* Python {python_version}
-* Qt {qt_version}
-* {qt_api_name} {qt_api_version}
-* {os_name} {os_version}
+* Spyder version: {spyder_version} {commit}
+* Python version: {python_version}
+* Qt version: {qt_version}
+* {qt_api_name} version: {qt_api_version}
+* Operating system: {os_name} {os_version}
 
 ### Dependencies
 
@@ -3124,7 +3124,7 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    if not PYTEST:
+    if not running_under_pytest():
         app.exec_()
     return main
 
@@ -3134,7 +3134,7 @@ def run_spyder(app, options, args):
 #==============================================================================
 def main():
     """Main function"""
-    if PYTEST:
+    if running_under_pytest():
         try:
             from unittest.mock import Mock
         except ImportError:

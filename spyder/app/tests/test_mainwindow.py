@@ -30,6 +30,7 @@ from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -40,6 +41,7 @@ from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
+from spyder.plugins.tests.test_help import check_text
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
@@ -207,6 +209,52 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+def test_get_help(main_window, qtbot):
+    """
+    Test that Help is working when called from the Editor and the
+    IPython console.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    if WEBENGINE:
+        webpage = webview.page()
+    else:
+        webpage = webview.page().mainFrame()
+
+    # --- From the console ---
+    # Write some object in the console
+    qtbot.keyClicks(control, 'runfile')
+
+    # Get help
+    control.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=4000)
+
+    # --- From the editor ---
+    qtbot.wait(2000)
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Write some object in the editor
+    code_editor.set_text('range')
+    code_editor.move_cursor(len('range'))
+
+    # Get help
+    editorstack.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=4000)
 
 
 @pytest.mark.slow
@@ -589,17 +637,10 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
-                    reason="It times out sometimes on Windows and Cython is needed")
+                    reason="Hard to test on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
-    # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
-
     # Get a reference to the code editor widget
     code_editor = main_window.editor.get_focus_widget()
 
@@ -607,12 +648,18 @@ def test_run_cython_code(main_window, qtbot):
     # Load test file
     main_window.editor.load(osp.join(LOCATION, 'pyx_script.pyx'))
 
-    # run file
+    # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Wait until an object appears
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
+    shell = main_window.ipyconsole.get_current_shellwidget()
     assert shell.get_value('a') == 3628800
 
     # Reset and close file

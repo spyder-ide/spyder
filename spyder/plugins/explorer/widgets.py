@@ -183,6 +183,7 @@ class DirView(QTreeView):
     sig_removed = Signal(str)
     sig_removed_tree = Signal(str)
     sig_renamed = Signal(str, str)
+    sig_renamed_tree = Signal(str, str)
     sig_create_module = Signal(str)
     sig_run = Signal(str)
     sig_new_file = Signal(str)
@@ -690,7 +691,10 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                self.sig_renamed.emit(fname, path)
+                if osp.isfile(fname):
+                    self.sig_renamed.emit(fname, path)
+                else:
+                    self.sig_renamed_tree.emit(fname, path)
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),

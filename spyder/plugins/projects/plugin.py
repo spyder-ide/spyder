@@ -131,6 +131,7 @@ class Projects(SpyderPluginWidget):
         treewidget.sig_removed.connect(self.editor.removed)
         treewidget.sig_removed_tree.connect(self.editor.removed_tree)
         treewidget.sig_renamed.connect(self.editor.renamed)
+        treewidget.sig_renamed_tree.connect(self.editor.renamed_tree)
         treewidget.sig_create_module.connect(self.editor.new)
         treewidget.sig_new_file.connect(
             lambda t: self.main.editor.new(text=t))
