@@ -1697,6 +1697,7 @@ class EditorStack(QWidget):
             self.set_os_eol_chars(osname=osname)
         try:
             self._write_to_file(finfo, finfo.filename)
+            self.autosave.remove_autosave_file(finfo)
             finfo.newly_created = False
             self.encoding_changed.emit(finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
@@ -1720,6 +1721,10 @@ class EditorStack(QWidget):
             # patterns instead of only searching for class/def patterns which
             # would be sufficient for outline explorer data.
             finfo.editor.rehighlight()
+
+            # rehighlight() calls textChanged(), so the change_since_autosave
+            # flag should be cleared after rehighlight()
+            finfo.editor.document().changed_since_autosave = False
 
             self._refresh_outlineexplorer(index)
 
@@ -2599,6 +2604,21 @@ class AutosaveComponent:
                 autosave_basename = '{}-{}{}'.format(root, counter, ext)
                 autosave_filename = osp.join(autosave_dir, autosave_basename)
         return autosave_filename
+
+    def remove_autosave_file(self, fileinfo):
+        """
+        Remove autosave file for specified file.
+
+        This function also updates `self.autosave_mapping` and clears the
+        `changed_since_autosave` flag.
+        """
+        filename = fileinfo.filename
+        if filename not in self.name_mapping:
+            return
+        autosave_filename = self.name_mapping[filename]
+        os.remove(autosave_filename)
+        del self.name_mapping[filename]
+        logger.debug('Removing autosave file %s', autosave_filename)
 
     def get_autosave_filename(self, filename):
         """

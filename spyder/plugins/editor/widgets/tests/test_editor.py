@@ -656,5 +656,22 @@ def test_autosave_updates_name_mapping(editor_bot, mocker):
     assert editor_stack.autosave.name_mapping == expected
 
 
+def test_remove_autosave_file(editor_bot, mocker):
+    """Check that remove_autosave_file() removes file and also updates
+    name_mapping."""
+    editor_stack, editor, qtbot = editor_bot
+    autosave = editor_stack.autosave
+    autosave.autosave(0)
+    autosave_filename = os.path.join(get_conf_path('autosave'), 'foo.py')
+    assert os.access(autosave_filename, os.R_OK)
+    assert autosave.name_mapping == {'foo.py': autosave_filename}
+    autosave.remove_autosave_file(editor_stack.data[0])
+    assert not os.access(autosave_filename, os.R_OK)
+    assert autosave.name_mapping == {}
+    autosave.autosave(0)
+    assert not os.access(autosave_filename, os.R_OK)
+    assert autosave.name_mapping == {}
+
+
 if __name__ == "__main__":
     pytest.main()
