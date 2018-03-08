@@ -94,4 +94,4 @@ def test_introspection(setup_editor):
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, ' test_')
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert "test_editor_introspection" in sig.args[0]
+    assert "test_introspection" in sig.args[0]
