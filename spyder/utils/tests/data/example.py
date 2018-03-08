@@ -10,6 +10,9 @@
 
 import numpy as np
 
+# TODO test
+# XXX
+
 print (__file__)
 
 def iterate_1(Z):
