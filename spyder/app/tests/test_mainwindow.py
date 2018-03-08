@@ -41,7 +41,7 @@ from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.help.widgets import ObjectComboBox
-from spyder.plugins.tests.test_help import check_text
+from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed

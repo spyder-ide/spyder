@@ -19,7 +19,7 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder import version_info
-import spyder.widgets.sourcecode.codeeditor as codeeditor
+import spyder.plugins.editor.widgets.codeeditor as codeeditor
 
 
 @pytest.fixture
