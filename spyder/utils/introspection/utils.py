@@ -231,7 +231,7 @@ def get_words(file_path=None, content=None, extension=None):
 
     if extension in ['.css']:
         regex = re.compile(r'([^a-zA-Z-])')
-    elif extension in ['.R', '.c', 'md', '.cpp, java', '.py']:
+    elif extension in ['.R', '.c', '.md', '.cpp', '.java', '.py']:
         regex = re.compile(r'([^a-zA-Z_])')
     else:
         regex = re.compile(r'([^a-zA-Z])')
