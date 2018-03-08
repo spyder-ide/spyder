@@ -2563,7 +2563,13 @@ class EditorStack(QWidget):
 
 
 class AutosaveComponent:
-    """Component of EditorStack implementing autosave functionality."""
+    """
+    Component of EditorStack implementing autosave functionality.
+
+    Attributes:
+        stack (EditorStack): editor stack this component belongs to.
+        name_mapping (dict): map between names of opened and autosave files.
+    """
 
     def __init__(self, editorstack):
         """
@@ -2573,6 +2579,7 @@ class AutosaveComponent:
             editorstack (EditorStack): editor stack this component belongs to.
         """
         self.stack = editorstack
+        self.name_mapping = {}
 
     def autosave(self, index):
         """
@@ -2582,6 +2589,8 @@ class AutosaveComponent:
         is newly created (and thus not named by the user). Otherwise, save a
         copy of the file with the same name in the `autosave` subdirectory of
         Spyder's config dir and clear the `changed_since_autosave` flag.
+        Store the names of the original file and the autosave file in
+        `self.name_mapping`.
 
         Args:
             index (int): index into self.stack.data
@@ -2595,6 +2604,16 @@ class AutosaveComponent:
             os.mkdir(autosave_dir)
         autosave_filename = osp.join(autosave_dir,
                                      osp.basename(finfo.filename))
+        try:
+            autosave_filename = self.name_mapping[finfo.filename]
+        except KeyError:
+            autosave_dir = get_conf_path('autosave')
+            if not osp.isdir(autosave_dir):
+                os.mkdir(autosave_dir)
+            autosave_filename = osp.join(autosave_dir,
+                                         osp.basename(finfo.filename))
+            self.name_mapping[finfo.filename] = autosave_filename
+            logger.debug('New autosave file name')
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
         self.stack._write_to_file(finfo, autosave_filename)
         document.changed_since_autosave = False

@@ -633,5 +633,15 @@ def test_autosave_does_not_save_after_open(base_editor_bot, mocker):
     editor_stack._write_to_file.assert_not_called()
 
 
+def test_autosave_updates_name_mapping(editor_bot, mocker):
+    """Check that autosave() updates name_mapping."""
+    editor_stack, editor, qtbot = editor_bot
+    assert editor_stack.autosave.name_mapping == {}
+    mocker.patch.object(editor_stack, '_write_to_file')
+    editor_stack.autosave.autosave(0)
+    expected = {'foo.py': os.path.join(get_conf_path('autosave'), 'foo.py')}
+    assert editor_stack.autosave.name_mapping == expected
+
+
 if __name__ == "__main__":
     pytest.main()
