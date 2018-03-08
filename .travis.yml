@@ -26,17 +26,19 @@ matrix:
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
+  # Avoid annoying focus problems when running tests
+  # See discussion in e.g. https://github.com/spyder-ide/spyder/pull/6132
+  - sudo apt-get -qq update
+  - sudo apt-get install -y matchbox-window-manager
 
 install:
   - ./continuous_integration/travis/install.sh;
+  - ./continuous_integration/travis/install-qt.sh;
+  - DISPLAY=:99 matchbox-window-manager &
+  - sleep 5
 
 script:
-  - |
-    if [ "$USE_PYQT" = "pyqt5" ]; then
-        ./continuous_integration/travis/test-qt5.sh || ./continuous_integration/travis/test-qt5.sh
-    else
-        ./continuous_integration/travis/test-qt4.sh || ./continuous_integration/travis/test-qt4.sh
-    fi
+  - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh;
 
 after_success:
   - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls

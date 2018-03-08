@@ -14,10 +14,10 @@ import pytest
 # Local imports
 from spyder.utils.qthelpers import qapplication
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.widgets.panels.linenumber import LineNumberArea
-from spyder.widgets.panels.edgeline import EdgeLine
-from spyder.widgets.panels.scrollflag import ScrollFlagArea
-from spyder.widgets.panels.indentationguides import IndentationGuide
+from spyder.plugins.editor.panels.linenumber import LineNumberArea
+from spyder.plugins.editor.panels.edgeline import EdgeLine
+from spyder.plugins.editor.panels.scrollflag import ScrollFlagArea
+from spyder.plugins.editor.panels.indentationguides import IndentationGuide
 
 
 # --- Fixtures

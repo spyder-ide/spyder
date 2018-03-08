@@ -23,7 +23,8 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QListView, QListWidget, QListWidgetItem,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget)
+                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
+                            QApplication)
 
 # Local imports
 from spyder.config.base import (_, LANGUAGE_CODES, load_lang_conf,
@@ -32,9 +33,10 @@ from spyder.config.gui import get_font, set_font
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
 from spyder.config.utils import is_gtk_desktop
-from spyder.py3compat import to_text_string, is_text_string, getcwd
+from spyder.py3compat import to_text_string, is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
@@ -520,7 +522,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Select directory"""
         basedir = to_text_string(edit.text())
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         title = _("Select directory")
         directory = getexistingdirectory(self, title, basedir)
         if directory:
@@ -550,7 +552,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """Select File"""
         basedir = osp.dirname(to_text_string(edit.text()))
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         if filters is None:
             filters = _("All files (*)")
         title = _("Select file")
@@ -811,9 +813,8 @@ class MainConfigPage(GeneralConfigPage):
                                           "Python files in an already running "
                                           "instance (Requires a restart)"))
         prompt_box = newcb(_("Prompt when exiting"), 'prompt_on_exit')
-        popup_console_box = newcb(_("Pop up internal console when internal "
-                                    "errors appear"),
-                                  'show_internal_console_if_traceback')
+        popup_console_box = newcb(_("Show internal Spyder errors to report "
+                                    "them to Github"), 'show_internal_errors')
         check_updates = newcb(_("Check for updates on startup"),
                               'check_updates_on_startup')
 
@@ -862,11 +863,31 @@ class MainConfigPage(GeneralConfigPage):
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
                                           0, 0, 30)
-        margin_box.toggled.connect(margin_spin.setEnabled)
-        margin_spin.setEnabled(self.get_option('use_custom_margin'))
-        margins_layout = QHBoxLayout()
-        margins_layout.addWidget(margin_box)
-        margins_layout.addWidget(margin_spin)
+        margin_box.toggled.connect(margin_spin.spinbox.setEnabled)
+        margin_box.toggled.connect(margin_spin.slabel.setEnabled)
+        margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))
+        margin_spin.slabel.setEnabled(self.get_option('use_custom_margin'))
+        
+        cursor_box = newcb(_("Cursor blinking:"),
+                           'use_custom_cursor_blinking')
+        cursor_spin = self.create_spinbox("", _("ms"), 'custom_cursor_blinking',
+                                          default = QApplication.cursorFlashTime(),
+                                          min_=0, max_=5000, step=100)
+        cursor_box.toggled.connect(cursor_spin.spinbox.setEnabled)
+        cursor_box.toggled.connect(cursor_spin.slabel.setEnabled)
+        cursor_spin.spinbox.setEnabled(
+                self.get_option('use_custom_cursor_blinking'))
+        cursor_spin.slabel.setEnabled(
+                self.get_option('use_custom_cursor_blinking'))
+        
+        margins_cursor_layout = QGridLayout()
+        margins_cursor_layout.addWidget(margin_box, 0, 0)
+        margins_cursor_layout.addWidget(margin_spin.spinbox, 0, 1)
+        margins_cursor_layout.addWidget(margin_spin.slabel, 0, 2)        
+        margins_cursor_layout.addWidget(cursor_box, 1, 0)
+        margins_cursor_layout.addWidget(cursor_spin.spinbox, 1, 1)
+        margins_cursor_layout.addWidget(cursor_spin.slabel, 1, 2)
+        margins_cursor_layout.setColumnStretch(2, 100)
 
         # Layout interface
         comboboxes_layout = QHBoxLayout()
@@ -884,7 +905,7 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
         interface_layout.addWidget(tear_off_box)
-        interface_layout.addLayout(margins_layout)
+        interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
         # --- Status bar
@@ -1228,6 +1249,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 '        print(bar)\n'
                 )
         show_blanks = CONF.get('editor', 'blank_spaces')
+        update_scrollbar = CONF.get('editor', 'scroll_past_end')
         if scheme_name is None:
             scheme_name = self.current_scheme
         self.preview_editor.setup_editor(linenumbers=True,
@@ -1235,7 +1257,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                                          tab_mode=False,
                                          font=get_font(),
                                          show_blanks=show_blanks,
-                                         color_scheme=scheme_name)
+                                         color_scheme=scheme_name,
+                                         scroll_past_end=update_scrollbar)
         self.preview_editor.set_text(text)
         self.preview_editor.set_language('Python')
 

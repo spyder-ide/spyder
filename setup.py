@@ -79,11 +79,11 @@ def get_data_files():
     if sys.platform.startswith('linux'):
         if PY3:
             data_files = [('share/applications', ['scripts/spyder3.desktop']),
-                          ('share/pixmaps', ['img_src/spyder3.png']),
+                          ('share/icons', ['img_src/spyder3.png']),
                           ('share/metainfo', ['scripts/spyder3.appdata.xml'])]
         else:
             data_files = [('share/applications', ['scripts/spyder.desktop']),
-                          ('share/pixmaps', ['img_src/spyder.png'])]
+                          ('share/icons', ['img_src/spyder.png'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
                                    'img_src/spyder_reset.ico'])]
@@ -259,8 +259,9 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
+    'cloudpickle',
     'rope>=0.10.5',
-    'jedi>=0.9.0',
+    'jedi>=0.11.0',
     'pyflakes',
     'pygments>=2.0',
     'qtconsole>=4.2.0',
@@ -270,22 +271,24 @@ install_requires = [
     'pylint',
     'psutil',
     'qtawesome>=0.4.1',
-    'qtpy>=1.1.0',
+    'qtpy>=1.2.0',
     'pickleshare',
     'pyzmq',
     'chardet>=2.0.0',
-    'numpydoc'
+    'numpydoc',
+    # Packages for pyqt5 are only available in
+    # Python 3
+    'pyqt5<5.10;python_version>="3"',
+    # This is only needed for our wheels on Linux.
+    # See issue #3332
+    'pyopengl;platform_system=="Linux"'
 ]
-
-# This is needed only for pip installations on Linux.
-# See issue #3332
-if any([arg.startswith('manylinux1') for arg in sys.argv]):
-    install_requires = install_requires + ['pyopengl']
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
     'test': ['pytest',
              'pytest-qt',
+             'pytest-mock',
              'pytest-cov',
              'pytest-xvfb',
              'pytest-timeout',

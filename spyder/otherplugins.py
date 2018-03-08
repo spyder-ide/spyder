@@ -54,8 +54,14 @@ def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
         # Is this a Spyder plugin?
         if not name.startswith(PLUGIN_PREFIX):
             continue
+
         # Ensure right type of plugin
         if is_io != name.startswith(IO_PREFIX):
+            continue
+
+        # Skip names that end in certain suffixes
+        forbidden_suffixes = ['dist-info', 'egg.info', 'egg-info', 'egg-link']
+        if any([name.endswith(s) for s in forbidden_suffixes]):
             continue
 
         # Import the plugin
@@ -112,7 +118,12 @@ def _import_module_from_path(module_name, plugin_path):
             module_name,
             [plugin_path])
         if spec:
-            module = spec.loader.load_module(module_name)
+            # Needed to prevent an error when 'spec.loader' is None
+            # See issue 6518
+            try:
+                module = spec.loader.load_module(module_name)
+            except AttributeError:
+                module = None
     return module
 
 

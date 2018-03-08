@@ -8,17 +8,21 @@ import socket
 import sys
 import time
 
+# To prevent a race condition with ZMQ
+# See issue 5324
+import zmq
+
 # This import is needed to fix errors with OpenGL when installed using pip
-# See issue #3332
+# See issue 3332
 try:
     from OpenGL import GL
-except ImportError:
-    # pyopengl is not present when installed using conda
+except:
     pass
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import get_conf_path, running_in_mac_app
+from spyder.config.base import (get_conf_path, running_in_mac_app,
+                                running_under_pytest)
 from spyder.config.main import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
@@ -61,7 +65,18 @@ def main():
     options to the application.
     """
     # Parse command line options
-    options, args = get_options()
+    if running_under_pytest():
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock # Python 2
+
+        options = Mock()
+        options.new_instance = False
+        options.reset_config_files = False
+        args = None
+    else:
+        options, args = get_options()
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
@@ -72,9 +87,28 @@ def main():
     #==========================================================================
     if CONF.get('main', 'high_dpi_custom_scale_factor'):
         factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
-        os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
+        f = list(filter(None, factors.split(';')))
+        if len(f) == 1:
+            os.environ['QT_SCALE_FACTOR'] = f[0]
+        else:
+            os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
     else:
+        os.environ['QT_SCALE_FACTOR'] = ''
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
+
+    # Prevent Spyder from crashing in macOS if locale is not defined
+    if sys.platform == 'darwin':
+        LANG = os.environ.get('LANG')
+        LC_ALL = os.environ.get('LC_ALL')
+        if bool(LANG) and not bool(LC_ALL):
+            LC_ALL = LANG
+        elif not bool(LANG) and bool(LC_ALL):
+            LANG = LC_ALL
+        else:
+            LANG = LC_ALL = 'en_US.UTF-8'
+
+        os.environ['LANG'] = LANG
+        os.environ['LC_ALL'] = LC_ALL
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():
@@ -113,13 +147,19 @@ def main():
             # executing this script because it doesn't make
             # sense
             from spyder.app import mainwindow
-            mainwindow.main()
-            return
+            if running_under_pytest():
+                return mainwindow.main()
+            else:
+                mainwindow.main()
+                return
 
         if lock_created:
             # Start a new instance
             from spyder.app import mainwindow
-            mainwindow.main()
+            if running_under_pytest():
+                return mainwindow.main()
+            else:
+                mainwindow.main()
         else:
             # Pass args to Spyder or print an informative
             # message
@@ -130,7 +170,10 @@ def main():
                       "instance, please pass to it the --new-instance option")
     else:
         from spyder.app import mainwindow
-        mainwindow.main()
+        if running_under_pytest():
+            return mainwindow.main()
+        else:
+            mainwindow.main()
 
 
 if __name__ == "__main__":

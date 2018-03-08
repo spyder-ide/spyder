@@ -64,8 +64,8 @@ class PydocBrowser(WebBrowser):
     """
     DEFAULT_PORT = 30128
     
-    def __init__(self, parent):
-        WebBrowser.__init__(self, parent)
+    def __init__(self, parent, options_button=None):
+        WebBrowser.__init__(self, parent, options_button=options_button)
         self.server = None
         self.port = None
         

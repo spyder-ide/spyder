@@ -22,9 +22,9 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
 from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.preferences.configdialog import GeneralConfigPage
-from spyder.py3compat import getcwd, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-
+from spyder.utils.misc import getcwd_or_home
 
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
@@ -42,7 +42,7 @@ WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
 ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
-CLEAR_ALL_VARIABLES = _("Clear all variables before execution")
+CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
 
@@ -264,7 +264,7 @@ class RunConfigOptions(QWidget):
         """Select directory"""
         basedir = to_text_string(self.wd_edit.text())
         if not osp.isdir(basedir):
-            basedir = getcwd()
+            basedir = getcwd_or_home()
         directory = getexistingdirectory(self, _("Select directory"), basedir)
         if directory:
             self.wd_edit.setText(directory)
@@ -289,6 +289,7 @@ class RunConfigOptions(QWidget):
         self.cwd_radio.setChecked(self.runconf.cw_dir)
         self.fixed_dir_radio.setChecked(self.runconf.fixed_dir)
         self.dir = self.runconf.dir
+        self.wd_edit.setText(self.dir)
 
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
@@ -303,7 +304,7 @@ class RunConfigOptions(QWidget):
         self.runconf.file_dir = self.file_dir_radio.isChecked()
         self.runconf.cw_dir = self.cwd_radio.isChecked()
         self.runconf.fixed_dir = self.fixed_dir_radio.isChecked()
-        self.runconf.dir = self.dir
+        self.runconf.dir = self.wd_edit.text()
         return self.runconf.get()
 
     def is_valid(self):
@@ -527,7 +528,8 @@ class RunConfigPage(GeneralConfigPage):
                 FIXED_DIR,
                 WDIR_USE_FIXED_DIR_OPTION, False,
                 button_group=wdir_bg)
-        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
+        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION,
+                                           getcwd_or_home())
         thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
         dirname_radio.toggled.connect(thisdir_bd.setDisabled)
         cwd_radio.toggled.connect(thisdir_bd.setDisabled)

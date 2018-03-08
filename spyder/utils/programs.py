@@ -21,6 +21,7 @@ import tempfile
 
 # Local imports
 from spyder.utils import encoding
+from spyder.utils.misc import get_python_executable
 from spyder.py3compat import PY2, is_text_string, to_text_string
 
 
@@ -258,7 +259,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
 
     :str wdir: working directory, may be empty.
     """
-    
     # If fname has spaces on it it can't be ran on Windows, so we have to
     # enclose it in quotes. Also wdir can come with / as os.sep, so we
     # need to take care of it
@@ -266,7 +266,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         fname = '"' + fname + '"'
         wdir = wdir.replace('/', '\\')
     
-    p_args = ['python']
+    p_args = [get_python_executable()]
     p_args += get_python_args(fname, python_args, interact, debug, args)
     
     if os.name == 'nt':
@@ -328,7 +328,7 @@ def is_stable_version(version):
         version = version.split('.')
     last_part = version[-1]
 
-    if not re.search('[a-zA-Z]', last_part):
+    if not re.search(r'[a-zA-Z]', last_part):
         return True
     else:
         return False
@@ -449,7 +449,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
                 for ver in version.split(';'):
                     output = output and is_module_installed(module_name, ver)
                 return output
-            match = re.search('[0-9]', version)
+            match = re.search(r'[0-9]', version)
             assert match is not None, "Invalid version number"
             symb = version[:match.start()]
             if not symb:

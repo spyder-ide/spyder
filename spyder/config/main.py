@@ -93,7 +93,8 @@ DEFAULTS = [
               'cpu_usage/timeout': 2000,
               'use_custom_margin': True,
               'custom_margin': 0,
-              'show_internal_console_if_traceback': False,
+              'use_custom_cursor_blinking': False,
+              'show_internal_errors': True,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
               # Global Spyder fonts
@@ -144,6 +145,7 @@ DEFAULTS = [
               'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': False,
+              'show_reset_namespace_warning': True,
               'buffer_size': 500,
               'pylab': True,
               'pylab/autoload': False,
@@ -160,14 +162,13 @@ DEFAULTS = [
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
-              'light_color': True,
-              'dark_color': False
+              'show_elapsed_time': False
               }),
             ('variable_explorer',
              {
               'check_all': CHECK_ALL,
-              'dataframe_format': '.3g', # no percent sign to avoid problems
-                                         # with ConfigParser's interpolation
+              'dataframe_format': '.6g',  # No percent sign to avoid problems
+                                          # with ConfigParser's interpolation
               'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
@@ -195,11 +196,12 @@ DEFAULTS = [
               'edge_line': True,
               'edge_line_columns': '79',
               'indent_guides': False,
+              'scroll_past_end': False,
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
               'close_parentheses': True,
-              'close_quotes': False,
+              'close_quotes': True,
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
@@ -208,6 +210,8 @@ DEFAULTS = [
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
               'check_eol_chars': True,
+              'convert_eol_on_save': False,
+              'convert_eol_on_save_to': 'LF',
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'highlight_current_line': True,
@@ -216,7 +220,7 @@ DEFAULTS = [
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'show_tab_bar': True,
-              'show_class_func_dropdown': True,
+              'show_class_func_dropdown': False,
               'max_recent_files': 20,
               'save_all_before_run': True,
               'focus_to_editor': True,
@@ -228,6 +232,7 @@ DEFAULTS = [
               'max_entries': 100,
               'wrap': True,
               'go_to_eof': True,
+              'line_numbers': False,
               }),
             ('help',
              {
@@ -278,6 +283,7 @@ DEFAULTS = [
               'search_text_samples': [codeanalysis.TASKS_PATTERN],
               'in_python_path': False,
               'more_options': False,
+              'case_sensitive': True
               }),
             ('breakpoints',
              {
@@ -295,9 +301,8 @@ DEFAULTS = [
              {
               'working_dir_adjusttocontents': False,
               'working_dir_history': 20,
-              'startup/use_project_or_home_directory': True,
-              'console/use_project_or_home_directory': True,
-              'console/use_cwd': False,
+              'console/use_project_or_home_directory': False,
+              'console/use_cwd': True,
               'console/use_fixed_directory': False,
               }),
             ('shortcuts',
@@ -361,6 +366,7 @@ DEFAULTS = [
               'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
+              'editor/go to new line': "Ctrl+Shift+Return",
               'editor/go to definition': "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
               'editor/blockcomment': "Ctrl+4",
@@ -396,6 +402,8 @@ DEFAULTS = [
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': 'Ctrl+Shift+Tab',
               'editor/go to next file': 'Ctrl+Tab',
+              'editor/cycle to previous file': 'Ctrl+PgUp',
+              'editor/cycle to next file': 'Ctrl+PgDown',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
@@ -406,6 +414,8 @@ DEFAULTS = [
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Ctrl+Alt+Left",
               'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/previous warning': "Ctrl+Alt+Shift+,",
+              'editor/next warning': "Ctrl+Alt+Shift+.",
               'editor/zoom in 1': "Ctrl++",
               'editor/zoom in 2': "Ctrl+=",
               'editor/zoom out': "Ctrl+-",
@@ -417,6 +427,9 @@ DEFAULTS = [
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
+              'editor/split vertically': "Ctrl+{",
+              'editor/split horizontally': "Ctrl+_",
+              'editor/close split panel': "Alt+Shift+W",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -601,7 +614,7 @@ DEFAULTS = [
               'solarized/light/background':  '#fdf6e3',
               'solarized/light/currentline': '#f5efdB',
               'solarized/light/currentcell': '#eee8d5',
-              'solarized/light/occurence':   '#839496',
+              'solarized/light/occurrence':   '#839496',
               'solarized/light/ctrlclick':   '#d33682',
               'solarized/light/sideareas':   '#eee8d5',
               'solarized/light/matched_p':   '#586e75',
@@ -620,7 +633,7 @@ DEFAULTS = [
               'solarized/dark/background':  '#002b36',
               'solarized/dark/currentline': '#083f4d',
               'solarized/dark/currentcell': '#073642',
-              'solarized/dark/occurence':   '#657b83',
+              'solarized/dark/occurrence':   '#657b83',
               'solarized/dark/ctrlclick':   '#d33682',
               'solarized/dark/sideareas':   '#073642',
               'solarized/dark/matched_p':   '#93a1a1',
@@ -647,7 +660,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '39.0.0'
+CONF_VERSION = '43.0.0'
 
 # Main configuration instance
 try:

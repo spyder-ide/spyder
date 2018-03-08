@@ -367,7 +367,8 @@ class BaseEditMixin(object):
 
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
-        match = re.findall(r'([a-zA-Z\_]+[0-9a-zA-Z\_]*)', text)
+        # find a valid python variable name
+        match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
         if match:
             return match[0]
     
@@ -531,6 +532,39 @@ class BaseEditMixin(object):
     def is_editor(self):
         """Needs to be overloaded in the codeeditor where it will be True"""
         return False
+
+    def get_number_matches(self, pattern, source_text='', case=False,
+                           regexp=False):
+        """Get the number of matches for the searched text."""
+        pattern = to_text_string(pattern)
+        if not pattern:
+            return 0
+        if not regexp:
+            pattern = re.escape(pattern)
+        if not source_text:
+            source_text = to_text_string(self.toPlainText())
+        try:
+            if case:
+                regobj = re.compile(pattern)
+            else:
+                regobj = re.compile(pattern, re.IGNORECASE)
+        except sre_constants.error:
+            return None
+
+        number_matches = 0
+        for match in regobj.finditer(source_text):
+            number_matches += 1
+
+        return number_matches
+
+    def get_match_number(self, pattern, case=False, regexp=False):
+        """Get number of the match for the searched text."""
+        position = self.textCursor().position()
+        source_text = self.get_text(position_from='sof', position_to=position)
+        match_number = self.get_number_matches(pattern,
+                                               source_text=source_text,
+                                               case=case, regexp=regexp)
+        return match_number
 
     # --- Numpy matrix/array helper / See 'spyder/widgets/arraybuilder.py'
     def enter_array_inline(self):
@@ -734,8 +768,12 @@ class SaveHistoryMixin(object):
         if self.history_filename not in self.HISTORY_FILENAMES:
             self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
-        
-        encoding.write(text, self.history_filename, mode='ab')
+        # Needed to prevent errors when writing history to disk
+        # See issue 6431
+        try:
+            encoding.write(text, self.history_filename, mode='ab')
+        except (IOError, OSError):
+            pass
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)
 
@@ -793,3 +831,7 @@ class BrowseHistoryMixin(object):
                     return entry[len(tocursor):], idx
             else:
                 return None, start_idx
+
+    def reset_search_pos(self):
+        """Reset the position from which to search the history"""
+        self.histidx = None

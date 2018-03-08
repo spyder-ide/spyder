@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QHBoxLayout, QLabel,
 # Local imports
 from spyder.config.base import _
 from spyder.api.preferences import PluginConfigPage
-from spyder.py3compat import getcwd
+from spyder.utils.misc import getcwd_or_home
 
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
@@ -48,7 +48,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                   "directory will be the specified path"),
                                 button_group=startup_bg)
         thisdir_bd = self.create_browsedir("", 'startup/fixed_directory',
-                                           getcwd())
+                                           getcwd_or_home())
         thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
         lastdir_radio.toggled.connect(thisdir_bd.setDisabled)
         thisdir_layout = QHBoxLayout()
@@ -87,7 +87,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                   "is open will be the specified path"),
                                 button_group=console_bg)
         console_dir_bd = self.create_browsedir("", 'console/fixed_directory',
-                                               getcwd())
+                                               getcwd_or_home())
         console_dir_radio.toggled.connect(console_dir_bd.setEnabled)
         console_project_radio.toggled.connect(console_dir_bd.setDisabled)
         console_cwd_radio.toggled.connect(console_dir_bd.setDisabled)

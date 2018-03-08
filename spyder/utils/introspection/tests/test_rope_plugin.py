@@ -8,9 +8,13 @@
 from textwrap import dedent
 
 import pytest
+import os
+import os.path as osp
 
 from spyder.utils.introspection.manager import CodeInfo
 from spyder.utils.introspection import rope_plugin
+
+LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 p = rope_plugin.RopePlugin()
 p.load_plugin()
@@ -44,6 +48,14 @@ def test_get_completions_2():
     assert not completions
 
 
+def test_get_completions_custom_path():
+    source_code = "import test_rope_plugin; test_"
+    completions = p.get_completions(CodeInfo('completions', source_code,
+                                             len(source_code),
+                                             sys_path=[LOCATION]))
+    assert ('test_rope_plugin', 'module') in completions
+
+
 def test_get_definition():
     source_code = "import os; os.walk"
     path, line_nr = p.get_definition(CodeInfo('definition', source_code,
@@ -64,4 +76,20 @@ def test_get_docstring():
 
     docs = p.get_info(CodeInfo('info', source_code, len(source_code),
                                __file__, is_python_like=True))
-    assert 'Test docstring' in docs['docstring']
+    assert 'test' in docs['name']
+    assert '(a, b)' == docs['argspec']
+    assert 'Test docstring' == docs['docstring']
+
+
+def test_default_info():
+    """Test default info response."""
+    source_code = 'foo'
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code),
+                               __file__, is_python_like=True))
+    assert sorted(list(docs.keys())) == sorted(['name', 'argspec', 'note',
+                                                'docstring', 'calltip'])
+    assert not docs['name']
+    assert not docs['argspec']
+    assert not docs['note']
+    assert not docs['docstring']
+    assert not docs['calltip']

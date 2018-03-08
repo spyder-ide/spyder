@@ -27,26 +27,27 @@ class OutlineExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'outline_explorer'
 
-    def __init__(self, parent=None, fullpath_sorting=True):
+    def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
         show_comments = self.get_option('show_comments')
+
+        # Initialize plugin
+        self.initialize_plugin()
         self.explorer = OutlineExplorerWidget(
                                        self,
                                        show_fullpath=show_fullpath,
-                                       fullpath_sorting=fullpath_sorting,
                                        show_all_files=show_all_files,
-                                       show_comments=show_comments)
+                                       show_comments=show_comments,
+                                       options_button=self.options_button)
 
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
         self.setLayout(layout)
-
-        # Initialize plugin
-        self.initialize_plugin()
         
+        # Menu as corner widget
         self.explorer.treewidget.header().hide()
         self.load_config()
         

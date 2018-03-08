@@ -9,6 +9,7 @@ Helper widgets.
 """
 
 # Third party imports
+from qtpy import PYQT5
 from qtpy.QtCore import QPoint, QSize, Qt
 from qtpy.QtGui import QAbstractTextDocumentLayout, QPainter, QTextDocument
 from qtpy.QtWidgets import (QApplication, QCheckBox, QLineEdit, QMessageBox,
@@ -72,7 +73,10 @@ class MessageCheckBox(QMessageBox):
 
         # Access the Layout of the MessageBox to add the Checkbox
         layout = self.layout()
-        layout.addLayout(check_layout, 1, 1)
+        if PYQT5:
+            layout.addLayout(check_layout, 1, 2)
+        else:
+            layout.addLayout(check_layout, 1, 1)
 
     # --- Public API
     # Methods to access the checkbox

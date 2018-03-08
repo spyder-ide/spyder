@@ -23,7 +23,8 @@ from qtpy.QtWidgets import QToolBar
 # Local imports
 from spyder.config.base import _, get_conf_path, get_home_dir
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import to_text_string, getcwd
+from spyder.py3compat import to_text_string
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
@@ -53,6 +54,7 @@ class WorkingDirectory(SpyderPluginWidget):
 
         # Initialize plugin
         self.initialize_plugin()
+        self.options_button.hide()
         
         self.toolbar.setWindowTitle(self.get_plugin_title())
         # Used to save Window state
@@ -91,12 +93,12 @@ class WorkingDirectory(SpyderPluginWidget):
         self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
-            if self.get_option('startup/use_project_or_home_directory'):
+            if self.get_option('console/use_project_or_home_directory'):
                 workdir = get_home_dir()
             else:
-                workdir = self.get_option('startup/fixed_directory', ".")
+                workdir = self.get_option('console/fixed_directory', default='')
                 if not osp.isdir(workdir):
-                    workdir = "."
+                    workdir = get_home_dir()
         self.chdir(workdir)
         self.pathedit.addItems(wdhistory)
         self.pathedit.selected_text = self.pathedit.currentText()
@@ -128,7 +130,7 @@ class WorkingDirectory(SpyderPluginWidget):
         
     def get_plugin_actions(self):
         """Setup actions"""
-        return (None, None)
+        return [None, None]
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -140,7 +142,7 @@ class WorkingDirectory(SpyderPluginWidget):
         
     def refresh_plugin(self):
         """Refresh widget"""
-        curdir = getcwd()
+        curdir = getcwd_or_home()
         self.pathedit.add_text(curdir)
         self.save_wdhistory()
         self.set_previous_enabled.emit(
@@ -179,7 +181,7 @@ class WorkingDirectory(SpyderPluginWidget):
         """Select directory"""
         self.redirect_stdio.emit(False)
         directory = getexistingdirectory(self.main, _("Select directory"),
-                                         getcwd())
+                                         getcwd_or_home())
         if directory:
             self.chdir(directory)
         self.redirect_stdio.emit(True)
@@ -199,7 +201,7 @@ class WorkingDirectory(SpyderPluginWidget):
     @Slot()
     def parent_directory(self):
         """Change working directory to parent directory"""
-        self.chdir(os.path.join(getcwd(), os.path.pardir))
+        self.chdir(os.path.join(getcwd_or_home(), os.path.pardir))
 
     @Slot(str)
     @Slot(str, bool)
@@ -225,14 +227,13 @@ class WorkingDirectory(SpyderPluginWidget):
             self.histindex = len(self.history)-1
         
         # Changing working directory
-        os.chdir( to_text_string(directory) )
+        try:
+            os.chdir(directory)
+            if refresh_explorer:
+                self.set_explorer_cwd.emit(directory)
+            if refresh_console:
+                self.set_current_console_wd.emit(directory)
+            self.refresh_findinfiles.emit()
+        except OSError:
+            self.history.pop(self.histindex)
         self.refresh_plugin()
-        if refresh_explorer:
-            self.set_explorer_cwd.emit(directory)
-        if refresh_console:
-            self.set_as_current_console_wd()
-        self.refresh_findinfiles.emit()
-
-    def set_as_current_console_wd(self):
-        """Set as current console working directory"""
-        self.set_current_console_wd.emit(getcwd())

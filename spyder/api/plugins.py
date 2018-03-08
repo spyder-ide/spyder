@@ -18,16 +18,18 @@ import os
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
+from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolButton
 
 # Local imports
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.config.user import NoDefault
-from spyder.plugins.base import BasePluginWidget
+from spyder.plugins.base import _, BasePluginWidget
 from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import toggle_actions
+from spyder.utils.qthelpers import (add_actions, create_toolbutton,
+                                    MENU_SEPARATOR, toggle_actions)
+from spyder.plugins.base import PluginMainWindow
 
 
 class PluginWidget(BasePluginWidget):
@@ -67,6 +69,12 @@ class PluginWidget(BasePluginWidget):
         self.ismaximized = False
         self.isvisible = False
 
+        # Options button and menu
+        self.options_button = create_toolbutton(self, text=_('Options'),
+                                                icon=ima.icon('tooloptions'))
+        self.options_button.setPopupMode(QToolButton.InstantPopup)
+        self.options_menu = QMenu(self)
+
         # NOTE: Don't use the default option of CONF.get to assign a
         # None shortcut to plugins that don't have one. That will mess
         # the creation of our Keyboard Shortcuts prefs page
@@ -88,7 +96,17 @@ class PluginWidget(BasePluginWidget):
         It must be run at the end of __init__
         """
         self.create_toggle_view_action()
-        self.plugin_actions = self.get_plugin_actions()
+
+        # Undock action
+        self.create_undock_action()
+        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
+                                                           self.undock_action]
+
+        # Options button and menu
+        add_actions(self.options_menu, self.plugin_actions)
+        self.options_button.setMenu(self.options_menu)
+        self.options_menu.aboutToShow.connect(self.refresh_actions)
+
         self.sig_show_message.connect(self.show_message)
         self.sig_update_plugin_title.connect(self.update_plugin_title)
         self.sig_option_changed.connect(self.set_option)
@@ -100,7 +118,7 @@ class PluginWidget(BasePluginWidget):
 
         Note: this method is currently not used in Spyder core plugins
         """
-        self.mainwindow = mainwindow = QMainWindow()
+        self.mainwindow = mainwindow = PluginMainWindow(self)
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
         if is_text_string(icon):
@@ -187,6 +205,13 @@ class PluginWidget(BasePluginWidget):
         messageBox.setText(message)
         messageBox.setStandardButtons(QMessageBox.Ok)
         messageBox.show()
+
+    def refresh_actions(self):
+        """Clear the menu of the plugin and add the actions."""
+        self.options_menu.clear()
+        self.plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
+                                                           self.undock_action]
+        add_actions(self.options_menu, self.plugin_actions)
 
 
 class SpyderPluginWidget(PluginWidget):

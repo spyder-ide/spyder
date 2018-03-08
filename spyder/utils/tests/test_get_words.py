@@ -68,7 +68,8 @@ def test_get_words_java():
     """Test for get word from java file syntax."""
     expected_words = ['Compilation', 'Execution', 'Hello', 'HelloWorld', 'Prints', 'String',
                       'System', 'World', 'args', 'class', 'java', 'javac', 'main', 'out',
-                      'println', 'public', 'static', 'terminal', 'the', 'to', 'void', 'window']
+                      'println', 'public', 'static', 'terminal', 'test_underscore',
+                      'the', 'to', 'void', 'window']
     assert sorted(expected_words) == sorted(get_words_by_filename("example.java"))
     assert sorted(expected_words) == sorted(get_words_by_content("example.java"))
 
@@ -76,12 +77,12 @@ def test_get_words_cplusplus():
     """Test for get word from C++ file syntax."""
     expected_words = ['Consider', 'Create', 'Implement', 'Obj', 'ObjContainer',
                       'Postfix', 'Prefix', 'Return', 'SmartPointer', 'Static',
-                      'Zero', 'a', 'above', 'access', 'actual', 'add', 'an', 'back',
+                      'Zero', 'a', 'above', 'access', 'actual', 'add', 'an',
                       'bool', 'call', 'class', 'const', 'container', 'cout', 'definitions',
                       'do', 'end', 'endl', 'f', 'false', 'for', 'friend', 'g', 'i', 'if',
                       'implement', 'include', 'index', 'indicates', 'int', 'iostream', 'iterator',
                       'j', 'list', 'main', 'member', 'method', 'namespace', 'o', 'obj', 'objc',
-                      'oc', 'of', 'operator', 'overload', 'pointer', 'public', 'push', 'return',
+                      'oc', 'of', 'operator', 'overload', 'pointer', 'public', 'push_back', 'return',
                       's', 'size', 'smart', 'sp', 'standard', 'static', 'std', 'sz', 'the',
                       'to', 'true', 'using', 'value', 'vector', 'version', 'void', 'while']
     assert sorted(expected_words) == sorted(get_words_by_filename("example.cpp"))
@@ -93,7 +94,7 @@ def test_get_words_markdown():
                       'Italic', 'Link', 'List', 'One', 'Rule', 'Three', 'Two', 'a', 'after',
                       'b', 'backticks', 'blank', 'block', 'code', 'com', 'http', 'indent',
                       'jpg', 'line', 'or', 'org', 'paragraph', 'png', 'print', 'spaces',
-                      'url', 'with']
+                      'under_score', 'url', 'with']
     assert sorted(expected_words) == sorted(get_words_by_filename("example.md"))
     assert sorted(expected_words) == sorted(get_words_by_content("example.md"))
 

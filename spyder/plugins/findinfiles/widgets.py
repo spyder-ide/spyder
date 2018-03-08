@@ -24,20 +24,22 @@ import traceback
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
-from qtpy.QtCore import QMutex, QMutexLocker, Qt, QThread, Signal, Slot, QSize
-from qtpy.QtWidgets import (QHBoxLayout, QLabel, QRadioButton, QSizePolicy,
-                            QTreeWidgetItem, QVBoxLayout, QWidget,
+from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QSize, Qt, QThread,
+                         Signal, Slot)
+from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
+                            QMessageBox, QSizePolicy, QStyle,
                             QStyledItemDelegate, QStyleOptionViewItem,
-                            QApplication, QStyle)
+                            QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import getcwd, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_toolbutton
-from spyder.utils.encoding import is_text_file
+from spyder.utils.encoding import is_text_file, to_unicode_from_fs
+from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.utils.qthelpers import create_toolbutton, get_icon
 
 from spyder.config.gui import get_font
 from spyder.widgets.waitingspinner import QWaitingSpinner
@@ -45,6 +47,24 @@ from spyder.widgets.waitingspinner import QWaitingSpinner
 
 ON = 'on'
 OFF = 'off'
+
+CWD = 0
+PROJECT = 1
+FILE_PATH = 2
+SELECT_OTHER = 4
+CLEAR_LIST = 5
+EXTERNAL_PATHS = 7
+
+MAX_PATH_LENGTH = 60
+MAX_PATH_HISTORY = 15
+
+
+def truncate_path(text):
+    ellipsis = '...'
+    part_len = (MAX_PATH_LENGTH - len(ellipsis)) / 2.0
+    left_text = text[:int(math.ceil(part_len))]
+    right_text = text[-int(math.floor(part_len)):]
+    return left_text + ellipsis + right_text
 
 
 class SearchThread(QThread):
@@ -70,12 +90,14 @@ class SearchThread(QThread):
         self.texts = None
         self.text_re = None
         self.completed = None
+        self.case_sensitive = True
         self.get_pythonpath_callback = None
         self.results = {}
         self.total_matches = 0
         self.is_file = False
 
-    def initialize(self, path, is_file, exclude, texts, text_re):
+    def initialize(self, path, is_file, exclude,
+                   texts, text_re, case_sensitive):
         self.rootpath = path
         self.python_path = False
         self.hg_manifest = False
@@ -85,6 +107,7 @@ class SearchThread(QThread):
         self.is_file = is_file
         self.stopped = False
         self.completed = False
+        self.case_sensitive = case_sensitive
 
     def run(self):
         try:
@@ -136,18 +159,23 @@ class SearchThread(QThread):
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
+                    line_search = line
+                    if not self.case_sensitive:
+                        line_search = line_search.lower()
                     if self.text_re:
-                        found = re.search(text, line)
+                        found = re.search(text, line_search)
                         if found is not None:
                             break
                     else:
-                        found = line.find(text)
+                        found = line_search.find(text)
                         if found > -1:
                             break
                 try:
                     line_dec = line.decode(enc)
                 except UnicodeDecodeError:
                     line_dec = line
+                if not self.case_sensitive:
+                    line = line.lower()
                 if self.text_re:
                     for match in re.finditer(text, line):
                         self.total_matches += 1
@@ -178,6 +206,183 @@ class SearchThread(QThread):
         return self.results, self.pathlist, self.total_matches, self.error_flag
 
 
+class SearchInComboBox(QComboBox):
+    """
+    Non editable combo box handling the path locations of the FindOptions
+    widget.
+    """
+    def __init__(self, external_path_history=[], parent=None):
+        super(SearchInComboBox, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setToolTip(_('Search directory'))
+        self.setEditable(False)
+
+        self.path = ''
+        self.project_path = None
+        self.file_path = None
+        self.external_path = None
+
+        self.addItem(_("Current working directory"))
+        ttip = ("Search in all files and directories present on the current"
+                " Spyder path")
+        self.setItemData(0, ttip, Qt.ToolTipRole)
+
+        self.addItem(_("Project"))
+        ttip = _("Search in all files and directories present on the"
+                 " current project path (if opened)")
+        self.setItemData(1, ttip, Qt.ToolTipRole)
+        self.model().item(1, 0).setEnabled(False)
+
+        self.addItem(_("File").replace('&', ''))
+        ttip = _("Search in current opened file")
+        self.setItemData(2, ttip, Qt.ToolTipRole)
+
+        self.insertSeparator(3)
+
+        self.addItem(_("Select other directory"))
+        ttip = _("Search in other folder present on the file system")
+        self.setItemData(4, ttip, Qt.ToolTipRole)
+
+        self.addItem(_("Clear this list"))
+        ttip = _("Clear the list of other directories")
+        self.setItemData(5, ttip, Qt.ToolTipRole)
+
+        self.insertSeparator(6)
+
+        for path in external_path_history:
+            self.add_external_path(path)
+
+        self.currentIndexChanged.connect(self.path_selection_changed)
+        self.view().installEventFilter(self)
+
+    def add_external_path(self, path):
+        """
+        Adds an external path to the combobox if it exists on the file system.
+        If the path is already listed in the combobox, it is removed from its
+        current position and added back at the end. If the maximum number of
+        paths is reached, the oldest external path is removed from the list.
+        """
+        if not osp.exists(path):
+            return
+        self.removeItem(self.findText(path))
+        self.addItem(path)
+        self.setItemData(self.count() - 1, path, Qt.ToolTipRole)
+        while self.count() > MAX_PATH_HISTORY + EXTERNAL_PATHS:
+            self.removeItem(EXTERNAL_PATHS)
+
+    def get_external_paths(self):
+        """Returns a list of the external paths listed in the combobox."""
+        return [to_text_string(self.itemText(i))
+                for i in range(EXTERNAL_PATHS, self.count())]
+
+    def clear_external_paths(self):
+        """Remove all the external paths listed in the combobox."""
+        while self.count() > EXTERNAL_PATHS:
+            self.removeItem(EXTERNAL_PATHS)
+
+    def get_current_searchpath(self):
+        """
+        Returns the path corresponding to the currently selected item
+        in the combobox.
+        """
+        idx = self.currentIndex()
+        if idx == CWD:
+            return self.path
+        elif idx == PROJECT:
+            return self.project_path
+        elif idx == FILE_PATH:
+            return self.file_path
+        else:
+            return self.external_path
+
+    def is_file_search(self):
+        """Returns whether the current search path is a file."""
+        if self.currentIndex() == FILE_PATH:
+            return True
+        else:
+            return False
+
+    @Slot()
+    def path_selection_changed(self):
+        """Handles when the current index of the combobox changes."""
+        idx = self.currentIndex()
+        if idx == SELECT_OTHER:
+            external_path = self.select_directory()
+            if len(external_path) > 0:
+                self.add_external_path(external_path)
+                self.setCurrentIndex(self.count() - 1)
+            else:
+                self.setCurrentIndex(CWD)
+        elif idx == CLEAR_LIST:
+            reply = QMessageBox.question(
+                    self, _("Clear other directories"),
+                    _("Do you want to clear the list of other directories?"),
+                    QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.clear_external_paths()
+            self.setCurrentIndex(CWD)
+        elif idx >= EXTERNAL_PATHS:
+            self.external_path = to_text_string(self.itemText(idx))
+
+    @Slot()
+    def select_directory(self):
+        """Select directory"""
+        self.__redirect_stdio_emit(False)
+        directory = getexistingdirectory(
+                self, _("Select directory"), self.path)
+        if directory:
+            directory = to_unicode_from_fs(osp.abspath(directory))
+        self.__redirect_stdio_emit(True)
+        return directory
+
+    def set_project_path(self, path):
+        """
+        Sets the project path and disables the project search in the combobox
+        if the value of path is None.
+        """
+        if path is None:
+            self.project_path = None
+            self.model().item(PROJECT, 0).setEnabled(False)
+            if self.currentIndex() == PROJECT:
+                self.setCurrentIndex(CWD)
+        else:
+            path = osp.abspath(path)
+            self.project_path = path
+            self.model().item(PROJECT, 0).setEnabled(True)
+
+    def eventFilter(self, widget, event):
+        """Used to handle key events on the QListView of the combobox."""
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Delete:
+            index = self.view().currentIndex().row()
+            if index >= EXTERNAL_PATHS:
+                # Remove item and update the view.
+                self.removeItem(index)
+                self.showPopup()
+                # Set the view selection so that it doesn't bounce around.
+                new_index = min(self.count() - 1, index)
+                new_index = 0 if new_index < EXTERNAL_PATHS else new_index
+                self.view().setCurrentIndex(self.model().index(new_index, 0))
+                self.setCurrentIndex(new_index)
+            return True
+        return QComboBox.eventFilter(self, widget, event)
+
+    def __redirect_stdio_emit(self, value):
+        """
+        Searches through the parent tree to see if it is possible to emit the
+        redirect_stdio signal.
+        This logic allows to test the SearchInComboBox select_directory method
+        outside of the FindInFiles plugin.
+        """
+        parent = self.parent()
+        while parent is not None:
+            try:
+                parent.redirect_stdio.emit(value)
+            except AttributeError:
+                parent = parent.parent()
+            else:
+                break
+
+
 class FindOptions(QWidget):
     """Find widget with options"""
     REGEX_INVALID = "background-color:rgb(255, 175, 90);"
@@ -187,15 +392,12 @@ class FindOptions(QWidget):
 
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  exclude, exclude_idx, exclude_regexp,
-                 supported_encodings, in_python_path, more_options):
+                 supported_encodings, in_python_path, more_options,
+                 case_sensitive, external_path_history, options_button=None):
         QWidget.__init__(self, parent)
 
         if search_path is None:
-            search_path = getcwd()
-
-        self.path = ''
-        self.project_path = None
-        self.file_path = None
+            search_path = getcwd_or_home()
 
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -203,6 +405,8 @@ class FindOptions(QWidget):
             search_path = [search_path]
         if not isinstance(exclude, (list, tuple)):
             exclude = [exclude]
+        if not isinstance(external_path_history, (list, tuple)):
+            external_path_history = [external_path_history]
 
         self.supported_encodings = supported_encodings
 
@@ -213,6 +417,11 @@ class FindOptions(QWidget):
         self.edit_regexp = create_toolbutton(self,
                                              icon=ima.icon('advanced'),
                                              tip=_('Regular expression'))
+        self.case_button = create_toolbutton(self,
+                                             icon=get_icon("upper_lower.png"),
+                                             tip=_("Case Sensitive"))
+        self.case_button.setCheckable(True)
+        self.case_button.setChecked(case_sensitive)
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
@@ -234,9 +443,11 @@ class FindOptions(QWidget):
                                              tip=_("Stop search"),
                                              text_beside_icon=True)
         self.stop_button.setEnabled(False)
-        for widget in [self.search_text, self.edit_regexp,
+        for widget in [self.search_text, self.edit_regexp, self.case_button,
                        self.ok_button, self.stop_button, self.more_options]:
             hlayout1.addWidget(widget)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         # Layout 2
         hlayout2 = QHBoxLayout()
@@ -259,28 +470,12 @@ class FindOptions(QWidget):
         # Layout 3
         hlayout3 = QHBoxLayout()
 
-        self.global_path_search = QRadioButton(_("Current working "
-                                                 "directory"), self)
-        self.global_path_search.setChecked(True)
-        self.global_path_search.setToolTip(_("Search in all files and "
-                                             "directories present on the"
-                                             "current Spyder path"))
+        search_on_label = QLabel(_("Search in:"))
+        self.path_selection_combo = SearchInComboBox(
+                external_path_history, parent)
 
-        self.project_search = QRadioButton(_("Project"), self)
-        self.project_search.setToolTip(_("Search in all files and "
-                                         "directories present on the"
-                                         "current project path (If opened)"))
-
-        self.project_search.setEnabled(False)
-
-        self.file_search = QRadioButton(_("File"), self)
-        self.file_search.setToolTip(_("Search in current opened file"))
-
-        for wid in [self.global_path_search,
-                    self.project_search, self.file_search]:
-            hlayout3.addWidget(wid)
-
-        hlayout3.addStretch(1)
+        hlayout3.addWidget(search_on_label)
+        hlayout3.addWidget(self.path_selection_combo)
 
         self.search_text.valid.connect(lambda valid: self.find.emit())
         self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
@@ -341,18 +536,14 @@ class FindOptions(QWidget):
         text_re = self.edit_regexp.isChecked()
         exclude = to_text_string(self.exclude_pattern.currentText())
         exclude_re = self.exclude_regexp.isChecked()
+        case_sensitive = self.case_button.isChecked()
         python_path = False
 
-        global_path_search = self.global_path_search.isChecked()
-        project_search = self.project_search.isChecked()
-        file_search = self.file_search.isChecked()
+        if not case_sensitive:
+            texts = [(text[0].lower(), text[1]) for text in texts]
 
-        if global_path_search:
-            path = self.path
-        elif project_search:
-            path = self.project_path
-        else:
-            path = self.file_path
+        file_search = self.path_selection_combo.is_file_search()
+        path = self.path_selection_combo.get_current_searchpath()
 
         # Finding text occurrences
         if not exclude_re:
@@ -377,38 +568,38 @@ class FindOptions(QWidget):
                            for index in range(self.search_text.count())]
             exclude = [to_text_string(self.exclude_pattern.itemText(index))
                        for index in range(self.exclude_pattern.count())]
+            path_history = self.path_selection_combo.get_external_paths()
             exclude_idx = self.exclude_pattern.currentIndex()
             more_options = self.more_options.isChecked()
             return (search_text, text_re, [],
                     exclude, exclude_idx, exclude_re,
-                    python_path, more_options)
+                    python_path, more_options, case_sensitive, path_history)
         else:
-            return (path, file_search, exclude, texts, text_re)
+            return (path, file_search, exclude, texts, text_re, case_sensitive)
 
-    @Slot()
-    def select_directory(self):
-        """Select directory"""
-        self.redirect_stdio.emit(False)
-        directory = getexistingdirectory(self, _("Select directory"),
-                                         self.dir_combo.currentText())
-        if directory:
-            self.set_directory(directory)
-        self.redirect_stdio.emit(True)
+    @property
+    def path(self):
+        return self.path_selection_combo.path
 
     def set_directory(self, directory):
-        self.path = to_text_string(osp.abspath(to_text_string(directory)))
+        self.path_selection_combo.path = osp.abspath(directory)
+
+    @property
+    def project_path(self):
+        return self.path_selection_combo.project_path
 
     def set_project_path(self, path):
-        self.project_path = to_text_string(osp.abspath(to_text_string(path)))
-        self.project_search.setEnabled(True)
+        self.path_selection_combo.set_project_path(path)
 
     def disable_project_search(self):
-        self.project_search.setEnabled(False)
-        self.project_search.setChecked(False)
-        self.project_path = None
+        self.path_selection_combo.set_project_path(None)
+
+    @property
+    def file_path(self):
+        return self.path_selection_combo.file_path
 
     def set_file_path(self, path):
-        self.file_path = path
+        self.path_selection_combo.file_path = path
 
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
@@ -672,7 +863,6 @@ class ResultsBrowser(OneColumnTree):
 
 class FileProgressBar(QWidget):
     """Simple progress spinner with a label"""
-    MAX_LABEL_LENGTH = 60
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -681,30 +871,32 @@ class FileProgressBar(QWidget):
         self.spinner = QWaitingSpinner(self, centerOnParent=False)
         self.spinner.setNumberOfLines(12)
         self.spinner.setInnerRadius(2)
-        self.spinner.start()
         layout = QHBoxLayout()
         layout.addWidget(self.spinner)
         layout.addWidget(self.status_text)
         self.setLayout(layout)
 
-    def __truncate(self, text):
-        ellipsis = '...'
-        part_len = (self.MAX_LABEL_LENGTH - len(ellipsis)) / 2.0
-        left_text = text[:int(math.ceil(part_len))]
-        right_text = text[-int(math.floor(part_len)):]
-        return left_text + ellipsis + right_text
-
     @Slot(str)
     def set_label_path(self, path, folder=False):
-        text = self.__truncate(path)
+        text = truncate_path(path)
         if not folder:
-            status_str = _(u' Scanning: {0}'.format(text))
+            status_str = _(u' Scanning: {0}').format(text)
         else:
-            status_str = _(u' Searching for files in folder: {0}'.format(text))
+            status_str = _(u' Searching for files in folder: {0}').format(text)
         self.status_text.setText(status_str)
 
     def reset(self):
         self.status_text.setText(_("  Searching for files..."))
+
+    def showEvent(self, event):
+        """Override show event to start waiting spinner."""
+        QWidget.showEvent(self, event)
+        self.spinner.start()
+
+    def hideEvent(self, event):
+        """Override hide event to stop waiting spinner."""
+        QWidget.hideEvent(self, event)
+        self.spinner.stop()
 
 
 class FindInFilesWidget(QWidget):
@@ -719,7 +911,9 @@ class FindInFilesWidget(QWidget):
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
                  exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 in_python_path=False, more_options=False):
+                 in_python_path=False, more_options=False,
+                 case_sensitive=True, external_path_history=[],
+                 options_button=None):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
@@ -730,11 +924,18 @@ class FindInFilesWidget(QWidget):
 
         self.status_bar = FileProgressBar(self)
         self.status_bar.hide()
-        self.find_options = FindOptions(self, search_text, search_text_regexp,
+
+        self.find_options = FindOptions(self, search_text,
+                                        search_text_regexp,
                                         search_path,
-                                        exclude, exclude_idx, exclude_regexp,
-                                        supported_encodings, in_python_path,
-                                        more_options)
+                                        exclude, exclude_idx,
+                                        exclude_regexp,
+                                        supported_encodings,
+                                        in_python_path,
+                                        more_options,
+                                        case_sensitive,
+                                        external_path_history,
+                                        options_button=options_button)
         self.find_options.find.connect(self.find)
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
@@ -762,8 +963,8 @@ class FindInFilesWidget(QWidget):
             return
         self.stop_and_reset_thread(ignore_results=True)
         self.search_thread = SearchThread(self)
-        self.search_thread.get_pythonpath_callback = \
-                                                self.get_pythonpath_callback
+        self.search_thread.get_pythonpath_callback = (
+            self.get_pythonpath_callback)
         self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.sig_current_file.connect(
             lambda x: self.status_bar.set_label_path(x, folder=False)
@@ -822,10 +1023,19 @@ class FindInFilesWidget(QWidget):
 def test():
     """Run Find in Files widget test"""
     from spyder.utils.qthelpers import qapplication
+    from os.path import dirname
     app = qapplication()
     widget = FindInFilesWidget(None)
     widget.resize(640, 480)
     widget.show()
+    external_paths = [
+            dirname(__file__),
+            dirname(dirname(__file__)),
+            dirname(dirname(dirname(__file__))),
+            dirname(dirname(dirname(dirname(__file__))))
+            ]
+    for path in external_paths:
+        widget.find_options.path_selection_combo.add_external_path(path)
     sys.exit(app.exec_())
 
 

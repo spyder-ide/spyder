@@ -22,6 +22,7 @@ from spyder.utils.introspection.manager import (
 from spyder.utils.introspection.module_completion import (
     get_preferred_submodules)
 from spyder.utils.introspection.manager import ROPE_REQVER
+from spyder.utils.introspection.utils import default_info_response
 
 try:
     try:
@@ -81,6 +82,9 @@ class RopePlugin(IntrospectionPlugin):
         source_code = info['source_code']
         offset = info['position']
 
+        # Set python path into rope project
+        self.project.prefs.set('python_path', info['sys_path'])
+
         # Prevent Rope from returning import completions because
         # it can't handle them. Only Jedi can do it!
         lines = sourcecode.split_source(source_code[:offset])
@@ -89,12 +93,13 @@ class RopePlugin(IntrospectionPlugin):
           and not ';' in last_line:
             return []
 
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
+        if filename is not None:
+            if PY2:
+                filename = filename.encode('utf-8')
+            else:
+                # TODO: test if this is working without any further change in
+                # Python 3 with a user account containing unicode characters
+                pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
@@ -119,17 +124,21 @@ class RopePlugin(IntrospectionPlugin):
     def get_info(self, info):
         """Get a formatted calltip and docstring from Rope"""
         if self.project is None:
-            return
+            return default_info_response()
         filename = info['filename']
         source_code = info['source_code']
         offset = info['position']
 
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
+        # Set python path into rope project
+        self.project.prefs.set('python_path', info['sys_path'])
+
+        if filename is not None:
+            if PY2:
+                filename = filename.encode('utf-8')
+            else:
+                # TODO: test if this is working without any further change in
+                # Python 3 with a user account containing unicode characters
+                pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)
@@ -201,10 +210,10 @@ class RopePlugin(IntrospectionPlugin):
                 note = 'Present in %s module' % module
 
         if not doc_text and not calltip:
-            return
+            return default_info_response()
 
         return dict(name=obj_fullname, argspec=argspec, note=note,
-            docstring=doc_text, calltip=calltip)
+                    docstring=doc_text, calltip=calltip)
 
     def get_definition(self, info):
         """Find a definition location using Rope"""
@@ -215,12 +224,15 @@ class RopePlugin(IntrospectionPlugin):
         source_code = info['source_code']
         offset = info['position']
 
-        if PY2:
-            filename = filename.encode('utf-8')
-        else:
-            #TODO: test if this is working without any further change in
-            # Python 3 with a user account containing unicode characters
-            pass
+        # Set python path into rope project
+        self.project.prefs.set('python_path', info['sys_path'])
+        if filename is not None:
+            if PY2:
+                filename = filename.encode('utf-8')
+            else:
+                # TODO: test if this is working without any further change in
+                # Python 3 with a user account containing unicode characters
+                pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
                                                            filename)

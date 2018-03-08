@@ -27,10 +27,11 @@ def test_dependencies(qtbot):
     # Test sample
     dependencies.add("zmq", "Run introspection services", ">=10.0")
     dependencies.add("foo", "Non-existent module", ">=1.0")
+    dependencies.add("bar", "Non-existing optional module", ">=10.0", optional=True)
 
     dlg = setup_dependencies(qtbot)
     dlg.set_data(dependencies.DEPENDENCIES)
-    dlg.show()    
+    dlg.show()
     assert dlg
 
 

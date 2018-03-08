@@ -135,6 +135,8 @@ class PatternComboBox(BaseComboBox):
     def __init__(self, parent, items=None, tip=None,
                  adjust_to_minimum=True):
         BaseComboBox.__init__(self, parent)
+        if hasattr(self.lineEdit(), 'setClearButtonEnabled'):  # only Qt >= 5.2
+            self.lineEdit().setClearButtonEnabled(True)
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -173,7 +175,7 @@ class EditableComboBox(BaseComboBox):
 
     def validate(self, qstr, editing=True):
         """Validate entered path"""
-        if self.selected_text == qstr:
+        if self.selected_text == qstr and qstr != '':
             self.valid.emit(True, True)
             return
 
@@ -208,6 +210,7 @@ class PathComboBox(EditableComboBox):
         self.setLineEdit(lineedit)
 
         # Signals
+        self.highlighted.connect(self.add_tooltip_to_highlighted_item)
         self.sig_tab_pressed.connect(self.tab_complete)
         self.sig_double_tab_pressed.connect(self.double_tab_complete)
         self.valid.connect(lineedit.update_status)
@@ -279,6 +282,13 @@ class PathComboBox(EditableComboBox):
             if text[-1] == os.sep:
                 text = text[:-1]
         self.add_text(text)
+
+    def add_tooltip_to_highlighted_item(self, index):
+        """
+        Add a tooltip showing the full path of the currently highlighted item
+        of the PathComboBox.
+        """
+        self.setItemData(index, self.itemText(index), Qt.ToolTipRole)
 
 
 class UrlComboBox(PathComboBox):

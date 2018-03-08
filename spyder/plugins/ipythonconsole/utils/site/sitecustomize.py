@@ -10,6 +10,7 @@
 #
 
 import bdb
+from distutils.version import LooseVersion
 import io
 import os
 import os.path as osp
@@ -17,7 +18,7 @@ import pdb
 import shlex
 import sys
 import time
-
+import warnings
 
 PY2 = sys.version[0] == '2'
 
@@ -34,7 +35,7 @@ if not hasattr(sys, 'argv'):
 #==============================================================================
 # Main constants
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 
 
 #==============================================================================
@@ -133,7 +134,7 @@ if os.name == 'nt' and PY2:
         except (ValueError, TypeError):
             # Code page number in locale is not valid
             pass
-    except ImportError:
+    except:
         pass
 
 
@@ -166,41 +167,56 @@ if sys.platform == 'darwin':
 
 
 #==============================================================================
-# Add Cython files import and runfile support
+# Cython support
 #==============================================================================
-try:
-    # Import pyximport for enable Cython files support for import statement
-    import pyximport
-    HAS_PYXIMPORT = True
-    pyx_setup_args = {}
-except ImportError:
-    HAS_PYXIMPORT = False
+RUN_CYTHON = os.environ.get("SPY_RUN_CYTHON") == "True"
+HAS_CYTHON = False
 
-if HAS_PYXIMPORT:
-    # Add Numpy include dir to pyximport/distutils
+if RUN_CYTHON:
     try:
-        import numpy
-        pyx_setup_args['include_dirs'] = numpy.get_include()
-    except ImportError:
+        __import__('Cython')
+        HAS_CYTHON = True
+    except Exception:
         pass
 
-    # Setup pyximport and enable Cython files reload
-    pyximport.install(setup_args=pyx_setup_args, reload_support=True)
-    
-try:
-    # Import cython_inline for runfile function
-    from Cython.Build.Inline import cython_inline
-    HAS_CYTHON = True
-except ImportError:
-    HAS_CYTHON = False
+    if HAS_CYTHON:
+        # Import pyximport to enable Cython files support for
+        # import statement
+        import pyximport
+        pyx_setup_args = {}
 
+        # Add Numpy include dir to pyximport/distutils
+        try:
+            import numpy
+            pyx_setup_args['include_dirs'] = numpy.get_include()
+        except Exception:
+            pass
+
+        # Setup pyximport and enable Cython files reload
+        pyximport.install(setup_args=pyx_setup_args, reload_support=True)
+
+
+#==============================================================================
+# Prevent subprocess.Popen calls to create visible console windows on Windows.
+# See issue #4932
+#==============================================================================
+if os.name == 'nt':
+    import subprocess
+    creation_flag = 0x08000000  # CREATE_NO_WINDOW
+
+    class SubprocessPopen(subprocess.Popen):
+        def __init__(self, *args, **kwargs):
+            kwargs['creationflags'] = creation_flag
+            super(SubprocessPopen, self).__init__(*args, **kwargs)
+
+    subprocess.Popen = SubprocessPopen
 
 #==============================================================================
 # Importing user's sitecustomize
 #==============================================================================
 try:
     import sitecustomize  #analysis:ignore
-except ImportError:
+except:
     pass
 
 
@@ -229,24 +245,6 @@ if os.environ["QT_API"] == 'pyqt':
 
 
 #==============================================================================
-# This prevents a kernel crash with the inline backend in our IPython
-# consoles on Linux and Python 3 (Fixes Issue 2257)
-#==============================================================================
-try:
-    import matplotlib
-except (ImportError, UnicodeDecodeError):
-    matplotlib = None   # analysis:ignore
-
-
-#==============================================================================
-# Matplotlib settings
-#==============================================================================
-if matplotlib is not None:
-    # To have mpl docstrings as rst
-    matplotlib.rcParams['docstring.hardcopy'] = True
-
-
-#==============================================================================
 # IPython kernel adjustments
 #==============================================================================
 # Use ipydb as the debugger to patch on IPython consoles
@@ -266,17 +264,24 @@ class IPyTesProgram(TestProgram):
         TestProgram.__init__(self, *args, **kwargs)
 unittest.main = IPyTesProgram
 
+# Patch ipykernel to avoid errors when setting the Qt5 Matplotlib
+# backemd
+# Fixes Issue 6091
+import ipykernel
+import IPython
+if LooseVersion(ipykernel.__version__) <= LooseVersion('4.7.0'):
+    if ((PY2 and LooseVersion(IPython.__version__) >= LooseVersion('5.5.0')) or
+        (not PY2 and LooseVersion(IPython.__version__) >= LooseVersion('6.2.0'))
+       ):
+        from ipykernel import eventloops
+        eventloops.loop_map['qt'] = eventloops.loop_map['qt5']
+
 
 #==============================================================================
 # Pandas adjustments
 #==============================================================================
 try:
-    # Make Pandas recognize our Jupyter consoles as proper qtconsoles
-    # Fixes Issue 2015
-    def in_qtconsole():
-        return True
     import pandas as pd
-    pd.core.common.in_qtconsole = in_qtconsole
 
     # Set Pandas output encoding
     pd.options.display.encoding = 'utf-8'
@@ -286,7 +291,6 @@ try:
     # >>> import pandas as pd, numpy as np
     # >>> pd.Series([np.nan,np.nan,np.nan],index=[1,2,3])
     # Fixes Issue 2991
-    import warnings
     # For 0.18-
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.core.format',
@@ -295,7 +299,7 @@ try:
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.formats.format',
                             message=".*invalid value encountered in.*")
-except (ImportError, AttributeError):
+except:
     pass
 
 
@@ -305,6 +309,7 @@ except (ImportError, AttributeError):
 class SpyderPdb(pdb.Pdb):
 
     send_initial_notification = True
+    starting = True
 
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
@@ -332,7 +337,7 @@ class SpyderPdb(pdb.Pdb):
             return
 
         from IPython.core.getipython import get_ipython
-        ipython_shell = get_ipython()
+        kernel = get_ipython().kernel
 
         # Get filename and line number of the current frame
         fname = self.canonic(frame.f_code.co_filename)
@@ -343,18 +348,31 @@ class SpyderPdb(pdb.Pdb):
                 pass
         lineno = frame.f_lineno
 
+        # Jump to first breakpoint.
+        # Fixes issue 2034
+        if self.starting:
+            # Only run this after a Pdb session is created
+            self.starting = False
+
+            # Get all breakpoints for the file we're going to debug
+            breaks = self.get_file_breaks(frame.f_code.co_filename)
+
+            # Do 'continue' if the first breakpoint is *not* placed
+            # where the debugger is going to land.
+            # Fixes issue 4681
+            if breaks and lineno != breaks[0] and osp.isfile(fname):
+                kernel.pdb_continue()
+
         # Set step of the current frame (if any)
         step = {}
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname):
-                if ipython_shell:
-                    step = dict(fname=fname, lineno=lineno)
+                step = dict(fname=fname, lineno=lineno)
 
         # Publish Pdb state so we can update the Variable Explorer
         # and the Editor on the Spyder side
-        if ipython_shell:
-            ipython_shell.kernel._pdb_step = step
-            ipython_shell.kernel.publish_pdb_state()
+        kernel._pdb_step = step
+        kernel.publish_pdb_state()
 
 pdb.Pdb = SpyderPdb
 
@@ -414,12 +432,15 @@ def user_return(self, frame, return_value):
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
-    self.setup(frame, traceback)
-    if self.send_initial_notification:
-        self.notify_spyder(frame)
-    self.print_stack_entry(self.stack[self.curindex])
-    self._cmdloop()
-    self.forget()
+    if frame is not None and "sitecustomize.py" in frame.f_code.co_filename:
+        self.run('exit')
+    else:
+        self.setup(frame, traceback)
+        if self.send_initial_notification:
+            self.notify_spyder(frame)
+        self.print_stack_entry(self.stack[self.curindex])
+        self._cmdloop()
+        self.forget()
 
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
@@ -443,10 +464,8 @@ def reset(self):
     self._old_Pdb_reset()
 
     from IPython.core.getipython import get_ipython
-    ipython_shell = get_ipython()
-    if ipython_shell:
-        ipython_shell.kernel._register_pdb_session(self)
-
+    kernel = get_ipython().kernel
+    kernel._register_pdb_session(self)
     self.set_spyder_breakpoints()
 
 
@@ -527,7 +546,7 @@ class UserModuleReloader(object):
         self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
-        if modname.startswith('_cython_inline'):
+        if HAS_CYTHON:
             # Don't return cached inline compiled .PYX files
             return True
         for path in [sys.prefix]+self.pathlist:
@@ -572,8 +591,7 @@ def clear_post_mortem():
     """
     from IPython.core.getipython import get_ipython
     ipython_shell = get_ipython()
-    if ipython_shell:
-        ipython_shell.set_custom_exc((), None)
+    ipython_shell.set_custom_exc((), None)
 
 
 def post_mortem_excepthook(type, value, tb):
@@ -629,16 +647,10 @@ if "SPYDER_EXCEPTHOOK" in os.environ:
 # runfile and debugfile commands
 #==============================================================================
 def _get_globals():
-    """Return current Python interpreter globals namespace"""
-    from __main__ import __dict__ as namespace
-    shell = namespace.get('__ipythonshell__')
-    if shell is not None and hasattr(shell, 'user_ns'):
-        # IPython 0.13+ kernel
-        return shell.user_ns
-    else:
-        # Python interpreter
-        return namespace
-    return namespace
+    """Return current namespace"""
+    from IPython.core.getipython import get_ipython
+    ipython_shell = get_ipython()
+    return ipython_shell.user_ns
 
 
 def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
@@ -655,14 +667,14 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         # AttributeError --> systematically raised in Python 3
         pass
     global __umr__
-    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+    if os.environ.get("SPY_UMR_ENABLED", "").lower() == "true":
         if __umr__ is None:
-            namelist = os.environ.get("UMR_NAMELIST", None)
+            namelist = os.environ.get("SPY_UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
             __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            verbose = os.environ.get("SPY_UMR_VERBOSE", "").lower() == "true"
             __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
@@ -683,7 +695,7 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         os.chdir(wdir)
     if post_mortem:
         set_post_mortem()
-    if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
+    if HAS_CYTHON:
         # Cython files
         with io.open(filename, encoding='utf-8') as f:
             from IPython.core.getipython import get_ipython

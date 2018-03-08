@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Collections (i.e. dictionary, list and tuple) editor widget and dialog
+Collections (i.e. dictionary, list, set and tuple) editor widget and dialog
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -23,8 +23,7 @@ import gc
 import sys
 
 # Third party imports
-import ipykernel.pickleutil
-from ipykernel.serialize import serialize_object
+import cloudpickle
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
@@ -39,19 +38,18 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, is_text_string,
-                              getcwd, PY3, to_text_string)
+                              PY3, to_text_string)
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import fix_reference_name
+from spyder.utils.misc import fix_reference_name, getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.plugins.variableexplorer.utils import (
-    array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
-    get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
-    is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
-    try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
-    get_type_string)
+    array, DataFrame, Index, display_to_value, FakeObject, get_color_name,
+    get_human_readable_type, get_size, Image, is_editable_type, is_known_type,
+    MaskedArray, ndarray, np_savetxt, Series, sort_against, try_to_eval,
+    unsorted_unique, value_to_display, get_object_attrs, get_type_string)
 
 if ndarray is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
@@ -62,17 +60,11 @@ if DataFrame is not FakeObject:
             DataFrameEditor)
 
 
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-ipykernel.pickleutil.can_map.pop('numpy.ndarray')
-
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 LARGE_NROWS = 100
+ROWS_TO_LOAD = 50
 
 
 class ProxyObject(object):
@@ -100,7 +92,6 @@ class ProxyObject(object):
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
-    ROWS_TO_LOAD = 50
 
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
@@ -133,7 +124,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         data_type = get_type_string(data)
 
         if coll_filter is not None and not self.remote and \
-          isinstance(data, (tuple, list, dict)):
+          isinstance(data, (tuple, list, dict, set)):
             data = coll_filter(data)
         self.showndata = data
 
@@ -146,6 +137,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif isinstance(data, list):
             self.keys = list(range(len(data)))
             self.title += _("List")
+        elif isinstance(data, set):
+            self.keys = list(range(len(data)))
+            self.title += _("Set")
+            self._data = list(data)
         elif isinstance(data, dict):
             self.keys = list(data.keys())
             self.title += _("Dictionary")
@@ -165,7 +160,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
-            self.rows_loaded = self.ROWS_TO_LOAD
+            self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
 
@@ -211,27 +206,22 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             except:
                 pass
         elif column == 1:
-            self.keys = sort_against(self.keys, self.types, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.types,
+                                                        reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             try:
                 self.types.sort(reverse=reverse)
             except:
                 pass
         elif column == 2:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes,
+                                                        reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             try:
                 self.sizes.sort(reverse=reverse)
             except:
                 pass
         elif column == 3:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
-            self.types = sort_against(self.types, self.sizes, reverse)
-            try:
-                self.sizes.sort(reverse=reverse)
-            except:
-                pass
-        elif column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
@@ -258,7 +248,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
  
     def fetchMore(self, index=QModelIndex()):
         reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, self.ROWS_TO_LOAD)
+        items_to_fetch = min(reminder, ROWS_TO_LOAD)
         self.set_size_and_type(self.rows_loaded,
                                self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,
@@ -422,7 +412,8 @@ class CollectionsDelegate(QItemDelegate):
             val_type = index.model().types[index.row()]
         except:
             return False
-        if val_type in ['list', 'tuple', 'dict'] and int(val_size) > 1e5:
+        if val_type in ['list', 'set', 'tuple', 'dict'] and \
+                int(val_size) > 1e5:
             return True
         else:
             return False
@@ -451,10 +442,10 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
-        readonly = isinstance(value, tuple) or self.parent().readonly \
+        readonly = isinstance(value, (tuple, set)) or self.parent().readonly \
                    or not is_known_type(value)
         #---editor = CollectionsEditor
-        if isinstance(value, (list, tuple, dict)):
+        if isinstance(value, (list, set, tuple, dict)):
             editor = CollectionsEditor()
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -483,7 +474,7 @@ class CollectionsDelegate(QItemDelegate):
                                             conv=conv_func))
             return None
         #--editor = DataFrameEditor
-        elif isinstance(value, (DataFrame, DatetimeIndex, Series)) \
+        elif isinstance(value, (DataFrame, Index, Series)) \
           and DataFrame is not FakeObject:
             editor = DataFrameEditor()
             if not editor.setup_and_check(value, title=key):
@@ -493,38 +484,41 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = QDateTimeEdit
-        elif isinstance(value, datetime.datetime):
-            editor = QDateTimeEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
-        #---editor = QDateEdit
+        #---editor = QDateEdit or QDateTimeEdit
         elif isinstance(value, datetime.date):
-            editor = QDateEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
+            if readonly:
+                return None
+            else:
+                if isinstance(value, datetime.datetime):
+                    editor = QDateTimeEdit(value, parent)
+                else:
+                    editor = QDateEdit(value, parent)
+                editor.setCalendarPopup(True)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                return editor
         #---editor = TextEditor
         elif is_text_string(value) and len(value) > 40:
             te = TextEditor(None)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key)
+                editor = TextEditor(value, key, readonly=readonly)
                 self.create_dialog(editor, dict(model=index.model(),
                                                 editor=editor, key=key,
                                                 readonly=readonly))
             return None
         #---editor = QLineEdit
         elif is_editable_type(value):
-            editor = QLineEdit(parent)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            editor.setAlignment(Qt.AlignLeft)
-            # This is making Spyder crash because the QLineEdit that it's
-            # been modified is removed and a new one is created after
-            # evaluation. So the object on which this method is trying to
-            # act doesn't exist anymore.
-            # editor.returnPressed.connect(self.commitAndCloseEditor)
-            return editor
+            if readonly:
+                return None
+            else:
+                editor = QLineEdit(parent)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setAlignment(Qt.AlignLeft)
+                # This is making Spyder crash because the QLineEdit that it's
+                # been modified is removed and a new one is created after
+                # evaluation. So the object on which this method is trying to
+                # act doesn't exist anymore.
+                # editor.returnPressed.connect(self.commitAndCloseEditor)
+                return editor
         #---editor = CollectionsEditor for an arbitrary object
         else:
             editor = CollectionsEditor()
@@ -689,7 +683,7 @@ class BaseTableView(QTableView):
                                           triggered=self.paste)
         self.copy_action = create_action(self, _("Copy"),
                                          icon=ima.icon('editcopy'),
-                                         triggered=self.copy)                                      
+                                         triggered=self.copy)
         self.edit_action = create_action(self, _("Edit"),
                                          icon=ima.icon('edit'),
                                          triggered=self.edit_item)
@@ -755,7 +749,7 @@ class BaseTableView(QTableView):
         raise NotImplementedError
         
     def is_list(self, key):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a set or a tuple"""
         raise NotImplementedError
         
     def get_len(self, key):
@@ -970,8 +964,12 @@ class BaseTableView(QTableView):
         else:
             title = _('Duplicate')
             field_text = _('Variable name:')
-        new_key, valid = QInputDialog.getText(self, title, field_text,
-                                              QLineEdit.Normal, orig_key)
+        data = self.model.get_data()
+        if isinstance(data, (list, set)):
+            new_key, valid = len(data), True
+        else:
+            new_key, valid = QInputDialog.getText(self, title, field_text,
+                                                  QLineEdit.Normal, orig_key)
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
             if new_key == orig_key:
@@ -1020,13 +1018,13 @@ class BaseTableView(QTableView):
         try:
             import guiqwt.pyplot   #analysis:ignore
             return True
-        except (ImportError, AssertionError):
+        except:
             try:
                 if 'matplotlib' not in sys.modules:
                     import matplotlib
                     matplotlib.use("Qt4Agg")
                 return True
-            except ImportError:
+            except:
                 QMessageBox.warning(self, _("Import error"),
                                     _("Please install <b>matplotlib</b>"
                                       " or <b>guiqwt</b>."))
@@ -1066,7 +1064,7 @@ class BaseTableView(QTableView):
         """Save array"""
         title = _( "Save array")
         if self.array_filename is None:
-            self.array_filename = getcwd()
+            self.array_filename = getcwd_or_home()
         self.redirect_stdio.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
@@ -1157,7 +1155,7 @@ class CollectionsEditorTableView(BaseTableView):
                  names=False, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
-        self.readonly = readonly or isinstance(data, tuple)
+        self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
                                 else CollectionsModel
         self.model = CollectionsModelClass(self, data, title, names=names,
@@ -1168,7 +1166,10 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
-    
+
+        if isinstance(data, set):
+            self.horizontalHeader().hideSection(0)
+
     #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
@@ -1180,7 +1181,12 @@ class CollectionsEditorTableView(BaseTableView):
     def copy_value(self, orig_key, new_key):
         """Copy value"""
         data = self.model.get_data()
-        data[new_key] = data[orig_key]
+        if isinstance(data, list):
+            data.append(data[orig_key])
+        if isinstance(data, set):
+            data.add(data[orig_key])
+        else:
+            data[new_key] = data[orig_key]
         self.set_data(data)
     
     def new_value(self, key, value):
@@ -1193,7 +1199,12 @@ class CollectionsEditorTableView(BaseTableView):
         """Return True if variable is a list or a tuple"""
         data = self.model.get_data()
         return isinstance(data[key], (tuple, list))
-        
+
+    def is_set(self, key):
+        """Return True if variable is a set"""
+        data = self.model.get_data()
+        return isinstance(data[key], set)
+
     def get_len(self, key):
         """Return sequence length"""
         data = self.model.get_data()
@@ -1257,11 +1268,14 @@ class CollectionsEditorTableView(BaseTableView):
         """Refresh context menu"""
         data = self.model.get_data()
         index = self.currentIndex()
-        condition = (not isinstance(data, tuple)) and index.isValid() \
+        condition = (not isinstance(data, (tuple, set))) and index.isValid() \
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
         self.insert_action.setEnabled( not self.readonly )
+        self.duplicate_action.setEnabled(condition)
+        condition_rename = not isinstance(data, (tuple, list, set))
+        self.rename_action.setEnabled(condition_rename)
         self.refresh_plot_entries(index)
         
     def set_filter(self, dictfilter=None):
@@ -1308,8 +1322,8 @@ class CollectionsEditor(QDialog):
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
         """Setup editor."""
-        if isinstance(data, dict):
-            # dictionnary
+        if isinstance(data, (dict, set)):
+            # dictionnary, set
             self.data_copy = data.copy()
             datalen = len(data)
         elif isinstance(data, (tuple, list)):
@@ -1319,15 +1333,22 @@ class CollectionsEditor(QDialog):
         else:
             # unknown object
             import copy
-            self.data_copy = copy.deepcopy(data)
+            try:
+                self.data_copy = copy.deepcopy(data)
+            except NotImplementedError:
+                self.data_copy = copy.copy(data)
+            except (TypeError, AttributeError):
+                readonly = True
+                self.data_copy = data
             datalen = len(get_object_attrs(data))
-        self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
-                                              readonly=readonly, remote=remote)
+        self.widget = CollectionsEditorWidget(self, self.data_copy,
+                                              title=title, readonly=readonly,
+                                              remote=remote)
 
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
-        
+
         # Buttons configuration
         buttons = QDialogButtonBox.Ok
         if not readonly:
@@ -1412,8 +1433,14 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
     def new_value(self, name, value):
         """Create new value in data"""
-        value = serialize_object(value)
-        self.shellwidget.set_value(name, value)
+        try:
+            # We need to enclose values in a list to be able to send
+            # them to the kernel in Python 2
+            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
+            self.shellwidget.set_value(name, svalue)
+        except TypeError as e:
+            QMessageBox.critical(self, _("Error"),
+                                 "TypeError: %s" % to_text_string(e))
         self.shellwidget.refresh_namespacebrowser()
 
     def remove_values(self, names):
@@ -1428,7 +1455,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.shellwidget.refresh_namespacebrowser()
 
     def is_list(self, name):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a tuple or a set"""
         return self.var_properties[name]['is_list']
 
     def is_dict(self, name):
@@ -1520,6 +1547,7 @@ def get_test_data():
             'str': 'kjkj kj k j j kj k jkj',
             'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
+            'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
             'float': 1.2233,

@@ -18,9 +18,9 @@ requirements:
     - python.app  # [osx]
     - pyqt >=5.6.0  # [osx]
     - pyqt  # [not osx]
-    - rope >=0.10.5
+    - rope >=0.9.4
     - pyflakes
-    - jedi >=0.9.0
+    - jedi >=0.11.0
     - qtconsole >=4.2.0
     - nbconvert
     - pygments >=2.0
@@ -29,10 +29,11 @@ requirements:
     - psutil
     - pylint
     - qtawesome >=0.4.1
-    - qtpy >=1.1.0
+    - qtpy >=1.2.0
     - pyzmq
     - chardet >=2.0.0
     - numpydoc
+    - cloudpickle
 
 about:
   home: https://github.com/spyder-ide/spyder

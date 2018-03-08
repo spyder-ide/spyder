@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QHBoxLayout, QHeaderView,
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.utils import misc
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, create_plugin_layout
 from spyder.plugins.explorer.widgets import FilteredDirView
 
 
@@ -96,8 +96,8 @@ class ExplorerTreeWidget(FilteredDirView):
         src_list = [to_text_string(url.toString())
                     for url in event.mimeData().urls()]
         if len(src_list) > 1:
-            buttons = QMessageBox.Yes|QMessageBox.YesAll| \
-                      QMessageBox.No|QMessageBox.NoAll|QMessageBox.Cancel
+            buttons = QMessageBox.Yes|QMessageBox.YesToAll| \
+                      QMessageBox.No|QMessageBox.NoToAll|QMessageBox.Cancel
         else:
             buttons = QMessageBox.Yes|QMessageBox.No
         for src in src_list:
@@ -117,9 +117,9 @@ class ExplorerTreeWidget(FilteredDirView):
                         continue
                     elif answer == QMessageBox.Cancel:
                         break
-                    elif answer == QMessageBox.YesAll:
+                    elif answer == QMessageBox.YesToAll:
                         yes_to_all = True
-                    elif answer == QMessageBox.NoAll:
+                    elif answer == QMessageBox.NoToAll:
                         no_to_all = True
                         continue
                 else:
@@ -173,7 +173,7 @@ class ProjectExplorerWidget(QWidget):
     sig_open_file = Signal(str)
 
     def __init__(self, parent, name_filters=[],
-                 show_all=True, show_hscrollbar=True):
+                 show_all=True, show_hscrollbar=True, options_button=None):
         QWidget.__init__(self, parent)
 
         self.name_filters = name_filters
@@ -187,8 +187,16 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget.hide()
 
         self.emptywidget = ExplorerTreeWidget(self)
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+
+        if options_button:
+            btn_layout = QHBoxLayout()
+            btn_layout.setAlignment(Qt.AlignLeft)
+            btn_layout.addStretch()
+            btn_layout.addWidget(options_button, Qt.AlignRight)
+            layout = create_plugin_layout(btn_layout)
+        else:
+            layout = QVBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.emptywidget)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
@@ -254,13 +262,17 @@ class ProjectExplorerWidget(QWidget):
 # Tests
 #==============================================================================
 class ProjectExplorerTest(QWidget):
-    def __init__(self):
+    def __init__(self, directory=None):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
 
-        self.explorer = ProjectExplorerWidget(None, show_all=True)
-        self.explorer.setup_project(osp.dirname(osp.abspath(__file__)))
+        self.explorer = ProjectExplorerWidget(self, show_all=True)
+        if directory is not None:
+            self.directory = directory
+        else:
+            self.directory = osp.dirname(osp.abspath(__file__))
+        self.explorer.setup_project(self.directory)
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()

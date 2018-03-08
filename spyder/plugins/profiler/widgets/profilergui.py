@@ -17,8 +17,10 @@ http://docs.python.org/library/profile.html
 from __future__ import with_statement
 import os
 import os.path as osp
+from itertools import islice
 import sys
 import time
+import re
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
@@ -29,14 +31,14 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_conf_path, get_translation
-from spyder.py3compat import getcwd, to_text_string
+from spyder.config.base import get_conf_path, get_translation, debug_print
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                     set_item_user_text)
 from spyder.utils.programs import shell_split
 from spyder.widgets.comboboxes import PythonModulesComboBox
-from spyder.utils.misc import add_pathlist_to_PYTHONPATH
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
 # This is needed for testing this module as a stand alone script
@@ -63,7 +65,7 @@ class ProfilerWidget(QWidget):
     VERSION = '0.0.1'
     redirect_stdio = Signal(bool)
     
-    def __init__(self, parent, max_entries=100):
+    def __init__(self, parent, max_entries=100, options_button=None):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle("Profiler")
@@ -137,6 +139,8 @@ class ProfilerWidget(QWidget):
         hlayout1.addWidget(browse_button)
         hlayout1.addWidget(self.start_button)
         hlayout1.addWidget(self.stop_button)
+        if options_button:
+            hlayout1.addWidget(options_button)
 
         hlayout2 = QHBoxLayout()
         hlayout2.addWidget(self.collapse_button)
@@ -177,15 +181,16 @@ class ProfilerWidget(QWidget):
     def save_data(self):
         """Save data"""
         title = _( "Save profiler result")
-        filename, _selfilter = getsavefilename(self, title,
-                                               getcwd(),
-                                               _("Profiler result")+" (*.Result)")
+        filename, _selfilter = getsavefilename(
+                self, title, getcwd_or_home(),
+                _("Profiler result")+" (*.Result)")
         if filename:
             self.datatree.save_data(filename)
             
     def compare(self):
-        filename, _selfilter = getopenfilename(self, _("Select script to compare"),
-                                               getcwd(), _("Profiler result")+" (*.Result)")
+        filename, _selfilter = getopenfilename(
+                self, _("Select script to compare"),
+                getcwd_or_home(), _("Profiler result")+" (*.Result)")
         if filename:
             self.datatree.compare(filename)
             self.show_data()
@@ -216,8 +221,9 @@ class ProfilerWidget(QWidget):
             
     def select_file(self):
         self.redirect_stdio.emit(False)
-        filename, _selfilter = getopenfilename(self, _("Select Python script"),
-                           getcwd(), _("Python scripts")+" (*.py ; *.pyw)")
+        filename, _selfilter = getopenfilename(
+                self, _("Select Python script"),
+                getcwd_or_home(), _("Python scripts")+" (*.py ; *.pyw)")
         self.redirect_stdio.emit(True)
         if filename:
             self.analyze(filename)
@@ -258,7 +264,7 @@ class ProfilerWidget(QWidget):
                                           lambda: self.read_output(error=True))
         self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
                                       self.finished(ec, es))
-        self.stop_button.clicked.connect(self.process.kill)
+        self.stop_button.clicked.connect(self.kill)
 
         if pythonpath is not None:
             env = [to_text_string(_pth)
@@ -272,6 +278,7 @@ class ProfilerWidget(QWidget):
         
         self.output = ''
         self.error_output = ''
+        self.stopped = False
         
         p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
         if os.name == 'nt':
@@ -294,7 +301,12 @@ class ProfilerWidget(QWidget):
         if not running:
             QMessageBox.critical(self, _("Error"),
                                  _("Process failed to start"))
-    
+
+    def kill(self):
+        """Stop button pressed."""
+        self.process.kill()
+        self.stopped = True
+
     def set_running_state(self, state=True):
         self.start_button.setEnabled(not state)
         self.stop_button.setEnabled(state)
@@ -340,6 +352,11 @@ class ProfilerWidget(QWidget):
         if not filename:
             return
 
+        if self.stopped:
+            self.datelabel.setText(_('Run stopped by user.'))
+            self.datatree.initialize_view()
+            return
+
         self.datelabel.setText(_('Sorting data, please wait...'))
         QApplication.processEvents()
         
@@ -351,6 +368,30 @@ class ProfilerWidget(QWidget):
                                                time.localtime())
         self.datelabel.setText(date_text)
 
+def gettime_s(text):
+    """Parse text and returns a time in seconds
+    
+    The text is of the format 0h : 0.min:0.0s:0 ms:0us:0 ns. 
+    Spaces are not taken into account and any of the specifiers can be ignored"""
+    pattern = r'([+-]?\d+\.?\d*) ?([munsecinh]+)'
+    matches = re.findall(pattern, text)
+    if len(matches) == 0:
+        return None
+    time = 0.
+    for res in matches:
+        tmp = float(res[0])
+        if res[1] == 'ns':
+            tmp *= 1e-9
+        elif res[1] == 'us':
+            tmp *= 1e-6
+        elif res[1] == 'ms':
+            tmp *= 1e-3
+        elif res[1] == 'min':
+            tmp *= 60
+        elif res[1] == 'h':
+            tmp *= 3600
+        time += tmp
+    return time
 
 class TreeWidgetItem( QTreeWidgetItem ):
     def __init__(self, parent=None):
@@ -359,10 +400,15 @@ class TreeWidgetItem( QTreeWidgetItem ):
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
         try:
+            if column == 1 or column == 3: #TODO: Hardcoded Column
+                t0 = gettime_s(self.text(column))
+                t1 = gettime_s(otherItem.text(column))
+                if t0 is not None and t1 is not None:
+                    return t0 > t1
+            
             return float( self.text(column) ) > float( otherItem.text(column) )
         except ValueError:
             return self.text(column) > otherItem.text(column)
-
 
 class ProfilerDataTree(QTreeWidget):
     """
@@ -430,11 +476,21 @@ class ProfilerDataTree(QTreeWidget):
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
-        stats_indi = [pstats.Stats(profdatafile),]
+        try:
+            stats_indi = [pstats.Stats(profdatafile), ]
+        except (OSError, IOError):
+            return
         self.profdata = stats_indi[0]
         
         if self.compare_file is not None:
-            stats_indi.append(pstats.Stats(self.compare_file))
+            try:
+                stats_indi.append(pstats.Stats(self.compare_file))
+            except (OSError, IOError) as e:
+                QMessageBox.critical(
+                    self, _("Error"),
+                    _("Error when trying to load profiler results"))
+                debug_print("Error when calling pstats, {}".format(e))
+                self.compare_file = None
         map(lambda x: x.calc_callees(), stats_indi)
         self.profdata.calc_callees()
         self.stats1 = stats_indi
@@ -500,8 +556,12 @@ class ProfilerDataTree(QTreeWidget):
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
 
-    def format_measure(self, measure):
+    @staticmethod
+    def format_measure(measure):
         """Get format and units for data coming from profiler task."""
+        # Convert to a positive value.
+        measure = abs(measure)
+
         # For number of calls
         if isinstance(measure, int):
             return to_text_string(measure)
@@ -528,29 +588,43 @@ class ProfilerDataTree(QTreeWidget):
             measure = u"{0:.0f}h:{1:.0f}min".format(h, m)
         return measure
 
-    def color_string(self, args):
-        x, fmt = args
+    def color_string(self, x):
+        """Return a string formatted delta for the values in x.
+
+        Args:
+            x: 2-item list of integers (representing number of calls) or
+               2-item list of floats (representing seconds of runtime).
+
+        Returns:
+            A list with [formatted x[0], [color, formatted delta]], where
+            color reflects whether x[1] is lower, greater, or the same as
+            x[0].
+        """
         diff_str = ""
         color = "black"
 
         if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
-            if difference < 0:
-                diff_str = "".join(['', fmt[1] % self.format_measure(difference)])
-                color = "green"
-            elif difference > 0:
-                diff_str = "".join(['+', fmt[1] % self.format_measure(difference)])
-                color = "red"
-        return [fmt[0] % self.format_measure(x[0]), [diff_str, color]]
+            if difference:
+                color, sign = ('green', '-') if difference < 0 else ('red', '+')
+                diff_str = '{}{}'.format(sign, self.format_measure(difference))
+        return [self.format_measure(x[0]), [diff_str, color]]
 
     def format_output(self, child_key):
-        """ Formats the data"""
-        if True:
-            data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-            format_data = zip(list(zip(*data))[1:4],
-                              [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])
-            return (map(self.color_string, format_data))
-            
+        """ Formats the data.
+
+        self.stats1 contains a list of one or two pstat.Stats() instances, with
+        the first being the current run and the second, the saved run, if it
+        exists.  Each Stats instance is a dictionary mapping a function to
+        5 data points - cumulative calls, number of calls, total time,
+        cumulative time, and callers.
+
+        format_output() converts the number of calls, total time, and
+        cumulative time to a string format for the child_key parameter.
+        """
+        data = [x.stats.get(child_key, [0, 0, 0, 0, {}]) for x in self.stats1]
+        return (map(self.color_string, islice(zip(*data), 1, 4)))
+
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
         for child_key in children_list:
@@ -631,8 +705,8 @@ class ProfilerDataTree(QTreeWidget):
         while ancestor:
             if (child_item.data(0, Qt.DisplayRole
                                 ) == ancestor.data(0, Qt.DisplayRole) and
-                child_item.data(4, Qt.DisplayRole
-                                ) == ancestor.data(4, Qt.DisplayRole)):
+                child_item.data(7, Qt.DisplayRole
+                                ) == ancestor.data(7, Qt.DisplayRole)):
                 return True
             else:
                 ancestor = ancestor.parent()

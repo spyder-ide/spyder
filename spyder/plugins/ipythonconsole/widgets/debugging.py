@@ -9,6 +9,8 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
+import ast
+
 from qtpy.QtCore import Qt
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -52,10 +54,12 @@ class DebuggingWidget(RichJupyterWidget):
             self.sig_pdb_step.emit(fname, lineno)
 
         if 'namespace_view' in pdb_state:
-            self.sig_namespace_view.emit(pdb_state['namespace_view'])
+            self.sig_namespace_view.emit(ast.literal_eval(
+                    pdb_state['namespace_view']))
 
         if 'var_properties' in pdb_state:
-            self.sig_var_properties.emit(pdb_state['var_properties'])
+            self.sig_var_properties.emit(ast.literal_eval(
+                    pdb_state['var_properties']))
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_input_request(self, msg):
@@ -69,7 +73,9 @@ class DebuggingWidget(RichJupyterWidget):
 
         def callback(line):
             # Save history to browse it later
-            self._control.history.append(line)
+            if not (len(self._control.history) > 0
+                    and self._control.history[-1] == line):
+                self._control.history.append(line)
 
             # This is the Spyder addition: add a %plot magic to display
             # plots while debugging
@@ -95,9 +101,10 @@ class DebuggingWidget(RichJupyterWidget):
             elif key == Qt.Key_Down:
                 self._control.browse_history(backward=False)
                 return True
-            else:
-                return super(DebuggingWidget,
-                             self)._event_filter_console_keypress(event)
+            elif key in (Qt.Key_Return, Qt.Key_Enter):
+                self._control.reset_search_pos()
+            return super(DebuggingWidget,
+                         self)._event_filter_console_keypress(event)
         else:
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
