@@ -60,7 +60,7 @@ def test_get_words_python():
                       'com', 'def', 'for', 'gmail', 'home', 'i', 'implemented', 'import',
                       'in', 'int', 'is', 'iterate_', 'jmg', 'neighbours', 'new', 'np', 'null',
                       'numpy', 'over', 'print', 'range', 'ravel', 'return', 'rules', 'shape',
-                      'stay', 'sure', 'survive', 'utn', 'values', 'zeros']
+                      'stay', 'sure', 'survive', 'test', 'TODO', 'utn', 'values', 'XXX', 'zeros']
     assert sorted(expected_words) == sorted(get_words_by_filename("example.py"))
     assert sorted(expected_words) == sorted(get_words_by_content("example.py"))
 
