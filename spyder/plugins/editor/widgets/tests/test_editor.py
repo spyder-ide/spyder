@@ -576,6 +576,19 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     assert finder.replace_text.currentText() == 'This is some test text!'
 
 
+def test_get_autosave_filename(editor_bot):
+    """Check that get_autosave_filename returns a consistent and unique name
+    for autosave file."""
+    editor_stack, editor, qtbot = editor_bot
+    autosave = editor_stack.autosave
+    expected = os.path.join(get_conf_path('autosave'), 'foo.py')
+    assert autosave.get_autosave_filename('foo.py') == expected
+    editor_stack.new('ham/foo.py', 'utf-8', '')
+    expected2 = os.path.join(get_conf_path('autosave'), 'foo-1.py')
+    assert autosave.get_autosave_filename('foo.py') == expected
+    assert autosave.get_autosave_filename('ham/foo.py') == expected2
+
+
 def test_autosave_all(editor_bot, mocker):
     """Check that autosave_all() calls autosave() on all open buffers. The
     editor_bot fixture is constructed with one open file and the test opens
