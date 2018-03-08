@@ -33,7 +33,9 @@ def find_tasks(source_code):
     results = []
     for line, text in enumerate(source_code.splitlines()):
         for todo in re.findall(TASKS_PATTERN, text):
-            results.append((todo[-1].strip().capitalize(), line+1))
+            todo_text = (todo[-1].strip(' :').capitalize() if todo[-1]
+                         else todo[-2])
+            results.append((todo_text, line + 1))
     return results
 
 
