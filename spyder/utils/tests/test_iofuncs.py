@@ -105,5 +105,29 @@ def test_matlabstruct():
     assert data['c'].d == 'eggs'
     assert data['d'].tolist() == [[1, 2, 3]]
 
+
+def test_spydata_export(spydata_values):
+    """
+    Test spydata export and re-import.
+
+    This test saves the variables in ``spydata_values`` in spydata format
+    and then reloads and checks them to make sure they save/restore properly
+    and no errors occur during the process.
+    """
+    path = os.path.join(LOCATION, 'export_data_copy.spydata')
+    export_error = iofuncs.save_dictionary(spydata_values, path)
+    assert export_error is None
+    data, import_error = iofuncs.load_dictionary(path)
+    assert import_error is None
+    valid = True
+    for var in sorted(spydata_values.keys()):
+        valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+    assert valid
+    try:
+        os.remove(path)
+    except (IOError, OSError, PermissionError):
+        pass
+
+
 if __name__ == "__main__":
     pytest.main()
