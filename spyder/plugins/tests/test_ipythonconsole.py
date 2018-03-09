@@ -821,5 +821,33 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     assert argv == ['']
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_set_elapsed_time(ipyconsole, qtbot):
+    """Test timer."""
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Set time to 2 minutes ago.
+    client.t0 -= 120
+    with qtbot.waitSignal(client.timer.timeout):
+        ipyconsole.set_elapsed_time(client)
+    assert '00:02:00' in client.time_label.text()
+
+    with qtbot.waitSignal(client.timer.timeout):
+        pass
+    assert '00:02:01' in client.time_label.text()
+
+    # Make previous time later than current time.
+    client.t0 += 2000
+    with qtbot.waitSignal(client.timer.timeout):
+        pass
+    assert '00:00:00' in client.time_label.text()
+
+    client.timer.timeout.disconnect(client.show_time)
+
+
 if __name__ == "__main__":
     pytest.main()
