@@ -1,8 +1,10 @@
-# -*- coding:utf-8 -*-
-#
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
 Input/Output Utilities
@@ -34,7 +36,7 @@ except:
     pd = None            #analysis:ignore
 
 # Local imports
-from spyder.config.base import _, get_conf_path
+from spyder.config.base import _, STDERR
 from spyder.py3compat import pickle, to_text_string, PY2
 from spyder.utils.misc import getcwd_or_home
 
