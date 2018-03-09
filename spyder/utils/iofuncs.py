@@ -15,17 +15,20 @@ Note: 'load' functions has to return a dictionary from which a globals()
 
 from __future__ import print_function
 
+# Standard library imports
 import sys
 import os
+import os.path as osp
 import tarfile
 import tempfile
-import os.path as osp
 import shutil
 import warnings
 import json
 import inspect
 import dis
+import copy
 
+# Third party imports
 # - If pandas fails to import here (for any reason), Spyder
 #   will crash at startup (e.g. see Issue 2300)
 # - This also prevents Spyder to start IPython kernels
@@ -287,6 +290,16 @@ def save_dictionary(data, filename):
     old_cwd = getcwd_or_home()
     os.chdir(osp.dirname(filename))
     error_message = None
+
+    # Copy dictionary before modifying to fix #6689
+    try:
+        data = copy.deepcopy(data)
+    except NotImplementedError:
+        try:
+            data = copy.copy(data)
+        except Exception:
+            data = data
+
     try:
         saved_arrays = {}
         if load_array is not None:
