@@ -17,19 +17,21 @@ import spyder.utils.iofuncs as iofuncs
 LOCATION = os.path.realpath(os.path.join(os.getcwd(),
                                          os.path.dirname(__file__)))
 
+
 @pytest.fixture
 def spydata_values():
     """
     Define spydata file ground truth values.
 
-    The file test_export.spydata contains four variables to be loaded, this
-    function declares those variables in a static way.
+    The file export_data.spydata contains five variables to be loaded.
+    This fixture declares those variables in a static way.
     """
     A = 1
     B = 'ham'
     C = np.eye(3)
-    D = {'a':1}
-    return {'A':A, 'B':B, 'C':C, 'D':D}
+    D = {'a': True, 'b': np.eye(4, dtype=np.complex)}
+    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_)]
+    return {'A': A, 'B': B, 'C': C, 'D': D, 'E': E}
 
 @pytest.fixture
 def real_values():
@@ -72,6 +74,7 @@ def test_matlab_import(real_values):
         valid = valid and bool(np.mean(real_values[var] == inf[var]))
     assert valid
 
+
 def test_spydata_import(spydata_values):
     """
     Test spydata handling and variable importing.
@@ -79,12 +82,18 @@ def test_spydata_import(spydata_values):
     This test loads all the variables contained inside a spydata tar
     container and compares them against their static values.
     """
-    path = os.path.join(LOCATION, 'test_export.spydata')
+    path = os.path.join(LOCATION, 'export_data.spydata')
     data, error = iofuncs.load_dictionary(path)
+    assert error is None
     valid = True
     for var in sorted(spydata_values.keys()):
-        valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+        try:
+            valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+        except ValueError:
+            valid = valid and all([np.all(obj1 == obj2) for obj1, obj2 in
+                                   zip(spydata_values[var], data[var])])
     assert valid
+
 
 @pytest.mark.skipif(iofuncs.load_matlab is None, reason="SciPy required")
 def test_matlabstruct():
@@ -100,7 +109,9 @@ def test_matlabstruct():
     buf = io.BytesIO()
     iofuncs.save_matlab(a, buf)
     buf.seek(0)
-    data, err = iofuncs.load_matlab(buf)
+    data, error = iofuncs.load_matlab(buf)
+
+    assert error is None
     assert data['b'] == 'spam'
     assert data['c'].d == 'eggs'
     assert data['d'].tolist() == [[1, 2, 3]]
@@ -110,8 +121,8 @@ def test_spydata_export(spydata_values):
     """
     Test spydata export and re-import.
 
-    This test saves the variables in ``spydata_values`` in spydata format
-    and then reloads and checks them to make sure they save/restore properly
+    This test saves the variables in ``spydata`` format and then
+    reloads and checks them to make sure they save/restore properly
     and no errors occur during the process.
     """
     path = os.path.join(LOCATION, 'export_data_copy.spydata')
@@ -121,7 +132,11 @@ def test_spydata_export(spydata_values):
     assert import_error is None
     valid = True
     for var in sorted(spydata_values.keys()):
-        valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+        try:
+            valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+        except ValueError:
+            valid = valid and all([np.all(obj1 == obj2) for obj1, obj2 in
+                                   zip(spydata_values[var], data[var])])
     assert valid
     try:
         os.remove(path)
