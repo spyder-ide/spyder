@@ -12,9 +12,9 @@ import os  # Example module for testing display inside collecitoneditor
 import copy
 import datetime
 try:
-    from unittest.mock import Mock, ANY
+    from unittest.mock import Mock
 except ImportError:
-    from mock import Mock, ANY  # Python 2
+    from mock import Mock  # Python 2
 
 # Third party imports
 import pandas
@@ -167,9 +167,10 @@ def test_rename_and_duplicate_item_in_collection_editor():
 
 
 def test_edit_mutable_and_immutable_types(monkeypatch):
-    """Check to ensure mutable types (lists, dicts) and individual values are
-    editable, but not immutable ones (tuples) or anything inside of them,
-    per #5991"""
+    """
+    Test that mutable types (lists, dicts) and individual values are editable,
+    but not immutable ones (tuples) or anything inside of them, to fix #5991 .
+    """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.widgets.variableexplorer.' +
                                'collectionseditor.QLineEdit')
@@ -208,7 +209,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_list.delegate.createEditor(None, None,
                                       editor_list.model.createIndex(1, 3))
     assert MockTextEditor.call_count == 2
-    MockTextEditor.assert_called_with(ANY, ANY, readonly=False)
+    assert not MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside list
     editor_list_datetime = editor_list.delegate.createEditor(
@@ -220,17 +221,13 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_list.delegate.createEditor(None, None,
                                       editor_list.model.createIndex(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 1
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=False)
+    assert not mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside list
     editor_list.delegate.createEditor(None, None,
                                       editor_list.model.createIndex(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 2
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=True)
+    assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tests for immutable type (tuple) #
     editor_tup = CollectionsEditorTableView(None, tup_test)
@@ -245,7 +242,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_tup.delegate.createEditor(None, None,
                                      editor_tup.model.createIndex(1, 3))
     assert MockTextEditor.call_count == 4
-    MockTextEditor.assert_called_with(ANY, ANY, readonly=True)
+    assert MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside tuple
     editor_tup_datetime = editor_tup.delegate.createEditor(
@@ -257,23 +254,21 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_tup.delegate.createEditor(None, None,
                                      editor_tup.model.createIndex(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 3
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=True)
+    assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside tuple
     editor_tup.delegate.createEditor(None, None,
                                      editor_tup.model.createIndex(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 4
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=True)
+    assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
 
 @flaky(max_runs=3)
 def test_view_module_in_coledit():
-    """Check that modules don't produce an error when trying to open them in
-    Variable Explorer, and are set as readonly. Regression test for #6080"""
+    """
+    Check that modules don't produce an error when trying to open them in
+    Variable Explorer, and are set as readonly. Regression test for #6080
+    """
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
     assert editor.widget.editor.readonly
