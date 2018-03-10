@@ -74,8 +74,14 @@ class ProxyObject(object):
         return len(get_object_attrs(self.__obj__))
 
     def __getitem__(self, key):
-        """Get attribute corresponding to key."""
-        return getattr(self.__obj__, key)
+        """Get the attribute corresponding to given key."""
+        # Fix #6284 where pandas MultiIndex returns NotImplementedError
+        # Due to NA checking not being supported on a multiindex.
+        try:
+            attribute_toreturn = getattr(self.__obj__, key)
+        except NotImplementedError:
+            attribute_toreturn = None
+        return attribute_toreturn
 
     def __setitem__(self, key, value):
         """Set attribute corresponding to key with value."""
