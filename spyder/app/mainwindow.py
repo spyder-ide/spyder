@@ -159,6 +159,7 @@ from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.widgets.fileswitcher import FileSwitcher
+from spyder.widgets.github.backend import GithubBackend
 
 #==============================================================================
 # Local gui imports
@@ -2469,29 +2470,35 @@ class MainWindow(QMainWindow):
         return issue_template
 
     @Slot()
-    def report_issue(self, body=None, title=None):
+    def report_issue(self, body=None, title=None, dialog=None):
         """Report a Spyder issue to github, generating body text if needed."""
-        if PY3:
-            from urllib.parse import quote
+        if body is not None and title is not None:
+            github_backend = GithubBackend('spyder-ide', 'spyder')
+            github_report = github_backend.send_report(title, body)
+            if github_report and dialog is not None:
+                dialog.close()
         else:
-            from urllib import quote     # analysis:ignore
+            if PY3:
+                from urllib.parse import quote
+            else:
+                from urllib import quote     # analysis:ignore
 
-        if body is None:
-            body = self.render_issue()
+            if body is None:
+                body = self.render_issue()
 
-        url = QUrl(__project_url__ + '/issues/new')
-        if PYQT5:
-            from qtpy.QtCore import QUrlQuery
-            query = QUrlQuery()
-            query.addQueryItem("body", quote(body))
-            if title:
-                query.addQueryItem("title", quote(title))
-            url.setQuery(query)
-        else:
-            url.addEncodedQueryItem("body", quote(body))
-            if title:
-                url.addEncodedQueryItem("title", quote(title))
-        QDesktopServices.openUrl(url)
+            url = QUrl(__project_url__ + '/issues/new')
+            if PYQT5:
+                from qtpy.QtCore import QUrlQuery
+                query = QUrlQuery()
+                query.addQueryItem("body", quote(body))
+                if title:
+                    query.addQueryItem("title", quote(title))
+                url.setQuery(query)
+            else:
+                url.addEncodedQueryItem("body", quote(body))
+                if title:
+                    url.addEncodedQueryItem("title", quote(title))
+            QDesktopServices.openUrl(url)
 
     @Slot()
     def trouble_guide(self):

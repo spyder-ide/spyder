@@ -12,8 +12,9 @@
 import sys
 
 # Third party imports
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QHBoxLayout,
-                            QLabel, QPlainTextEdit, QPushButton, QVBoxLayout)
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
+                            QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit,
+                            QPushButton, QVBoxLayout)
 from qtpy.QtCore import Qt, Signal
 
 # Local imports
@@ -143,6 +144,9 @@ class SpyderErrorDialog(QDialog):
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
 
+        # Field to input the title
+        self.issue_title = QLineEdit(_("Automatic error report"))
+
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
 
@@ -178,6 +182,16 @@ class SpyderErrorDialog(QDialog):
 
         self.close_btn = QPushButton(_('Close'))
 
+        # Form layout
+        form_layout = QFormLayout()
+        form_layout.setWidget(0, QFormLayout.LabelRole, QLabel(_("Title")))
+        form_layout.setWidget(0, QFormLayout.FieldRole, self.issue_title)
+
+        # Description layout
+        form_layout.setWidget(1, QFormLayout.LabelRole,
+                              QLabel(_("Description")))
+        form_layout.setWidget(1, QFormLayout.FieldRole, self.input_description)
+
         # Buttons layout
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.submit_btn)
@@ -187,7 +201,7 @@ class SpyderErrorDialog(QDialog):
         # Main layout
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.main_label)
-        vlayout.addWidget(self.input_description)
+        vlayout.addLayout(form_layout)
         vlayout.addWidget(self.details)
         vlayout.addLayout(labels_layout)
         vlayout.addLayout(buttons_layout)
@@ -201,6 +215,7 @@ class SpyderErrorDialog(QDialog):
         main = self.parent().main
 
         # Getting description and traceback
+        title = self.issue_title.text()
         description = self.input_description.toPlainText()
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
@@ -212,10 +227,8 @@ class SpyderErrorDialog(QDialog):
         QApplication.clipboard().setText(issue_text)
 
         # Submit issue to Github
-        issue_body = ("<!--- IMPORTANT: Paste the contents of your clipboard "
-                      "here to complete reporting the problem. --->\n\n")
-        main.report_issue(body=issue_body,
-                          title="Automatic error report")
+        main.report_issue(body=issue_text,
+                          title=title, dialog=self)
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in details."""
