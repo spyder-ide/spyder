@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
 """
-Tests for dataframeeditor.py
+Tests for the dataframe editor.
 """
 
 from __future__ import division
 
 # Standard library imports
+import os
 from sys import platform
 from datetime import datetime
 try:
     from unittest.mock import Mock, ANY
 except ImportError:
     from mock import Mock, ANY  # Python 2
-import os
 
 # Third party imports
 from pandas import DataFrame, date_range, read_csv, concat
@@ -35,9 +38,16 @@ from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
 from spyder.py3compat import PY2
 
+
+# =============================================================================
+# Constants
+# =============================================================================
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 
-# Helper functions
+
+# =============================================================================
+# Utility functions
+# =============================================================================
 def colorclose(color, hsva_expected):
     """
     Compares HSV values which are stored as 16-bit integers.
@@ -51,9 +61,10 @@ def data(dfm, i, j):
 def bgcolor(dfm, i, j):
     return dfm.get_bgcolor(dfm.createIndex(i, j))
 
-# --- Tests
-# -----------------------------------------------------------------------------
 
+# =============================================================================
+# Tests
+# =============================================================================
 def test_dataframemodel_basic():
     df = DataFrame({'colA': [1, 3], 'colB': ['c', 'a']})
     dfm = DataFrameModel(df)
@@ -166,7 +177,7 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     """
     Test DataFrameModel with format `%d` and dataframe containing NaN
 
-    Regression test for issue 4139.
+    Regression test for issue #4139.
     """
     np_array = numpy.zeros(2)
     np_array[1] = numpy.nan
@@ -275,7 +286,11 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
 
 
 def test_dataframemodel_set_data_overflow(monkeypatch):
-    """Test for #6114: Overflowing ints are caught and handled properly"""
+    """
+    Test that entry of an overflowing integer is caught and handled properly.
+
+    Unit regression test for issue #6114 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -303,7 +318,11 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
 @flaky(max_runs=3)
 @pytest.mark.no_xvfb
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
-    """Test #6114: Entry of an overflow int is caught and handled properly"""
+    """
+    Test that entry of an overflowing integer is caught and handled properly.
+
+    Integration regression test for issue #6114 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -347,7 +366,11 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
 
 
 def test_dataframemodel_set_data_complex(monkeypatch):
-    """Test for #6115: Editing complex dtypes raises error in df editor"""
+    """
+    Test that editing complex dtypes is handled gracefully in df editor.
+
+    Unit regression test for issue #6115 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -369,7 +392,11 @@ def test_dataframemodel_set_data_complex(monkeypatch):
 @flaky(max_runs=3)
 @pytest.mark.no_xvfb
 def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
-    """Test for #6115: editing complex dtypes raises error in df editor"""
+    """
+    Test that editing complex dtypes is handled gracefully in df editor.
+
+    Integration regression test for issue #6115 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -408,7 +435,7 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
 
 
 def test_dataframemodel_set_data_bool(monkeypatch):
-    """Test that bools are editible in df and false-y strs are detected"""
+    """Test that bools are editible in df and false-y strs are detected."""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -431,7 +458,7 @@ def test_dataframemodel_set_data_bool(monkeypatch):
 @flaky(max_runs=3)
 @pytest.mark.no_xvfb
 def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
-    """Test that bools are editible in df and false-y strs are detected"""
+    """Test that bools are editible in df and false-y strs are detected."""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')

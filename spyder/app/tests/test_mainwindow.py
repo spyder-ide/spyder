@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 """
-Tests for the main window
+Tests for the main window.
 """
 
 # Standard library imports
@@ -216,8 +216,7 @@ def test_calltip(main_window, qtbot):
 @pytest.mark.use_introspection
 def test_get_help(main_window, qtbot):
     """
-    Test that Help is working when called from the Editor and the
-    IPython console.
+    Test that Help works when called from the Editor and the IPython console.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
