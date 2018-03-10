@@ -232,20 +232,22 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.arraywidget.view
 
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Up)
         qtbot.keyClicks(view, '5')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Space)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponent)))
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
-        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key_Up)
         qtbot.keyClicks(view, '6')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert np.sum(expected_array ==
                       dialog.get_value()) == len(expected_array)
 

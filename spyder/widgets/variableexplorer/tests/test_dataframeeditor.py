@@ -326,20 +326,22 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.dataTable
 
-        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key_Right)
         qtbot.keyClicks(view, '5')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Space)
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
-        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key_Up)
         qtbot.keyClicks(view, '6')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert numpy.sum(expected_df[0].as_matrix() ==
                          dialog.get_value().as_matrix()) == len(expected_df)
 
@@ -383,23 +385,24 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.dataTable
 
-        qtbot.keyPress(view, Qt.Key_Right)
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Space)
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), "42")
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == count * 2 - 1
-        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Down)
         qtbot.keyClick(view, '1')
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(
             ANY, "Error", ("Editing dtype {0!s} not yet supported."
                            .format(type(test_df.iloc[1, 0]).__name__)))
         assert MockQMessageBox.critical.call_count == count * 2
-        qtbot.keyPress(view, Qt.Key_Return)
-        qtbot.wait(1000)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert numpy.sum(test_df[0].as_matrix() ==
                          dialog.get_value().as_matrix()) == len(test_df)
 
@@ -448,13 +451,14 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
 
         qtbot.keyPress(view, Qt.Key_Right)
         for test_str in test_strs:
-            qtbot.keyPress(view, Qt.Key_Space)
-            qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClick(view, Qt.Key_Space)
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
             qtbot.keyClicks(view.focusWidget(), test_str)
-            qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
             assert not MockQMessageBox.critical.called
-        qtbot.keyPress(view, Qt.Key_Return)
-        qtbot.wait(1000)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert (numpy.sum(expected_df[0].as_matrix() ==
                           dialog.get_value().as_matrix()[:, 0]) ==
                 len(expected_df))
