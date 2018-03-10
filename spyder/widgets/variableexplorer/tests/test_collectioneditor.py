@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
-Tests for collectionseditor.py
+Tests for collectionseditor.py .
 """
 
 # Standard library imports
@@ -29,16 +32,20 @@ from spyder.widgets.variableexplorer.collectionseditor import (
     LARGE_NROWS, ROWS_TO_LOAD)
 
 
-# Helper functions
+# =============================================================================
+# Utility functions
+# =============================================================================
 def data(cm, i, j):
     return cm.data(cm.createIndex(i, j))
+
 
 def data_table(cm, n_rows, n_cols):
     return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
 
-# --- Tests
-# -----------------------------------------------------------------------------
 
+# =============================================================================
+# Tests
+# ============================================================================
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
@@ -170,8 +177,9 @@ def test_rename_and_duplicate_item_in_collection_editor():
 
 def test_edit_mutable_and_immutable_types(monkeypatch):
     """
-    Test that mutable types (lists, dicts) and individual values are editable,
-    but not immutable ones (tuples) or anything inside of them, to fix #5991 .
+    Test that mutable objs/vals are editable in VarExp; immutable ones aren't.
+
+    Regression test for #5991 .
     """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.widgets.variableexplorer.' +
@@ -268,8 +276,9 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 @flaky(max_runs=3)
 def test_view_module_in_coledit():
     """
-    Check that modules don't produce an error when trying to open them in
-    Variable Explorer, and are set as readonly. Regression test for #6080
+    Test that modules don't produce an error when opening in Variable Explorer.
+
+    Also check that they are set as readonly. Regression test for #6080 .
     """
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
@@ -297,7 +306,11 @@ def test_notimplementederror_multiindex():
 
 
 def test_editor_parent_set(monkeypatch):
-    """Test that editors have parent set so they close with Spyder (#5696)"""
+    """
+    Test that editors have their parent set so they close with Spyder.
+
+    Regression test for #5696 .
+    """
     # Mocking and setup
     test_parent = QWidget()
 
