@@ -442,7 +442,7 @@ class CollectionsDelegate(QItemDelegate):
                    or not is_known_type(value)
         #---editor = CollectionsEditor
         if isinstance(value, (list, tuple, dict)):
-            editor = CollectionsEditor()
+            editor = CollectionsEditor(parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -472,7 +472,7 @@ class CollectionsDelegate(QItemDelegate):
         #--editor = DataFrameEditor
         elif isinstance(value, (DataFrame, DatetimeIndex, Series)) \
           and DataFrame is not FakeObject:
-            editor = DataFrameEditor()
+            editor = DataFrameEditor(parent)
             if not editor.setup_and_check(value, title=key):
                 return
             editor.dataModel.set_format(index.model().dataframe_format)
@@ -494,9 +494,10 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         #---editor = TextEditor
         elif is_text_string(value) and len(value) > 40:
-            te = TextEditor(None)
+            te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key, readonly=readonly)
+                editor = TextEditor(value, key,
+                                    readonly=readonly, parent=parent)
                 self.create_dialog(editor, dict(model=index.model(),
                                                 editor=editor, key=key,
                                                 readonly=readonly))
@@ -517,7 +518,7 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         #---editor = CollectionsEditor for an arbitrary object
         else:
-            editor = CollectionsEditor()
+            editor = CollectionsEditor(parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
