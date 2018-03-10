@@ -445,7 +445,7 @@ class CollectionsDelegate(QItemDelegate):
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, tuple, dict)):
-            editor = CollectionsEditor(parent)
+            editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -454,7 +454,7 @@ class CollectionsDelegate(QItemDelegate):
         # ArrayEditor for a Numpy array
         elif isinstance(value, (ndarray, MaskedArray)) \
           and ndarray is not FakeObject:
-            editor = ArrayEditor(parent)
+            editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -464,7 +464,7 @@ class CollectionsDelegate(QItemDelegate):
         elif isinstance(value, Image) and ndarray is not FakeObject \
           and Image is not FakeObject:
             arr = array(value)
-            editor = ArrayEditor(parent)
+            editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
             conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
@@ -475,7 +475,7 @@ class CollectionsDelegate(QItemDelegate):
         # DataFrameEditor for a pandas dataframe, series or index
         elif isinstance(value, (DataFrame, DatetimeIndex, Series)) \
           and DataFrame is not FakeObject:
-            editor = DataFrameEditor(parent)
+            editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
             editor.dataModel.set_format(index.model().dataframe_format)
@@ -489,9 +489,9 @@ class CollectionsDelegate(QItemDelegate):
                 return None
             else:
                 if isinstance(value, datetime.datetime):
-                    editor = QDateTimeEdit(value, parent)
+                    editor = QDateTimeEdit(value, parent=parent)
                 else:
-                    editor = QDateEdit(value, parent)
+                    editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 return editor
@@ -510,7 +510,7 @@ class CollectionsDelegate(QItemDelegate):
             if readonly:
                 return None
             else:
-                editor = QLineEdit(parent)
+                editor = QLineEdit(parent=parent)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
@@ -521,7 +521,7 @@ class CollectionsDelegate(QItemDelegate):
                 return editor
         # CollectionsEditor for an arbitrary Python object
         else:
-            editor = CollectionsEditor(parent)
+            editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,

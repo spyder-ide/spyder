@@ -17,9 +17,11 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
+import numpy
 import pandas
 import pytest
 from flaky import flaky
+from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.widgets.variableexplorer.collectionseditor import (
@@ -284,7 +286,6 @@ def test_notimplementederror_multiindex():
                    for minute in range(5, 35, 5)]
     time_delta_multiindex = pandas.MultiIndex.from_product([[0, 1, 2, 3, 4],
                                                             time_deltas])
-#    coll = {'rng': rng}
     col_model = CollectionsModel(None, time_delta_multiindex)
     assert col_model.rowCount() == col_model.rows_loaded == ROWS_TO_LOAD
     assert col_model.columnCount() == 4
@@ -293,6 +294,50 @@ def test_notimplementederror_multiindex():
     for _ in range(3):
         col_model.fetchMore()
     assert col_model.rowCount() == 5 * ROWS_TO_LOAD
+
+
+def test_editor_parent_set(monkeypatch):
+    """Test that editors have parent set so they close with Spyder (#5696)"""
+    # Mocking and setup
+    test_parent = QWidget()
+
+    MockCollectionsEditor = Mock()
+    attr_to_patch_coledit = ('spyder.widgets.variableexplorer.' +
+                             'collectionseditor.CollectionsEditor')
+    monkeypatch.setattr(attr_to_patch_coledit, MockCollectionsEditor)
+
+    MockArrayEditor = Mock()
+    attr_to_patch_arredit = ('spyder.widgets.variableexplorer.' +
+                             'collectionseditor.ArrayEditor')
+    monkeypatch.setattr(attr_to_patch_arredit, MockArrayEditor)
+
+    MockDataFrameEditor = Mock()
+    attr_to_patch_dfedit = ('spyder.widgets.variableexplorer.' +
+                            'collectionseditor.DataFrameEditor')
+    monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
+
+    MockTextEditor = Mock()
+    attr_to_patch_textedit = ('spyder.widgets.variableexplorer.' +
+                              'collectionseditor.TextEditor')
+    monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
+
+    editor_data = [[0, 1, 2, 3, 4],
+                   numpy.array([1.0, 42.0, 1337.0]),
+                   pandas.DataFrame([[1, 2, 3], [20, 30, 40]]),
+                   "012345678901234567890123456789012345678901234567890123456",
+                   os]
+    col_editor = CollectionsEditorTableView(test_parent, editor_data)
+    assert col_editor.parent() is test_parent
+
+    for idx, mock_class in enumerate([MockCollectionsEditor,
+                                      MockArrayEditor,
+                                      MockDataFrameEditor,
+                                      MockTextEditor,
+                                      MockCollectionsEditor]):
+        col_editor.delegate.createEditor(col_editor.parent(), None,
+                                         col_editor.model.createIndex(idx, 3))
+        assert mock_class.call_count == 1 + (idx // 3)
+        assert mock_class.call_args[1]["parent"] is test_parent
 
 
 if __name__ == "__main__":
