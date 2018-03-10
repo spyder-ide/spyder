@@ -279,5 +279,26 @@ def test_view_module_in_coledit():
     assert editor.widget.editor.readonly
 
 
+def test_notimplementederror_multiindex():
+    """
+    Test that the NotImplementedError when scrolling a MultiIndex is handled.
+
+    Regression test for #6284.
+    """
+    time_deltas = [pandas.Timedelta(minutes=minute)
+                   for minute in range(5, 35, 5)]
+    time_delta_multiindex = pandas.MultiIndex.from_product([[0, 1, 2, 3, 4],
+                                                            time_deltas])
+#    coll = {'rng': rng}
+    col_model = CollectionsModel(None, time_delta_multiindex)
+    assert col_model.rowCount() == col_model.rows_loaded == ROWS_TO_LOAD
+    assert col_model.columnCount() == 4
+    col_model.fetchMore()
+    assert col_model.rowCount() == 2 * ROWS_TO_LOAD
+    for _ in range(3):
+        col_model.fetchMore()
+    assert col_model.rowCount() == 5 * ROWS_TO_LOAD
+
+
 if __name__ == "__main__":
     pytest.main()
