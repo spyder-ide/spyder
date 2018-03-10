@@ -2472,7 +2472,8 @@ class MainWindow(QMainWindow):
     @Slot()
     def report_issue(self, body=None, title=None, dialog=None):
         """Report a Spyder issue to github, generating body text if needed."""
-        if body is not None and title is not None:
+        if (body is not None and title is not None
+                and not running_under_pytest()):
             github_backend = GithubBackend('spyder-ide', 'spyder')
             github_report = github_backend.send_report(title, body)
             if github_report and dialog is not None:
