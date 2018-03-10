@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
-Collections (i.e. dictionary, list and tuple) editor widget and dialog
+Collections (i.e. dictionary, list and tuple) editor widget and dialog.
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -33,7 +35,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
                             QMessageBox, QTableView, QVBoxLayout, QWidget)
 
-# Local import
+# Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
@@ -61,6 +63,7 @@ if DataFrame is not FakeObject:
 
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
+
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -438,9 +441,9 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
-        readonly = isinstance(value, tuple) or self.parent().readonly \
-                   or not is_known_type(value)
-        #---editor = CollectionsEditor
+        readonly = (isinstance(value, tuple) or self.parent().readonly
+                    or not is_known_type(value))
+        # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, tuple, dict)):
             editor = CollectionsEditor(parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
@@ -448,7 +451,7 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = ArrayEditor
+        # ArrayEditor for a Numpy array
         elif isinstance(value, (ndarray, MaskedArray)) \
           and ndarray is not FakeObject:
             editor = ArrayEditor(parent)
@@ -457,7 +460,7 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---showing image
+        # ArrayEditor for an images
         elif isinstance(value, Image) and ndarray is not FakeObject \
           and Image is not FakeObject:
             arr = array(value)
@@ -469,7 +472,7 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
-        #--editor = DataFrameEditor
+        # DataFrameEditor for a pandas dataframe, series or index
         elif isinstance(value, (DataFrame, DatetimeIndex, Series)) \
           and DataFrame is not FakeObject:
             editor = DataFrameEditor(parent)
@@ -480,7 +483,7 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = QDateEdit or QDateTimeEdit
+        # QDateEdit and QDateTimeEdit for a dates or datetime respectively
         elif isinstance(value, datetime.date):
             if readonly:
                 return None
@@ -492,7 +495,7 @@ class CollectionsDelegate(QItemDelegate):
                 editor.setCalendarPopup(True)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 return editor
-        #---editor = TextEditor
+        # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
@@ -502,7 +505,7 @@ class CollectionsDelegate(QItemDelegate):
                                                 editor=editor, key=key,
                                                 readonly=readonly))
             return None
-        #---editor = QLineEdit
+        # QLineEdit for an individual value (int, float, short string, etc)
         elif is_editable_type(value):
             if readonly:
                 return None
@@ -516,7 +519,7 @@ class CollectionsDelegate(QItemDelegate):
                 # act doesn't exist anymore.
                 # editor.returnPressed.connect(self.commitAndCloseEditor)
                 return editor
-        #---editor = CollectionsEditor for an arbitrary object
+        # CollectionsEditor for an arbitrary Python object
         else:
             editor = CollectionsEditor(parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
@@ -524,7 +527,7 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-            
+
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
         editor.accepted.connect(
