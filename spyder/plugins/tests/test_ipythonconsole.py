@@ -832,17 +832,17 @@ def test_set_elapsed_time(ipyconsole, qtbot):
 
     # Set time to 2 minutes ago.
     client.t0 -= 120
-    with qtbot.waitSignal(client.timer.timeout, timeout=3000):
+    with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         ipyconsole.set_elapsed_time(client)
     assert '00:02:00' in client.time_label.text()
 
-    with qtbot.waitSignal(client.timer.timeout, timeout=3000):
+    with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         pass
     assert '00:02:01' in client.time_label.text()
 
     # Make previous time later than current time.
     client.t0 += 2000
-    with qtbot.waitSignal(client.timer.timeout, timeout=3000):
+    with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         pass
     assert '00:00:00' in client.time_label.text()
 
