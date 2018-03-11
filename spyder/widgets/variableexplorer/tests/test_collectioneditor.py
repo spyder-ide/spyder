@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
-Tests for collectionseditor.py
+Tests for collectionseditor.py .
 """
 
 # Standard library imports
@@ -12,14 +15,16 @@ import os  # Example module for testing display inside collecitoneditor
 import copy
 import datetime
 try:
-    from unittest.mock import Mock, ANY
+    from unittest.mock import Mock
 except ImportError:
-    from mock import Mock, ANY  # Python 2
+    from mock import Mock  # Python 2
 
 # Third party imports
+import numpy
 import pandas
 import pytest
 from flaky import flaky
+from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.widgets.variableexplorer.collectionseditor import (
@@ -28,16 +33,20 @@ from spyder.widgets.variableexplorer.collectionseditor import (
 from spyder.widgets.variableexplorer.tests.test_dataframeeditor import \
     generate_pandas_indexes
 
-# Helper functions
+# =============================================================================
+# Utility functions
+# =============================================================================
 def data(cm, i, j):
     return cm.data(cm.createIndex(i, j))
+
 
 def data_table(cm, n_rows, n_cols):
     return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
 
-# --- Tests
-# -----------------------------------------------------------------------------
 
+# =============================================================================
+# Tests
+# ============================================================================
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
@@ -169,9 +178,11 @@ def test_rename_and_duplicate_item_in_collection_editor():
 
 
 def test_edit_mutable_and_immutable_types(monkeypatch):
-    """Check to ensure mutable types (lists, dicts) and individual values are
-    editable, but not immutable ones (tuples) or anything inside of them,
-    per #5991"""
+    """
+    Test that mutable objs/vals are editable in VarExp; immutable ones aren't.
+
+    Regression test for #5991 .
+    """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.widgets.variableexplorer.' +
                                'collectionseditor.QLineEdit')
@@ -210,7 +221,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_list.delegate.createEditor(None, None,
                                       editor_list.model.createIndex(1, 3))
     assert MockTextEditor.call_count == 2
-    MockTextEditor.assert_called_with(ANY, ANY, readonly=False)
+    assert not MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside list
     editor_list_datetime = editor_list.delegate.createEditor(
@@ -222,17 +233,13 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_list.delegate.createEditor(None, None,
                                       editor_list.model.createIndex(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 1
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=False)
+    assert not mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside list
     editor_list.delegate.createEditor(None, None,
                                       editor_list.model.createIndex(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 2
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=True)
+    assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tests for immutable type (tuple) #
     editor_tup = CollectionsEditorTableView(None, tup_test)
@@ -247,7 +254,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_tup.delegate.createEditor(None, None,
                                      editor_tup.model.createIndex(1, 3))
     assert MockTextEditor.call_count == 4
-    MockTextEditor.assert_called_with(ANY, ANY, readonly=True)
+    assert MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside tuple
     editor_tup_datetime = editor_tup.delegate.createEditor(
@@ -259,23 +266,22 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     editor_tup.delegate.createEditor(None, None,
                                      editor_tup.model.createIndex(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 3
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=True)
+    assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside tuple
     editor_tup.delegate.createEditor(None, None,
                                      editor_tup.model.createIndex(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 4
-    mockCollectionsEditor_instance.setup.assert_called_with(ANY, ANY,
-                                                            icon=ANY,
-                                                            readonly=True)
+    assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
 
 @flaky(max_runs=3)
 def test_view_module_in_coledit():
-    """Check that modules don't produce an error when trying to open them in
-    Variable Explorer, and are set as readonly. Regression test for #6080"""
+    """
+    Test that modules don't produce an error when opening in Variable Explorer.
+
+    Also check that they are set as readonly. Regression test for #6080 .
+    """
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
     assert editor.widget.editor.readonly
@@ -290,7 +296,6 @@ def test_notimplementederror_multiindex():
                    for minute in range(5, 35, 5)]
     time_delta_multiindex = pandas.MultiIndex.from_product([[0, 1, 2, 3, 4],
                                                             time_deltas])
-#    coll = {'rng': rng}
     col_model = CollectionsModel(None, time_delta_multiindex)
     assert col_model.rowCount() == col_model.rows_loaded == ROWS_TO_LOAD
     assert col_model.columnCount() == 4
@@ -299,6 +304,54 @@ def test_notimplementederror_multiindex():
     for _ in range(3):
         col_model.fetchMore()
     assert col_model.rowCount() == 5 * ROWS_TO_LOAD
+
+
+def test_editor_parent_set(monkeypatch):
+    """
+    Test that editors have their parent set so they close with Spyder.
+
+    Regression test for #5696 .
+    """
+    # Mocking and setup
+    test_parent = QWidget()
+
+    MockCollectionsEditor = Mock()
+    attr_to_patch_coledit = ('spyder.widgets.variableexplorer.' +
+                             'collectionseditor.CollectionsEditor')
+    monkeypatch.setattr(attr_to_patch_coledit, MockCollectionsEditor)
+
+    MockArrayEditor = Mock()
+    attr_to_patch_arredit = ('spyder.widgets.variableexplorer.' +
+                             'collectionseditor.ArrayEditor')
+    monkeypatch.setattr(attr_to_patch_arredit, MockArrayEditor)
+
+    MockDataFrameEditor = Mock()
+    attr_to_patch_dfedit = ('spyder.widgets.variableexplorer.' +
+                            'collectionseditor.DataFrameEditor')
+    monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
+
+    MockTextEditor = Mock()
+    attr_to_patch_textedit = ('spyder.widgets.variableexplorer.' +
+                              'collectionseditor.TextEditor')
+    monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
+
+    editor_data = [[0, 1, 2, 3, 4],
+                   numpy.array([1.0, 42.0, 1337.0]),
+                   pandas.DataFrame([[1, 2, 3], [20, 30, 40]]),
+                   "012345678901234567890123456789012345678901234567890123456",
+                   os]
+    col_editor = CollectionsEditorTableView(test_parent, editor_data)
+    assert col_editor.parent() is test_parent
+
+    for idx, mock_class in enumerate([MockCollectionsEditor,
+                                      MockArrayEditor,
+                                      MockDataFrameEditor,
+                                      MockTextEditor,
+                                      MockCollectionsEditor]):
+        col_editor.delegate.createEditor(col_editor.parent(), None,
+                                         col_editor.model.createIndex(idx, 3))
+        assert mock_class.call_count == 1 + (idx // 3)
+        assert mock_class.call_args[1]["parent"] is test_parent
 
 
 if __name__ == "__main__":
