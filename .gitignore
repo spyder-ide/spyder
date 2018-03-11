@@ -7,6 +7,9 @@
 # Notepad++ files
 nppBackup/
 
+# Pytest dirs/files
+.pytest_cache/
+
 # Special dirs and files
 build/
 dist/
