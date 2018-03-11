@@ -1456,7 +1456,7 @@ def get_test_data():
     """Create test data."""
     import numpy as np
     from spyder.pil_patch import Image
-    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
+    image = Image.fromarray(np.random.randint(256, size=(100, 100)),
                             mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
@@ -1501,7 +1501,7 @@ def get_test_data():
 
 
 def editor_test():
-    """Collections editor test"""
+    """Test Collections editor."""
     from spyder.utils.qthelpers import qapplication
 
     app = qapplication()             #analysis:ignore
@@ -1512,14 +1512,14 @@ def editor_test():
 
 
 def remote_editor_test():
-    """Remote collections editor test"""
+    """Test remote collections editor."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer
     from spyder.widgets.variableexplorer.utils import make_remote_view
 
-    remote = make_remote_view(get_test_data(), 
+    remote = make_remote_view(get_test_data(),
                               VariableExplorer(None).get_settings())
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
