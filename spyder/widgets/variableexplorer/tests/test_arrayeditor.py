@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
 """
-Tests for arrayeditor.py
+Tests for the array editor.
 """
 
 # Standard library imports
@@ -26,28 +29,35 @@ from flaky import flaky
 from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor, ArrayModel
 
 
+# =============================================================================
+# Utility functions
+# =============================================================================
 def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
-    """Helper routine to launch an arrayeditor and return its result"""
+    """Helper routine to launch an arrayeditor and return its result."""
     dlg = ArrayEditor()
     assert dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)
     dlg.show()
     dlg.accept()  # trigger slot connected to OK button
     return dlg.get_value()
 
+
 def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
     """Setups an arrayeditor."""
     dlg = ArrayEditor()
-    dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)    
+    dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels)
     dlg.show()
     qbot.addWidget(dlg)
     return dlg
 
-# --- Tests
-# -----------------------------------------------------------------------------
-def test_type_errors(qtbot):
-    """Verify that we don't get a TypeError for certain structured arrays.
 
-    Fixes issue 5254.
+# =============================================================================
+# Tests
+# =============================================================================
+def test_type_errors(qtbot):
+    """
+    Verify that we don't get a TypeError for certain structured arrays.
+
+    Fixes issue #5254.
     """
     arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
     dlg = setup_arrayeditor(qtbot, arr)
@@ -186,7 +196,11 @@ def test_arrayeditor_edit_2d_array(qtbot):
 
 
 def test_arraymodel_set_data_overflow(monkeypatch):
-    """Unit test #6114: entry of an overflow int caught and handled properly"""
+    """
+    Test that entry of an overflowing integer is caught and handled properly.
+
+    Unit regression test for #6114 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
@@ -210,7 +224,11 @@ def test_arraymodel_set_data_overflow(monkeypatch):
 
 @flaky(max_runs=3)
 def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
-    """Int. test #6114: entry of an overflow int caught and handled properly"""
+    """
+    Test that entry of an overflowing integer is caught and handled properly.
+
+    Integration regression test for #6114 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.widgets.variableexplorer.arrayeditor.QMessageBox'
     monkeypatch.setattr(attr_to_patch, MockQMessageBox)
@@ -232,20 +250,22 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.arraywidget.view
 
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Up)
         qtbot.keyClicks(view, '5')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Space)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Space)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponent)))
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
-        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key_Up)
         qtbot.keyClicks(view, '6')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert np.sum(expected_array ==
                       dialog.get_value()) == len(expected_array)
 
