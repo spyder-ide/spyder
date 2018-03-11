@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 """
-Tests for the main window
+Tests for the main window.
 """
 
 # Standard library imports
@@ -216,12 +216,12 @@ def test_calltip(main_window, qtbot):
 @pytest.mark.use_introspection
 def test_get_help(main_window, qtbot):
     """
-    Test that Help is working when called from the Editor and the
-    IPython console.
+    Test that Help works when called from the Editor and the IPython console.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
     help_plugin = main_window.help
     webview = help_plugin.rich_text.webview._webview
@@ -238,10 +238,10 @@ def test_get_help(main_window, qtbot):
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=4000)
+    qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=6000)
 
     # --- From the editor ---
-    qtbot.wait(2000)
+    qtbot.wait(3000)
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
@@ -254,7 +254,7 @@ def test_get_help(main_window, qtbot):
     editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=4000)
+    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=6000)
 
 
 @pytest.mark.slow
