@@ -54,6 +54,18 @@ def data_table(cm, n_rows, n_cols):
 
 
 # =============================================================================
+# Pytest Fixtures
+# =============================================================================
+@pytest.fixture
+def nonsettable_objects_data():
+    """Rturn Python objects with immutable attribs to test CollectionEditor."""
+    test_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
+    expected_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
+    keys_test = [["day", "dayofyear", "hour"], ["nbytes", "ndim"]]
+    return zip(test_objs, expected_objs, keys_test)
+
+
+# =============================================================================
 # Tests
 # ============================================================================
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
@@ -397,56 +409,70 @@ def test_pandas_dateoffset_view():
     col_editor.accept()
 
 
-def test_set_nonsettable_objects(qtbot):
+def test_set_nonsettable_objects(nonsettable_objects_data):
     """
     Test that errors trying to set attributes in ColEdit are handled properly.
 
     Unit regression test for issue #6728 .
     """
-    test_period = pandas.Period("2018-03")
-    expected_period = pandas.Period("2018-03")
-
-    col_model = CollectionsModel(None, test_period)
-
-    assert col_model.setData(col_model.createIndex(7, 3), "2")
-    assert col_model.setData(col_model.createIndex(8, 3), "3")
-    qtbot.wait(100)
-    assert col_model.get_data().__obj__ == expected_period
+    for test_obj, expected_obj, keys in nonsettable_objects_data:
+        col_model = CollectionsModel(None, test_obj)
+        indicies = [col_model.get_index_from_key(key) for key in keys]
+        for idx in indicies:
+            assert not col_model.set_value(idx, "2")
+            # Due to numpy's deliberate breakage of __eq__ comparison
+            try:
+                assert col_model.get_data().__obj__ == expected_obj
+            except ValueError:
+                assert all([getattr(col_model.get_data().__obj__, key)
+                            == getattr(expected_obj, key) for key in keys])
 
 
 @flaky(max_runs=3)
 @pytest.mark.no_xvfb
-def test_edit_nonsettable_objects(qtbot):
+def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
     """
     Test that errors trying to edit attributes in ColEdit are handled properly.
 
     Integration regression test for issue #6728 .
     """
-    test_period = pandas.Period("2018-03")
-    expected_period = pandas.Period("2018-03")
-    test_str = "2"
-    row_to_test = 7
+    for test_obj, expected_obj, keys in nonsettable_objects_data:
+        col_editor = CollectionsEditor(None)
+        col_editor.setup(test_obj)
+        col_editor.show()
+        qtbot.waitForWindowShown(col_editor)
+        view = col_editor.widget.editor
+        indicies = [view.model.get_index_from_key(key) for key in keys]
 
-    col_editor = CollectionsEditor(None)
-    col_editor.setup(test_period)
-    col_editor.show()
-    qtbot.waitForWindowShown(col_editor)
-    view = col_editor.widget.editor
+        for _ in range(3):
+            qtbot.keyClick(view, Qt.Key_Right)
+        last_row = -1
+        rows_to_test = [index.row() for index in indicies]
+        for row in rows_to_test:
+            for _ in range(row - last_row - 1):
+                qtbot.keyClick(view, Qt.Key_Down)
+            qtbot.keyClick(view, Qt.Key_Space)
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClicks(view.focusWidget(), "2")
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+            last_row = row
 
-    for _ in range(3):
-        qtbot.keyClick(view, Qt.Key_Right)
-    for _ in range(row_to_test):
-        qtbot.keyClick(view, Qt.Key_Down)
-    qtbot.keyClick(view, Qt.Key_Space)
-    qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
-    qtbot.keyClicks(view.focusWidget(), test_str)
-    qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
-    qtbot.wait(100)
-    assert col_editor.get_value() == expected_period
+        qtbot.wait(100)
+        # Due to numpy's deliberate breakage of __eq__ comparison
+        try:
+            assert col_editor.get_value() == expected_obj
+        except ValueError:
+            assert all([getattr(col_editor.get_value(), key)
+                        == getattr(expected_obj, key) for key in keys])
 
-    col_editor.accept()
-    qtbot.wait(200)
-    assert test_period == expected_period
+        col_editor.accept()
+        qtbot.wait(200)
+        # Same reason as above
+        try:
+            assert col_editor.get_value() == expected_obj
+        except ValueError:
+            assert all([getattr(col_editor.get_value(), key)
+                        == getattr(expected_obj, key) for key in keys])
 
 
 if __name__ == "__main__":
