@@ -101,6 +101,9 @@ class ProxyObject(object):
             setattr(self.__obj__, key, value)
         except (TypeError, AttributeError, NotImplementedError):
             pass
+        except Exception as e:
+            if "cannot set values for" not in str(e):
+                raise
 
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
