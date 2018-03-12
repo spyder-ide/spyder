@@ -12,8 +12,10 @@ Tests for the Variable Explorer Collections Editor.
 
 # Standard library imports
 import os  # Example module for testing display inside CollecitonsEditor
+from os import path
 import copy
 import datetime
+from xml.dom.minidom import parseString
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -30,6 +32,13 @@ from qtpy.QtWidgets import QWidget
 from spyder.widgets.variableexplorer.collectionseditor import (
     CollectionsEditorTableView, CollectionsModel, CollectionsEditor,
     LARGE_NROWS, ROWS_TO_LOAD)
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+# Full path to this file's parent directory for loading data
+LOCATION = path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
 # =============================================================================
@@ -351,6 +360,26 @@ def test_editor_parent_set(monkeypatch):
                                          col_editor.model.createIndex(idx, 3))
         assert mock_class.call_count == 1 + (idx // 3)
         assert mock_class.call_args[1]["parent"] is test_parent
+
+
+def test_xml_dom_element_view():
+    """
+    Test that XML DOM ``Element``s are able to be viewied in CollectionsEditor.
+
+    Regression test for issue #5642 .
+    """
+    xml_path = path.join(LOCATION, 'dom_element_test.xml')
+    with open(xml_path) as xml_file:
+        xml_data = xml_file.read()
+
+    xml_content = parseString(xml_data)
+    xml_element = xml_content.getElementsByTagName("note")[0]
+
+    col_editor = CollectionsEditor(None)
+    col_editor.setup(xml_element)
+    col_editor.show()
+    assert col_editor.get_value()
+    col_editor.accept()
 
 
 if __name__ == "__main__":
