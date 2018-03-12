@@ -28,7 +28,7 @@ from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 # Minimum number of characters to introduce in the description field
 # before being able to send the report to Github.
-MIN_CHARS = 20
+MIN_CHARS = 50
 
 
 class DescriptionWidget(CodeEditor):
