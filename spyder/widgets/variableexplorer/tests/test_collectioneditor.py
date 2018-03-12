@@ -7,11 +7,11 @@
 # ----------------------------------------------------------------------------
 
 """
-Tests for collectionseditor.py .
+Tests for the Variable Explorer Collections Editor.
 """
 
 # Standard library imports
-import os  # Example module for testing display inside collecitoneditor
+import os  # Example module for testing display inside CollecitonsEditor
 import copy
 import datetime
 try:
@@ -179,7 +179,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     """
     Test that mutable objs/vals are editable in VarExp; immutable ones aren't.
 
-    Regression test for #5991 .
+    Regression test for issue #5991 .
     """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.widgets.variableexplorer.' +
@@ -278,7 +278,7 @@ def test_view_module_in_coledit():
     """
     Test that modules don't produce an error when opening in Variable Explorer.
 
-    Also check that they are set as readonly. Regression test for #6080 .
+    Also check that they are set as readonly. Regression test for issue #6080 .
     """
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
@@ -289,7 +289,7 @@ def test_notimplementederror_multiindex():
     """
     Test that the NotImplementedError when scrolling a MultiIndex is handled.
 
-    Regression test for #6284.
+    Regression test for issue #6284 .
     """
     time_deltas = [pandas.Timedelta(minutes=minute)
                    for minute in range(5, 35, 5)]
@@ -309,7 +309,7 @@ def test_editor_parent_set(monkeypatch):
     """
     Test that editors have their parent set so they close with Spyder.
 
-    Regression test for #5696 .
+    Regression test for issue #5696 .
     """
     # Mocking and setup
     test_parent = QWidget()
