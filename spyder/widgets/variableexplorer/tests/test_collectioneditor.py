@@ -61,7 +61,8 @@ def nonsettable_objects_data():
     """Rturn Python objects with immutable attribs to test CollectionEditor."""
     test_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
     expected_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
-    keys_test = [["day", "dayofyear", "hour"], ["nbytes", "ndim"]]
+    keys_test = [["_typ", "day", "dayofyear", "hour"],
+                 ["_typ", "nbytes", "ndim"]]
     return zip(test_objs, expected_objs, keys_test)
 
 
@@ -413,7 +414,7 @@ def test_set_nonsettable_objects(nonsettable_objects_data):
     """
     Test that errors trying to set attributes in ColEdit are handled properly.
 
-    Unit regression test for issue #6728 .
+    Unit regression test for issues #6727 and #6728 .
     """
     for test_obj, expected_obj, keys in nonsettable_objects_data:
         col_model = CollectionsModel(None, test_obj)
@@ -421,11 +422,9 @@ def test_set_nonsettable_objects(nonsettable_objects_data):
         for idx in indicies:
             assert not col_model.set_value(idx, "2")
             # Due to numpy's deliberate breakage of __eq__ comparison
-            try:
-                assert col_model.get_data().__obj__ == expected_obj
-            except ValueError:
-                assert all([getattr(col_model.get_data().__obj__, key)
-                            == getattr(expected_obj, key) for key in keys])
+            assert all([key == "_typ" or
+                        (getattr(col_model.get_data().__obj__, key)
+                         == getattr(expected_obj, key)) for key in keys])
 
 
 @flaky(max_runs=3)
@@ -434,7 +433,7 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
     """
     Test that errors trying to edit attributes in ColEdit are handled properly.
 
-    Integration regression test for issue #6728 .
+    Integration regression test for issues #6727 and #6728 .
     """
     for test_obj, expected_obj, keys in nonsettable_objects_data:
         col_editor = CollectionsEditor(None)
@@ -459,20 +458,16 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
 
         qtbot.wait(100)
         # Due to numpy's deliberate breakage of __eq__ comparison
-        try:
-            assert col_editor.get_value() == expected_obj
-        except ValueError:
-            assert all([getattr(col_editor.get_value(), key)
-                        == getattr(expected_obj, key) for key in keys])
+        assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
+                    == getattr(expected_obj, key)) for key in keys])
 
         col_editor.accept()
         qtbot.wait(200)
         # Same reason as above
-        try:
-            assert col_editor.get_value() == expected_obj
-        except ValueError:
-            assert all([getattr(col_editor.get_value(), key)
-                        == getattr(expected_obj, key) for key in keys])
+        assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
+                    == getattr(expected_obj, key)) for key in keys])
+        assert all([getattr(test_obj, key)
+                    == getattr(expected_obj, key) for key in keys])
 
 
 if __name__ == "__main__":
