@@ -7,13 +7,15 @@
 # ----------------------------------------------------------------------------
 
 """
-Tests for collectionseditor.py .
+Tests for the Variable Explorer Collections Editor.
 """
 
 # Standard library imports
-import os  # Example module for testing display inside collecitoneditor
+import os  # Example module for testing display inside CollecitonsEditor
+from os import path
 import copy
 import datetime
+from xml.dom.minidom import parseString
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -24,6 +26,7 @@ import numpy
 import pandas
 import pytest
 from flaky import flaky
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QWidget
 
 # Local imports
@@ -34,6 +37,13 @@ from spyder.widgets.variableexplorer.tests.test_dataframeeditor import \
     generate_pandas_indexes
 
 # =============================================================================
+# Constants
+# =============================================================================
+# Full path to this file's parent directory for loading data
+LOCATION = path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
+# =============================================================================
 # Utility functions
 # =============================================================================
 def data(cm, i, j):
@@ -42,6 +52,19 @@ def data(cm, i, j):
 
 def data_table(cm, n_rows, n_cols):
     return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
+
+
+# =============================================================================
+# Pytest Fixtures
+# =============================================================================
+@pytest.fixture
+def nonsettable_objects_data():
+    """Rturn Python objects with immutable attribs to test CollectionEditor."""
+    test_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
+    expected_objs = [pandas.Period("2018-03"), pandas.Categorical([1, 2, 42])]
+    keys_test = [["_typ", "day", "dayofyear", "hour"],
+                 ["_typ", "nbytes", "ndim"]]
+    return zip(test_objs, expected_objs, keys_test)
 
 
 # =============================================================================
@@ -181,7 +204,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     """
     Test that mutable objs/vals are editable in VarExp; immutable ones aren't.
 
-    Regression test for #5991 .
+    Regression test for issue #5991 .
     """
     MockQLineEdit = Mock()
     attr_to_patch_qlineedit = ('spyder.widgets.variableexplorer.' +
@@ -280,7 +303,7 @@ def test_view_module_in_coledit():
     """
     Test that modules don't produce an error when opening in Variable Explorer.
 
-    Also check that they are set as readonly. Regression test for #6080 .
+    Also check that they are set as readonly. Regression test for issue #6080 .
     """
     editor = CollectionsEditor()
     editor.setup(os, "module_test", readonly=False)
@@ -290,7 +313,7 @@ def test_notimplementederror_multiindex():
     """
     Test that the NotImplementedError when scrolling a MultiIndex is handled.
 
-    Regression test for #6284.
+    Regression test for issue #6284 .
     """
     time_deltas = [pandas.Timedelta(minutes=minute)
                    for minute in range(5, 35, 5)]
@@ -310,7 +333,7 @@ def test_editor_parent_set(monkeypatch):
     """
     Test that editors have their parent set so they close with Spyder.
 
-    Regression test for #5696 .
+    Regression test for issue #5696 .
     """
     # Mocking and setup
     test_parent = QWidget()
@@ -352,6 +375,100 @@ def test_editor_parent_set(monkeypatch):
                                          col_editor.model.createIndex(idx, 3))
         assert mock_class.call_count == 1 + (idx // 3)
         assert mock_class.call_args[1]["parent"] is test_parent
+
+
+def test_xml_dom_element_view():
+    """
+    Test that XML DOM ``Element``s are able to be viewied in CollectionsEditor.
+
+    Regression test for issue #5642 .
+    """
+    xml_path = path.join(LOCATION, 'dom_element_test.xml')
+    with open(xml_path) as xml_file:
+        xml_data = xml_file.read()
+
+    xml_content = parseString(xml_data)
+    xml_element = xml_content.getElementsByTagName("note")[0]
+
+    col_editor = CollectionsEditor(None)
+    col_editor.setup(xml_element)
+    col_editor.show()
+    assert col_editor.get_value()
+    col_editor.accept()
+
+
+def test_pandas_dateoffset_view():
+    """
+    Test that pandas ``DateOffset`` objs can be viewied in CollectionsEditor.
+
+    Regression test for issue #6729 .
+    """
+    test_dateoffset = pandas.DateOffset()
+    col_editor = CollectionsEditor(None)
+    col_editor.setup(test_dateoffset)
+    col_editor.show()
+    assert col_editor.get_value()
+    col_editor.accept()
+
+
+def test_set_nonsettable_objects(nonsettable_objects_data):
+    """
+    Test that errors trying to set attributes in ColEdit are handled properly.
+
+    Unit regression test for issues #6727 and #6728 .
+    """
+    for test_obj, expected_obj, keys in nonsettable_objects_data:
+        col_model = CollectionsModel(None, test_obj)
+        indicies = [col_model.get_index_from_key(key) for key in keys]
+        for idx in indicies:
+            assert not col_model.set_value(idx, "2")
+            # Due to numpy's deliberate breakage of __eq__ comparison
+            assert all([key == "_typ" or
+                        (getattr(col_model.get_data().__obj__, key)
+                         == getattr(expected_obj, key)) for key in keys])
+
+
+@flaky(max_runs=3)
+@pytest.mark.no_xvfb
+def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
+    """
+    Test that errors trying to edit attributes in ColEdit are handled properly.
+
+    Integration regression test for issues #6727 and #6728 .
+    """
+    for test_obj, expected_obj, keys in nonsettable_objects_data:
+        col_editor = CollectionsEditor(None)
+        col_editor.setup(test_obj)
+        col_editor.show()
+        qtbot.waitForWindowShown(col_editor)
+        view = col_editor.widget.editor
+        indicies = [view.model.get_index_from_key(key) for key in keys]
+
+        for _ in range(3):
+            qtbot.keyClick(view, Qt.Key_Right)
+        last_row = -1
+        rows_to_test = [index.row() for index in indicies]
+        for row in rows_to_test:
+            for _ in range(row - last_row - 1):
+                qtbot.keyClick(view, Qt.Key_Down)
+            qtbot.keyClick(view, Qt.Key_Space)
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClicks(view.focusWidget(), "2")
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+            last_row = row
+
+        qtbot.wait(100)
+        # Due to numpy's deliberate breakage of __eq__ comparison
+        assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
+                    == getattr(expected_obj, key)) for key in keys])
+
+        col_editor.accept()
+        qtbot.wait(200)
+        # Same reason as above
+        assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
+                    == getattr(expected_obj, key)) for key in keys])
+        assert all([getattr(test_obj, key)
+                    == getattr(expected_obj, key) for key in keys])
 
 
 if __name__ == "__main__":

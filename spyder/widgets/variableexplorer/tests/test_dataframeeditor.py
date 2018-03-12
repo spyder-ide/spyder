@@ -589,7 +589,7 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.dataTable
 
-        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key_Right)
         for test_str in test_strs:
             qtbot.keyClick(view, Qt.Key_Space)
             qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
