@@ -414,5 +414,40 @@ def test_set_nonsettable_objects(qtbot):
     assert col_model.get_data().__obj__ == expected_period
 
 
+@flaky(max_runs=3)
+@pytest.mark.no_xvfb
+def test_edit_nonsettable_objects(qtbot):
+    """
+    Test that errors trying to edit attributes in ColEdit are handled properly.
+
+    Integration regression test for issue #6728 .
+    """
+    test_period = pandas.Period("2018-03")
+    expected_period = pandas.Period("2018-03")
+    test_str = "2"
+    row_to_test = 7
+
+    col_editor = CollectionsEditor(None)
+    col_editor.setup(test_period)
+    col_editor.show()
+    qtbot.waitForWindowShown(col_editor)
+    view = col_editor.widget.editor
+
+    for _ in range(3):
+        qtbot.keyClick(view, Qt.Key_Right)
+    for _ in range(row_to_test):
+        qtbot.keyClick(view, Qt.Key_Down)
+    qtbot.keyClick(view, Qt.Key_Space)
+    qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
+    qtbot.keyClicks(view.focusWidget(), test_str)
+    qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
+    qtbot.wait(100)
+    assert col_editor.get_value() == expected_period
+
+    col_editor.accept()
+    qtbot.wait(200)
+    assert test_period == expected_period
+
+
 if __name__ == "__main__":
     pytest.main()
