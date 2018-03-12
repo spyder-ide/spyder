@@ -382,5 +382,19 @@ def test_xml_dom_element_view():
     col_editor.accept()
 
 
+def test_pandas_dateoffset_view():
+    """
+    Test that pandas ``DateOffset`` objs can be viewied in CollectionsEditor.
+
+    Regression test for issue #6729 .
+    """
+    test_dateoffset = pandas.DateOffset()
+    col_editor = CollectionsEditor(None)
+    col_editor.setup(test_dateoffset)
+    col_editor.show()
+    assert col_editor.get_value()
+    col_editor.accept()
+
+
 if __name__ == "__main__":
     pytest.main()
