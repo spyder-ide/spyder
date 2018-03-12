@@ -26,6 +26,7 @@ import numpy
 import pandas
 import pytest
 from flaky import flaky
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QWidget
 
 # Local imports
@@ -394,6 +395,23 @@ def test_pandas_dateoffset_view():
     col_editor.show()
     assert col_editor.get_value()
     col_editor.accept()
+
+
+def test_set_nonsettable_objects(qtbot):
+    """
+    Test that errors trying to set attributes in ColEdit are handled properly.
+
+    Unit regression test for issue #6728 .
+    """
+    test_period = pandas.Period("2018-03")
+    expected_period = pandas.Period("2018-03")
+
+    col_model = CollectionsModel(None, test_period)
+
+    assert col_model.setData(col_model.createIndex(7, 3), "2")
+    assert col_model.setData(col_model.createIndex(8, 3), "3")
+    qtbot.wait(100)
+    assert col_model.get_data().__obj__ == expected_period
 
 
 if __name__ == "__main__":
