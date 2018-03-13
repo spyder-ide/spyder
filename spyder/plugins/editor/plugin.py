@@ -1470,6 +1470,7 @@ class Editor(SpyderPluginWidget):
         editorstack.ending_long_process.connect(self.ending_long_process)
 
         # Redirect signals
+        editorstack.sig_option_changed.connect(self.sig_option_changed)
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
         editorstack.exec_in_extconsole.connect(

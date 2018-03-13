@@ -22,6 +22,7 @@ import pytest
 from qtpy.QtWidgets import QMainWindow
 
 # Local imports
+from spyder.config.main import CONF
 from spyder.utils.qthelpers import qapplication
 app = qapplication()
 from spyder.plugins.editor.plugin import AutosaveComponent, Editor
@@ -59,6 +60,8 @@ def setup_editor(qtbot, monkeypatch):
 
     yield editor
     editor.close()
+
+    CONF.remove_option('editor', 'autosave_mapping')
 
 
 @pytest.fixture(scope="module")
@@ -241,6 +244,14 @@ def test_autosave_component_do_autosave(setup_editor, mocker):
     mocker.patch.object(editorStack.autosave, 'autosave_all')
     editor.autosave.do_autosave()
     editorStack.autosave.autosave_all.assert_called()
+
+
+def test_editor_transmits_sig_option_changed(setup_editor):
+    editor, qtbot = setup_editor
+    editorStack = editor.get_current_editorstack()
+    with qtbot.waitSignal(editor.sig_option_changed) as blocker:
+        editorStack.sig_option_changed.emit('autosave_mapping', {1: 2})
+    assert blocker.args == ['autosave_mapping', {1: 2}]
 
 
 if __name__ == "__main__":

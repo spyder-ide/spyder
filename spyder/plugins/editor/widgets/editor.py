@@ -429,6 +429,7 @@ class EditorStack(QWidget):
     sig_next_warning = Signal()
     sig_go_to_definition = Signal(str, int, int)
     perform_lsp_request = Signal(str, str, dict)
+    sig_option_changed = Signal(str, object)  # config option needs changing
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -2618,6 +2619,8 @@ class AutosaveComponent:
         autosave_filename = self.name_mapping[filename]
         os.remove(autosave_filename)
         del self.name_mapping[filename]
+        self.stack.sig_option_changed.emit(
+                'autosave_mapping', self.name_mapping)
         logger.debug('Removing autosave file %s', autosave_filename)
 
     def get_autosave_filename(self, filename):
@@ -2640,6 +2643,8 @@ class AutosaveComponent:
             autosave_filename = self.create_unique_autosave_filename(
                     filename, autosave_dir)
             self.name_mapping[filename] = autosave_filename
+            self.stack.sig_option_changed.emit(
+                    'autosave_mapping', self.name_mapping)
             logger.debug('New autosave file name')
         return autosave_filename
 
