@@ -142,7 +142,7 @@ class SpyderErrorDialog(QDialog):
         self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
-        self.main_label.setStyleSheet('font-size: 11pt;')
+        self.main_label.setStyleSheet('font-size: 12px;')
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
