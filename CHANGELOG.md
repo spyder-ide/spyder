@@ -1,5 +1,7 @@
 # History of changes
 
+## Version 3.2.8 (2018-03-14)
+
 ### New features
 
 #### Editor
