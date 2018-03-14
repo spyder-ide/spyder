@@ -1,42 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.7 is released!
+**Subject**: [ANN] Spyder 3.2.8 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.7** has been released and is available for
+I'm pleased to announce that Spyder **3.2.8** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 6 weeks after version 3.2.6 and it adds the following new
+This release comes 2 weeks after version 3.2.7 and it adds the following new
 features:
 
-- Main Window
-    * Improve the interface to report errors to Github.
-
-- Variable Explorer
-    * Enable the display of many more Numpy array types.
-
 - Editor
-    * Copy text from the search field to the replace one
-      after pressing `Tab`.
+    * Add `Ctrl+Shift+Enter` shortcut to introduce new lines at any point.
 
 - IPython console
-    * Make `%edit foo.py` open `foo.py` in the Editor on
-      Windows.
+    * Always run Cython files in a dedicated console.
 
-- Find in Files
-    * Remove items from the `Search in` list when hovering
-      over them and pressing `Del`.
-    * Add a `Clear this list` option below `Select other
-      directory`.
-
-- Under the hood
-    * Demand PyQt less than 5.10 for our wheels.
-
-In this release we fixed 30 issues and merged 49 pull requests that amount
-to almost 300 commits. For a full list of fixes, please see our
+In this release we fixed 23 issues and merged 27 pull requests that amount
+to almost 120 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
