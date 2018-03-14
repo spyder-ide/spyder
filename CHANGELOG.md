@@ -1,5 +1,79 @@
 # History of changes
 
+### New features
+
+#### Editor
+
+* Add `Ctrl+Shift+Enter` shortcut to introduce new lines at any point.
+
+#### IPython console
+
+* Always run Cython files in a dedicated console.
+
+### Issues Closed
+
+* [Issue 6729](https://github.com/spyder-ide/spyder/issues/6729) - ValueError trying to open pandas.DateOffset objects in Variable Explorer ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 6728](https://github.com/spyder-ide/spyder/issues/6728) - AttributeError when attempting to edit non-writeable or non-settable attributes of certain (e.g. many common Pandas) objects in CollectionsEditor ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 6727](https://github.com/spyder-ide/spyder/issues/6727) - TypeError and Python hard crash to desktop after modifying _typ attribute of pandas Period in CollectionsEditor ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 6689](https://github.com/spyder-ide/spyder/issues/6689) - Saving session data (spydata) deletes all arrays nested inside other data structures ([PR 6692](https://github.com/spyder-ide/spyder/pull/6692))
+* [Issue 6682](https://github.com/spyder-ide/spyder/issues/6682) - System time change causes Spyder error ([PR 6699](https://github.com/spyder-ide/spyder/pull/6699))
+* [Issue 6673](https://github.com/spyder-ide/spyder/issues/6673) - AttributeError: 'NoneType' object has no attribute 'apply_plugin_settings' when attempting to activate Automatic Connections for Help
+* [Issue 6664](https://github.com/spyder-ide/spyder/issues/6664) - Typo in introspection.utils.get_words
+* [Issue 6570](https://github.com/spyder-ide/spyder/issues/6570) - Sphinx html_use_smartypants is deprecated as of 1.6 and removed in 1.7 ([PR 6575](https://github.com/spyder-ide/spyder/pull/6575))
+* [Issue 6524](https://github.com/spyder-ide/spyder/issues/6524) - Spyder always open a new instance after updating to 3.2.7 version ([PR 6712](https://github.com/spyder-ide/spyder/pull/6712))
+* [Issue 6520](https://github.com/spyder-ide/spyder/issues/6520) - Strange behavior for Spyder code annotations ([PR 6681](https://github.com/spyder-ide/spyder/pull/6681))
+* [Issue 6519](https://github.com/spyder-ide/spyder/issues/6519) - AttributeError: 'NoneType' object has no attribute 'apply_plugin_settings' ([PR 6587](https://github.com/spyder-ide/spyder/pull/6587))
+* [Issue 6518](https://github.com/spyder-ide/spyder/issues/6518) - AttributeError: 'NoneType' object has no attribute 'load_module' ([PR 6597](https://github.com/spyder-ide/spyder/pull/6597))
+* [Issue 6451](https://github.com/spyder-ide/spyder/issues/6451) - Setting a path containing a single quote ([PR 6543](https://github.com/spyder-ide/spyder/pull/6543))
+* [Issue 6445](https://github.com/spyder-ide/spyder/issues/6445) - ValueError when closing a file whose folder changed name in File Explorer ([PR 6569](https://github.com/spyder-ide/spyder/pull/6569))
+* [Issue 6284](https://github.com/spyder-ide/spyder/issues/6284) - When browsing MultiIndex in Object Explorer, Pandas raises NotImplementedError: isna is not defined for MultiIndex ([PR 6710](https://github.com/spyder-ide/spyder/pull/6710))
+* [Issue 5717](https://github.com/spyder-ide/spyder/issues/5717) - FileNotFoundError generated for template.py ([PR 6598](https://github.com/spyder-ide/spyder/pull/6598))
+* [Issue 5696](https://github.com/spyder-ide/spyder/issues/5696) - Variable Explorer windows don't close when Spyder exits; prevents it from reopening until manually closed ([PR 6703](https://github.com/spyder-ide/spyder/pull/6703))
+* [Issue 5680](https://github.com/spyder-ide/spyder/issues/5680) - Bug: Find and Replace indicate "no matches" when "[", "(", or ")" included in the search string ([PR 6526](https://github.com/spyder-ide/spyder/pull/6526))
+* [Issue 5642](https://github.com/spyder-ide/spyder/issues/5642) - AttributeError when attempting to view dom.minidom.Element object in Variable Explorer ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 5466](https://github.com/spyder-ide/spyder/issues/5466) - How do I move to a new line while I'm in the middle of the current line? ([PR 6423](https://github.com/spyder-ide/spyder/pull/6423))
+* [Issue 5299](https://github.com/spyder-ide/spyder/issues/5299) - pyximport.install() in sitecustomize.py is not a good idea ([PR 6607](https://github.com/spyder-ide/spyder/pull/6607))
+* [Issue 4231](https://github.com/spyder-ide/spyder/issues/4231) - delete (context="editor", name="delete") keyboard shortcut doesn't work ([PR 6530](https://github.com/spyder-ide/spyder/pull/6530))
+* [Issue 919](https://github.com/spyder-ide/spyder/issues/919) - Saving large workspace on network drive crashes Spyder on Windows ([PR 6692](https://github.com/spyder-ide/spyder/pull/6692))
+
+In this release 23 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 6736](https://github.com/spyder-ide/spyder/pull/6736) - PR: Error report stopgap to make instructions harder to miss
+* [PR 6731](https://github.com/spyder-ide/spyder/pull/6731) - PR: Fix various bugs in Variable Explorer, including an application crash to desktop ([6729](https://github.com/spyder-ide/spyder/issues/6729), [6728](https://github.com/spyder-ide/spyder/issues/6728), [6727](https://github.com/spyder-ide/spyder/issues/6727), [5642](https://github.com/spyder-ide/spyder/issues/5642))
+* [PR 6715](https://github.com/spyder-ide/spyder/pull/6715) - PR: Replace deprecated function in inline CollectionsEditor tests and add recently supported data types
+* [PR 6714](https://github.com/spyder-ide/spyder/pull/6714) - PR: Make several GUI/qtbot tests more reliable by increasing timeouts and tweaking the methods used
+* [PR 6713](https://github.com/spyder-ide/spyder/pull/6713) - PR: Add .pytest_cache to gitignore
+* [PR 6712](https://github.com/spyder-ide/spyder/pull/6712) - PR: Fix new instance validation on Windows. ([6524](https://github.com/spyder-ide/spyder/issues/6524))
+* [PR 6710](https://github.com/spyder-ide/spyder/pull/6710) - PR: Fix NotImplementedError when browsing a MultiIndex in the Collection Editor ([6284](https://github.com/spyder-ide/spyder/issues/6284))
+* [PR 6703](https://github.com/spyder-ide/spyder/pull/6703) - PR: Set parent for Variable Explorer editors so Spyder closes properly ([5696](https://github.com/spyder-ide/spyder/issues/5696))
+* [PR 6699](https://github.com/spyder-ide/spyder/pull/6699) - PR: Change time elapsed calculation to prevent OSError ([6682](https://github.com/spyder-ide/spyder/issues/6682))
+* [PR 6692](https://github.com/spyder-ide/spyder/pull/6692) - PR: Fix bugs in session saving to spydata and improve tests ([919](https://github.com/spyder-ide/spyder/issues/919), [6689](https://github.com/spyder-ide/spyder/issues/6689))
+* [PR 6681](https://github.com/spyder-ide/spyder/pull/6681) - PR: Allow TODO check marks with blank line ([6520](https://github.com/spyder-ide/spyder/issues/6520))
+* [PR 6667](https://github.com/spyder-ide/spyder/pull/6667) - PR: Fix typo in utils.introspection.get_words
+* [PR 6626](https://github.com/spyder-ide/spyder/pull/6626) - PR: Pin to a Tornado version less than 5.0 to avoid hangs in our tests
+* [PR 6607](https://github.com/spyder-ide/spyder/pull/6607) - PR: Run Cython files in a dedicated console ([5299](https://github.com/spyder-ide/spyder/issues/5299))
+* [PR 6602](https://github.com/spyder-ide/spyder/pull/6602) - PR: Avoid showing dialogs in IPython console tests to avoid segfaults
+* [PR 6598](https://github.com/spyder-ide/spyder/pull/6598) - PR: Be able to open files in the Editor if no template is found ([5717](https://github.com/spyder-ide/spyder/issues/5717))
+* [PR 6597](https://github.com/spyder-ide/spyder/pull/6597) - PR: Add handling for AttributteError when importing module from path ([6518](https://github.com/spyder-ide/spyder/issues/6518))
+* [PR 6587](https://github.com/spyder-ide/spyder/pull/6587) - PR: Remove ipyconsole and editor attrs from the Help plugin ([6519](https://github.com/spyder-ide/spyder/issues/6519))
+* [PR 6575](https://github.com/spyder-ide/spyder/pull/6575) - PR: Update deprecated Sphinx directive html_use_smartypants ([6570](https://github.com/spyder-ide/spyder/issues/6570))
+* [PR 6569](https://github.com/spyder-ide/spyder/pull/6569) - PR: Allow rename from Explorer to work for directories ([6445](https://github.com/spyder-ide/spyder/issues/6445))
+* [PR 6543](https://github.com/spyder-ide/spyder/pull/6543) - PR: Fix error when setting a path with a single quote ([6451](https://github.com/spyder-ide/spyder/issues/6451))
+* [PR 6540](https://github.com/spyder-ide/spyder/pull/6540) - PR: Delay check whether we are running under pytest until run time
+* [PR 6530](https://github.com/spyder-ide/spyder/pull/6530) - PR: Allow shortcut key for editor/delete to work like Del key ([4231](https://github.com/spyder-ide/spyder/issues/4231))
+* [PR 6528](https://github.com/spyder-ide/spyder/pull/6528) - PR: Restore the previous wording for package versions in error report
+* [PR 6527](https://github.com/spyder-ide/spyder/pull/6527) - PR: Skip some IPython console tests in PyQt4 because they are segfaulting too much
+* [PR 6526](https://github.com/spyder-ide/spyder/pull/6526) - PR: Find/replace - return match counts on unescaped characters ([5680](https://github.com/spyder-ide/spyder/issues/5680))
+* [PR 6423](https://github.com/spyder-ide/spyder/pull/6423) - PR: Add Ctrl+Shift+Enter to enter a new line in the Editor ([5466](https://github.com/spyder-ide/spyder/issues/5466))
+
+In this release 27 pull requests were closed.
+
+
+----
+
+
 ## Version 3.2.7 (2018-02-25)
 
 ### New features
