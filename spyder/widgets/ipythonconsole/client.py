@@ -141,7 +141,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # Elapsed time
         self.time_label = None
-        self.t0 = None
+        self.t0 = time.monotonic()
         self.timer = QTimer(self)
 
         # --- Layout
