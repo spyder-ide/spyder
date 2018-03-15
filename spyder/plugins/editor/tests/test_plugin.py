@@ -254,5 +254,32 @@ def test_editor_transmits_sig_option_changed(setup_editor):
     assert blocker.args == ['autosave_mapping', {1: 2}]
 
 
+def test_editor_sets_autosave_mapping_on_first_editorstack(setup_editor):
+    """Check that first editor stack gets autosave mapping from config."""
+    editor, qtbot = setup_editor
+    editorStack = editor.get_current_editorstack()
+    assert editorStack.autosave_mapping == {}
+
+
+def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor):
+    """Check that when an editorstack emits a sig_option_changed for
+    autosave_mapping, the autosave mapping of all other editorstacks is
+    updated."""
+    editor, qtbot = setup_editor
+    editor.editorsplitter.split()
+    assert len(editor.editorstacks) == 2
+    old_mapping = {}
+    for editorstack in editor.editorstacks:
+        assert editorstack.autosave_mapping == old_mapping
+    new_mapping = {'ham': 'spam'}
+    editor.get_current_editorstack().sig_option_changed.emit(
+            'autosave_mapping', new_mapping)
+    for editorstack in editor.editorstacks:
+        if editorstack == editor.get_current_editorstack():
+            assert editorstack.autosave_mapping == old_mapping
+        else:
+            assert editorstack.autosave_mapping == new_mapping
+
+
 if __name__ == "__main__":
     pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])

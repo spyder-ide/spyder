@@ -1357,6 +1357,19 @@ class Editor(SpyderPluginWidget):
                     pass
         CONF.set('editor', conf_name, checked)
 
+    def received_sig_option_changed(self, option, value):
+        """
+        Called when sig_option_changed is received.
+
+        If option being changed is autosave_mapping, then synchronize new
+        mapping with all editor stacks except the sender.
+        """
+        if option == 'autosave_mapping':
+            for editorstack in self.editorstacks:
+                if editorstack != self.sender():
+                    editorstack.autosave_mapping = value
+        self.sig_option_changed.emit(option, value)
+
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
@@ -1416,6 +1429,8 @@ class Editor(SpyderPluginWidget):
                                  self.cursorpos_status.cursor_position_changed)
             editorstack.sig_refresh_eol_chars.connect(self.eol_status.eol_changed)
 
+        editorstack.autosave_mapping \
+            = CONF.get('editor', 'autosave_mapping', {})
         editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
@@ -1470,7 +1485,8 @@ class Editor(SpyderPluginWidget):
         editorstack.ending_long_process.connect(self.ending_long_process)
 
         # Redirect signals
-        editorstack.sig_option_changed.connect(self.sig_option_changed)
+        editorstack.sig_option_changed.connect(
+                self.received_sig_option_changed)
         editorstack.redirect_stdio.connect(
                                  lambda state: self.redirect_stdio.emit(state))
         editorstack.exec_in_extconsole.connect(
