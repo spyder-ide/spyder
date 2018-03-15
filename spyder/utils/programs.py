@@ -253,13 +253,14 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 
 
 def run_python_script_in_terminal(fname, wdir, args, interact,
-                                  debug, python_args):
+                                  debug, python_args, executable=None):
     """
     Run Python script in an external system terminal.
 
     :str wdir: working directory, may be empty.
     """
-    python_exe = get_python_executable()
+    if executable is None:
+        executable = get_python_executable()
 
     # If fname or python_exe contains spaces, it can't be ran on Windows, so we
     # have to enclose them in quotes. Also wdir can come with / as os.sep, so
@@ -267,10 +268,12 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     if os.name == 'nt':
         fname = '"' + fname + '"'
         wdir = wdir.replace('/', '\\')
-        python_exe = '"' + python_exe + '"'
+        executable = '"' + executable + '"'
 
-    p_args = [python_exe]
+    p_args = [executable]
     p_args += get_python_args(fname, python_args, interact, debug, args)
+    
+    print(executable)
 
     if os.name == 'nt':
         cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
