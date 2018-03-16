@@ -2381,9 +2381,10 @@ class Editor(SpyderPluginWidget):
             # quotes (Fixes Issue #6771)
             dirname = osp.dirname(fname)
 
-            # Escape single and double quotes in fname (Fixes Issue 2158)
-            fname = fname.replace("'", r"\'")
-            fname = fname.replace('"', r'\"')
+            # Escape single and double quotes in fname and dirname
+            # (Fixes Issue 2158)
+            fname = fname.replace("'", r"\'").replace('"', r'\"')
+            dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
             runconf = get_run_configuration(fname)
             if runconf is None:
