@@ -2376,11 +2376,15 @@ class Editor(SpyderPluginWidget):
         if editorstack.save():
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
-            
+
+            # Get fname's dirname before we escape the single and double
+            # quotes (Fixes Issue #6771)
+            dirname = osp.dirname(fname)
+
             # Escape single and double quotes in fname (Fixes Issue 2158)
             fname = fname.replace("'", r"\'")
             fname = fname.replace('"', r'\"')
-            
+
             runconf = get_run_configuration(fname)
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
@@ -2412,7 +2416,7 @@ class Editor(SpyderPluginWidget):
             clear_namespace = runconf.clear_namespace
 
             if runconf.file_dir:
-                wdir = osp.dirname(fname)
+                wdir = dirname
             elif runconf.cw_dir:
                 wdir = ''
             elif osp.isdir(runconf.dir):
