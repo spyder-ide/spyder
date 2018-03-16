@@ -135,6 +135,16 @@ def find_desired_tab_in_window(tab_name, window):
     return None, None
 
 
+def setup_file_test():
+    filedir = osp.join(LOCATION, u"runtest's folder èáïü Øαôå 字分误")
+    filepath = osp.join(filedir, u"runtest's file èáïü Øαôå 字分误.py")
+    if not osp.exists(filedir):
+        os.makedirs(filedir)
+    if not osp.exists(filepath):
+        shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
+    return filepath
+
+
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -763,19 +773,20 @@ def test_set_new_breakpoints(main_window, qtbot):
     main_window.editor.clear_all_breakpoints()
     main_window.editor.close_file()
 
-
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_run_code(main_window, qtbot):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
+    filepath = setup_file_test()
+
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Load test file
-    main_window.editor.load(osp.join(LOCATION, 'script.py'))
+    main_window.editor.load(filepath)
 
     # Move to the editor's first line
     code_editor = main_window.editor.get_focus_widget()
@@ -1465,4 +1476,4 @@ def test_render_issue():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(['-x', os.path.basename(__file__), '-v', '-rw'])
