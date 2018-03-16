@@ -773,6 +773,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     main_window.editor.clear_all_breakpoints()
     main_window.editor.close_file()
 
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
@@ -1476,4 +1477,4 @@ def test_render_issue():
 
 
 if __name__ == "__main__":
-    pytest.main(['-x', os.path.basename(__file__), '-v', '-rw'])
+    pytest.main()

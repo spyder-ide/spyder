@@ -2382,7 +2382,7 @@ class Editor(SpyderPluginWidget):
             dirname = osp.dirname(fname)
 
             # Escape single and double quotes in fname and dirname
-            # (Fixes Issue 2158)
+            # (Fixes Issue #2158)
             fname = fname.replace("'", r"\'").replace('"', r'\"')
             dirname = dirname.replace("'", r"\'").replace('"', r'\"')
 
