@@ -13,9 +13,9 @@ import os
 import os.path as osp
 import shutil
 try:
-    from unittest.mock import Mock
+    from unittest.mock import MagicMock, Mock
 except ImportError:
-    from mock import Mock  # Python 2
+    from mock import MagicMock, Mock  # Python 2
 
 # Third party imports
 import pytest
@@ -279,6 +279,16 @@ def test_editor_syncs_autosave_mapping_among_editorstacks(setup_editor):
             assert editorstack.autosave_mapping == old_mapping
         else:
             assert editorstack.autosave_mapping == new_mapping
+
+
+def test_editor_calls_recoverydialog_exec_if_nonempty(qtbot, monkeypatch):
+    """Check that editor tries to exec a recovery dialog on construction."""
+    mock_RecoveryDialog = MagicMock()
+    monkeypatch.setattr('spyder.plugins.editor.plugin.RecoveryDialog',
+                        mock_RecoveryDialog)
+    setup_editor_iter = setup_editor(qtbot, monkeypatch)
+    editor, qtbot = next(setup_editor_iter)
+    mock_RecoveryDialog.return_value.exec_if_nonempty.assert_called()
 
 
 if __name__ == "__main__":

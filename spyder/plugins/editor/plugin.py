@@ -45,6 +45,7 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.recover import RecoveryDialog
 from spyder.widgets.status import (CursorPositionStatus, EncodingStatus,
                                    EOLStatus, ReadWriteStatus)
 from spyder.api.plugins import SpyderPluginWidget
@@ -536,6 +537,9 @@ class Editor(SpyderPluginWidget):
                                          self.stack_menu_actions, first=True)
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
+
+        # Recover files from autosave if applicable
+        self.autosave.try_recover_from_autosave()
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
@@ -3002,3 +3006,11 @@ class AutosaveComponent:
         stack = self.editor.get_current_editorstack()
         stack.autosave.autosave_all()
         self.start_autosave_timer()
+
+    def try_recover_from_autosave(self):
+        """Offer to recover files from autosave."""
+        autosave_dir = get_conf_path('autosave')
+        autosave_mapping = CONF.get('editor', 'autosave_mapping', {})
+        dialog = RecoveryDialog(autosave_dir, autosave_mapping, 
+                                parent=self.editor)
+        dialog.exec_if_nonempty()
