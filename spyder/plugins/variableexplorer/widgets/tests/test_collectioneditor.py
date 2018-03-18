@@ -339,22 +339,22 @@ def test_editor_parent_set(monkeypatch):
     test_parent = QWidget()
 
     MockCollectionsEditor = Mock()
-    attr_to_patch_coledit = ('spyder.widgets.variableexplorer.' +
+    attr_to_patch_coledit = ('spyder.plugins.variableexplorer.widgets.' +
                              'collectionseditor.CollectionsEditor')
     monkeypatch.setattr(attr_to_patch_coledit, MockCollectionsEditor)
 
     MockArrayEditor = Mock()
-    attr_to_patch_arredit = ('spyder.widgets.variableexplorer.' +
+    attr_to_patch_arredit = ('spyder.plugins.variableexplorer.widgets.' +
                              'collectionseditor.ArrayEditor')
     monkeypatch.setattr(attr_to_patch_arredit, MockArrayEditor)
 
     MockDataFrameEditor = Mock()
-    attr_to_patch_dfedit = ('spyder.widgets.variableexplorer.' +
+    attr_to_patch_dfedit = ('spyder.plugins.variableexplorer.widgets.' +
                             'collectionseditor.DataFrameEditor')
     monkeypatch.setattr(attr_to_patch_dfedit, MockDataFrameEditor)
 
     MockTextEditor = Mock()
-    attr_to_patch_textedit = ('spyder.widgets.variableexplorer.' +
+    attr_to_patch_textedit = ('spyder.plugins.variableexplorer.widgets.' +
                               'collectionseditor.TextEditor')
     monkeypatch.setattr(attr_to_patch_textedit, MockTextEditor)
 
