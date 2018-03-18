@@ -28,7 +28,7 @@ from spyder.plugins.editor.widgets.base import ConsoleBaseWidget
 
 # Minimum number of characters to introduce in the description field
 # before being able to send the report to Github.
-MIN_CHARS = 20
+MIN_CHARS = 50
 
 
 class DescriptionWidget(CodeEditor):
@@ -142,6 +142,7 @@ class SpyderErrorDialog(QDialog):
         self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
+        self.main_label.setStyleSheet('font-size: 12px;')
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
@@ -212,8 +213,9 @@ class SpyderErrorDialog(QDialog):
         QApplication.clipboard().setText(issue_text)
 
         # Submit issue to Github
-        issue_body = ("<!--- IMPORTANT: Paste the contents of your clipboard "
-                      "here to complete reporting the problem. --->\n\n")
+        issue_body = (
+            " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE TO "
+            "COMPLETE YOUR REPORT ***   ---!>\n")
         main.report_issue(body=issue_body,
                           title="Automatic error report")
 

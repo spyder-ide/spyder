@@ -9,7 +9,7 @@ Widget that handle communications between the IPython Console and
 the Variable Explorer
 """
 
-from time import time
+import time
 
 from qtpy.QtCore import QEventLoop
 from qtpy.QtWidgets import QMessageBox
@@ -19,6 +19,12 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import _, debug_print
 from spyder.py3compat import PY2, to_text_string
+
+
+try:
+    time.monotonic  # time.monotonic new in 3.3
+except AttributeError:
+    time.monotonic = time.time
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -211,7 +217,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 self.set_namespace_view_settings()
                 self.refresh_namespacebrowser()
             self._kernel_is_starting = False
-            self.ipyclient.t0 = time()
+            self.ipyclient.t0 = time.monotonic()
 
         # Handle silent execution of kernel methods
         if info and info.kind == 'silent_exec_method' and not self._hidden:
@@ -230,7 +236,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if state == 'starting':
             # This is needed to show the time a kernel
             # has been alive in each console.
-            self.ipyclient.t0 = time()
+            self.ipyclient.t0 = time.monotonic()
             self.ipyclient.timer.timeout.connect(self.ipyclient.show_time)
             self.ipyclient.timer.start(1000)
 
@@ -243,6 +249,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
                 self.refresh_namespacebrowser()
-            self.ipyclient.t0 = time()
+            self.ipyclient.t0 = time.monotonic()
         else:
             super(NamepaceBrowserWidget, self)._handle_status(msg)

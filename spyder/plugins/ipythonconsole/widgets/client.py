@@ -18,7 +18,7 @@ import os
 import os.path as osp
 from string import Template
 from threading import Thread
-from time import ctime, time, strftime, gmtime
+import time
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
@@ -60,6 +60,11 @@ BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 
+try:
+    time.monotonic  # time.monotonic new in 3.3
+except AttributeError:
+    time.monotonic = time.time
+
 
 #-----------------------------------------------------------------------------
 # Auxiliary functions
@@ -86,7 +91,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     to print different messages there.
     """
 
-    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, ctime())
+    SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
 
@@ -138,7 +143,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # Elapsed time
         self.time_label = None
-        self.t0 = None
+        self.t0 = time.monotonic()
         self.timer = QTimer(self)
 
         # --- Layout
@@ -569,8 +574,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Text to show in time_label."""
         if self.time_label is None:
             return
-        elapsed_time = time() - self.t0
-        if elapsed_time > 24 * 3600: # More than a day...!
+
+        elapsed_time = time.monotonic() - self.t0
+        # System time changed to past date, so reset start.
+        if elapsed_time < 0:
+            self.t0 = time.monotonic()
+            elapsed_time = 0
+        if elapsed_time > 24 * 3600:  # More than a day...!
             fmt = "%d %H:%M:%S"
         else:
             fmt = "%H:%M:%S"
@@ -579,7 +589,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         else:
             color = "#AA6655"
         text = "<span style=\'color: %s\'><b>%s" \
-               "</b></span>" % (color, strftime(fmt, gmtime(elapsed_time)))
+               "</b></span>" % (color,
+                                time.strftime(fmt, time.gmtime(elapsed_time)))
         self.time_label.setText(text)
 
     def update_time_label_visibility(self):

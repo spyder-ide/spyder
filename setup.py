@@ -211,7 +211,7 @@ else:
 #==============================================================================
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
            '.txt', '.rst', '.qss', '.ttf', '.json', '.c', '.cpp', '.java',
-           '.md', '.R', '.csv', '.pyx', '.ipynb']
+           '.md', '.R', '.csv', '.pyx', '.ipynb', '.xml']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']

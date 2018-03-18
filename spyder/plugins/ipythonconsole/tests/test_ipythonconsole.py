@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
 #
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
+"""
+Tests for the IPython console plugin.
+"""
+
+# Standard library imports
 import codecs
 import os
 import os.path as osp
@@ -11,6 +18,7 @@ import shutil
 import tempfile
 from textwrap import dedent
 
+# Third party imports
 import cloudpickle
 from flaky import flaky
 import ipykernel
@@ -20,6 +28,7 @@ from qtpy import PYQT4, PYQT5
 from qtpy.QtCore import Qt
 import zmq
 
+# Local imports
 from spyder.config.gui import get_color_scheme
 from spyder.config.main import CONF
 from spyder.py3compat import PY2, to_text_string
@@ -28,17 +37,17 @@ from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import TEMPDIR
 
 
-#==============================================================================
+# =============================================================================
 # Constants
-#==============================================================================
+# =============================================================================
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
 
 
-#==============================================================================
+# =============================================================================
 # Utillity Functions
-#==============================================================================
+# =============================================================================
 def get_console_font_color(syntax_style):
     styles = create_style_class(syntax_style).styles
     font_color = styles[Name]
@@ -51,9 +60,9 @@ def get_console_background_color(style_sheet):
     return background_color
 
 
-#==============================================================================
+# =============================================================================
 # Qt Test Fixtures
-#==============================================================================
+# =============================================================================
 @pytest.fixture
 def ipyconsole(qtbot, request):
     """IPython console fixture."""
@@ -97,9 +106,9 @@ def ipyconsole(qtbot, request):
     return console
 
 
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
+# =============================================================================
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
@@ -819,6 +828,34 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     argv = shell.get_value("A")
 
     assert argv == ['']
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_set_elapsed_time(ipyconsole, qtbot):
+    """Test that the IPython console elapsed timer is set correctly."""
+    shell = ipyconsole.get_current_shellwidget()
+    client = ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Set time to 2 minutes ago.
+    client.t0 -= 120
+    with qtbot.waitSignal(client.timer.timeout, timeout=5000):
+        ipyconsole.set_elapsed_time(client)
+    assert '00:02:00' in client.time_label.text()
+
+    with qtbot.waitSignal(client.timer.timeout, timeout=5000):
+        pass
+    assert '00:02:01' in client.time_label.text()
+
+    # Make previous time later than current time.
+    client.t0 += 2000
+    with qtbot.waitSignal(client.timer.timeout, timeout=5000):
+        pass
+    assert '00:00:00' in client.time_label.text()
+
+    client.timer.timeout.disconnect(client.show_time)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,10 @@
-# -*- coding:utf-8 -*-
-#
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
 Input/Output Utilities
@@ -13,18 +15,21 @@ Note: 'load' functions has to return a dictionary from which a globals()
 
 from __future__ import print_function
 
+# Standard library imports
 import sys
 import os
+import os.path as osp
 import tarfile
 import tempfile
-import os.path as osp
 import shutil
 import warnings
 import json
 import inspect
 import dis
 import importlib
+import copy
 
+# Third party imports
 # - If pandas fails to import here (for any reason), Spyder
 #   will crash at startup (e.g. see Issue 2300)
 # - This also prevents Spyder to start IPython kernels
@@ -35,7 +40,7 @@ except:
     pd = None            #analysis:ignore
 
 # Local imports
-from spyder.config.base import _, get_conf_path
+from spyder.config.base import _, STDERR
 from spyder.py3compat import pickle, to_text_string, PY2
 from spyder.utils.misc import getcwd_or_home
 
@@ -286,6 +291,16 @@ def save_dictionary(data, filename):
     old_cwd = getcwd_or_home()
     os.chdir(osp.dirname(filename))
     error_message = None
+
+    # Copy dictionary before modifying to fix #6689
+    try:
+        data = copy.deepcopy(data)
+    except NotImplementedError:
+        try:
+            data = copy.copy(data)
+        except Exception:
+            data = data
+
     try:
         saved_arrays = {}
         if load_array is not None:
@@ -316,7 +331,7 @@ def save_dictionary(data, filename):
             if saved_arrays:
                 data['__saved_arrays__'] = saved_arrays
         pickle_filename = osp.splitext(filename)[0]+'.pickle'
-        with open(pickle_filename, 'wb') as fdesc:
+        with open(pickle_filename, 'w+b') as fdesc:
             pickle.dump(data, fdesc, 2)
         tar = tarfile.open(filename, "w")
         for fname in [pickle_filename]+[fn for fn in list(saved_arrays.values())]:

@@ -1,35 +1,50 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
 #
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
 Tests for iofuncs.py
 """
 
+# Standard library imports
 import io
 import os
+
+# Third party imports
 import pytest
 import numpy as np
+
+# Local imports
 import spyder.utils.iofuncs as iofuncs
 
+
+# Full path to this file's parent directory for loading data
 LOCATION = os.path.realpath(os.path.join(os.getcwd(),
                                          os.path.dirname(__file__)))
 
+
+# =============================================================================
+# Fixtures
+# =============================================================================
 @pytest.fixture
 def spydata_values():
     """
     Define spydata file ground truth values.
 
-    The file test_export.spydata contains four variables to be loaded, this
-    function declares those variables in a static way.
+    The file export_data.spydata contains five variables to be loaded.
+    This fixture declares those variables in a static way.
     """
     A = 1
     B = 'ham'
     C = np.eye(3)
-    D = {'a':1}
-    return {'A':A, 'B':B, 'C':C, 'D':D}
+    D = {'a': True, 'b': np.eye(4, dtype=np.complex)}
+    E = [np.eye(2, dtype=np.int64), 42.0, np.eye(3, dtype=np.bool_)]
+    return {'A': A, 'B': B, 'C': C, 'D': D, 'E': E}
+
 
 @pytest.fixture
 def real_values():
@@ -52,8 +67,12 @@ def real_values():
     C = file_s['C']
     D = file_s['D'].item()
     E = file_s['E']
-    return {'A':A, 'B':B, 'C':C, 'D':D, 'E':E}
+    return {'A': A, 'B': B, 'C': C, 'D': D, 'E': E}
 
+
+# =============================================================================
+# Tests
+# =============================================================================
 @pytest.mark.skipif(iofuncs.load_matlab is None, reason="SciPy required")
 def test_matlab_import(real_values):
     """
@@ -72,6 +91,7 @@ def test_matlab_import(real_values):
         valid = valid and bool(np.mean(real_values[var] == inf[var]))
     assert valid
 
+
 def test_spydata_import(spydata_values):
     """
     Test spydata handling and variable importing.
@@ -79,12 +99,18 @@ def test_spydata_import(spydata_values):
     This test loads all the variables contained inside a spydata tar
     container and compares them against their static values.
     """
-    path = os.path.join(LOCATION, 'test_export.spydata')
+    path = os.path.join(LOCATION, 'export_data.spydata')
     data, error = iofuncs.load_dictionary(path)
+    assert error is None
     valid = True
     for var in sorted(spydata_values.keys()):
-        valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+        try:
+            valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+        except ValueError:
+            valid = valid and all([np.all(obj1 == obj2) for obj1, obj2 in
+                                   zip(spydata_values[var], data[var])])
     assert valid
+
 
 @pytest.mark.skipif(iofuncs.load_matlab is None, reason="SciPy required")
 def test_matlabstruct():
@@ -100,10 +126,40 @@ def test_matlabstruct():
     buf = io.BytesIO()
     iofuncs.save_matlab(a, buf)
     buf.seek(0)
-    data, err = iofuncs.load_matlab(buf)
+    data, error = iofuncs.load_matlab(buf)
+
+    assert error is None
     assert data['b'] == 'spam'
     assert data['c'].d == 'eggs'
     assert data['d'].tolist() == [[1, 2, 3]]
+
+
+def test_spydata_export(spydata_values):
+    """
+    Test spydata export and re-import.
+
+    This test saves the variables in ``spydata`` format and then
+    reloads and checks them to make sure they save/restore properly
+    and no errors occur during the process.
+    """
+    path = os.path.join(LOCATION, 'export_data_copy.spydata')
+    export_error = iofuncs.save_dictionary(spydata_values, path)
+    assert export_error is None
+    data, import_error = iofuncs.load_dictionary(path)
+    assert import_error is None
+    valid = True
+    for var in sorted(spydata_values.keys()):
+        try:
+            valid = valid and bool(np.mean(spydata_values[var] == data[var]))
+        except ValueError:
+            valid = valid and all([np.all(obj1 == obj2) for obj1, obj2 in
+                                   zip(spydata_values[var], data[var])])
+    assert valid
+    try:
+        os.remove(path)
+    except (IOError, OSError, PermissionError):
+        pass
+
 
 if __name__ == "__main__":
     pytest.main()
