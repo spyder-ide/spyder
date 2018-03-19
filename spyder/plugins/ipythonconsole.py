@@ -422,7 +422,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         bbox_inches_box = newcb(
                 _("Set bbox_inches to 'tight' when plotting inline"),
                 'pylab/inline/bbox_inches',
-                tip=_("Sets bbox_inches to 'tight' when plotting inline."
+                tip=_("Set bbox_inches to 'tight' when plotting inline."
                       " This can cause discrepancies between the displayed"
                       " image and the identical image created using savefig.")
                 )
