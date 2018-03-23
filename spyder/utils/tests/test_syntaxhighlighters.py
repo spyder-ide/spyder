@@ -80,6 +80,22 @@ def test_python_outline_explorer_comment(line):
 def test_python_not_an_outline_explorer_comment(line):
     assert not PythonSH.OECOMMENT.match(line)
 
+def test_python_instance_syntax_basic():
+    txt = "def method(cls, *args):"
+    
+    doc = QTextDocument(txt)
+    sh = PythonSH(doc, color_scheme='Spyder')
+    sh.rehighlightBlock(doc.firstBlock())
+
+    res = [(0, 3, 'keyword'),  # |def|
+           (3, 1, 'normal'),  # | |
+           (4, 6, 'normal'),  # |method|
+           (10, 1, 'normal'),  # |(|
+           (11, 3, 'instance'),  # |cls|
+           (14, 9, 'normal')  # |, *args|
+           ]
+    
+    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
 if __name__ == '__main__':
     pytest.main()
