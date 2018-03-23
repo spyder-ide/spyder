@@ -291,6 +291,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b",
+                                r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
     number = any("number",
