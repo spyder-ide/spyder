@@ -12,6 +12,7 @@ from qtpy.QtGui import QTextDocument
 from spyder.utils.syntaxhighlighters import HtmlSH, PythonSH, MarkdownSH
 from spyder.py3compat import PY3
 
+
 def compare_formats(actualFormats, expectedFormats, sh):
     assert len(actualFormats) == len(expectedFormats)
     for actual, expected in zip(actualFormats, expectedFormats):
@@ -47,7 +48,6 @@ def test_HtmlSH_unclosed_commend():
     res = [(0, 3, 'normal')]
     compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
-
 def test_python_string_prefix():
     if PY3:
         prefixes = ("r", "u", "R", "U", "f", "F", "fr", "Fr", "fR", "FR",
@@ -71,7 +71,6 @@ def test_python_string_prefix():
                (19 + 2*offset, 1, 'normal')]         # | |
 
         compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
-
 
 def test_Markdown_basic():
     txt = "Some __random__ **text** with ~~different~~ [styles](link_url)"
@@ -106,6 +105,23 @@ def test_python_outline_explorer_comment(line):
 def test_python_not_an_outline_explorer_comment(line):
     assert not PythonSH.OECOMMENT.match(line)
 
+
+def test_python_instance_syntax_basic():
+    txt = "def method(cls, *args):"
+
+    doc = QTextDocument(txt)
+    sh = PythonSH(doc, color_scheme='Spyder')
+    sh.rehighlightBlock(doc.firstBlock())
+
+    res = [(0, 3, 'keyword'),  # |def|
+           (3, 1, 'normal'),  # | |
+           (4, 6, 'normal'),  # |method|
+           (10, 1, 'normal'),  # |(|
+           (11, 3, 'instance'),  # |cls|
+           (14, 9, 'normal')  # |, *args|
+           ]
+
+    compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
 if __name__ == '__main__':
     pytest.main()
