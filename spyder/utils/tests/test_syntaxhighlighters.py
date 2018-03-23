@@ -71,7 +71,7 @@ def test_python_string_prefix():
                (19 + 2*offset, 1, 'normal')]         # | |
 
         compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
- 
+
 def test_Markdown_basic():
     txt = "Some __random__ **text** with ~~different~~ [styles](link_url)"
 
@@ -105,9 +105,10 @@ def test_python_outline_explorer_comment(line):
 def test_python_not_an_outline_explorer_comment(line):
     assert not PythonSH.OECOMMENT.match(line)
 
+
 def test_python_instance_syntax_basic():
     txt = "def method(cls, *args):"
-    
+
     doc = QTextDocument(txt)
     sh = PythonSH(doc, color_scheme='Spyder')
     sh.rehighlightBlock(doc.firstBlock())
@@ -119,7 +120,7 @@ def test_python_instance_syntax_basic():
            (11, 3, 'instance'),  # |cls|
            (14, 9, 'normal')  # |, *args|
            ]
-    
+
     compare_formats(doc.firstBlock().layout().additionalFormats(), res, sh)
 
 if __name__ == '__main__':
