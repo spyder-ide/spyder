@@ -10,10 +10,11 @@ Tests for findinfiles.py
 
 # Test library imports
 import os
-import pytest
 import os.path as osp
 
 # Third party imports
+from flaky import flaky
+import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
@@ -93,6 +94,7 @@ def test_findinfiles(qtbot):
     assert find_in_files
 
 
+@flaky(max_runs=5)
 def test_find_in_files_search(qtbot):
     """
     Test the find in files utility by searching a string located on a set of
@@ -105,7 +107,7 @@ def test_find_in_files_search(qtbot):
     find_in_files.set_search_text("spam")
     find_in_files.find_options.set_directory(osp.join(LOCATION, "data"))
     find_in_files.find()
-    blocker = qtbot.waitSignal(find_in_files.sig_finished)
+    blocker = qtbot.waitSignal(find_in_files.sig_finished, timeout=3000)
     blocker.wait()
     matches = process_search_results(find_in_files.result_browser.data)
     assert expected_results() == matches

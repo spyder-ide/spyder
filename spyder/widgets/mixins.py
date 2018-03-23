@@ -54,6 +54,16 @@ class BaseEditMixin(object):
         # Implemented in CodeEditor, but needed for calltip/completion widgets
         return 0
     
+
+    def calculate_real_position(self, point):
+        """
+        Add offset to a point, to take into account the Editor panels.
+
+        This is reimplemented in CodeEditor, in other widgets it returns
+        the same point.
+        """
+        return point
+
     
     #------Calltips
     def _format_signature(self, text):
@@ -111,7 +121,7 @@ class BaseEditMixin(object):
             cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
             cy = self.cursorRect(cursor).top()
         point = self.mapToGlobal(QPoint(cx, cy))
-        point.setX(point.x()+self.get_linenumberarea_width())
+        point = self.calculate_real_position(point)
         point.setY(point.y()+font.pointSize()+5)
         if signature:
             self.calltip_widget.show_tip(point, tiptext, wrapped_textlines)
@@ -573,11 +583,12 @@ class BaseEditMixin(object):
 
         # TODO: adapt to font size
         x = rect.left()
-        x = x + self.get_linenumberarea_width() - 14
+        x = x - 14
         y = rect.top() + (rect.bottom() - rect.top())/2
         y = y - dlg.height()/2 - 3
 
         pos = QPoint(x, y)
+        pos = self.calculate_real_position(pos)
         dlg.move(self.mapToGlobal(pos))
 
         # called from editor

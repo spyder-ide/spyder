@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 """
-Collections (i.e. dictionary, list and tuple) editor widget and dialog.
+Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -23,9 +23,9 @@ from __future__ import print_function
 import datetime
 import gc
 import sys
-import warnings
 
 # Third party imports
+import cloudpickle
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
@@ -48,11 +48,10 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
 from spyder.widgets.variableexplorer.texteditor import TextEditor
 from spyder.widgets.variableexplorer.utils import (
-    array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
-    get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
-    is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
-    try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
-    get_type_string)
+    array, DataFrame, Index, display_to_value, FakeObject, get_color_name,
+    get_human_readable_type, get_size, Image, is_editable_type, is_known_type,
+    MaskedArray, ndarray, np_savetxt, Series, sort_against, try_to_eval,
+    unsorted_unique, value_to_display, get_object_attrs, get_type_string)
 
 if ndarray is not FakeObject:
     from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
@@ -60,6 +59,9 @@ if ndarray is not FakeObject:
 if DataFrame is not FakeObject:
     from spyder.widgets.variableexplorer.dataframeeditor import DataFrameEditor
 
+
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
@@ -140,7 +142,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         data_type = get_type_string(data)
 
         if coll_filter is not None and not self.remote and \
-          isinstance(data, (tuple, list, dict)):
+          isinstance(data, (tuple, list, dict, set)):
             data = coll_filter(data)
         self.showndata = data
 
@@ -153,6 +155,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         elif isinstance(data, list):
             self.keys = list(range(len(data)))
             self.title += _("List")
+        elif isinstance(data, set):
+            self.keys = list(range(len(data)))
+            self.title += _("Set")
+            self._data = list(data)
         elif isinstance(data, dict):
             self.keys = list(data.keys())
             self.title += _("Dictionary")
@@ -424,7 +430,8 @@ class CollectionsDelegate(QItemDelegate):
             val_type = index.model().types[index.row()]
         except:
             return False
-        if val_type in ['list', 'tuple', 'dict'] and int(val_size) > 1e5:
+        if val_type in ['list', 'set', 'tuple', 'dict'] and \
+                int(val_size) > 1e5:
             return True
         else:
             return False
@@ -453,10 +460,10 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
-        readonly = (isinstance(value, tuple) or self.parent().readonly
+        readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, tuple, dict)):
+        if isinstance(value, (list, set, tuple, dict)):
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -485,7 +492,7 @@ class CollectionsDelegate(QItemDelegate):
                                             conv=conv_func))
             return None
         # DataFrameEditor for a pandas dataframe, series or index
-        elif isinstance(value, (DataFrame, DatetimeIndex, Series)) \
+        elif isinstance(value, (DataFrame, Index, Series)) \
           and DataFrame is not FakeObject:
             editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
@@ -747,7 +754,7 @@ class BaseTableView(QTableView):
                      None, resize_action])
         return menu
     
-    #------ Remote/local API ---------------------------------------------------
+    #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
         raise NotImplementedError
@@ -761,7 +768,7 @@ class BaseTableView(QTableView):
         raise NotImplementedError
         
     def is_list(self, key):
-        """Return True if variable is a list or a tuple"""
+        """Return True if variable is a list, a set or a tuple"""
         raise NotImplementedError
         
     def get_len(self, key):
@@ -803,7 +810,7 @@ class BaseTableView(QTableView):
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         raise NotImplementedError
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
             
     def refresh_menu(self):
         """Refresh context menu"""
@@ -1167,7 +1174,7 @@ class CollectionsEditorTableView(BaseTableView):
                  names=False, minmax=False):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
-        self.readonly = readonly or isinstance(data, tuple)
+        self.readonly = readonly or isinstance(data, (tuple, set))
         CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
                                 else CollectionsModel
         self.model = CollectionsModelClass(self, data, title, names=names,
@@ -1178,8 +1185,11 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
-    
-    #------ Remote/local API ---------------------------------------------------
+
+        if isinstance(data, set):
+            self.horizontalHeader().hideSection(0)
+
+    #------ Remote/local API --------------------------------------------------
     def remove_values(self, keys):
         """Remove values from data"""
         data = self.model.get_data()
@@ -1208,7 +1218,12 @@ class CollectionsEditorTableView(BaseTableView):
         """Return True if variable is a list or a tuple"""
         data = self.model.get_data()
         return isinstance(data[key], (tuple, list))
-        
+
+    def is_set(self, key):
+        """Return True if variable is a set"""
+        data = self.model.get_data()
+        return isinstance(data[key], set)
+
     def get_len(self, key):
         """Return sequence length"""
         data = self.model.get_data()
@@ -1265,13 +1280,13 @@ class CollectionsEditorTableView(BaseTableView):
         """Show image (item is a PIL image)"""
         data = self.model.get_data()
         data[key].show()
-    #---------------------------------------------------------------------------
-        
+    #--------------------------------------------------------------------------
+
     def refresh_menu(self):
         """Refresh context menu"""
         data = self.model.get_data()
         index = self.currentIndex()
-        condition = (not isinstance(data, tuple)) and index.isValid() \
+        condition = (not isinstance(data, (tuple, set))) and index.isValid() \
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
@@ -1325,8 +1340,8 @@ class CollectionsEditor(QDialog):
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
         """Setup editor."""
-        if isinstance(data, dict):
-            # dictionnary
+        if isinstance(data, (dict, set)):
+            # dictionnary, set
             self.data_copy = data.copy()
             datalen = len(data)
         elif isinstance(data, (tuple, list)):
@@ -1381,64 +1396,34 @@ class CollectionsEditor(QDialog):
         return self.data_copy
 
 
-class DictEditor(CollectionsEditor):
-    def __init__(self, parent=None):
-        warnings.warn("`DictEditor` has been renamed to `CollectionsEditor` in "
-                      "Spyder 3. Please use `CollectionsEditor` instead",
-                      RuntimeWarning)
-        CollectionsEditor.__init__(self, parent)
-
-
-#----Remote versions of CollectionsDelegate and CollectionsEditorTableView
+#==============================================================================
+# Remote versions of CollectionsDelegate and CollectionsEditorTableView
+#==============================================================================
 class RemoteCollectionsDelegate(CollectionsDelegate):
     """CollectionsEditor Item Delegate"""
-    def __init__(self, parent=None, get_value_func=None, set_value_func=None):
+    def __init__(self, parent=None):
         CollectionsDelegate.__init__(self, parent)
-        self.get_value_func = get_value_func
-        self.set_value_func = set_value_func
 
     def get_value(self, index):
         if index.isValid():
             name = index.model().keys[index.row()]
-            return self.get_value_func(name)
+            return self.parent().get_value(name)
     
     def set_value(self, index, value):
         if index.isValid():
             name = index.model().keys[index.row()]
-            self.set_value_func(name, value)
+            self.parent().new_value(name, value)
 
 
 class RemoteCollectionsEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, minmax=False,
-                 dataframe_format=None,
-                 get_value_func=None, set_value_func=None,
-                 new_value_func=None, remove_values_func=None,
-                 copy_value_func=None, is_list_func=None, get_len_func=None,
-                 is_array_func=None, is_image_func=None, is_dict_func=None,
-                 get_array_shape_func=None, get_array_ndim_func=None,
-                 plot_func=None, imshow_func=None,
-                 is_data_frame_func=None, is_series_func=None,
-                 show_image_func=None):
+    def __init__(self, parent, data, minmax=False, shellwidget=None,
+                 remote_editing=False, dataframe_format=None):
         BaseTableView.__init__(self, parent)
 
-        self.remove_values = remove_values_func
-        self.copy_value = copy_value_func
-        self.new_value = new_value_func
+        self.shellwidget = shellwidget
+        self.var_properties = {}
 
-        self.is_data_frame = is_data_frame_func
-        self.is_series = is_series_func
-        self.is_list = is_list_func
-        self.get_len = get_len_func
-        self.is_array = is_array_func
-        self.is_image = is_image_func
-        self.is_dict = is_dict_func
-        self.get_array_shape = get_array_shape_func
-        self.get_array_ndim = get_array_ndim_func
-        self.plot = plot_func
-        self.imshow = imshow_func
-        self.show_image = show_image_func
-        
         self.dictfilter = None
         self.model = None
         self.delegate = None
@@ -1448,15 +1433,110 @@ class RemoteCollectionsEditorTableView(BaseTableView):
                                       dataframe_format=dataframe_format,
                                       remote=True)
         self.setModel(self.model)
-        self.delegate = RemoteCollectionsDelegate(self, get_value_func,
-                                                  set_value_func)
+
+        self.delegate = RemoteCollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
         self.menu = self.setup_menu(minmax)
 
+    #------ Remote/local API --------------------------------------------------
+    def get_value(self, name):
+        """Get the value of a variable"""
+        value = self.shellwidget.get_value(name)
+        # Reset temporal variable where value is saved to
+        # save memory
+        self.shellwidget._kernel_value = None
+        return value
+
+    def new_value(self, name, value):
+        """Create new value in data"""
+        try:
+            # We need to enclose values in a list to be able to send
+            # them to the kernel in Python 2
+            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
+            self.shellwidget.set_value(name, svalue)
+        except TypeError as e:
+            QMessageBox.critical(self, _("Error"),
+                                 "TypeError: %s" % to_text_string(e))
+        self.shellwidget.refresh_namespacebrowser()
+
+    def remove_values(self, names):
+        """Remove values from data"""
+        for name in names:
+            self.shellwidget.remove_value(name)
+        self.shellwidget.refresh_namespacebrowser()
+
+    def copy_value(self, orig_name, new_name):
+        """Copy value"""
+        self.shellwidget.copy_value(orig_name, new_name)
+        self.shellwidget.refresh_namespacebrowser()
+
+    def is_list(self, name):
+        """Return True if variable is a list, a tuple or a set"""
+        return self.var_properties[name]['is_list']
+
+    def is_dict(self, name):
+        """Return True if variable is a dictionary"""
+        return self.var_properties[name]['is_dict']
+
+    def get_len(self, name):
+        """Return sequence length"""
+        return self.var_properties[name]['len']
+
+    def is_array(self, name):
+        """Return True if variable is a NumPy array"""
+        return self.var_properties[name]['is_array']
+
+    def is_image(self, name):
+        """Return True if variable is a PIL.Image image"""
+        return self.var_properties[name]['is_image']
+
+    def is_data_frame(self, name):
+        """Return True if variable is a DataFrame"""
+        return self.var_properties[name]['is_data_frame']
+
+    def is_series(self, name):
+        """Return True if variable is a Series"""
+        return self.var_properties[name]['is_series']
+
+    def get_array_shape(self, name):
+        """Return array's shape"""
+        return self.var_properties[name]['array_shape']
+
+    def get_array_ndim(self, name):
+        """Return array's ndim"""
+        return self.var_properties[name]['array_ndim']
+
+    def plot(self, name, funcname):
+        """Plot item"""
+        sw = self.shellwidget
+        if sw._reading:
+            sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
+        else:
+            sw.execute("%%varexp --%s %s" % (funcname, name))
+
+    def imshow(self, name):
+        """Show item's image"""
+        sw = self.shellwidget
+        if sw._reading:
+            sw.dbg_exec_magic('varexp', '--imshow %s' % name)
+        else:
+            sw.execute("%%varexp --imshow %s" % name)
+
+    def show_image(self, name):
+        """Show image (item is a PIL image)"""
+        command = "%s.show()" % name
+        sw = self.shellwidget
+        if sw._reading:
+            sw.kernel_client.input(command)
+        else:
+            sw.execute(command)
+
+    # -------------------------------------------------------------------------
+
     def setup_menu(self, minmax):
-        """Setup context menu"""
+        """Setup context menu."""
         menu = BaseTableView.setup_menu(self, minmax)
         return menu
 
@@ -1503,6 +1583,7 @@ def get_test_data():
             'str': 'kjkj kj k j j kj k jkj',
             'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
+            'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
             'tuple': ([1, testdate, testdict, test_timedelta], 'kjkj', None),
             'dict': testdict,
             'float': 1.2233,
@@ -1560,11 +1641,15 @@ def remote_editor_test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
-    from spyder.plugins.variableexplorer import VariableExplorer
-    from spyder.widgets.variableexplorer.utils import make_remote_view
+    from spyder.config.main import CONF
+    from spyder.widgets.variableexplorer.utils import (make_remote_view,
+                                                       REMOTE_SETTINGS)
 
-    remote = make_remote_view(get_test_data(),
-                              VariableExplorer(None).get_settings())
+    settings = {}
+    for name in REMOTE_SETTINGS:
+        settings[name] = CONF.get('variable_explorer', name)
+
+    remote = make_remote_view(get_test_data(), settings)
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
     dialog.show()

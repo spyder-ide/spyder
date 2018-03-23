@@ -222,5 +222,24 @@ def test_str_in_container_display():
         assert value_to_display([u'Э'.encode('cp1251')]) == "['\xdd']"
 
 
+def test_set_display():
+    """Tests for display of sets."""
+    long_set = {i for i in range(100)}
+
+    # Simple set
+    assert value_to_display({1, 2, 3}) == '{1, 2, 3}'
+
+    # Long set
+    disp = '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...}'
+    assert value_to_display(long_set) == disp
+
+    # Short list of sets
+    disp = '[{0, 1, 2, 3, 4, ...}, {0, 1, 2, 3, 4, ...}, {0, 1, 2, 3, 4, ...}]'
+    assert value_to_display([long_set] * 3) == disp
+
+    # Long list of sets
+    disp = '[' + ''.join('{0, 1, 2, 3, 4, ...}, '*10)[:-2] + ']'
+    assert value_to_display([long_set] * 10) == disp[:70] + ' ...'
+
 if __name__ == "__main__":
     pytest.main()

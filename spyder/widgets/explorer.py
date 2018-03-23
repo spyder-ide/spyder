@@ -47,15 +47,15 @@ try:
 except:
     nbexporter = None    # analysis:ignore
 
+
 def open_file_in_external_explorer(filename):
     if sys.platform == "darwin":
         subprocess.call(["open", "-R", filename])
+    elif os.name == 'nt':
+        subprocess.call(["explorer", "/select,", filename])
     else:
         filename=os.path.dirname(filename)
-        if os.name == 'nt':
-            os.startfile(filename)
-        else:
-            subprocess.call(["xdg-open", filename])
+        subprocess.call(["xdg-open", filename])
 
 def show_in_external_file_explorer(fnames=None):
     """Show files in external file explorer
@@ -179,6 +179,17 @@ class IconProvider(QFileIconProvider):
 
 class DirView(QTreeView):
     """Base file/directory tree view"""
+    sig_edit = Signal(str)
+    sig_removed = Signal(str)
+    sig_removed_tree = Signal(str)
+    sig_renamed = Signal(str, str)
+    sig_renamed_tree = Signal(str, str)
+    sig_create_module = Signal(str)
+    sig_run = Signal(str)
+    sig_new_file = Signal(str)
+    sig_open_interpreter = Signal(str)
+    redirect_stdio = Signal(bool)
+
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
         self.name_filters = ['*.py']
@@ -191,6 +202,7 @@ class DirView(QTreeView):
         self.fsmodel = None
         self.setup_fs_model()
         self._scrollbar_positions = None
+        self.setSelectionMode(self.ExtendedSelection)
                 
     #---- Model
     def setup_fs_model(self):
@@ -242,7 +254,10 @@ class DirView(QTreeView):
     def get_selected_filenames(self):
         """Return selected filenames"""
         if self.selectionMode() == self.ExtendedSelection:
-            return [self.get_filename(idx) for idx in self.selectedIndexes()]
+            if self.selectionModel() is None:
+                return []
+            return [self.get_filename(idx) for idx in 
+                    self.selectionModel().selectedRows()]
         else:
             return [self.get_filename(self.currentIndex())]
             
@@ -354,7 +369,8 @@ class DirView(QTreeView):
         rename_action = create_action(self, _("Rename..."),
                                       icon=ima.icon('rename'),
                                       triggered=self.rename)
-        open_action = create_action(self, _("Open"), triggered=self.open)
+        open_external_action = create_action(self, _("Open With OS"), 
+                                             triggered=self.open_external)
         ipynb_convert_action = create_action(self, _("Convert to Python script"),
                                              icon=ima.icon('python'),
                                              triggered=self.convert_notebooks)
@@ -364,20 +380,22 @@ class DirView(QTreeView):
             actions.append(run_action)
         if only_valid and only_files:
             actions.append(edit_action)
-        else:
-            actions.append(open_action)
+        
         if sys.platform == 'darwin':
             text=_("Show in Finder")
         else:
-            text=_("Show in external file explorer")
+            text=_("Show in Folder")
         external_fileexp_action = create_action(self, text, 
                                 triggered=self.show_in_external_file_explorer)        
-        actions.append(external_fileexp_action)
         actions += [delete_action, rename_action]
         basedir = fixpath(osp.dirname(fnames[0]))
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
+        if only_files:
+            actions.append(open_external_action)
+        actions.append(external_fileexp_action)
+        actions.append([None])
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
@@ -448,9 +466,6 @@ class DirView(QTreeView):
             actions.append(None)
         if fnames and all([osp.isdir(_fn) for _fn in fnames]):
             actions += self.create_folder_manage_actions(fnames)
-        if actions:
-            actions.append(None)
-        actions += self.common_actions
         return actions
 
     def update_menu(self):
@@ -544,6 +559,14 @@ class DirView(QTreeView):
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
+                
+    @Slot()
+    def open_external(self, fnames=None):
+        """Open files with default application"""
+        if fnames is None:
+            fnames = self.get_selected_filenames()
+        for fname in fnames:
+            self.open_outside_spyder([fname])
         
     def open_outside_spyder(self, fnames):
         """Open file outside Spyder with the appropriate application
@@ -552,12 +575,12 @@ class DirView(QTreeView):
             path = file_uri(path)
             ok = programs.start_file(path)
             if not ok:
-                self.parent_widget.edit.emit(path)
+                self.sig_edit.emit(path)
 
     def open_interpreter(self, fnames):
         """Open interpreter"""
         for path in sorted(fnames):
-            self.parent_widget.open_interpreter.emit(path)
+            self.sig_open_interpreter.emit(path)
 
     @Slot()
     def run(self, fnames=None):
@@ -565,7 +588,7 @@ class DirView(QTreeView):
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            self.parent_widget.run.emit(fname)
+            self.sig_run.emit(fname)
     
     def remove_tree(self, dirname):
         """Remove whole directory tree
@@ -575,7 +598,7 @@ class DirView(QTreeView):
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
         if multiple:
-            buttons = QMessageBox.Yes|QMessageBox.YesAll| \
+            buttons = QMessageBox.Yes|QMessageBox.YesToAll| \
                       QMessageBox.No|QMessageBox.Cancel
         else:
             buttons = QMessageBox.Yes|QMessageBox.No
@@ -588,15 +611,15 @@ class DirView(QTreeView):
                 return yes_to_all
             elif answer == QMessageBox.Cancel:
                 return False
-            elif answer == QMessageBox.YesAll:
+            elif answer == QMessageBox.YesToAll:
                 yes_to_all = True
         try:
             if osp.isfile(fname):
                 misc.remove_file(fname)
-                self.parent_widget.removed.emit(fname)
+                self.sig_removed.emit(fname)
             else:
                 self.remove_tree(fname)
-                self.parent_widget.removed_tree.emit(fname)
+                self.sig_removed_tree.emit(fname)
             return yes_to_all
         except EnvironmentError as error:
             action_str = _('delete')
@@ -639,7 +662,7 @@ class DirView(QTreeView):
                                  "notebook. The error is:\n\n") + \
                                  to_text_string(e))
             return
-        self.parent_widget.sig_new_file.emit(script)
+        self.sig_new_file.emit(script)
 
     @Slot()
     def convert_notebooks(self):
@@ -669,9 +692,9 @@ class DirView(QTreeView):
             try:
                 misc.rename_file(fname, path)
                 if osp.isfile(fname):
-                    self.parent_widget.renamed.emit(fname, path)
+                    self.sig_renamed.emit(fname, path)
                 else:
-                    self.parent_widget.renamed_tree.emit(fname, path)
+                    self.sig_renamed_tree.emit(fname, path)
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),
@@ -703,13 +726,13 @@ class DirView(QTreeView):
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
-            self.parent_widget.redirect_stdio.emit(False)
+            self.redirect_stdio.emit(False)
             if directory is None:
                 folder = getexistingdirectory(self, _("Select directory"),
                                               orig)
             else:
                 folder = directory
-            self.parent_widget.redirect_stdio.emit(True)
+            self.redirect_stdio.emit(True)
             if folder:
                 folder = fixpath(folder)
                 if folder != orig:
@@ -778,9 +801,9 @@ class DirView(QTreeView):
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        self.parent_widget.redirect_stdio.emit(False)
+        self.redirect_stdio.emit(False)
         fname, _selfilter = getsavefilename(self, title, current_path, filters)
-        self.parent_widget.redirect_stdio.emit(True)
+        self.redirect_stdio.emit(True)
         if fname:
             try:
                 create_func(fname)
@@ -810,7 +833,10 @@ class DirView(QTreeView):
         """New module"""
         title = _("New module")
         filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
-        create_func = lambda fname: self.parent_widget.create_module.emit(fname)
+
+        def create_func(fname):
+            self.sig_create_module.emit(fname)
+
         self.create_new_file(basedir, title, filters, create_func)
 
     def go_to_parent_directory(self):
@@ -1012,7 +1038,8 @@ class FilteredDirView(DirView):
         self.setHeaderHidden(True)
         # Disable the view of .spyproject. 
         self.filter_directories()
-      
+
+
 class ExplorerTreeWidget(DirView):
     """File/directory explorer tree widget
     show_cd_only: Show current directory only
@@ -1020,6 +1047,7 @@ class ExplorerTreeWidget(DirView):
      None: enable the option and do not allow the user to disable it)"""
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
+    sig_open_dir = Signal(str)
     
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
@@ -1154,7 +1182,7 @@ class ExplorerTreeWidget(DirView):
                 FileNotFoundError = IOError
         try:
             os.chdir(directory)
-            self.parent_widget.open_dir.emit(directory)
+            self.sig_open_dir.emit(directory)
             self.refresh(new_path=directory, force_current=True)
         except PermissionError:
             QMessageBox.critical(self.parent_widget, "Error",
@@ -1169,12 +1197,11 @@ class ExplorerWidget(QWidget):
     """Explorer widget"""
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    sig_new_file = Signal(str)
-    redirect_stdio = Signal(bool)
     open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 show_all=False, show_cd_only=None, show_icontext=True):
+                 show_all=False, show_cd_only=None, show_icontext=True,
+                 options_button=None, menu=None):
         QWidget.__init__(self, parent)
 
         # Widgets
@@ -1182,8 +1209,11 @@ class ExplorerWidget(QWidget):
         button_previous = QToolButton(self)
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
-        self.button_menu = QToolButton(self)
-        menu = QMenu(self)
+        self.button_menu = options_button or QToolButton(self)
+        if menu:
+            self.menu = menu
+        else:
+            self.menu = QMenu(self)
 
         self.action_widgets = [button_previous, button_next, button_parent,
                                self.button_menu]
@@ -1200,7 +1230,6 @@ class ExplorerWidget(QWidget):
         parent_action = create_action(self, text=_("Parent"),
                             icon=ima.icon('ArrowUp'),
                             triggered=self.treewidget.go_to_parent_directory)
-        options_action = create_action(self, text='', tip=_('Options'))
 
         # Setup widgets
         self.treewidget.setup(name_filters=name_filters, show_all=show_all)
@@ -1217,9 +1246,8 @@ class ExplorerWidget(QWidget):
 
         self.button_menu.setIcon(ima.icon('tooloptions'))
         self.button_menu.setPopupMode(QToolButton.InstantPopup)
-        self.button_menu.setMenu(menu)
-        add_actions(menu, self.treewidget.common_actions)
-        options_action.setMenu(menu)
+        self.button_menu.setMenu(self.menu)
+        add_actions(self.menu, self.treewidget.common_actions)
 
         self.toggle_icontext(show_icontext)
         icontext_action.setChecked(show_icontext)

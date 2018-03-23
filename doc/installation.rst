@@ -102,11 +102,11 @@ Spyder is also available in other GNU/Linux distributions, like
 
 * `Archlinux <https://aur.archlinux.org/packages/?K=spyder>`_
 
-* `Fedora <https://admin.fedoraproject.org/pkgdb/acls/name/spyder?_csrf_token=ab2ac812ed6df3abdf42981038a56d3d87b34128>`_
+* `Fedora <https://apps.fedoraproject.org/packages/spyder>`_
 
 * `Gentoo <http://packages.gentoo.org/package/dev-python/spyder>`_
 
-* `openSUSE <https://build.opensuse.org/package/show?package=python-spyder&project=home%3Aocefpaf>`_
+* `openSUSE <https://build.opensuse.org/package/show/devel:languages:python/spyder>`_
 
 * `Mageia <http://mageia.madb.org/package/show/name/spyder>`_
 
@@ -141,7 +141,7 @@ The requirements to run Spyder are:
   enhanced Python interpreter.
 
 * `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 and
-  `Jedi <http://jedi.jedidjah.ch/en/latest/>`_ >=0.9.0 -- for code completion,
+  `Jedi <http://jedi.jedidjah.ch/en/latest/>`_ >=0.11.0 -- for code completion,
   go-to-definition and calltips on the Editor.
 
 * `Pyflakes <http://pypi.python.org/pypi/pyflakes>`_  -- for real-time

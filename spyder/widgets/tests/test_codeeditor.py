@@ -21,8 +21,9 @@ from spyder.widgets.editor import codeeditor
 def editorbot(qtbot):
     widget = codeeditor.CodeEditor(None)
     widget.setup_editor(linenumbers=True, markers=True, tab_mode=False,
-                         font=QFont("Courier New", 10),
-                         show_blanks=True, color_scheme='Zenburn')
+                        font=QFont("Courier New", 10),
+                        show_blanks=True, color_scheme='Zenburn',
+                        scroll_past_end=True)
     widget.setup_editor(language='Python')
     qtbot.addWidget(widget)
     widget.show()

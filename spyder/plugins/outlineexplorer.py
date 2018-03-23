@@ -12,34 +12,43 @@ highlighter spyder.utils.syntaxhighlighters.PythonSH
 """
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins import SpyderPluginMixin
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string
 from spyder.utils import icon_manager as ima
 from spyder.widgets.editortools import OutlineExplorerWidget
 
 
-class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
+class OutlineExplorer(SpyderPluginWidget):
+    """Outline Explorer plugin."""
+
     CONF_SECTION = 'outline_explorer'
-    sig_option_changed = Signal(str, object)
-    
+
     def __init__(self, parent=None):
+        SpyderPluginWidget.__init__(self, parent)
+
         show_fullpath = self.get_option('show_fullpath')
         show_all_files = self.get_option('show_all_files')
         show_comments = self.get_option('show_comments')
-        OutlineExplorerWidget.__init__(self, parent=parent,
-                                       show_fullpath=show_fullpath,
-                                       show_all_files=show_all_files,
-                                       show_comments=show_comments)
-        SpyderPluginMixin.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()
+        self.explorer = OutlineExplorerWidget(
+                                       self,
+                                       show_fullpath=show_fullpath,
+                                       show_all_files=show_all_files,
+                                       show_comments=show_comments,
+                                       options_button=self.options_button)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.explorer)
+        self.setLayout(layout)
         
-        self.treewidget.header().hide()
+        # Menu as corner widget
+        self.explorer.treewidget.header().hide()
         self.load_config()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
@@ -56,7 +65,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.treewidget
+        return self.explorer.treewidget
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
@@ -80,24 +89,25 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     #------ SpyderPluginMixin API ---------------------------------------------
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        SpyderPluginMixin.visibility_changed(self, enable)
+        super(SpyderPluginWidget, self).visibility_changed(enable)
         if enable:
-            self.outlineexplorer_is_visible.emit()
+            self.explorer.is_visible.emit()
             
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = self.get_option('scrollbar_position', None)
         if scrollbar_pos is not None:
-            self.treewidget.set_scrollbar_position(scrollbar_pos)
+            self.explorer.treewidget.set_scrollbar_position(scrollbar_pos)
 
     def save_config(self):
         """Save configuration: tree widget state"""
-        for option, value in list(self.get_options().items()):
+        for option, value in list(self.explorer.get_options().items()):
             self.set_option(option, value)
-        self.set_option('expanded_state', self.treewidget.get_expanded_state())
+        self.set_option('expanded_state',
+                        self.explorer.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
-                        self.treewidget.get_scrollbar_position())
+                        self.explorer.treewidget.get_scrollbar_position())
         
     def load_config(self):
         """Load configuration: tree widget state"""
@@ -108,4 +118,4 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         if is_text_string(expanded_state):
             expanded_state = None
         if expanded_state is not None:
-            self.treewidget.set_expanded_state(expanded_state)
+            self.explorer.treewidget.set_expanded_state(expanded_state)

@@ -25,6 +25,7 @@ from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
+from spyder.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
 from spyder.widgets.comboboxes import PatternComboBox
 
@@ -426,6 +427,9 @@ class FindReplace(QWidget):
             self.search_text.setToolTip(tooltip)
 
             if self.is_code_editor and found:
+                block = self.editor.textCursor().block()
+                TextHelper(self.editor).unfold_if_colapsed(block)
+
                 if rehighlight or not self.editor.found_results:
                     self.highlight_timer.stop()
                     if start_highlight_timer:
