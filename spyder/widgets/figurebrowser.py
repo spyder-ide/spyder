@@ -411,6 +411,7 @@ class ThumbnailScrollBar(QFrame):
     created when a figure is sent to the IPython console by the kernel and
     that controls what is displayed in the FigureViewer.
     """
+    redirect_stdio = Signal(bool)
 
     def __init__(self, figure_viewer, parent=None):
         super(ThumbnailScrollBar, self).__init__(parent)
@@ -511,10 +512,12 @@ class ThumbnailScrollBar(QFrame):
                 'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
                 'image/svg+xml': ('.svg', 'SVG (*.svg)')}[fmt]
 
+        self.redirect_stdio.emit(False)
         fname, fext = getsavefilename(
                 parent=self.parent(), caption='Save Figure',
                 basedir='figure'+fext, filters=ffilt, selectedfilter='',
                 options=None)
+        self.redirect_stdio.emit(True)
         if fname:
             self.figsaver.save_figure_tofile(fig, fmt, fname)
 

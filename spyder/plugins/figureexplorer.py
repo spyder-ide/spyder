@@ -80,6 +80,8 @@ class FigureExplorer(SpyderPluginWidget):
                                         plugin_actions=[self.undock_action])
             fig_browser.set_shellwidget(shellwidget)
             fig_browser.setup()
+            fig_browser.thumnails_sb.redirect_stdio.connect(
+                self.main.redirect_internalshell_stdio)
             # fig_browser.setup(**self.get_settings())
             # fig_browser.sig_option_changed.connect(self.change_option)
             self.add_widget(fig_browser)
