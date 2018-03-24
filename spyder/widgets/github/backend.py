@@ -81,6 +81,7 @@ class BaseBackend(object):
         """
         raise NotImplementedError
 
+
 class GithubBackend(BaseBackend):
     """
     This backend sends the crash report on a github issue tracker::
@@ -111,8 +112,14 @@ class GithubBackend(BaseBackend):
     def send_report(self, title, body, application_log=None):
         _logger().debug('sending bug report on github\ntitle=%s\nbody=%s',
                         title, body)
-        username, password = self.get_user_credentials()
-        if not username or not password:
+
+        # Credentials
+        credentials = self.get_user_credentials()
+        if len(credentials) == 1:
+            token = credentials
+        else:
+            user, password = credentials
+        if not username or not password or not token:
             return False
         _logger().debug('got user credentials')
 
@@ -121,7 +128,10 @@ class GithubBackend(BaseBackend):
             url = self.upload_log_file(application_log)
             body += '\nApplication log: %s' % url
         try:
-            gh = github.GitHub(username=username, password=password)
+            if token:
+                gh = github.GitHub(access_token=token)
+            else:
+                gh = github.GitHub(username=username, password=password)
             repo = gh.repos(self.gh_owner)(self.gh_repo)
             ret = repo.issues.post(title=title, body=body)
         except github.ApiError as e:
@@ -157,10 +167,8 @@ class GithubBackend(BaseBackend):
 
     def get_user_credentials(self): 
         """Get user credentials with the login dialog."""
-        # ask for credentials
-        username, password = DlgGitHubLogin.login(self.parent_widget, None)
-
-        return username, password
+        credentials = DlgGitHubLogin.login(self.parent_widget, None)
+        return credentials
 
     def upload_log_file(self, log_content):
         gh = github.GitHub()

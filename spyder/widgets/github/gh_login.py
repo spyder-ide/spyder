@@ -15,10 +15,12 @@ import sys
 
 from qtpy.QtCore import QEvent, Qt, QSize
 from qtpy.QtWidgets import (QDialog, QFormLayout, QLabel, QLineEdit,
-                            QPushButton, QVBoxLayout)
+                            QPushButton, QTabWidget, QVBoxLayout, QWidget)
 
 from spyder.config.base import _
 from spyder.config.base import get_image_path
+from spyder.py3compat import to_text_string
+
 
 GH_MARK_NORMAL = get_image_path('GitHub-Mark.png')
 GH_MARK_LIGHT = get_image_path('GitHub-Mark-Light.png')
@@ -44,22 +46,52 @@ class DlgGitHubLogin(QDialog):
             mark = GH_MARK_LIGHT
         lbl_html = QLabel(html.format(mark=mark, title=title))
 
-        # User and password
-        form_layout = QFormLayout()
-        form_layout.setContentsMargins(-1, 0, -1, -1)
+        # Tabs
+        tabs = QTabWidget()
+
+        # Basic form layout
+        basic_form_layout = QFormLayout()
+        basic_form_layout.setContentsMargins(-1, 0, -1, -1)
 
         lbl_user = QLabel(_("Username:"))
-        form_layout.setWidget(0, QFormLayout.LabelRole, lbl_user)
+        basic_form_layout.setWidget(0, QFormLayout.LabelRole, lbl_user)
         self.le_user = QLineEdit()
         self.le_user.textChanged.connect(self.update_btn_state)
-        form_layout.setWidget(0, QFormLayout.FieldRole, self.le_user)
+        basic_form_layout.setWidget(0, QFormLayout.FieldRole, self.le_user)
 
         lbl_password = QLabel(_("Password: "))
-        form_layout.setWidget(1, QFormLayout.LabelRole, lbl_password)
+        basic_form_layout.setWidget(1, QFormLayout.LabelRole, lbl_password)
         self.le_password = QLineEdit()
         self.le_password.setEchoMode(QLineEdit.Password)
         self.le_password.textChanged.connect(self.update_btn_state)
-        form_layout.setWidget(1, QFormLayout.FieldRole, self.le_password)
+        basic_form_layout.setWidget(1, QFormLayout.FieldRole, self.le_password)
+
+        # Basic auth tab
+        basic_auth = QWidget()
+        basic_layout = QVBoxLayout()
+        basic_layout.addLayout(basic_form_layout)
+        basic_layout.addStretch(1)
+        basic_auth.setLayout(basic_layout)
+        tabs.addTab(basic_auth, _("Basic authentication"))
+
+        # Token form layout
+        token_form_layout = QFormLayout()
+        token_form_layout.setContentsMargins(-1, 0, -1, -1)
+
+        lbl_token = QLabel("Token: ")
+        token_form_layout.setWidget(1, QFormLayout.LabelRole, lbl_token)
+        self.le_token = QLineEdit()
+        self.le_token.setEchoMode(QLineEdit.Password)
+        self.le_token.textChanged.connect(self.update_btn_state)
+        token_form_layout.setWidget(1, QFormLayout.FieldRole, self.le_token)
+
+        # Token auth tab
+        token_auth = QWidget()
+        token_layout = QVBoxLayout()
+        token_layout.addLayout(token_form_layout)
+        token_layout.addStretch(1)
+        token_auth.setLayout(token_layout)
+        tabs.addTab(token_auth, _("Token authentication"))
 
         # Sign in button
         self.bt_sign_in = QPushButton(_("Sign in"))
@@ -69,7 +101,7 @@ class DlgGitHubLogin(QDialog):
         # Main layout
         layout = QVBoxLayout()
         layout.addWidget(lbl_html)
-        layout.addLayout(form_layout)
+        layout.addWidget(tabs)
         layout.addWidget(self.bt_sign_in)
         self.setLayout(layout)
 
@@ -95,15 +127,23 @@ class DlgGitHubLogin(QDialog):
         return False
 
     def update_btn_state(self):
-        enable = str(self.le_user.text()).strip() != ''
-        enable &= str(self.le_password.text()).strip() != ''
+        user = to_text_string(self.le_user.text()).strip() != ''
+        password = to_text_string(self.le_password.text()).strip() != ''
+        token = to_text_string(self.le_token.text()).strip() != ''
+        enable = (user and password) or token
         self.bt_sign_in.setEnabled(enable)
 
     @classmethod
     def login(cls, parent, username):
         dlg = DlgGitHubLogin(parent, username)
         if dlg.exec_() == dlg.Accepted:
-            return dlg.le_user.text(), dlg.le_password.text()
+            user = dlg.le_user.text()
+            password = dlg.le_password.text()
+            token = dlg.le_token.text()
+            if token != '':
+                return token
+            else:
+                return user, password
         return None, None
 
 
