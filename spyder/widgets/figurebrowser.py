@@ -19,7 +19,7 @@ import os.path as osp
 # ---- Third library imports
 
 from qtpy.compat import getsavefilename, getopenfilenames
-from qtpy.QtCore import Qt, Signal, Slot, QRect, QEvent
+from qtpy.QtCore import Qt, Signal, Slot, QRect, QEvent, QObject
 from qtpy.QtGui import QImage, QPixmap, QPainter
 from qtpy.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
@@ -252,6 +252,22 @@ class FigureBrowser(QWidget):
     def close_all_figures(self):
         """Close all the figures in the thumbnail scrollbar."""
         self.thumnails_sb.remove_all_thumbnails()
+
+
+class FigureSaver(QObject):
+    """
+    A non-gui helper class to save figure to file. Thepng, jpg, and svg formats
+    are supported.
+    """
+    def __init__(self, parent=None):
+        super(FigureSaver, self).__init__(parent)
+
+    def save_figure_tofile(self, fig, fmt, fname):
+        if fmt in ['image/png', 'image/jpeg']:
+            with open(fname, 'wb') as f:
+                f.write(fig)
+        elif fmt == 'image/svg+xml':
+            raise NotImplementedError
 
 
 class FigureViewer(QScrollArea):
