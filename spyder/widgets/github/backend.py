@@ -17,7 +17,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import qApp, QMessageBox
 
-from spyder.config.base import get_image_path
+from spyder.config.base import _, get_image_path
 from spyder.utils.external import github
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
@@ -141,24 +141,24 @@ class GithubBackend(BaseBackend):
             if e.response.code == 401:
                 if self._show_msgbox:
                     QMessageBox.warning(
-                        self.parent_widget, 'Invalid credentials',
-                        'Failed to create github issue, invalid credentials...')
+                        self.parent_widget, _('Invalid credentials'),
+                        _('Failed to create Github issue, invalid credentials...'))
             else:
                 # other issue
                 if self._show_msgbox:
                     QMessageBox.warning(
                         self.parent_widget,
-                        'Failed to create issue',
-                        'Failed to create github issue. Error %d' %
+                        _('Failed to create issue'),
+                        _('Failed to create Github issue. Error %d') %
                         e.response.code)
             return False
         else:
             issue_nbr = ret['number']
             if self._show_msgbox:
                 ret = QMessageBox.question(
-                    self.parent_widget, 'Issue created on github',
-                    'Issue successfully created. Would you like to open the '
-                    'ticket in your web browser?')
+                    self.parent_widget, _('Issue created on Github'),
+                    _('Issue successfully created. Would you like to open the '
+                      'issue in your web browser?'))
             if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 webbrowser.open(
                     'https://github.com/%s/%s/issues/%d' % (
