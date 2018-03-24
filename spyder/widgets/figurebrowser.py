@@ -414,7 +414,9 @@ class ThumbnailScrollBar(QFrame):
 
     def __init__(self, figure_viewer, parent=None):
         super(ThumbnailScrollBar, self).__init__(parent)
+        self.figsaver = FigureSaver(parent=self)
         self._thumbnails = []
+        self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
 
@@ -489,6 +491,33 @@ class ThumbnailScrollBar(QFrame):
         """Set the bamespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
 
+    # ---- Save Figure
+
+    def save_current_figure_as(self):
+        """
+        Get the values for the currently selected thumbnail and send it to
+        the FigureSaver.
+        """
+        if self.current_thumbnail is None:
+            return
+
+        self.save_figure_as(self.current_thumbnail.canvas.fig,
+                            self.current_thumbnail.canvas.fmt)
+
+    def save_figure_as(self, fig, fmt):
+        """Save the figure to file."""
+        fext, ffilt = {
+                'image/png': ('.png', 'PNG (*.png)'),
+                'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
+                'image/svg+xml': ('.svg', 'SVG (*.svg)')}[fmt]
+
+        fname, fext = getsavefilename(
+                parent=self.parent(), caption='Save Figure',
+                basedir='figure'+fext, filters=ffilt, selectedfilter='',
+                options=None)
+        if fname:
+            self.figsaver.save_figure_tofile(fig, fmt, fname)
+
     # ---- Thumbails Handlers
 
     def add_thumbnail(self, fig, fmt):
@@ -497,6 +526,7 @@ class ThumbnailScrollBar(QFrame):
         fig_manager.canvas.load_figure(fig, fmt)
         fig_manager.sig_canvas_clicked.connect(self.set_current_thumbnail)
         fig_manager.sig_remove_figure.connect(self.remove_thumbnail)
+        fig_manager.sig_save_figure.connect(self.save_figure_as)
         self._thumbnails.append(fig_manager)
 
         self.scene.setRowStretch(self.scene.rowCount()-1, 0)
