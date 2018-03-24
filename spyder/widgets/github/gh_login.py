@@ -10,6 +10,8 @@ Took from the QCrash Project - Colin Duquesnoy
 https://github.com/ColinDuquesnoy/QCrash
 """
 
+import sys
+
 from qtpy.QtCore import Qt, QEvent
 from qtpy.QtWidgets import QDialog
 
@@ -71,3 +73,15 @@ class DlgGitHubLogin(QDialog):
         if dlg.exec_() == dlg.Accepted:
             return dlg.ui.le_username.text(), dlg.ui.le_password.text()
         return None, None
+
+
+def test():
+    from spyder.utils.qthelpers import qapplication
+    app = qapplication()
+    dlg = DlgGitHubLogin(None, None)
+    dlg.show()
+    sys.exit(dlg.exec_())
+
+
+if __name__ == "__main__":
+    test()
