@@ -1,33 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.6 is released!
+**Subject**: [ANN] Spyder 3.2.8 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.6** has been released and is available for
+I'm pleased to announce that Spyder **3.2.8** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 2 weeks after version 3.2.5 and it adds the following new
+This release comes 2 weeks after version 3.2.7 and it adds the following new
 features:
 
 - Editor
-    * Make `Shift+Del` to cut text if users have some text
-      selected.
-    * Make `Shift+Ins` to paste text.
-    * Make `Ctrl+PgUp`, `Ctrl+PgDn` and `Ctrl+Tab` shortcuts
-      configurable.
+    * Add `Ctrl+Shift+Enter` shortcut to introduce new lines at any point.
 
-- Variable Explorer
-    * Display date/times in human readable format.
-    * Disable editing for immutable types (e.g. tuples).
+- IPython console
+    * Always run Cython files in a dedicated console.
 
-- Under the hood
-    * Fix installation of wheels with `pip`.
-
-In this release we fixed 23 issues and merged 32 pull requests that amount
-to more than 140 commits. For a full list of fixes, please see our
+In this release we fixed 23 issues and merged 27 pull requests that amount
+to almost 120 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project

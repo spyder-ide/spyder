@@ -116,7 +116,7 @@ class HelpConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.8.1')
+        jedi_installed = programs.is_module_installed('jedi', '>=0.11.0')
         editor_box.setEnabled(rope_installed or jedi_installed)
         if not rope_installed and not jedi_installed:
             editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
@@ -335,8 +335,6 @@ class Help(SpyderPluginWidget):
 
         self.internal_shell = None
         self.console = None
-        self.ipyconsole = None
-        self.editor = None
 
         # Initialize plugin
         self.initialize_plugin()
@@ -382,7 +380,7 @@ class Help(SpyderPluginWidget):
         self.source_combo.addItems([_("Console"), _("Editor")])
         self.source_combo.currentIndexChanged.connect(self.source_changed)
         if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.8.1')):
+                not programs.is_module_installed('jedi', '>=0.11.0')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
@@ -502,8 +500,6 @@ class Help(SpyderPluginWidget):
 
         self.internal_shell = self.main.console.shell
         self.console = self.main.console
-        self.ipyconsole = self.main.ipyconsole
-        self.editor = self.main.editor
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -544,8 +540,8 @@ class Help(SpyderPluginWidget):
             self.toggle_math_mode(math_o)
 
         # To make auto-connection changes take place instantly
-        self.editor.apply_plugin_settings(options=[connect_n])
-        self.ipyconsole.apply_plugin_settings(options=[connect_n])
+        self.main.editor.apply_plugin_settings(options=[connect_n])
+        self.main.ipyconsole.apply_plugin_settings(options=[connect_n])
 
     #------ Public API (related to Help's source) -------------------------
     def source_is_console(self):
@@ -816,8 +812,8 @@ class Help(SpyderPluginWidget):
                     (force or text != self._last_texts[index])):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
                 if (self.console.dockwidget not in dockwidgets and
-                        self.ipyconsole is not None and
-                        self.ipyconsole.dockwidget not in dockwidgets):
+                        self.main.ipyconsole is not None and
+                        self.main.ipyconsole.dockwidget not in dockwidgets):
                     self.dockwidget.show()
                     self.dockwidget.raise_()
         self._last_texts[index] = text
@@ -899,8 +895,8 @@ class Help(SpyderPluginWidget):
                 (hasattr(self.shell, 'is_running') and
                  not self.shell.is_running())):
             self.shell = None
-            if self.ipyconsole is not None:
-                shell = self.ipyconsole.get_current_shellwidget()
+            if self.main.ipyconsole is not None:
+                shell = self.main.ipyconsole.get_current_shellwidget()
                 if shell is not None and shell.kernel_client is not None:
                     self.shell = shell
             if self.shell is None:
@@ -910,8 +906,8 @@ class Help(SpyderPluginWidget):
     def render_sphinx_doc(self, doc, context=None):
         """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
-        if self.editor is not None:
-            fname = self.editor.get_current_filename()
+        if self.main.editor is not None:
+            fname = self.main.editor.get_current_filename()
             dname = osp.dirname(fname)
         else:
             dname = ''

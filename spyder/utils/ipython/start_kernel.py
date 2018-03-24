@@ -165,8 +165,9 @@ def kernel_config():
                                                                   height_o)
 
     # Enable Cython magic
-    if is_module_installed('Cython'):
-        spy_cfg.IPKernelApp.exec_lines.append('%load_ext Cython')
+    run_cython = os.environ.get('SPY_RUN_CYTHON') == 'True'
+    if run_cython and is_module_installed('Cython'):
+        spy_cfg.IPKernelApp.exec_lines.append('%reload_ext Cython')
 
     # Run a file at startup
     use_file_o = os.environ.get('SPY_USE_FILE_O')

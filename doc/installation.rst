@@ -141,7 +141,7 @@ The requirements to run Spyder are:
   enhanced Python interpreter.
 
 * `Rope <http://rope.sourceforge.net/>`_ >=0.9.4 and
-  `Jedi <http://jedi.jedidjah.ch/en/latest/>`_ >=0.9.0 -- for code completion,
+  `Jedi <http://jedi.jedidjah.ch/en/latest/>`_ >=0.11.0 -- for code completion,
   go-to-definition and calltips on the Editor.
 
 * `Pyflakes <http://pypi.python.org/pypi/pyflakes>`_  -- for real-time
@@ -187,7 +187,7 @@ The requirements to run Spyder are:
 Optional modules
 ~~~~~~~~~~~~~~~~
 
-* `Matplotlib <http://matplotlib.sourceforge.net/>`_ >=1.0 -- for 2D and 3D plotting
+* `Matplotlib <https://matplotlib.org/>`_ >=1.0 -- for 2D and 3D plotting
   in the consoles.
 
 * `Pandas <http://pandas.pydata.org/>`_ >=0.13.1 -- for view and editing DataFrames

@@ -23,15 +23,9 @@ from spyder.utils.introspection.utils import (default_info_response,
 from spyder.utils.introspection.manager import JEDI_REQVER
 
 try:
-    try:
-        from spyder.utils.introspection import jedi_patch
-        jedi = jedi_patch.apply()
-    except ImportError:
-        import jedi
+    import jedi
 except ImportError:
     jedi = None
-
-JEDI_010 = programs.is_module_installed('jedi', '>=0.10.0')
 
 
 class JediPlugin(IntrospectionPlugin):
@@ -57,7 +51,10 @@ class JediPlugin(IntrospectionPlugin):
         completions = self.get_jedi_object('completions', info)
         if DEBUG_EDITOR:
             log_last_error(LOG_FILENAME, str("comp: " + str(completions)[:100]))
-        completions = [(c.name, c.type) for c in completions]
+        if completions is not None:
+            completions = [(c.name, c.type) for c in completions]
+        else:
+            completions = []
         debug_print(str(completions)[:100])
         return completions
 
@@ -75,18 +72,14 @@ class JediPlugin(IntrospectionPlugin):
         call_def = self.get_jedi_object('goto_definitions', info)
 
         for cd in call_def:
-            # For compatibility with Jedi 0.11
-            try:
-                cd.doc = cd.docstring()
-            except AttributeError:
-                pass
-
-            if cd.doc and not cd.doc.rstrip().endswith(')'):
+            docstring = cd.docstring()
+            if docstring and not docstring.rstrip().endswith(')'):
                 call_def = cd
                 break
         else:
             try:
                 call_def = call_def[0]
+                docstring = call_def.docstring()
             except IndexError:
                 return default_info_response()
 
@@ -102,19 +95,18 @@ class JediPlugin(IntrospectionPlugin):
         if not mod_name:
             mod_name = call_def.module_name
 
-        if call_def.doc.startswith(name + '('):
-            calltip = getsignaturefromtext(call_def.doc, name)
+        if docstring.startswith(name + '('):
+            calltip = getsignaturefromtext(docstring, name)
             argspec = calltip[calltip.find('('):]
-            docstring = call_def.doc[call_def.doc.find(')') + 3:]
-        elif call_def.doc and '(' in call_def.doc.splitlines()[0]:
-            calltip = call_def.doc.splitlines()[0]
-            name = call_def.doc.split('(')[0]
-            docstring = call_def.doc[call_def.doc.find(')') + 3:]
+            docstring = docstring[docstring.find(')') + 3:]
+        elif docstring and '(' in docstring.splitlines()[0]:
+            calltip = docstring.splitlines()[0]
+            name = docstring.split('(')[0]
+            docstring = docstring[docstring.find(')') + 3:]
             argspec = calltip[calltip.find('('):]
         else:
             calltip = name + '(...)'
             argspec = '()'
-            docstring = call_def.doc
 
         if call_def.type == 'module':
             note = 'Module %s' % mod_name
@@ -122,7 +114,7 @@ class JediPlugin(IntrospectionPlugin):
             calltip = name
         elif call_def.type == 'class':
             note = 'Class in %s module' % mod_name
-        elif call_def.doc.startswith('%s(self' % name):
+        elif docstring.startswith('%s(self' % name):
             class_name = call_def.full_name.split('.')[-2]
             note = 'Method of %s class in %s module' % (
                 class_name.capitalize(), mod_name)
@@ -198,13 +190,9 @@ class JediPlugin(IntrospectionPlugin):
             filename = None
 
         try:
-            if JEDI_010:
-                script = jedi.api.Script(info['source_code'], info['line_num'],
-                                         info['column'], filename,
-                                         sys_path=info['sys_path'])
-            else:
-                script = jedi.api.Script(info['source_code'], info['line_num'],
-                                         info['column'], filename)
+            script = jedi.api.Script(info['source_code'], info['line_num'],
+                                     info['column'], filename,
+                                     sys_path=info['sys_path'])
             func = getattr(script, func_name)
             val = func()
         except Exception as e:

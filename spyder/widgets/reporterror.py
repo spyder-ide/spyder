@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
 """Report Error Dialog"""
 
-# Stdlib imports
+# Standard library imports
 import sys
 
 # Third party imports
@@ -14,7 +16,8 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QHBoxLayout,
                             QLabel, QPlainTextEdit, QPushButton, QVBoxLayout)
 from qtpy.QtCore import Qt, Signal
 
-# Local Imports
+# Local imports
+from spyder import __project_url__, __trouble_url__
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.utils.qthelpers import restore_keyevent
@@ -23,9 +26,9 @@ from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 
-# Minimum number of characters to introduce in the description
-# field before being able to send the report to Github.
-MIN_CHARS = 20
+# Minimum number of characters to introduce in the description field
+# before being able to send the report to Github.
+MIN_CHARS = 50
 
 
 class DescriptionWidget(CodeEditor):
@@ -52,7 +55,7 @@ class DescriptionWidget(CodeEditor):
 
         # Header
         self.header = (
-            "**What steps will reproduce your problem?**\n\n"
+            "### What steps will reproduce the problem?\n\n"
             "<!--- You can use Markdown here --->\n\n")
         self.set_text(self.header)
         self.move_cursor(len(self.header))
@@ -124,14 +127,22 @@ class SpyderErrorDialog(QDialog):
         # Dialog main label
         self.main_label = QLabel(
             _("""<b>Spyder has encountered an internal problem</b><hr>
-              Please enter below a step-by-step description of 
-              your problem (in English). Issue reports without 
-              a clear way to reproduce them will be closed.
+              Before reporting it, <i>please</i> consult our comprehensive 
+              <b><a href=\"{0!s}\">Troubleshooting Guide</a></b> 
+              which should help solve most issues, and search for 
+              <b><a href=\"{1!s}\">known bugs</a></b> matching your error 
+              message or problem description for a quicker solution.
               <br><br>
-              <b>Note</b>: You need a Github account for this.
-              """))
+              If you don't find anything, please enter a detailed step-by-step 
+              description (in English) of what led up to the problem below. 
+              Issue reports without a clear way to reproduce them will be 
+              closed.<br><br>
+              Thanks for helping us making Spyder better for everyone!
+              """).format(__trouble_url__, __project_url__))
+        self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
+        self.main_label.setStyleSheet('font-size: 12px;')
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
@@ -147,11 +158,11 @@ class SpyderErrorDialog(QDialog):
         # Label to show missing chars
         self.initial_chars = len(self.input_description.toPlainText())
         self.chars_label = QLabel(_("Enter at least {} "
-                                    "characters".format(MIN_CHARS)))
+                                    "characters").format(MIN_CHARS))
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox()
-        self.dismiss_box.setText(_("Don't show again during this session"))
+        self.dismiss_box.setText(_("Hide all future errors this session"))
 
         # Labels layout
         labels_layout = QHBoxLayout()
@@ -192,20 +203,19 @@ class SpyderErrorDialog(QDialog):
 
         # Getting description and traceback
         description = self.input_description.toPlainText()
-        traceback = self.error_traceback[:-1] # Remove last eol
+        traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        issue_text  = main.render_issue(description=description,
-                                        traceback=traceback)
+        issue_text = main.render_issue(description=description,
+                                       traceback=traceback)
 
         # Copy issue to clipboard
         QApplication.clipboard().setText(issue_text)
 
         # Submit issue to Github
-        issue_body=("<!--- "
-                    "Please paste the contents of your clipboard "
-                    "below to complete reporting your problem. "
-                    "--->\n\n")
+        issue_body = (
+            " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE TO "
+            "COMPLETE YOUR REPORT ***   ---!>\n")
         main.report_issue(body=issue_body,
                           title="Automatic error report")
 
@@ -235,7 +245,7 @@ class SpyderErrorDialog(QDialog):
                 u"{} {}".format(MIN_CHARS - chars,
                                 _("more characters to go...")))
         else:
-            self.chars_label.setText(_("Ready to submit! Thanks!"))
+            self.chars_label.setText(_("Submission enabled; thanks!"))
         self.submit_btn.setEnabled(chars >= MIN_CHARS)
 
 

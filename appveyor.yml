@@ -41,6 +41,10 @@ install:
   - "pip install git+https://github.com/spyder-ide/qtpy.git"
   - "conda remove -q -y qtconsole"
   - "pip install git+https://github.com/jupyter/qtconsole.git"
+  # Run with tornado < 5.0 to avoid hangs
+  - "conda install tornado=4.5.3"
+  # Fix connection to external kernels
+  - "conda install jupyter_client=5.2.2"
 
 build: false
 

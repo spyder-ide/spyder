@@ -1,5 +1,207 @@
 # History of changes
 
+## Version 3.2.8 (2018-03-14)
+
+### New features
+
+#### Editor
+
+* Add `Ctrl+Shift+Enter` shortcut to introduce new lines at any point.
+
+#### IPython console
+
+* Always run Cython files in a dedicated console.
+
+### Issues Closed
+
+* [Issue 6729](https://github.com/spyder-ide/spyder/issues/6729) - ValueError trying to open pandas.DateOffset objects in Variable Explorer ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 6728](https://github.com/spyder-ide/spyder/issues/6728) - AttributeError when attempting to edit non-writeable or non-settable attributes of certain (e.g. many common Pandas) objects in CollectionsEditor ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 6727](https://github.com/spyder-ide/spyder/issues/6727) - TypeError and Python hard crash to desktop after modifying _typ attribute of pandas Period in CollectionsEditor ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 6689](https://github.com/spyder-ide/spyder/issues/6689) - Saving session data (spydata) deletes all arrays nested inside other data structures ([PR 6692](https://github.com/spyder-ide/spyder/pull/6692))
+* [Issue 6682](https://github.com/spyder-ide/spyder/issues/6682) - System time change causes Spyder error ([PR 6699](https://github.com/spyder-ide/spyder/pull/6699))
+* [Issue 6673](https://github.com/spyder-ide/spyder/issues/6673) - AttributeError: 'NoneType' object has no attribute 'apply_plugin_settings' when attempting to activate Automatic Connections for Help
+* [Issue 6664](https://github.com/spyder-ide/spyder/issues/6664) - Typo in introspection.utils.get_words
+* [Issue 6570](https://github.com/spyder-ide/spyder/issues/6570) - Sphinx html_use_smartypants is deprecated as of 1.6 and removed in 1.7 ([PR 6575](https://github.com/spyder-ide/spyder/pull/6575))
+* [Issue 6524](https://github.com/spyder-ide/spyder/issues/6524) - Spyder always open a new instance after updating to 3.2.7 version ([PR 6712](https://github.com/spyder-ide/spyder/pull/6712))
+* [Issue 6520](https://github.com/spyder-ide/spyder/issues/6520) - Strange behavior for Spyder code annotations ([PR 6681](https://github.com/spyder-ide/spyder/pull/6681))
+* [Issue 6519](https://github.com/spyder-ide/spyder/issues/6519) - AttributeError: 'NoneType' object has no attribute 'apply_plugin_settings' ([PR 6587](https://github.com/spyder-ide/spyder/pull/6587))
+* [Issue 6518](https://github.com/spyder-ide/spyder/issues/6518) - AttributeError: 'NoneType' object has no attribute 'load_module' ([PR 6597](https://github.com/spyder-ide/spyder/pull/6597))
+* [Issue 6451](https://github.com/spyder-ide/spyder/issues/6451) - Setting a path containing a single quote ([PR 6543](https://github.com/spyder-ide/spyder/pull/6543))
+* [Issue 6445](https://github.com/spyder-ide/spyder/issues/6445) - ValueError when closing a file whose folder changed name in File Explorer ([PR 6569](https://github.com/spyder-ide/spyder/pull/6569))
+* [Issue 6284](https://github.com/spyder-ide/spyder/issues/6284) - When browsing MultiIndex in Object Explorer, Pandas raises NotImplementedError: isna is not defined for MultiIndex ([PR 6710](https://github.com/spyder-ide/spyder/pull/6710))
+* [Issue 5717](https://github.com/spyder-ide/spyder/issues/5717) - FileNotFoundError generated for template.py ([PR 6598](https://github.com/spyder-ide/spyder/pull/6598))
+* [Issue 5696](https://github.com/spyder-ide/spyder/issues/5696) - Variable Explorer windows don't close when Spyder exits; prevents it from reopening until manually closed ([PR 6703](https://github.com/spyder-ide/spyder/pull/6703))
+* [Issue 5680](https://github.com/spyder-ide/spyder/issues/5680) - Bug: Find and Replace indicate "no matches" when "[", "(", or ")" included in the search string ([PR 6526](https://github.com/spyder-ide/spyder/pull/6526))
+* [Issue 5642](https://github.com/spyder-ide/spyder/issues/5642) - AttributeError when attempting to view dom.minidom.Element object in Variable Explorer ([PR 6731](https://github.com/spyder-ide/spyder/pull/6731))
+* [Issue 5466](https://github.com/spyder-ide/spyder/issues/5466) - How do I move to a new line while I'm in the middle of the current line? ([PR 6423](https://github.com/spyder-ide/spyder/pull/6423))
+* [Issue 5299](https://github.com/spyder-ide/spyder/issues/5299) - pyximport.install() in sitecustomize.py is not a good idea ([PR 6607](https://github.com/spyder-ide/spyder/pull/6607))
+* [Issue 4231](https://github.com/spyder-ide/spyder/issues/4231) - delete (context="editor", name="delete") keyboard shortcut doesn't work ([PR 6530](https://github.com/spyder-ide/spyder/pull/6530))
+* [Issue 919](https://github.com/spyder-ide/spyder/issues/919) - Saving large workspace on network drive crashes Spyder on Windows ([PR 6692](https://github.com/spyder-ide/spyder/pull/6692))
+
+In this release 23 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 6736](https://github.com/spyder-ide/spyder/pull/6736) - PR: Error report stopgap to make instructions harder to miss
+* [PR 6731](https://github.com/spyder-ide/spyder/pull/6731) - PR: Fix various bugs in Variable Explorer, including an application crash to desktop ([6729](https://github.com/spyder-ide/spyder/issues/6729), [6728](https://github.com/spyder-ide/spyder/issues/6728), [6727](https://github.com/spyder-ide/spyder/issues/6727), [5642](https://github.com/spyder-ide/spyder/issues/5642))
+* [PR 6715](https://github.com/spyder-ide/spyder/pull/6715) - PR: Replace deprecated function in inline CollectionsEditor tests and add recently supported data types
+* [PR 6714](https://github.com/spyder-ide/spyder/pull/6714) - PR: Make several GUI/qtbot tests more reliable by increasing timeouts and tweaking the methods used
+* [PR 6713](https://github.com/spyder-ide/spyder/pull/6713) - PR: Add .pytest_cache to gitignore
+* [PR 6712](https://github.com/spyder-ide/spyder/pull/6712) - PR: Fix new instance validation on Windows. ([6524](https://github.com/spyder-ide/spyder/issues/6524))
+* [PR 6710](https://github.com/spyder-ide/spyder/pull/6710) - PR: Fix NotImplementedError when browsing a MultiIndex in the Collection Editor ([6284](https://github.com/spyder-ide/spyder/issues/6284))
+* [PR 6703](https://github.com/spyder-ide/spyder/pull/6703) - PR: Set parent for Variable Explorer editors so Spyder closes properly ([5696](https://github.com/spyder-ide/spyder/issues/5696))
+* [PR 6699](https://github.com/spyder-ide/spyder/pull/6699) - PR: Change time elapsed calculation to prevent OSError ([6682](https://github.com/spyder-ide/spyder/issues/6682))
+* [PR 6692](https://github.com/spyder-ide/spyder/pull/6692) - PR: Fix bugs in session saving to spydata and improve tests ([919](https://github.com/spyder-ide/spyder/issues/919), [6689](https://github.com/spyder-ide/spyder/issues/6689))
+* [PR 6681](https://github.com/spyder-ide/spyder/pull/6681) - PR: Allow TODO check marks with blank line ([6520](https://github.com/spyder-ide/spyder/issues/6520))
+* [PR 6667](https://github.com/spyder-ide/spyder/pull/6667) - PR: Fix typo in utils.introspection.get_words
+* [PR 6626](https://github.com/spyder-ide/spyder/pull/6626) - PR: Pin to a Tornado version less than 5.0 to avoid hangs in our tests
+* [PR 6607](https://github.com/spyder-ide/spyder/pull/6607) - PR: Run Cython files in a dedicated console ([5299](https://github.com/spyder-ide/spyder/issues/5299))
+* [PR 6602](https://github.com/spyder-ide/spyder/pull/6602) - PR: Avoid showing dialogs in IPython console tests to avoid segfaults
+* [PR 6598](https://github.com/spyder-ide/spyder/pull/6598) - PR: Be able to open files in the Editor if no template is found ([5717](https://github.com/spyder-ide/spyder/issues/5717))
+* [PR 6597](https://github.com/spyder-ide/spyder/pull/6597) - PR: Add handling for AttributteError when importing module from path ([6518](https://github.com/spyder-ide/spyder/issues/6518))
+* [PR 6587](https://github.com/spyder-ide/spyder/pull/6587) - PR: Remove ipyconsole and editor attrs from the Help plugin ([6519](https://github.com/spyder-ide/spyder/issues/6519))
+* [PR 6575](https://github.com/spyder-ide/spyder/pull/6575) - PR: Update deprecated Sphinx directive html_use_smartypants ([6570](https://github.com/spyder-ide/spyder/issues/6570))
+* [PR 6569](https://github.com/spyder-ide/spyder/pull/6569) - PR: Allow rename from Explorer to work for directories ([6445](https://github.com/spyder-ide/spyder/issues/6445))
+* [PR 6543](https://github.com/spyder-ide/spyder/pull/6543) - PR: Fix error when setting a path with a single quote ([6451](https://github.com/spyder-ide/spyder/issues/6451))
+* [PR 6540](https://github.com/spyder-ide/spyder/pull/6540) - PR: Delay check whether we are running under pytest until run time
+* [PR 6530](https://github.com/spyder-ide/spyder/pull/6530) - PR: Allow shortcut key for editor/delete to work like Del key ([4231](https://github.com/spyder-ide/spyder/issues/4231))
+* [PR 6528](https://github.com/spyder-ide/spyder/pull/6528) - PR: Restore the previous wording for package versions in error report
+* [PR 6527](https://github.com/spyder-ide/spyder/pull/6527) - PR: Skip some IPython console tests in PyQt4 because they are segfaulting too much
+* [PR 6526](https://github.com/spyder-ide/spyder/pull/6526) - PR: Find/replace - return match counts on unescaped characters ([5680](https://github.com/spyder-ide/spyder/issues/5680))
+* [PR 6423](https://github.com/spyder-ide/spyder/pull/6423) - PR: Add Ctrl+Shift+Enter to enter a new line in the Editor ([5466](https://github.com/spyder-ide/spyder/issues/5466))
+
+In this release 27 pull requests were closed.
+
+
+----
+
+
+## Version 3.2.7 (2018-02-25)
+
+### New features
+
+#### Main Window
+
+* Improve the interface to report errors to Github.
+
+#### Variable Explorer
+
+* Enable the display of many more Numpy array types.
+
+#### Editor
+
+* Copy text from the search field to the replace one
+  after pressing `Tab`.
+
+#### IPython console
+
+* Make `%edit foo.py` open `foo.py` in the Editor on
+  Windows.
+
+#### Find in Files
+
+* Remove items from the `Search in` list when hovering
+  over them and pressing `Del`.
+* Add a `Clear this list` option below `Select other
+  directory`.
+
+#### Under the hood
+
+* Demand PyQt less than 5.10 for our wheels.
+
+### Issues Closed
+
+* [Issue 6484](https://github.com/spyder-ide/spyder/issues/6484) - Update translations for 3.2.7 ([PR 6491](https://github.com/spyder-ide/spyder/pull/6491))
+* [Issue 6447](https://github.com/spyder-ide/spyder/issues/6447) - test_completions_custom_path fails with jedi 0.9.0 (Spyder 3) ([PR 6473](https://github.com/spyder-ide/spyder/pull/6473))
+* [Issue 6431](https://github.com/spyder-ide/spyder/issues/6431) - FileNotFoundError history.py when running code in the IPython console ([PR 6434](https://github.com/spyder-ide/spyder/pull/6434))
+* [Issue 6393](https://github.com/spyder-ide/spyder/issues/6393) - Mouse cursor issue with PyQt 5.10 ([PR 6478](https://github.com/spyder-ide/spyder/pull/6478))
+* [Issue 6361](https://github.com/spyder-ide/spyder/issues/6361) - Add the the Collapse All and Expand All buttons to the toolbar of the Outline Explorer ([PR 6360](https://github.com/spyder-ide/spyder/pull/6360))
+* [Issue 6319](https://github.com/spyder-ide/spyder/issues/6319) - PermissionError when Spyder is started ([PR 6383](https://github.com/spyder-ide/spyder/pull/6383))
+* [Issue 6317](https://github.com/spyder-ide/spyder/issues/6317) - Selecting "tutorial" from help menu does not bring up Help pane automatically if not loaded, leading to user confusion ([PR 6345](https://github.com/spyder-ide/spyder/pull/6345))
+* [Issue 6314](https://github.com/spyder-ide/spyder/issues/6314) - IndexError when getting help of an object ([PR 6331](https://github.com/spyder-ide/spyder/pull/6331))
+* [Issue 6308](https://github.com/spyder-ide/spyder/issues/6308) - AttributeError when running code in the IPython console ([PR 6330](https://github.com/spyder-ide/spyder/pull/6330))
+* [Issue 6299](https://github.com/spyder-ide/spyder/issues/6299) - RuntimeError when interrupting kernel ([PR 6303](https://github.com/spyder-ide/spyder/pull/6303))
+* [Issue 6295](https://github.com/spyder-ide/spyder/issues/6295) - pdb history doesn't collapse similar text ([PR 6301](https://github.com/spyder-ide/spyder/pull/6301))
+* [Issue 6267](https://github.com/spyder-ide/spyder/issues/6267) - IOError when trying to write to stderr file ([PR 6305](https://github.com/spyder-ide/spyder/pull/6305))
+* [Issue 6254](https://github.com/spyder-ide/spyder/issues/6254) - Convert re expressions to use raw strings ([PR 6263](https://github.com/spyder-ide/spyder/pull/6263))
+* [Issue 6245](https://github.com/spyder-ide/spyder/issues/6245) - Errors pop up when change the key shortcuts in python 2.7 ([PR 6251](https://github.com/spyder-ide/spyder/pull/6251))
+* [Issue 6240](https://github.com/spyder-ide/spyder/issues/6240) - %edit magic command does not work on Windows ([PR 6244](https://github.com/spyder-ide/spyder/pull/6244))
+* [Issue 6235](https://github.com/spyder-ide/spyder/issues/6235) - Color scheme changes after kernel restart ([PR 6256](https://github.com/spyder-ide/spyder/pull/6256))
+* [Issue 6220](https://github.com/spyder-ide/spyder/issues/6220) - Spyder Profiler Hangs/Freezes ([PR 6238](https://github.com/spyder-ide/spyder/pull/6238))
+* [Issue 6202](https://github.com/spyder-ide/spyder/issues/6202) - Bug with saved window layouts ([PR 6293](https://github.com/spyder-ide/spyder/pull/6293))
+* [Issue 6188](https://github.com/spyder-ide/spyder/issues/6188) - Icon should be moved from share/pixmaps to share/icons ([PR 6408](https://github.com/spyder-ide/spyder/pull/6408))
+* [Issue 6187](https://github.com/spyder-ide/spyder/issues/6187) - UnicodeEncodeError when searching text in the Editor ([PR 6189](https://github.com/spyder-ide/spyder/pull/6189))
+* [Issue 6177](https://github.com/spyder-ide/spyder/issues/6177) - Uncaught error when opening a pandas DataFrame with out of bounds timestamps ([PR 6237](https://github.com/spyder-ide/spyder/pull/6237))
+* [Issue 6064](https://github.com/spyder-ide/spyder/issues/6064) - Several tests fail locally under user environment with customized keyboard shortcuts due to relying on hardcoded keybindings ([PR 6262](https://github.com/spyder-ide/spyder/pull/6262))
+* [Issue 5813](https://github.com/spyder-ide/spyder/issues/5813) - TypeError: tabText(self, int) when moving plugin tabs ([PR 6333](https://github.com/spyder-ide/spyder/pull/6333))
+* [Issue 5799](https://github.com/spyder-ide/spyder/issues/5799) - UnicodeEncodeError when using a project with non-ascii characters on it ([PR 6435](https://github.com/spyder-ide/spyder/pull/6435))
+* [Issue 5601](https://github.com/spyder-ide/spyder/issues/5601) - UnicodeDecodeError when moving a file with Project Explorer ([PR 6413](https://github.com/spyder-ide/spyder/pull/6413))
+* [Issue 5316](https://github.com/spyder-ide/spyder/issues/5316) - Add missing Keywords metadata in desktop file ([PR 6409](https://github.com/spyder-ide/spyder/pull/6409))
+* [Issue 5306](https://github.com/spyder-ide/spyder/issues/5306) - Paths in the "Search in" combobox of the "Find in File" plugin becomes corrupted ([PR 6095](https://github.com/spyder-ide/spyder/pull/6095))
+* [Issue 5247](https://github.com/spyder-ide/spyder/issues/5247) - Improve interface to report errors ([PR 5346](https://github.com/spyder-ide/spyder/pull/5346))
+* [Issue 4958](https://github.com/spyder-ide/spyder/issues/4958) - IPython console failing when custom interpreter is removed ([PR 6354](https://github.com/spyder-ide/spyder/pull/6354))
+* [Issue 4482](https://github.com/spyder-ide/spyder/issues/4482) - Use Tab key to copy text to "Replace with:" field ([PR 6180](https://github.com/spyder-ide/spyder/pull/6180))
+
+In this release 30 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 6510](https://github.com/spyder-ide/spyder/pull/6510) - PR: Update Spanish translation
+* [PR 6491](https://github.com/spyder-ide/spyder/pull/6491) - PR: French translation for 3.2.7 ([6484](https://github.com/spyder-ide/spyder/issues/6484))
+* [PR 6487](https://github.com/spyder-ide/spyder/pull/6487) - PR: Update Japanese translation for 3.2.7
+* [PR 6486](https://github.com/spyder-ide/spyder/pull/6486) - PR: Update Brazilian Portuguese translation
+* [PR 6485](https://github.com/spyder-ide/spyder/pull/6485) - PR: Update Russian translation
+* [PR 6478](https://github.com/spyder-ide/spyder/pull/6478) - PR: Demand PyQt5 less than 5.10 in our wheels ([6393](https://github.com/spyder-ide/spyder/issues/6393))
+* [PR 6473](https://github.com/spyder-ide/spyder/pull/6473) - PR: Skip test_completions_custom_path if jedi version before 0.10.0 ([6447](https://github.com/spyder-ide/spyder/issues/6447))
+* [PR 6468](https://github.com/spyder-ide/spyder/pull/6468) - PR: Update broken matplotlib project URL in install doc 
+* [PR 6435](https://github.com/spyder-ide/spyder/pull/6435) - PR: Make projects work on unicode directories ([5799](https://github.com/spyder-ide/spyder/issues/5799))
+* [PR 6434](https://github.com/spyder-ide/spyder/pull/6434) - PR: Handle errors when writing history to disk in the IPython Console ([6431](https://github.com/spyder-ide/spyder/issues/6431))
+* [PR 6433](https://github.com/spyder-ide/spyder/pull/6433) - PR: Fix all test files to be run independently
+* [PR 6432](https://github.com/spyder-ide/spyder/pull/6432) - PR: Xfail test_auto_backend for certain versions of zmq and ipykernel
+* [PR 6413](https://github.com/spyder-ide/spyder/pull/6413) - PR: Add test for file directory change in the Project Explorer. ([5601](https://github.com/spyder-ide/spyder/issues/5601))
+* [PR 6409](https://github.com/spyder-ide/spyder/pull/6409) - PR: Add keywords to desktop files ([5316](https://github.com/spyder-ide/spyder/issues/5316))
+* [PR 6408](https://github.com/spyder-ide/spyder/pull/6408) - PR: Change share/pixmaps to share/icons in setup.py ([6188](https://github.com/spyder-ide/spyder/issues/6188))
+* [PR 6383](https://github.com/spyder-ide/spyder/pull/6383) - PR: Add error handling for the lockfile symlink on Windows ([6319](https://github.com/spyder-ide/spyder/issues/6319))
+* [PR 6360](https://github.com/spyder-ide/spyder/pull/6360) - PR: Harmonized the toolbar of the Outline Explorer with its context menu. ([6361](https://github.com/spyder-ide/spyder/issues/6361))
+* [PR 6354](https://github.com/spyder-ide/spyder/pull/6354) - PR: Add validation for custom interpreter option ([4958](https://github.com/spyder-ide/spyder/issues/4958))
+* [PR 6345](https://github.com/spyder-ide/spyder/pull/6345) - PR: Show Help if closed when opening tutorial to avoid user confusion ([6317](https://github.com/spyder-ide/spyder/issues/6317))
+* [PR 6333](https://github.com/spyder-ide/spyder/pull/6333) - PR: Fix and catch typeerror thrown when from_index is None while moving plugin tab ([5813](https://github.com/spyder-ide/spyder/issues/5813))
+* [PR 6331](https://github.com/spyder-ide/spyder/pull/6331) - PR: Catch any error in the isdefined method of dochelpers ([6314](https://github.com/spyder-ide/spyder/issues/6314))
+* [PR 6330](https://github.com/spyder-ide/spyder/pull/6330) - PR: Handle AttributeError when running code in the IPython Console. ([6308](https://github.com/spyder-ide/spyder/issues/6308))
+* [PR 6305](https://github.com/spyder-ide/spyder/pull/6305) - PR: Catch any error when creating stderr files in the IPython console ([6267](https://github.com/spyder-ide/spyder/issues/6267))
+* [PR 6303](https://github.com/spyder-ide/spyder/pull/6303) - PR: Catch RuntimeError when no kernel is running ([6299](https://github.com/spyder-ide/spyder/issues/6299))
+* [PR 6302](https://github.com/spyder-ide/spyder/pull/6302) - PR: Skip test_tab_copies_find_to_replace on Linux because it fails
+* [PR 6301](https://github.com/spyder-ide/spyder/pull/6301) - PR: Don't add repeated entries to history while on pdb ([6295](https://github.com/spyder-ide/spyder/issues/6295))
+* [PR 6298](https://github.com/spyder-ide/spyder/pull/6298) - PR: Skip test_calltip on Python 3 and PyQt < 5.9 because it's failing there
+* [PR 6293](https://github.com/spyder-ide/spyder/pull/6293) - PR: Custom layouts not working when hexstate is None ([6202](https://github.com/spyder-ide/spyder/issues/6202))
+* [PR 6289](https://github.com/spyder-ide/spyder/pull/6289) - PR: Pin pyqt5 to 5.9.2 on tests because 5.10 is giving segfaults during the collection phase
+* [PR 6286](https://github.com/spyder-ide/spyder/pull/6286) - PR: Install and run window manager in Travis to fix focus issues and unskip now-passing tests
+* [PR 6283](https://github.com/spyder-ide/spyder/pull/6283) - PR: Update Brazilian Portuguese translation
+* [PR 6263](https://github.com/spyder-ide/spyder/pull/6263) - PR: Change to re strings for Deprecation Warning ([6254](https://github.com/spyder-ide/spyder/issues/6254))
+* [PR 6262](https://github.com/spyder-ide/spyder/pull/6262) - PR: Use a temporary config directory to run our tests ([6064](https://github.com/spyder-ide/spyder/issues/6064))
+* [PR 6256](https://github.com/spyder-ide/spyder/pull/6256) - PR: Preserve color scheme on kernel restart ([6235](https://github.com/spyder-ide/spyder/issues/6235))
+* [PR 6251](https://github.com/spyder-ide/spyder/pull/6251) - PR: Update super() call to use Python 2 style call ([6245](https://github.com/spyder-ide/spyder/issues/6245))
+* [PR 6244](https://github.com/spyder-ide/spyder/pull/6244) - PR: Fix %edit magic on Windows ([6240](https://github.com/spyder-ide/spyder/issues/6240))
+* [PR 6238](https://github.com/spyder-ide/spyder/pull/6238) - PR: Fix Profiler error when run is stopped ([6220](https://github.com/spyder-ide/spyder/issues/6220))
+* [PR 6237](https://github.com/spyder-ide/spyder/pull/6237) - PR: Catch OutOfBoundsDatetime errors from pandas ([6177](https://github.com/spyder-ide/spyder/issues/6177))
+* [PR 6207](https://github.com/spyder-ide/spyder/pull/6207) - PR: Use a checkbox in error dialog to dismiss it instead of a button
+* [PR 6206](https://github.com/spyder-ide/spyder/pull/6206) - PR: Fix some completion errors in the Editor and show again no docs message in Help
+* [PR 6189](https://github.com/spyder-ide/spyder/pull/6189) - PR: Fix error when searching text in the Editor in translated interfaces ([6187](https://github.com/spyder-ide/spyder/issues/6187))
+* [PR 6180](https://github.com/spyder-ide/spyder/pull/6180) - PR: Find/replace - Copy search text to replace textbox on tabbing between them ([4482](https://github.com/spyder-ide/spyder/issues/4482))
+* [PR 6154](https://github.com/spyder-ide/spyder/pull/6154) - PR: Add troubleshooting blurb and OS version to issue template and enhance UI
+* [PR 6137](https://github.com/spyder-ide/spyder/pull/6137) - PR: Add Troubleshooting links and blurb to various appropriate places in Spyder and doc
+* [PR 6129](https://github.com/spyder-ide/spyder/pull/6129) - PR: Enable the display of many more numpy array types in the Variable Explorer
+* [PR 6095](https://github.com/spyder-ide/spyder/pull/6095) - PR: Fix 3 bugs and add 4 improvements to Find in Files ([5306](https://github.com/spyder-ide/spyder/issues/5306))
+* [PR 6084](https://github.com/spyder-ide/spyder/pull/6084) - PR: Major overhaul of Readme, contributing and install docs
+* [PR 6017](https://github.com/spyder-ide/spyder/pull/6017) - PR: Differenciate between ), }, and ] when closing brackets
+* [PR 5346](https://github.com/spyder-ide/spyder/pull/5346) - PR: Change error report dialog to enter issue description before submitting it ([5247](https://github.com/spyder-ide/spyder/issues/5247))
+
+In this release 49 pull requests were closed.
+
+
+----
+
+
 ## Version 3.2.6 (2018-01-09)
 
 ### New features

@@ -10,36 +10,22 @@ File for running tests programmatically.
 
 # Standard library imports
 import os
-import os.path as osp
-import shutil
+import sys
 
 # Third party imports
 import qtpy  # to ensure that Qt4 uses API v2
 import pytest
 
 
-# To activate/deactivate certain things for pytest's only
-os.environ['SPYDER_PYTEST'] = 'True'
-
-# Tests expect English as the interface language
-os.environ['LANG'] = 'en'
-
 # To run our slow tests only in our CIs
 run_slow = False
-if os.environ.get('CI', None) is not None:
+if os.environ.get('CI', None) is not None or '--run-slow' in sys.argv:
     run_slow = True
-
 
 def main():
     """
     Run pytest tests.
     """
-    # Remove temp conf_dir before starting the tests
-    from spyder.config.base import get_conf_path
-    conf_dir = get_conf_path()
-    if osp.isdir(conf_dir):
-        shutil.rmtree(conf_dir)
-
     pytest_args = ['spyder',
                    'spyder_profiler',
                    '-x',

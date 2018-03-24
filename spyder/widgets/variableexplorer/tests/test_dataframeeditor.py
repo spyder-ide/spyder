@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
 
 """
-Tests for dataframeeditor.py
+Tests for the dataframe editor.
 """
 
 from __future__ import division
 
 # Standard library imports
+import os
 from sys import platform
 from datetime import datetime
 try:
     from unittest.mock import Mock, ANY
 except ImportError:
     from mock import Mock, ANY  # Python 2
-import os
 
 # Third party imports
 from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
@@ -35,9 +38,16 @@ from spyder.widgets.variableexplorer import dataframeeditor
 from spyder.widgets.variableexplorer.dataframeeditor import (
     DataFrameEditor, DataFrameModel)
 
+
+# =============================================================================
+# Constants
+# =============================================================================
 FILES_PATH = os.path.dirname(os.path.realpath(__file__))
 
-# Helper functions
+
+# =============================================================================
+# Utility functions
+# =============================================================================
 def colorclose(color, hsva_expected):
     """
     Compares HSV values which are stored as 16-bit integers.
@@ -71,9 +81,10 @@ def generate_pandas_indexes():
         }
 
 
-# --- Tests
-# -----------------------------------------------------------------------------
 
+# =============================================================================
+# Tests
+# =============================================================================
 
 def test_dataframe_simpleindex():
     """Test to validate proper creation and handling of a simpleindex."""
@@ -269,7 +280,7 @@ def test_dataframemodel_with_format_percent_d_and_nan():
     """
     Test DataFrameModel with format `%d` and dataframe containing NaN
 
-    Regression test for issue 4139.
+    Regression test for issue #4139.
     """
     np_array = numpy.zeros(2)
     np_array[1] = numpy.nan
@@ -388,7 +399,11 @@ def test_sort_dataframe_with_category_dtypes(qtbot):  # cf. issue 5361
 
 
 def test_dataframemodel_set_data_overflow(monkeypatch):
-    """Test for #6114: Overflowing ints are caught and handled properly"""
+    """
+    Test that entry of an overflowing integer is caught and handled properly.
+
+    Unit regression test for issue #6114 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -414,11 +429,13 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None and
-                    platform.startswith('linux'),
-                    reason="Fails on some Linux platforms locally.")
+@pytest.mark.no_xvfb
 def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
-    """Test #6114: Entry of an overflow int is caught and handled properly"""
+    """
+    Test that entry of an overflowing integer is caught and handled properly.
+
+    Integration regression test for issue #6114 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -441,26 +458,32 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.dataTable
 
-        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key_Right)
         qtbot.keyClicks(view, '5')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Space)
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), str(int(2 ** bit_exponet)))
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
         qtbot.keyClicks(view, '7')
-        qtbot.keyPress(view, Qt.Key_Up)
+        qtbot.keyClick(view, Qt.Key_Up)
         qtbot.keyClicks(view, '6')
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Return)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert numpy.sum(expected_df[0].as_matrix() ==
                          dialog.get_value().as_matrix()) == len(expected_df)
 
 
 def test_dataframemodel_set_data_complex(monkeypatch):
-    """Test for #6115: Editing complex dtypes raises error in df editor"""
+    """
+    Test that editing complex dtypes is handled gracefully in df editor.
+
+    Unit regression test for issue #6115 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -480,8 +503,13 @@ def test_dataframemodel_set_data_complex(monkeypatch):
 
 
 @flaky(max_runs=3)
+@pytest.mark.no_xvfb
 def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
-    """Test for #6115: editing complex dtypes raises error in df editor"""
+    """
+    Test that editing complex dtypes is handled gracefully in df editor.
+
+    Integration regression test for issue #6115 .
+    """
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -497,29 +525,30 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.dataTable
 
-        qtbot.keyPress(view, Qt.Key_Right)
-        qtbot.keyPress(view, Qt.Key_Down)
-        qtbot.keyPress(view, Qt.Key_Space)
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+        qtbot.keyClick(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Space)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
         qtbot.keyClicks(view.focusWidget(), "42")
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == count * 2 - 1
-        qtbot.keyPress(view, Qt.Key_Down)
+        qtbot.keyClick(view, Qt.Key_Down)
         qtbot.keyClick(view, '1')
-        qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+        qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
         MockQMessageBox.critical.assert_called_with(
             ANY, "Error", ("Editing dtype {0!s} not yet supported."
                            .format(type(test_df.iloc[1, 0]).__name__)))
         assert MockQMessageBox.critical.call_count == count * 2
-        qtbot.keyPress(view, Qt.Key_Return)
-        qtbot.wait(1000)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert numpy.sum(test_df[0].as_matrix() ==
                          dialog.get_value().as_matrix()) == len(test_df)
 
 
 def test_dataframemodel_set_data_bool(monkeypatch):
-    """Test that bools are editible in df and false-y strs are detected"""
+    """Test that bools are editible in df and false-y strs are detected."""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -540,8 +569,9 @@ def test_dataframemodel_set_data_bool(monkeypatch):
 
 
 @flaky(max_runs=3)
+@pytest.mark.no_xvfb
 def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
-    """Test that bools are editible in df and false-y strs are detected"""
+    """Test that bools are editible in df and false-y strs are detected."""
     MockQMessageBox = Mock()
     attr_to_patch = ('spyder.widgets.variableexplorer' +
                      '.dataframeeditor.QMessageBox')
@@ -559,15 +589,16 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
         qtbot.waitForWindowShown(dialog)
         view = dialog.dataTable
 
-        qtbot.keyPress(view, Qt.Key_Right)
+        qtbot.keyClick(view, Qt.Key_Right)
         for test_str in test_strs:
-            qtbot.keyPress(view, Qt.Key_Space)
-            qtbot.keyPress(view.focusWidget(), Qt.Key_Backspace)
+            qtbot.keyClick(view, Qt.Key_Space)
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Backspace)
             qtbot.keyClicks(view.focusWidget(), test_str)
-            qtbot.keyPress(view.focusWidget(), Qt.Key_Down)
+            qtbot.keyClick(view.focusWidget(), Qt.Key_Down)
             assert not MockQMessageBox.critical.called
-        qtbot.keyPress(view, Qt.Key_Return)
-        qtbot.wait(1000)
+        qtbot.wait(200)
+        dialog.accept()
+        qtbot.wait(500)
         assert (numpy.sum(expected_df[0].as_matrix() ==
                           dialog.get_value().as_matrix()[:, 0]) ==
                 len(expected_df))

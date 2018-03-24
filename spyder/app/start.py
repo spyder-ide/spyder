@@ -21,7 +21,8 @@ except:
 
 # Local imports
 from spyder.app.cli_options import get_options
-from spyder.config.base import PYTEST, get_conf_path, running_in_mac_app
+from spyder.config.base import (get_conf_path, running_in_mac_app,
+                                running_under_pytest)
 from spyder.config.main import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
@@ -64,7 +65,18 @@ def main():
     options to the application.
     """
     # Parse command line options
-    options, args = get_options()
+    if running_under_pytest():
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock # Python 2
+
+        options = Mock()
+        options.new_instance = False
+        options.reset_config_files = False
+        args = None
+    else:
+        options, args = get_options()
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
@@ -135,7 +147,7 @@ def main():
             # executing this script because it doesn't make
             # sense
             from spyder.app import mainwindow
-            if PYTEST:
+            if running_under_pytest():
                 return mainwindow.main()
             else:
                 mainwindow.main()
@@ -144,7 +156,7 @@ def main():
         if lock_created:
             # Start a new instance
             from spyder.app import mainwindow
-            if PYTEST:
+            if running_under_pytest():
                 return mainwindow.main()
             else:
                 mainwindow.main()
@@ -158,7 +170,7 @@ def main():
                       "instance, please pass to it the --new-instance option")
     else:
         from spyder.app import mainwindow
-        if PYTEST:
+        if running_under_pytest():
             return mainwindow.main()
         else:
             mainwindow.main()

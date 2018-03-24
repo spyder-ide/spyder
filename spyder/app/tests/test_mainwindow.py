@@ -7,9 +7,10 @@
 # -----------------------------------------------------------------------------
 
 """
-Tests for the main window
+Tests for the main window.
 """
 
+# Standard library imports
 import os
 import os.path as osp
 import shutil
@@ -19,24 +20,28 @@ try:
 except ImportError:
     from mock import Mock, MagicMock  # Python 2
 
+# Third party imports
 from flaky import flaky
 from jupyter_client.manager import KernelManager
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QEvent
+from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+from qtpy.QtWebEngineWidgets import WEBENGINE
 
-from spyder import __trouble_url__
-from spyder.app.mainwindow import MainWindow  # Tests fail without this import
+# Local imports
+from spyder import __trouble_url__, __project_url__
 from spyder.app import start
+from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir
 from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.plugins.help import ObjectComboBox
 from spyder.plugins.runconfig import RunConfiguration
+from spyder.plugins.tests.test_help import check_text
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.programs import is_module_installed
@@ -69,6 +74,7 @@ EVAL_TIMEOUT = 3000
 
 # Temporary directory
 TEMP_DIRECTORY = tempfile.gettempdir()
+
 
 # =============================================================================
 # Utility functions
@@ -175,7 +181,7 @@ def main_window(request):
 @pytest.mark.slow
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (not PY2 and PYQT_VERSION < "5.9.0"),
+@pytest.mark.skipif(os.name == 'nt' or not PY2,
                     reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
 @pytest.mark.timeout(timeout=45, method='thread')
 def test_calltip(main_window, qtbot):
@@ -203,6 +209,77 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+def test_get_help(main_window, qtbot):
+    """
+    Test that Help works when called from the Editor and the IPython console.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    if WEBENGINE:
+        webpage = webview.page()
+    else:
+        webpage = webview.page().mainFrame()
+
+    # --- From the console ---
+    # Write some object in the console
+    qtbot.keyClicks(control, 'runfile')
+
+    # Get help
+    control.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "namespace"), timeout=6000)
+
+    # --- From the editor ---
+    qtbot.wait(3000)
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Write some object in the editor
+    code_editor.set_text('range')
+    code_editor.move_cursor(len('range'))
+
+    # Get help
+    editorstack.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=6000)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(PYQT4 and not PY2, reason="Fails for a strange reason")
+def test_window_title(main_window, tmpdir):
+    """Test window title with non-ascii characters."""
+    projects = main_window.projects
+
+    # Create a project in non-ascii path
+    path = to_text_string(tmpdir.mkdir(u'測試'))
+    projects.open_project(path=path)
+
+    # Set non-ascii window title
+    main_window.window_title = u'اختبار'
+
+    # Assert window title is computed without errors
+    # and has the expected strings
+    main_window.set_window_title()
+    title = main_window.base_title
+    assert u'Spyder' in title
+    assert u'Python' in title
+    assert u'اختبار' in title
+    assert u'測試' in title
+
+    projects.close_project()
 
 
 @pytest.mark.slow
@@ -560,17 +637,10 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
-                    reason="It times out sometimes on Windows and Cython is needed")
+                    reason="Hard to test on Windows and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
-
-    # Get a reference to the namespace browser widget
-    nsb = main_window.variableexplorer.get_focus_widget()
-
     # Get a reference to the code editor widget
     code_editor = main_window.editor.get_focus_widget()
 
@@ -578,12 +648,18 @@ def test_run_cython_code(main_window, qtbot):
     # Load test file
     main_window.editor.load(osp.join(LOCATION, 'pyx_script.pyx'))
 
-    # run file
+    # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Wait until an object appears
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 1,
                     timeout=COMPILE_AND_EVAL_TIMEOUT)
 
     # Verify result
+    shell = main_window.ipyconsole.get_current_shellwidget()
     assert shell.get_value('a') == 3628800
 
     # Reset and close file
@@ -611,13 +687,13 @@ def test_run_cython_code(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
-def test_open_notebooks_from_project_explorer(main_window, qtbot):
+def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     """Test that notebooks are open from the Project explorer."""
     projects = main_window.projects
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
-    project_dir = tempfile.mkdtemp()
+    project_dir = to_text_string(tmpdir.mkdir('test'))
 
     # Create an empty notebook in the project dir
     nb = osp.join(LOCATION, 'notebook.ipynb')
@@ -1171,9 +1247,9 @@ def test_fileswitcher(main_window, qtbot):
 
     # Assert that the path shown in the fileswitcher is shorter
     if PYQT5:
-       main_window.open_fileswitcher()
-       item_text = main_window.fileswitcher.list.currentItem().text()
-       assert '...' in item_text
+        main_window.open_fileswitcher()
+        item_text = main_window.fileswitcher.list.currentItem().text()
+        assert '...' in item_text
 
 
 @pytest.mark.slow
@@ -1320,6 +1396,73 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     assert help_index == help_tabbar.currentIndex()
     assert isinstance(main_window.focusWidget(), ObjectComboBox)
     assert help_pane_menuitem.isChecked()
+
+
+def test_report_issue_url(monkeypatch):
+    """Test that report_issue sends the data, and to correct url."""
+    body = 'This is an example error report body text.'
+    title = 'Uncreative issue title here'
+    body_autogenerated = 'Auto-generated text.'
+    target_url_base = __project_url__ + '/issues/new'
+
+    MockMainWindow = MagicMock(spec=MainWindow)
+    mockMainWindow_instance = MockMainWindow()
+    mockMainWindow_instance.__class__ = MainWindow
+    mockMainWindow_instance.render_issue.return_value = body_autogenerated
+
+    MockQDesktopServices = MagicMock()
+    mockQDesktopServices_instance = MockQDesktopServices()
+    attr_to_patch = ('spyder.app.mainwindow.QDesktopServices')
+    monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
+
+    # Test when body=None, i.e. when Help > Report Issue is chosen
+    target_url = QUrl(target_url_base + '?body=' + body_autogenerated)
+    MainWindow.report_issue(mockMainWindow_instance, body=None, title=None)
+    assert MockQDesktopServices.openUrl.call_count == 1
+    MockQDesktopServices.openUrl.assert_called_once_with(target_url)
+
+    # Test with body=None and title != None
+    target_url = QUrl(target_url_base + '?body=' + body_autogenerated
+                      + "&title=" + title)
+    MainWindow.report_issue(mockMainWindow_instance, body=None, title=title)
+    assert MockQDesktopServices.openUrl.call_count == 2
+    mockQDesktopServices_instance.openUrl.called_with(target_url)
+
+    # Test when body != None, i.e. when auto-submitting error to Github
+    target_url = QUrl(target_url_base + '?body=' + body)
+    MainWindow.report_issue(mockMainWindow_instance, body=body, title=None)
+    assert MockQDesktopServices.openUrl.call_count == 3
+    mockQDesktopServices_instance.openUrl.called_with(target_url)
+
+    # Test when body != None and title != None
+    target_url = QUrl(target_url_base + '?body=' + body
+                      + "&title=" + title)
+    MainWindow.report_issue(mockMainWindow_instance, body=body, title=title)
+    assert MockQDesktopServices.openUrl.call_count == 4
+    mockQDesktopServices_instance.openUrl.called_with(target_url)
+
+
+def test_render_issue():
+    """Test that render issue works without errors and returns text."""
+    test_description = "This is a test description"
+    test_traceback = "An error occured. Oh no!"
+
+    MockMainWindow = MagicMock(spec=MainWindow)
+    mockMainWindow_instance = MockMainWindow()
+    mockMainWindow_instance.__class__ = MainWindow
+
+    # Test when description and traceback are not provided
+    test_issue_1 = MainWindow.render_issue(mockMainWindow_instance)
+    assert type(test_issue_1) == str
+    assert len(test_issue_1) > 100
+
+    # Test when description and traceback are provided
+    test_issue_2 = MainWindow.render_issue(mockMainWindow_instance,
+                                           test_description, test_traceback)
+    assert type(test_issue_2) == str
+    assert len(test_issue_2) > 100
+    assert test_description in test_issue_2
+    assert test_traceback in test_issue_2
 
 
 if __name__ == "__main__":

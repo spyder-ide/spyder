@@ -183,6 +183,7 @@ class DirView(QTreeView):
     sig_removed = Signal(str)
     sig_removed_tree = Signal(str)
     sig_renamed = Signal(str, str)
+    sig_renamed_tree = Signal(str, str)
     sig_create_module = Signal(str)
     sig_run = Signal(str)
     sig_new_file = Signal(str)
@@ -690,7 +691,10 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                self.sig_renamed.emit(fname, path)
+                if osp.isfile(fname):
+                    self.sig_renamed.emit(fname, path)
+                else:
+                    self.sig_renamed_tree.emit(fname, path)
                 return path
             except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),
@@ -716,14 +720,18 @@ class DirView(QTreeView):
             self.rename_file(fname)
 
     @Slot()
-    def move(self, fnames=None):
+    def move(self, fnames=None, directory=None):
         """Move files/directories"""
         if fnames is None:
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
             self.redirect_stdio.emit(False)
-            folder = getexistingdirectory(self, _("Select directory"), orig)
+            if directory is None:
+                folder = getexistingdirectory(self, _("Select directory"),
+                                              orig)
+            else:
+                folder = directory
             self.redirect_stdio.emit(True)
             if folder:
                 folder = fixpath(folder)

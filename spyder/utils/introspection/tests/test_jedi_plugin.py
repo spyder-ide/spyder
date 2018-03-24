@@ -11,8 +11,8 @@ import pytest
 import os
 import os.path as osp
 
-from spyder.utils.introspection.manager import CodeInfo
 from spyder.utils.introspection import jedi_plugin
+from spyder.utils.introspection.manager import CodeInfo
 
 try:
     import numpydoc
@@ -39,6 +39,14 @@ def test_get_info():
     source_code = "import os; os.walk"
     docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
     assert docs['calltip'].startswith('walk(') and docs['name'] == 'walk'
+
+
+def test_get_info_from_method():
+    """Regression test for issue 6516."""
+    source_code = "L = [1]; L.append"
+    docs = p.get_info(CodeInfo('info', source_code, len(source_code)))
+    assert docs['calltip'].startswith('L.append(')
+    assert docs['name'] == 'L.append'
 
 
 def test_get_completions():

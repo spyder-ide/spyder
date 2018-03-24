@@ -123,9 +123,9 @@ MAIN_APP.setWindowIcon(APP_ICON)
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time. 
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, PYTEST
+from spyder.config.base import _, get_image_path, DEV, running_under_pytest
 
-if not PYTEST:
+if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
     SPLASH_FONT = SPLASH.font()
     SPLASH_FONT.setPixelSize(10)
@@ -283,6 +283,7 @@ class MainWindow(QMainWindow):
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
         self.open_project = options.open_project
+        self.window_title = options.window_title
 
         self.debug_print("Start of MainWindow constructor")
 
@@ -450,26 +451,12 @@ class MainWindow(QMainWindow):
         self.layout_toolbar = None
         self.layout_toolbar_actions = []
 
-
-        # Set Window title and icon
-        if DEV is not None:
-            title = "Spyder %s (Python %s.%s)" % (__version__,
-                                                  sys.version_info[0],
-                                                  sys.version_info[1])
-        else:
-            title = "Spyder (Python %s.%s)" % (sys.version_info[0],
-                                               sys.version_info[1])
-        if DEBUG:
-            title += " [DEBUG MODE %d]" % DEBUG
-        if options.window_title is not None:
-            title += ' -- ' + options.window_title
-
-        if PYTEST:
+        if running_under_pytest():
             # Show errors in internal console when testing.
             CONF.set('main', 'show_internal_errors', False)
 
-        self.base_title = title
-        self.update_window_title()
+        # Set window title
+        self.set_window_title()
 
         if set_windows_appusermodelid != None:
             res = set_windows_appusermodelid()
@@ -853,9 +840,7 @@ class MainWindow(QMainWindow):
         if CONF.get('outline_explorer', 'enable'):
             self.set_splash(_("Loading outline explorer..."))
             from spyder.plugins.outlineexplorer import OutlineExplorer
-            fullpath_sorting = CONF.get('editor', 'fullpath_sorting', True)
-            self.outlineexplorer = OutlineExplorer(self,
-                                        fullpath_sorting=fullpath_sorting)
+            self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
 
         # Editor plugin
@@ -1308,15 +1293,30 @@ class MainWindow(QMainWindow):
         self.menuBar().raise_()
         self.is_setting_up = False
 
-    def update_window_title(self):
-        """Update main spyder window title based on projects."""
-        title = self.base_title
+    def set_window_title(self):
+        """Set window title."""
+        if DEV is not None:
+            title = u"Spyder %s (Python %s.%s)" % (__version__,
+                                                   sys.version_info[0],
+                                                   sys.version_info[1])
+        else:
+            title = u"Spyder (Python %s.%s)" % (sys.version_info[0],
+                                                sys.version_info[1])
+
+        if DEBUG:
+            title += u" [DEBUG MODE %d]" % DEBUG
+
+        if self.window_title is not None:
+            title += u' -- ' + to_text_string(self.window_title)
+
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
-                path = path.replace(get_home_dir(), '~')
-                title = '{0} - {1}'.format(path, title)
-        self.setWindowTitle(title)
+                path = path.replace(get_home_dir(), u'~')
+                title = u'{0} - {1}'.format(path, title)
+
+        self.base_title = title
+        self.setWindowTitle(self.base_title)
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
@@ -2410,52 +2410,70 @@ class MainWindow(QMainWindow):
         if versions['revision']:
             revision = versions['revision']
 
-        # Make a description header in case no description
-        # is supplied
+        # Store and format the reminder message for the troubleshooting guide
+        reminder_message = (
+            "<!--- **PLEASE READ:** Before submitting here, please carefully "
+            "consult our *Troubleshooting Guide*: {0!s} and search the "
+            "issues page for your error/problem, as most posted bugs are "
+            "duplicates or easy fixes.\n\n"
+            "If you don't find anything, please provide a detailed step-by-"
+            "step description (in English) of the problem and what led up to "
+            "it below. Issue reports without a clear way to reproduce them "
+            "will be closed. Thanks! --->"
+            ).format(__trouble_url__)
+
+        # Make a description header in case no description is supplied
         if not description:
-            description = "**What steps will reproduce your problem?**"
+            description = "### What steps will reproduce the problem?"
 
         # Make error section from traceback
         if traceback:
-            error_section = ("## Traceback\n"
+            error_section = ("### Traceback\n"
                              "```python-traceback\n"
                              "{}\n"
                              "```".format(traceback))
         else:
             error_section = ''
         issue_template = """\
-## Description
+{reminder_message}
+
+## Problem Description
 
 {description}
 
 {error_section}
 
-## Version and main components
+## Package Versions
 
-* Spyder Version: {spyder_version} {commit}
-* Python Version: {python_version}
-* Qt Versions: {qt_version}, {qt_api} {qt_api_ver} on {system_version}
+* Spyder version: {spyder_version} {commit}
+* Python version: {python_version}
+* Qt version: {qt_version}
+* {qt_api_name} version: {qt_api_version}
+* Operating system: {os_name} {os_version}
 
-## Dependencies
+### Dependencies
 
 ```
 {dependencies}
 ```
-""".format(description=description,
+""".format(reminder_message=reminder_message,
+           description=description,
            error_section=error_section,
            spyder_version=versions['spyder'],
            commit=revision,
            python_version=versions['python'],
            qt_version=versions['qt'],
-           qt_api=versions['qt_api'],
-           qt_api_ver=versions['qt_api_ver'],
-           system_version=versions['system'],
+           qt_api_name=versions['qt_api'],
+           qt_api_version=versions['qt_api_ver'],
+           os_name=versions['system'],
+           os_version=versions['release'],
            dependencies=dependencies.status())
 
         return issue_template
 
     @Slot()
     def report_issue(self, body=None, title=None):
+        """Report a Spyder issue to github, generating body text if needed."""
         if PY3:
             from urllib.parse import quote
         else:
@@ -2464,7 +2482,7 @@ class MainWindow(QMainWindow):
         if body is None:
             body = self.render_issue()
 
-        url = QUrl("https://github.com/spyder-ide/spyder/issues/new")
+        url = QUrl(__project_url__ + '/issues/new')
         if PYQT5:
             from qtpy.QtCore import QUrlQuery
             query = QUrlQuery()
@@ -2476,15 +2494,18 @@ class MainWindow(QMainWindow):
             url.addEncodedQueryItem("body", quote(body))
             if title:
                 url.addEncodedQueryItem("title", quote(title))
+        QDesktopServices.openUrl(url)
 
     @Slot()
     def trouble_guide(self):
+        """Open Spyder troubleshooting guide in a web browser"""
         url = QUrl(__trouble_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
     def google_group(self):
-        url = QUrl("http://groups.google.com/group/spyderlib")
+        """Open Spyder troubleshooting guide in a web browser"""
+        url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
@@ -2495,7 +2516,7 @@ class MainWindow(QMainWindow):
         callback = from_qvariant(action.data(), to_text_string)
         from spyder.widgets.editor import TextEditBaseWidget
 
-        # if focused widget isn't valid try the last focused^M
+        # If focused widget isn't valid try the last focused
         if not isinstance(widget, TextEditBaseWidget):
             widget = self.previous_focused_widget
 
@@ -2574,10 +2595,9 @@ class MainWindow(QMainWindow):
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
-        sys_path = sys.path
-        for path in self.path:
-            while path in sys_path:
-                sys_path.remove(path)
+        for path in self.path + self.project_path:
+            while path in sys.path:
+                sys.path.remove(path)
 
     @Slot()
     def path_manager_callback(self):
@@ -2902,7 +2922,7 @@ class MainWindow(QMainWindow):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        url_r = 'https://github.com/spyder-ide/spyder/releases'
+        url_r = __project_url__ + '/releases'
         url_i = 'http://pythonhosted.org/spyder/installation.html'
 
         # Define the custom QMessageBox
@@ -3097,7 +3117,7 @@ def run_spyder(app, options, args):
     # the window
     app.focusChanged.connect(main.change_last_focused_widget)
 
-    if not PYTEST:
+    if not running_under_pytest():
         app.exec_()
     return main
 
@@ -3107,10 +3127,22 @@ def run_spyder(app, options, args):
 #==============================================================================
 def main():
     """Main function"""
-    if PYTEST:
-        options, args = get_options()
+    if running_under_pytest():
+        try:
+            from unittest.mock import Mock
+        except ImportError:
+            from mock import Mock  # Python 2
+
+        options = Mock()
+        options.working_directory = None
+        options.profile = False
+        options.multithreaded = False
+        options.new_instance = False
+        options.open_project = None
+        options.window_title = None
+
         app = initialize()
-        window = run_spyder(app, options, args)
+        window = run_spyder(app, options, None)
         return window
 
     # **** Collect command line options ****

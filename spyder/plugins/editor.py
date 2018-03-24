@@ -30,7 +30,8 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, get_conf_path, PYTEST, debug_print
+from spyder.config.base import (_, debug_print, get_conf_path,
+                                running_under_pytest)
 from spyder.config.main import (CONF, RUN_CELL_SHORTCUT,
                                 RUN_CELL_AND_ADVANCE_SHORTCUT)
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
@@ -483,7 +484,8 @@ class Editor(SpyderPluginWidget):
 
         # Don't start IntrospectionManager when running tests because
         # it consumes a lot of memory
-        if PYTEST and not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
+        if (running_under_pytest()
+                and not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
             try:
                 from unittest.mock import Mock
             except ImportError:
@@ -1398,7 +1400,6 @@ class Editor(SpyderPluginWidget):
             ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
             ('set_occurrence_highlighting_timeout',  'occurrence_highlighting/timeout'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
-            ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
@@ -1582,11 +1583,9 @@ class Editor(SpyderPluginWidget):
 
     def create_new_window(self):
         oe_options = self.outlineexplorer.explorer.get_options()
-        fullpath_sorting=self.get_option('fullpath_sorting', True),
         window = EditorMainWindow(self, self.stack_menu_actions,
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=oe_options['show_fullpath'],
-                                  fullpath_sorting=fullpath_sorting,
                                   show_all_files=oe_options['show_all_files'],
                                   show_comments=oe_options['show_comments'])
         window.add_toolbars_to_menu("&View", window.get_toolbars())
@@ -1871,31 +1870,39 @@ class Editor(SpyderPluginWidget):
         fname=<basestring> --> create file
         """
         # If no text is provided, create default content
-        if text is None:
+        empty = False
+        try:
+            if text is None:
+                default_content = True
+                text, enc = encoding.read(self.TEMPLATE_PATH)
+                enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-',
+                                      text)
+                if enc_match:
+                    enc = enc_match.group(1)
+                # Initialize template variables
+                # Windows
+                username = encoding.to_unicode_from_fs(
+                                os.environ.get('USERNAME', ''))
+                # Linux, Mac OS X
+                if not username:
+                    username = encoding.to_unicode_from_fs(
+                                   os.environ.get('USER', '-'))
+                VARS = {
+                    'date': time.ctime(),
+                    'username': username,
+                }
+                try:
+                    text = text % VARS
+                except Exception:
+                    pass
+            else:
+                default_content = False
+                enc = encoding.read(self.TEMPLATE_PATH)[1]
+        except (IOError, OSError):
+            text = ''
+            enc = 'utf-8'
             default_content = True
-            text, enc = encoding.read(self.TEMPLATE_PATH)
-            enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
-            if enc_match:
-                enc = enc_match.group(1)
-            # Initialize template variables
-            # Windows
-            username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
-                                                                  ''))
-            # Linux, Mac OS X
-            if not username:
-                username = encoding.to_unicode_from_fs(os.environ.get('USER',
-                                                                      '-'))
-            VARS = {
-                'date': time.ctime(),
-                'username': username,
-            }
-            try:
-                text = text % VARS
-            except:
-                pass
-        else:
-            default_content = False
-            enc = encoding.read(self.TEMPLATE_PATH)[1]
+            empty = True
 
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
@@ -1929,7 +1936,8 @@ class Editor(SpyderPluginWidget):
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
-        finfo = self.editorstacks[0].new(fname, enc, text, default_content)
+        finfo = self.editorstacks[0].new(fname, enc, text, default_content,
+                                         empty)
         finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
@@ -2016,7 +2024,7 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
-            if not PYTEST:
+            if not running_under_pytest():
                 filenames, _sf = getopenfilenames(
                                     parent_widget,
                                     _("Open file"), basedir,
@@ -2235,7 +2243,7 @@ class Editor(SpyderPluginWidget):
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
                 self.close_file_from_name(fname)
-    
+
     def renamed(self, source, dest):
         """File was renamed in file explorer widget or in project explorer"""
         filename = osp.abspath(to_text_string(source))
@@ -2244,8 +2252,16 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
-        
-    
+
+    def renamed_tree(self, source, dest):
+        """Directory was renamed in file explorer or in project explorer."""
+        dirname = osp.abspath(to_text_string(source))
+        tofile = to_text_string(dest)
+        for fname in self.get_filenames():
+            if osp.abspath(fname).startswith(dirname):
+                new_filename = fname.replace(dirname, tofile)
+                self.renamed(source=fname, dest=new_filename)
+
     #------ Source code
     @Slot()
     def indent(self):
@@ -2525,7 +2541,8 @@ class Editor(SpyderPluginWidget):
                 if self.dialog_size is not None:
                     dialog.resize(self.dialog_size)
                 dialog.setup(fname)
-                if CONF.get('run', 'open_at_least_once', not PYTEST):
+                if CONF.get('run', 'open_at_least_once',
+                            not running_under_pytest()):
                     # Open Run Config dialog at least once: the first time 
                     # a script is ever run in Spyder, so that the user may 
                     # see it at least once and be conscious that it exists
@@ -2638,7 +2655,6 @@ class Editor(SpyderPluginWidget):
     #------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # toggle_fullpath_sorting
         if self.editorstacks is not None:
             # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
@@ -2672,8 +2688,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_focus_to_editor(focus_to_editor_o)
 
             # --- everything else
-            fpsorting_n = 'fullpath_sorting'
-            fpsorting_o = self.get_option(fpsorting_n)
             tabbar_n = 'show_tab_bar'
             tabbar_o = self.get_option(tabbar_n)
             classfuncdropdown_n = 'show_class_func_dropdown'
@@ -2736,17 +2750,11 @@ class Editor(SpyderPluginWidget):
             rt_analysis_o = self.get_option(rt_analysis_n)
             rta_timeout_n = 'realtime_analysis/timeout'
             rta_timeout_o = self.get_option(rta_timeout_n)
+
             finfo = self.get_current_finfo()
-            if fpsorting_n in options:
-                if self.outlineexplorer is not None:
-                    self.outlineexplorer.explorer.set_fullpath_sorting(
-                        fpsorting_o)
-                for window in self.editorwindows:
-                    window.editorwidget.outlineexplorer.set_fullpath_sorting(
-                        fpsorting_o)
+
+
             for editorstack in self.editorstacks:
-                if fpsorting_n in options:
-                    editorstack.set_fullpath_sorting_enabled(fpsorting_o)
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
                 if linenb_n in options:
