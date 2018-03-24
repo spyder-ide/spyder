@@ -18,6 +18,7 @@ import os.path as osp
 
 # ---- Third library imports
 
+from qtconsole.svg import save_svg, svg_to_clipboard, svg_to_image
 from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot, QRect, QEvent, QObject
 from qtpy.QtGui import QImage, QPixmap, QPainter
@@ -30,6 +31,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QMenu,
 # ---- Local library imports
 
 from spyder.config.base import _
+from spyder.py3compat import is_unicode
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, create_plugin_layout)
 
@@ -263,11 +265,11 @@ class FigureSaver(QObject):
         super(FigureSaver, self).__init__(parent)
 
     def save_figure_tofile(self, fig, fmt, fname):
-        if fmt in ['image/png', 'image/jpeg']:
-            with open(fname, 'wb') as f:
-                f.write(fig)
-        elif fmt == 'image/svg+xml':
-            raise NotImplementedError
+        if fmt == 'image/svg+xml' and is_unicode(fig):
+            fig = fig.encode('utf-8')
+
+        with open(fname, 'wb') as f:
+            f.write(fig)
 
 
 class FigureViewer(QScrollArea):
@@ -286,7 +288,7 @@ class FigureViewer(QScrollArea):
 
         self._scalefactor = 0
         self._scalestep = 1.2
-        self._sfmax = 3
+        self._sfmax = 10
         self._sfmin = -10
 
         # An internal flag that tracks when the figure is being panned.
@@ -718,15 +720,14 @@ class FigureCanvas(QFrame):
         self.fmt = fmt
 
         if fmt in ['image/png', 'image/jpeg']:
-            qimg = QImage()
-            qimg.loadFromData(fig, fmt.upper())
+            self._qpix_orig = QPixmap()
+            self._qpix_orig.loadFromData(fig, fmt.upper())
         elif fmt == 'image/svg+xml':
-            raise NotImplementedError
+            self._qpix_orig = QPixmap(svg_to_image(fig))
 
-        self.qpix = QPixmap(qimg)
-        self.fwidth = self.qpix.width()
-        self.fheight = self.qpix.height()
-        self._qpix_buffer = []
+        self._qpix_buffer = [self._qpix_orig]
+        self.fwidth = self._qpix_orig.width()
+        self.fheight = self._qpix_orig.height()
         self.repaint()
 
     def save_figure_tofile(self, filename):
@@ -742,6 +743,9 @@ class FigureCanvas(QFrame):
                      self.size().width() - 2 * fw,
                      self.size().height() - 2 * fw)
 
+        if self.fig is None:
+            return
+
         # Check/update the qpixmap buffer :
 
         qpix2paint = None
@@ -750,15 +754,16 @@ class FigureCanvas(QFrame):
                 qpix2paint = qpix
                 break
         else:
-            if self.qpix is not None:
-                qpix2paint = self.qpix.scaledToWidth(
+            if self.fmt in ['image/png', 'image/jpeg']:
+                qpix2paint = self._qpix_orig.scaledToWidth(
                     rect.width(), mode=Qt.SmoothTransformation)
-                self._qpix_buffer.append(qpix2paint)
+            elif self.fmt == 'image/svg+xml':
+                qpix2paint = QPixmap(svg_to_image(self.fig, rect.size()))
+            self._qpix_buffer.append(qpix2paint)
 
         if qpix2paint is not None:
             # Paint the image on the widget :
             qp = QPainter()
             qp.begin(self)
-            qp.setRenderHint(QPainter.Antialiasing, True)
             qp.drawPixmap(rect, qpix2paint)
             qp.end()

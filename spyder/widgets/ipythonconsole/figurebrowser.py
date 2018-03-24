@@ -58,10 +58,7 @@ class FigureBrowserWidget(RichJupyterWidget):
             fmt = 'image/jpeg'
             img = decodestring(data['image/jpeg'].encode('ascii'))
         if img is not None:
-            # TODO: Support for svg is not implemented in the figure browser
-            #       widget yet.
-            if fmt in ['image/png', 'image/jpeg']:
-                self.sig_new_inline_figure.emit(img, fmt)
+            self.sig_new_inline_figure.emit(img, fmt)
             if (self.figurebrowser is not None and
                     self.figurebrowser.mute_inline_plotting):
                 del msg['content']['data'][fmt]
