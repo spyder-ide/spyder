@@ -25,24 +25,24 @@ GH_MARK_LIGHT = get_image_path('GitHub-Mark-Light.png')
 
 
 class DlgGitHubLogin(QDialog):
-    HTML = '<html><head/><body><p align="center"><img src="%s"/></p>' \
-        '<p align="center">'+_('Sign in to GitHub')+'</p></body></html>'
+    """Dialog to submit error reports to Github."""
 
     def __init__(self, parent, username):
         super(DlgGitHubLogin, self).__init__(parent)
 
+        title = _("Sign in to Github")
         self.resize(366, 248)
-        self.setWindowTitle(_("Sign in to Github"))
+        self.setWindowTitle(title)
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Header
-        lbl_html = QLabel()
+        html = ('<html><head/><body><p align="center"><img src="{mark}"/></p>'
+                '<p align="center">{title}</p></body></html>')
         mark = GH_MARK_NORMAL
         if self.palette().base().color().lightness() < 128:
             mark = GH_MARK_LIGHT
-        html = self.HTML % mark
-        lbl_html.setText(html)
+        lbl_html = QLabel(html.format(mark=mark, title=title))
 
         # User and password
         formLayout = QFormLayout()
