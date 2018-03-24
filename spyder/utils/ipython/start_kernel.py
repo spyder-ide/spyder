@@ -69,7 +69,7 @@ def kernel_config():
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
 
-    # Jedi completer in iypthon console
+    # Jedi completer in IPpthon console
     ipy_jedi_o = os.environ.get('SPY_IPY_JEDI_O') == 'True'
     # - Using Jedi slow completions a lot for objects with big repr's.
     # - Jedi completions are not available in Python 2.
