@@ -479,16 +479,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # ---- Advanced settings ----
         # Enable Jedi completion in IPyhton Console
         ipy_jedi_group = QGroupBox(_("Jedi completion"))
-        ipy_jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion in "
-                                "the IPython console; similar to the "
-                                "greedy completer, but without evaluating the code.<br>"
-                                "<b>Warning:</b> Slows down your console when working "
-                                "with large dataframes!"))
+        ipy_jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion "
+                                  "in the IPython console; similar to the "
+                                  "greedy completer, but without evaluating "
+                                  "the code.<br>"
+                                  "<b>Warning:</b> Slows down your console "
+                                  "when working with large dataframes!"))
         ipy_jedi_label.setWordWrap(True)
-        ipy_jedi_box = newcb(_("Use Jedi completion in the IPython console"), "ipy_jedi_completer",
-                             tip="<b>Warning</b>: Slows down your console when working "
-                                "with large dataframes!<br>"
-                                "Allows completion of nested lists etc.")
+        ipy_jedi_box = newcb(_("Use Jedi completion in the IPython console"), 
+                             "ipy_jedi_completer",
+                             tip="<b>Warning</b>: "
+                                 "Slows down your console when working with "
+                                 "large dataframes!<br>"
+                                 "Allows completion of nested lists etc.")
         
         ipy_jedi_layout = QVBoxLayout()
         ipy_jedi_layout.addWidget(ipy_jedi_label)
@@ -505,14 +508,15 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "<b>Warning:</b> Due to a bug, IPython's "
                                 "greedy completer requires a leading "
                                 "<tt>&lt;Space&gt;</tt> for some completions; "
-                                "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> "
-                                "works while <tt>np.sin(np.&lt;Tab&gt;</tt> "
-                                "doesn't."))
+                                "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;"
+                                "</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
+                                "</tt> doesn't."))
         greedy_label.setWordWrap(True)
-        greedy_box = newcb(_("Use greedy completion in the IPython console"), "greedy_completer",
+        greedy_box = newcb(_("Use greedy completion in the IPython console"),
+                           "greedy_completer",
                            tip="<b>Warning</b>: It can be unsafe because the "
-                                "code is actually evaluated when you press "
-                                "<tt>Tab</tt>.")
+                               "code is actually evaluated when you press "
+                               "<tt>Tab</tt>.")
         
         greedy_layout = QVBoxLayout()
         greedy_layout.addWidget(greedy_label)
@@ -522,10 +526,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_("Autocall makes IPython automatically call "
-                                "any callable object even if you didn't type "
-                                "explicit parentheses.<br>"
-                                "For example, if you type <i>str 43</i> it "
-                                "becomes <i>str(43)</i> automatically."))
+                                  "any callable object even if you didn't "
+                                  "type explicit parentheses.<br>"
+                                  "For example, if you type <i>str 43</i> it "
+                                  "becomes <i>str(43)</i> automatically."))
         autocall_label.setWordWrap(True)
         
         smart = _('Smart')
