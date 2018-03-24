@@ -1189,6 +1189,10 @@ def test_varexp_magic_dbg(main_window, qtbot):
     qtbot.mouseClick(debug_button, Qt.LeftButton)
     qtbot.wait(1000)
 
+    # Uncheck the "Mute inline plotting" of the FigureExplorer
+    fb = main_window.figureexplorer.get_focus_widget()
+    fb.mute_inline_chbox.setChecked(False)
+
     # Generate the plot from the Variable Explorer
     nsb.editor.plot('li', 'plot')
     qtbot.wait(1000)
