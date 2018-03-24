@@ -2470,7 +2470,7 @@ class MainWindow(QMainWindow):
         return issue_template
 
     @Slot()
-    def report_issue(self, body=None, title=None, dialog=None):
+    def report_issue(self, body=None, title=None):
         """Report a Spyder issue to github, generating body text if needed."""
         if PY3:
             from urllib.parse import quote
