@@ -14,7 +14,7 @@ import sys
 # Third party imports
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
                             QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit,
-                            QPushButton, QVBoxLayout)
+                            QPushButton, QSpacerItem, QVBoxLayout)
 from qtpy.QtCore import Qt, Signal
 
 # Local imports
@@ -127,25 +127,33 @@ class SpyderErrorDialog(QDialog):
 
         # Dialog main label
         self.main_label = QLabel(
-            _("""<b>Spyder has encountered an internal problem</b><hr>
+            _("""<h3>Spyder has encountered an internal problem!</h3>
               Before reporting it, <i>please</i> consult our comprehensive 
               <b><a href=\"{0!s}\">Troubleshooting Guide</a></b> 
               which should help solve most issues, and search for 
               <b><a href=\"{1!s}\">known bugs</a></b> matching your error 
               message or problem description for a quicker solution.
-              <br><br>
-              If you don't find anything, please enter a detailed step-by-step 
-              description (in English) of what led up to the problem below. 
-              Issue reports without a clear way to reproduce them will be 
-              closed.<br><br>
-              Thanks for helping us making Spyder better for everyone!
               """).format(__trouble_url__, __project_url__))
         self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
 
-        # Field to input the title
-        self.issue_title = QLineEdit(_("Automatic error report"))
+        # Issue title
+        self.issue_title = QLineEdit()
+        form_layout = QFormLayout()
+        red_asterisk = '<font color="Red">*</font>'
+        title_label = QLabel(_("<b>Title</b> {}").format(red_asterisk))
+        form_layout.setWidget(0, QFormLayout.LabelRole, title_label)
+        form_layout.setWidget(0, QFormLayout.FieldRole, self.issue_title)
+
+        # Description
+        steps_header = QLabel(
+            _("<b>Steps to reproduce</b> {}").format(red_asterisk))
+        steps_text = QLabel(_("Please enter below a detailed step-by-step "
+                              "description (in English) of what led up to "
+                              "the problem. Issue reports without a clear "
+                              "way to reproduce them will be closed."))
+        steps_text.setWordWrap(True)
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
@@ -165,12 +173,7 @@ class SpyderErrorDialog(QDialog):
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox()
-        self.dismiss_box.setText(_("Hide all future errors this session"))
-
-        # Labels layout
-        labels_layout = QHBoxLayout()
-        labels_layout.addWidget(self.chars_label)
-        labels_layout.addWidget(self.dismiss_box, 0, Qt.AlignRight)
+        self.dismiss_box.setText(_("Hide all future errors during this session"))
 
         # Dialog buttons
         self.submit_btn = QPushButton(_('Submit to Github'))
@@ -182,16 +185,6 @@ class SpyderErrorDialog(QDialog):
 
         self.close_btn = QPushButton(_('Close'))
 
-        # Form layout
-        form_layout = QFormLayout()
-        form_layout.setWidget(0, QFormLayout.LabelRole, QLabel(_("Title")))
-        form_layout.setWidget(0, QFormLayout.FieldRole, self.issue_title)
-
-        # Description layout
-        form_layout.setWidget(1, QFormLayout.LabelRole,
-                              QLabel(_("Description")))
-        form_layout.setWidget(1, QFormLayout.FieldRole, self.input_description)
-
         # Buttons layout
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.submit_btn)
@@ -199,16 +192,27 @@ class SpyderErrorDialog(QDialog):
         buttons_layout.addWidget(self.close_btn)
 
         # Main layout
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.main_label)
-        vlayout.addLayout(form_layout)
-        vlayout.addWidget(self.details)
-        vlayout.addLayout(labels_layout)
-        vlayout.addLayout(buttons_layout)
-        self.setLayout(vlayout)
+        layout = QVBoxLayout()
+        layout.addWidget(self.main_label)
+        layout.addSpacing(15)
+        layout.addLayout(form_layout)
+        layout.addSpacing(8)
+        layout.addWidget(steps_header)
+        layout.addSpacing(-1)
+        layout.addWidget(steps_text)
+        layout.addSpacing(1)
+        layout.addWidget(self.input_description)
+        layout.addWidget(self.details)
+        layout.addWidget(self.chars_label)
+        layout.addSpacing(15)
+        layout.addWidget(self.dismiss_box)
+        layout.addSpacing(15)
+        layout.addLayout(buttons_layout)
+        layout.setContentsMargins(25, 20, 25, 10)
+        self.setLayout(layout)
 
-        self.resize(600, 420)
-        self.input_description.setFocus()
+        self.resize(570, 550)
+        self.issue_title.setFocus()
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
@@ -240,7 +244,7 @@ class SpyderErrorDialog(QDialog):
             self.details.hide()
             self.details_btn.setText(_('Show details'))
         else:
-            self.resize(600, 550)
+            self.resize(570, 600)
             self.details.document().setPlainText('')
             self.details.append_text_to_shell(self.error_traceback,
                                               error=True,
