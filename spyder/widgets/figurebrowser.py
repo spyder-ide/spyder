@@ -743,7 +743,6 @@ class FigureCanvas(QFrame):
         self._qpix_buffer = [self._qpix_orig]
         self.fwidth = self._qpix_orig.width()
         self.fheight = self._qpix_orig.height()
-        self.repaint()
 
     def save_figure_tofile(self, filename):
         raise NotImplementedError
