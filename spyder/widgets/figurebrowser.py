@@ -83,7 +83,23 @@ class FigureBrowser(QWidget):
         self.show_outline_chbox.stateChanged.connect(
             self.show_fig_outline_in_viewer)
 
-        # Setup the blayout :
+        # Create the main layout.
+
+        self.figviewer = FigureViewer()
+        self.figviewer.setStyleSheet("FigureViewer{"
+                                     "border: 1px solid lightgrey;"
+                                     "border-top-width: 0px;"
+                                     "border-bottom-width: 0px;"
+                                     "border-left-width: 0px;"
+                                     "}")
+        self.thumnails_sb = ThumbnailScrollBar(self.figviewer)
+
+        splitter = QSplitter()
+        splitter.addWidget(self.figviewer)
+        splitter.addWidget(self.thumnails_sb)
+        splitter.setFrameStyle(QScrollArea().frameStyle())
+
+        # Setup the blayout.
 
         blayout = QHBoxLayout()
         toolbar = self.setup_toolbar()
@@ -94,58 +110,26 @@ class FigureBrowser(QWidget):
         blayout.addWidget(self.mute_inline_chbox)
         blayout.addWidget(self.options_button)
 
-        # Create the main layout :
+        # Connect the figviewer zoom changed signal to the toolbar widget.
 
-        self.figviewer = FigureViewer()
-        self.figviewer.setStyleSheet("FigureViewer{"
-                                     "border: 1px solid lightgrey;"
-                                     "border-top-width: 0px;"
-                                     "border-bottom-width: 0px;"
-                                     "border-left-width: 0px;"
-                                     "}")
         self.figviewer.sig_zoom_changed.connect(self.zoom_disp.setValue)
-        self.thumnails_sb = ThumbnailScrollBar(self.figviewer)
 
-        splitter = QSplitter()
-        splitter.addWidget(self.figviewer)
-        splitter.addWidget(self.thumnails_sb)
-        splitter.setFrameStyle(QScrollArea().frameStyle())
+        # Create the plugin layout.
 
         layout = create_plugin_layout(blayout, splitter)
         self.setLayout(layout)
-
-    @property
-    def mute_inline_plotting(self):
-        return self.mute_inline_chbox.isChecked()
-
-    def show_fig_outline_in_viewer(self, state):
-        if state == Qt.Checked:
-            self.figviewer.figcanvas.setStyleSheet(
-                    "FigureCanvas{border: 1px solid lightgrey;}")
-        else:
-            self.figviewer.figcanvas.setStyleSheet("FigureCanvas{}")
-
-    def set_shellwidget(self, shellwidget):
-        """Bind the shellwidget instance to the figure browser"""
-        self.shellwidget = shellwidget
-        shellwidget.set_figurebrowser(self)
-        shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
-
-    def get_actions(self):
-        """Get the actions of the widget."""
-        return self.actions
 
     def setup_toolbar(self):
         """Setup the toolbar"""
         savefig_btn = create_toolbutton(
                 self, icon=ima.icon('filesave'),
                 tip=_("Save Image As..."),
-                triggered=self.save_image_as)
+                triggered=self.thumnails_sb.save_current_figure_as)
 
         saveall_btn = create_toolbutton(
                 self, icon=ima.icon('save_all'),
                 tip=_("Save All Image..."),
-                triggered=self.save_image_as)
+                triggered=self.save_all_images)
 
         closefig_btn = create_toolbutton(
                 self, icon=ima.icon('editclear'),
@@ -202,6 +186,27 @@ class FigureBrowser(QWidget):
         return [savefig_btn, saveall_btn, closefig_btn, closeall_btn, vsep1,
                 goback_btn, gonext_btn, vsep2, zoom_pan]
 
+    @property
+    def mute_inline_plotting(self):
+        return self.mute_inline_chbox.isChecked()
+
+    def show_fig_outline_in_viewer(self, state):
+        if state == Qt.Checked:
+            self.figviewer.figcanvas.setStyleSheet(
+                    "FigureCanvas{border: 1px solid lightgrey;}")
+        else:
+            self.figviewer.figcanvas.setStyleSheet("FigureCanvas{}")
+
+    def set_shellwidget(self, shellwidget):
+        """Bind the shellwidget instance to the figure browser"""
+        self.shellwidget = shellwidget
+        shellwidget.set_figurebrowser(self)
+        shellwidget.sig_new_inline_figure.connect(self._handle_new_figure)
+
+    def get_actions(self):
+        """Get the actions of the widget."""
+        return self.actions
+
     def _handle_new_figure(self, fig, fmt):
         """
         Handle when a new figure is sent to the ipython console by the
@@ -211,7 +216,7 @@ class FigureBrowser(QWidget):
 
     # ---- Toolbar Handlers
 
-    def save_image_as(self):
+    def save_all_images(self):
         pass
 
     def zoom_in(self):
