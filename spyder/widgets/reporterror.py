@@ -22,8 +22,9 @@ from spyder import __project_url__, __trouble_url__
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.utils.qthelpers import restore_keyevent
-from spyder.widgets.sourcecode.codeeditor import CodeEditor
+from spyder.widgets.github.backend import GithubBackend
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
+from spyder.widgets.sourcecode.codeeditor import CodeEditor
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 
@@ -233,12 +234,22 @@ class SpyderErrorDialog(QDialog):
         issue_text = main.render_issue(description=description,
                                        traceback=traceback)
 
-        # Copy issue to clipboard
-        QApplication.clipboard().setText(issue_text)
-
-        # Submit issue to Github
-        main.report_issue(body=issue_text,
-                          title=title, dialog=self)
+        try:
+            github_backend = GithubBackend('spyder-ide', 'spyder')
+            github_report = github_backend.send_report(title, issue_text)
+            if github_report:
+                self.close()
+        except Exception:
+            ret = QMessageBox.question(
+                    self.parent_widget, _('Error'),
+                        _('An error occurred while trying to send the issue to '
+                          'Github. Would you like to open it manually?'))
+            if ret in [QMessageBox.Yes, QMessageBox.Ok]:
+                QApplication.clipboard().setText(issue_text)
+                issue_body = (
+                    " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE TO "
+                    "COMPLETE YOUR REPORT ***   ---!>\n")
+                main.report_issue(body=issue_body, title=title)
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in details."""
