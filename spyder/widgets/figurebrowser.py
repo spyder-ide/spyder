@@ -306,6 +306,7 @@ class FigureViewer(QScrollArea):
         """Set a new figure in the figure canvas."""
         self.figcanvas.load_figure(fig, fmt)
         self.scale_image()
+        self.figcanvas.repaint()
 
     def eventFilter(self, widget, event):
         """A filter to control the zooming and panning of the figure canvas."""
