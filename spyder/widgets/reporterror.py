@@ -27,9 +27,10 @@ from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
 from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 
-# Minimum number of characters to introduce in the description field
-# before being able to send the report to Github.
-MIN_CHARS = 50
+# Minimum number of characters to introduce in the title and
+#description fields before being able to send the report to Github.
+TITLE_MIN_CHARS = 15
+DESC_MIN_CHARS = 50
 
 
 class DescriptionWidget(CodeEditor):
@@ -119,7 +120,7 @@ class SpyderErrorDialog(QDialog):
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        self.setWindowTitle(_("Spyder internal error"))
+        self.setWindowTitle(_("Issue reporter"))
         self.setModal(True)
 
         # To save the traceback sent to the internal console
@@ -140,12 +141,15 @@ class SpyderErrorDialog(QDialog):
         self.main_label.setStyleSheet('font-size: 12px;')
 
         # Issue title
-        self.issue_title = QLineEdit()
+        self.title = QLineEdit()
+        self.title.textChanged.connect(self._contents_changed)
+        self.title_chars_label = QLabel(_("{} more characters "
+                                          "to go...").format(TITLE_MIN_CHARS))
         form_layout = QFormLayout()
         red_asterisk = '<font color="Red">*</font>'
         title_label = QLabel(_("<b>Title</b> {}").format(red_asterisk))
         form_layout.setWidget(0, QFormLayout.LabelRole, title_label)
-        form_layout.setWidget(0, QFormLayout.FieldRole, self.issue_title)
+        form_layout.setWidget(0, QFormLayout.FieldRole, self.title)
 
         # Description
         steps_header = QLabel(
@@ -160,7 +164,7 @@ class SpyderErrorDialog(QDialog):
         self.input_description = DescriptionWidget(self)
 
         # Only allow to submit to Github if we have a long enough description
-        self.input_description.textChanged.connect(self._description_changed)
+        self.input_description.textChanged.connect(self._contents_changed)
 
         # Widget to show errors
         self.details = ShowErrorWidget(self)
@@ -169,8 +173,8 @@ class SpyderErrorDialog(QDialog):
 
         # Label to show missing chars
         self.initial_chars = len(self.input_description.toPlainText())
-        self.chars_label = QLabel(_("Enter at least {} "
-                                    "characters").format(MIN_CHARS))
+        self.desc_chars_label = QLabel(_("{} more characters "
+                                         "to go...").format(DESC_MIN_CHARS))
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox()
@@ -195,16 +199,17 @@ class SpyderErrorDialog(QDialog):
         # Main layout
         layout = QVBoxLayout()
         layout.addWidget(self.main_label)
-        layout.addSpacing(15)
+        layout.addSpacing(20)
         layout.addLayout(form_layout)
-        layout.addSpacing(8)
+        layout.addWidget(self.title_chars_label)
+        layout.addSpacing(12)
         layout.addWidget(steps_header)
         layout.addSpacing(-1)
         layout.addWidget(steps_text)
         layout.addSpacing(1)
         layout.addWidget(self.input_description)
         layout.addWidget(self.details)
-        layout.addWidget(self.chars_label)
+        layout.addWidget(self.desc_chars_label)
         layout.addSpacing(15)
         layout.addWidget(self.dismiss_box)
         layout.addSpacing(15)
@@ -212,15 +217,15 @@ class SpyderErrorDialog(QDialog):
         layout.setContentsMargins(25, 20, 25, 10)
         self.setLayout(layout)
 
-        self.resize(570, 550)
-        self.issue_title.setFocus()
+        self.resize(570, 600)
+        self.title.setFocus()
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
         main = self.parent().main
 
         # Getting description and traceback
-        title = self.issue_title.text()
+        title = self.title.text()
         description = self.input_description.toPlainText()
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
@@ -245,7 +250,7 @@ class SpyderErrorDialog(QDialog):
             self.details.hide()
             self.details_btn.setText(_('Show details'))
         else:
-            self.resize(570, 600)
+            self.resize(570, 650)
             self.details.document().setPlainText('')
             self.details.append_text_to_shell(self.error_traceback,
                                               error=True,
@@ -253,16 +258,28 @@ class SpyderErrorDialog(QDialog):
             self.details.show()
             self.details_btn.setText(_('Hide details'))
 
-    def _description_changed(self):
-        """Activate submit_btn if we have a long enough description."""
-        chars = len(self.input_description.toPlainText()) - self.initial_chars
-        if chars < MIN_CHARS:
-            self.chars_label.setText(
-                u"{} {}".format(MIN_CHARS - chars,
+    def _contents_changed(self):
+        """Activate submit_btn."""
+        desc_chars = (len(self.input_description.toPlainText()) -
+                      self.initial_chars)
+        if desc_chars < DESC_MIN_CHARS:
+            self.desc_chars_label.setText(
+                u"{} {}".format(DESC_MIN_CHARS - desc_chars,
                                 _("more characters to go...")))
         else:
-            self.chars_label.setText(_("Submission enabled; thanks!"))
-        self.submit_btn.setEnabled(chars >= MIN_CHARS)
+            self.desc_chars_label.setText(_("Description complete; thanks!"))
+
+        title_chars = len(self.title.text())
+        if title_chars < TITLE_MIN_CHARS:
+            self.title_chars_label.setText(
+                u"{} {}".format(TITLE_MIN_CHARS - title_chars,
+                                _("more characters to go...")))
+        else:
+            self.title_chars_label.setText(_("Title complete; thanks!"))
+
+        submission_enabled = (desc_chars >= DESC_MIN_CHARS and
+                              title_chars >= TITLE_MIN_CHARS)
+        self.submit_btn.setEnabled(submission_enabled)
 
 
 def test():
