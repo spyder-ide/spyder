@@ -10,7 +10,8 @@ Took from the QCrash Project - Colin Duquesnoy
 https://github.com/ColinDuquesnoy/QCrash
 """
 
-from qtpy import QtCore, QtWidgets
+from qtpy.QtCore import Qt, QEvent
+from qtpy.QtWidgets import QDialog
 
 from spyder.config.base import _
 from spyder.widgets.github import dlg_github_login_ui
@@ -20,7 +21,7 @@ GH_MARK_NORMAL = get_image_path('GitHub-Mark.png')
 GH_MARK_LIGHT = get_image_path('GitHub-Mark-Light.png')
 
 
-class DlgGitHubLogin(QtWidgets.QDialog):
+class DlgGitHubLogin(QDialog):
     HTML = '<html><head/><body><p align="center"><img src="%s"/></p>' \
         '<p align="center">'+_('Sign in to GitHub')+'</p></body></html>'
 
@@ -28,7 +29,7 @@ class DlgGitHubLogin(QtWidgets.QDialog):
         super(DlgGitHubLogin, self).__init__(parent)
         self.ui = dlg_github_login_ui.Ui_Dialog()
         self.ui.setupUi(self)
-        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         mark = GH_MARK_NORMAL
         if self.palette().base().color().lightness() < 128:
@@ -51,9 +52,10 @@ class DlgGitHubLogin(QtWidgets.QDialog):
 
     def eventFilter(self, obj, event):
         interesting_objects = [self.ui.le_password, self.ui.le_username]
-        if obj in interesting_objects and event.type() == QtCore.QEvent.KeyPress:
-            if event.key() == QtCore.Qt.Key_Return and event.modifiers() & QtCore.Qt.ControlModifier and \
-                    self.ui.bt_sign_in.isEnabled():
+        if obj in interesting_objects and event.type() == QEvent.KeyPress:
+            if (event.key() == Qt.Key_Return and
+                    event.modifiers() & Qt.ControlModifier and
+                    self.ui.bt_sign_in.isEnabled()):
                 self.accept()
                 return True
         return False

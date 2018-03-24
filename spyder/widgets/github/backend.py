@@ -13,7 +13,9 @@ https://github.com/ColinDuquesnoy/QCrash
 import logging
 import webbrowser
 
-from qtpy import QtGui, QtCore, QtWidgets
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import qApp, QMessageBox
 
 from spyder.config.base import get_image_path
 from spyder.utils.external import github
@@ -99,9 +101,9 @@ class GithubBackend(BaseBackend):
             formatter, "Submit on github",
             "Submit the issue on our issue tracker on github", None)
         icon = GH_MARK_NORMAL
-        if QtWidgets.qApp.palette().base().color().lightness() < 128:
+        if qApp.palette().base().color().lightness() < 128:
             icon = GH_MARK_LIGHT
-        self.button_icon = QtGui.QIcon(icon)
+        self.button_icon = QIcon(icon)
         self.gh_owner = gh_owner
         self.gh_repo = gh_repo
         self._show_msgbox = True  # False when running the test suite
@@ -128,13 +130,13 @@ class GithubBackend(BaseBackend):
             # invalid credentials
             if e.response.code == 401:
                 if self._show_msgbox:
-                    QtWidgets.QMessageBox.warning(
+                    QMessageBox.warning(
                         self.parent_widget, 'Invalid credentials',
                         'Failed to create github issue, invalid credentials...')
             else:
                 # other issue
                 if self._show_msgbox:
-                    QtWidgets.QMessageBox.warning(
+                    QMessageBox.warning(
                         self.parent_widget,
                         'Failed to create issue',
                         'Failed to create github issue. Error %d' %
@@ -143,11 +145,11 @@ class GithubBackend(BaseBackend):
         else:
             issue_nbr = ret['number']
             if self._show_msgbox:
-                ret = QtWidgets.QMessageBox.question(
+                ret = QMessageBox.question(
                     self.parent_widget, 'Issue created on github',
                     'Issue successfully created. Would you like to open the '
                     'ticket in your web browser?')
-            if ret in [QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Ok]:
+            if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 webbrowser.open(
                     'https://github.com/%s/%s/issues/%d' % (
                         self.gh_owner, self.gh_repo, issue_nbr))
@@ -163,11 +165,11 @@ class GithubBackend(BaseBackend):
     def upload_log_file(self, log_content):
         gh = github.GitHub()
         try:
-            QtWidgets.qApp.setOverrideCursor(QtCore.Qt.WaitCursor)
+            qApp.setOverrideCursor(Qt.WaitCursor)
             ret = gh.gists.post(
                 description="SpyderIDE log", public=True,
                 files={'SpyderIDE.log': {"content": log_content}})
-            QtWidgets.qApp.restoreOverrideCursor()
+            qApp.restoreOverrideCursor()
         except github.ApiError:
             _logger().warn('failed to upload log report as a gist')
             return '"failed to upload log file as a gist"'
