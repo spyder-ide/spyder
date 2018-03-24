@@ -33,7 +33,13 @@ if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
 
     # Run with tornado < 5.0 to avoid hangs
     pip install tornado==4.5.3
+
+    # Fix connection to external kernels
+    pip install jupyter-client==5.2.2
 else
     # Run with tornado < 5.0 to avoid hangs
     conda install tornado=4.5.3
+
+    # Fix connection to external kernels
+    conda install jupyter_client=5.2.2
 fi

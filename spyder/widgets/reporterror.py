@@ -29,7 +29,7 @@ from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 # Minimum number of characters to introduce in the description field
 # before being able to send the report to Github.
-MIN_CHARS = 20
+MIN_CHARS = 50
 
 
 class DescriptionWidget(CodeEditor):
@@ -137,6 +137,7 @@ class SpyderErrorDialog(QDialog):
         self.main_label.setOpenExternalLinks(True)
         self.main_label.setWordWrap(True)
         self.main_label.setAlignment(Qt.AlignJustify)
+        self.main_label.setStyleSheet('font-size: 12px;')
 
         # Issue title
         self.issue_title = QLineEdit()

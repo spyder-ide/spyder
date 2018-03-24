@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
-Collections (i.e. dictionary, list and tuple) editor widget and dialog
+Collections (i.e. dictionary, list and tuple) editor widget and dialog.
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -33,7 +35,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
                             QMessageBox, QTableView, QVBoxLayout, QWidget)
 
-# Local import
+# Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
@@ -62,6 +64,7 @@ if DataFrame is not FakeObject:
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
+
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
 
@@ -74,15 +77,33 @@ class ProxyObject(object):
         return len(get_object_attrs(self.__obj__))
 
     def __getitem__(self, key):
-        """Get attribute corresponding to key."""
-        return getattr(self.__obj__, key)
+        """Get the attribute corresponding to the given key."""
+        # Catch NotImplementedError to fix #6284 in pandas MultiIndex
+        # due to NA checking not being supported on a multiindex.
+        # Catch AttributeError to fix #5642 in certain special classes like xml
+        # when this method is called on certain attributes.
+        # Catch TypeError to prevent fatal Python crash to desktop after
+        # modifying certain pandas objects. Fix issue #6727 .
+        # Catch ValueError to allow viewing and editing of pandas offsets.
+        # Fix issue #6728 .
+        try:
+            attribute_toreturn = getattr(self.__obj__, key)
+        except (NotImplementedError, AttributeError, TypeError, ValueError):
+            attribute_toreturn = None
+        return attribute_toreturn
 
     def __setitem__(self, key, value):
         """Set attribute corresponding to key with value."""
+        # Catch AttributeError to gracefully handle inability to set an
+        # attribute due to it not being writeable or set-table.
+        # Fix issue #6728 . Also, catch NotImplementedError for safety.
         try:
             setattr(self.__obj__, key, value)
-        except TypeError:
+        except (TypeError, AttributeError, NotImplementedError):
             pass
+        except Exception as e:
+            if "cannot set values for" not in str(e):
+                raise
 
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
@@ -432,30 +453,30 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
-        readonly = isinstance(value, tuple) or self.parent().readonly \
-                   or not is_known_type(value)
-        #---editor = CollectionsEditor
+        readonly = (isinstance(value, tuple) or self.parent().readonly
+                    or not is_known_type(value))
+        # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, tuple, dict)):
-            editor = CollectionsEditor()
+            editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = ArrayEditor
+        # ArrayEditor for a Numpy array
         elif isinstance(value, (ndarray, MaskedArray)) \
           and ndarray is not FakeObject:
-            editor = ArrayEditor(parent)
+            editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---showing image
+        # ArrayEditor for an images
         elif isinstance(value, Image) and ndarray is not FakeObject \
           and Image is not FakeObject:
             arr = array(value)
-            editor = ArrayEditor(parent)
+            editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
             conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
@@ -463,10 +484,10 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
-        #--editor = DataFrameEditor
+        # DataFrameEditor for a pandas dataframe, series or index
         elif isinstance(value, (DataFrame, DatetimeIndex, Series)) \
           and DataFrame is not FakeObject:
-            editor = DataFrameEditor()
+            editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
             editor.dataModel.set_format(index.model().dataframe_format)
@@ -474,33 +495,34 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = QDateEdit or QDateTimeEdit
+        # QDateEdit and QDateTimeEdit for a dates or datetime respectively
         elif isinstance(value, datetime.date):
             if readonly:
                 return None
             else:
                 if isinstance(value, datetime.datetime):
-                    editor = QDateTimeEdit(value, parent)
+                    editor = QDateTimeEdit(value, parent=parent)
                 else:
-                    editor = QDateEdit(value, parent)
+                    editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 return editor
-        #---editor = TextEditor
+        # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40:
-            te = TextEditor(None)
+            te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key, readonly=readonly)
+                editor = TextEditor(value, key,
+                                    readonly=readonly, parent=parent)
                 self.create_dialog(editor, dict(model=index.model(),
                                                 editor=editor, key=key,
                                                 readonly=readonly))
             return None
-        #---editor = QLineEdit
+        # QLineEdit for an individual value (int, float, short string, etc)
         elif is_editable_type(value):
             if readonly:
                 return None
             else:
-                editor = QLineEdit(parent)
+                editor = QLineEdit(parent=parent)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
                 editor.setAlignment(Qt.AlignLeft)
                 # This is making Spyder crash because the QLineEdit that it's
@@ -509,15 +531,15 @@ class CollectionsDelegate(QItemDelegate):
                 # act doesn't exist anymore.
                 # editor.returnPressed.connect(self.commitAndCloseEditor)
                 return editor
-        #---editor = CollectionsEditor for an arbitrary object
+        # CollectionsEditor for an arbitrary Python object
         else:
-            editor = CollectionsEditor()
+            editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-            
+
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
         editor.accepted.connect(
@@ -1446,10 +1468,27 @@ def get_test_data():
     """Create test data."""
     import numpy as np
     from spyder.pil_patch import Image
-    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
+    image = Image.fromarray(np.random.randint(256, size=(100, 100)),
                             mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
+    test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
+
+    try:
+        import pandas as pd
+    except (ModuleNotFoundError, ImportError):
+        test_timestamp, test_pd_td, test_dtindex, test_series, test_df = None
+    else:
+        test_timestamp = pd.Timestamp("1945-05-08T23:01:00.12345")
+        test_pd_td = pd.Timedelta(days=2193, hours=12)
+        test_dtindex = pd.DatetimeIndex(start="1939-09-01T",
+                                              end="1939-10-06",
+                                              freq="12H")
+        test_series = pd.Series({"series_name": [0, 1, 2, 3, 4, 5]})
+        test_df = pd.DataFrame({"string_col": ["a", "b", "c", "d"],
+                                "int_col": [0, 1, 2, 3],
+                                "float_col": [1.1, 2.2, 3.3, 4.4],
+                                "bool_col": [True, False, False, True]})
 
     class Foobar(object):
 
@@ -1460,28 +1499,43 @@ def get_test_data():
 
     foobar = Foobar()
     return {'object': foobar,
+            'module': np,
             'str': 'kjkj kj k j j kj k jkj',
             'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
-            'tuple': ([1, testdate, testdict], 'kjkj', None),
+            'tuple': ([1, testdate, testdict, test_timedelta], 'kjkj', None),
             'dict': testdict,
             'float': 1.2233,
             'int': 223,
             'bool': True,
-            'array': np.random.rand(10, 10),
+            'array': np.random.rand(10, 10).astype(np.int64),
             'masked_array': np.ma.array([[1, 0], [1, 0]],
                                         mask=[[True, False], [False, False]]),
-            '1D-array': np.linspace(-10, 10),
+            '1D-array': np.linspace(-10, 10).astype(np.float16),
+            '3D-array': np.random.randint(2, size=(5, 5, 5)).astype(np.bool_),
             'empty_array': np.array([]),
             'image': image,
             'date': testdate,
-            'datetime': datetime.datetime(1945, 5, 8),
+            'datetime': datetime.datetime(1945, 5, 8, 23, 1, 0, int(1.5e5)),
+            'timedelta': test_timedelta,
             'complex': 2+1j,
             'complex64': np.complex64(2+1j),
+            'complex128': np.complex128(9j),
             'int8_scalar': np.int8(8),
             'int16_scalar': np.int16(16),
             'int32_scalar': np.int32(32),
+            'int64_scalar': np.int64(64),
+            'float16_scalar': np.float16(16),
+            'float32_scalar': np.float32(32),
+            'float64_scalar': np.float64(64),
             'bool_scalar': np.bool(8),
+            'bool__scalar': np.bool_(8),
+            'timestamp': test_timestamp,
+            'timedelta_pd': test_pd_td,
+            'datetimeindex': test_dtindex,
+            'series': test_series,
+            'ddataframe': test_df,
+            'None': None,
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
             # Test for Issue #3518
@@ -1491,7 +1545,7 @@ def get_test_data():
 
 
 def editor_test():
-    """Collections editor test"""
+    """Test Collections editor."""
     from spyder.utils.qthelpers import qapplication
 
     app = qapplication()             #analysis:ignore
@@ -1502,14 +1556,14 @@ def editor_test():
 
 
 def remote_editor_test():
-    """Remote collections editor test"""
+    """Test remote collections editor."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer
     from spyder.widgets.variableexplorer.utils import make_remote_view
 
-    remote = make_remote_view(get_test_data(), 
+    remote = make_remote_view(get_test_data(),
                               VariableExplorer(None).get_settings())
     dialog = CollectionsEditor()
     dialog.setup(remote, remote=True)
