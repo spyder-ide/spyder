@@ -526,18 +526,32 @@ class ThumbnailScrollBar(QFrame):
     # ---- Thumbails Handlers
 
     def add_thumbnail(self, fig, fmt):
-        fig_manager = FigureThumbnail()
-        fig_manager.canvas.setFixedSize(100, 75)
-        fig_manager.canvas.load_figure(fig, fmt)
-        fig_manager.sig_canvas_clicked.connect(self.set_current_thumbnail)
-        fig_manager.sig_remove_figure.connect(self.remove_thumbnail)
-        fig_manager.sig_save_figure.connect(self.save_figure_as)
-        self._thumbnails.append(fig_manager)
+        thumbnail = FigureThumbnail()
+        thumbnail.canvas.load_figure(fig, fmt)
+
+        # Scale the thumbnail size, while respecting the figure
+        # dimension ratio.
+        fwidth = thumbnail.canvas.fwidth
+        fheight = thumbnail.canvas.fheight
+
+        max_length = 100
+        if fwidth/fheight > 1:
+            canvas_width = max_length
+            canvas_height = canvas_width / fwidth * fheight
+        else:
+            canvas_height = max_length
+            canvas_width = canvas_height / fheight * fwidth
+        thumbnail.canvas.setFixedSize(canvas_width, canvas_height)
+
+        thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
+        thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
+        thumbnail.sig_save_figure.connect(self.save_figure_as)
+        self._thumbnails.append(thumbnail)
 
         self.scene.setRowStretch(self.scene.rowCount()-1, 0)
-        self.scene.addWidget(fig_manager, self.scene.rowCount()-1, 1)
+        self.scene.addWidget(thumbnail, self.scene.rowCount()-1, 1)
         self.scene.setRowStretch(self.scene.rowCount(), 100)
-        self.set_current_thumbnail(fig_manager)
+        self.set_current_thumbnail(thumbnail)
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
@@ -627,11 +641,14 @@ class FigureThumbnail(QWidget):
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
-        layout = QHBoxLayout(self)
+        layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(1)
-        layout.addWidget(self.canvas)
-        layout.addLayout(self.setup_toolbar())
+        layout.addWidget(self.canvas, 0, 1)
+        layout.addLayout(self.setup_toolbar(), 0, 3, 2, 1)
+
+        layout.setColumnStretch(0, 100)
+        layout.setColumnStretch(2, 100)
+        layout.setRowStretch(1, 100)
 
     def setup_toolbar(self):
         """Setup the toolbar."""
@@ -646,6 +663,7 @@ class FigureThumbnail(QWidget):
 
         toolbar = QVBoxLayout()
         toolbar.setContentsMargins(0, 0, 0, 0)
+        toolbar.setSpacing(1)
         toolbar.addWidget(savefig_btn)
         toolbar.addWidget(delfig_btn)
         toolbar.addStretch(2)
@@ -699,15 +717,12 @@ class FigureCanvas(QFrame):
 
         self.fig = None
         self.fmt = None
-        self.qpix = None
-        self._qpix_buffer = []
         self.fwidth, self.fheight = 200, 200
 
     def clear_canvas(self):
         """Clear the figure that was painted on the widget."""
         self.fig = None
         self.fmt = None
-        self.qpix = None
         self._qpix_buffer = []
         self.repaint()
 
