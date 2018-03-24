@@ -423,6 +423,17 @@ class TabSwitcherWidget(QListWidget):
         elif event.key() == Qt.Key_Up:
             self.select_row(-1)
 
+    def focusOutEvent(self, event):
+        """Reimplement Qt method to close the widget when loosing focus."""
+        event.ignore()
+        # Inspired from CompletionWidget.focusOutEvent() in file
+        # widgets/sourcecode/base.py line 212
+        if sys.platform == "darwin":
+            if event.reason() != Qt.ActiveWindowFocusReason:
+                self.close()
+        else:
+            self.close()
+
 
 class EditorStack(QWidget):
     reset_statusbar = Signal()
