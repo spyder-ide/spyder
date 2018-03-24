@@ -45,21 +45,21 @@ class DlgGitHubLogin(QDialog):
         lbl_html = QLabel(html.format(mark=mark, title=title))
 
         # User and password
-        formLayout = QFormLayout()
-        formLayout.setContentsMargins(-1, 0, -1, -1)
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(-1, 0, -1, -1)
 
         lbl_user = QLabel(_("Username:"))
-        formLayout.setWidget(0, QFormLayout.LabelRole, lbl_user)
+        form_layout.setWidget(0, QFormLayout.LabelRole, lbl_user)
         self.le_user = QLineEdit()
         self.le_user.textChanged.connect(self.update_btn_state)
-        formLayout.setWidget(0, QFormLayout.FieldRole, self.le_user)
+        form_layout.setWidget(0, QFormLayout.FieldRole, self.le_user)
 
         lbl_password = QLabel(_("Password: "))
-        formLayout.setWidget(1, QFormLayout.LabelRole, lbl_password)
+        form_layout.setWidget(1, QFormLayout.LabelRole, lbl_password)
         self.le_password = QLineEdit()
         self.le_password.setEchoMode(QLineEdit.Password)
         self.le_password.textChanged.connect(self.update_btn_state)
-        formLayout.setWidget(1, QFormLayout.FieldRole, self.le_password)
+        form_layout.setWidget(1, QFormLayout.FieldRole, self.le_password)
 
         # Sign in button
         self.bt_sign_in = QPushButton(_("Sign in"))
@@ -69,7 +69,7 @@ class DlgGitHubLogin(QDialog):
         # Main layout
         layout = QVBoxLayout()
         layout.addWidget(lbl_html)
-        layout.addLayout(formLayout)
+        layout.addLayout(form_layout)
         layout.addWidget(self.bt_sign_in)
         self.setLayout(layout)
 
