@@ -3,20 +3,21 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+
 """
 This module contains the github login dialog.
 
-Took from the QCrash Project - Colin Duquesnoy
+Taken from the QCrash Project - Colin Duquesnoy
 https://github.com/ColinDuquesnoy/QCrash
 """
 
 import sys
 
-from qtpy.QtCore import Qt, QEvent
-from qtpy.QtWidgets import QDialog
+from qtpy.QtCore import QEvent, Qt, QSize
+from qtpy.QtWidgets import (QDialog, QFormLayout, QLabel, QLineEdit,
+                            QPushButton, QVBoxLayout)
 
 from spyder.config.base import _
-from spyder.widgets.github import dlg_github_login_ui
 from spyder.config.base import get_image_path
 
 GH_MARK_NORMAL = get_image_path('GitHub-Mark.png')
@@ -29,49 +30,80 @@ class DlgGitHubLogin(QDialog):
 
     def __init__(self, parent, username):
         super(DlgGitHubLogin, self).__init__(parent)
-        self.ui = dlg_github_login_ui.Ui_Dialog()
-        self.ui.setupUi(self)
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
+        self.resize(366, 248)
+        self.setWindowTitle(_("Sign in to Github"))
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
+        # Header
+        lbl_html = QLabel()
         mark = GH_MARK_NORMAL
         if self.palette().base().color().lightness() < 128:
             mark = GH_MARK_LIGHT
         html = self.HTML % mark
-        self.ui.lbl_html.setText(html)
-        self.ui.bt_sign_in.clicked.connect(self.accept)
-        self.ui.le_username.textChanged.connect(self.update_btn_state)
-        self.ui.le_password.textChanged.connect(self.update_btn_state)
-        self.ui.bt_sign_in.setDisabled(True)
-        self.ui.le_username.setText(username)
+        lbl_html.setText(html)
+
+        # User and password
+        formLayout = QFormLayout()
+        formLayout.setContentsMargins(-1, 0, -1, -1)
+
+        lbl_user = QLabel(_("Username:"))
+        formLayout.setWidget(0, QFormLayout.LabelRole, lbl_user)
+        self.le_user = QLineEdit()
+        self.le_user.textChanged.connect(self.update_btn_state)
+        formLayout.setWidget(0, QFormLayout.FieldRole, self.le_user)
+
+        lbl_password = QLabel(_("Password: "))
+        formLayout.setWidget(1, QFormLayout.LabelRole, lbl_password)
+        self.le_password = QLineEdit()
+        self.le_password.setEchoMode(QLineEdit.Password)
+        self.le_password.textChanged.connect(self.update_btn_state)
+        formLayout.setWidget(1, QFormLayout.FieldRole, self.le_password)
+
+        # Sign in button
+        self.bt_sign_in = QPushButton(_("Sign in"))
+        self.bt_sign_in.clicked.connect(self.accept)
+        self.bt_sign_in.setDisabled(True)
+
+        # Main layout
+        layout = QVBoxLayout()
+        layout.addWidget(lbl_html)
+        layout.addLayout(formLayout)
+        layout.addWidget(self.bt_sign_in)
+        self.setLayout(layout)
+
+        # Final adjustments
         if username:
-            self.ui.le_password.setFocus()
+            self.le_user.setText(username)
+            self.le_password.setFocus()
         else:
-            self.ui.le_username.setFocus()
-        self.adjustSize()
+            self.le_user.setFocus()
+
         self.setFixedSize(self.width(), self.height())
-        self.ui.le_password.installEventFilter(self)
-        self.ui.le_username.installEventFilter(self)
+        self.le_password.installEventFilter(self)
+        self.le_user.installEventFilter(self)
 
     def eventFilter(self, obj, event):
-        interesting_objects = [self.ui.le_password, self.ui.le_username]
+        interesting_objects = [self.le_password, self.le_user]
         if obj in interesting_objects and event.type() == QEvent.KeyPress:
             if (event.key() == Qt.Key_Return and
                     event.modifiers() & Qt.ControlModifier and
-                    self.ui.bt_sign_in.isEnabled()):
+                    self.bt_sign_in.isEnabled()):
                 self.accept()
                 return True
         return False
 
     def update_btn_state(self):
-        enable = str(self.ui.le_username.text()).strip() != ''
-        enable &= str(self.ui.le_password.text()).strip() != ''
-        self.ui.bt_sign_in.setEnabled(enable)
+        enable = str(self.le_user.text()).strip() != ''
+        enable &= str(self.le_password.text()).strip() != ''
+        self.bt_sign_in.setEnabled(enable)
 
     @classmethod
     def login(cls, parent, username):
         dlg = DlgGitHubLogin(parent, username)
         if dlg.exec_() == dlg.Accepted:
-            return dlg.ui.le_username.text(), dlg.ui.le_password.text()
+            return dlg.le_user.text(), dlg.le_password.text()
         return None, None
 
 
