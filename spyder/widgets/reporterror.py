@@ -22,6 +22,7 @@ from qtpy.QtCore import Qt, Signal
 from spyder import __project_url__, __trouble_url__
 from spyder.config.base import _
 from spyder.config.gui import get_font
+from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
@@ -183,7 +184,8 @@ class SpyderErrorDialog(QDialog):
         self.dismiss_box.setText(_("Hide all future errors during this session"))
 
         # Dialog buttons
-        self.submit_btn = QPushButton(_('Submit to Github'))
+        gh_icon = ima.icon('github')
+        self.submit_btn = QPushButton(gh_icon, _('Submit to Github'))
         self.submit_btn.setEnabled(False)
         self.submit_btn.clicked.connect(self._submit_to_github)
 
