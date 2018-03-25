@@ -19,7 +19,7 @@ import os.path as osp
 # ---- Third library imports
 
 from qtconsole.svg import save_svg, svg_to_clipboard, svg_to_image
-from qtpy.compat import getsavefilename, getopenfilenames
+from qtpy.compat import getsavefilename, getopenfilenames, getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot, QRect, QEvent, QObject
 from qtpy.QtGui import QImage, QPixmap, QPainter
 from qtpy.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QMenu,
@@ -34,6 +34,17 @@ from spyder.config.base import _
 from spyder.py3compat import is_unicode
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, create_plugin_layout)
+from spyder.utils.misc import getcwd_or_home
+
+
+def save_figure_tofile(fig, fmt, fname):
+    """Save fig to fname in the format specified by fmt."""
+    if fmt == 'image/svg+xml' and is_unicode(fig):
+        fig = fig.encode('utf-8')
+
+    with open(fname, 'wb') as f:
+        f.write(fig)
+
 
 
 class FigureBrowser(QWidget):
@@ -256,22 +267,6 @@ class FigureBrowser(QWidget):
         self.thumnails_sb.remove_all_thumbnails()
 
 
-class FigureSaver(QObject):
-    """
-    A non-gui helper class to save figure to file. Thepng, jpg, and svg formats
-    are supported.
-    """
-    def __init__(self, parent=None):
-        super(FigureSaver, self).__init__(parent)
-
-    def save_figure_tofile(self, fig, fmt, fname):
-        if fmt == 'image/svg+xml' and is_unicode(fig):
-            fig = fig.encode('utf-8')
-
-        with open(fname, 'wb') as f:
-            f.write(fig)
-
-
 class FigureViewer(QScrollArea):
     """
     A scrollarea that displays a single FigureCanvas with zooming and panning
@@ -418,7 +413,6 @@ class ThumbnailScrollBar(QFrame):
 
     def __init__(self, figure_viewer, parent=None):
         super(ThumbnailScrollBar, self).__init__(parent)
-        self.figsaver = FigureSaver(parent=self)
         self._thumbnails = []
         self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
@@ -522,7 +516,7 @@ class ThumbnailScrollBar(QFrame):
                 options=None)
         self.redirect_stdio.emit(True)
         if fname:
-            self.figsaver.save_figure_tofile(fig, fmt, fname)
+            save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
 
