@@ -117,9 +117,11 @@ class GithubBackend(BaseBackend):
         credentials = self.get_user_credentials()
         if len(credentials) == 1:
             token = credentials
+            username, password = None, None
         else:
-            user, password = credentials
-        if not username or not password or not token:
+            token = None
+            username, password = credentials
+        if username is None and password is None and token is None:
             return False
         _logger().debug('got user credentials')
 
