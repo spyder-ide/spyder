@@ -14,16 +14,11 @@ import logging
 import webbrowser
 
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import qApp, QMessageBox
 
-from spyder.config.base import _, get_image_path
+from spyder.config.base import _
 from spyder.utils.external import github
 from spyder.widgets.github.gh_login import DlgGitHubLogin
-
-
-GH_MARK_NORMAL = get_image_path('GitHub-Mark.png')
-GH_MARK_LIGHT = get_image_path('GitHub-Mark-Light.png')
 
 
 def _logger():
@@ -101,10 +96,6 @@ class GithubBackend(BaseBackend):
         super(GithubBackend, self).__init__(
             formatter, "Submit on github",
             "Submit the issue on our issue tracker on github", None)
-        icon = GH_MARK_NORMAL
-        if qApp.palette().base().color().lightness() < 128:
-            icon = GH_MARK_LIGHT
-        self.button_icon = QIcon(icon)
         self.gh_owner = gh_owner
         self.gh_repo = gh_repo
         self._show_msgbox = True  # False when running the test suite
