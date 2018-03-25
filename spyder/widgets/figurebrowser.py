@@ -46,6 +46,16 @@ def save_figure_tofile(fig, fmt, fname):
         f.write(fig)
 
 
+def get_unique_figname(dirname, root, ext):
+    i = 1
+    figname = root + '_%d' % i + ext
+    while True:
+        if osp.exists(osp.join(dirname, figname)):
+            i += 1
+            figname = root + '_%d' % i + ext
+        else:
+            return osp.join(dirname, figname)
+
 
 class FigureBrowser(QWidget):
     """
@@ -142,7 +152,7 @@ class FigureBrowser(QWidget):
         saveall_btn = create_toolbutton(
                 self, icon=ima.icon('save_all'),
                 tip=_("Save All Image..."),
-                triggered=self.save_all_images)
+                triggered=self.thumnails_sb.save_all_figures_as)
 
         closefig_btn = create_toolbutton(
                 self, icon=ima.icon('editclear'),
@@ -228,9 +238,6 @@ class FigureBrowser(QWidget):
         self.thumnails_sb.add_thumbnail(fig, fmt)
 
     # ---- Toolbar Handlers
-
-    def save_all_images(self):
-        pass
 
     def zoom_in(self):
         """
@@ -491,11 +498,29 @@ class ThumbnailScrollBar(QFrame):
 
     # ---- Save Figure
 
+    def save_all_figures_as(self):
+        """Save all the figures to a file."""
+        self.redirect_stdio.emit(False)
+        dirname = getexistingdirectory(self, caption='Save all figures',
+                                       basedir=getcwd_or_home())
+        self.redirect_stdio.emit(True)
+        if dirname:
+            self.save_all_figures_todir(dirname)
+
+    def save_all_figures_todir(self, dirname):
+        """Save all figure in dirname."""
+        for thumbnail in self._thumbnails:
+            fig = thumbnail.canvas.fig
+            fmt = thumbnail.canvas.fmt
+            fext = {'image/png': '.png',
+                    'image/jpeg': '.jpg',
+                    'image/svg+xml': '.svg'}[fmt]
+
+            figname = get_unique_figname(dirname, 'Figure', fext)
+            save_figure_tofile(fig, fmt, figname)
+
     def save_current_figure_as(self):
-        """
-        Get the values for the currently selected thumbnail and send it to
-        the FigureSaver.
-        """
+        """Save the currently selected figure."""
         if self.current_thumbnail is None:
             return
 
@@ -503,17 +528,19 @@ class ThumbnailScrollBar(QFrame):
                             self.current_thumbnail.canvas.fmt)
 
     def save_figure_as(self, fig, fmt):
-        """Save the figure to file."""
+        """Save the figure to a file."""
         fext, ffilt = {
                 'image/png': ('.png', 'PNG (*.png)'),
                 'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
                 'image/svg+xml': ('.svg', 'SVG (*.svg)')}[fmt]
 
+        figname = get_unique_figname(getcwd_or_home(), 'Figure', fext)
+
         self.redirect_stdio.emit(False)
         fname, fext = getsavefilename(
                 parent=self.parent(), caption='Save Figure',
-                basedir='figure'+fext, filters=ffilt, selectedfilter='',
-                options=None)
+                basedir=figname, filters=ffilt,
+                selectedfilter='', options=None)
         self.redirect_stdio.emit(True)
         if fname:
             save_figure_tofile(fig, fmt, fname)
@@ -738,9 +765,6 @@ class FigureCanvas(QFrame):
         self._qpix_buffer = [self._qpix_orig]
         self.fwidth = self._qpix_orig.width()
         self.fheight = self._qpix_orig.height()
-
-    def save_figure_tofile(self, filename):
-        raise NotImplementedError
 
     def paintEvent(self, event):
         """Qt method override to paint a custom image on the Widget."""
