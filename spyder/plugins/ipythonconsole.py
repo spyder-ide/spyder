@@ -422,10 +422,11 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         bbox_inches_box = newcb(
                 _("Use a tight layout for inline plots"),
                 'pylab/inline/bbox_inches',
-                tip=_("Sets bbox_inches to \"tight\" when plotting inline"
-                      " with matplotlib. When enabled, can cause discrepancies"
-                      " between the image displayed inline and that"
-                      " created using savefig."))
+                tip=_("Sets bbox_inches to \"tight\" when\n"
+                      "plotting inline with matplotlib.\n"
+                      "When enabled, can cause discrepancies\n"
+                      "between the image displayed inline and\n"
+                      "that created using savefig."))
 
         inline_v_layout = QVBoxLayout()
         inline_v_layout.addWidget(inline_label)
