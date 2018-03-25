@@ -13,8 +13,9 @@ import sys
 
 # Third party imports
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
-                            QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit,
-                            QPushButton, QSpacerItem, QVBoxLayout)
+                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
+                            QPlainTextEdit, QPushButton, QSpacerItem,
+                            QVBoxLayout)
 from qtpy.QtCore import Qt, Signal
 
 # Local imports
@@ -223,7 +224,10 @@ class SpyderErrorDialog(QDialog):
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
-        main = self.parent().main
+        if self.parent() is not None:
+            main = self.parent().main
+        else:
+            main = None
 
         # Getting description and traceback
         title = self.title.text()
@@ -231,25 +235,36 @@ class SpyderErrorDialog(QDialog):
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        issue_text = main.render_issue(description=description,
-                                       traceback=traceback)
+        if main is not None:
+            issue_text = main.render_issue(description=description,
+                                           traceback=traceback)
+        else:
+            issue_text = description
 
         try:
-            github_backend = GithubBackend('spyder-ide', 'spyder')
+            if main is not None:
+                org = 'spyder-ide'
+            else:
+                # For testing
+                org = 'ccordoba12'
+            github_backend = GithubBackend(org, 'spyder')
             github_report = github_backend.send_report(title, issue_text)
             if github_report:
                 self.close()
         except Exception:
             ret = QMessageBox.question(
-                    self.parent_widget, _('Error'),
-                        _('An error occurred while trying to send the issue to '
-                          'Github. Would you like to open it manually?'))
+                      self, _('Error'),
+                      _('An error occurred while trying to send the issue to '
+                        'Github. Would you like to open it manually?'))
             if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 QApplication.clipboard().setText(issue_text)
                 issue_body = (
                     " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE TO "
                     "COMPLETE YOUR REPORT ***   ---!>\n")
-                main.report_issue(body=issue_body, title=title)
+                if main is not None:
+                    main.report_issue(body=issue_body, title=title)
+                else:
+                    pass
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in details."""
