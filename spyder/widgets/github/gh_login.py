@@ -141,7 +141,7 @@ class DlgGitHubLogin(QDialog):
             password = dlg.le_password.text()
             token = dlg.le_token.text()
             if token != '':
-                return token
+                return (token,)
             else:
                 return user, password
         return None, None
