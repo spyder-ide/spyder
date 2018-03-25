@@ -99,3 +99,104 @@ def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
     mocker.patch.object(dialog, 'exec_')
     assert dialog.exec_if_nonempty() == dialog.Accepted
     dialog.exec_.assert_not_called()
+
+
+def test_recoverydialog_restore_button(qtbot, recovery_env):
+    """
+    Test that after pressing the 'Restore' button, the original file is
+    replaced by the autosave file, the latter is removed, and the row in the
+    grid is deactivated.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    grid = dialog.findChild(QGridLayout)
+    button = grid.itemAtPosition(1, 2).widget()
+    button.click()
+    with open(osp.join(orig_dir, 'ham.py')) as f:
+        assert f.read() == 'ham = "autosave"\n'
+    assert not osp.isfile(osp.join(autosave_dir, 'ham.py'))
+    for col in range(grid.columnCount()):
+        assert not grid.itemAtPosition(1, col).widget().isEnabled()
+
+
+def test_recoverydialog_restore_when_original_does_not_exist(
+        qtbot, recovery_env):
+    """
+    Test that restoring an autosave file works when the original file no
+    longer rexists.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    grid = dialog.findChild(QGridLayout)
+    button = grid.itemAtPosition(2, 2).widget()
+    button.click()
+    with open(osp.join(orig_dir, 'spam.py')) as f:
+        assert f.read() == 'spam = "autosave"\n'
+    assert not osp.isfile(osp.join(autosave_dir, 'spam.py'))
+    for col in range(grid.columnCount()):
+        assert not grid.itemAtPosition(2, col).widget().isEnabled()
+
+
+def test_recoverydialog_restore_when_original_not_recorded(
+        qtbot, recovery_env, mocker):
+    """
+    Test that restoring an autosave file works when the original file no
+    longer rexists.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    new_name = osp.join(orig_dir, 'monty.py')
+    mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
+                 return_value=(new_name, 'ignored'))
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    grid = dialog.findChild(QGridLayout)
+    button = grid.itemAtPosition(3, 2).widget()
+    button.click()
+    with open(new_name) as f:
+        assert f.read() == 'cheese = "autosave"\n'
+    assert not osp.isfile(osp.join(autosave_dir, 'cheese.py'))
+    for col in range(grid.columnCount()):
+        assert not grid.itemAtPosition(3, col).widget().isEnabled()
+
+
+def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
+    """
+    Test that if an error arises when restoring a file, both the original and
+    the autosave files are kept unchanged, a dialog is displayed, and the row
+    in the grid is not deactivated.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
+                 side_effect=OSError)
+    mock_QMessageBox = mocker.patch(
+                'spyder.plugins.editor.widgets.recover.QMessageBox')
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    grid = dialog.findChild(QGridLayout)
+    button = grid.itemAtPosition(1, 2).widget()
+    button.click()
+    with open(osp.join(orig_dir, 'ham.py')) as f:
+        assert f.read() == 'ham = "original"\n'
+    with open(osp.join(autosave_dir, 'ham.py')) as f:
+        assert f.read() == 'ham = "autosave"\n'
+    mock_QMessageBox.assert_called_once()
+    for col in range(grid.columnCount()):
+        assert grid.itemAtPosition(1, col).widget().isEnabled()
+
+
+def test_recoverydialog_accepted_after_all_restored(
+        qtbot, recovery_env, mocker):
+    """
+    Test that the recovery dialog is accepted after all Restore buttons are
+    clicked, but not before.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    new_name = osp.join(orig_dir, 'monty.py')
+    mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
+                 return_value=(new_name, 'ignored'))
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    grid = dialog.findChild(QGridLayout)
+    with qtbot.assertNotEmitted(dialog.accepted):
+        for row in range(1, grid.rowCount() - 1):
+            grid.itemAtPosition(row, 2).widget().click()
+    with qtbot.waitSignal(dialog.accepted):
+        row = grid.rowCount() - 1
+        grid.itemAtPosition(row, 2).widget().click()

@@ -12,9 +12,10 @@ import os
 import time
 
 # Third party imports
+from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QLabel,
-                            QVBoxLayout)
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QLabel, 
+                            QMessageBox, QPushButton, QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _
@@ -109,6 +110,7 @@ class RecoveryDialog(QDialog):
         except FileNotFoundError:  # autosave dir does not exist
             pass
         self.data.sort(key=recovery_data_key_function)
+        self.num_enabled = len(self.data)
 
     def add_label(self):
         """Add label with explanation at top of dialog window."""
@@ -132,13 +134,51 @@ class RecoveryDialog(QDialog):
             grid.addWidget(label, idx + 1, 0)
             label = QLabel(file_data_to_str(autosave))
             grid.addWidget(label, idx + 1, 1)
+            button = QPushButton(_('Restore'))
+            button.clicked.connect(
+                    lambda checked, my_idx=idx: self.restore(my_idx))
+            grid.addWidget(button, idx + 1, 2)
         self.layout.addLayout(grid)
+        self.grid = grid
 
     def add_cancel_button(self):
         """Add a cancel button at the bottom of the dialog window."""
         button_box = QDialogButtonBox(QDialogButtonBox.Cancel, self)
         button_box.rejected.connect(self.reject)
         self.layout.addWidget(button_box)
+
+    def restore(self, idx):
+        orig, autosave = self.data[idx]
+        if orig:
+            orig_name = orig['name']
+        else:
+            orig_name, ignored = getsavefilename(
+                 self, _('Restore autosave file to ...'),
+                 osp.basename(autosave['name']))
+            if not orig_name:
+                 return
+        try:
+            os.replace(autosave['name'], orig_name)
+            self.deactivate(idx)
+        except EnvironmentError as error:
+            text = (_('Unable to restore {} using {}')
+                    .format(orig_name, autosave['name']))
+            self.report_error(text, error)
+
+    def report_error(self, text, error):
+        heading = _('Error message:')
+        msgbox = QMessageBox(
+            QMessageBox.Critical, _('Restore'),
+            _('<b>{}</b><br><br>{}<br>{}').format(text, heading, error),
+            parent=self)
+        msgbox.exec_()
+
+    def deactivate(self, idx):
+        for col in range(self.grid.columnCount()):
+            self.grid.itemAtPosition(idx + 1, col).widget().setEnabled(False)
+        self.num_enabled -= 1
+        if self.num_enabled == 0:
+            self.accept()
 
     def exec_if_nonempty(self):
         """Execute dialog window if there is data to show."""
