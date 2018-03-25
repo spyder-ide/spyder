@@ -255,7 +255,8 @@ class SpyderErrorDialog(QDialog):
             ret = QMessageBox.question(
                       self, _('Error'),
                       _('An error occurred while trying to send the issue to '
-                        'Github. Would you like to open it manually?'))
+                        'Github automatically. Would you like to open it'
+                        'manually?'))
             if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 QApplication.clipboard().setText(issue_text)
                 issue_body = (
