@@ -70,11 +70,11 @@ def kernel_config():
     spy_cfg.InteractiveShell.xmode = 'Plain'
 
     # Jedi completer in IPpthon console
-    ipy_jedi_o = os.environ.get('SPY_IPY_JEDI_O') == 'True'
+    jedi_o = os.environ.get('SPY_JEDI_O') == 'True'
     # - Using Jedi slow completions a lot for objects with big repr's.
     # - Jedi completions are not available in Python 2.
     if not PY2:
-        spy_cfg.IPCompleter.use_jedi = ipy_jedi_o
+        spy_cfg.IPCompleter.use_jedi = jedi_o
 
     # Run lines of code at startup
     run_lines_o = os.environ.get('SPY_RUN_LINES_O')

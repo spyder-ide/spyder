@@ -477,26 +477,26 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_group.setLayout(run_file_layout)
         
         # ---- Advanced settings ----
-        # Enable Jedi completion in IPyhton Console
-        ipy_jedi_group = QGroupBox(_("Jedi completion"))
-        ipy_jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion "
+        # Enable Jedi completion
+        jedi_group = QGroupBox(_("Jedi completion"))
+        jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion "
                                   "in the IPython console; similar to the "
                                   "greedy completer, but without evaluating "
                                   "the code.<br>"
                                   "<b>Warning:</b> Slows down your console "
                                   "when working with large dataframes!"))
-        ipy_jedi_label.setWordWrap(True)
-        ipy_jedi_box = newcb(_("Use Jedi completion in the IPython console"), 
-                             "ipy_jedi_completer",
+        jedi_label.setWordWrap(True)
+        jedi_box = newcb(_("Use Jedi completion in the IPython console"), 
+                             "jedi_completer",
                              tip="<b>Warning</b>: "
                                  "Slows down your console when working with "
                                  "large dataframes!<br>"
                                  "Allows completion of nested lists etc.")
         
-        ipy_jedi_layout = QVBoxLayout()
-        ipy_jedi_layout.addWidget(ipy_jedi_label)
-        ipy_jedi_layout.addWidget(ipy_jedi_box)
-        ipy_jedi_group.setLayout(ipy_jedi_layout)
+        jedi_layout = QVBoxLayout()
+        jedi_layout.addWidget(jedi_label)
+        jedi_layout.addWidget(jedi_box)
+        jedi_group.setLayout(jedi_layout)
                 
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
@@ -601,7 +601,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
                                     _("Startup"))
-        tabs.addTab(self.create_tab(ipy_jedi_group, greedy_group, autocall_group, sympy_group,
+        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
         vlayout = QVBoxLayout()

@@ -124,7 +124,7 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_RUN_FILE_O': CONF.get('ipython_console', 'startup/run_file'),
             'SPY_AUTOCALL_O': CONF.get('ipython_console', 'autocall'),
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
-            'SPY_IPY_JEDI_O': CONF.get('ipython_console', 'ipy_jedi_completer'),
+            'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
             'SPY_RUN_CYTHON': self.is_cython
         }
