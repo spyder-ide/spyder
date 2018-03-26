@@ -1224,12 +1224,18 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt\n"
                       "fig, ax = plt.subplots()\n"
+                      "fig.set_size_inches(5, 3)\n"
                       "ax.set_position([0, 0, 1, 1])\n"
                       "ax.set_xticks(range(10))\n"
+                      "ax.xaxis.set_ticklabels([])\n"
                       "ax.set_yticks(range(10))\n"
+                      "ax.yaxis.set_ticklabels([])\n"
                       "ax.tick_params(axis='both', length=0)\n"
+                      "for loc in ax.spines:\n"
+                      "    ax.spines[loc].set_color('#000000')\n"
+                      "    ax.spines[loc].set_linewidth(2)\n"
                       "ax.axis([0, 9, 0, 9])\n"
-                      "plt.plot(range(10))")
+                      "plt.plot(range(10), color='#000000', lw=2)")
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
@@ -1242,7 +1248,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     qimg.save('result_fig_bbox_inches_None.png')
     assert compare_images(
         osp.join(LOCATION, 'data', 'sample_fig_bbox_inches_None.png'),
-        'result_fig_bbox_inches_None.png', 0.01
+        'result_fig_bbox_inches_None.png', 0.1
         ) is None
 
     # Change the option so that bbox_inches='tight'.
@@ -1254,16 +1260,22 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Generate a plot with bbox_inches='tight'.
+    # Generate the same plot with bbox_inches='tight'.
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt\n"
                       "fig, ax = plt.subplots()\n"
+                      "fig.set_size_inches(5, 3)\n"
                       "ax.set_position([0, 0, 1, 1])\n"
                       "ax.set_xticks(range(10))\n"
+                      "ax.xaxis.set_ticklabels([])\n"
                       "ax.set_yticks(range(10))\n"
+                      "ax.yaxis.set_ticklabels([])\n"
                       "ax.tick_params(axis='both', length=0)\n"
+                      "for loc in ax.spines:\n"
+                      "    ax.spines[loc].set_color('#000000')\n"
+                      "    ax.spines[loc].set_linewidth(2)\n"
                       "ax.axis([0, 9, 0, 9])\n"
-                      "plt.plot(range(10))")
+                      "plt.plot(range(10), color='#000000', lw=2)")
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
