@@ -12,11 +12,11 @@
 import sys
 
 # Third party imports
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QSpacerItem,
                             QVBoxLayout)
-from qtpy.QtCore import Qt, Signal
 
 # Local imports
 from spyder import __project_url__, __trouble_url__
@@ -31,7 +31,8 @@ from spyder.widgets.sourcecode.base import ConsoleBaseWidget
 
 
 # Minimum number of characters to introduce in the title and
-#description fields before being able to send the report to Github.
+# description fields before being able to send the report to
+# Github.
 TITLE_MIN_CHARS = 15
 DESC_MIN_CHARS = 50
 
@@ -180,8 +181,8 @@ class SpyderErrorDialog(QDialog):
                                          "to go...").format(DESC_MIN_CHARS))
 
         # Checkbox to dismiss future errors
-        self.dismiss_box = QCheckBox()
-        self.dismiss_box.setText(_("Hide all future errors during this session"))
+        self.dismiss_box = QCheckBox(_("Hide all future errors during this "
+                                       "session"))
 
         # Dialog buttons
         gh_icon = ima.icon('github')
@@ -262,8 +263,8 @@ class SpyderErrorDialog(QDialog):
             if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 QApplication.clipboard().setText(issue_text)
                 issue_body = (
-                    " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE TO "
-                    "COMPLETE YOUR REPORT ***   ---!>\n")
+                    " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE "
+                    "TO COMPLETE YOUR REPORT ***   ---!>\n")
                 if main is not None:
                     main.report_issue(body=issue_body, title=title)
                 else:
