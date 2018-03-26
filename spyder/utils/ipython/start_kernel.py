@@ -168,7 +168,7 @@ def kernel_config():
                 bbox_inches_o = os.environ.get('SPY_BBOX_INCHES_O')
                 bbox_inches = 'tight' if bbox_inches_o == 'True' else None
                 spy_cfg.InlineBackend.print_figure_kwargs.update(
-                        {'bbox_inches': bbox_inches})
+                    {'bbox_inches': bbox_inches})
 
     # Enable Cython magic
     run_cython = os.environ.get('SPY_RUN_CYTHON') == 'True'
