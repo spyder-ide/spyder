@@ -34,6 +34,7 @@ from qtpy.QtGui import QImage
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
+from matplotlib.testing.exceptions import ImageComparisonFailure
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -1284,14 +1285,14 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     qimg = shell._get_image(img_name)
     assert isinstance(qimg, QImage)
 
-    # Compare both images and assert that they are not identical.
-    # Save the image and assert it is similar to the sample image.
+    # Save the figure and compare it with the sample. Assert that their
+    # dimensions are not the same due to the use of bbox_inches='tight'.
     qimg.save('result_fig_bbox_inches_tight.png')
-    assert compare_images(
-        osp.join(LOCATION, 'data', 'sample_fig_bbox_inches_tight.png'),
-        'result_fig_bbox_inches_tight.png', 0.01
-        ) is None
-
+    with pytest.raises(ImageComparisonFailure):
+        compare_images(
+            osp.join(LOCATION, 'data', 'sample_fig_bbox_inches_None.png'),
+            'result_fig_bbox_inches_tight.png', 0.1
+            )
 
 @pytest.mark.slow
 @flaky(max_runs=3)
