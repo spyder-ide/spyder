@@ -32,8 +32,6 @@ from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from matplotlib.testing.compare import compare_images
-from matplotlib.testing.exceptions import ImageComparisonFailure
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -1231,8 +1229,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     # then save it to a file.
     html = shell._control.toHtml()
     img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
-    image = shell._get_image(img_name)
-    image.save('image_bbox_inches_None.png', 'PNG')
+    qimage1 = shell._get_image(img_name)
 
     # Change the option so that bbox_inches='tight'.
     CONF.set('ipython_console', 'pylab/inline/bbox_inches', True)
@@ -1254,13 +1251,10 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     # then save it to a file.
     html = shell._control.toHtml()
     img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
-    image = shell._get_image(img_name)
-    image.save('image_bbox_inches_tight.png', 'PNG')
+    qimage2 = shell._get_image(img_name)
 
     # Compare both images and assert that they are not identical.
-    with pytest.raises(ImageComparisonFailure):
-        compare_images('image_bbox_inches_None.png',
-                       'image_bbox_inches_tight.png', 0)
+    assert qimage1 != qimage2
 
 
 @pytest.mark.slow
