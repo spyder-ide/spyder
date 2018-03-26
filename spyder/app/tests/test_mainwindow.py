@@ -33,6 +33,7 @@ from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
+from matplotlib.testing.compare import compare_images
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -1230,8 +1231,15 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     # then save it to a file.
     html = shell._control.toHtml()
     img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
-    qimage1 = shell._get_image(img_name)
-    assert isinstance(qimage1, QImage)
+    qimg = shell._get_image(img_name)
+    assert isinstance(qimg, QImage)
+
+    # Save the image and assert it is similar to the sample image.
+    qimg.save('result_fig_bbox_inches_None.png')
+    assert compare_images(
+        osp.join(LOCATION, 'data', 'sample_fig_bbox_inches_None.png'),
+        'result_fig_bbox_inches_None.png', 0.01
+        ) is None
 
     # Change the option so that bbox_inches='tight'.
     CONF.set('ipython_console', 'pylab/inline/bbox_inches', True)
@@ -1253,11 +1261,16 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     # then save it to a file.
     html = shell._control.toHtml()
     img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
-    qimage2 = shell._get_image(img_name)
-    assert isinstance(qimage2, QImage)
+    qimg = shell._get_image(img_name)
+    assert isinstance(qimg, QImage)
 
     # Compare both images and assert that they are not identical.
-    assert qimage1 != qimage2
+    # Save the image and assert it is similar to the sample image.
+    qimg.save('result_fig_bbox_inches_tight.png')
+    assert compare_images(
+        osp.join(LOCATION, 'data', 'sample_fig_bbox_inches_tight.png'),
+        'result_fig_bbox_inches_tight.png', 0.01
+        ) is None
 
 
 @pytest.mark.slow
