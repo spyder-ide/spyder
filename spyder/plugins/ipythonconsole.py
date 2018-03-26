@@ -395,7 +395,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(backend_group.setEnabled)
-        
+
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
         inline_label = QLabel(_("Decide how to render the figures created by "
@@ -403,7 +403,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_label.setWordWrap(True)
         formats = (("PNG", 0), ("SVG", 1))
         format_box = self.create_combobox(_("Format:")+"   ", formats,
-                                       'pylab/inline/figure_format', default=0)
+                                          'pylab/inline/figure_format',
+                                          default=0)
         resolution_spin = self.create_spinbox(
                         _("Resolution:")+"  ", " "+_("dpi"),
                         'pylab/inline/resolution', min_=50, max_=999, step=0.1,
@@ -417,7 +418,15 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           _("Height:")+"  ", " "+_("inches"),
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
-        
+        bbox_inches_box = newcb(
+            _("Use a tight layout for inline plots"),
+            'pylab/inline/bbox_inches',
+            tip=_("Sets bbox_inches to \"tight\" when\n"
+                  "plotting inline with matplotlib.\n"
+                  "When enabled, can cause discrepancies\n"
+                  "between the image displayed inline and\n"
+                  "that created using savefig."))
+
         inline_v_layout = QVBoxLayout()
         inline_v_layout.addWidget(inline_label)
         inline_layout = QGridLayout()
@@ -432,6 +441,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout.addWidget(height_spin.plabel, 4, 0)
         inline_layout.addWidget(height_spin.spinbox, 4, 1)
         inline_layout.addWidget(height_spin.slabel, 4, 2)
+        inline_layout.addWidget(bbox_inches_box, 5, 0, 1, 4)
+
         inline_h_layout = QHBoxLayout()
         inline_h_layout.addLayout(inline_layout)
         inline_h_layout.addStretch(1)

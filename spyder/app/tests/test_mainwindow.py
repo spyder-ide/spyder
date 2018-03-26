@@ -19,6 +19,7 @@ try:
     from unittest.mock import Mock, MagicMock
 except ImportError:
     from mock import Mock, MagicMock  # Python 2
+import re
 
 # Third party imports
 from flaky import flaky
@@ -29,8 +30,10 @@ import pytest
 from qtpy import PYQT4, PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
+from qtpy.QtGui import QImage
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
+from matplotlib.testing.compare import compare_images
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -143,6 +146,9 @@ def main_window(request):
     """Main Window fixture"""
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
+
+    # Tests assume that bbox_inches=None when plotting inline.
+    CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
 
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
@@ -1195,6 +1201,110 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="It times out sometimes")
+def test_tight_layout_option_for_inline_plot(main_window, qtbot):
+    """
+    Test that the option to set bbox_inches to 'tight' or 'None' is
+    working when plotting inline in the IPython console.
+    """
+    fig_dpi = float(CONF.get('ipython_console', 'pylab/inline/resolution'))
+    fig_width = float(CONF.get('ipython_console', 'pylab/inline/width'))
+    fig_height = float(CONF.get('ipython_console', 'pylab/inline/height'))
+
+    # Wait until the window is fully up.
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    client = main_window.ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = main_window.ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a plot inline with bbox_inches=None and save the figure
+    # with savefig.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig, ax = plt.subplots()\n"
+                       "fig.set_size_inches(%f, %f)\n"
+                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
+                       "ax.set_xticks(range(10))\n"
+                       "ax.xaxis.set_ticklabels([])\n"
+                       "ax.set_yticks(range(10))\n"
+                       "ax.yaxis.set_ticklabels([])\n"
+                       "ax.tick_params(axis='both', length=0)\n"
+                       "for loc in ax.spines:\n"
+                       "    ax.spines[loc].set_color('#000000')\n"
+                       "    ax.spines[loc].set_linewidth(2)\n"
+                       "ax.axis([0, 9, 0, 9])\n"
+                       "ax.plot(range(10), color='#000000', lw=2)\n"
+                       "fig.savefig('savefig_bbox_inches_None.png',\n"
+                       "            bbox_inches=None,\n"
+                       "            dpi=%f)"
+                       ) % (fig_width, fig_height, fig_dpi))
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # then save it to a file.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+    qimg = shell._get_image(img_name)
+    assert isinstance(qimg, QImage)
+
+    # Save the inline figure and assert it is similar to the one generated
+    # with savefig.
+    qimg.save('inline_bbox_inches_None.png')
+    assert compare_images('savefig_bbox_inches_None.png',
+                          'inline_bbox_inches_None.png',
+                          0.1) is None
+
+    # Change the option so that bbox_inches='tight'.
+    CONF.set('ipython_console', 'pylab/inline/bbox_inches', True)
+
+    # Restart the kernel and wait until it's up again
+    shell._prompt_html = None
+    client.restart_kernel()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Generate the same plot inline with bbox_inches='tight' and save the
+    # figure with savefig.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig, ax = plt.subplots()\n"
+                       "fig.set_size_inches(%f, %f)\n"
+                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
+                       "ax.set_xticks(range(10))\n"
+                       "ax.xaxis.set_ticklabels([])\n"
+                       "ax.set_yticks(range(10))\n"
+                       "ax.yaxis.set_ticklabels([])\n"
+                       "ax.tick_params(axis='both', length=0)\n"
+                       "for loc in ax.spines:\n"
+                       "    ax.spines[loc].set_color('#000000')\n"
+                       "    ax.spines[loc].set_linewidth(2)\n"
+                       "ax.axis([0, 9, 0, 9])\n"
+                       "ax.plot(range(10), color='#000000', lw=2)\n"
+                       "fig.savefig('savefig_bbox_inches_tight.png',\n"
+                       "            bbox_inches='tight',\n"
+                       "            dpi=%f)"
+                       ) % (fig_width, fig_height, fig_dpi))
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # then save it to a file.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+    qimg = shell._get_image(img_name)
+    assert isinstance(qimg, QImage)
+
+    # Save the inline figure and assert it is similar to the one generated
+    # with savefig.
+    qimg.save('inline_bbox_inches_tight.png')
+    assert compare_images('savefig_bbox_inches_tight.png',
+                          'inline_bbox_inches_tight.png',
+                          0.1) is None
 
 
 @pytest.mark.slow
