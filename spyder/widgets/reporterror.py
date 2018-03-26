@@ -15,8 +15,7 @@ import sys
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-                            QPlainTextEdit, QPushButton, QSpacerItem,
-                            QVBoxLayout)
+                            QPlainTextEdit, QPushButton, QVBoxLayout)
 
 # Local imports
 from spyder import __project_url__, __trouble_url__
