@@ -19,6 +19,7 @@ try:
     from unittest.mock import Mock, MagicMock
 except ImportError:
     from mock import Mock, MagicMock  # Python 2
+import re
 
 # Third party imports
 from flaky import flaky
@@ -31,6 +32,8 @@ from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
+from matplotlib.testing.compare import compare_images
+from matplotlib.testing.exceptions import ImageComparisonFailure
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -1198,6 +1201,69 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="It times out sometimes")
+def test_thight_layout_option_for_inline_plot(main_window, qtbot):
+    """
+    Test that the option to set bbox_inches to 'thight' or 'None' is
+    working when plotting inline in the IPython console.
+    """
+    # Set the option so that bbox_inches=None.
+    CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
+
+    # Wait until the window is fully up.
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    client = main_window.ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = main_window.ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a plot with bbox_inches=None.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import matplotlib.pyplot as plt\n'
+                      'fig, ax = plt.subplots()\n'
+                      'ax.set_position([0, 0, 1, 1])\n'
+                      'plt.plot(range(10))')
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # then save it to a file.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+    image = shell._get_image(img_name)
+    image.save('image_not_tight.png', 'PNG')
+
+    # Change the option so that bbox_inches='tight'.
+    CONF.set('ipython_console', 'pylab/inline/bbox_inches', True)
+
+    # Restart the kernel and wait until it's up again
+    shell._prompt_html = None
+    client.restart_kernel()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Generate a plot with bbox_inches='tight'.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import matplotlib.pyplot as plt\n'
+                      'fig, ax = plt.subplots()\n'
+                      'ax.set_position([0, 0, 1, 1])\n'
+                      'plt.plot(range(10))')
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # then save it to a file.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+    image = shell._get_image(img_name)
+    image.save('image_tight.png', 'PNG')
+
+    # Compare both images and assert that they are not identical.
+    with pytest.raises(ImageComparisonFailure):
+        compare_images('image_not_tight.png', 'image_tight.png', 0)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="It's not meant to be run outside of a CI")
 def test_fileswitcher(main_window, qtbot):
@@ -1465,4 +1531,4 @@ def test_render_issue():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(['-x', '-k', 'test_thight_layout_option_for_inline_plot', '-vv', '-rw'])
