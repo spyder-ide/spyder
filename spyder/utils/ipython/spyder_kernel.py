@@ -45,14 +45,6 @@ class SpyderKernel(IPythonKernel):
         self._do_publish_pdb_state = True
         self._mpl_backend_error = None
 
-        kernel_config = self.config.get('IPKernelApp', None)
-        if kernel_config is not None:
-            cf = kernel_config['connection_file']
-            json_file = osp.basename(cf)
-            self._kernel_id = json_file.split('.json')[0]
-        else:
-            self._kernel_id = None
-
     @property
     def _pdb_frame(self):
         """Return current Pdb frame if there is any"""
@@ -134,7 +126,8 @@ class SpyderKernel(IPythonKernel):
             return repr(None)
 
     def send_spyder_msg(self, spyder_msg_type, content=None, data=None):
-        """publish custom messages to the spyder frontend
+        """
+        Publish custom messages to the Spyder frontend.
 
         Parameters
         ----------
