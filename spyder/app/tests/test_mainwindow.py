@@ -1531,4 +1531,4 @@ def test_render_issue():
 
 
 if __name__ == "__main__":
-    pytest.main(['-x', '-k', 'test_thight_layout_option_for_inline_plot', '-vv', '-rw'])
+    pytest.main()
