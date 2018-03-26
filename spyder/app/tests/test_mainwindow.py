@@ -1202,9 +1202,9 @@ def test_varexp_magic_dbg(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(PY2, reason="It times out sometimes")
-def test_thight_layout_option_for_inline_plot(main_window, qtbot):
+def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     """
-    Test that the option to set bbox_inches to 'thight' or 'None' is
+    Test that the option to set bbox_inches to 'tight' or 'None' is
     working when plotting inline in the IPython console.
     """
     # Set the option so that bbox_inches=None.
@@ -1232,7 +1232,7 @@ def test_thight_layout_option_for_inline_plot(main_window, qtbot):
     html = shell._control.toHtml()
     img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
     image = shell._get_image(img_name)
-    image.save('image_not_tight.png', 'PNG')
+    image.save('image_bbox_inches_None.png', 'PNG')
 
     # Change the option so that bbox_inches='tight'.
     CONF.set('ipython_console', 'pylab/inline/bbox_inches', True)
@@ -1255,11 +1255,12 @@ def test_thight_layout_option_for_inline_plot(main_window, qtbot):
     html = shell._control.toHtml()
     img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
     image = shell._get_image(img_name)
-    image.save('image_tight.png', 'PNG')
+    image.save('image_bbox_inches_tight.png', 'PNG')
 
     # Compare both images and assert that they are not identical.
     with pytest.raises(ImageComparisonFailure):
-        compare_images('image_not_tight.png', 'image_tight.png', 0)
+        compare_images('image_bbox_inches_None.png',
+                       'image_bbox_inches_tight.png', 0)
 
 
 @pytest.mark.slow
