@@ -1211,6 +1211,10 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     Test that the option to set bbox_inches to 'tight' or 'None' is
     working when plotting inline in the IPython console.
     """
+    fig_dpi = float(CONF.get('ipython_console', 'pylab/inline/resolution'))
+    fig_width = float(CONF.get('ipython_console', 'pylab/inline/width'))
+    fig_height = float(CONF.get('ipython_console', 'pylab/inline/height'))
+
     # Wait until the window is fully up.
     shell = main_window.ipyconsole.get_current_shellwidget()
     client = main_window.ipyconsole.get_current_client()
@@ -1224,21 +1228,24 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     # Generate a plot inline with bbox_inches=None and save the figure
     # with savefig.
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import matplotlib.pyplot as plt\n"
-                      "fig, ax = plt.subplots()\n"
-                      "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
-                      "ax.set_xticks(range(10))\n"
-                      "ax.xaxis.set_ticklabels([])\n"
-                      "ax.set_yticks(range(10))\n"
-                      "ax.yaxis.set_ticklabels([])\n"
-                      "ax.tick_params(axis='both', length=0)\n"
-                      "for loc in ax.spines:\n"
-                      "    ax.spines[loc].set_color('#000000')\n"
-                      "    ax.spines[loc].set_linewidth(2)\n"
-                      "ax.axis([0, 9, 0, 9])\n"
-                      "ax.plot(range(10), color='#000000', lw=2)\n"
-                      "fig.savefig('savefig_bbox_inches_None.png', bbox_inches=None)"
-                      )
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig, ax = plt.subplots()\n"
+                       "fig.set_size_inches(%f, %f)\n"
+                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
+                       "ax.set_xticks(range(10))\n"
+                       "ax.xaxis.set_ticklabels([])\n"
+                       "ax.set_yticks(range(10))\n"
+                       "ax.yaxis.set_ticklabels([])\n"
+                       "ax.tick_params(axis='both', length=0)\n"
+                       "for loc in ax.spines:\n"
+                       "    ax.spines[loc].set_color('#000000')\n"
+                       "    ax.spines[loc].set_linewidth(2)\n"
+                       "ax.axis([0, 9, 0, 9])\n"
+                       "ax.plot(range(10), color='#000000', lw=2)\n"
+                       "fig.savefig('savefig_bbox_inches_None.png',\n"
+                       "            bbox_inches=None,\n"
+                       "            dpi=%f)"
+                       ) % (fig_width, fig_height, fig_dpi))
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
@@ -1266,21 +1273,24 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     # Generate the same plot inline with bbox_inches='tight' and save the
     # figure with savefig.
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import matplotlib.pyplot as plt\n"
-                      "fig, ax = plt.subplots()\n"
-                      "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
-                      "ax.set_xticks(range(10))\n"
-                      "ax.xaxis.set_ticklabels([])\n"
-                      "ax.set_yticks(range(10))\n"
-                      "ax.yaxis.set_ticklabels([])\n"
-                      "ax.tick_params(axis='both', length=0)\n"
-                      "for loc in ax.spines:\n"
-                      "    ax.spines[loc].set_color('#000000')\n"
-                      "    ax.spines[loc].set_linewidth(2)\n"
-                      "ax.axis([0, 9, 0, 9])\n"
-                      "ax.plot(range(10), color='#000000', lw=2)\n"
-                      "fig.savefig('savefig_bbox_inches_tight.png', bbox_inches='tight')"
-                      )
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig, ax = plt.subplots()\n"
+                       "fig.set_size_inches(%f, %f)\n"
+                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
+                       "ax.set_xticks(range(10))\n"
+                       "ax.xaxis.set_ticklabels([])\n"
+                       "ax.set_yticks(range(10))\n"
+                       "ax.yaxis.set_ticklabels([])\n"
+                       "ax.tick_params(axis='both', length=0)\n"
+                       "for loc in ax.spines:\n"
+                       "    ax.spines[loc].set_color('#000000')\n"
+                       "    ax.spines[loc].set_linewidth(2)\n"
+                       "ax.axis([0, 9, 0, 9])\n"
+                       "ax.plot(range(10), color='#000000', lw=2)\n"
+                       "fig.savefig('savefig_bbox_inches_tight.png',\n"
+                       "            bbox_inches='tight',\n"
+                       "            dpi=%f)"
+                       ) % (fig_width, fig_height, fig_dpi))
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
