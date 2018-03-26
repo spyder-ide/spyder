@@ -1221,7 +1221,8 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Generate a plot with bbox_inches=None.
+    # Generate a plot inline with bbox_inches=None and save the figure
+    # with savefig.
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt\n"
                       "fig, ax = plt.subplots()\n"
@@ -1236,7 +1237,9 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
                       "    ax.spines[loc].set_color('#000000')\n"
                       "    ax.spines[loc].set_linewidth(2)\n"
                       "ax.axis([0, 9, 0, 9])\n"
-                      "plt.plot(range(10), color='#000000', lw=2)")
+                      "ax.plot(range(10), color='#000000', lw=2)\n"
+                      "fig.savefig('savefig_bbox_inches_None.png', bbox_inches=None)"
+                      )
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
@@ -1245,12 +1248,12 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     qimg = shell._get_image(img_name)
     assert isinstance(qimg, QImage)
 
-    # Save the image and assert it is similar to the sample image.
-    qimg.save('result_fig_bbox_inches_None.png')
-    assert compare_images(
-        osp.join(LOCATION, 'data', 'sample_fig_bbox_inches_None.png'),
-        'result_fig_bbox_inches_None.png', 0.1
-        ) is None
+    # Save the inline figure and assert it is similar to the one generated
+    # with savefig.
+    qimg.save('inline_bbox_inches_None.png')
+    assert compare_images('savefig_bbox_inches_None.png',
+                          'inline_bbox_inches_None.png',
+                          0.1) is None
 
     # Change the option so that bbox_inches='tight'.
     CONF.set('ipython_console', 'pylab/inline/bbox_inches', True)
@@ -1261,7 +1264,8 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Generate the same plot with bbox_inches='tight'.
+    # Generate the same plot inline with bbox_inches='tight' and save the
+    # figure with savefig.
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt\n"
                       "fig, ax = plt.subplots()\n"
@@ -1276,7 +1280,9 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
                       "    ax.spines[loc].set_color('#000000')\n"
                       "    ax.spines[loc].set_linewidth(2)\n"
                       "ax.axis([0, 9, 0, 9])\n"
-                      "plt.plot(range(10), color='#000000', lw=2)")
+                      "ax.plot(range(10), color='#000000', lw=2)\n"
+                      "fig.savefig('savefig_bbox_inches_tight.png', bbox_inches='tight')"
+                      )
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
@@ -1285,14 +1291,13 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     qimg = shell._get_image(img_name)
     assert isinstance(qimg, QImage)
 
-    # Save the figure and compare it with the sample. Assert that their
-    # dimensions are not the same due to the use of bbox_inches='tight'.
-    qimg.save('result_fig_bbox_inches_tight.png')
-    with pytest.raises(ImageComparisonFailure):
-        compare_images(
-            osp.join(LOCATION, 'data', 'sample_fig_bbox_inches_None.png'),
-            'result_fig_bbox_inches_tight.png', 0.1
-            )
+    # Save the inline figure and assert it is similar to the one generated
+    # with savefig.
+    qimg.save('inline_bbox_inches_tight.png')
+    assert compare_images('savefig_bbox_inches_tight.png',
+                          'inline_bbox_inches_tight.png',
+                          0.1) is None
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
