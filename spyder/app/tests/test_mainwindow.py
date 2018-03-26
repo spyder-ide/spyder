@@ -1226,7 +1226,6 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt\n"
                       "fig, ax = plt.subplots()\n"
-                      "fig.set_size_inches(5, 3)\n"
                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
                       "ax.set_xticks(range(10))\n"
                       "ax.xaxis.set_ticklabels([])\n"
@@ -1269,7 +1268,6 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("import matplotlib.pyplot as plt\n"
                       "fig, ax = plt.subplots()\n"
-                      "fig.set_size_inches(5, 3)\n"
                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
                       "ax.set_xticks(range(10))\n"
                       "ax.xaxis.set_ticklabels([])\n"
