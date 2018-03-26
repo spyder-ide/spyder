@@ -34,7 +34,6 @@ from qtpy.QtGui import QImage
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
-from matplotlib.testing.exceptions import ImageComparisonFailure
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
