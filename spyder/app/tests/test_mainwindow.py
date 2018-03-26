@@ -147,6 +147,9 @@ def main_window(request):
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
+    # Tests assume that bbox_inches=None when plotting inline.
+    CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
+
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
     use_introspection = request.node.get_marker('use_introspection')
@@ -1207,9 +1210,6 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     Test that the option to set bbox_inches to 'tight' or 'None' is
     working when plotting inline in the IPython console.
     """
-    # Set the option so that bbox_inches=None.
-    CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
-
     # Wait until the window is fully up.
     shell = main_window.ipyconsole.get_current_shellwidget()
     client = main_window.ipyconsole.get_current_client()
@@ -1222,10 +1222,14 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
     # Generate a plot with bbox_inches=None.
     with qtbot.waitSignal(shell.executed):
-        shell.execute('import matplotlib.pyplot as plt\n'
-                      'fig, ax = plt.subplots()\n'
-                      'ax.set_position([0, 0, 1, 1])\n'
-                      'plt.plot(range(10))')
+        shell.execute("import matplotlib.pyplot as plt\n"
+                      "fig, ax = plt.subplots()\n"
+                      "ax.set_position([0, 0, 1, 1])\n"
+                      "ax.set_xticks(range(10))\n"
+                      "ax.set_yticks(range(10))\n"
+                      "ax.tick_params(axis='both', length=0)\n"
+                      "ax.axis([0, 9, 0, 9])\n"
+                      "plt.plot(range(10))")
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
@@ -1252,10 +1256,14 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
     # Generate a plot with bbox_inches='tight'.
     with qtbot.waitSignal(shell.executed):
-        shell.execute('import matplotlib.pyplot as plt\n'
-                      'fig, ax = plt.subplots()\n'
-                      'ax.set_position([0, 0, 1, 1])\n'
-                      'plt.plot(range(10))')
+        shell.execute("import matplotlib.pyplot as plt\n"
+                      "fig, ax = plt.subplots()\n"
+                      "ax.set_position([0, 0, 1, 1])\n"
+                      "ax.set_xticks(range(10))\n"
+                      "ax.set_yticks(range(10))\n"
+                      "ax.tick_params(axis='both', length=0)\n"
+                      "ax.axis([0, 9, 0, 9])\n"
+                      "plt.plot(range(10))")
 
     # Get the image name from the html, fetch the image from the shell, and
     # then save it to a file.
