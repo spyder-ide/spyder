@@ -159,6 +159,7 @@ DEFAULTS = [
               'startup/use_run_file': False,
               'startup/run_file': '',
               'greedy_completer': False,
+              'jedi_completer': False,
               'autocall': 0,
               'symbolic_math': False,
               'in_prompt': '',

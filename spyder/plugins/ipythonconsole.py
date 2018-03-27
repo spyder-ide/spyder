@@ -488,20 +488,46 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_group.setLayout(run_file_layout)
         
         # ---- Advanced settings ----
+        # Enable Jedi completion
+        jedi_group = QGroupBox(_("Jedi completion"))
+        jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion "
+                                  "in the IPython console; similar to the "
+                                  "greedy completer, but without evaluating "
+                                  "the code.<br>"
+                                  "<b>Warning:</b> Slows down your console "
+                                  "when working with large dataframes!"))
+        jedi_label.setWordWrap(True)
+        jedi_box = newcb(_("Use Jedi completion in the IPython console"), 
+                             "jedi_completer",
+                             tip="<b>Warning</b>: "
+                                 "Slows down your console when working with "
+                                 "large dataframes!<br>"
+                                 "Allows completion of nested lists etc.")
+        
+        jedi_layout = QVBoxLayout()
+        jedi_layout.addWidget(jedi_label)
+        jedi_layout.addWidget(jedi_box)
+        jedi_group.setLayout(jedi_layout)
+                
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
         greedy_label = QLabel(_("Enable <tt>Tab</tt> completion on elements "
                                 "of lists, results of function calls, etc, "
-                                "<i>without</i> assigning them to a "
-                                "variable.<br>"
-                                "For example, you can get completions on "
-                                "things like <tt>li[0].&lt;Tab&gt;</tt> or "
-                                "<tt>ins.meth().&lt;Tab&gt;</tt>"))
+                                "<i>without</i> assigning them to a variable, "
+                                "like <tt>li[0].&lt;Tab&gt;</tt> or "
+                                "<tt>ins.meth().&lt;Tab&gt;</tt> <br>"
+                                "<b>Warning:</b> Due to a bug, IPython's "
+                                "greedy completer requires a leading "
+                                "<tt>&lt;Space&gt;</tt> for some completions; "
+                                "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;"
+                                "</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
+                                "</tt> doesn't."))
         greedy_label.setWordWrap(True)
-        greedy_box = newcb(_("Use the greedy completer"), "greedy_completer",
+        greedy_box = newcb(_("Use greedy completion in the IPython console"),
+                           "greedy_completer",
                            tip="<b>Warning</b>: It can be unsafe because the "
-                                "code is actually evaluated when you press "
-                                "<tt>Tab</tt>.")
+                               "code is actually evaluated when you press "
+                               "<tt>Tab</tt>.")
         
         greedy_layout = QVBoxLayout()
         greedy_layout.addWidget(greedy_label)
@@ -511,10 +537,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_("Autocall makes IPython automatically call "
-                                "any callable object even if you didn't type "
-                                "explicit parentheses.<br>"
-                                "For example, if you type <i>str 43</i> it "
-                                "becomes <i>str(43)</i> automatically."))
+                                  "any callable object even if you didn't "
+                                  "type explicit parentheses.<br>"
+                                  "For example, if you type <i>str 43</i> it "
+                                  "becomes <i>str(43)</i> automatically."))
         autocall_label.setWordWrap(True)
         
         smart = _('Smart')
@@ -586,7 +612,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
                                     _("Startup"))
-        tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
+        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
