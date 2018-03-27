@@ -178,6 +178,11 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False
              }),
+            ('figure_explorer',
+             {
+              'mute_inline': True,
+              'show_oultine': False,
+             })
             ('editor',
              {
               'printer_header/font/family': SANS_SERIF,
