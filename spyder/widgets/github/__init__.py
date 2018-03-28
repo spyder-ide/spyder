@@ -6,9 +6,8 @@
 
 """
 spyder.widgets.github
-==============
+=====================
 
-Widget defined in this module was taken from the QCrash Project
+Widgets defined in this module were taken from the QCrash Project:
 https://github.com/ColinDuquesnoy/QCrash
-
 """

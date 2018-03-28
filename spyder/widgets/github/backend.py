@@ -3,10 +3,11 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-"""
-This module contains the github backend.
 
-Took from the QCrash Project - Colin Duquesnoy
+"""
+Backend to open issues automatically on Github.
+
+Taken from the QCrash Project:
 https://github.com/ColinDuquesnoy/QCrash
 """
 

@@ -5,9 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """
-This module contains the github login dialog.
+Login dialog to authenticate on Github.
 
-Taken from the QCrash Project - Colin Duquesnoy
+Taken from the QCrash Project:
 https://github.com/ColinDuquesnoy/QCrash
 """
 
