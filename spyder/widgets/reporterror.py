@@ -130,7 +130,7 @@ class SpyderErrorDialog(QDialog):
         self.error_traceback = ""
 
         # Dialog main label
-        self.main_label = QLabel(
+        main_label = QLabel(
             _("""<h3>Spyder has encountered an internal problem!</h3>
               Before reporting it, <i>please</i> consult our comprehensive 
               <b><a href=\"{0!s}\">Troubleshooting Guide</a></b> 
@@ -138,10 +138,10 @@ class SpyderErrorDialog(QDialog):
               <b><a href=\"{1!s}\">known bugs</a></b> matching your error 
               message or problem description for a quicker solution.
               """).format(__trouble_url__, __project_url__))
-        self.main_label.setOpenExternalLinks(True)
-        self.main_label.setWordWrap(True)
-        self.main_label.setAlignment(Qt.AlignJustify)
-        self.main_label.setStyleSheet('font-size: 12px;')
+        main_label.setOpenExternalLinks(True)
+        main_label.setWordWrap(True)
+        main_label.setAlignment(Qt.AlignJustify)
+        main_label.setStyleSheet('font-size: 12px;')
 
         # Issue title
         self.title = QLineEdit()
@@ -150,18 +150,20 @@ class SpyderErrorDialog(QDialog):
                                           "to go...").format(TITLE_MIN_CHARS))
         form_layout = QFormLayout()
         red_asterisk = '<font color="Red">*</font>'
-        title_label = QLabel(_("<b>Title</b> {}").format(red_asterisk))
+        title_label = QLabel(_("<b>Title</b>: {}").format(red_asterisk))
         form_layout.setWidget(0, QFormLayout.LabelRole, title_label)
         form_layout.setWidget(0, QFormLayout.FieldRole, self.title)
 
         # Description
         steps_header = QLabel(
-            _("<b>Steps to reproduce</b> {}").format(red_asterisk))
-        steps_text = QLabel(_("Please enter below a detailed step-by-step "
+            _("<b>Steps to reproduce:</b> {}").format(red_asterisk))
+        steps_text = QLabel(_("Please enter a detailed step-by-step "
                               "description (in English) of what led up to "
-                              "the problem. Issue reports without a clear "
-                              "way to reproduce them will be closed."))
+                              "the problem below. Issue reports without a "
+                              "clear way to reproduce them will be closed."))
         steps_text.setWordWrap(True)
+        steps_text.setAlignment(Qt.AlignJustify)
+        steps_text.setStyleSheet('font-size: 12px;')
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
@@ -202,7 +204,7 @@ class SpyderErrorDialog(QDialog):
 
         # Main layout
         layout = QVBoxLayout()
-        layout.addWidget(self.main_label)
+        layout.addWidget(main_label)
         layout.addSpacing(20)
         layout.addLayout(form_layout)
         layout.addWidget(self.title_chars_label)
@@ -256,9 +258,13 @@ class SpyderErrorDialog(QDialog):
         except Exception:
             ret = QMessageBox.question(
                       self, _('Error'),
-                      _('An error occurred while trying to send the issue to '
-                        'Github automatically. Would you like to open it'
-                        'manually?'))
+                      _("An error occurred while trying to send the issue to "
+                        "Github automatically. Would you like to open it "
+                        "manually?<br><br>"
+                        "If so, please make sure to paste your clipboard "
+                        "into the issue report box that will appear in a new "
+                        "browser tab before clicking <i>Submit</i> on that "
+                        "page."))
             if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 QApplication.clipboard().setText(issue_text)
                 issue_body = (
