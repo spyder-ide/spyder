@@ -203,7 +203,7 @@ _qtaargs = {
     'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
-    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'github':                  [('fa.github',), {'color': 'black'}],
     # --- Third party plugins ------------------------------------------------
     'profiler':                [('fa.clock-o',), {}],
     'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],
