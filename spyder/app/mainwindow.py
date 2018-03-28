@@ -160,6 +160,7 @@ from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.widgets.fileswitcher import FileSwitcher
 
+
 #==============================================================================
 # Local gui imports
 #==============================================================================
