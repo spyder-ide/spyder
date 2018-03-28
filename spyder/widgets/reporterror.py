@@ -226,6 +226,9 @@ class SpyderErrorDialog(QDialog):
         self.resize(570, 600)
         self.title.setFocus()
 
+        # Set Tab key focus order
+        self.setTabOrder(self.title, self.input_description)
+
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
         if self.parent() is not None:
