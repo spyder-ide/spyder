@@ -6,7 +6,7 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-"""Tests for the report error dialog."""
+"""Tests for the Github authentication dialog."""
 
 # Third party imports
 import pytest
