@@ -114,7 +114,9 @@ class RecoveryDialog(QDialog):
 
     def add_label(self):
         """Add label with explanation at top of dialog window."""
-        txt = _('Spyder found some autosave files.')
+        txt = _('Spyder found some autosave files. You can use the autosave '
+                'file to <b>recover</b> the original file or <b>discard</b> '
+                'the autosave file')
         label = QLabel(txt, self)
         label.setWordWrap(True)
         self.layout.addWidget(label)
@@ -138,6 +140,10 @@ class RecoveryDialog(QDialog):
             button.clicked.connect(
                     lambda checked, my_idx=idx: self.restore(my_idx))
             grid.addWidget(button, idx + 1, 2)
+            button = QPushButton(_('Discard'))
+            button.clicked.connect(
+                    lambda checked, my_idx=idx: self.discard(my_idx))
+            grid.addWidget(button, idx + 1, 3)
         self.layout.addLayout(grid)
         self.grid = grid
 
@@ -163,6 +169,15 @@ class RecoveryDialog(QDialog):
         except EnvironmentError as error:
             text = (_('Unable to restore {} using {}')
                     .format(orig_name, autosave['name']))
+            self.report_error(text, error)
+
+    def discard(self, idx):
+        ignored, autosave = self.data[idx]
+        try:
+            os.remove(autosave['name'])
+            self.deactivate(idx)
+        except EnvironmentError as error:
+            text = _('Unable to discard {}').format(autosave['name'])
             self.report_error(text, error)
 
     def report_error(self, text, error):
