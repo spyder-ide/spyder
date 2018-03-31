@@ -78,6 +78,7 @@ class RecoveryDialog(QDialog):
         self.layout.setSpacing(self.layout.spacing() * 3)
         self.autosave_dir = autosave_dir
         self.autosave_mapping = autosave_mapping
+        self.files_to_open = []
         self.gather_data()
         self.add_label()
         self.add_grid()
@@ -115,8 +116,12 @@ class RecoveryDialog(QDialog):
     def add_label(self):
         """Add label with explanation at top of dialog window."""
         txt = _('Spyder found some autosave files. You can use the autosave '
-                'file to <b>recover</b> the original file or <b>discard</b> '
-                'the autosave file')
+                'file to <b>recover</b> the original file, <b>discard</b> '
+                'the autosave file, or <b>open</b> the original file and '
+                'autosave file in the editor to investigate the situation. '
+                'In the last case, you should remove the autosave file '
+                'yourself because otherwise Spyder will find the autosave '
+                'file again the next time it starts up.')
         label = QLabel(txt, self)
         label.setWordWrap(True)
         self.layout.addWidget(label)
@@ -144,6 +149,10 @@ class RecoveryDialog(QDialog):
             button.clicked.connect(
                     lambda checked, my_idx=idx: self.discard(my_idx))
             grid.addWidget(button, idx + 1, 3)
+            button = QPushButton(_('Open'))
+            button.clicked.connect(
+                    lambda checked, my_idx=idx: self.open_files(my_idx))
+            grid.addWidget(button, idx + 1, 4)
         self.layout.addLayout(grid)
         self.grid = grid
 
@@ -179,6 +188,13 @@ class RecoveryDialog(QDialog):
         except EnvironmentError as error:
             text = _('Unable to discard {}').format(autosave['name'])
             self.report_error(text, error)
+
+    def open_files(self, idx):
+        orig, autosave = self.data[idx]
+        if orig:
+            self.files_to_open.append(orig['name'])
+        self.files_to_open.append(autosave['name'])
+        self.deactivate(idx)
 
     def report_error(self, text, error):
         heading = _('Error message:')
@@ -260,6 +276,7 @@ def test():  # pragma: no cover
     _, autosave_dir, autosave_mapping = make_temporary_files(tempdir)
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     dialog.exec_()
+    print('files_to_open =', dialog.files_to_open)
     shutil.rmtree(tempdir)
 
 

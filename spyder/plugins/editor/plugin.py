@@ -2914,7 +2914,11 @@ class Editor(SpyderPluginWidget):
                 self.set_option('filenames', filenames)
 
     def setup_open_files(self):
-        """Open the list of saved files per project"""
+        """
+        Open the list of saved files per project.
+        
+        Also open any files that the user selected in the recovery dialog.
+        """
         self.set_create_new_file_if_empty(False)
         active_project_path = None
         if self.projects is not None:
@@ -2926,7 +2930,8 @@ class Editor(SpyderPluginWidget):
             filenames = self.get_option('filenames', default=[])
         self.close_all_files()
 
-        if filenames and any([osp.isfile(f) for f in filenames]):
+        all_filenames = self.autosave.recover_files_to_open + filenames
+        if all_filenames and any([osp.isfile(f) for f in all_filenames]):
             layout = self.get_option('layout_settings', None)
             # Check if no saved layout settings exist, e.g. clean prefs file
             # If not, load with default focus/layout, to fix issue #8458 .
@@ -2935,24 +2940,34 @@ class Editor(SpyderPluginWidget):
                 if cfname in filenames:
                     index = filenames.index(cfname)
                     # First we load the last focused file.
-                    self.load(filenames[index], goto=clines[index],
-                              set_focus=True)
+                    self.load(filenames[index], goto=clines[index], set_focus=True)
                     # Then we load the files located to the left of the last
                     # focused file in the tabbar, while keeping the focus on
                     # the last focused file.
                     if index > 0:
                         self.load(filenames[index::-1], goto=clines[index::-1],
                                   set_focus=False, add_where='start')
-                    # Finally we load the files to the right of the last
+                    # Then we load the files located to the right of the last
                     # focused file in the tabbar, while keeping the focus on
                     # the last focused file.
                     if index < (len(filenames) - 1):
                         self.load(filenames[index+1:], goto=clines[index:],
                                   set_focus=False, add_where='end')
+                    # Finally we load any recovered files at the end of the tabbar,
+                    # while keeping focus on the last focused file.
+                    if self.autosave.recover_files_to_open:
+                        self.load(self.autosave.recover_files_to_open,
+                                  set_focus=False, add_where='end')
                 else:
-                    self.load(filenames, goto=clines)
+                    if filenames:
+                        self.load(filenames, goto=clines)
+                    if self.autosave.recover_files_to_open:
+                        self.load(self.autosave.recover_files_to_open)
             else:
-                self.load(filenames)
+                if filenames:
+                    self.load(filenames)
+                if self.autosave.recover_files_to_open:
+                    self.load(self.autosave.recover_files_to_open)
 
             if self.__first_open_files_setup:
                 self.__first_open_files_setup = False
@@ -3014,3 +3029,4 @@ class AutosaveComponent:
         dialog = RecoveryDialog(autosave_dir, autosave_mapping, 
                                 parent=self.editor)
         dialog.exec_if_nonempty()
+        self.recover_files_to_open = dialog.files_to_open[:]

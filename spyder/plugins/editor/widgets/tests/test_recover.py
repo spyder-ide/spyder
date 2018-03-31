@@ -242,3 +242,36 @@ def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
     mock_QMessageBox.assert_called_once()
     for col in range(grid.columnCount()):
         assert grid.itemAtPosition(1, col).widget().isEnabled()
+
+
+def test_recoverydialog_open_button(qtbot, recovery_env):
+    """
+    Test that after pressing the 'Open' button, `files_to_open` contains
+    the autosave and the original file, and the row in the grid is
+    deactivated.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    grid = dialog.findChild(QGridLayout)
+    button = grid.itemAtPosition(1, 4).widget()
+    button.click()
+    assert dialog.files_to_open == [osp.join(orig_dir, 'ham.py'),
+                                    osp.join(autosave_dir, 'ham.py')]
+    for col in range(grid.columnCount()):
+        assert not grid.itemAtPosition(1, col).widget().isEnabled()
+
+
+def test_recoverydialog_open_when_no_original(qtbot, recovery_env):
+    """
+    Test that when the user request to open an autosave file for which the
+    original file is not known, `files_to_open` contains only the autosave
+    file.
+    """
+    orig_dir, autosave_dir, autosave_mapping = recovery_env
+    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    grid = dialog.findChild(QGridLayout)
+    button = grid.itemAtPosition(3, 4).widget()
+    button.click()
+    assert dialog.files_to_open == [osp.join(autosave_dir, 'cheese.py')]
+    for col in range(grid.columnCount()):
+        assert not grid.itemAtPosition(3, col).widget().isEnabled()
