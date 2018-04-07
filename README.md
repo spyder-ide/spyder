@@ -26,35 +26,39 @@ data analysis, and scientific package creation:
 
 * **Editor**
 
-    Multi-language editor with function/class browser, code analysis
-    features (pyflakes and pylint are currently supported), code
-    completion, horizontal and vertical splitting, and goto definition.
+    Work efficiently in a multi-language editor with a function/class browser,
+    real-time code analysis tools (`pyflakes`, `pylint`, and `pycodestyle`),
+    automatic code completion (`jedi` and `rope`),
+    horizontal/vertical splitting, and go-to-definition.
 
 * **Interactive console**
 
-    IPython consoles with workspace and debugging support to
+    Multiple IPython consoles with workspace and debugging support to
     instantly evaluate the code written in the Editor.
-    Spyder consoles also come with Matplotlib figures integration.
+    Spyder consoles also come with full Matplotlib integration.
 
 * **Documentation viewer**
 
-    Show documentation for any class or function call made either in the
-    Editor or a Console.
+    Render documentation in real-time with Sphinx for any class or function,
+    whether external or user-created from either the Editor or a Console.
 
 * **Variable explorer**
 
-    Explore variables created during the execution of a file. Editing
-    them is also possible with several GUI based editors, like a
-    dictionary and Numpy array ones.
+    Inspect any variables, functions or objects created during your session.
+    Editing and interaction is supported with many common types, including
+    numeric/strings/bools, Python lists/tuples/dictionaries, dates/timedeltas,
+    Numpy arrays, Pandas index/series/dataframes, PIL/Pillow images, and more.
+
+* **Development tools**
+
+    Examine your code with the static analyzer, trace its execution with the
+    interactive debugger, measure its performance with the profiler,
+    and keep things organized with project support and a builtin file explorer.
 
 * **Find in files**
 
     Search for queries across multiple files in your project,
     with full support for regular expressions.
-
-* **File explorer**
-
-    Interact with your filesystem from within the IDE.
 
 * **History log**
 
@@ -89,9 +93,9 @@ able to provide limited assistance if you do run into trouble.
 
 Other install options exist, including:
 
-* The [WinPython](https://winpython.github.io/) distribution for Windows,
-* The [MacPorts](http://www.macports.org/) project for macOS,
-* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux,
+* The [WinPython](https://winpython.github.io/) distribution for Windows
+* The [MacPorts](http://www.macports.org/) project for macOS
+* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux
 * The `pip` package manager, included with most Python installations
 
 **However**, we lack the resources to provide individual support for users who
