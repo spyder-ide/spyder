@@ -68,8 +68,8 @@ Spyder may be embedded in your own PyQt5/PyQt4 application.
 
 ## Documentation
 
-You can read the Spyder documentation online on
-[PythonHosted](http://pythonhosted.org/spyder/).
+You can read the Spyder documentation online at [PythonHosted](
+http://pythonhosted.org/spyder/).
 
 
 ## Installation
@@ -87,14 +87,14 @@ unexpected issues we are unable to help you with; it generally has the
 least likelihood of potential pitfalls for non-experts, and we may be
 able to provide limited assistance if you do run into trouble.
 
-Other install options exist, including the
+Other install options exist, including:
 
-* The [WinPython](https://winpython.github.io/) distribution for Windows
-* The [MacPorts](http://www.macports.org/), project for macOS, and
-* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux, and
+* The [WinPython](https://winpython.github.io/) distribution for Windows,
+* The [MacPorts](http://www.macports.org/) project for macOS,
+* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux,
 * The `pip` package manager, included with most Python installations
 
-**However,** we lack the resources to provide individual support for users who
+**However**, we lack the resources to provide individual support for users who
 install via these methods, and they may be out of date or contain bugs outside
 our control, so we recommend the Anaconda version instead if you run into issues.
 
@@ -146,8 +146,8 @@ for more details.
 
 ## Dependencies
 
-**Important note**: Most if not all the dependencies listed below come
-with *Anaconda* or other scientific Python distributions, so you don't need
+**Important Note**: Most or all of the dependencies listed below come
+with *Anaconda* and other scientific Python distributions, so you don't need
 to install them seperatly in those cases.
 
 ### Build dependencies
@@ -172,17 +172,17 @@ a Python version greater than 2.7 or 3.3 (Python <=3.2 is not supported anymore)
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Run introspection services asynchronously.
-* **QtPy** 1.2.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
-  and PyQt5.
+* **QtPy** 1.2.0+: Abstraction layer for Python Qt bindings so that Spyder
+  can run on PyQt4 and PyQt5.
 * **Chardet**: Character encoding auto-detection in Python.
-* **Numpydoc**: Used by Jedi to get return types for functions with Numpydoc docstrings.
-* **Cloudpickle**: Serialize variables in the IPython kernel to send them to Spyder.
+* **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
+* **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
 
 ### Optional dependencies
 
 * **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
 * **Pandas**: View and edit DataFrames and Series in the Variable Explorer.
-* **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
+* **Numpy**: View and edit 2- or 3-dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
 * **Cython**: Run Cython files in the IPython console.
