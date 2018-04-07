@@ -99,6 +99,24 @@ install via these methods, and they may be out of date or contain bugs outside
 our control, so we recommend the Anaconda version instead if you run into issues.
 
 
+## Troubleshooting
+
+Before posting a report, *please* carefully read our **[Troubleshooting Guide](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
+
+
+## Contributing
+
+Everyone is welcome to help with Spyder. Please read our
+[contributing instructions](
+https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md)
+to get started!
+
+
 ## Running from a Github clone
 
 Spyder can be run directly from the source code, hosted on the
@@ -168,22 +186,6 @@ a Python version greater than 2.7 or 3.3 (Python <=3.2 is not supported anymore)
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
 * **Cython**: Run Cython files in the IPython console.
-
-
-## Contributing
-
-Everyone is welcome to help with Spyder. Please read our
-[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md)
-to get started!
-
-
-## Troubleshooting
-
-Before posting a report, *please* carefully read our **[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
-and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
-for your error message and problem description, as the great majority of bugs
-are either duplicates, or can be fixed on the user side with a few easy steps.
-Thanks!
 
 
 ## More information
