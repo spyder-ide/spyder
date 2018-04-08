@@ -1,4 +1,5 @@
-# Spyder — The Scientific Python Development Environment
+![Spyder — The Scientific Python Development Environment](
+./img_src/spyder_readme_banner.png)
 
 *Copyright © 2009–2018 Spyder Project Contributors*
 
@@ -16,7 +17,7 @@
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
 
-![screenshot](./img_src/screenshot.png)
+![Screenshot of Spyder's main window](./img_src/screenshot.png)
 
 
 ## Overview
