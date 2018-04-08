@@ -194,14 +194,19 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 ## More information
 
-* For Spyder development details:
+[Main Website](https://spyder-ide.github.io/)
 
-    <https://github.com/spyder-ide/spyder>
+[Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
-* For bug reports and feature requests:
+[Spyder on Github](https://github.com/spyder-ide/spyder)
 
-    <https://github.com/spyder-ide/spyder/issues>
+[Troubleshooting Guide and FAQ](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ')
 
-* For discussions and troubleshooting:
+[Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
 
-    <http://groups.google.com/group/spyderlib>
+[Gitter Chatroom](https://gitter.im/spyder-ide/public)
+
+[Google Group](http://groups.google.com/group/spyderlib)
+
+[Support Spyder on OpenCollective](https://opencollective.com/spyder/)
