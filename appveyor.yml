@@ -45,6 +45,8 @@ install:
   - "conda install tornado=4.5.3"
   # Fix connection to external kernels
   - "conda install jupyter_client=5.2.2"
+  # Fix problems with latest pyqt
+  - "conda install pyqt=5.6*"
 
 build: false
 
