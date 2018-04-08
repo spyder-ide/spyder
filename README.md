@@ -65,9 +65,9 @@ data analysis, and scientific package creation:
     Browse an automatically de-duplicated listing of every command you run
     on any Spyder console.
 
-Spyder may also be used as a PyQt5/PyQt4 extension library (module `spyder`).
+Spyder may also be used as a PyQt5 extension library (module `spyder`).
 For example, the Python interactive shell widget used in
-Spyder may be embedded in your own PyQt5/PyQt4 application.
+Spyder may be embedded in your own PyQt5 application.
 
 
 ## Documentation
@@ -140,7 +140,7 @@ cd spyder
 python bootstrap.py
 ```
 
-Alternatively, you can use `pip` to install PyQt5 (or PyQt4) separately and
+Alternatively, you can use `pip` to install PyQt5 separately and
 the other *runtime dependencies* listed below. However, beware:
 this method is recommended for experts only, and you'll need to solve any
 problems on your own. See the
@@ -157,12 +157,12 @@ to install them seperatly in those cases.
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version greater than 2.7 or 3.3 (Python <=3.2 is not supported anymore).
+a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 ### Runtime dependencies
 
-* **Python** 2.7 or 3.3+
-* **PyQt5** 5.2+ or **PyQt4** 4.6+: PyQt5 is recommended.
+* **Python** 2.7 or 3.4+: The core language Spyder is written in and for.
+* **PyQt5** 5.2+: Python bindings for Qt, used for Spyder's GUI.
 * **qtconsole** 4.2.0+: Enhanced Python interpreter.
 * **Rope** 0.9.4+ and **Jedi** 0.9.0+: Editor code completion, calltips
   and go-to-definition.
@@ -170,14 +170,14 @@ a Python version greater than 2.7 or 3.3 (Python <=3.2 is not supported anymore)
 * **Sphinx**: Rich text mode for the Help pane.
 * **Pygments** 2.0+: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
-* **Pycodestyle**: Style analysis.
+* **Pycodestyle**: Real-time code style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Run introspection services asynchronously.
 * **QtPy** 1.2.0+: Abstraction layer for Python Qt bindings so that Spyder
-  can run on PyQt4 and PyQt5.
+  can run on multiple Qt bindings and versions.
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
