@@ -34,7 +34,7 @@ of the new features you've been requesting for Spyder 4 at a greatly
 accelerated rate. There are many ways to [help with development](
 https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder), many of
 which don't even require any programming, and if you're able to make a
-financial contribution  to help support your favorite community IDE, you can
+financial contribution to help support your favorite community IDE, you can
 donate through our [OpenCollective](https://opencollective.com/spyder).
 
 We appreciate all the help you can provide us and can't thank you enough for
