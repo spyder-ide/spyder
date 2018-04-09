@@ -16,6 +16,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
+![Screenshot of Spyder's main window](./img_src/screenshot.png)
+
 ----
 
 ## Important Announcement: Spyder is unfunded!
@@ -36,9 +38,6 @@ If you want to know more about this, please read this
 [page](https://github.com/spyder-ide/spyder/wiki/Anaconda-stopped-funding-Spyder).
 
 ----
-
-![Screenshot of Spyder's main window](./img_src/screenshot.png)
-
 
 ## Overview
 
