@@ -10,9 +10,9 @@
 [![OpenCollective Backers](https://opencollective.com/spyder/backers/badge.svg?color=blue)](#backers)
 [![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
 
-[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=svg)](https://circleci.com/gh/spyder-ide/spyder)
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
+[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
@@ -195,11 +195,9 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 ## More information
 
-[Main Website](https://spyder-ide.github.io/)
-
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
-[Spyder on Github](https://github.com/spyder-ide/spyder)
+[Spyder Github](https://github.com/spyder-ide/spyder)
 
 [Troubleshooting Guide and FAQ](
 https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ')
