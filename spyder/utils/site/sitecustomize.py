@@ -242,6 +242,8 @@ if os.environ["QT_API"] == 'pyqt':
             sip.setapi(qtype, 2)
     except:
         pass
+else:
+    os.environ.pop('QT_API')
 
 
 #==============================================================================
