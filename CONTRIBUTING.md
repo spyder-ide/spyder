@@ -180,3 +180,21 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 ```bash
   $ python runtests.py
 ```
+
+
+## More information
+
+[Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
+
+[Spyder Github](https://github.com/spyder-ide/spyder)
+
+[Troubleshooting Guide and FAQ](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ')
+
+[Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
+
+[Gitter Chatroom](https://gitter.im/spyder-ide/public)
+
+[Google Group](http://groups.google.com/group/spyderlib)
+
+[Support Spyder on OpenCollective](https://opencollective.com/spyder/)
