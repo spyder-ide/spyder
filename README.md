@@ -22,24 +22,27 @@
 
 ## Important Announcement: Spyder needs your support!
 
-Since mid November 2017, [Anaconda, Inc](https://www.anaconda.com/) has
+Since mid-November 2017, [Anaconda, Inc](https://www.anaconda.com/) has
 stopped funding Spyder development, after doing so for the past 18
 months. Therefore, without additional funds, development will shift to
-maintaining Spyder 3 at a much slower pace than before, while slowly working
+maintaining Spyder 3 at a slower pace than before, while working
 toward an eventual Spyder 4 feature release sometime in the future.
 
 However, with your contribution of effort and funding, we will be able to
-both continue to maintain Spyder 3 at a faster pace, and fund development
-of the new features you've been requesting for Spyder 4 at a greatly
-accelerated rate. There are many ways to [help with development](
+both continue to maintain Spyder 3 at a faster pace, and fund development of
+new features for Spyder 4 (such as a major overhaul to improve
+code completion, and a much-improved new debugger, both of which you've been
+requesting) at a greatly accelerated rate.
+
+There are many ways to [help with development](
 https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder), many of
-which don't even require any programming, and if you're able to make a
+which don't require any programming, and if you're able to make a
 financial contribution to help support your favorite community IDE, you can
 donate through our [OpenCollective](https://opencollective.com/spyder).
 
 We appreciate all the help you can provide us and can't thank you enough for
-supporting the work of Spyder devs and Spyder development! If you want to learn
-more about the current situation and our future plans, please read this [page](
+supporting the work of the Spyder devs and Spyder development! To learn more
+about the current situation and our future plans, please read this [page](
 https://github.com/spyder-ide/spyder/wiki/Anaconda-stopped-funding-Spyder).
 
 ----
