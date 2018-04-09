@@ -831,7 +831,7 @@ def test_sys_argv_clear(ipyconsole, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
+@flaky(max_runs=5)
 def test_set_elapsed_time(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     shell = ipyconsole.get_current_shellwidget()
@@ -843,11 +843,14 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     client.t0 -= 120
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         ipyconsole.set_elapsed_time(client)
-    assert '00:02:00' in client.time_label.text()
+    assert ('00:02:00' in client.time_label.text() or
+            '00:02:01' in client.time_label.text())
 
+    # Wait for a second to pass, to ensure timer is counting up
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         pass
-    assert '00:02:01' in client.time_label.text()
+    assert ('00:02:01' in client.time_label.text() or
+            '00:02:02' in client.time_label.text())
 
     # Make previous time later than current time.
     client.t0 += 2000
