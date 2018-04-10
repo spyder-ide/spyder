@@ -39,11 +39,16 @@ from spyder.utils.misc import getcwd_or_home
 
 def save_figure_tofile(fig, fmt, fname):
     """Save fig to fname in the format specified by fmt."""
-    if fmt == 'image/svg+xml' and is_unicode(fig):
-        fig = fig.encode('utf-8')
+    root, ext = osp.splitext(fname)
+    if ext == '.png' and fmt == 'image/svg+xml':
+        qimg = svg_to_image(fig)
+        qimg.save(fname)
+    else:
+        if fmt == 'image/svg+xml' and is_unicode(fig):
+            fig = fig.encode('utf-8')
 
-    with open(fname, 'wb') as f:
-        f.write(fig)
+        with open(fname, 'wb') as f:
+            f.write(fig)
 
 
 def get_unique_figname(dirname, root, ext):
@@ -530,18 +535,19 @@ class ThumbnailScrollBar(QFrame):
     def save_figure_as(self, fig, fmt):
         """Save the figure to a file."""
         fext, ffilt = {
-                'image/png': ('.png', 'PNG (*.png)'),
-                'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
-                'image/svg+xml': ('.svg', 'SVG (*.svg)')}[fmt]
+            'image/png': ('.png', 'PNG (*.png)'),
+            'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
+            'image/svg+xml': ('.svg', 'SVG (*.svg);;PNG (*.png)')}[fmt]
 
         figname = get_unique_figname(getcwd_or_home(), 'Figure', fext)
 
         self.redirect_stdio.emit(False)
         fname, fext = getsavefilename(
-                parent=self.parent(), caption='Save Figure',
-                basedir=figname, filters=ffilt,
-                selectedfilter='', options=None)
+            parent=self.parent(), caption='Save Figure',
+            basedir=figname, filters=ffilt,
+            selectedfilter='', options=None)
         self.redirect_stdio.emit(True)
+
         if fname:
             save_figure_tofile(fig, fmt, fname)
 
