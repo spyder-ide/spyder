@@ -1199,9 +1199,9 @@ def test_varexp_magic_dbg(main_window, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
 
-# @pytest.mark.slow
-# @flaky(max_runs=3)
-# @pytest.mark.skipif(PY2, reason="It times out sometimes")
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="It times out sometimes")
 def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     """
     Test that the option to set bbox_inches to 'tight' or 'None' is
