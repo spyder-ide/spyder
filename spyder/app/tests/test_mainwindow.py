@@ -1205,7 +1205,7 @@ def test_varexp_magic_dbg(main_window, qtbot):
 def test_tight_layout_option_for_inline_plot(main_window, qtbot):
     """
     Test that the option to set bbox_inches to 'tight' or 'None' is
-    working when plotting inline in the IPython console. By default, figure
+    working when plotting inline in the IPython console. By default, figures
     are plotted inline with bbox_inches='tight'.
     """
     # Assert that the default is True.
