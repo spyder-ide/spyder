@@ -154,7 +154,7 @@ DEFAULTS = [
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
-              'pylab/inline/bbox_inches': False,
+              'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',
@@ -650,7 +650,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '43.0.0'
+CONF_VERSION = '43.1.0'
 
 # Main configuration instance
 try:
