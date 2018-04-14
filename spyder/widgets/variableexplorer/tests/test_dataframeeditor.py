@@ -23,7 +23,6 @@ except ImportError:
 
 # Third party imports
 from pandas import DataFrame, date_range, read_csv, concat
-from qtpy import PYQT4
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy

@@ -82,10 +82,8 @@ from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
                             QStyleFactory)
+
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
-# when PySide is selected by the QT_API environment variable and when PyQt4
-# is also installed (or any other Qt-based application prepending a directory
-# containing incompatible Qt DLLs versions in PATH):
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
@@ -243,12 +241,6 @@ class MainWindow(QMainWindow):
           _("Numpy and Scipy documentation")),
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
           _("Matplotlib documentation")),
-         ('PyQt4',
-          "http://pyqt.sourceforge.net/Docs/PyQt4/",
-          _("PyQt4 Reference Guide")),
-         ('PyQt4',
-          "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
-          _("PyQt4 API Reference")),
          ('PyQt5',
           "http://pyqt.sourceforge.net/Docs/PyQt5/",
           _("PyQt5 Reference Guide")),
@@ -733,11 +725,7 @@ class MainWindow(QMainWindow):
             if qtlact:
                 break
         args = ['-no-opengl'] if os.name == 'nt' else []
-        qteact = create_python_script_action(self,
-                                _("Qt examples"), 'qt.png', "PyQt4",
-                                osp.join("examples", "demos",
-                                        "qtdemo", "qtdemo"), args)
-        for act in (qtdact, qtlact, qteact):
+        for act in (qtdact, qtlact):
             if act:
                 additact.append(act)
         if additact and is_module_installed('winpython'):
@@ -758,7 +746,7 @@ class MainWindow(QMainWindow):
                                     "guidata",
                                     osp.join("tests", "__init__"))
             gdgq_act += [guidata_act]
-        except (ImportError, AssertionError):
+        except:
             pass
         try:
             from guidata import configtools
@@ -774,7 +762,7 @@ class MainWindow(QMainWindow):
                         sift_icon, "guiqwt", osp.join("tests", "sift"))
             if sift_act:
                 gdgq_act += [sift_act]
-        except (ImportError, AssertionError):
+        except:
             pass
         if gdgq_act:
             self.external_tools_menu_actions += [None] + gdgq_act

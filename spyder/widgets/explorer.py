@@ -22,7 +22,6 @@ import sys
 import mimetypes as mime
 
 # Third party imports
-from qtpy import API, is_pyqt46
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl,
@@ -207,9 +206,8 @@ class DirView(QTreeView):
     def setup_view(self):
         """Setup view"""
         self.install_model()
-        if not is_pyqt46:
-            self.fsmodel.directoryLoaded.connect(
-                                        lambda: self.resizeColumnToContents(0))
+        self.fsmodel.directoryLoaded.connect(
+            lambda: self.resizeColumnToContents(0))
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
@@ -884,7 +882,7 @@ class DirView(QTreeView):
                     self._to_be_loaded = []
                 self._to_be_loaded.append(path)
                 self.setExpanded(self.get_index(path), True)
-        if not self.__expanded_state and not is_pyqt46:
+        if not self.__expanded_state:
             self.fsmodel.directoryLoaded.disconnect(self.restore_directory_state)
                 
     def follow_directories_loaded(self, fname):
@@ -894,8 +892,7 @@ class DirView(QTreeView):
         path = osp.normpath(to_text_string(fname))
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
-        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0 \
-          and not is_pyqt46:
+        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
             self.fsmodel.directoryLoaded.disconnect(
                                         self.follow_directories_loaded)
             if self._scrollbar_positions is not None:
@@ -906,7 +903,7 @@ class DirView(QTreeView):
         """Restore all items expanded state"""
         if self.__expanded_state is not None:
             # In the old project explorer, the expanded state was a dictionnary:
-            if isinstance(self.__expanded_state, list) and not is_pyqt46:
+            if isinstance(self.__expanded_state, list):
                 self.fsmodel.directoryLoaded.connect(
                                                   self.restore_directory_state)
                 self.fsmodel.directoryLoaded.connect(

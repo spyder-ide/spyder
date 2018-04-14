@@ -24,7 +24,7 @@ from flaky import flaky
 import ipykernel
 from pygments.token import Name
 import pytest
-from qtpy import PYQT4, PYQT5
+from qtpy import PYQT5
 from qtpy.QtCore import Qt
 import zmq
 
@@ -112,8 +112,7 @@ def ipyconsole(qtbot, request):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(os.name == 'nt' or PYQT4,
-                    reason="It times out sometimes on Windows and it's not needed in PyQt4")
+@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 @pytest.mark.xfail(zmq.__version__ >= '17.0.0' and ipykernel.__version__ <= "4.8.1",
                    reason="A bug with pyzmq 17 and ipykernel 4.8.1")
 def test_auto_backend(ipyconsole, qtbot):
@@ -630,7 +629,7 @@ def test_run_doctest(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5) or PYQT4,
+@pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
                     reason="It times out frequently")
 def test_mpl_backend_change(ipyconsole, qtbot):
     """
