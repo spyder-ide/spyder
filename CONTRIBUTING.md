@@ -89,9 +89,8 @@ the directory where your git clone is stored and run:
   $ pip install -r requirements/requirements.txt
 ```
 
-If you are using `pip` and Python 2, you also need to install a Qt binding
-package (PyQt4 or PyQt5, with the latter strongly recommended).
-This can be achieved by running:
+If you are using `pip` and Python 3, you also need to install a Qt binding
+package (PyQt5). This can be achieved by running:
 
 ```bash
   $ pip install pyqt5
