@@ -25,8 +25,20 @@
 
 ## Overview
 
-Spyder is a Python development environment with many features for research,
-data analysis, and scientific package creation:
+Spyder is a powerful scientific environment written in Python, for Python,
+and designed by and for scientists, engineers and data analysts. It offers a
+unique combination of the advanced editing, analysis, debugging, and profiling
+functionality of a comprehensive development tool with the data exploration,
+interactive execution, deep inspection, and beautiful visualization
+capabilities of a scientific package.
+
+Beyond its many built-in features, its abilities can be extended even further
+via its plugin system and API. Furthermore, Spyder can also be used as a PyQt5
+extension library, allowing you to build upon its functionality and embed
+its components, such as the interactive console, in your own software.
+
+
+## Core components
 
 * **Editor**
 
@@ -37,14 +49,15 @@ data analysis, and scientific package creation:
 
 * **Interactive console**
 
-    Multiple IPython consoles with workspace and debugging support to
-    instantly evaluate the code written in the Editor.
-    Spyder consoles also come with full Matplotlib integration.
+    Harness the power of as many IPython consoles as you like with full
+    workspace and debugging support, all within the flexibility of a full
+    GUI interface. Instantly run your code by line, cell, or file,
+    and render plots right inline with the output or in interactive windows.
 
 * **Documentation viewer**
 
     Render documentation in real-time with Sphinx for any class or function,
-    whether external or user-created from either the Editor or a Console.
+    whether external or user-created, from either the Editor or a Console.
 
 * **Variable explorer**
 
@@ -56,22 +69,9 @@ data analysis, and scientific package creation:
 * **Development tools**
 
     Examine your code with the static analyzer, trace its execution with the
-    interactive debugger, measure its performance with the profiler,
-    and keep things organized with project support and a builtin file explorer.
-
-* **Find in files**
-
-    Search for queries across multiple files in your project,
-    with full support for regular expressions.
-
-* **History log**
-
-    Browse an automatically de-duplicated listing of every command you run
-    on any Spyder console.
-
-Spyder may also be used as a PyQt5 extension library (module `spyder`).
-For example, the Python interactive shell widget used in
-Spyder may be embedded in your own PyQt5 application.
+    interactive debugger, and unleash its performance with the profiler.
+    Keep things organized with project support and a builtin file explorer, and
+    use find in files to search across entire projects with full regex support.
 
 
 ## Documentation
