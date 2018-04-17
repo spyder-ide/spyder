@@ -2427,9 +2427,9 @@ class MainWindow(QMainWindow):
 
         bug_checklist = (
             "* [ ] Searched issues page for similar reports\n"
-            "* [ ] Reproduced after updating (`conda update spyder`)\n"
             "* [ ] Read and followed relevant sections of the"
             "[Troubleshooting Guide]({0!s})\n"
+            "* [ ] Reproduced after updating (`conda update spyder`)\n"
             "* [ ] Tried basic troubleshooting\n"
             "    * [ ] Restarted Spyder\n"
             "    * [ ] Ran `spyder --reset`\n"

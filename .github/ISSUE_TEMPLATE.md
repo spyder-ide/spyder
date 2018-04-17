@@ -2,21 +2,16 @@
 
 ### Issue Report Checklist
 
-* [ ] Ensured the issue is with the core Spyder IDE, not Python, a package, your code, a Spyder plugin, etc.
-* [ ] Searched the [issue page](https://github.com/spyder-ide/spyder/issues?q=is%3Aissue) for similar reports by description and/or the last line of the error/traceback
+* [ ] Searched the [issues page](https://github.com/spyder-ide/spyder/issues?q=is%3Aissue) for similar reports
 * [ ] Read the relevant sections of the [Spyder Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ) and followed its advice
-* [ ] Updated with ``conda update spyder`` (or ``pip update spyder``) and reproduced the issue
-* [ ] Could not reproduce with a bare ``qtconsole`` (from Anaconda Navigator or ``jupyter qtconsole``)
-* [ ] Completed the following troubleshooting steps (if a Spyder component is not working/launching)
+* [ ] Reproduced the issue after updating with ``conda update spyder`` (or ``pip``, if not using Anaconda)
+* [ ] Could not reproduce inside ``jupyter qtconsole`` (if console-related)
+* [ ] Tried basic troubleshooting (if a bug/error)
     * [ ] Restarted Spyder
     * [ ] Reset preferences with ``spyder --reset``
-    * [ ] Cleanly reinstalled the latest version of the Anaconda distribution
+    * [ ] Reinstalled the latest version of [Anaconda](https://www.anaconda.com/download/)
     * [ ] Tried the other applicable steps from the Troubleshooting Guide
-* [ ] Completed *all* relevant sections below:
-    * [ ] Problem description
-    * [ ] Steps to reproduce
-    * [ ] Version and dependency information
-    * [ ] Traceback/error/output if applicable
+* [ ] Completed the **Problem Description**, **Steps to Reproduce** and **Version** sections below
 
 
 ## Problem Description
