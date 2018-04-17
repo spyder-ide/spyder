@@ -37,6 +37,10 @@ via its plugin system and API. Furthermore, Spyder can also be used as a PyQt5
 extension library, allowing you to build upon its functionality and embed
 its components, such as the interactive console, in your own software.
 
+For more general information about Spyder and to stay up to date on the
+latest Spyder news and information, please check out [our new website](
+https://www.spyder-ide.org/).
+
 
 ## Core components
 
@@ -197,6 +201,8 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 
 ## More information
+
+[Main Website](https://www.spyder-ide.org/)
 
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
