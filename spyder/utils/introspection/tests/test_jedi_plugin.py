@@ -5,12 +5,13 @@
 
 """Tests for jedi_plugin.py"""
 
+import os
+import os.path as osp
 from textwrap import dedent
 
 import pytest
-import os
-import os.path as osp
 
+from spyder.utils.programs import is_module_installed
 from spyder.utils.introspection import jedi_plugin
 from spyder.utils.introspection.manager import CodeInfo
 
@@ -104,6 +105,8 @@ def test_default_info():
 
 @pytest.mark.skipif(not(numpy and numpydoc),
                     reason="numpy and numpydoc required")
+@pytest.mark.skipif(not is_module_installed('jedi', '<0.12.0'),
+                    reason="Fails under jedi >=0.12")
 def test_numpy_returns():
     source_code = dedent('''
     import numpy as np
@@ -116,6 +119,8 @@ def test_numpy_returns():
 
 @pytest.mark.skipif(not(matplotlib and numpydoc),
                     reason="matplotlib required")
+@pytest.mark.skipif(not is_module_installed('jedi', '<0.12.0'),
+                    reason="Fails under jedi >=0.12")
 def test_matplotlib_fig_returns():
     source_code = dedent('''
     import matplotlib.pyplot as plt
