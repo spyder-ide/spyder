@@ -112,6 +112,8 @@ def test_numpy_returns():
 
 @pytest.mark.skipif(not(matplotlib and numpydoc),
                     reason="matplotlib required")
+@pytest.mark.skipif(not is_module_installed('jedi', '<0.12.0'),
+                    reason="Fails under jedi >=0.12")
 def test_matplotlib_fig_returns():
     source_code = dedent('''
     import matplotlib.pyplot as plt
