@@ -426,7 +426,7 @@ class FindReplace(QWidget):
 
         if (multiline_replace_check and self.replace_widgets[0].isVisible()
                 and len(to_text_string(
-                    self.editor.get_selected_text()).splitlines())>1):
+                    self.editor.get_selected_text()).splitlines()) > 1):
             return None
         text = self.search_text.currentText()
         if len(text) == 0:
