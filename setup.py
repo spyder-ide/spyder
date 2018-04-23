@@ -36,8 +36,8 @@ PY3 = sys.version_info[0] == 3
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
-    error = "ERROR: Spyder requires Python version 2.7 or 3.3 or above."
+if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 4)):
+    error = "ERROR: Spyder requires Python version 2.7 or 3.4 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
