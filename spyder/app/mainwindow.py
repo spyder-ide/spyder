@@ -957,7 +957,7 @@ class MainWindow(QMainWindow):
                                     'doc', "index.html")
         # * If we totally fail, point to our web build
         if not osp.isfile(spyder_doc):
-            spyder_doc = 'http://pythonhosted.org/spyder'
+            spyder_doc = 'https://docs.spyder-ide.org/'
         else:
             spyder_doc = file_uri(spyder_doc)
         doc_action = create_action(self, _("Spyder documentation"),
@@ -2921,7 +2921,7 @@ class MainWindow(QMainWindow):
         error_msg = self.worker_updates.error
 
         url_r = __project_url__ + '/releases'
-        url_i = 'http://pythonhosted.org/spyder/installation.html'
+        url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
