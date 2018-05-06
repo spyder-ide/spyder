@@ -291,10 +291,7 @@ install_requires = [
     'numpydoc',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<5.10;python_version>="3"',
-    # This is only needed for our wheels on Linux.
-    # See issue #3332
-    'pyopengl;platform_system=="Linux"'
+    'pyqt5<5.10;python_version>="3"'
 ]
 
 extras_require = {
