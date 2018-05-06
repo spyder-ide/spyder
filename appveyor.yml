@@ -47,8 +47,6 @@ install:
   - "conda install jupyter_client=5.2.2"
   # Fix problems with latest pyqt
   - "conda install pyqt=5.6*"
-  # Fix test issues with the latest jedi 0.12 for now
-  - "conda install jedi=0.11.1"
 
 build: false
 
