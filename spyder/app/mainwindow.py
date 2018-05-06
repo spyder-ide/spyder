@@ -2434,7 +2434,6 @@ class MainWindow(QMainWindow):
             "    * [ ] Restarted Spyder\n"
             "    * [ ] Ran `spyder --reset`\n"
             "    * [ ] Reinstalled latest Anaconda\n"
-            "* [ ] Completed all applicable sections below\n"
             ).format(__trouble_url_short__)
 
         # Make a description header in case no description is supplied
@@ -2462,11 +2461,11 @@ class MainWindow(QMainWindow):
 
 ## Versions
 
-* Spyder ver: {spyder_version} {commit}
-* Python ver: {python_version}
-* Qt ver: {qt_version}
-* {qt_api_name} ver: {qt_api_version}
-* OS: {os_name} {os_version}
+* Spyder version: {spyder_version} {commit}
+* Python version: {python_version}
+* Qt version: {qt_version}
+* {qt_api_name} version: {qt_api_version}
+* Operating System: {os_name} {os_version}
 
 ### Dependencies
 

@@ -20,9 +20,9 @@
 
 ### What steps reproduce the problem?
 
-1.
-2.
-3.
+1. 
+2. 
+3. 
 
 ### What is the expected output? What do you see instead?
 
@@ -42,11 +42,11 @@ PASTE TRACEBACK HERE
 or (if Spyder won't launch) the "conda list" command
 from the Anaconda Prompt/Terminal/command line. --->
 
-* Spyder version:
-* Python version:
-* Qt version:
-* PyQt version:
-* OS name and version:
+* Spyder version: 
+* Python version: 
+* Qt version: 
+* PyQt version: 
+* Operating System name/version: 
 
 ### Dependencies
 <!--- Please go to the menu entry Help > Dependencies,

@@ -1,4 +1,4 @@
-<!--- Before submitting your pull request, --->
+<!--- Before submitting your pull request --->
 <!--- please complete as much as possible of the following checklist: --->
 
 ### Pull Request Checklist
@@ -24,8 +24,8 @@
 
 ### Issue(s) Resolved
 
-<!--- Pull requests should typically resolve at least one—preferably only one—
-<!--- outstanding issue; create a new one if no relevant issue exists.
+<!--- Pull requests should typically resolve one, preferably only one --->
+<!--- outstanding issue; create a new one if no relevant issue exists. --->
 <!--- List the issue(s) below, in the form "Fixes #1234" . One per line.--->
 
 Fixes #
