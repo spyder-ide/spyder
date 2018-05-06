@@ -36,16 +36,10 @@ if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
 
     # Fix connection to external kernels
     pip install jupyter-client==5.2.2
-
-    # Avoid test failures with the latest jedi 0.12 for now
-    pip install jedi==0.11.1
 else
     # Run with tornado < 5.0 to avoid hangs
     conda install tornado=4.5.3
 
     # Fix connection to external kernels
     conda install jupyter_client=5.2.2
-
-    # Avoid test failures with the latest jedi 0.12 for now
-    conda install jedi=0.11.1
 fi
