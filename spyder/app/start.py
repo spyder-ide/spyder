@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Std imports
+import ctypes
 import os
 import os.path as osp
 import random
@@ -12,10 +13,10 @@ import time
 # See issue 5324
 import zmq
 
-# This import is needed to fix errors with OpenGL when installed using pip
-# See issue 3332
+# Load GL library to prevent segmentation faults on some Linux systems
+# See issues 3226 and 3332
 try:
-    from OpenGL import GL
+    ctypes.CDLL("libGL.so.1", mode=ctypes.RTLD_GLOBAL)
 except:
     pass
 
