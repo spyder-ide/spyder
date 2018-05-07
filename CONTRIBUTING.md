@@ -184,17 +184,23 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 
 ## More information
 
+[Main Website](https://www.spyder-ide.org/)
+
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
 [Spyder Github](https://github.com/spyder-ide/spyder)
 
 [Troubleshooting Guide and FAQ](
-https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ')
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
 
 [Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
 
 [Gitter Chatroom](https://gitter.im/spyder-ide/public)
 
 [Google Group](http://groups.google.com/group/spyderlib)
+
+[@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
+
+[@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
 
 [Support Spyder on OpenCollective](https://opencollective.com/spyder/)
