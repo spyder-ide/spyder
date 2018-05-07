@@ -1,12 +1,24 @@
-<!--- **PLEASE READ:** Before submitting here, please carefully consult our *Troubleshooting Guide* at https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ and search the issues page for your error/problem, as most posted bugs are duplicates or easy fixes.
+<!--- **PLEASE READ:** When submitting here, please ensure you've completed the following checklist and checked the boxes to confirm. Issue reports without it may be closed. Thanks! --->
 
-If you don't find anything, please provide a detailed step-by-step description (in English) of the problem and what led up to it below. Issue reports without a clear way to reproduce them will be closed. Thanks! --->
+### Issue Report Checklist
+
+* [ ] Searched the [issues page](https://github.com/spyder-ide/spyder/issues?q=is%3Aissue) for similar reports
+* [ ] Read the relevant sections of the [Spyder Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ) and followed its advice
+* [ ] Reproduced the issue after updating with ``conda update spyder`` (or ``pip``, if not using Anaconda)
+* [ ] Could not reproduce inside ``jupyter qtconsole`` (if console-related)
+* [ ] Tried basic troubleshooting (if a bug/error)
+    * [ ] Restarted Spyder
+    * [ ] Reset preferences with ``spyder --reset``
+    * [ ] Reinstalled the latest version of [Anaconda](https://www.anaconda.com/download/)
+    * [ ] Tried the other applicable steps from the Troubleshooting Guide
+* [ ] Completed the **Problem Description**, **Steps to Reproduce** and **Version** sections below
+
 
 ## Problem Description
 
 
 
-### What steps will reproduce the problem?
+### What steps reproduce the problem?
 
 1. 
 2. 
@@ -25,13 +37,16 @@ PASTE TRACEBACK HERE
 
 ```
 
-## Package Versions
+## Versions
+<!--- You can get this information from Help > About Spyder...
+or (if Spyder won't launch) the "conda list" command
+from the Anaconda Prompt/Terminal/command line. --->
 
-* Spyder:
-* Python:
-* Qt:
-* PyQt:
-* Operating System:
+* Spyder version: 
+* Python version: 
+* Qt version: 
+* PyQt version: 
+* Operating System name/version: 
 
 ### Dependencies
 <!--- Please go to the menu entry Help > Dependencies,

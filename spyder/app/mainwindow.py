@@ -141,7 +141,7 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, get_versions)
+                    __trouble_url__, __trouble_url_short__, get_versions)
 from spyder.config.base import (get_conf_path, get_module_data_path,
                                 get_module_source_path, STDERR, DEBUG,
                                 debug_print, MAC_APP_NAME, get_home_dir,
@@ -2409,7 +2409,7 @@ class MainWindow(QMainWindow):
             revision = versions['revision']
 
         # Store and format the reminder message for the troubleshooting guide
-        reminder_message = (
+        reminder_message_full = (
             "<!--- **PLEASE READ:** Before submitting here, please carefully "
             "consult our *Troubleshooting Guide*: {0!s} and search the "
             "issues page for your error/problem, as most posted bugs are "
@@ -2420,34 +2420,52 @@ class MainWindow(QMainWindow):
             "will be closed. Thanks! --->"
             ).format(__trouble_url__)
 
+        reminder_message_short = (
+            "<!--- PLEASE READ: Complete the following checklist. "
+            "Issues without it may be closed. --->"
+            )
+
+        bug_checklist = (
+            "* [ ] Searched issues page for similar reports\n"
+            "* [ ] Read and followed relevant sections of the"
+            "[Troubleshooting Guide]({0!s})\n"
+            "* [ ] Reproduced after updating (`conda update spyder`)\n"
+            "* [ ] Tried basic troubleshooting\n"
+            "    * [ ] Restarted Spyder\n"
+            "    * [ ] Ran `spyder --reset`\n"
+            "    * [ ] Reinstalled latest Anaconda\n"
+            ).format(__trouble_url_short__)
+
         # Make a description header in case no description is supplied
         if not description:
-            description = "### What steps will reproduce the problem?"
+            description = "### What steps reproduce the problem?"
 
-        # Make error section from traceback
+        # Make error section from traceback and add appropriate reminder header
         if traceback:
             error_section = ("### Traceback\n"
                              "```python-traceback\n"
                              "{}\n"
                              "```".format(traceback))
+            reminder_message = reminder_message_full
         else:
             error_section = ''
+            reminder_message = reminder_message_short + "\n\n" + bug_checklist
         issue_template = """\
 {reminder_message}
 
-## Problem Description
+## Description
 
 {description}
 
 {error_section}
 
-## Package Versions
+## Versions
 
 * Spyder version: {spyder_version} {commit}
 * Python version: {python_version}
 * Qt version: {qt_version}
 * {qt_api_name} version: {qt_api_version}
-* Operating system: {os_name} {os_version}
+* Operating System: {os_name} {os_version}
 
 ### Dependencies
 
@@ -2496,13 +2514,13 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def trouble_guide(self):
-        """Open Spyder troubleshooting guide in a web browser"""
+        """Open Spyder troubleshooting guide in a web browser."""
         url = QUrl(__trouble_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
     def google_group(self):
-        """Open Spyder troubleshooting guide in a web browser"""
+        """Open Spyder troubleshooting guide in a web browser."""
         url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
