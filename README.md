@@ -197,6 +197,8 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
+[Online Documentation](http://docs.spyder-ide.org/)
+
 [Spyder Github](https://github.com/spyder-ide/spyder)
 
 [Troubleshooting Guide and FAQ](

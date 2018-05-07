@@ -191,6 +191,8 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 [Troubleshooting Guide and FAQ](
 https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ')
 
+[Online Documentation](http://docs.spyder-ide.org/)
+
 [Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
 
 [Gitter Chatroom](https://gitter.im/spyder-ide/public)
