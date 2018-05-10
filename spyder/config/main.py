@@ -432,6 +432,8 @@ DEFAULTS = [
               'profiler/run profiler': "F10",
               # ---- In widgets/ipythonconsole/shell.py ----
               'ipython_console/new tab': "Ctrl+T",
+              'ipython_console/new pylab tab': "Ctrl+U",
+              'ipython_console/new sympy tab': "Ctrl+Y",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
               'ipython_console/restart kernel': "Ctrl+.",
               # ---- In widgets/arraybuider.py ----
