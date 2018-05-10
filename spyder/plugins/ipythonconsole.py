@@ -1064,9 +1064,9 @@ class IPythonConsole(SpyderPluginWidget):
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
-                              additional_options=\
-                                  self.additional_options(is_pylab=is_pylab,
-                                                          is_sympy=is_sympy),
+                              additional_options=self.additional_options(
+                                      is_pylab=is_pylab,
+                                      is_sympy=is_sympy),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions,
