@@ -834,8 +834,6 @@ class IPythonConsole(SpyderPluginWidget):
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_pylab_client,
                                    context=Qt.WidgetWithChildrenShortcut)
-        self.register_shortcut(create_pylab_action, context="ipython_console",
-                               name="New pylab tab")
 
         create_sympy_action = create_action(
                                    self,
@@ -843,8 +841,6 @@ class IPythonConsole(SpyderPluginWidget):
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_sympy_client,
                                    context=Qt.WidgetWithChildrenShortcut)
-        self.register_shortcut(create_sympy_action, context="ipython_console",
-                               name="New sympy tab")
 
         restart_action = create_action(self, _("Restart kernel"),
                                        icon=ima.icon('restart'),
