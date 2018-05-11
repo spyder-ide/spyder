@@ -865,6 +865,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu.insert(1, create_pylab_action)
+        main_consoles_menu.insert(2, create_sympy_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
                                connect_to_kernel_action,
                                MENU_SEPARATOR]
@@ -1317,7 +1319,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         if is_pylab is True:
             options['autoload_pylab'] = True
+            options['sympy'] = False
         if is_sympy is True:
+            options['autoload_pylab'] = False
             options['sympy'] = True
 
         return options

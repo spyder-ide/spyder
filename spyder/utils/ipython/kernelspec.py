@@ -138,7 +138,9 @@ class SpyderKernelSpec(KernelSpec):
 
         if self.is_pylab is True:
             env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
+            env_vars['SPY_SYMPY_O'] = False
         if self.is_sympy is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
             env_vars['SPY_SYMPY_O'] = True
 
         # Add our PYTHONPATH to env_vars
