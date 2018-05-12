@@ -124,7 +124,7 @@ def get_home_dir():
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
     # Define conf_dir
-    if running_under_pytest():
+    if running_under_pytest() or TEST:
         import py
         from _pytest.tmpdir import get_user
         conf_dir = osp.join(str(py.path.local.get_temproot()),
@@ -144,7 +144,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest():
+        if running_under_pytest() or TEST:
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
@@ -152,7 +152,7 @@ def get_conf_path(filename=None):
         return conf_dir
     else:
         return osp.join(conf_dir, filename)
-        
+
 
 def get_module_path(modname):
     """Return module *modname* base path"""

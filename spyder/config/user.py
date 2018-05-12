@@ -22,7 +22,7 @@ import time
 
 # Local imports
 from spyder.config.base import (get_conf_path, get_home_dir,
-                                get_module_source_path, TEST)
+                                get_module_source_path)
 from spyder.utils.programs import check_version
 from spyder.py3compat import configparser as cp
 from spyder.py3compat import PY2, is_text_string, to_text_string
@@ -92,10 +92,6 @@ class DefaultsConfig(cp.ConfigParser):
         """
         Save config into the associated .ini file
         """
-        # Don't save settings if we are on testing mode
-        if TEST:
-            return
-
         # See Issue 1086 and 1242 for background on why this
         # method contains all the exception handling.
         fname = self.filename()
