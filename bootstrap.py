@@ -20,6 +20,7 @@ import os
 import os.path as osp
 import sys
 import optparse
+import shutil
 
 
 # --- Parse command line
@@ -164,6 +165,13 @@ if options.show_console:
 if options.hide_console and os.name == 'nt':
     print("0x. Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console
+
+# Reset temporary config directory if in --test mode
+if options.test:
+    from spyder.config.base import get_conf_path  # analysis:ignore
+    conf_dir = get_conf_path()
+    if osp.isdir(conf_dir):
+        shutil.rmtree(conf_dir)
 
 print("04. Running Spyder")
 from spyder.app import start
