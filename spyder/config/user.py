@@ -15,8 +15,8 @@ from __future__ import print_function
 # Std imports
 import ast
 import os
-import re
 import os.path as osp
+import re
 import shutil
 import time
 
@@ -106,10 +106,10 @@ class DefaultsConfig(cp.ConfigParser):
                 with open(fname, 'w', encoding='utf-8') as configfile:
                     self.write(configfile)
 
-        try: # the "easy" way
+        try:  # the "easy" way
             _write_file(fname)
         except IOError:
-            try: # the "delete and sleep" way
+            try:  # the "delete and sleep" way
                 if osp.isfile(fname):
                     os.remove(fname)
                 time.sleep(0.05)

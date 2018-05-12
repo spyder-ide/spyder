@@ -12,6 +12,8 @@ See Issue 741
 """
 
 # pylint: disable=C0103
+# pylint: disable=C0412
+# pylint: disable=C0413
 
 import time
 time_start = time.time()

@@ -150,8 +150,8 @@ def get_conf_path(filename=None):
             os.mkdir(conf_dir)
     if filename is None:
         return conf_dir
-    else:
-        return osp.join(conf_dir, filename)
+
+    return osp.join(conf_dir, filename)
 
 
 def get_module_path(modname):
