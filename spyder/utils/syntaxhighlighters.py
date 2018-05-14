@@ -420,7 +420,6 @@ class PythonSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
         self.found_cell_separators = False
-        self.cell_offset = 0
         self.cell_separators = CELL_LANGUAGES['Python']
 
     def highlight_block(self, text):
@@ -479,12 +478,11 @@ class PythonSH(BaseSH):
                                 self.found_cell_separators = True
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
-                                if text.lstrip().startswith(("# %%%", "#%%%")):
-                                    self.cell_offset = 8
-                                    oedata.fold_level = 4
-                                else:
-                                    self.cell_offset = 4
-                                    oedata.fold_level = 0
+                                # cell_head: string contaning the first group
+                                # of '%'s in the cell header
+                                cell_head = re.findall(r"%+", text.lstrip())[0]
+                                oedata.cell_level = len(cell_head) - 2
+                                oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
                                 oedata.def_name = text.strip()
                             elif self.OECOMMENT.match(text.lstrip()):
@@ -502,8 +500,7 @@ class PythonSH(BaseSH):
                                                    self.formats["definition"])
                                     oedata = OutlineExplorerData()
                                     oedata.text = to_text_string(text)
-                                    oedata.fold_level = (start +
-                                                         self.cell_offset)
+                                    oedata.fold_level = (start)
                                     oedata.def_type = self.DEF_TYPES[
                                                         to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
@@ -514,8 +511,7 @@ class PythonSH(BaseSH):
                                 if text.lstrip().startswith(value):
                                     oedata = OutlineExplorerData()
                                     oedata.text = to_text_string(text).strip()
-                                    oedata.fold_level = (start +
-                                                         self.cell_offset)
+                                    oedata.fold_level = (start)
                                     oedata.def_type = \
                                         OutlineExplorerData.STATEMENT
                                     oedata.def_name = text.strip()
