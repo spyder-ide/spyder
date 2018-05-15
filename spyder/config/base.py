@@ -34,9 +34,9 @@ from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
-# For testing purposes
-# SPYDER_TEST can be set using the --test option of bootstrap.py
-TEST = os.environ.get('SPYDER_TEST')
+# Make Spyder use a temp clean configuration directory for testing purposes
+# SPYDER_CLEAN can be set using the --clean option of bootstrap.py
+CLEAN = os.environ.get('SPYDER_CLEAN')
 
 
 def running_under_pytest():
@@ -124,7 +124,7 @@ def get_home_dir():
 def get_conf_path(filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
-    if running_under_pytest() or TEST:
+    if running_under_pytest() or CLEAN:
         # Use clean config dir if running tests or the user requests it.
         import getpass  # analysis:ignore
         if sys.platform.startswith("win"):
@@ -149,7 +149,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest() or TEST:
+        if running_under_pytest() or CLEAN:
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
