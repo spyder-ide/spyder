@@ -480,9 +480,12 @@ class PythonSH(BaseSH):
                                 oedata.text = to_text_string(text).strip()
                                 # cell_head: string contaning the first group
                                 # of '%'s in the cell header
-                                cell_head = re.search(r"%+",
+                                cell_head = re.search(r"%+|$",
                                                       text.lstrip()).group()
-                                oedata.cell_level = len(cell_head) - 2
+                                if cell_head == '':
+                                    oedata.cell_level = 0
+                                else:
+                                    oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
                                 oedata.def_name = text.strip()
