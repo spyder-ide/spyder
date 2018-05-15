@@ -122,13 +122,18 @@ def get_home_dir():
 
 
 def get_conf_path(filename=None):
-    """Return absolute path for configuration file with specified filename"""
+    """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
     if running_under_pytest() or TEST:
-        import py
-        from _pytest.tmpdir import get_user
-        conf_dir = osp.join(str(py.path.local.get_temproot()),
-                            'pytest-of-{}'.format(get_user()),
+        # Use clean config dir if running tests or the user requests it.
+        import getpass  # analysis:ignore
+        if sys.platform.startswith("win"):
+            current_user = ''
+        else:
+            current_user = '-' + str(getpass.getuser())
+        import tempfile  # analysis:ignore
+        conf_dir = osp.join(str(tempfile.gettempdir()),
+                            'pytest-spyder{0!s}'.format(current_user),
                             SUBFOLDER)
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
