@@ -213,7 +213,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         toggled=self.toggle_show_comments)
         comment_act.setChecked(self.show_comments)
         group_cells_act = create_action(self, text=_('Group code cells'),
-                        toggled=self.toggle_group_cells)
+                                        toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
         actions = [fullpath_act, allfiles_act, comment_act, fromcursor_act,
                    group_cells_act]
@@ -354,8 +354,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         previous_level = None
         prev_cell_level = None
         prev_cell_item = None
-        
-        
+
         oe_data = editor.highlighter.get_outlineexplorer_data()
         editor.has_cell_separators = oe_data.get('found_cell_separators', False)
         for block_nb in range(editor.get_line_count()):
@@ -380,24 +379,29 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         if citem is not None:
                             remove_from_tree_cache(tree_cache, line=line_nb)
                         continue
-
+            
             # Skip iteration for if/else/try/for/etc foldable blocks.
             if not_class_nor_function and not data.is_comment():
                 if citem is not None:
                     remove_from_tree_cache(tree_cache, line=line_nb)
                 continue
 
+            if citem is not None:
+                cname = to_text_string(citem.text(0))
+                cparent = citem.parent
+
             # Blocks for Cell Groups.
             if (data is not None and data.def_type == data.CELL and
                     self.group_cells):
-                preceding = (root_item if previous_item is None 
+                preceding = (root_item if previous_item is None
                              else previous_item)
                 cell_level = data.cell_level
                 if prev_cell_level is not None:
                     if cell_level == prev_cell_level:
                         pass
                     elif cell_level > prev_cell_level:
-                        cell_ancestors.append((prev_cell_item, prev_cell_level))
+                        cell_ancestors.append((prev_cell_item,
+                                               prev_cell_level))
                     else:
                         while (len(cell_ancestors) > 1 and
                                cell_level <= prev_cell_level):
@@ -434,10 +438,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         ancestors.pop(-1)
                         _item, previous_level = ancestors[-1]
             parent, _level = ancestors[-1]
-            
-            if citem is not None:
-                cname = to_text_string(citem.text(0))
-                
+
             preceding = root_item if previous_item is None else previous_item
             if not_class_nor_function and data.is_comment():
                 if not self.show_comments:
@@ -457,7 +458,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     item = CommentItem(data.text, line_nb, parent, preceding)
             elif class_name is not None:
                 if citem is not None:
-                    if class_name == cname and level == clevel:
+                    if (class_name == cname and level == clevel and
+                            parent is cparent):
                         previous_level = clevel
                         previous_item = citem
                         continue
@@ -466,7 +468,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 item = ClassItem(class_name, line_nb, parent, preceding)
             else:
                 if citem is not None:
-                    if func_name == cname and level == clevel:
+                    if (func_name == cname and level == clevel and
+                            parent is cparent):
                         previous_level = clevel
                         previous_item = citem
                         continue

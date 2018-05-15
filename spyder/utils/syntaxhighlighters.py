@@ -441,7 +441,7 @@ class PythonSH(BaseSH):
         else:
             offset = 0
             prev_state = self.NORMAL
-
+        
         oedata = None
         import_stmt = None
 
@@ -480,7 +480,8 @@ class PythonSH(BaseSH):
                                 oedata.text = to_text_string(text).strip()
                                 # cell_head: string contaning the first group
                                 # of '%'s in the cell header
-                                cell_head = re.findall(r"%+", text.lstrip())[0]
+                                cell_head = re.search(r"%+",
+                                                      text.lstrip()).group()
                                 oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
@@ -500,7 +501,7 @@ class PythonSH(BaseSH):
                                                    self.formats["definition"])
                                     oedata = OutlineExplorerData()
                                     oedata.text = to_text_string(text)
-                                    oedata.fold_level = (start)
+                                    oedata.fold_level = start
                                     oedata.def_type = self.DEF_TYPES[
                                                         to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
@@ -511,7 +512,7 @@ class PythonSH(BaseSH):
                                 if text.lstrip().startswith(value):
                                     oedata = OutlineExplorerData()
                                     oedata.text = to_text_string(text).strip()
-                                    oedata.fold_level = (start)
+                                    oedata.fold_level = start
                                     oedata.def_type = \
                                         OutlineExplorerData.STATEMENT
                                     oedata.def_name = text.strip()
