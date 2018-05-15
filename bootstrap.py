@@ -42,8 +42,9 @@ parser.add_option('--show-console', action='store_true', default=False,
                   "is to show the console")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
-parser.add_option('--clean', dest="clean", action='store_true', default=False,
-                  help="Start Spyder with a clean settings directory")
+parser.add_option('--safe-mode', dest="safe_mode",
+                  action='store_true', default=False,
+                  help="Start Spyder with a clean configuration directory")
 parser.add_option('--no-apport', action='store_true',
                   default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_option('--debug', action='store_true',
@@ -58,8 +59,8 @@ assert options.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
 
 # Start Spyder with a clean configuration directory for testing purposes
-if options.clean:
-    os.environ['SPYDER_CLEAN'] = 'True'
+if options.safe_mode:
+    os.environ['SPYDER_SAFE_MODE'] = 'True'
 
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args
@@ -168,8 +169,8 @@ if options.hide_console and os.name == 'nt':
     print("0x. Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console
 
-# Reset temporary config directory if in --clean mode
-if options.clean:
+# Reset temporary config directory if starting in --safe-mode
+if options.safe_mode:
     from spyder.config.base import get_conf_path  # analysis:ignore
     conf_dir = get_conf_path()
     if osp.isdir(conf_dir):
