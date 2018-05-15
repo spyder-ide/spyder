@@ -234,7 +234,7 @@ class HistoryLog(SpyderPluginWidget):
         text, _ = encoding.read(filename)
         linebreaks = [m.start() for m in re.finditer('\n', text)]
         maxNline = CONF.get('historylog', 'max_entries')
-        if len(linebreak) > maxNline:
+        if len(linebreaks) > maxNline:
             text = text[linebreaks[-maxNline] + 1:]
             encoding.write(text, filename)
         editor.set_text(text)
