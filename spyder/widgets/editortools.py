@@ -362,7 +362,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             data = oe_data.get(block_nb)
             level = None if data is None else data.fold_level
             citem, clevel, _d = tree_cache.get(line_nb, (None, None, ""))
-
+            
             # Skip iteration if line is not the first line of a foldable block
             if level is None:
                 if citem is not None:
@@ -379,7 +379,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         if citem is not None:
                             remove_from_tree_cache(tree_cache, line=line_nb)
                         continue
-            
+
             # Skip iteration for if/else/try/for/etc foldable blocks.
             if not_class_nor_function and not data.is_comment():
                 if citem is not None:
