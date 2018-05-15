@@ -9,6 +9,7 @@
 # Standard library imports
 import os.path as osp
 import sys
+import re
 
 # Third party imports
 from qtpy import PYQT5
@@ -29,6 +30,7 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.sourcecode import codeeditor
 from spyder.widgets.findreplace import FindReplace
+from spyder.config.main import CONF
 
 
 class HistoryConfigPage(PluginConfigPage):
@@ -230,6 +232,11 @@ class HistoryLog(SpyderPluginWidget):
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)
+        linebreaks = [m.start() for m in re.finditer('\n', text)]
+        maxNline = CONF.get('historylog', 'max_entries')
+        if len(linebreak) > maxNline:
+            text = text[linebreaks[-maxNline] +1:]
+            encoding.write(text, filename)
         editor.set_text(text)
         editor.set_cursor_position('eof')
         
