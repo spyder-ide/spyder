@@ -176,12 +176,12 @@ if options.test:
         shutil.rmtree(conf_dir)
 
 print("04. Running Spyder")
-from spyder.app import start
+from spyder.app import start  # analysis:ignore
 
-time_lapse = time.time()-time_start
-print("Bootstrap completed in " +
-    time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +  
-    # gmtime() converts float into tuple, but loses milliseconds
-    ("%.4f" % time_lapse).split('.')[1])
+time_lapse = time.time() - time_start
+print("Bootstrap completed in "
+      + time.strftime("%H:%M:%S.", time.gmtime(time_lapse))
+      # gmtime() converts float into tuple, but loses milliseconds
+      + ("%.4f" % time_lapse).split('.')[1])
 
 start.main()
