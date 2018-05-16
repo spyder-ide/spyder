@@ -20,6 +20,8 @@ import os.path as osp
 import os
 import shutil
 import sys
+import getpass
+import tempfile
 
 # Local imports
 from spyder.utils import encoding
@@ -121,20 +123,27 @@ def get_home_dir():
         raise RuntimeError('Please define environment variable $HOME')
 
 
+def get_clean_conf_dir():
+    """
+    Return the path to a temp clean configuration dir, for tests and safe mode.
+    """
+    if sys.platform.startswith("win"):
+        current_user = ''
+    else:
+        current_user = '-' + str(getpass.getuser())
+
+    conf_dir = osp.join(str(tempfile.gettempdir()),
+                        'pytest-spyder{0!s}'.format(current_user),
+                        SUBFOLDER)
+    return conf_dir
+
+
 def get_conf_path(filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
     if running_under_pytest() or SAFE_MODE:
         # Use clean config dir if running tests or the user requests it.
-        import getpass  # analysis:ignore
-        if sys.platform.startswith("win"):
-            current_user = ''
-        else:
-            current_user = '-' + str(getpass.getuser())
-        import tempfile  # analysis:ignore
-        conf_dir = osp.join(str(tempfile.gettempdir()),
-                            'pytest-spyder{0!s}'.format(current_user),
-                            SUBFOLDER)
+        conf_dir = get_clean_conf_dir()
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
         # on Linux, as it was requested on Issue 2629
