@@ -12,21 +12,21 @@ quickly load a user config file
 """
 
 import os
-import sys
 import os.path as osp
+import sys
 
 # Local import
 from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
-                                SUBFOLDER, TEST)
+                                SUBFOLDER)
 from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.utils import codeanalysis
 
 
-#==============================================================================
+# =============================================================================
 # Main constants
-#==============================================================================
+# =============================================================================
 # Find in files exclude patterns
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
 
@@ -640,9 +640,9 @@ DEFAULTS = [
             ]
 
 
-#==============================================================================
+# =============================================================================
 # Config instance
-#==============================================================================
+# =============================================================================
 # IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
@@ -654,10 +654,10 @@ CONF_VERSION = '43.1.0'
 
 # Main configuration instance
 try:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
+    CONF = UserConfig('spyder', defaults=DEFAULTS, load=True,
                       version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
                       raw_mode=True)
-except:
+except Exception:
     CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
                       version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
                       raw_mode=True)

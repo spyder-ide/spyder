@@ -12,6 +12,8 @@ See Issue 741
 """
 
 # pylint: disable=C0103
+# pylint: disable=C0412
+# pylint: disable=C0413
 
 import time
 time_start = time.time()
@@ -20,6 +22,7 @@ import os
 import os.path as osp
 import sys
 import argparse
+import shutil
 
 
 # --- Parse command line
@@ -39,10 +42,11 @@ parser.add_argument('--show-console', action='store_true', default=False,
                   "is to show the console")
 parser.add_argument('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
-parser.add_argument('--test', dest="test", action='store_true', default=False,
-                  help="Test Spyder with a clean settings dir")
+parser.add_argument('--safe-mode', dest="safe_mode",
+                    action='store_true', default=False,
+                    help="Start Spyder with a clean configuration directory")
 parser.add_argument('--no-apport', action='store_true',
-                  default=False, help="Disable Apport exception hook (Ubuntu)")
+                    default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_argument('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 parser.add_argument('spyder_options', nargs='*')
@@ -55,9 +59,9 @@ os.environ['SPYDER_BOOTSTRAP_ARGS'] = str(sys.argv[1:])
 assert args.gui in (None, 'pyqt5', 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % args.gui
 
-# For testing purposes
-if args.test:
-    os.environ['SPYDER_TEST'] = 'True'
+# Start Spyder with a clean configuration directory for testing purposes
+if args.safe_mode:
+    os.environ['SPYDER_SAFE_MODE'] = 'True'
 
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args.spyder_options
@@ -166,13 +170,20 @@ if args.hide_console and os.name == 'nt':
     print("0x. Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console
 
-print("04. Running Spyder")
-from spyder.app import start
+# Reset temporary config directory if starting in --safe-mode
+if args.safe_mode or os.environ.get('SPYDER_SAFE_MODE'):
+    from spyder.config.base import get_conf_path  # analysis:ignore
+    conf_dir = get_conf_path()
+    if osp.isdir(conf_dir):
+        shutil.rmtree(conf_dir)
 
-time_lapse = time.time()-time_start
-print("Bootstrap completed in " +
-    time.strftime("%H:%M:%S.", time.gmtime(time_lapse)) +  
-    # gmtime() converts float into tuple, but loses milliseconds
-    ("%.4f" % time_lapse).split('.')[1])
+print("04. Running Spyder")
+from spyder.app import start  # analysis:ignore
+
+time_lapse = time.time() - time_start
+print("Bootstrap completed in "
+      + time.strftime("%H:%M:%S.", time.gmtime(time_lapse))
+      # gmtime() converts float into tuple, but loses milliseconds
+      + ("%.4f" % time_lapse).split('.')[1])
 
 start.main()
