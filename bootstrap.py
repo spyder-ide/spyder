@@ -170,7 +170,7 @@ if options.hide_console and os.name == 'nt':
     sys.argv.append("--hide-console")  # Windows only: show parent console
 
 # Reset temporary config directory if starting in --safe-mode
-if options.safe_mode:
+if options.safe_mode or os.environ.get('SPYDER_SAFE_MODE'):
     from spyder.config.base import get_conf_path  # analysis:ignore
     conf_dir = get_conf_path()
     if osp.isdir(conf_dir):
