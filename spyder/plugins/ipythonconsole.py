@@ -1118,6 +1118,10 @@ class IPythonConsole(SpyderPluginWidget):
                                is_cython=is_cython,
                                is_pylab=is_pylab,
                                is_sympy=is_sympy)
+        # Rename client tab with Pylab
+        client = self.get_current_client()
+        tab_text = _("Pylab") + u' ' + client.id_['int_id']
+        self.rename_client_tab(client, tab_text)
 
     def create_sympy_client(self, give_focus=True, filename='',
                             is_cython=False, is_pylab=False, is_sympy=True):
@@ -1127,6 +1131,10 @@ class IPythonConsole(SpyderPluginWidget):
                                is_cython=is_cython,
                                is_pylab=is_pylab,
                                is_sympy=is_sympy)
+        # Rename client tab with Pylab
+        client = self.get_current_client()
+        tab_text = _("Sympy") + u' ' + client.id_['int_id']
+        self.rename_client_tab(client, tab_text)
 
     @Slot()
     def create_client_for_kernel(self):
