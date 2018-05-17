@@ -501,7 +501,7 @@ else:
     MAC_APP_NAME = 'Spyder-Py2.app'
 
 def running_in_mac_app():
-    if sys.platform == "darwin" and MAC_APP_NAME in __file__:
+    if sys.platform == "darwin":
         return True
     else:
         return False
