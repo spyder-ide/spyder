@@ -71,17 +71,17 @@ code = """# -*- coding: utf-8 -*-
 
     x = function1(x)
 
-    # %%% Cell Level 1
+    # %%% Cell Level 1-1
+    q = 3
+    w = 'word'
+
+    # %%% Cell Level 1-2
     def function2(x):
         def inside(x):
             return x
         return x
 
     y = function2(x)
-
-    # %%% Cell Level 1
-    def function3(x):
-        return x
 
     # %%%% Cell Level 2
     class Class2(x):
@@ -223,18 +223,17 @@ def test_code_cell_grouping(outline_explorer_bot2):
         ('function0', FunctionItem, 'test_file.py', 'test_file.py', False),
         ('Top level 1', CellItem, 'test_file.py', 'test_file.py'),
         ('function1', FunctionItem, 'Top level 1', 'test_file.py', False),
-        ('Cell Level 1', CellItem, 'Top level 1', 'test_file.py'),
-        ('function2', FunctionItem, 'Cell Level 1', 'test_file.py', False),
+        ('Cell Level 1-1', CellItem, 'Top level 1', 'test_file.py'),
+        ('Cell Level 1-2', CellItem, 'Top level 1', 'test_file.py'),
+        ('function2', FunctionItem, 'Cell Level 1-2', 'test_file.py', False),
         ('inside', FunctionItem, 'function2', 'function2', False),
-        ('Cell Level 1', CellItem, 'Top level 1', 'test_file.py'),
-        ('function3', FunctionItem, 'Cell Level 1', 'test_file.py', False),
-        ('Cell Level 2', CellItem, 'Cell Level 1', 'test_file.py'),
+        ('Cell Level 2', CellItem, 'Cell Level 1-2', 'test_file.py'),
         ('Class2', ClassItem, 'Cell Level 2', 'test_file.py'),
         ('__init__', FunctionItem, 'Class2', 'Class2', True),
         ('medthod1', FunctionItem, 'Class2', 'Class2', True),
         ('Cell level 4', CellItem, 'Cell Level 2', 'test_file.py'),
         ('function4', FunctionItem, 'Cell level 4', 'test_file.py', False),
-        ('Cell Level 3', CellItem, 'Cell Level 1', 'test_file.py'),
+        ('Cell Level 3', CellItem, 'Cell Level 1-2', 'test_file.py'),
         ('function5', FunctionItem, 'Cell Level 3', 'test_file.py', False),
         ('Cell Level 6', CellItem, 'Cell Level 3', 'test_file.py'),
         ('Class3', ClassItem, 'Cell Level 6', 'test_file.py'),

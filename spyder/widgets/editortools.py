@@ -215,8 +215,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
-        actions = [fullpath_act, allfiles_act, comment_act, fromcursor_act,
-                   group_cells_act]
+        actions = [fullpath_act, allfiles_act, group_cells_act, comment_act,
+                   fromcursor_act]
         return actions
 
     @Slot(bool)
@@ -424,8 +424,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 ancestors = [(item, 0)]
                 prev_cell_level = cell_level
                 prev_cell_item = item
+                previous_item = item
                 continue
 
+            # Blocks for Code Groups.
             if previous_level is not None:
                 if level == previous_level:
                     pass
