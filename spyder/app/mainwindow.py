@@ -2646,9 +2646,13 @@ class MainWindow(QMainWindow):
         # Fixes Issue 2036
         if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
             try:
-                qapp.setStyle('gtk+')
-            except:
-                pass
+                import gtk
+            except ImportError:
+                # only apply gtk style if pygtk isn't installed
+                try:
+                    qapp.setStyle('gtk+')
+                except:
+                    pass
         else:
             style_name = CONF.get('main', 'windows_style',
                                   self.default_style)
