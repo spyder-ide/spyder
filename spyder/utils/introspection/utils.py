@@ -21,10 +21,8 @@ from spyder.utils.syntaxhighlighters import (
 )
 
 from pygments.lexer import words
-from pygments.lexers import (
-    get_lexer_for_filename, get_lexer_by_name, TextLexer
-)
-from pygments.util import ClassNotFound
+from pygments.lexers import (get_lexer_for_filename, get_lexer_by_name,
+                             TextLexer)
 from pygments.token import Token
 
 
@@ -178,7 +176,7 @@ def find_lexer_for_filename(filename):
     else:
         try:
             lexer = get_lexer_for_filename(filename)
-        except ClassNotFound:
+        except Exception:
             return TextLexer()
     return lexer
 
