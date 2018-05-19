@@ -13,7 +13,8 @@ import os.path as osp
 
 from jupyter_client.kernelspec import KernelSpec
 
-from spyder.config.base import get_module_source_path
+from spyder.config.base import (SAFE_MODE, get_module_source_path,
+                                running_under_pytest)
 from spyder.config.main import CONF
 from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.programs import is_python_interpreter
@@ -128,7 +129,8 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-            'SPY_RUN_CYTHON': self.is_cython
+            'SPY_RUN_CYTHON': self.is_cython,
+            'SPY_TESTING': running_under_pytest() or SAFE_MODE
         }
 
         # Add our PYTHONPATH to env_vars

@@ -66,13 +66,17 @@ def kernel_config():
     # ---- Spyder config ----
     spy_cfg = Config()
 
+    # Enable/disable certain features for testing
+    testing = os.environ.get('SPY_TESTING') == 'True'
+    if testing:
+        # Don't load nor save history in our IPython consoles.
+        spy_cfg.HistoryAccessor.enabled = False
+
     # Until we implement Issue 1052
     spy_cfg.InteractiveShell.xmode = 'Plain'
 
-    # Jedi completer
+    # Jedi completer. It's only available in Python 3
     jedi_o = os.environ.get('SPY_JEDI_O') == 'True'
-    # - Using Jedi slow completions a lot for objects with big repr's.
-    # - Jedi completions are not available in Python 2.
     if not PY2:
         spy_cfg.IPCompleter.use_jedi = jedi_o
 
