@@ -362,13 +362,27 @@ def get_translation(modname, dirname=None):
     """Return translation callback for module *modname*"""
     if dirname is None:
         dirname = modname
+
+    def translate_dumb(x):
+        """Dumb function to not use translations."""
+        if not is_unicode(x):
+            return to_text_string(x, "utf-8")
+        return x
+
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
-    # If LANG is defined in ubuntu, a warning message is displayed, so in unix
-    # systems we define the LANGUAGE variable.
+
+    # If LANG is defined in Ubuntu, a warning message is displayed,
+    # so in Unix systems we define the LANGUAGE variable.
     language = load_lang_conf()
     if os.name == 'nt':
-        os.environ["LANG"] = language      # Works on Windows
+        # Trying to set LANG on Windows can fail when Spyder is
+        # run with admin privileges.
+        # Fixes issue 6886
+        try:
+            os.environ["LANG"] = language      # Works on Windows
+        except Exception:
+            return translate_dumb
     else:
         os.environ["LANGUAGE"] = language  # Works on Linux
  
@@ -385,12 +399,7 @@ def get_translation(modname, dirname=None):
             else:
                 return to_text_string(y, "utf-8")
         return translate_gettext
-    except IOError as _e:  # analysis:ignore
-        # Not using translations
-        def translate_dumb(x):
-            if not is_unicode(x):
-                return to_text_string(x, "utf-8")
-            return x
+    except Exception:
         return translate_dumb
 
 # Translation callback
