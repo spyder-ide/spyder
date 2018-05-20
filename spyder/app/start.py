@@ -118,8 +118,12 @@ def main():
             from locale import getlocale
             getlocale()
         except ValueError:
-            os.environ['LANG'] = 'C'
-            os.environ['LC_ALL'] = 'C'
+            # This can fail on Windows. See issue 6886
+            try:
+                os.environ['LANG'] = 'C'
+                os.environ['LC_ALL'] = 'C'
+            except Exception:
+                pass
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():
