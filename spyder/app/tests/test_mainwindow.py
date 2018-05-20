@@ -165,6 +165,14 @@ def main_window(request):
     else:
         CONF.set('main', 'single_instance', False)
 
+    # Get config values passed in parametrize and apply them
+    try:
+        param = request.param
+        if isinstance(param, dict) and 'spy_config' in param:
+            CONF.set(*param['spy_config'])
+    except AttributeError:
+        pass
+
     # Start the window
     window = start.main()
 
@@ -212,6 +220,37 @@ def test_calltip(main_window, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
     main_window.editor.close_file()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(np.__version__ < '1.14.0', reason="This only happens in Numpy 1.14+")
+@pytest.mark.parametrize('main_window', [{'spy_config': ('variable_explorer', 'minmax', True)}], indirect=True)
+def test_filter_numpy_warning(main_window, qtbot):
+    """
+    Test that we filter a warning shown when an array contains nan
+    values and the Variable Explorer option 'Show arrays min/man'
+    is on.
+
+    For issue 7063
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create an array with a nan value
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np; A=np.full(16, np.nan)')
+
+    qtbot.wait(1000)
+
+    # Assert that no warnings are shown in the console
+    assert "warning" not in control.toPlainText()
+    assert "Warning" not in control.toPlainText()
+
+    # Restore default config value
+    CONF.set('variable_explorer', 'minmax', False)
 
 
 @pytest.mark.slow
