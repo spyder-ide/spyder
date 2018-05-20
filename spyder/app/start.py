@@ -97,8 +97,8 @@ def main():
         os.environ['QT_SCALE_FACTOR'] = ''
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
-    # Prevent Spyder from crashing in macOS if locale is not defined
     if sys.platform == 'darwin':
+        # Prevent Spyder from crashing in macOS if locale is not defined
         LANG = os.environ.get('LANG')
         LC_ALL = os.environ.get('LC_ALL')
         if bool(LANG) and not bool(LC_ALL):
@@ -110,6 +110,16 @@ def main():
 
         os.environ['LANG'] = LANG
         os.environ['LC_ALL'] = LC_ALL
+    else:
+        # Prevent our kernels to crash when Python fails to identify
+        # the system locale.
+        # Fixes issue 7051.
+        try:
+            from locale import getlocale
+            getlocale()
+        except ValueError:
+            os.environ['LANG'] = 'C'
+            os.environ['LC_ALL'] = 'C'
 
     if CONF.get('main', 'single_instance') and not options.new_instance \
       and not options.reset_config_files and not running_in_mac_app():
