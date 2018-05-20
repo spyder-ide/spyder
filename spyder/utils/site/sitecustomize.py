@@ -305,6 +305,21 @@ except:
     pass
 
 
+# =============================================================================
+# Numpy adjustments
+# =============================================================================
+try:
+    # Filter warning that appears when users have 'Show max/min'
+    # turned on and Numpy arrays contain a nan value.
+    # Fixes Issue 7063
+    # Note: It only happens in Numpy 1.14+
+    warnings.filterwarnings(action='ignore', category=RuntimeWarning,
+                            module='numpy.core._methods',
+                            message=".*invalid value encountered in.*")
+except:
+    pass
+
+
 #==============================================================================
 # Pdb adjustments
 #==============================================================================
