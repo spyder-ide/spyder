@@ -122,21 +122,14 @@ sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
 
 
-# Selecting the GUI toolkit: PyQt5 if installed, otherwise PySide or PyQt4
-# (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
+# Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:
     try:
         import PyQt5  # analysis:ignore
         print("02. PyQt5 is detected, selecting")
         os.environ['QT_API'] = 'pyqt5'
     except ImportError:
-        try:
-            import PyQt4  # analysis:ignore
-            print("02. PyQt4 is detected, selecting")
-            os.environ['QT_API'] = 'pyqt'
-        except ImportError:
-            print("02. No PyQt5 or PyQt4 detected, using PySide if available "
-                  "(deprecated)")
+        sys.exit("ERROR: No PyQt5 detected!")
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui

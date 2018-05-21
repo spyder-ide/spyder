@@ -27,7 +27,6 @@ import sys
 import time
 
 # Third party imports
-from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
@@ -595,8 +594,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def closeEvent(self, event):
         TextEditBaseWidget.closeEvent(self, event)
-        if is_pyqt46:
-            self.destroyed.emit()
 
     def get_document_id(self):
         return self.document_id

@@ -15,7 +15,6 @@ try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock  # Python 2
-from qtpy import PYQT4
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtCore import Qt
 

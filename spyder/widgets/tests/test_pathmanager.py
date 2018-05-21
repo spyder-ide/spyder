@@ -13,7 +13,6 @@ import os
 
 # Test library imports
 import pytest
-from qtpy import PYQT4
 from qtpy.QtCore import Qt
 
 # Local imports
@@ -32,7 +31,6 @@ def setup_pathmanager(qtbot, parent=None, pathlist=None, ro_pathlist=None,
     return widget
 
 
-@pytest.mark.skipif(PY3 and PYQT4, reason="It segfaults frequently")
 def test_pathmanager(qtbot):
     """Run PathManager test"""
     pathmanager = setup_pathmanager(qtbot, None, pathlist=sys.path[:-10],

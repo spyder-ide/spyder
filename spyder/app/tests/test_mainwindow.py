@@ -27,7 +27,7 @@ from jupyter_client.manager import KernelManager
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
-from qtpy import PYQT4, PYQT5, PYQT_VERSION
+from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
@@ -360,8 +360,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2 or PYQT4,
-                    reason="It fails sometimes")
+@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
 def test_move_to_first_breakpoint(main_window, qtbot):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
