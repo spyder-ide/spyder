@@ -133,9 +133,7 @@ The requirements to run Spyder are:
 
 * `Python <http://www.python.org/>`_ 2.7 or >=3.3
 
-* `PyQt5 <https://www.riverbankcomputing.com/software/pyqt/download5>`_ >=5.2 or
-  `PyQt4 <https://www.riverbankcomputing.com/software/pyqt/download>`_ >=4.6.0
-  (PyQt5 is recommended).
+* `PyQt5 <https://www.riverbankcomputing.com/software/pyqt/download5>`_ >=5.5
 
 * `Qtconsole <http://jupyter.org/qtconsole/stable/>`_ >=4.2.0 -- for an
   enhanced Python interpreter.

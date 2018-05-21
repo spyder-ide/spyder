@@ -7,20 +7,16 @@ sudo: false
 matrix:
   include:
     - python: "2.7"
-      env: USE_PYQT=pyqt4
-      os: linux
-    - python: "2.7"
-      env: USE_PYQT=pyqt5
+      env: USE_PYQT=pyqt5 USE_CONDA=yes
       os: linux
     - python: "3.5"
-      env: USE_PYQT=pyqt4
-      os: linux
-    # This slot runs our tests only with pip packages
-    - python: "3.5"
-      env: USE_PYQT=pyqt5
+      env: USE_PYQT=pyqt5 USE_CONDA=yes
       os: linux
     - python: "3.6"
-      env: USE_PYQT=pyqt5
+      env: USE_PYQT=pyqt5 USE_CONDA=yes
+      os: linux
+    - python: "3.6"
+      env: USE_PYQT=pyqt5 USE_CONDA=no
       os: linux
 
 before_install:

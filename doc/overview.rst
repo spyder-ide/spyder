@@ -75,6 +75,6 @@ Key features:
 * :doc:`projects`
 
 
-Spyder may also be used as a PyQt5 or PyQt4 extension library 
-(module 'spyder'). For example, the Python interactive shell widget
-used in Spyder may be embedded in your own PyQt5 or PyQt4 application.
+Spyder may also be used as a PyQt5 extension library (module
+'spyder'). For example, the Python interactive shell widget
+used in Spyder may be embedded in your own PyQt5 application.
