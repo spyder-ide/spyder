@@ -20,6 +20,7 @@ import os
 import os.path as osp
 import uuid
 import sys
+import traceback
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
@@ -1532,7 +1533,7 @@ class IPythonConsole(SpyderPluginWidget):
         # Kernel spec
         kernel_spec = self.create_kernel_spec(is_cython=is_cython)
         if not kernel_spec.env.get('PYTHONPATH'):
-            error_msg = _("This error was most probably caused by installing "
+            error_msg = _("This error is most probably caused by installing "
                           "Spyder in a directory with non-ascii characters "
                           "(i.e. characters with tildes, apostrophes or "
                           "non-latin symbols).<br><br>"
@@ -1541,8 +1542,13 @@ class IPythonConsole(SpyderPluginWidget):
             return (error_msg, None)
 
         # Kernel manager
-        kernel_manager = QtKernelManager(connection_file=connection_file,
-                                         config=None, autorestart=True)
+        try:
+            kernel_manager = QtKernelManager(connection_file=connection_file,
+                                             config=None, autorestart=True)
+        except Exception as e:
+            error_msg = _("The error is:<br><br>"
+                          "<tt>{}</tt>").format(traceback.format_exc())
+            return (error_msg, None)
         kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
