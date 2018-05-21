@@ -140,9 +140,8 @@ else:
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __trouble_url_short__, get_versions)
-from spyder.config.base import (get_conf_path, get_module_data_path,
-                                get_module_source_path, STDERR, DEBUG,
-                                debug_print, MAC_APP_NAME, get_home_dir,
+from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
+                                DEBUG, debug_print, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
@@ -209,18 +208,6 @@ def get_python_doc_path():
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return file_uri(python_doc)
-
-
-def get_focus_python_shell():
-    """Extract and return Python shell from widget
-    Return None if *widget* is not a Python shell (e.g. IPython kernel)"""
-    widget = QApplication.focusWidget()
-    from spyder.widgets.shell import PythonShellWidget
-    from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
-    if isinstance(widget, PythonShellWidget):
-        return widget
-    elif isinstance(widget, ExternalPythonShell):
-        return widget.shell
 
 
 #==============================================================================
@@ -929,25 +916,7 @@ class MainWindow(QMainWindow):
                                                 triggered=self.check_updates)
 
         # Spyder documentation
-        doc_path = get_module_data_path('spyder', relpath="doc",
-                                        attr_name='DOCPATH')
-        # * Trying to find the chm doc
-        spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(doc_path, os.pardir, "Spyderdoc.chm")
-        # * Trying to find the html doc
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(doc_path, "index.html")
-        # * Trying to find the development-version html doc
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(get_module_source_path('spyder'),
-                                    os.pardir, 'build', 'lib', 'spyder',
-                                    'doc', "index.html")
-        # * If we totally fail, point to our web build
-        if not osp.isfile(spyder_doc):
-            spyder_doc = 'http://pythonhosted.org/spyder'
-        else:
-            spyder_doc = file_uri(spyder_doc)
+        spyder_doc = 'https://docs.spyder-ide.org/'
         doc_action = create_action(self, _("Spyder documentation"),
                                    icon=ima.icon('DialogHelpButton'),
                                    triggered=lambda:
