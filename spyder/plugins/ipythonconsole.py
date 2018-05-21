@@ -78,6 +78,10 @@ IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 dependencies.add("IPython", _("IPython interactive python environment"),
                  required_version=IPYTHON_REQVER)
 
+MATPLOTLIB_REQVER = '>=2.0.0'
+dependencies.add("matplotlib", _("Display 2D graphics in the IPython Console"),
+                 required_version=MATPLOTLIB_REQVER, optional=True)
+
 #------------------------------------------------------------------------------
 # Existing kernels
 #------------------------------------------------------------------------------
