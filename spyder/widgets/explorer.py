@@ -492,8 +492,13 @@ class DirView(QTreeView):
                 
     def contextMenuEvent(self, event):
         """Override Qt method"""
-        self.update_menu()
-        self.menu.popup(event.globalPos())
+        # Needed to handle not initialized menu.
+        # See issue 6975
+        try:
+            self.update_menu()
+            self.menu.popup(event.globalPos())
+        except AttributeError:
+            pass
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
