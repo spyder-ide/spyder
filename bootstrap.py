@@ -124,7 +124,7 @@ if options.gui is None:
         print("02. PyQt5 is detected, selecting")
         os.environ['QT_API'] = 'pyqt5'
     except ImportError:
-        print("02. No PyQt5 detected (deprecated)")
+        sys.exit("ERROR: No PyQt5 detected!")
 else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
