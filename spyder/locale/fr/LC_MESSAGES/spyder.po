@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2018-02-19 11:56+-05\n"
-"PO-Revision-Date: 2018-02-21 23:36+0100\n"
+"PO-Revision-Date: 2018-05-21 00:14-0500\n"
 "Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.0.4\n"
+"X-Generator: Poedit 2.0.7\n"
 
 #: spyder/app/mainwindow.py:134
 msgid "Initializing..."
@@ -1661,7 +1661,7 @@ msgstr "&Enregistrer"
 
 #: spyder/plugins/editor.py:673 spyder/widgets/editor.py:1672
 msgid "Save file"
-msgstr "Enregitrer un fichier"
+msgstr "Enregistrer un fichier"
 
 #: spyder/plugins/editor.py:679
 msgid "Sav&e all"
