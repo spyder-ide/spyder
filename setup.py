@@ -234,7 +234,7 @@ setup_args = dict(name=NAME,
 """Spyder is an interactive Python development environment providing
 MATLAB-like features in a simple and light-weighted software.
 It also provides ready-to-use pure-Python widgets to your PyQt5
-application: source code editor with syntax highlighting and
+application: A source code editor with syntax highlighting and
 code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
