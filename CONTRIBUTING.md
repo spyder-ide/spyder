@@ -89,9 +89,8 @@ the directory where your git clone is stored and run:
   $ pip install -r requirements/requirements.txt
 ```
 
-If you are using `pip` and Python 2, you also need to install a Qt binding
-package (PyQt4 or PyQt5, with the latter strongly recommended).
-This can be achieved by running:
+If you are using `pip` and Python 3, you also need to install a Qt binding
+package (PyQt5). This can be achieved by running:
 
 ```bash
   $ pip install pyqt5
@@ -184,6 +183,8 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 
 ## More information
 
+[Main Website](https://www.spyder-ide.org/)
+
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
 [Online Documentation](https://docs.spyder-ide.org/)
@@ -191,12 +192,16 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 [Spyder Github](https://github.com/spyder-ide/spyder)
 
 [Troubleshooting Guide and FAQ](
-https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ')
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
 
 [Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
 
 [Gitter Chatroom](https://gitter.im/spyder-ide/public)
 
 [Google Group](http://groups.google.com/group/spyderlib)
+
+[@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
+
+[@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
 
 [Support Spyder on OpenCollective](https://opencollective.com/spyder/)

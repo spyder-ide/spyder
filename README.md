@@ -6,6 +6,8 @@
 
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
+[![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
+[![download count](https://img.shields.io/conda/dn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
 [![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
 [![OpenCollective Backers](https://opencollective.com/spyder/backers/badge.svg?color=blue)](#backers)
 [![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
@@ -15,6 +17,7 @@
 [![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
+[![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 
 
 ![Screenshot of Spyder's main window](./img_src/screenshot.png)
@@ -22,8 +25,24 @@
 
 ## Overview
 
-Spyder is a Python development environment with many features for research,
-data analysis, and scientific package creation:
+Spyder is a powerful scientific environment written in Python, for Python,
+and designed by and for scientists, engineers and data analysts. It offers a
+unique combination of the advanced editing, analysis, debugging, and profiling
+functionality of a comprehensive development tool with the data exploration,
+interactive execution, deep inspection, and beautiful visualization
+capabilities of a scientific package.
+
+Beyond its many built-in features, its abilities can be extended even further
+via its plugin system and API. Furthermore, Spyder can also be used as a PyQt5
+extension library, allowing you to build upon its functionality and embed
+its components, such as the interactive console, in your own software.
+
+For more general information about Spyder and to stay up to date on the
+latest Spyder news and information, please check out [our new website](
+https://www.spyder-ide.org/).
+
+
+## Core components
 
 * **Editor**
 
@@ -34,14 +53,15 @@ data analysis, and scientific package creation:
 
 * **Interactive console**
 
-    Multiple IPython consoles with workspace and debugging support to
-    instantly evaluate the code written in the Editor.
-    Spyder consoles also come with full Matplotlib integration.
+    Harness the power of as many IPython consoles as you like with full
+    workspace and debugging support, all within the flexibility of a full
+    GUI interface. Instantly run your code by line, cell, or file,
+    and render plots right inline with the output or in interactive windows.
 
 * **Documentation viewer**
 
     Render documentation in real-time with Sphinx for any class or function,
-    whether external or user-created from either the Editor or a Console.
+    whether external or user-created, from either the Editor or a Console.
 
 * **Variable explorer**
 
@@ -53,22 +73,9 @@ data analysis, and scientific package creation:
 * **Development tools**
 
     Examine your code with the static analyzer, trace its execution with the
-    interactive debugger, measure its performance with the profiler,
-    and keep things organized with project support and a builtin file explorer.
-
-* **Find in files**
-
-    Search for queries across multiple files in your project,
-    with full support for regular expressions.
-
-* **History log**
-
-    Browse an automatically de-duplicated listing of every command you run
-    on any Spyder console.
-
-Spyder may also be used as a PyQt5 extension library (module `spyder`).
-For example, the Python interactive shell widget used in
-Spyder may be embedded in your own PyQt5 application.
+    interactive debugger, and unleash its performance with the profiler.
+    Keep things organized with project support and a builtin file explorer, and
+    use find in files to search across entire projects with full regex support.
 
 
 ## Documentation
@@ -163,7 +170,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 ### Runtime dependencies
 
 * **Python** 2.7 or 3.4+: The core language Spyder is written in and for.
-* **PyQt5** 5.2+: Python bindings for Qt, used for Spyder's GUI.
+* **PyQt5** 5.5+: Python bindings for Qt, used for Spyder's GUI.
 * **qtconsole** 4.2.0+: Enhanced Python interpreter.
 * **Rope** 0.9.4+ and **Jedi** 0.9.0+: Editor code completion, calltips
   and go-to-definition.
@@ -195,6 +202,8 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 ## More information
 
+[Main Website](https://www.spyder-ide.org/)
+
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
 [Online Documentation](https://docs.spyder-ide.org/)
@@ -202,12 +211,16 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 [Spyder Github](https://github.com/spyder-ide/spyder)
 
 [Troubleshooting Guide and FAQ](
-https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ')
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
 
 [Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
 
 [Gitter Chatroom](https://gitter.im/spyder-ide/public)
 
 [Google Group](http://groups.google.com/group/spyderlib)
+
+[@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
+
+[@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
 
 [Support Spyder on OpenCollective](https://opencollective.com/spyder/)

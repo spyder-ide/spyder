@@ -20,6 +20,8 @@ import os.path as osp
 import os
 import shutil
 import sys
+import getpass
+import tempfile
 
 # Local imports
 from spyder.utils import encoding
@@ -34,9 +36,9 @@ from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
-# For testing purposes
-# SPYDER_TEST can be set using the --test option of bootstrap.py
-TEST = os.environ.get('SPYDER_TEST')
+# Make Spyder use a temp clean configuration directory for testing purposes
+# SPYDER_SAFE_MODE can be set using the --safe-mode option of bootstrap.py
+SAFE_MODE = os.environ.get('SPYDER_SAFE_MODE')
 
 
 def running_under_pytest():
@@ -121,15 +123,27 @@ def get_home_dir():
         raise RuntimeError('Please define environment variable $HOME')
 
 
+def get_clean_conf_dir():
+    """
+    Return the path to a temp clean configuration dir, for tests and safe mode.
+    """
+    if sys.platform.startswith("win"):
+        current_user = ''
+    else:
+        current_user = '-' + str(getpass.getuser())
+
+    conf_dir = osp.join(str(tempfile.gettempdir()),
+                        'pytest-spyder{0!s}'.format(current_user),
+                        SUBFOLDER)
+    return conf_dir
+
+
 def get_conf_path(filename=None):
-    """Return absolute path for configuration file with specified filename"""
+    """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
-    if running_under_pytest():
-        import py
-        from _pytest.tmpdir import get_user
-        conf_dir = osp.join(str(py.path.local.get_temproot()),
-                            'pytest-of-{}'.format(get_user()),
-                            SUBFOLDER)
+    if running_under_pytest() or SAFE_MODE:
+        # Use clean config dir if running tests or the user requests it.
+        conf_dir = get_clean_conf_dir()
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
         # on Linux, as it was requested on Issue 2629
@@ -144,7 +158,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest():
+        if running_under_pytest() or SAFE_MODE:
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
@@ -152,7 +166,7 @@ def get_conf_path(filename=None):
         return conf_dir
     else:
         return osp.join(conf_dir, filename)
-        
+
 
 def get_module_path(modname):
     """Return module *modname* base path"""
@@ -348,13 +362,27 @@ def get_translation(modname, dirname=None):
     """Return translation callback for module *modname*"""
     if dirname is None:
         dirname = modname
+
+    def translate_dumb(x):
+        """Dumb function to not use translations."""
+        if not is_unicode(x):
+            return to_text_string(x, "utf-8")
+        return x
+
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
-    # If LANG is defined in ubuntu, a warning message is displayed, so in unix
-    # systems we define the LANGUAGE variable.
+
+    # If LANG is defined in Ubuntu, a warning message is displayed,
+    # so in Unix systems we define the LANGUAGE variable.
     language = load_lang_conf()
     if os.name == 'nt':
-        os.environ["LANG"] = language      # Works on Windows
+        # Trying to set LANG on Windows can fail when Spyder is
+        # run with admin privileges.
+        # Fixes issue 6886
+        try:
+            os.environ["LANG"] = language      # Works on Windows
+        except Exception:
+            return translate_dumb
     else:
         os.environ["LANGUAGE"] = language  # Works on Linux
  
@@ -371,12 +399,7 @@ def get_translation(modname, dirname=None):
             else:
                 return to_text_string(y, "utf-8")
         return translate_gettext
-    except IOError as _e:  # analysis:ignore
-        # Not using translations
-        def translate_dumb(x):
-            if not is_unicode(x):
-                return to_text_string(x, "utf-8")
-            return x
+    except Exception:
         return translate_dumb
 
 # Translation callback

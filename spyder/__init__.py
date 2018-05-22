@@ -84,7 +84,7 @@ def get_versions(reporev=True):
         'python': platform.python_version(),  # "2.7.3"
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': qtpy.QtCore.__version__,
-        'qt_api': qtpy.API_NAME,      # PyQt5 or PyQt4
+        'qt_api': qtpy.API_NAME,      # PyQt5
         'qt_api_ver': qtpy.PYQT_VERSION,
         'system': system,   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.

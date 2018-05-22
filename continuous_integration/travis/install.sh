@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# We test with pip packages in Python 3.5 and PyQt5
-if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
+if [ "$USE_CONDA" = "no" ]; then
     export PIP_DEPENDENCIES_FLAGS="-q"
     export PIP_DEPENDENCIES="coveralls"
     export CONDA_DEPENDENCIES=""
@@ -23,8 +22,7 @@ export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
 
-# We test with pip packages in Python 3.5 and PyQt5
-if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
+if [ "$USE_CONDA" = "no" ]; then
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
 
@@ -36,16 +34,10 @@ if [ "$TRAVIS_PYTHON_VERSION" = "3.5" ] && [ "$USE_PYQT" = "pyqt5" ]; then
 
     # Fix connection to external kernels
     pip install jupyter-client==5.2.2
-
-    # Avoid test failures with the latest jedi 0.12 for now
-    pip install jedi==0.11.1
 else
     # Run with tornado < 5.0 to avoid hangs
     conda install tornado=4.5.3
 
     # Fix connection to external kernels
     conda install jupyter_client=5.2.2
-
-    # Avoid test failures with the latest jedi 0.12 for now
-    conda install jedi=0.11.1
 fi
