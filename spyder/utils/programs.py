@@ -474,6 +474,23 @@ def is_python_interpreter(filename):
     if (not osp.isfile(real_filename) or encoding.is_text_file(real_filename)
         or not is_python_interpreter_valid_name(filename)):
         return False
+    elif is_pythonw(filename):
+        return True
+    else:
+        return check_python_help(filename)
+
+
+def is_pythonw(filename):
+    """Check that the python interpreter has 'pythonw'."""
+    pattern = r'.*python(\d\.?\d*)?w(.exe)?$'
+    if re.match(pattern, filename, flags=re.I) is None:
+        return False
+    else:
+        return True
+
+
+def check_python_help(filename):
+    """Check that the python interpreter can execute help."""
     try:
         proc = run_program(filename, ["-h"])
         output = to_text_string(proc.communicate()[0])
