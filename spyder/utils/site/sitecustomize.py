@@ -555,7 +555,13 @@ class UserModuleReloader(object):
             namelist = []
         spy_modules = ['sitecustomize', 'spyder', 'spyderplugins']
         mpl_modules = ['matplotlib', 'tkinter', 'Tkinter']
-        self.namelist = namelist + spy_modules + mpl_modules
+        # Add other, necessary modules to the UMR blacklist
+        # astropy: see issue 6962
+        # pytorch: see issue 7041
+        other_modules = ['pytorch']
+        if PY2:
+            other_modules.append('astropy')
+        self.namelist = namelist + spy_modules + mpl_modules + other_modules
 
         if pathlist is None:
             pathlist = []
