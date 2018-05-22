@@ -486,7 +486,8 @@ def is_pythonw(filename):
         return False
     else:
         return True
-    
+
+
 def execute_help(filename):
     """Check that the python interpreter can execute help."""
     try:
