@@ -28,8 +28,9 @@ else:
     INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
 
 
-@pytest.mark.skipif(not os.name == 'nt',
-                    reason='Linux does not have pythonw executables.')
+@pytest.mark.skipif(not os.name == 'nt' or os.environ.get('CI', None) is None,
+                    reason='It only runs in CI services.'
+                           'Linux does not have pythonw executables.')
 def test_is_valid_w_interpreter():
     assert is_python_interpreter(VALID_W_INTERPRETER)
 
