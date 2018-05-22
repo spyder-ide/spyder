@@ -474,10 +474,11 @@ def is_python_interpreter(filename):
     if (not osp.isfile(real_filename) or encoding.is_text_file(real_filename)
         or not is_python_interpreter_valid_name(filename)):
         return False
-    if(is_pythonw(filename)):
+    elif (not encoding.is_text_file(real_filename)
+        and is_pythonw(filename)):
         return True
     else:
-        return execute_help(filename)
+        return check_python_help(filename)
 
 
 def is_pythonw(filename):
@@ -489,7 +490,7 @@ def is_pythonw(filename):
         return True
 
 
-def execute_help(filename):
+def check_python_help(filename):
     """Check that the python interpreter can execute help."""
     try:
         proc = run_program(filename, ["-h"])
