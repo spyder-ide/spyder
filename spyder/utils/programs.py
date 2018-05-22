@@ -479,6 +479,7 @@ def is_python_interpreter(filename):
     else:
         return execute_help(filename)
 
+
 def is_pythonw(filename):
     """Check that the python interpreter has 'pythonw'."""
     pattern = r'.*python(\d\.?\d*)?w(.exe)?$'
