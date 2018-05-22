@@ -2,7 +2,6 @@ recursive-include spyder *.pot *.po *.svg *.png *.css *.qss *.c *.cpp *.html *.j
 recursive-include spyder_breakpoints *.pot *.po *.svg *.png
 recursive-include spyder_profiler *.pot *.po *.svg *.png
 recursive-include spyder_pylint *.pot *.po *.svg *.png
-recursive-include doc *.py *.rst *.png *.ico *.
 include spyder/fonts/spyder.ttf
 include spyder/fonts/spyder-charmap.json
 include scripts/*

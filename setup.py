@@ -20,8 +20,6 @@ import sys
 import shutil
 
 from distutils.core import setup
-from distutils.command.build import build
-from distutils.command.install import install
 from distutils.command.install_data import install_data
 
 
@@ -118,87 +116,6 @@ class MyInstallData(install_data):
                 print("ERROR: unable to update desktop database",
                       file=sys.stderr)
 CMDCLASS = {'install_data': MyInstallData}
-
-
-#==============================================================================
-# Sphinx build (documentation)
-#==============================================================================
-def get_html_help_exe():
-    """Return HTML Help Workshop executable path (Windows only)"""
-    if os.name == 'nt':
-        hhc_base = r'C:\Program Files%s\HTML Help Workshop\hhc.exe'
-        for hhc_exe in (hhc_base % '', hhc_base % ' (x86)'):
-            if osp.isfile(hhc_exe):
-                return hhc_exe
-        else:
-            return
-
-try:
-    from sphinx import setup_command
-
-    class MyBuild(build):
-        user_options = [('no-doc', None, "Don't build Spyder documentation")] \
-                       + build.user_options
-        def __init__(self, *args, **kwargs):
-            build.__init__(self, *args, **kwargs)
-            self.no_doc = False
-        def with_doc(self):
-            setup_dir = os.path.dirname(os.path.abspath(__file__))
-            is_doc_dir = os.path.isdir(os.path.join(setup_dir, 'doc'))
-            install_obj = self.distribution.get_command_obj('install')
-            return (is_doc_dir and not self.no_doc and not install_obj.no_doc)
-        sub_commands = build.sub_commands + [('build_doc', with_doc)]
-    CMDCLASS['build'] = MyBuild
-
-
-    class MyInstall(install):
-        user_options = [('no-doc', None, "Don't build Spyder documentation")] \
-                       + install.user_options
-        def __init__(self, *args, **kwargs):
-            install.__init__(self, *args, **kwargs)
-            self.no_doc = False
-    CMDCLASS['install'] = MyInstall
-
-
-    class MyBuildDoc(setup_command.BuildDoc):
-        def run(self):
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-            dirname = self.distribution.get_command_obj('build').build_purelib
-            self.builder_target_dir = osp.join(dirname, 'spyder', 'doc')
-
-            if not osp.exists(self.builder_target_dir):
-                os.mkdir(self.builder_target_dir)
-
-            hhc_exe = get_html_help_exe()
-            self.builder = "html" if hhc_exe is None else "htmlhelp"
-
-            try:
-                setup_command.BuildDoc.run(self)
-            except UnicodeDecodeError:
-                print("ERROR: unable to build documentation because Sphinx "\
-                      "do not handle source path with non-ASCII characters. "\
-                      "Please try to move the source package to another "\
-                      "location (path with *only* ASCII characters).",
-                      file=sys.stderr)
-            sys.path.pop(0)
-
-            # Building chm doc, if HTML Help Workshop is installed
-            if hhc_exe is not None:
-                fname = osp.join(self.builder_target_dir, 'Spyderdoc.chm')
-                subprocess.call('"%s" %s' % (hhc_exe, fname), shell=True)
-                if osp.isfile(fname):
-                    dest = osp.join(dirname, 'spyder')
-                    try:
-                        shutil.move(fname, dest)
-                    except shutil.Error:
-                        print("Unable to replace %s" % dest)
-                    shutil.rmtree(self.builder_target_dir)
-
-    CMDCLASS['build_doc'] = MyBuildDoc
-except ImportError:
-    print('WARNING: unable to build documentation because Sphinx '\
-          'is not installed', file=sys.stderr)
 
 
 #==============================================================================
