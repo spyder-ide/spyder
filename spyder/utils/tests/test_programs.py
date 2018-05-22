@@ -20,11 +20,18 @@ from spyder.utils.programs import (run_python_script_in_terminal,
 if os.name == 'nt':
     python_dir = os.environ['PYTHON'] if os.environ.get('CI', None) else ''
     VALID_INTERPRETER = os.path.join(python_dir, 'python.exe')
+    VALID_W_INTERPRETER = os.path.join(python_dir, 'pythonw.exe')
     INVALID_INTERPRETER = os.path.join(python_dir, 'Scripts', 'ipython.exe')
 else:
     home_dir = os.environ['HOME']
     VALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'python')
     INVALID_INTERPRETER = os.path.join(home_dir, 'miniconda', 'bin', 'ipython')
+
+
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason='Linux does not have pythonw executables.')
+def test_is_valid_w_interpreter():
+    assert is_python_interpreter(VALID_W_INTERPRETER)
 
 
 @flaky(max_runs=3)
