@@ -474,8 +474,7 @@ def is_python_interpreter(filename):
     if (not osp.isfile(real_filename) or encoding.is_text_file(real_filename)
         or not is_python_interpreter_valid_name(filename)):
         return False
-    elif (not encoding.is_text_file(real_filename)
-        and is_pythonw(filename)):
+    elif is_pythonw(filename):
         return True
     else:
         return check_python_help(filename)
