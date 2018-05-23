@@ -154,7 +154,7 @@ def test_pylab_client(ipyconsole, qtbot):
 
     # This is here to generate further errors
     with qtbot.waitSignal(shell.executed):
-        shell.execute("pi")
+        shell.execute("e")
 
     # Assert there are no errors in the console
     control = ipyconsole.get_focus_widget()

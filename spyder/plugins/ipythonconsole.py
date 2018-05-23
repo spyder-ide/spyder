@@ -821,7 +821,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin."""
         create_client_action = create_action(
                                    self,
-                                   _("Open a &new console"),
+                                   _("Open a new console"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_new_client,
                                    context=Qt.WidgetWithChildrenShortcut)
@@ -830,14 +830,14 @@ class IPythonConsole(SpyderPluginWidget):
 
         create_pylab_action = create_action(
                                    self,
-                                   _("Open a new &pylab console"),
+                                   _("Open a new PyLab console"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_pylab_client,
                                    context=Qt.WidgetWithChildrenShortcut)
 
         create_sympy_action = create_action(
                                    self,
-                                   _("Open a new &sympy console"),
+                                   _("Open a new SymPy console"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_sympy_client,
                                    context=Qt.WidgetWithChildrenShortcut)
@@ -1051,7 +1051,7 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool, bool)
     @Slot(bool, str, bool)
     def create_new_client(self, give_focus=True, filename='', is_cython=False,
-                          is_pylab=False, is_sympy=False):
+                          is_pylab=False, is_sympy=False, given_name=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -1070,7 +1070,8 @@ class IPythonConsole(SpyderPluginWidget):
                               menu_actions=self.menu_actions,
                               options_button=self.options_button,
                               show_elapsed_time=show_elapsed_time,
-                              reset_warning=reset_warning)
+                              reset_warning=reset_warning,
+                              given_name=given_name)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
@@ -1110,31 +1111,15 @@ class IPythonConsole(SpyderPluginWidget):
             return
         self.register_client(client)
 
-    def create_pylab_client(self, give_focus=True, filename='',
-                            is_cython=False, is_pylab=True, is_sympy=False):
-        """Force creation of pylab client"""
-        self.create_new_client(give_focus=give_focus,
-                               filename=filename,
-                               is_cython=is_cython,
-                               is_pylab=is_pylab,
-                               is_sympy=is_sympy)
-        # Rename client tab with Pylab
-        client = self.get_current_client()
-        tab_text = _("Pylab") + u' ' + client.id_['int_id']
-        self.rename_client_tab(client, tab_text)
+    def create_pylab_client(self):
+        """Force creation of PyLab client"""
+        console_name = "PyLab"
+        self.create_new_client(is_pylab=True, given_name=console_name)
 
-    def create_sympy_client(self, give_focus=True, filename='',
-                            is_cython=False, is_pylab=False, is_sympy=True):
-        """Force creation of sympy client"""
-        self.create_new_client(give_focus=give_focus,
-                               filename=filename,
-                               is_cython=is_cython,
-                               is_pylab=is_pylab,
-                               is_sympy=is_sympy)
-        # Rename client tab with Pylab
-        client = self.get_current_client()
-        tab_text = _("Sympy") + u' ' + client.id_['int_id']
-        self.rename_client_tab(client, tab_text)
+    def create_sympy_client(self):
+        """Force creation of SymPy client"""
+        console_name = "SymPy"
+        self.create_new_client(is_sympy=True, given_name=console_name)
 
     @Slot()
     def create_client_for_kernel(self):
