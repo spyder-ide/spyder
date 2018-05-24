@@ -830,14 +830,14 @@ class IPythonConsole(SpyderPluginWidget):
 
         create_pylab_action = create_action(
                                    self,
-                                   _("Open a new PyLab console"),
+                                   _("Open a new Pylab console"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_pylab_client,
                                    context=Qt.WidgetWithChildrenShortcut)
 
         create_sympy_action = create_action(
                                    self,
-                                   _("Open a new SymPy console"),
+                                   _("Open a new Sympy console"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_sympy_client,
                                    context=Qt.WidgetWithChildrenShortcut)
@@ -1112,13 +1112,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.register_client(client)
 
     def create_pylab_client(self):
-        """Force creation of PyLab client"""
-        console_name = "PyLab"
+        """Force creation of Pylab client"""
+        console_name = "Pylab"
         self.create_new_client(is_pylab=True, given_name=console_name)
 
     def create_sympy_client(self):
-        """Force creation of SymPy client"""
-        console_name = "SymPy"
+        """Force creation of Sympy client"""
+        console_name = "Sympy"
         self.create_new_client(is_sympy=True, given_name=console_name)
 
     @Slot()
