@@ -837,7 +837,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         create_sympy_action = create_action(
                                    self,
-                                   _("Open a new Sympy console"),
+                                   _("Open a new SymPy console"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_sympy_client,
                                    context=Qt.WidgetWithChildrenShortcut)
@@ -1117,8 +1117,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.create_new_client(is_pylab=True, given_name=console_name)
 
     def create_sympy_client(self):
-        """Force creation of Sympy client"""
-        console_name = "Sympy"
+        """Force creation of SymPy client"""
+        console_name = "SymPy"
         self.create_new_client(is_sympy=True, given_name=console_name)
 
     @Slot()
