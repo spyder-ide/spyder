@@ -558,9 +558,12 @@ class UserModuleReloader(object):
         # Add other, necessary modules to the UMR blacklist
         # astropy: see issue 6962
         # pytorch: see issue 7041
-        other_modules = ['pytorch']
+        # fastmat: see issue 7190
+        # pythoncom: see issue 7190
+        other_modules = ['pytorch', 'pythoncom']
         if PY2:
-            other_modules.append('astropy')
+            py2_modules = ['astropy', 'fastmat']
+            other_modules = other_modules + py2_modules
         self.namelist = namelist + spy_modules + mpl_modules + other_modules
 
         if pathlist is None:
