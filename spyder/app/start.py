@@ -110,6 +110,11 @@ def main():
 
         os.environ['LANG'] = LANG
         os.environ['LC_ALL'] = LC_ALL
+
+        # Don't show useless warning in the terminal where Spyder
+        # was started
+        # See issue 3730
+        os.environ['EVENT_NOKQUEUE'] = '1'
     else:
         # Prevent our kernels to crash when Python fails to identify
         # the system locale.
