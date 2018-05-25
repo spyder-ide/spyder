@@ -382,6 +382,7 @@ class DataFrameModel(QAbstractTableModel):
                                      .format(type(current_value).__name__))
                 return False
         self.max_min_col_update()
+        self.dataChanged.emit(index, index)
         return True
 
     def get_data(self):
@@ -691,6 +692,7 @@ class DataFrameEditor(QDialog):
         self.resize(600, 500)
 
         self.dataModel = DataFrameModel(data, parent=self)
+        self.dataModel.dataChanged.connect(self.apply_enable)
         self.dataTable = DataFrameView(self, self.dataModel)
 
         self.layout.addWidget(self.dataTable)
@@ -722,14 +724,25 @@ class DataFrameEditor(QDialog):
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        btn_layout.addWidget(bbox)
+
+        self.btn_apply = QPushButton(_('Apply'))
+        self.btn_apply.setDisabled(True)
+        self.btn_apply.clicked.connect(self.accept)
+        btn_layout.addWidget(self.btn_apply)
+
+        self.btn_ok = QPushButton(_('OK'))
+        self.btn_ok.setAutoDefault(True)
+        self.btn_ok.setDefault(True)
+        self.btn_ok.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_ok)
 
         self.layout.addLayout(btn_layout, 2, 0)
 
         return True
+
+    def apply_enable(self):
+        """Handle the data change event to enable the apply button."""
+        self.btn_apply.setEnabled(True)
 
     def change_bgcolor_enable(self, state):
         """
