@@ -830,7 +830,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         create_pylab_action = create_action(
                                    self,
-                                   _("Open a new Pylab (plot and array) "
+                                   _("Open a new Pylab (data plotting) "
                                    "console"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_pylab_client,
