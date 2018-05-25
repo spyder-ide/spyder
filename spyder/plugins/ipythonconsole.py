@@ -830,16 +830,16 @@ class IPythonConsole(SpyderPluginWidget):
 
         create_pylab_action = create_action(
                                    self,
-                                   _("Open a new Pylab (data plotting) "
-                                   "console"),
+                                   _("Open a new Pylab console "
+                                   "(data plotting)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_pylab_client,
                                    context=Qt.WidgetWithChildrenShortcut)
 
         create_sympy_action = create_action(
                                    self,
-                                   _("Open a new SymPy (symbolic math) "
-                                   "console"),
+                                   _("Open a new SymPy console "
+                                   "(symbolic math)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_sympy_client,
                                    context=Qt.WidgetWithChildrenShortcut)
