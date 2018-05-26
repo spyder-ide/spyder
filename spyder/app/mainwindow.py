@@ -2535,8 +2535,7 @@ class MainWindow(QMainWindow):
                 if CONF.get('main_interpreter', 'default'):
                     executable = get_python_executable()
                 else:
-                    executable = CONF.get('main_interpreter', 'executable',
-                                          get_python_executable())
+                    executable = CONF.get('main_interpreter', 'executable')
                 programs.run_python_script_in_terminal(
                         fname, wdir, args, interact, debug, python_args,
                         executable)
