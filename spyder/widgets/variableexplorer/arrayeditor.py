@@ -524,6 +524,7 @@ class ArrayView(QTableView):
 
 
 class ArrayEditorWidget(QWidget):
+
     def __init__(self, parent, data, readonly=False,
                  xlabels=None, ylabels=None):
         QWidget.__init__(self, parent)
@@ -671,6 +672,7 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
+        self.arraywidget.model.dataChanged.connect(self.apply_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
@@ -725,10 +727,17 @@ class ArrayEditor(QDialog):
                                    "array's data (and vice-versa)."))
                 btn_layout.addWidget(label)
             btn_layout.addStretch()
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        btn_layout.addWidget(bbox)
+
+        self.btn_apply = QPushButton(_('Apply'))
+        self.btn_apply.setDisabled(True)
+        self.btn_apply.clicked.connect(self.accept)
+        btn_layout.addWidget(self.btn_apply)
+
+        self.btn_ok = QPushButton(_('OK'))
+        self.btn_ok.setAutoDefault(True)
+        self.btn_ok.setDefault(True)
+        self.btn_ok.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_ok)
         self.layout.addLayout(btn_layout, 2, 0)
 
         self.setMinimumSize(400, 300)
@@ -737,9 +746,14 @@ class ArrayEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         
         return True
-            
+
+    def apply_enable(self):
+        """Handle the data change event to enable the apply button."""
+        self.btn_apply.setEnabled(True)
+
     def current_widget_changed(self, index):
-        self.arraywidget = self.stack.widget(index)     
+        self.arraywidget = self.stack.widget(index)
+        self.arraywidget.model.dataChanged.connect(self.apply_enable)
             
     def change_active_widget(self, index):
         """
