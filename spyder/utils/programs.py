@@ -272,8 +272,6 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
 
     p_args = [executable]
     p_args += get_python_args(fname, python_args, interact, debug, args)
-    
-    print(executable)
 
     if os.name == 'nt':
         cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
