@@ -455,7 +455,11 @@ def value_to_display(value, minmax=False, level=0):
     # Truncate display at 70 chars to avoid freezing Spyder
     # because of large displays
     if len(display) > 70:
-        display = display[:70].rstrip() + ' ...'
+        if is_binary_string(display):
+            ellipses = b' ...'
+        else:
+            ellipses = u' ...'
+        display = display[:70].rstrip() + ellipses
 
     # Restore Numpy threshold
     if np_threshold is not FakeObject:
