@@ -606,6 +606,8 @@ class ArrayEditor(QDialog):
         self.arraywidget = None
         self.stack = None
         self.layout = None
+        self.btn_apply = None
+        self.btn_ok = None
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
@@ -727,12 +729,14 @@ class ArrayEditor(QDialog):
                                    "to masked array won't be reflected in "\
                                    "array's data (and vice-versa)."))
                 btn_layout.addWidget(label)
-            btn_layout.addStretch()
 
-        self.btn_apply = QPushButton(_('Apply'))
-        self.btn_apply.setDisabled(True)
-        self.btn_apply.clicked.connect(self.accept)
-        btn_layout.addWidget(self.btn_apply)
+        btn_layout.addStretch()
+
+        if not readonly:
+            self.btn_apply = QPushButton(_('Apply'))
+            self.btn_apply.setDisabled(True)
+            self.btn_apply.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_apply)
 
         self.btn_ok = QPushButton(_('OK'))
         self.btn_ok.setAutoDefault(True)
@@ -750,9 +754,10 @@ class ArrayEditor(QDialog):
 
     def apply_enable(self):
         """Handle the data change event to enable the apply button."""
-        self.btn_apply.setEnabled(True)
-        self.btn_apply.setAutoDefault(True)
-        self.btn_apply.setDefault(True)
+        if self.btn_apply:
+            self.btn_apply.setEnabled(True)
+            self.btn_apply.setAutoDefault(True)
+            self.btn_apply.setDefault(True)
 
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)

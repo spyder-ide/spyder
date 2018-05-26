@@ -60,7 +60,7 @@ class TextEditor(QDialog):
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
-
+        btn_layout.addStretch()
         if not readonly:
             self.btn_apply = QPushButton(_('Apply'))
             self.btn_apply.setDisabled(True)

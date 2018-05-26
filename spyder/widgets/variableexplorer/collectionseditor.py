@@ -33,7 +33,7 @@ from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
                             QDateTimeEdit, QDialog, QHBoxLayout,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
-                            QMessageBox, QPushButton,QTableView,
+                            QMessageBox, QPushButton, QTableView,
                             QVBoxLayout, QWidget)
 
 # Local imports
@@ -177,7 +177,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             self.rows_loaded = self.total_rows
 
-        self.sig_setting_data.emit()
         self.set_size_and_type()
         self.reset()
 
@@ -1326,6 +1325,8 @@ class CollectionsEditor(QDialog):
 
         self.data_copy = None
         self.widget = None
+        self.btn_apply = None
+        self.btn_ok = None
 
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
@@ -1352,13 +1353,16 @@ class CollectionsEditor(QDialog):
         self.widget = CollectionsEditorWidget(self, self.data_copy,
                                               title=title, readonly=readonly,
                                               remote=remote)
-        self.widget.editor.model.sig_setting_data.connect(self.apply_enable)
+        if not readonly:
+            self.widget.editor.model.sig_setting_data.connect(
+                                                            self.apply_enable)
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
 
         if not readonly:
             self.btn_apply = QPushButton(_('Apply'))
@@ -1388,9 +1392,10 @@ class CollectionsEditor(QDialog):
 
     def apply_enable(self):
         """Handle the data change event to enable the apply button."""
-        self.btn_apply.setEnabled(True)
-        self.btn_apply.setAutoDefault(True)
-        self.btn_apply.setDefault(True)
+        if self.btn_apply:
+            self.btn_apply.setEnabled(True)
+            self.btn_apply.setAutoDefault(True)
+            self.btn_apply.setDefault(True)
 
     def get_value(self):
         """Return modified copy of dictionary or list"""
