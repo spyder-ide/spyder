@@ -126,8 +126,6 @@ dedekdh elkd ezd ekjd lekdj elkdfjelfjk e"""
     dialog.exec_()
 
     dlg_text = dialog.get_value()
-    print(text)
-    print(dlg_text)
     assert text == dlg_text
 
 
