@@ -841,11 +841,11 @@ class IPythonConsole(SpyderPluginWidget):
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_sympy_client,
                                    context=Qt.WidgetWithChildrenShortcut)
-                                   
+
         create_cython_action = create_action(
                                    self,
                                    _("New Cython console (Python with "
-                                   "C-extensions)"),
+                                       "C-extensions)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_cython_client,
                                    context=Qt.WidgetWithChildrenShortcut)
@@ -878,7 +878,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Plugin actions
         self.menu_actions = [create_client_action, create_pylab_action,
-                             create_sympy_action, create_cython_action, 
+                             create_sympy_action, create_cython_action,
                              MENU_SEPARATOR,
                              restart_action, connect_to_kernel_action,
                              MENU_SEPARATOR, rename_tab_action,
