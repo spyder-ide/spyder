@@ -1002,8 +1002,7 @@ class IPythonConsole(SpyderPluginWidget):
                                                       clear_variables))
             except AttributeError:
                 pass
-            self.visibility_changed(True)
-            self.raise_()
+            self.switch_to_plugin()
         else:
             #XXX: not sure it can really happen
             QMessageBox.warning(self, _('Warning'),
@@ -1620,9 +1619,8 @@ class IPythonConsole(SpyderPluginWidget):
         index = self.tabwidget.addTab(widget, name)
         self.filenames.insert(index, filename)
         self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget and not self.ismaximized:
-            self.dockwidget.setVisible(True)
-            self.dockwidget.raise_()
+        if self.dockwidget:
+            self.switch_to_plugin()
         self.activateWindow()
         widget.get_control().setFocus()
         self.update_tabs_text()
