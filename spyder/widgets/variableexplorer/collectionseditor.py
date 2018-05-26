@@ -31,9 +31,10 @@ from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
-                            QDateTimeEdit, QDialog, QDialogButtonBox,
+                            QDateTimeEdit, QDialog, QHBoxLayout,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
-                            QMessageBox, QTableView, QVBoxLayout, QWidget)
+                            QMessageBox, QPushButton,QTableView,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -176,6 +177,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             self.rows_loaded = self.total_rows
 
+        self.sig_setting_data.emit()
         self.set_size_and_type()
         self.reset()
 
@@ -358,12 +360,15 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 class CollectionsModel(ReadOnlyCollectionsModel):
     """Collections Table Model"""
 
+    sig_setting_data = Signal()
+
     def set_value(self, index, value):
         """Set value"""
         self._data[ self.keys[index.row()] ] = value
         self.showndata[ self.keys[index.row()] ] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_human_readable_type(value)
+        self.sig_setting_data.emit()
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
@@ -1347,20 +1352,27 @@ class CollectionsEditor(QDialog):
         self.widget = CollectionsEditorWidget(self, self.data_copy,
                                               title=title, readonly=readonly,
                                               remote=remote)
-
+        self.widget.editor.model.sig_setting_data.connect(self.apply_enable)
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
 
         # Buttons configuration
-        buttons = QDialogButtonBox.Ok
+        btn_layout = QHBoxLayout()
+
         if not readonly:
-            buttons = buttons | QDialogButtonBox.Cancel
-        self.bbox = QDialogButtonBox(buttons)
-        self.bbox.accepted.connect(self.accept)
-        if not readonly:
-            self.bbox.rejected.connect(self.reject)
-        layout.addWidget(self.bbox)
+            self.btn_apply = QPushButton(_('Apply'))
+            self.btn_apply.setDisabled(True)
+            self.btn_apply.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_apply)
+
+        self.btn_ok = QPushButton(_('OK'))
+        self.btn_ok.setAutoDefault(True)
+        self.btn_ok.setDefault(True)
+        self.btn_ok.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_ok)
+
+        layout.addLayout(btn_layout)
 
         constant = 121
         row_height = 30
@@ -1373,6 +1385,12 @@ class CollectionsEditor(QDialog):
             self.setWindowIcon(ima.icon('dictedit'))
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
+
+    def apply_enable(self):
+        """Handle the data change event to enable the apply button."""
+        self.btn_apply.setEnabled(True)
+        self.btn_apply.setAutoDefault(True)
+        self.btn_apply.setDefault(True)
 
     def get_value(self):
         """Return modified copy of dictionary or list"""

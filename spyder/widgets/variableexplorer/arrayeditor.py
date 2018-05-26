@@ -672,7 +672,8 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
-        self.arraywidget.model.dataChanged.connect(self.apply_enable)
+        if self.arraywidget:
+            self.arraywidget.model.dataChanged.connect(self.apply_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
@@ -750,6 +751,8 @@ class ArrayEditor(QDialog):
     def apply_enable(self):
         """Handle the data change event to enable the apply button."""
         self.btn_apply.setEnabled(True)
+        self.btn_apply.setAutoDefault(True)
+        self.btn_apply.setDefault(True)
 
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)

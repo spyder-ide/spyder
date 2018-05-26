@@ -743,6 +743,8 @@ class DataFrameEditor(QDialog):
     def apply_enable(self):
         """Handle the data change event to enable the apply button."""
         self.btn_apply.setEnabled(True)
+        self.btn_apply.setAutoDefault(True)
+        self.btn_apply.setDefault(True)
 
     def change_bgcolor_enable(self, state):
         """

@@ -13,7 +13,8 @@ from __future__ import print_function
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QDialog, QDialogButtonBox, QTextEdit, QVBoxLayout
+from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
+                            QVBoxLayout)
 
 # Local import
 from spyder.config.base import _
@@ -50,7 +51,6 @@ class TextEditor(QDialog):
 
         # Text edit
         self.edit = QTextEdit(parent)
-        self.edit.textChanged.connect(self.text_changed)
         self.edit.setReadOnly(readonly)
         self.edit.setPlainText(text)
         if font is None:
@@ -59,20 +59,29 @@ class TextEditor(QDialog):
         self.layout.addWidget(self.edit)
 
         # Buttons configuration
-        buttons = QDialogButtonBox.Ok
+        btn_layout = QHBoxLayout()
+
         if not readonly:
-            buttons = buttons | QDialogButtonBox.Cancel
-        bbox = QDialogButtonBox(buttons)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        self.layout.addWidget(bbox)
-        
+            self.btn_apply = QPushButton(_('Apply'))
+            self.btn_apply.setDisabled(True)
+            self.btn_apply.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_apply)
+
+        self.btn_ok = QPushButton(_('OK'))
+        self.btn_ok.setAutoDefault(True)
+        self.btn_ok.setDefault(True)
+        self.btn_ok.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_ok)
+
+        self.layout.addLayout(btn_layout)
+
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
         self.setWindowIcon(ima.icon('edit'))
         self.setWindowTitle(_("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
+        self.edit.textChanged.connect(self.text_changed)
         self.resize(size[0], size[1])
     
     def text_changed(self):
@@ -82,7 +91,10 @@ class TextEditor(QDialog):
             self.text = to_binary_string(self.edit.toPlainText(), 'utf8')
         else:
             self.text = to_text_string(self.edit.toPlainText())
-        
+        self.btn_apply.setEnabled(True)
+        self.btn_apply.setAutoDefault(True)
+        self.btn_apply.setDefault(True)
+
     def get_value(self):
         """Return modified text"""
         # It is import to avoid accessing Qt C++ object as it has probably
