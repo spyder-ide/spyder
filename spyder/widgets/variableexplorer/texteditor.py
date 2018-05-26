@@ -37,6 +37,7 @@ class TextEditor(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.text = None
+        self.btn_apply = None
         
         # Display text as unicode if it comes as bytes, so users see 
         # its right representation
@@ -52,6 +53,7 @@ class TextEditor(QDialog):
         # Text edit
         self.edit = QTextEdit(parent)
         self.edit.setReadOnly(readonly)
+        self.edit.textChanged.connect(self.text_changed)
         self.edit.setPlainText(text)
         if font is None:
             font = get_font()
@@ -67,7 +69,7 @@ class TextEditor(QDialog):
             self.btn_apply.clicked.connect(self.accept)
             btn_layout.addWidget(self.btn_apply)
 
-        self.btn_ok = QPushButton(_('OK'))
+        self.btn_ok = QPushButton(_('Close'))
         self.btn_ok.setAutoDefault(True)
         self.btn_ok.setDefault(True)
         self.btn_ok.clicked.connect(self.reject)
@@ -81,7 +83,6 @@ class TextEditor(QDialog):
         self.setWindowIcon(ima.icon('edit'))
         self.setWindowTitle(_("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
-        self.edit.textChanged.connect(self.text_changed)
         self.resize(size[0], size[1])
     
     def text_changed(self):
@@ -91,9 +92,10 @@ class TextEditor(QDialog):
             self.text = to_binary_string(self.edit.toPlainText(), 'utf8')
         else:
             self.text = to_text_string(self.edit.toPlainText())
-        self.btn_apply.setEnabled(True)
-        self.btn_apply.setAutoDefault(True)
-        self.btn_apply.setDefault(True)
+        if self.btn_apply:
+            self.btn_apply.setEnabled(True)
+            self.btn_apply.setAutoDefault(True)
+            self.btn_apply.setDefault(True)
 
     def get_value(self):
         """Return modified text"""
@@ -124,6 +126,8 @@ dedekdh elkd ezd ekjd lekdj elkdfjelfjk e"""
     dialog.exec_()
 
     dlg_text = dialog.get_value()
+    print(text)
+    print(dlg_text)
     assert text == dlg_text
 
 

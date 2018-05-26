@@ -738,7 +738,7 @@ class ArrayEditor(QDialog):
             self.btn_apply.clicked.connect(self.accept)
             btn_layout.addWidget(self.btn_apply)
 
-        self.btn_ok = QPushButton(_('OK'))
+        self.btn_ok = QPushButton(_('Close'))
         self.btn_ok.setAutoDefault(True)
         self.btn_ok.setDefault(True)
         self.btn_ok.clicked.connect(self.reject)
