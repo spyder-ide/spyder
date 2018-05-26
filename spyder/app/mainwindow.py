@@ -154,7 +154,7 @@ from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
-from spyder.utils.misc import select_port, getcwd_or_home
+from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
 
 
@@ -2508,8 +2508,13 @@ class MainWindow(QMainWindow):
         if systerm:
             # Running script in an external system terminal
             try:
-                programs.run_python_script_in_terminal(fname, wdir, args,
-                                                interact, debug, python_args)
+                if CONF.get('main_interpreter', 'default'):
+                    executable = get_python_executable()
+                else:
+                    executable = CONF.get('main_interpreter', 'executable')
+                programs.run_python_script_in_terminal(
+                        fname, wdir, args, interact, debug, python_args,
+                        executable)
             except NotImplementedError:
                 QMessageBox.critical(self, _("Run"),
                                      _("Running an external system terminal "
