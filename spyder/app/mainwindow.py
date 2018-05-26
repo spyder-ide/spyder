@@ -2584,11 +2584,10 @@ class MainWindow(QMainWindow):
         to the Editor.
         """
         console = self.ipyconsole
-        console.visibility_changed(True)
-        console.raise_()
+        console.switch_to_plugin()
         console.execute_code(lines)
         if focus_to_editor:
-            self.editor.visibility_changed(True)
+            self.editor.switch_to_plugin()
 
     def open_file(self, fname, external=False):
         """
