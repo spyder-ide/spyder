@@ -132,16 +132,24 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-            'SPY_RUN_CYTHON': self.is_cython,
+<<<<<<< 11be84b557cfb64d774c7f5199d2a3dd532ab898
             'SPY_TESTING': running_under_pytest() or SAFE_MODE
+=======
+>>>>>>> Added a Cython console
         }
 
         if self.is_pylab is True:
             env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
             env_vars['SPY_SYMPY_O'] = False
+            env_vars['SPY_RUN_CYTHON'] = False
         if self.is_sympy is True:
             env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
             env_vars['SPY_SYMPY_O'] = True
+            env_vars['SPY_RUN_CYTHON'] = False
+        if self.is_cython is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
+            env_vars['SPY_SYMPY_O'] = False
+            env_vars['SPY_RUN_CYTHON'] = True
 
         # Add our PYTHONPATH to env_vars
         env_vars.update(pypath)

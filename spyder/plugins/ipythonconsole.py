@@ -830,18 +830,24 @@ class IPythonConsole(SpyderPluginWidget):
 
         create_pylab_action = create_action(
                                    self,
-                                   _("Open a new Pylab console "
-                                   "(data plotting)"),
+                                   _("New Pylab console (data plotting)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_pylab_client,
                                    context=Qt.WidgetWithChildrenShortcut)
 
         create_sympy_action = create_action(
                                    self,
-                                   _("Open a new SymPy console "
-                                   "(symbolic math)"),
+                                   _("New SymPy console (symbolic math)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_sympy_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+                                   
+        create_cython_action = create_action(
+                                   self,
+                                   _("New Cython console (Python with "
+                                   "C-extensions)"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_cython_client,
                                    context=Qt.WidgetWithChildrenShortcut)
 
         restart_action = create_action(self, _("Restart kernel"),
@@ -865,13 +871,15 @@ class IPythonConsole(SpyderPluginWidget):
         main_consoles_menu.insert(0, create_client_action)
         main_consoles_menu.insert(1, create_pylab_action)
         main_consoles_menu.insert(2, create_sympy_action)
+        main_consoles_menu.insert(3, create_cython_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
                                connect_to_kernel_action,
                                MENU_SEPARATOR]
 
         # Plugin actions
         self.menu_actions = [create_client_action, create_pylab_action,
-                             create_sympy_action, MENU_SEPARATOR,
+                             create_sympy_action, create_cython_action, 
+                             MENU_SEPARATOR,
                              restart_action, connect_to_kernel_action,
                              MENU_SEPARATOR, rename_tab_action,
                              MENU_SEPARATOR]
@@ -1115,13 +1123,15 @@ class IPythonConsole(SpyderPluginWidget):
 
     def create_pylab_client(self):
         """Force creation of Pylab client"""
-        console_name = "Pylab"
-        self.create_new_client(is_pylab=True, given_name=console_name)
+        self.create_new_client(is_pylab=True, given_name="Pylab")
 
     def create_sympy_client(self):
         """Force creation of SymPy client"""
-        console_name = "SymPy"
-        self.create_new_client(is_sympy=True, given_name=console_name)
+        self.create_new_client(is_sympy=True, given_name="SymPy")
+
+    def create_cython_client(self):
+        """Force creation of Cython client"""
+        self.create_new_client(is_cython=True, given_name="Cython")
 
     @Slot()
     def create_client_for_kernel(self):

@@ -97,13 +97,18 @@ def ipyconsole(qtbot, request):
     sympy_client = request.node.get_marker('sympy_client')
     is_sympy = True if sympy_client else False
 
+    # Start a Cython client if requested
+    cython_client = request.node.get_marker('cython_client')
+    is_cython = True if cython_client else False
+
     # Create the console and a new client
     console = IPythonConsole(parent=None,
                              testing=True,
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
     console.create_new_client(is_pylab=is_pylab,
-                              is_sympy=is_sympy)
+                              is_sympy=is_sympy,
+                              is_cython=is_cython)
 
     # Close callback
     def close_console():
@@ -177,6 +182,28 @@ def test_sympy_client(ipyconsole, qtbot):
     # This is here to generate further errors
     with qtbot.waitSignal(shell.executed):
         shell.execute("x")
+
+    # Assert there are no errors in the console
+    control = ipyconsole.get_focus_widget()
+    assert 'NOTE' not in control.toPlainText()
+    assert 'Error' not in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.cython_client
+def test_cython_client(ipyconsole, qtbot):
+    """Test that the automatic backend is working correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # This is here to generate further errors
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%%cython\n"
+                      "cdef int ctest(int x, int y):\n"
+                      "    return x + y")
 
     # Assert there are no errors in the console
     control = ipyconsole.get_focus_widget()

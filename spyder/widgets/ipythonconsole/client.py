@@ -297,7 +297,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # Adding id to name
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = name + u' ' + client_id
-        elif self.given_name in ["Pylab", "SymPy"]:
+        elif self.given_name in ["Pylab", "SymPy", "Cython"]:
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = self.given_name + u' ' + client_id
         else:
