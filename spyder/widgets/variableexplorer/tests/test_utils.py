@@ -241,5 +241,24 @@ def test_set_display():
     disp = '[' + ''.join('{0, 1, 2, 3, 4, ...}, '*10)[:-2] + ']'
     assert value_to_display([long_set] * 10) == disp[:70] + ' ...'
 
+
+def test_ellipses(tmpdir):
+    """
+    Test that we're adding a binary ellipses when value_to_display of
+    a collection is too long and binary.
+
+    For issue 6942
+    """
+    # Create binary file with all bytes
+    file = tmpdir.new(basename='bytes.txt')
+    file.write_binary(bytearray(list(range(255))))
+
+    # Read bytes back
+    buffer = file.read(mode='rb')
+
+    # Assert that there's a binary ellipses in the representation
+    assert b' ...' in value_to_display(buffer)
+
+
 if __name__ == "__main__":
     pytest.main()
