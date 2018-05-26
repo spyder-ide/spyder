@@ -132,10 +132,7 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-<<<<<<< 11be84b557cfb64d774c7f5199d2a3dd532ab898
             'SPY_TESTING': running_under_pytest() or SAFE_MODE
-=======
->>>>>>> Added a Cython console
         }
 
         if self.is_pylab is True:
