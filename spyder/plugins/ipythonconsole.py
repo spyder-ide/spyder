@@ -821,7 +821,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin."""
         create_client_action = create_action(
                                    self,
-                                   _("Open a new console"),
+                                   _("New console (default settings)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_new_client,
                                    context=Qt.WidgetWithChildrenShortcut)

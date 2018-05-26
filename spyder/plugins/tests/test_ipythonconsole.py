@@ -151,7 +151,7 @@ def test_auto_backend(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.pylab_client
 def test_pylab_client(ipyconsole, qtbot):
-    """Test that the automatic backend is working correctly."""
+    """Test that the Pylab console is working correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -163,7 +163,6 @@ def test_pylab_client(ipyconsole, qtbot):
 
     # Assert there are no errors in the console
     control = ipyconsole.get_focus_widget()
-    assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
 
 
@@ -173,7 +172,7 @@ def test_pylab_client(ipyconsole, qtbot):
 @pytest.mark.xfail('1.0' < sympy.__version__ < '1.2',
                    reason="A bug with sympy 1.1.1 and IPython-Qtconsole")
 def test_sympy_client(ipyconsole, qtbot):
-    """Test that the automatic backend is working correctly."""
+    """Test that the SymPy console is working correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -185,7 +184,6 @@ def test_sympy_client(ipyconsole, qtbot):
 
     # Assert there are no errors in the console
     control = ipyconsole.get_focus_widget()
-    assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
 
 
@@ -193,7 +191,7 @@ def test_sympy_client(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.cython_client
 def test_cython_client(ipyconsole, qtbot):
-    """Test that the automatic backend is working correctly."""
+    """Test that the Cython console is working correctly."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -207,7 +205,6 @@ def test_cython_client(ipyconsole, qtbot):
 
     # Assert there are no errors in the console
     control = ipyconsole.get_focus_widget()
-    assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
 
 
