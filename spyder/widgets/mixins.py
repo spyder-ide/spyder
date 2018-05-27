@@ -475,10 +475,13 @@ class BaseEditMixin(object):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
+
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
+
         if case:
             findflag = findflag | QTextDocument.FindCaseSensitively
+
         moves = [QTextCursor.NoMove]
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
@@ -491,10 +494,12 @@ class BaseEditMixin(object):
                     cursor.movePosition(QTextCursor.PreviousWord)
         else:
             moves += [QTextCursor.End]
+
         if regexp:
             text = to_text_string(text)
         else:
             text = re.escape(to_text_string(text))
+
         if QT55_VERSION:
             pattern = QRegularExpression(u"\\b{}\\b".format(text) if words else
                                          text)
@@ -519,6 +524,7 @@ class BaseEditMixin(object):
             if found_cursor is not None and not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
                 return True
+
         return False
 
     def is_editor(self):
@@ -531,10 +537,13 @@ class BaseEditMixin(object):
         pattern = to_text_string(pattern)
         if not pattern:
             return 0
+
         if not regexp:
             pattern = re.escape(pattern)
+
         if not source_text:
             source_text = to_text_string(self.toPlainText())
+
         try:
             if case:
                 regobj = re.compile(pattern)
