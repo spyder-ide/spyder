@@ -475,10 +475,13 @@ class BaseEditMixin(object):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
+
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
+
         if case:
             findflag = findflag | QTextDocument.FindCaseSensitively
+
         moves = [QTextCursor.NoMove]
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
@@ -491,16 +494,20 @@ class BaseEditMixin(object):
                     cursor.movePosition(QTextCursor.PreviousWord)
         else:
             moves += [QTextCursor.End]
-        if not regexp:
+
+        if regexp:
+            text = to_text_string(text)
+        else:
             text = re.escape(to_text_string(text))
+
         if QT55_VERSION:
-            pattern = QRegularExpression(r"\b{}\b".format(text) if words else
+            pattern = QRegularExpression(u"\\b{}\\b".format(text) if words else
                                          text)
             if case:
                 pattern.setPatternOptions(
                     QRegularExpression.CaseInsensitiveOption)
         else:
-            pattern = QRegExp(r"\b{}\b".format(text)
+            pattern = QRegExp(u"\\b{}\\b".format(text)
                               if words else text, Qt.CaseSensitive if case else
                               Qt.CaseInsensitive, QRegExp.RegExp2)
 
@@ -517,6 +524,7 @@ class BaseEditMixin(object):
             if found_cursor is not None and not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
                 return True
+
         return False
 
     def is_editor(self):
@@ -529,10 +537,13 @@ class BaseEditMixin(object):
         pattern = to_text_string(pattern)
         if not pattern:
             return 0
+
         if not regexp:
             pattern = re.escape(pattern)
+
         if not source_text:
             source_text = to_text_string(self.toPlainText())
+
         try:
             if case:
                 regobj = re.compile(pattern)
