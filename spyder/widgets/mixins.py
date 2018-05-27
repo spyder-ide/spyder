@@ -491,16 +491,18 @@ class BaseEditMixin(object):
                     cursor.movePosition(QTextCursor.PreviousWord)
         else:
             moves += [QTextCursor.End]
-        if not regexp:
+        if regexp:
+            text = to_text_string(text)
+        else:
             text = re.escape(to_text_string(text))
         if QT55_VERSION:
-            pattern = QRegularExpression(r"\b{}\b".format(text) if words else
+            pattern = QRegularExpression(u"\\b{}\\b".format(text) if words else
                                          text)
             if case:
                 pattern.setPatternOptions(
                     QRegularExpression.CaseInsensitiveOption)
         else:
-            pattern = QRegExp(r"\b{}\b".format(text)
+            pattern = QRegExp(u"\\b{}\\b".format(text)
                               if words else text, Qt.CaseSensitive if case else
                               Qt.CaseInsensitive, QRegExp.RegExp2)
 
