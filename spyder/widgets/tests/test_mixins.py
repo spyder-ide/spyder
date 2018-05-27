@@ -29,6 +29,18 @@ def mixinsbot(qtbot):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_get_unicode_regexp(mixinsbot):
+    # For issue 6812
+    qtbot, widget = mixinsbot
+    get = widget.get_number_matches
+
+    code = (u'print("И")\n'
+             'foo("И")')
+    widget.setPlainText(code)
+    cursor = widget.textCursor()
+    cursor.setPosition(widget.get_position('sof'))
+    assert widget.find_text('t.*И', regexp=True)
+    assert get('t.*И', source_text=code, regexp=True) == 1
 
 
 def test_get_number_matches(mixinsbot):
