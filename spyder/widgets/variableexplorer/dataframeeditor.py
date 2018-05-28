@@ -382,6 +382,7 @@ class DataFrameModel(QAbstractTableModel):
                                      .format(type(current_value).__name__))
                 return False
         self.max_min_col_update()
+        self.dataChanged.emit(index, index)
         return True
 
     def get_data(self):
@@ -691,6 +692,7 @@ class DataFrameEditor(QDialog):
         self.resize(600, 500)
 
         self.dataModel = DataFrameModel(data, parent=self)
+        self.dataModel.dataChanged.connect(self.save_and_close_enable)
         self.dataTable = DataFrameView(self, self.dataModel)
 
         self.layout.addWidget(self.dataTable)
@@ -722,14 +724,28 @@ class DataFrameEditor(QDialog):
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        btn_layout.addWidget(bbox)
+
+        self.btn_save_and_close = QPushButton(_('Save and Close'))
+        self.btn_save_and_close.setDisabled(True)
+        self.btn_save_and_close.clicked.connect(self.accept)
+        btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
 
         self.layout.addLayout(btn_layout, 2, 0)
 
         return True
+
+    @Slot(QModelIndex, QModelIndex)
+    def save_and_close_enable(self, top_left, bottom_right):
+        """Handle the data change event to enable the save and close button."""
+        self.btn_save_and_close.setEnabled(True)
+        self.btn_save_and_close.setAutoDefault(True)
+        self.btn_save_and_close.setDefault(True)
 
     def change_bgcolor_enable(self, state):
         """
