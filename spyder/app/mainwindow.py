@@ -2588,8 +2588,12 @@ class MainWindow(QMainWindow):
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
-        encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
-        encoding.writelines(self.not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
+        try:
+            encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
+            encoding.writelines(self.not_active_path,
+                                self.SPYDER_NOT_ACTIVE_PATH)
+        except EnvironmentError:
+            pass
         self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):

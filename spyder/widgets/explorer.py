@@ -76,8 +76,13 @@ def fixpath(path):
 def create_script(fname):
     """Create a new Python script"""
     text = os.linesep.join(["# -*- coding: utf-8 -*-", "", ""])
-    encoding.write(to_text_string(text), fname, 'utf-8')
-
+    try:
+        encoding.write(to_text_string(text), fname, 'utf-8')
+    except EnvironmentError as error:
+        QMessageBox.critical(_("Save Error"),
+                             _("<b>Unable to save file '%s'</b>"
+                               "<br><br>Error message:<br>%s"
+                               ) % (osp.basename(fname), str(error)))
 
 def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', show_all=False,
             folders_only=False):
@@ -384,16 +389,10 @@ class DirView(QTreeView):
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
             # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                commit_slot = lambda _checked, fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'commit')
-                browse_slot = lambda _checked, fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'browse')
-            else:
-                commit_slot = lambda fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'commit')
-                browse_slot = lambda fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'browse')
+            commit_slot = lambda fnames=[dirname]:\
+                                self.vcs_command(fnames, 'commit')
+            browse_slot = lambda fnames=[dirname]:\
+                                self.vcs_command(fnames, 'browse')
             vcs_ci = create_action(self, _("Commit"),
                                    icon=ima.icon('vcs_commit'),
                                    triggered=commit_slot)

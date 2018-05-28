@@ -1622,7 +1622,7 @@ class EditorStack(QWidget):
         except EnvironmentError as error:
             self.msgbox = QMessageBox(
                     QMessageBox.Critical,
-                    _("Save"),
+                    _("Save Error"),
                     _("<b>Unable to save file '%s'</b>"
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
@@ -1785,7 +1785,7 @@ class EditorStack(QWidget):
             except EnvironmentError as error:
                 self.msgbox = QMessageBox(
                     QMessageBox.Critical,
-                    _("Save"),
+                    _("Save Error"),
                     _("<b>Unable to save file '%s'</b>"
                       "<br><br>Error message:<br>%s"
                       ) % (osp.basename(finfo.filename),
