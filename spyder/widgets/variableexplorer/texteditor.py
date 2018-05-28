@@ -12,8 +12,9 @@ Text editor dialog
 from __future__ import print_function
 
 # Third party imports
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QDialog, QDialogButtonBox, QTextEdit, QVBoxLayout
+from qtpy.QtCore import Qt, Slot
+from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
+                            QVBoxLayout)
 
 # Local import
 from spyder.config.base import _
@@ -36,6 +37,7 @@ class TextEditor(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.text = None
+        self.btn_save_and_close = None
         
         # Display text as unicode if it comes as bytes, so users see 
         # its right representation
@@ -50,8 +52,8 @@ class TextEditor(QDialog):
 
         # Text edit
         self.edit = QTextEdit(parent)
-        self.edit.textChanged.connect(self.text_changed)
         self.edit.setReadOnly(readonly)
+        self.edit.textChanged.connect(self.text_changed)
         self.edit.setPlainText(text)
         if font is None:
             font = get_font()
@@ -59,14 +61,22 @@ class TextEditor(QDialog):
         self.layout.addWidget(self.edit)
 
         # Buttons configuration
-        buttons = QDialogButtonBox.Ok
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
         if not readonly:
-            buttons = buttons | QDialogButtonBox.Cancel
-        bbox = QDialogButtonBox(buttons)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        self.layout.addWidget(bbox)
-        
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
+
+        self.layout.addLayout(btn_layout)
+
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
@@ -74,7 +84,8 @@ class TextEditor(QDialog):
         self.setWindowTitle(_("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(size[0], size[1])
-    
+
+    @Slot()
     def text_changed(self):
         """Text has changed"""
         # Save text as bytes, if it was initially bytes
@@ -82,7 +93,11 @@ class TextEditor(QDialog):
             self.text = to_binary_string(self.edit.toPlainText(), 'utf8')
         else:
             self.text = to_text_string(self.edit.toPlainText())
-        
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
+
     def get_value(self):
         """Return modified text"""
         # It is import to avoid accessing Qt C++ object as it has probably
