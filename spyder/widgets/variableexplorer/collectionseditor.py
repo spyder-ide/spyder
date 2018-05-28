@@ -63,6 +63,9 @@ if DataFrame is not FakeObject:
 # To be able to get and set variables between Python 2 and 3
 PICKLE_PROTOCOL = 2
 
+# Maximum length of a serialized variable to be set in the kernel
+MAX_SERIALIZED_LENGHT = 1e6
+
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
@@ -1455,7 +1458,16 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             # We need to enclose values in a list to be able to send
             # them to the kernel in Python 2
             svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
-            self.shellwidget.set_value(name, svalue)
+
+            # Needed to prevent memory leaks. See issue 7158
+            if len(svalue) < MAX_SERIALIZED_LENGHT:
+                self.shellwidget.set_value(name, svalue)
+            else:
+                QMessageBox.warning(self, _("Warning"),
+                                    _("The object you are trying to modify is "
+                                      "too big to be sent back to the kernel. "
+                                      "Therefore, your modifications won't "
+                                      "take place."))
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))
