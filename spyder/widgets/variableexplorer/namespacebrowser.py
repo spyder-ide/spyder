@@ -45,6 +45,9 @@ SUPPORTED_TYPES = get_supported_types()
 # To be able to get and set variables between Python 2 and 3
 PICKLE_PROTOCOL = 2
 
+# Maximum length of a serialized variable to be set in the kernel
+MAX_SERIALIZED_LENGHT = 1e6
+
 
 class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
@@ -294,7 +297,15 @@ class NamespaceBrowser(QWidget):
             # We need to enclose values in a list to be able to send
             # them to the kernel in Python 2
             svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
-            self.shellwidget.set_value(name, svalue)
+
+            # Needed to prevent memory leaks. See issue 7158
+            if len(svalue) < MAX_SERIALIZED_LENGHT:
+                self.shellwidget.set_value(name, svalue)
+            else:
+                QMessageBox.warning(self, _("Warning"),
+                                    _("For performance reasons is not "
+                                      "possible to save the changes "
+                                      "made to the variable"))
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))
