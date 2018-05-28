@@ -303,9 +303,10 @@ class NamespaceBrowser(QWidget):
                 self.shellwidget.set_value(name, svalue)
             else:
                 QMessageBox.warning(self, _("Warning"),
-                                    _("For performance reasons is not "
-                                      "possible to save the changes "
-                                      "made to the variable"))
+                                    _("The object you are trying to modify is "
+                                      "too big to be sent back to the kernel. "
+                                      "Therefore, your modifications won't "
+                                      "take place."))
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))
