@@ -37,7 +37,7 @@ class TextEditor(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.text = None
-        self.btn_apply = None
+        self.btn_save_and_close = None
         
         # Display text as unicode if it comes as bytes, so users see 
         # its right representation
@@ -64,10 +64,10 @@ class TextEditor(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         if not readonly:
-            self.btn_apply = QPushButton(_('Apply'))
-            self.btn_apply.setDisabled(True)
-            self.btn_apply.clicked.connect(self.accept)
-            btn_layout.addWidget(self.btn_apply)
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
 
         self.btn_ok = QPushButton(_('Close'))
         self.btn_ok.setAutoDefault(True)
@@ -92,10 +92,10 @@ class TextEditor(QDialog):
             self.text = to_binary_string(self.edit.toPlainText(), 'utf8')
         else:
             self.text = to_text_string(self.edit.toPlainText())
-        if self.btn_apply:
-            self.btn_apply.setEnabled(True)
-            self.btn_apply.setAutoDefault(True)
-            self.btn_apply.setDefault(True)
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
 
     def get_value(self):
         """Return modified text"""

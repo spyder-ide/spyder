@@ -110,6 +110,8 @@ class ProxyObject(object):
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
 
+    sig_setting_data = Signal()
+
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
         QAbstractTableModel.__init__(self, parent)
@@ -176,7 +178,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
-
+        self.sig_setting_data.emit()
         self.set_size_and_type()
         self.reset()
 
@@ -358,8 +360,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
 class CollectionsModel(ReadOnlyCollectionsModel):
     """Collections Table Model"""
-
-    sig_setting_data = Signal()
 
     def set_value(self, index, value):
         """Set value"""
@@ -1325,7 +1325,7 @@ class CollectionsEditor(QDialog):
 
         self.data_copy = None
         self.widget = None
-        self.btn_apply = None
+        self.btn_save_and_close = None
         self.btn_ok = None
 
     def setup(self, data, title='', readonly=False, width=650, remote=False,
@@ -1353,9 +1353,8 @@ class CollectionsEditor(QDialog):
         self.widget = CollectionsEditorWidget(self, self.data_copy,
                                               title=title, readonly=readonly,
                                               remote=remote)
-        if not readonly:
-            self.widget.editor.model.sig_setting_data.connect(
-                                                            self.apply_enable)
+        self.widget.editor.model.sig_setting_data.connect(
+                                                    self.save_and_close_enable)
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
@@ -1365,10 +1364,10 @@ class CollectionsEditor(QDialog):
         btn_layout.addStretch()
 
         if not readonly:
-            self.btn_apply = QPushButton(_('Apply'))
-            self.btn_apply.setDisabled(True)
-            self.btn_apply.clicked.connect(self.accept)
-            btn_layout.addWidget(self.btn_apply)
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
 
         self.btn_ok = QPushButton(_('Close'))
         self.btn_ok.setAutoDefault(True)
@@ -1390,12 +1389,12 @@ class CollectionsEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
 
-    def apply_enable(self):
-        """Handle the data change event to enable the apply button."""
-        if self.btn_apply:
-            self.btn_apply.setEnabled(True)
-            self.btn_apply.setAutoDefault(True)
-            self.btn_apply.setDefault(True)
+    def save_and_close_enable(self):
+        """Handle the data change event to enable the save and close button."""
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
 
     def get_value(self):
         """Return modified copy of dictionary or list"""

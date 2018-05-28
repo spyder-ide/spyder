@@ -606,7 +606,7 @@ class ArrayEditor(QDialog):
         self.arraywidget = None
         self.stack = None
         self.layout = None
-        self.btn_apply = None
+        self.btn_save_and_close = None
         self.btn_ok = None
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
@@ -675,7 +675,8 @@ class ArrayEditor(QDialog):
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
         if self.arraywidget:
-            self.arraywidget.model.dataChanged.connect(self.apply_enable)
+            self.arraywidget.model.dataChanged.connect(
+                                                    self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
@@ -733,10 +734,10 @@ class ArrayEditor(QDialog):
         btn_layout.addStretch()
 
         if not readonly:
-            self.btn_apply = QPushButton(_('Apply'))
-            self.btn_apply.setDisabled(True)
-            self.btn_apply.clicked.connect(self.accept)
-            btn_layout.addWidget(self.btn_apply)
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
 
         self.btn_ok = QPushButton(_('Close'))
         self.btn_ok.setAutoDefault(True)
@@ -752,16 +753,16 @@ class ArrayEditor(QDialog):
         
         return True
 
-    def apply_enable(self):
-        """Handle the data change event to enable the apply button."""
-        if self.btn_apply:
-            self.btn_apply.setEnabled(True)
-            self.btn_apply.setAutoDefault(True)
-            self.btn_apply.setDefault(True)
+    def save_and_close_enable(self):
+        """Handle the data change event to enable the save and close button."""
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
 
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
-        self.arraywidget.model.dataChanged.connect(self.apply_enable)
+        self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
             
     def change_active_widget(self, index):
         """

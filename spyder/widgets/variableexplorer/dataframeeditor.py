@@ -692,7 +692,7 @@ class DataFrameEditor(QDialog):
         self.resize(600, 500)
 
         self.dataModel = DataFrameModel(data, parent=self)
-        self.dataModel.dataChanged.connect(self.apply_enable)
+        self.dataModel.dataChanged.connect(self.save_and_close_enable)
         self.dataTable = DataFrameView(self, self.dataModel)
 
         self.layout.addWidget(self.dataTable)
@@ -725,10 +725,10 @@ class DataFrameEditor(QDialog):
 
         btn_layout.addStretch()
 
-        self.btn_apply = QPushButton(_('Apply'))
-        self.btn_apply.setDisabled(True)
-        self.btn_apply.clicked.connect(self.accept)
-        btn_layout.addWidget(self.btn_apply)
+        self.btn_save_and_close = QPushButton(_('Save and Close'))
+        self.btn_save_and_close.setDisabled(True)
+        self.btn_save_and_close.clicked.connect(self.accept)
+        btn_layout.addWidget(self.btn_save_and_close)
 
         self.btn_ok = QPushButton(_('Close'))
         self.btn_ok.setAutoDefault(True)
@@ -740,11 +740,11 @@ class DataFrameEditor(QDialog):
 
         return True
 
-    def apply_enable(self):
-        """Handle the data change event to enable the apply button."""
-        self.btn_apply.setEnabled(True)
-        self.btn_apply.setAutoDefault(True)
-        self.btn_apply.setDefault(True)
+    def save_and_close_enable(self):
+        """Handle the data change event to enable the save and close button."""
+        self.btn_save_and_close.setEnabled(True)
+        self.btn_save_and_close.setAutoDefault(True)
+        self.btn_save_and_close.setDefault(True)
 
     def change_bgcolor_enable(self, state):
         """
