@@ -262,14 +262,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
                                filename)
                 self.historylog_filename = filename
                 CONF.set('main', 'historylog_filename', filename)
-            except EnvironmentError as error:
-                QMessageBox.critical(self, title,
-                                     _("<b>Unable to save file '%s'</b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % (osp.basename(filename),
-                                            to_text_string(error)))
-        
-        
+            except EnvironmentError:
+                pass
+
     #------ Basic keypress event handler
     def on_enter(self, command):
         """on_enter"""
@@ -510,8 +505,13 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
             while rawhistory[0].startswith('#'):
                 del rawhistory[0]
             del rawhistory[0]
+
         # Saving truncated history:
-        encoding.writelines(rawhistory, self.history_filename)
+        try:
+            encoding.writelines(rawhistory, self.history_filename)
+        except EnvironmentError:
+            pass
+
         return history
 
     #------ Simulation standards input/output

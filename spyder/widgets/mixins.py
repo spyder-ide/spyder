@@ -759,7 +759,10 @@ class SaveHistoryMixin(object):
     def create_history_filename(self):
         """Create history_filename with INITHISTORY if it doesn't exist."""
         if self.history_filename and not osp.isfile(self.history_filename):
-            encoding.writelines(self.INITHISTORY, self.history_filename)
+            try:
+                encoding.writelines(self.INITHISTORY, self.history_filename)
+            except EnvironmentError:
+                pass
 
     def add_to_history(self, command):
         """Add command to history"""
@@ -783,7 +786,7 @@ class SaveHistoryMixin(object):
         # See issue 6431
         try:
             encoding.write(text, self.history_filename, mode='ab')
-        except (IOError, OSError):
+        except EnvironmentError:
             pass
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)

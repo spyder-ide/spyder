@@ -433,7 +433,11 @@ class Editor(SpyderPluginWidget):
                 '# -*- coding: utf-8 -*-',
                 '"""', 'Created on %(date)s', '',
                 '@author: %(username)s', '"""', '', '']
-            encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
+            try:
+                encoding.write(os.linesep.join(header), self.TEMPLATE_PATH,
+                               'utf-8')
+            except EnvironmentError:
+                pass
 
         self.projects = None
         self.outlineexplorer = None
@@ -1831,7 +1835,13 @@ class Editor(SpyderPluginWidget):
                        '"""', '', '']
             text = os.linesep.join([encoding.to_unicode(qstr)
                                     for qstr in default])
-            encoding.write(to_text_string(text), self.TEMPFILE_PATH, 'utf-8')
+            try:
+                encoding.write(to_text_string(text), self.TEMPFILE_PATH,
+                               'utf-8')
+            except EnvironmentError:
+                self.new()
+                return
+
         self.load(self.TEMPFILE_PATH)
 
     @Slot()
