@@ -607,7 +607,7 @@ class ArrayEditor(QDialog):
         self.stack = None
         self.layout = None
         self.btn_save_and_close = None
-        self.btn_ok = None
+        self.btn_close = None
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
@@ -739,11 +739,11 @@ class ArrayEditor(QDialog):
             self.btn_save_and_close.clicked.connect(self.accept)
             btn_layout.addWidget(self.btn_save_and_close)
 
-        self.btn_ok = QPushButton(_('Close'))
-        self.btn_ok.setAutoDefault(True)
-        self.btn_ok.setDefault(True)
-        self.btn_ok.clicked.connect(self.reject)
-        btn_layout.addWidget(self.btn_ok)
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
         self.layout.addLayout(btn_layout, 2, 0)
 
         self.setMinimumSize(400, 300)
@@ -753,7 +753,8 @@ class ArrayEditor(QDialog):
         
         return True
 
-    def save_and_close_enable(self):
+    @Slot(QModelIndex, QModelIndex)
+    def save_and_close_enable(self, left_top, bottom_right):
         """Handle the data change event to enable the save and close button."""
         if self.btn_save_and_close:
             self.btn_save_and_close.setEnabled(True)

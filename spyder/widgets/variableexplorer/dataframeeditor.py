@@ -730,17 +730,18 @@ class DataFrameEditor(QDialog):
         self.btn_save_and_close.clicked.connect(self.accept)
         btn_layout.addWidget(self.btn_save_and_close)
 
-        self.btn_ok = QPushButton(_('Close'))
-        self.btn_ok.setAutoDefault(True)
-        self.btn_ok.setDefault(True)
-        self.btn_ok.clicked.connect(self.reject)
-        btn_layout.addWidget(self.btn_ok)
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
 
         self.layout.addLayout(btn_layout, 2, 0)
 
         return True
 
-    def save_and_close_enable(self):
+    @Slot(QModelIndex, QModelIndex)
+    def save_and_close_enable(self, top_left, bottom_right):
         """Handle the data change event to enable the save and close button."""
         self.btn_save_and_close.setEnabled(True)
         self.btn_save_and_close.setAutoDefault(True)

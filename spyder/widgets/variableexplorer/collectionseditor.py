@@ -1326,7 +1326,7 @@ class CollectionsEditor(QDialog):
         self.data_copy = None
         self.widget = None
         self.btn_save_and_close = None
-        self.btn_ok = None
+        self.btn_close = None
 
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
@@ -1369,11 +1369,11 @@ class CollectionsEditor(QDialog):
             self.btn_save_and_close.clicked.connect(self.accept)
             btn_layout.addWidget(self.btn_save_and_close)
 
-        self.btn_ok = QPushButton(_('Close'))
-        self.btn_ok.setAutoDefault(True)
-        self.btn_ok.setDefault(True)
-        self.btn_ok.clicked.connect(self.reject)
-        btn_layout.addWidget(self.btn_ok)
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
 
         layout.addLayout(btn_layout)
 
@@ -1389,6 +1389,7 @@ class CollectionsEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
 
+    @Slot()
     def save_and_close_enable(self):
         """Handle the data change event to enable the save and close button."""
         if self.btn_save_and_close:
