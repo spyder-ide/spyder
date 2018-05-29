@@ -845,7 +845,7 @@ class IPythonConsole(SpyderPluginWidget):
         create_cython_action = create_action(
                                    self,
                                    _("New Cython console (Python with "
-                                       "C-extensions)"),
+                                     "C extensions)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_cython_client,
                                    context=Qt.WidgetWithChildrenShortcut)
