@@ -821,12 +821,34 @@ class IPythonConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin."""
         create_client_action = create_action(
                                    self,
-                                   _("Open an &IPython console"),
+                                   _("New console (default settings)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_new_client,
                                    context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(create_client_action, context="ipython_console",
                                name="New tab")
+
+        create_pylab_action = create_action(
+                                   self,
+                                   _("New Pylab console (data plotting)"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_pylab_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+
+        create_sympy_action = create_action(
+                                   self,
+                                   _("New SymPy console (symbolic math)"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_sympy_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+
+        create_cython_action = create_action(
+                                   self,
+                                   _("New Cython console (Python with "
+                                     "C extensions)"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_cython_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
 
         restart_action = create_action(self, _("Restart kernel"),
                                        icon=ima.icon('restart'),
@@ -847,12 +869,17 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu.insert(1, create_pylab_action)
+        main_consoles_menu.insert(2, create_sympy_action)
+        main_consoles_menu.insert(3, create_cython_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
                                connect_to_kernel_action,
                                MENU_SEPARATOR]
 
         # Plugin actions
-        self.menu_actions = [create_client_action, MENU_SEPARATOR,
+        self.menu_actions = [create_client_action, create_pylab_action,
+                             create_sympy_action, create_cython_action,
+                             MENU_SEPARATOR,
                              restart_action, connect_to_kernel_action,
                              MENU_SEPARATOR, rename_tab_action,
                              MENU_SEPARATOR]
@@ -1033,7 +1060,8 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool, str)
     @Slot(bool, bool)
     @Slot(bool, str, bool)
-    def create_new_client(self, give_focus=True, filename='', is_cython=False):
+    def create_new_client(self, give_focus=True, filename='', is_cython=False,
+                          is_pylab=False, is_sympy=False, given_name=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
@@ -1044,13 +1072,16 @@ class IPythonConsole(SpyderPluginWidget):
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
-                              additional_options=self.additional_options(),
+                              additional_options=self.additional_options(
+                                      is_pylab=is_pylab,
+                                      is_sympy=is_sympy),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions,
                               options_button=self.options_button,
                               show_elapsed_time=show_elapsed_time,
-                              reset_warning=reset_warning)
+                              reset_warning=reset_warning,
+                              given_name=given_name)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
@@ -1084,10 +1115,23 @@ class IPythonConsole(SpyderPluginWidget):
                                      "<tt>conda install ipykernel cloudpickle</tt>"))
                 return
 
-        self.connect_client_to_kernel(client, is_cython=is_cython)
+        self.connect_client_to_kernel(client, is_cython=is_cython,
+                                      is_pylab=is_pylab, is_sympy=is_sympy)
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client)
+
+    def create_pylab_client(self):
+        """Force creation of Pylab client"""
+        self.create_new_client(is_pylab=True, given_name="Pylab")
+
+    def create_sympy_client(self):
+        """Force creation of SymPy client"""
+        self.create_new_client(is_sympy=True, given_name="SymPy")
+
+    def create_cython_client(self):
+        """Force creation of Cython client"""
+        self.create_new_client(is_cython=True, given_name="Cython")
 
     @Slot()
     def create_client_for_kernel(self):
@@ -1100,7 +1144,8 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client, is_cython=False):
+    def connect_client_to_kernel(self, client, is_cython=False,
+                                 is_pylab=False, is_sympy=False):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
 
@@ -1112,7 +1157,9 @@ class IPythonConsole(SpyderPluginWidget):
         km, kc = self.create_kernel_manager_and_kernel_client(
                      connection_file,
                      stderr_file,
-                     is_cython=is_cython)
+                     is_cython=is_cython,
+                     is_pylab=is_pylab,
+                     is_sympy=is_sympy)
 
         # An error occurred if this is True
         if is_string(km) and kc is None:
@@ -1259,7 +1306,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         return versions
 
-    def additional_options(self):
+    def additional_options(self, is_pylab=False, is_sympy=False):
         """
         Additional options for shell widgets that are not defined
         in JupyterWidget config options
@@ -1270,6 +1317,13 @@ class IPythonConsole(SpyderPluginWidget):
             sympy=self.get_option('symbolic_math'),
             show_banner=self.get_option('show_banner')
         )
+
+        if is_pylab is True:
+            options['autoload_pylab'] = True
+            options['sympy'] = False
+        if is_sympy is True:
+            options['autoload_pylab'] = False
+            options['sympy'] = True
 
         return options
 
@@ -1522,20 +1576,28 @@ class IPythonConsole(SpyderPluginWidget):
                             timeout)
         return tuple(lports)
 
-    def create_kernel_spec(self, is_cython=False):
+    def create_kernel_spec(self, is_cython=False,
+                           is_pylab=False, is_sympy=False):
         """Create a kernel spec for our own kernels"""
         # Before creating our kernel spec, we always need to
         # set this value in spyder.ini
         if not self.testing:
             CONF.set('main', 'spyder_pythonpath',
                      self.main.get_spyder_pythonpath())
-        return SpyderKernelSpec(is_cython=is_cython)
+        return SpyderKernelSpec(is_cython=is_cython,
+                                is_pylab=is_pylab,
+                                is_sympy=is_sympy)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
-                                                stderr_file, is_cython=False):
+                                                stderr_file,
+                                                is_cython=False,
+                                                is_pylab=False,
+                                                is_sympy=False):
         """Create kernel manager and client."""
         # Kernel spec
-        kernel_spec = self.create_kernel_spec(is_cython=is_cython)
+        kernel_spec = self.create_kernel_spec(is_cython=is_cython,
+                                              is_pylab=is_pylab,
+                                              is_sympy=is_sympy)
         if not kernel_spec.env.get('PYTHONPATH'):
             error_msg = _("This error is most probably caused by installing "
                           "Spyder in a directory with non-ascii characters "

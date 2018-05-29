@@ -27,6 +27,7 @@ import pytest
 from qtpy import PYQT5
 from qtpy.QtCore import Qt
 import zmq
+import sympy
 
 # Local imports
 from spyder.config.gui import get_color_scheme
@@ -88,12 +89,26 @@ def ipyconsole(qtbot, request):
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
 
+    # Start a Pylab client if requested
+    pylab_client = request.node.get_marker('pylab_client')
+    is_pylab = True if pylab_client else False
+
+    # Start a Sympy client if requested
+    sympy_client = request.node.get_marker('sympy_client')
+    is_sympy = True if sympy_client else False
+
+    # Start a Cython client if requested
+    cython_client = request.node.get_marker('cython_client')
+    is_cython = True if cython_client else False
+
     # Create the console and a new client
     console = IPythonConsole(parent=None,
                              testing=True,
                              test_dir=test_dir,
                              test_no_stderr=test_no_stderr)
-    console.create_new_client()
+    console.create_new_client(is_pylab=is_pylab,
+                              is_sympy=is_sympy,
+                              is_cython=is_cython)
 
     # Close callback
     def close_console():
@@ -129,6 +144,67 @@ def test_auto_backend(ipyconsole, qtbot):
     # Assert there are no errors in the console
     control = ipyconsole.get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
+    assert 'Error' not in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.pylab_client
+def test_pylab_client(ipyconsole, qtbot):
+    """Test that the Pylab console is working correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # This is here to generate further errors
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("e")
+
+    # Assert there are no errors in the console
+    control = ipyconsole.get_focus_widget()
+    assert 'Error' not in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.sympy_client
+@pytest.mark.xfail('1.0' < sympy.__version__ < '1.2',
+                   reason="A bug with sympy 1.1.1 and IPython-Qtconsole")
+def test_sympy_client(ipyconsole, qtbot):
+    """Test that the SymPy console is working correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # This is here to generate further errors
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("x")
+
+    # Assert there are no errors in the console
+    control = ipyconsole.get_focus_widget()
+    assert 'Error' not in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.cython_client
+def test_cython_client(ipyconsole, qtbot):
+    """Test that the Cython console is working correctly."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # This is here to generate further errors
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%%cython\n"
+                      "cdef int ctest(int x, int y):\n"
+                      "    return x + y")
+
+    # Assert there are no errors in the console
+    control = ipyconsole.get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
 

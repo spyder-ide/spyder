@@ -28,9 +28,12 @@ class SpyderKernelSpec(KernelSpec):
 
     spy_path = get_module_source_path('spyder')
 
-    def __init__(self, is_cython=False, **kwargs):
+    def __init__(self, is_cython=False, is_pylab=False,
+                 is_sympy=False, **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
+        self.is_pylab = is_pylab
+        self.is_sympy = is_sympy
 
         self.display_name = 'Python 2 (Spyder)' if PY2 else 'Python 3 (Spyder)'
         self.language = 'python2' if PY2 else 'python3'
@@ -129,9 +132,21 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-            'SPY_RUN_CYTHON': self.is_cython,
             'SPY_TESTING': running_under_pytest() or SAFE_MODE
         }
+
+        if self.is_pylab is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
+            env_vars['SPY_SYMPY_O'] = False
+            env_vars['SPY_RUN_CYTHON'] = False
+        if self.is_sympy is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
+            env_vars['SPY_SYMPY_O'] = True
+            env_vars['SPY_RUN_CYTHON'] = False
+        if self.is_cython is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
+            env_vars['SPY_SYMPY_O'] = False
+            env_vars['SPY_RUN_CYTHON'] = True
 
         # Add our PYTHONPATH to env_vars
         env_vars.update(pypath)
@@ -159,5 +174,4 @@ class SpyderKernelSpec(KernelSpec):
                                                  encoding='utf-8')
             else:
                 env_vars[key] = to_text_string(var)
-
         return env_vars
