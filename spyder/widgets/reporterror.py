@@ -133,11 +133,11 @@ class SpyderErrorDialog(QDialog):
 
         # Dialog main label
         if self.is_report:
-            title = _("<h3>Please fill the following information</h3>")
+            title = _("Please fill the following information")
         else:
-            title = _("<h3>Spyder has encountered an internal problem!</h3>")
+            title = _("Spyder has encountered an internal problem!")
         main_label = QLabel(
-            _("""{title}
+            _("""<h3>{title}</h3>
               Before reporting this problem, <i>please</i> consult our 
               comprehensive 
               <b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> 
