@@ -137,15 +137,15 @@ class SpyderErrorDialog(QDialog):
         else:
             title = _("Spyder has encountered an internal problem!")
         main_label = QLabel(
-            _("""<h3>{title}</h3>
-              Before reporting this problem, <i>please</i> consult our 
-              comprehensive 
-              <b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> 
-              which should help solve most issues, and search for 
-              <b><a href=\"{project_url}\">known bugs</a></b> 
-              matching your error message or problem description for a 
-              quicker solution.
-              """).format(title=title, trouble_url=__trouble_url__,
+            _("<h3>{title}</h3>"
+              "Before reporting this problem, <i>please</i> consult our "
+              "comprehensive "
+              "<b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> "
+              "which should help solve most issues, and search for "
+              "<b><a href=\"{project_url}\">known bugs</a></b> "
+              "matching your error message or problem description for a "
+              "quicker solution."
+              ).format(title=title, trouble_url=__trouble_url__,
                           project_url=__project_url__))
         main_label.setOpenExternalLinks(True)
         main_label.setWordWrap(True)
