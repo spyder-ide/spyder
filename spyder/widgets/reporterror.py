@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 
 # Local imports
 from spyder import __project_url__, __trouble_url__
-from spyder.config.base import _
+from spyder.config.base import _, DEV
 from spyder.config.gui import get_font
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import restore_keyevent
@@ -264,11 +264,10 @@ class SpyderErrorDialog(QDialog):
             issue_text = description
 
         try:
-            if main is not None:
-                org = 'spyder-ide'
-            else:
-                # For testing
+            if DEV or main is None:
                 org = 'ccordoba12'
+            else:
+                org = 'spyder-ide'
             github_backend = GithubBackend(org, 'spyder')
             github_report = github_backend.send_report(title, issue_text)
             if github_report:
