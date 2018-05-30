@@ -121,8 +121,10 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
 class SpyderErrorDialog(QDialog):
     """Custom error dialog for error reporting."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, is_report=False):
         QDialog.__init__(self, parent)
+        self.is_report = is_report
+
         self.setWindowTitle(_("Issue reporter"))
         self.setModal(True)
 
@@ -130,14 +132,21 @@ class SpyderErrorDialog(QDialog):
         self.error_traceback = ""
 
         # Dialog main label
+        if self.is_report:
+            title = _("<h3>Please fill the following information</h3>")
+        else:
+            title = _("<h3>Spyder has encountered an internal problem!</h3>")
         main_label = QLabel(
-            _("""<h3>Spyder has encountered an internal problem!</h3>
-              Before reporting it, <i>please</i> consult our comprehensive 
-              <b><a href=\"{0!s}\">Troubleshooting Guide</a></b> 
+            _("""{title}
+              Before reporting this problem, <i>please</i> consult our 
+              comprehensive 
+              <b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> 
               which should help solve most issues, and search for 
-              <b><a href=\"{1!s}\">known bugs</a></b> matching your error 
-              message or problem description for a quicker solution.
-              """).format(__trouble_url__, __project_url__))
+              <b><a href=\"{project_url}\">known bugs</a></b> 
+              matching your error message or problem description for a 
+              quicker solution.
+              """).format(title=title, trouble_url=__trouble_url__,
+                          project_url=__project_url__))
         main_label.setOpenExternalLinks(True)
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
@@ -184,6 +193,8 @@ class SpyderErrorDialog(QDialog):
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox(_("Hide all future errors during this "
                                        "session"))
+        if self.is_report:
+            self.dismiss_box.hide()
 
         # Dialog buttons
         gh_icon = ima.icon('github')
@@ -193,8 +204,12 @@ class SpyderErrorDialog(QDialog):
 
         self.details_btn = QPushButton(_('Show details'))
         self.details_btn.clicked.connect(self._show_details)
+        if self.is_report:
+            self.details_btn.hide()
 
         self.close_btn = QPushButton(_('Close'))
+        if self.is_report:
+            self.close_btn.clicked.connect(self.reject)
 
         # Buttons layout
         buttons_layout = QHBoxLayout()
