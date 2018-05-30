@@ -2445,29 +2445,27 @@ class MainWindow(QMainWindow):
         return issue_template
 
     @Slot()
-    def report_issue(self, body=None, title=None):
+    def report_issue(self, body=None, title=None, open_webpage=False):
         """Report a Spyder issue to github, generating body text if needed."""
-        if PY3:
-            from urllib.parse import quote
-        else:
-            from urllib import quote     # analysis:ignore
-
         if body is None:
-            body = self.render_issue()
-
-        url = QUrl(__project_url__ + '/issues/new')
-        if PYQT5:
-            from qtpy.QtCore import QUrlQuery
-            query = QUrlQuery()
-            query.addQueryItem("body", quote(body))
-            if title:
-                query.addQueryItem("title", quote(title))
-            url.setQuery(query)
+            from spyder.widgets.reporterror import SpyderErrorDialog
+            report_dlg = SpyderErrorDialog(self, is_report=True)
+            report_dlg.show()
         else:
-            url.addEncodedQueryItem("body", quote(body))
-            if title:
-                url.addEncodedQueryItem("title", quote(title))
-        QDesktopServices.openUrl(url)
+            if open_webpage:
+                if PY3:
+                    from urllib.parse import quote
+                else:
+                    from urllib import quote     # analysis:ignore
+                from qtpy.QtCore import QUrlQuery
+
+                url = QUrl(__project_url__ + '/issues/new')
+                query = QUrlQuery()
+                query.addQueryItem("body", quote(body))
+                if title:
+                    query.addQueryItem("title", quote(title))
+                url.setQuery(query)
+                QDesktopServices.openUrl(url)
 
     @Slot()
     def trouble_guide(self):

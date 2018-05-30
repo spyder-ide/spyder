@@ -246,8 +246,16 @@ class SpyderErrorDialog(QDialog):
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
+        # Get reference to the main window
         if self.parent() is not None:
-            main = self.parent().main
+            if getattr(self.parent(), 'main', False):
+                # This covers the case when the dialog is attached
+                # to the internal console
+                main = self.parent().main
+            else:
+                # Else the dialog is attached to the main window
+                # directly
+                main = self.parent()
         else:
             main = None
 
@@ -288,7 +296,8 @@ class SpyderErrorDialog(QDialog):
                     " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE "
                     "TO COMPLETE YOUR REPORT ***   ---!>\n")
                 if main is not None:
-                    main.report_issue(body=issue_body, title=title)
+                    main.report_issue(body=issue_body, title=title,
+                                      open_webpage=True)
                 else:
                     pass
 
