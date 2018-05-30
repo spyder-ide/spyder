@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
 
 # Local imports
 from spyder import __project_url__, __trouble_url__
-from spyder.config.base import _
+from spyder.config.base import _, DEV
 from spyder.config.gui import get_font
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import restore_keyevent
@@ -121,8 +121,10 @@ class ShowErrorWidget(TracebackLinksMixin, ConsoleBaseWidget, BaseEditMixin):
 class SpyderErrorDialog(QDialog):
     """Custom error dialog for error reporting."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, is_report=False):
         QDialog.__init__(self, parent)
+        self.is_report = is_report
+
         self.setWindowTitle(_("Issue reporter"))
         self.setModal(True)
 
@@ -130,14 +132,21 @@ class SpyderErrorDialog(QDialog):
         self.error_traceback = ""
 
         # Dialog main label
+        if self.is_report:
+            title = _("Please fill the following information")
+        else:
+            title = _("Spyder has encountered an internal problem!")
         main_label = QLabel(
-            _("""<h3>Spyder has encountered an internal problem!</h3>
-              Before reporting it, <i>please</i> consult our comprehensive 
-              <b><a href=\"{0!s}\">Troubleshooting Guide</a></b> 
-              which should help solve most issues, and search for 
-              <b><a href=\"{1!s}\">known bugs</a></b> matching your error 
-              message or problem description for a quicker solution.
-              """).format(__trouble_url__, __project_url__))
+            _("<h3>{title}</h3>"
+              "Before reporting this problem, <i>please</i> consult our "
+              "comprehensive "
+              "<b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> "
+              "which should help solve most issues, and search for "
+              "<b><a href=\"{project_url}\">known bugs</a></b> "
+              "matching your error message or problem description for a "
+              "quicker solution."
+              ).format(title=title, trouble_url=__trouble_url__,
+                          project_url=__project_url__))
         main_label.setOpenExternalLinks(True)
         main_label.setWordWrap(True)
         main_label.setAlignment(Qt.AlignJustify)
@@ -184,6 +193,8 @@ class SpyderErrorDialog(QDialog):
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox(_("Hide all future errors during this "
                                        "session"))
+        if self.is_report:
+            self.dismiss_box.hide()
 
         # Dialog buttons
         gh_icon = ima.icon('github')
@@ -193,8 +204,12 @@ class SpyderErrorDialog(QDialog):
 
         self.details_btn = QPushButton(_('Show details'))
         self.details_btn.clicked.connect(self._show_details)
+        if self.is_report:
+            self.details_btn.hide()
 
         self.close_btn = QPushButton(_('Close'))
+        if self.is_report:
+            self.close_btn.clicked.connect(self.reject)
 
         # Buttons layout
         buttons_layout = QHBoxLayout()
@@ -231,8 +246,16 @@ class SpyderErrorDialog(QDialog):
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
+        # Get reference to the main window
         if self.parent() is not None:
-            main = self.parent().main
+            if getattr(self.parent(), 'main', False):
+                # This covers the case when the dialog is attached
+                # to the internal console
+                main = self.parent().main
+            else:
+                # Else the dialog is attached to the main window
+                # directly
+                main = self.parent()
         else:
             main = None
 
@@ -249,11 +272,10 @@ class SpyderErrorDialog(QDialog):
             issue_text = description
 
         try:
-            if main is not None:
-                org = 'spyder-ide'
-            else:
-                # For testing
+            if DEV or main is None:
                 org = 'ccordoba12'
+            else:
+                org = 'spyder-ide'
             github_backend = GithubBackend(org, 'spyder')
             github_report = github_backend.send_report(title, issue_text)
             if github_report:
@@ -274,7 +296,8 @@ class SpyderErrorDialog(QDialog):
                     " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE "
                     "TO COMPLETE YOUR REPORT ***   ---!>\n")
                 if main is not None:
-                    main.report_issue(body=issue_body, title=title)
+                    main.report_issue(body=issue_body, title=title,
+                                      open_webpage=True)
                 else:
                     pass
 
