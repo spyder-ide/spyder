@@ -2365,34 +2365,6 @@ class MainWindow(QMainWindow):
         if versions['revision']:
             revision = versions['revision']
 
-        # Store and format the reminder message for the troubleshooting guide
-        reminder_message_full = (
-            "<!--- **PLEASE READ:** Before submitting here, please carefully "
-            "consult our *Troubleshooting Guide*: {0!s} and search the "
-            "issues page for your error/problem, as most posted bugs are "
-            "duplicates or easy fixes.\n\n"
-            "If you don't find anything, please provide a detailed step-by-"
-            "step description (in English) of the problem and what led up to "
-            "it below. Issue reports without a clear way to reproduce them "
-            "will be closed. Thanks! --->"
-            ).format(__trouble_url__)
-
-        reminder_message_short = (
-            "<!--- PLEASE READ: Complete the following checklist. "
-            "Issues without it may be closed. --->"
-            )
-
-        bug_checklist = (
-            "* [ ] Searched issues page for similar reports\n"
-            "* [ ] Read and followed relevant sections of the"
-            "[Troubleshooting Guide]({0!s})\n"
-            "* [ ] Reproduced after updating (`conda update spyder`)\n"
-            "* [ ] Tried basic troubleshooting\n"
-            "    * [ ] Restarted Spyder\n"
-            "    * [ ] Ran `spyder --reset`\n"
-            "    * [ ] Reinstalled latest Anaconda\n"
-            ).format(__trouble_url_short__)
-
         # Make a description header in case no description is supplied
         if not description:
             description = "### What steps reproduce the problem?"
@@ -2403,13 +2375,9 @@ class MainWindow(QMainWindow):
                              "```python-traceback\n"
                              "{}\n"
                              "```".format(traceback))
-            reminder_message = reminder_message_full
         else:
             error_section = ''
-            reminder_message = reminder_message_short + "\n\n" + bug_checklist
         issue_template = """\
-{reminder_message}
-
 ## Description
 
 {description}
@@ -2429,8 +2397,7 @@ class MainWindow(QMainWindow):
 ```
 {dependencies}
 ```
-""".format(reminder_message=reminder_message,
-           description=description,
+""".format(description=description,
            error_section=error_section,
            spyder_version=versions['spyder'],
            commit=revision,
