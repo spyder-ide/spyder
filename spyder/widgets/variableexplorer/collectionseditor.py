@@ -398,6 +398,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
 
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
+    sig_free_memory = Signal()
 
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -579,6 +580,7 @@ class CollectionsDelegate(QItemDelegate):
 
     def free_memory(self):
         """Free memory after closing an editor."""
+        self.sig_free_memory.emit()
         gc.collect()
 
     def commitAndCloseEditor(self):
@@ -657,7 +659,8 @@ class BaseTableView(QTableView):
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
-    
+    sig_free_memory = Signal()
+
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
@@ -1473,6 +1476,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setModel(self.model)
         self.delegate = RemoteCollectionsDelegate(self, get_value_func,
                                                   set_value_func)
+        self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
