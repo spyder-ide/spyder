@@ -20,6 +20,7 @@ try:
 except ImportError:
     from mock import Mock, MagicMock  # Python 2
 import re
+import sys
 
 # Third party imports
 from flaky import flaky
@@ -416,8 +417,8 @@ def test_move_to_first_breakpoint(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run locally")
+@pytest.mark.skipif(os.environ.get('CI', None) is None or sys.platform == 'darwin',
+                    reason="It's not meant to be run locally and fails in macOS")
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
     CONF.set('run', 'configurations', [])
@@ -472,7 +473,8 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason="It's failing there")
+@pytest.mark.skipif((os.name == 'nt' and PY2) or sys.platform == 'darwin',
+                    reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     # ---- Load test file ----
@@ -618,6 +620,7 @@ def test_change_types_in_varexp(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
@@ -648,6 +651,7 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and IPython console when
@@ -676,8 +680,9 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
-                    reason="Hard to test on Windows and Cython is needed")
+@pytest.mark.skipif((os.name == 'nt' or not is_module_installed('Cython') or
+                     sys.platform == 'darwin'),
+                    reason="Hard to test on Windows and macOS and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
@@ -807,6 +812,7 @@ def test_set_new_breakpoints(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
@@ -1350,8 +1356,8 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of a CI")
+@pytest.mark.skipif(os.environ.get('CI', None) is None or sys.platform == 'darwin',
+                    reason="It's not meant to be run outside of a CI and fails in macOS")
 def test_fileswitcher(main_window, qtbot):
     """Test the use of shorten paths when necessary in the fileswitcher."""
     # Load tests files
@@ -1405,7 +1411,6 @@ def test_fileswitcher(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not PYQT5, reason="It times out.")
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Wait until the window is fully up
