@@ -42,4 +42,4 @@ script:
   - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh;
 
 after_success:
-  - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls; fi
