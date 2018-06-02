@@ -206,7 +206,7 @@ class DataFrameModel(QAbstractTableModel):
                     # leads to differences between the data present in
                     # the dataframe and what is shown by Spyder
                     if not is_type_text_string(header):
-                        header = to_text_string(self.df_header[0])
+                        header = to_text_string(header)
                 return to_qvariant(header)
             elif is_type_text_string(self.df_header[section-1]):
                 # Don't perform any conversion on strings because it
