@@ -194,31 +194,26 @@ class DataFrameModel(QAbstractTableModel):
             if section == 0:
                 return 'Index'
             elif section == 1 and PY2:
+                header = self.df_header[0]
                 # Get rid of possible BOM utf-8 data present at the
                 # beginning of a file, which gets attached to the first
                 # column header when headers are present in the first
                 # row.
                 # Fixes Issue 2514
                 try:
-                    header = to_text_string(self.df_header[0],
-                                            encoding='utf-8-sig')
+                    header = to_text_string(header, encoding='utf-8-sig')
                 except:
-                    header = to_text_string(self.df_header[0])
+                    # Don't perform any conversion on strings because it
+                    # leads to differences between the data present in
+                    # the dataframe and what is shown by Spyder
+                    if not is_type_text_string(header):
+                        header = to_text_string(self.df_header[0])
                 return to_qvariant(header)
-            elif isinstance(self.df_header[section-1], TEXT_TYPES):
-                # Get the proper encoding of the text in the header.
-                # Fixes Issue 3896
-                if not PY2:
-                    try:
-                        header = self.df_header[section-1].encode('utf-8')
-                        coding = 'utf-8-sig'
-                    except:
-                        header = self.df_header[section-1].encode('utf-8')
-                        coding = encoding.get_coding(header)
-                else:
-                    header = self.df_header[section-1]
-                    coding = encoding.get_coding(header)
-                return to_qvariant(to_text_string(header, encoding=coding))
+            elif is_type_text_string(self.df_header[section-1]):
+                # Don't perform any conversion on strings because it
+                # leads to differences between the data present in
+                # the dataframe and what is shown by Spyder
+                return to_qvariant(self.df_header[section-1])
             else:
                 return to_qvariant(to_text_string(self.df_header[section-1]))
         else:
