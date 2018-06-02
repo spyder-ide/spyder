@@ -18,10 +18,9 @@ from qtpy import API
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal, Slot
 from qtpy.QtGui import QColor, QCursor
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
-                            QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
-                            QMenu, QMessageBox, QPushButton, QTableView,
-                            QHeaderView)
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
+                            QHBoxLayout, QInputDialog, QLineEdit, QMenu,
+                            QMessageBox, QPushButton, QTableView, QHeaderView)
 
 from pandas import DataFrame, DatetimeIndex, Series
 try:
@@ -34,8 +33,8 @@ import numpy as np
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
-from spyder.py3compat import (io, is_text_string, PY2, to_text_string,
-                              TEXT_TYPES)
+from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
+                              to_text_string, TEXT_TYPES)
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -280,7 +279,15 @@ class DataFrameModel(QAbstractTableModel):
             column = index.column()
             row = index.row()
             if column == 0:
-                return to_qvariant(to_text_string(self.df_index[row]))
+                df_idx = self.df_index[row]
+                if is_type_text_string(df_idx):
+                    # Don't perform any conversion on strings
+                    # because it leads to differences between
+                    # the data present in the dataframe and
+                    # what is shown by Spyder
+                    return df_idx
+                else:
+                    return to_qvariant(to_text_string(df_idx))
             else:
                 value = self.get_value(row, column-1)
                 if isinstance(value, float):
@@ -290,11 +297,14 @@ class DataFrameModel(QAbstractTableModel):
                         # may happen if format = '%d' and value = NaN;
                         # see issue 4139
                         return to_qvariant(DEFAULT_FORMAT % value)
+                elif is_type_text_string(value):
+                    # Don't perform any conversion on strings
+                    # because it leads to differences between
+                    # the data present in the dataframe and
+                    # what is shown by Spyder
+                    return value
                 else:
-                    try:
-                        return to_qvariant(to_text_string(value))
-                    except UnicodeDecodeError:
-                        return to_qvariant(encoding.to_unicode(value))
+                    return to_qvariant(to_text_string(value))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
