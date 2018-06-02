@@ -981,7 +981,13 @@ class IPythonConsole(SpyderPluginWidget):
                     line += " %s" % norm(args)
 
             try:
-                if current_client:
+                if client.shellwidget._reading:
+                    client.shellwidget._append_html(
+                        _("<br><b>Please exit from debugging before trying to "
+                          "run a file in this console.</b>\n<hr><br>"),
+                        before_prompt=True)
+                    return
+                elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
                     if is_new_client:
@@ -1611,7 +1617,7 @@ class IPythonConsole(SpyderPluginWidget):
         try:
             kernel_manager = QtKernelManager(connection_file=connection_file,
                                              config=None, autorestart=True)
-        except Exception as e:
+        except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
             return (error_msg, None)
