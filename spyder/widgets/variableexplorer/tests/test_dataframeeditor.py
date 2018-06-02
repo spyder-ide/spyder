@@ -224,7 +224,7 @@ def test_header_encoding():
     model = editor.dataModel
     assert model.headerData(0, orientation=Qt.Horizontal) == "Index"
     assert model.headerData(1, orientation=Qt.Horizontal) == "Unnamed: 0"
-    assert model.headerData(2, orientation=Qt.Horizontal) == "Unieke_Idcode"
+    assert "Unieke_Idcode" in model.headerData(2, orientation=Qt.Horizontal)
     assert model.headerData(3, orientation=Qt.Horizontal) == "a"
     assert model.headerData(4, orientation=Qt.Horizontal) == "b"
     assert model.headerData(5, orientation=Qt.Horizontal) == "c"
@@ -490,6 +490,30 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
         assert (numpy.sum(expected_df[0].as_matrix() ==
                           dialog.get_value().as_matrix()[:, 0]) ==
                 len(expected_df))
+
+
+def test_non_ascii_index():
+    """
+    Test that there are no errors when displaying a dataframe with
+    a non-ascii index.
+    """
+    df = read_csv(os.path.join(FILES_PATH, 'issue_5833.csv'), index_col=0)
+    dfm = DataFrameModel(df)
+    assert data(dfm, 0, 0) == 'пример'
+
+
+def test_no_convert_strings_to_unicode():
+    """
+    Test that we don't apply any conversion to strings in headers,
+    indexes or data.
+    """
+    df = read_csv(os.path.join(FILES_PATH, 'issue_5833.csv'), index_col=0,
+                  encoding='koi8_r')
+    dfm = DataFrameModel(df)
+
+    assert dfm.headerData(1, orientation=Qt.Horizontal) != u"Это"
+    assert data(dfm, 0, 0) != u'пример'
+    assert data(dfm, 0, 1) != u'файла'
 
 
 if __name__ == "__main__":
