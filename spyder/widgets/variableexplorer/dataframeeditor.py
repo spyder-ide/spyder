@@ -34,8 +34,7 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
-                              to_text_string, TEXT_TYPES)
-from spyder.utils import encoding
+                              to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
