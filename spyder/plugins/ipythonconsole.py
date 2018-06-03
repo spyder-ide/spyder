@@ -1619,7 +1619,7 @@ class IPythonConsole(SpyderPluginWidget):
         index = self.tabwidget.addTab(widget, name)
         self.filenames.insert(index, filename)
         self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget:
+        if self.dockwidget and not self.main.is_setting_up:
             self.switch_to_plugin()
         self.activateWindow()
         widget.get_control().setFocus()
