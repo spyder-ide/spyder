@@ -13,9 +13,10 @@ https://github.com/ColinDuquesnoy/QCrash
 
 import sys
 
-from qtpy.QtCore import QEvent, Qt, QSize
+from qtpy.QtCore import QEvent, Qt
 from qtpy.QtWidgets import (QDialog, QFormLayout, QLabel, QLineEdit,
-                            QPushButton, QTabWidget, QVBoxLayout, QWidget)
+                            QPushButton, QSizePolicy, QSpacerItem, QTabWidget,
+                            QVBoxLayout, QWidget)
 
 from spyder.config.base import _
 from spyder.config.base import get_image_path
@@ -24,6 +25,7 @@ from spyder.py3compat import to_text_string
 
 GH_MARK_NORMAL = get_image_path('GitHub-Mark.png')
 GH_MARK_LIGHT = get_image_path('GitHub-Mark-Light.png')
+TOKEN_URL = "https://github.com/settings/tokens/new?scopes=public_repo"
 
 
 class DlgGitHubLogin(QDialog):
@@ -33,7 +35,7 @@ class DlgGitHubLogin(QDialog):
         super(DlgGitHubLogin, self).__init__(parent)
 
         title = _("Sign in to Github")
-        self.resize(366, 248)
+        self.resize(400, 340)
         self.setWindowTitle(title)
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
@@ -53,30 +55,52 @@ class DlgGitHubLogin(QDialog):
         basic_form_layout = QFormLayout()
         basic_form_layout.setContentsMargins(-1, 0, -1, -1)
 
+        basic_lbl_msg = QLabel(_("For users <b>without</b> two-factor "
+                                 "authentication enabled"))
+        basic_lbl_msg.setWordWrap(True)
+        basic_lbl_msg.setAlignment(Qt.AlignJustify)
+
         lbl_user = QLabel(_("Username:"))
         basic_form_layout.setWidget(0, QFormLayout.LabelRole, lbl_user)
         self.le_user = QLineEdit()
         self.le_user.textChanged.connect(self.update_btn_state)
         basic_form_layout.setWidget(0, QFormLayout.FieldRole, self.le_user)
+        basic_form_layout.addRow("", QWidget())
 
         lbl_password = QLabel(_("Password: "))
-        basic_form_layout.setWidget(1, QFormLayout.LabelRole, lbl_password)
+        basic_form_layout.setWidget(2, QFormLayout.LabelRole, lbl_password)
         self.le_password = QLineEdit()
         self.le_password.setEchoMode(QLineEdit.Password)
         self.le_password.textChanged.connect(self.update_btn_state)
-        basic_form_layout.setWidget(1, QFormLayout.FieldRole, self.le_password)
+        basic_form_layout.setWidget(2, QFormLayout.FieldRole, self.le_password)
 
         # Basic auth tab
         basic_auth = QWidget()
         basic_layout = QVBoxLayout()
+        basic_layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 8)))
+        basic_layout.addWidget(basic_lbl_msg)
+        basic_layout.addSpacerItem(
+            QSpacerItem(QSpacerItem(0, 1000, vPolicy=QSizePolicy.Expanding)))
         basic_layout.addLayout(basic_form_layout)
-        basic_layout.addStretch(1)
+        basic_layout.addSpacerItem(
+            QSpacerItem(QSpacerItem(0, 1000, vPolicy=QSizePolicy.Expanding)))
         basic_auth.setLayout(basic_layout)
-        tabs.addTab(basic_auth, _("Basic authentication"))
+        tabs.addTab(basic_auth, _("Password Only"))
 
         # Token form layout
         token_form_layout = QFormLayout()
         token_form_layout.setContentsMargins(-1, 0, -1, -1)
+
+        token_lbl_msg = QLabel(_("For users <b>with</b> two-factor "
+                                 "authentication, or who prefer a per-app"
+                                 "token authentication enabled.<br><br>"
+                                 "You can go <b><a href=\"{}\">here</a></b> "
+                                 "and click \"Generate token\" at the bottom "
+                                 "to create a new token with the appropriate "
+                                 "permissions.").format(TOKEN_URL))
+        token_lbl_msg.setOpenExternalLinks(True)
+        token_lbl_msg.setWordWrap(True)
+        token_lbl_msg.setAlignment(Qt.AlignJustify)
 
         lbl_token = QLabel("Token: ")
         token_form_layout.setWidget(1, QFormLayout.LabelRole, lbl_token)
@@ -88,10 +112,15 @@ class DlgGitHubLogin(QDialog):
         # Token auth tab
         token_auth = QWidget()
         token_layout = QVBoxLayout()
+        token_layout.addSpacerItem(QSpacerItem(QSpacerItem(0, 8)))
+        token_layout.addWidget(token_lbl_msg)
+        token_layout.addSpacerItem(
+            QSpacerItem(QSpacerItem(0, 1000, vPolicy=QSizePolicy.Expanding)))
         token_layout.addLayout(token_form_layout)
-        token_layout.addStretch(1)
+        token_layout.addSpacerItem(
+            QSpacerItem(QSpacerItem(0, 1000, vPolicy=QSizePolicy.Expanding)))
         token_auth.setLayout(token_layout)
-        tabs.addTab(token_auth, _("Token authentication"))
+        tabs.addTab(token_auth, _("Access Token (2FA Users)"))
 
         # Sign in button
         self.bt_sign_in = QPushButton(_("Sign in"))
