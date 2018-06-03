@@ -250,7 +250,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_button.setEnabled(True)
 
     def disable_stop_button(self):
-        self.stop_button.setDisabled(True)
+        # This avoids disabling automatically the button when
+        # re-running files on dedicated consoles.
+        # See issue #5958
+        if not self.shellwidget._executing:
+            self.stop_button.setDisabled(True)
 
     @Slot()
     def stop_button_click_handler(self):
