@@ -490,7 +490,8 @@ def reset(self):
 #     specific behaviour desired?)
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def postcmd(self, stop, line):
-    self.notify_spyder(self.curframe)
+    if line != "!get_ipython().kernel._set_spyder_breakpoints()":
+        self.notify_spyder(self.curframe)
     return self._old_Pdb_postcmd(stop, line)
 
 
