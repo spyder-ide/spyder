@@ -61,7 +61,6 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     sig_option_changed = Signal(str, object)
-    sig_free_memory = Signal()
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -118,7 +117,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     @Slot()
     def free_memory(self):
         """Free memory signal."""
-        self.sig_free_memory.emit()
+        self.main.free_memory()
 
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
@@ -210,8 +209,7 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        self.sig_free_memory.connect(self.main.free_memory)
-        
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for nsb in list(self.shellwidgets.values()):

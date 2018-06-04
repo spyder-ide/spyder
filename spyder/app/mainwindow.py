@@ -1955,7 +1955,6 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     # --- Other
-    @Slot()
     def free_memory(self):
         """Free memory after event."""
         gc.collect()
