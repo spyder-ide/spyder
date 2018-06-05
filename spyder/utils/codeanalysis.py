@@ -161,6 +161,9 @@ def check(args, source_code, filename=None, options=None):
             text = to_text_string(lines[lineno-1], coding)
         except TypeError:
             text = to_text_string(lines[lineno-1])
+        except UnicodeDecodeError:
+            coding = encoding.get_coding(source_code, force_chardet=True)
+            text = to_text_string(lines[lineno-1], coding)
         if 'analysis:ignore' not in text:
             message = line[line.find(': ')+2:]
             results.append((message, lineno))
