@@ -102,6 +102,7 @@ CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'ascii', 'koi8-r', 'cp1251',
           'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1',
           'utf-16']
 
+
 def get_coding(text, force_chardet=False):
     """
     Function to get the coding of a text.
@@ -113,13 +114,15 @@ def get_coding(text, force_chardet=False):
             try:
                 result = CODING_RE.search(to_text_string(line))
             except UnicodeDecodeError:
-                # This could fail because to_text_string assume the text is utf8-like
-                # and we don't know the encoding to give it to to_text_string
+                # This could fail because to_text_string assume the text
+                # is utf8-like and we don't know the encoding to give
+                # it to to_text_string
                 pass
             else:
                 if result:
                     codec = result.group(1)
-                    # sometimes we find a false encoding that can result in errors
+                    # sometimes we find a false encoding that can
+                    # result in errors
                     if codec in CODECS:
                         return codec
 
