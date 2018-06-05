@@ -162,6 +162,8 @@ def check(args, source_code, filename=None, options=None):
         except TypeError:
             text = to_text_string(lines[lineno-1])
         except UnicodeDecodeError:
+            # Needed to handle UnicodeDecodeError and force the use
+            # of chardet to detect enconding. See issue 6970
             coding = encoding.get_coding(source_code, force_chardet=True)
             text = to_text_string(lines[lineno-1], coding)
         if 'analysis:ignore' not in text:
