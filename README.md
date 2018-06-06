@@ -41,7 +41,7 @@ https://opencollective.com/spyder/donate) to help fund further improvements,
 we're on [OpenCollective](https://opencollective.com/spyder).
 
 Thanks for all you do to make the Spyder project possible! [More details](
-https://github.com/spyder-ide/spyder/wiki/Anaconda-stopped-funding-Spyder)
+https://github.com/spyder-ide/spyder/wiki/Current-Funding-and-Development-Status)
 
 ----
 
