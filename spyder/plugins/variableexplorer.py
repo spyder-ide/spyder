@@ -7,7 +7,7 @@
 """Variable Explorer Plugin"""
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import QTimer, Signal, Slot
 from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout, QWidget
 
 # Local imports
@@ -60,6 +60,8 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     """
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    INITIAL_FREE_MEMORY_TIME_TRIGGER = 60000
+    SECONDARY_FREE_MEMORY_TIME_TRIGGER = 300000
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
@@ -118,6 +120,10 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     def free_memory(self):
         """Free memory signal."""
         self.main.free_memory()
+        QTimer.singleShot(self.INITIAL_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
+        QTimer.singleShot(self.SECONDARY_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
 
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
