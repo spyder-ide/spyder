@@ -23,30 +23,25 @@
 
 ----
 
-## Important Announcement: Spyder needs your support!
+## Help support the community-developed scientific IDE!
 
-Since mid-November 2017, [Anaconda, Inc](https://www.anaconda.com/) has
-stopped funding Spyder development, after doing so for the past 18
-months. Therefore, without additional funds, development will shift to
-maintaining Spyder 3 at a slower pace than before, while working
-toward an eventual Spyder 4 feature release sometime in the future.
+Thanks to your continuing support, we are on track for a
+Spyder 4 release in early 2019 with all of your most-requested features
+(a new debugger and completion architecture, better Projects, new Editor
+functionality, full Variable Explorer object support, a built-in dark theme
+and [much more](https://github.com/spyder-ide/spyder/wiki/Roadmap))!
 
-However, with your contribution of effort and funding, we will be able to
-both continue to maintain Spyder 3 at a faster pace, and fund development of
-new features for Spyder 4 (such as a major overhaul to improve
-code completion, and a much-improved new debugger, both of which you've been
-requesting) at a greatly accelerated rate.
-
-There are many ways to [help with development](
+Spyder development is made possible by contributions from our global user
+community, along with organizations like [NumFOCUS](https://www.numfocus.org)
+and [Quansight](https://www.quansight.com).
+There are numerous [ways you can to contribute to the project](
 https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder), many of
-which don't require any programming, and if you're able to make a
-financial contribution to help support your favorite community IDE, you can
-donate through our [OpenCollective](https://opencollective.com/spyder).
+which don't require any programming. If you'd like to make a [donation](
+https://opencollective.com/spyder/donate) to help fund further improvements,
+we're on [OpenCollective](https://opencollective.com/spyder).
 
-We appreciate all the help you can provide us and can't thank you enough for
-supporting the work of the Spyder devs and Spyder development! To learn more
-about the current situation and our future plans, please read this [page](
-https://github.com/spyder-ide/spyder/wiki/Anaconda-stopped-funding-Spyder).
+Thanks for all you do to make the Spyder project possible! [More details](
+https://github.com/spyder-ide/spyder/wiki/Anaconda-stopped-funding-Spyder)
 
 ----
 
