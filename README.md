@@ -23,7 +23,7 @@
 
 ----
 
-## Help support the community-developed scientific IDE!
+## Help support Spyder, the community-developed scientific IDE!
 
 Thanks to your continuing support, we are on track for a
 Spyder 4 release in early 2019 with all of your most-requested features
