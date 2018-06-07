@@ -34,13 +34,13 @@ and [much more](https://github.com/spyder-ide/spyder/wiki/Roadmap))!
 Spyder development is made possible by contributions from our global user
 community, along with organizations like [NumFOCUS](https://www.numfocus.org)
 and [Quansight](https://www.quansight.com).
-There are numerous [ways you can to contribute to the project](
+There are numerous [ways you can help](
 https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder), many of
 which don't require any programming. If you'd like to make a [donation](
 https://opencollective.com/spyder/donate) to help fund further improvements,
 we're on [OpenCollective](https://opencollective.com/spyder).
 
-Thanks for all you do to make the Spyder project possible! [More details](
+Thanks for all you do to make the Spyder project thrive! [More details](
 https://github.com/spyder-ide/spyder/wiki/Current-Funding-and-Development-Status)
 
 ----
