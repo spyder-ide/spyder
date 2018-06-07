@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import atexit
 import errno
+import gc
 import os
 import os.path as osp
 import re
@@ -1950,6 +1951,10 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     # --- Other
+    def free_memory(self):
+        """Free memory after event."""
+        gc.collect()
+
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         self.update_edit_menu()

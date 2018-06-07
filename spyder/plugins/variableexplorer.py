@@ -7,7 +7,7 @@
 """Variable Explorer Plugin"""
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import QTimer, Signal, Slot
 from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout
 
 # Local imports
@@ -60,6 +60,8 @@ class VariableExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
+    SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
@@ -114,6 +116,15 @@ class VariableExplorer(SpyderPluginWidget):
             new_value = new_value[1:]
         self.sig_option_changed.emit(option_name, new_value)
 
+    @Slot()
+    def free_memory(self):
+        """Free memory signal."""
+        self.main.free_memory()
+        QTimer.singleShot(self.INITIAL_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
+        QTimer.singleShot(self.SECONDARY_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
+
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
         self.stack.setCurrentWidget(nsb)
@@ -147,6 +158,7 @@ class VariableExplorer(SpyderPluginWidget):
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
+            nsb.sig_free_memory.connect(self.free_memory)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget_from_id(shellwidget_id)
