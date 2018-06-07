@@ -60,8 +60,8 @@ class VariableExplorer(QWidget, SpyderPluginMixin):
     """
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
-    INITIAL_FREE_MEMORY_TIME_TRIGGER = 60000
-    SECONDARY_FREE_MEMORY_TIME_TRIGGER = 300000
+    INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
+    SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
