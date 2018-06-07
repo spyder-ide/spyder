@@ -53,7 +53,8 @@ class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
-    
+    sig_free_memory = Signal()
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
@@ -139,6 +140,7 @@ class NamespaceBrowser(QWidget):
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
+        self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
         # Setup layout
         blayout = QHBoxLayout()
