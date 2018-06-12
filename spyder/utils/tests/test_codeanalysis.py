@@ -10,6 +10,7 @@ Tests for codeanalysis.py
 
 # Standard library imports
 import os
+import io
 
 # Test library imports
 import pytest
@@ -26,13 +27,13 @@ TEST_FILE_LATIN = os.path.join(os.path.dirname(__file__),
 
 def test_codeanalysis_latin():
     """Test codeanalysis with pyflakes and pep8."""
-    code = open(TEST_FILE_LATIN).read()
+    code = io.open(TEST_FILE_LATIN, encoding="iso-8859-1").read()
     check_results = (check_with_pyflakes(code, TEST_FILE)
                      + check_with_pep8(code, TEST_FILE) + find_tasks(code))
     if PY2:
-        num_results = 89
+        num_results = 1
     else:
-        num_results = 90
+        num_results = 1
     assert len(check_results) == num_results
 
 
