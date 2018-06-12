@@ -28,12 +28,10 @@ TEST_FILE_LATIN = os.path.join(os.path.dirname(__file__),
 def test_codeanalysis_latin():
     """Test codeanalysis with pyflakes and pep8."""
     code = io.open(TEST_FILE_LATIN, encoding="iso-8859-1").read()
-    check_results = (check_with_pyflakes(code, TEST_FILE)
-                     + check_with_pep8(code, TEST_FILE) + find_tasks(code))
-    if PY2:
-        num_results = 1
-    else:
-        num_results = 1
+    check_results = (check_with_pyflakes(code, TEST_FILE_LATIN)
+                     + check_with_pep8(code, TEST_FILE_LATIN)
+                     + find_tasks(code))
+    num_results = 2
     assert len(check_results) == num_results
 
 
