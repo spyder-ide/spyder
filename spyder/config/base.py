@@ -120,8 +120,9 @@ def get_home_dir():
     if path and osp.isdir(path):
         return path
     else:
-        raise RuntimeError('Please define the environment variable HOME for '
-                           'Spyder be able to work in your system.')
+        raise RuntimeError('Please set the environment variable HOME to your '
+                           'user/home directory path so Spyder can start '
+                           'properly.')
 
 
 def get_clean_conf_dir():
