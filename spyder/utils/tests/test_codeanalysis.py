@@ -31,7 +31,10 @@ def test_codeanalysis_latin():
     check_results = (check_with_pyflakes(code, TEST_FILE_LATIN)
                      + check_with_pep8(code, TEST_FILE_LATIN)
                      + find_tasks(code))
-    num_results = 2
+    if PY2:
+        num_results = 1
+    else:
+        num_results = 2
     assert len(check_results) == num_results
 
 
