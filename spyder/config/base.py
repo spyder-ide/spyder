@@ -117,10 +117,11 @@ def get_home_dir():
         # decoded with the codec that the OS is using to represent environment
         # variables.
         path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
-    if path:
+    if path and osp.isdir(path):
         return path
     else:
-        raise RuntimeError('Please define environment variable $HOME')
+        raise RuntimeError('Please define the environment variable HOME for '
+                           'Spyder be able to work in your system.')
 
 
 def get_clean_conf_dir():
