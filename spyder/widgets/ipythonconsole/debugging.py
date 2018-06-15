@@ -103,6 +103,8 @@ class DebuggingWidget(RichJupyterWidget):
                 return True
             elif key in (Qt.Key_Return, Qt.Key_Enter):
                 self._control.reset_search_pos()
+            else:
+                self._control.hist_wholeline = False
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
         else:
