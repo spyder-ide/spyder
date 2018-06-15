@@ -101,14 +101,14 @@ https://www.spyder-ide.org/).
 
 ## Documentation
 
-You can read the Spyder documentation online at [PythonHosted](
-http://pythonhosted.org/spyder/).
+You can read the Spyder documentation online on [the Spyder Docs website](
+https://docs.spyder-ide.org/).
 
 
 ## Installation
 
 For a detailed guide to installing Spyder, please refer to our
-[installation instructions](http://pythonhosted.org/spyder/installation.html).
+[installation instructions](https://docs.spyder-ide.org/installation.html).
 
 The easiest way to install Spyder on any of our supported platforms
 is to download it as part of the [Anaconda](https://www.anaconda.com/download/)
@@ -173,7 +173,7 @@ Alternatively, you can use `pip` to install PyQt5 separately and
 the other *runtime dependencies* listed below. However, beware:
 this method is recommended for experts only, and you'll need to solve any
 problems on your own. See the
-[installation instructions](http://pythonhosted.org/spyder/installation.html)
+[installation instructions](https://docs.spyder-ide.org/installation.html)
 for more details.
 
 
@@ -240,6 +240,8 @@ Become a sponsor to get your logo on our README on Github.
 [Main Website](https://www.spyder-ide.org/)
 
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
+
+[Online Documentation](https://docs.spyder-ide.org/)
 
 [Spyder Github](https://github.com/spyder-ide/spyder)
 

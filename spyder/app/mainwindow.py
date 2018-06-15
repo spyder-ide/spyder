@@ -2443,7 +2443,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def google_group(self):
-        """Open Spyder troubleshooting guide in a web browser."""
+        """Open Spyder Google Group in a web browser."""
         url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
@@ -2871,7 +2871,7 @@ class MainWindow(QMainWindow):
         error_msg = self.worker_updates.error
 
         url_r = __project_url__ + '/releases'
-        url_i = 'http://pythonhosted.org/spyder/installation.html'
+        url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
