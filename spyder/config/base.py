@@ -106,21 +106,30 @@ def get_home_dir():
     """
     try:
         # expanduser() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent file paths.
+        # decoded with the codec that the OS is using to represent
+        # file paths.
         path = encoding.to_unicode_from_fs(osp.expanduser('~'))
-    except:
+    except Exception:
         path = ''
-    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
-        if osp.isdir(path):
-            break
-        # os.environ.get() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent environment
-        # variables.
-        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
-    if path:
+
+    if osp.isdir(path):
         return path
     else:
-        raise RuntimeError('Please define environment variable $HOME')
+        # Get home from alternative locations
+        for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+            # os.environ.get() returns a raw byte string which needs to be
+            # decoded with the codec that the OS is using to represent
+            # environment variables.
+            path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
+            if osp.isdir(path):
+                return path
+            else:
+                path = ''
+
+        if not path:
+            raise RuntimeError('Please set the environment variable HOME to '
+                               'your user/home directory path so Spyder can '
+                               'start properly.')
 
 
 def get_clean_conf_dir():
