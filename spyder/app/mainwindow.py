@@ -1964,7 +1964,9 @@ class MainWindow(QMainWindow):
                     QMessageBox.critical(
                         self,
                         _('Error'),
-                        _("<b>{}</b> is not a Spyder project!").format(path))
+                        _("<b>{}</b> is no longer a valid Spyder project! "
+                          "Since it is the current active project, it will "
+                          "be closed automatically.").format(path))
                 self.projects.close_project()
 
     def free_memory(self):
