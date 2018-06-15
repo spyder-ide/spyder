@@ -637,7 +637,7 @@ class MainWindow(QMainWindow):
 
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
-
+        self.projects_menu.aboutToShow.connect(self.valid_project)
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
 
@@ -1951,6 +1951,20 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     # --- Other
+    def valid_project(self):
+        """Handle an invalid active project."""
+        if bool(self.projects.get_active_project_path()):
+            path = self.projects.get_active_project_path()
+            if not self.projects.is_valid_project(path):
+                if path:
+                    QMessageBox.critical(
+                        self,
+                        _('Error'),
+                        _("<b>{}</b> is no longer a valid Spyder project! "
+                          "Since it is the current active project, it will "
+                          "be closed automatically.").format(path))
+                self.projects.close_project()
+
     def free_memory(self):
         """Free memory after event."""
         gc.collect()
