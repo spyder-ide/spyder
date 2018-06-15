@@ -9,6 +9,7 @@
 # Standard library imports
 import os.path as osp
 import sys
+import re
 
 # Third party imports
 from qtpy import PYQT5
@@ -18,14 +19,15 @@ from qtpy.QtWidgets import (QGroupBox, QHBoxLayout, QInputDialog, QMenu,
 
 
 # Local imports
-from spyder.utils import encoding
 from spyder.config.base import _
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
 from spyder.py3compat import is_text_string, to_text_string
+from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
+from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.sourcecode import codeeditor
 from spyder.widgets.findreplace import FindReplace
@@ -230,6 +232,12 @@ class HistoryLog(SpyderPluginWidget):
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)
+        text = normalize_eols(text)
+        linebreaks = [m.start() for m in re.finditer('\n', text)]
+        maxNline = self.get_option('max_entries')
+        if len(linebreaks) > maxNline:
+            text = text[linebreaks[-maxNline - 1] + 1:]
+            encoding.write(text, filename)
         editor.set_text(text)
         editor.set_cursor_position('eof')
         
