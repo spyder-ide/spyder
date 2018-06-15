@@ -956,7 +956,12 @@ class IPythonConsole(SpyderPluginWidget):
                     line += " %s" % norm(args)
 
             try:
-                if client.shellwidget._reading:
+                if client.shellwidget._executing:
+                    # Don't allow multiple executions when there's
+                    # still an execution taking place
+                    # Fixes issue 7293
+                    pass
+                elif client.shellwidget._reading:
                     client.shellwidget._append_html(
                         _("<br><b>Please exit from debugging before trying to "
                           "run a file in this console.</b>\n<hr><br>"),
