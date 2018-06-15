@@ -55,8 +55,8 @@ class DlgGitHubLogin(QDialog):
         basic_form_layout = QFormLayout()
         basic_form_layout.setContentsMargins(-1, 0, -1, -1)
 
-        basic_lbl_msg = QLabel(_("For users <b>without</b> two-factor "
-                                 "authentication enabled"))
+        basic_lbl_msg = QLabel(_("For regular users, i.e. users <b>without</b> "
+                                 "two-factor authentication enabled"))
         basic_lbl_msg.setWordWrap(True)
         basic_lbl_msg.setAlignment(Qt.AlignJustify)
 
@@ -92,12 +92,12 @@ class DlgGitHubLogin(QDialog):
         token_form_layout.setContentsMargins(-1, 0, -1, -1)
 
         token_lbl_msg = QLabel(_("For users <b>with</b> two-factor "
-                                 "authentication, or who prefer a per-app"
-                                 "token authentication enabled.<br><br>"
+                                 "authentication enabled, or who prefer a "
+                                 "per-app token authentication.<br><br>"
                                  "You can go <b><a href=\"{}\">here</a></b> "
                                  "and click \"Generate token\" at the bottom "
-                                 "to create a new token with the appropriate "
-                                 "permissions.").format(TOKEN_URL))
+                                 "to create a new token to use for this, with "
+                                 "the appropriate permissions.").format(TOKEN_URL))
         token_lbl_msg.setOpenExternalLinks(True)
         token_lbl_msg.setWordWrap(True)
         token_lbl_msg.setAlignment(Qt.AlignJustify)
@@ -120,7 +120,7 @@ class DlgGitHubLogin(QDialog):
         token_layout.addSpacerItem(
             QSpacerItem(QSpacerItem(0, 1000, vPolicy=QSizePolicy.Expanding)))
         token_auth.setLayout(token_layout)
-        tabs.addTab(token_auth, _("Access Token (2FA Users)"))
+        tabs.addTab(token_auth, _("Access Token"))
 
         # Sign in button
         self.bt_sign_in = QPushButton(_("Sign in"))
