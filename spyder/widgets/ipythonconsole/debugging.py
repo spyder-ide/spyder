@@ -10,6 +10,7 @@ mode and Spyder
 """
 
 import ast
+import pdb
 
 from qtpy.QtCore import Qt
 
