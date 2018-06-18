@@ -45,8 +45,7 @@ class DebuggingWidget(RichJupyterWidget):
         Refresh Variable Explorer and Editor from a Pdb session,
         after running any pdb command.
 
-        See publish_pdb_state in utils/ipython/spyder_kernel.py and
-        notify_spyder in utils/site/sitecustomize.py and
+        See publish_pdb_state and notify_spyder in spyder_kernels
         """
         if 'step' in pdb_state and 'fname' in pdb_state['step']:
             fname = pdb_state['step']['fname']
