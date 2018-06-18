@@ -108,6 +108,8 @@ DEFAULTS = [
               'rich_font/bold': False,
               'cursor/width': 2,
               'completion/size': (300, 180),
+              'report_error/remember_me': False,
+              'report_error/username': ''
               }),
             ('quick_layouts',
              {

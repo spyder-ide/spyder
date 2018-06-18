@@ -14,9 +14,12 @@ https://github.com/ColinDuquesnoy/QCrash
 import logging
 import webbrowser
 
+import keyring
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import qApp, QMessageBox
 
+
+from spyder.config.main import CONF
 from spyder.config.base import _
 from spyder.utils.external import github
 from spyder.widgets.github.gh_login import DlgGitHubLogin
@@ -71,7 +74,8 @@ class BaseBackend(object):
 
         :param title: title of the report, already formatted.
         :param body: body of the reporit, already formtatted.
-        :param application_log: Content of the application log. Default is None.
+        :param application_log: Content of the application log.
+        Default is None.
 
         :returns: Whether the dialog should be closed.
         """
@@ -112,7 +116,7 @@ class GithubBackend(BaseBackend):
             username, password = None, None
         else:
             token = None
-            username, password = credentials
+            username, password, remember = credentials
         if username is None and password is None and token is None:
             return False
         _logger().debug('got user credentials')
@@ -136,7 +140,8 @@ class GithubBackend(BaseBackend):
                 if self._show_msgbox:
                     QMessageBox.warning(
                         self.parent_widget, _('Invalid credentials'),
-                        _('Failed to create Github issue, invalid credentials...'))
+                        _('Failed to create Github issue, '
+                          'invalid credentials...'))
             else:
                 # other issue
                 if self._show_msgbox:
@@ -159,9 +164,44 @@ class GithubBackend(BaseBackend):
                         self.gh_owner, self.gh_repo, issue_nbr))
             return True
 
-    def get_user_credentials(self): 
+    def _get_credentials_from_settings(self):
+        """Get the stored credentials if any."""
+        remember = CONF.get('main', 'report_error/remember_me')
+        username = CONF.get('main', 'report_error/username')
+        if not remember:
+            username = ''
+
+        return username, remember
+
+    def _store_credentials(self, username, password, remember=False):
+        """Store credentials for future use."""
+        if username and password:
+            CONF.set('main', 'report_error/username', username)
+            try:
+                keyring.set_password('github', username, password)
+            except RuntimeError:  # pragma: no cover
+                _logger().warn(_('failed to save password in keyring, you '
+                                 'will be prompted for your credentials '
+                                 'next time you want to report an issue'))
+                remember = False
+        CONF.set('main', 'report_error/remember_me', remember)
+
+    def get_user_credentials(self):
         """Get user credentials with the login dialog."""
-        credentials = DlgGitHubLogin.login(self.parent_widget, None)
+        password = None
+        username, remember = self._get_credentials_from_settings()
+        if username and remember:
+            # get password from keyring
+            try:
+                password = keyring.get_password('github', username)
+            except RuntimeError:
+                # no safe keyring backend
+                _logger().warn('failed to retrieve password from keyring...')
+        credentials = DlgGitHubLogin.login(self.parent_widget, username,
+                                           password, remember)
+        if len(credentials) == 3:
+            self._store_credentials(*credentials)
+
         return credentials
 
     def upload_log_file(self, log_content):
