@@ -12,15 +12,21 @@ https://github.com/ColinDuquesnoy/QCrash
 """
 
 import logging
+import sys
 import webbrowser
 
-import keyring
+try:
+    import keyring
+except Exception:
+    pass
+
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import qApp, QMessageBox
 
 
 from spyder.config.main import CONF
 from spyder.config.base import _
+from spyder.py3compat import PY2
 from spyder.utils.external import github
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
@@ -175,14 +181,17 @@ class GithubBackend(BaseBackend):
 
     def _store_credentials(self, username, password, remember=False):
         """Store credentials for future use."""
-        if username and password:
+        if username and password and remember:
             CONF.set('main', 'report_error/username', username)
             try:
                 keyring.set_password('github', username, password)
-            except RuntimeError:  # pragma: no cover
-                _logger().warn(_('failed to save password in keyring, you '
-                                 'will be prompted for your credentials '
-                                 'next time you want to report an issue'))
+            except Exception:
+                QMessageBox.warning(self.parent_widget,
+                                    _('Failed to store password'),
+                                    _('It was not possible to securely save '
+                                      'your password. You will be prompted for'
+                                      'your Github credentials next time you '
+                                      'want to report an issue.'))
                 remember = False
         CONF.set('main', 'report_error/remember_me', remember)
 
@@ -190,16 +199,20 @@ class GithubBackend(BaseBackend):
         """Get user credentials with the login dialog."""
         password = None
         username, remember = self._get_credentials_from_settings()
-        if username and remember:
+        valid_py_os = not PY2 and not sys.plataform.startswith('linux')
+        if username and remember and valid_py_os:
             # get password from keyring
             try:
                 password = keyring.get_password('github', username)
-            except RuntimeError:
+            except Exception:
                 # no safe keyring backend
-                _logger().warn('failed to retrieve password from keyring...')
+                QMessageBox.warning(self.parent_widget,
+                                    _('Failed to retrieve password'),
+                                    _('It was not possible to retrieve your '
+                                      'password. Please introduce it again.'))
         credentials = DlgGitHubLogin.login(self.parent_widget, username,
                                            password, remember)
-        if len(credentials) == 3:
+        if len(credentials) == 3 and valid_py_os:
             self._store_credentials(*credentials)
 
         return credentials

@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFormLayout, QLabel, QLineEdit,
 
 from spyder.config.base import _
 from spyder.config.base import get_image_path
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY2, to_text_string
 
 
 GH_MARK_NORMAL = get_image_path('GitHub-Mark.png')
@@ -74,9 +74,14 @@ class DlgGitHubLogin(QDialog):
         self.le_password.textChanged.connect(self.update_btn_state)
         basic_form_layout.setWidget(2, QFormLayout.FieldRole, self.le_password)
 
-        self.cb_remember = QCheckBox(_("Remember me"))
-        self.cb_remember.setChecked(remember)
-        basic_form_layout.setWidget(4, QFormLayout.FieldRole, self.cb_remember)
+        self.cb_remember = None
+        # Check if we are in Python 2 and Linux where keyring needs a backend
+        valid_py_os = not PY2 and not sys.plataform.startswith('linux')
+        if self.is_keyring_available() and valid_py_os:
+            self.cb_remember = QCheckBox(_("Remember me"))
+            self.cb_remember.setChecked(remember)
+            basic_form_layout.setWidget(4, QFormLayout.FieldRole,
+                                        self.cb_remember)
 
         # Basic auth tab
         basic_auth = QWidget()
@@ -171,6 +176,14 @@ class DlgGitHubLogin(QDialog):
         enable = (user and password) or token
         self.bt_sign_in.setEnabled(enable)
 
+    def is_keyring_available(self):
+        """Check if keyring is available for password storage."""
+        try:
+            import keyring  # analysis:ignore
+            return True
+        except Exception:
+            return False
+
     @classmethod
     def login(cls, parent, username, password, remember):
         dlg = DlgGitHubLogin(parent, username, password, remember)
@@ -178,7 +191,10 @@ class DlgGitHubLogin(QDialog):
             user = dlg.le_user.text()
             password = dlg.le_password.text()
             token = dlg.le_token.text()
-            remember = dlg.cb_remember.isChecked()
+            if dlg.cb_remember:
+                remember = dlg.cb_remember.isChecked()
+            else:
+                remember = False
             if token != '':
                 return (token,)
             else:
@@ -188,7 +204,7 @@ class DlgGitHubLogin(QDialog):
 
 def test():
     from spyder.utils.qthelpers import qapplication
-    app = qapplication()
+    app = qapplication()  # analysis:ignore
     dlg = DlgGitHubLogin(None, None, None)
     dlg.show()
     sys.exit(dlg.exec_())
