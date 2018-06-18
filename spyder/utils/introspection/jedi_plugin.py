@@ -12,10 +12,11 @@ import os.path as osp
 import sys
 import time
 
+from spyder_kernels.utils.dochelpers import getsignaturefromtext
+
 from spyder.config.base import debug_print
 from spyder.utils import programs
 from spyder.utils.debug import log_last_error, log_dt
-from spyder.utils.dochelpers import getsignaturefromtext
 from spyder.utils.introspection.manager import (
     DEBUG_EDITOR, LOG_FILENAME, IntrospectionPlugin)
 from spyder.utils.introspection.utils import (default_info_response,

@@ -18,8 +18,9 @@ import os.path as osp
 import pydoc
 from code import InteractiveConsole
 
+from spyder_kernels.utils.dochelpers import isdefined
+
 # Local imports:
-from spyder.utils.dochelpers import isdefined
 from spyder.utils import encoding, programs
 from spyder.py3compat import is_text_string
 from spyder.utils.misc import remove_backslashes, getcwd_or_home

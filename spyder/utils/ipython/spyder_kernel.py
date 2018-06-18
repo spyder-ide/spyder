@@ -259,10 +259,7 @@ class SpyderKernel(IPythonKernel):
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
-        if not IS_EXT_INTERPRETER:
-            from spyder.utils.dochelpers import isdefined
-        else:
-            from utils.dochelpers import isdefined
+        from spyder_kernels.utils.dochelpers import isdefined
 
         ns = self._get_current_namespace(with_magics=True)
         return isdefined(obj, force_import=force_import, namespace=ns)
@@ -274,11 +271,7 @@ class SpyderKernel(IPythonKernel):
             matplotlib.rcParams['docstring.hardcopy'] = True
         except:
             pass
-
-        if not IS_EXT_INTERPRETER:
-            from spyder.utils.dochelpers import getdoc
-        else:
-            from utils.dochelpers import getdoc
+        from spyder_kernels.utils.dochelpers import getdoc
 
         obj, valid = self._eval(objtxt)
         if valid:
@@ -286,10 +279,7 @@ class SpyderKernel(IPythonKernel):
 
     def get_source(self, objtxt):
         """Get object source"""
-        if not IS_EXT_INTERPRETER:
-            from spyder.utils.dochelpers import getsource
-        else:
-            from utils.dochelpers import getsource
+        from spyder_kernels.utils.dochelpers import getsource
 
         obj, valid = self._eval(objtxt)
         if valid:
