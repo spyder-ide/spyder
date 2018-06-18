@@ -76,7 +76,7 @@ class DlgGitHubLogin(QDialog):
 
         self.cb_remember = None
         # Check if we are in Python 2 and Linux where keyring needs a backend
-        valid_py_os = not PY2 and not sys.plataform.startswith('linux')
+        valid_py_os = not PY2 and not sys.platform.startswith('linux')
         if self.is_keyring_available() and valid_py_os:
             self.cb_remember = QCheckBox(_("Remember me"))
             self.cb_remember.setChecked(remember)
