@@ -87,7 +87,7 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
             module = None
 
         # Then restore the actual loaded module instead of the mock
-        if module:
+        if module and getattr(module, 'PLUGIN_CLASS', False):
             sys.modules[module_name] = module
             modlist.append(module)
             modnames.append(module_name)
