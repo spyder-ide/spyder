@@ -809,6 +809,7 @@ class IPythonConsole(SpyderPluginWidget):
                                               processevents=processevents))
         self.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.editor.run_in_current_ipyclient.connect(self.run_script)
+        self.editor.run_cell_in_ipyclient.connect(self.run_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
                                      self.set_current_client_working_directory)
 
@@ -903,6 +904,53 @@ class IPythonConsole(SpyderPluginWidget):
                     client.shellwidget.sig_prompt_ready.connect(
                             lambda: self.execute_code(line, current_client,
                                                       clear_variables))
+            except AttributeError:
+                pass
+            self.visibility_changed(True)
+            self.raise_()
+        else:
+            #XXX: not sure it can really happen
+            QMessageBox.warning(self, _('Warning'),
+                _("No IPython console is currently available to run <b>%s</b>."
+                  "<br><br>Please open a new one and try again."
+                  ) % osp.basename(filename), QMessageBox.Ok)
+
+    def run_cell(self, code, cell_name, filename):
+        """Run cell in current or dedicated client"""
+        norm = lambda text: remove_backslashes(to_text_string(text))
+
+        # Select client to execute code on it
+        client = self.get_client_for_file(filename)
+        if client is None:
+            client = self.get_current_client()
+
+        is_internal_kernal = False
+        if client is not None:
+            # Internal kernels, use runcell
+            if True:#client.get_kernel() is not None:
+                line = "{}('{}','{}')".format('runcell', norm(cell_name),
+                                              norm(filename))
+                is_internal_kernal = True
+            else: # External kernels, just execute the code
+                line = code.strip()
+
+            try:
+                if client.shellwidget._executing:
+                    # Don't allow multiple executions when there's
+                    # still an execution taking place
+                    # Fixes issue 7293
+                    pass
+                elif client.shellwidget._reading:
+                    client.shellwidget._append_html(
+                        _("<br><b>Please exit from debugging before trying to "
+                          "run a cell in this console.</b>\n<hr><br>"),
+                        before_prompt=True)
+                    return
+                else:
+                    if is_internal_kernal:
+                        client.shellwidget.silent_execute(
+                            'get_ipython().cell_code = """{}"""'.format(to_text_string(code)))
+                    self.execute_code(line)
             except AttributeError:
                 pass
             self.visibility_changed(True)

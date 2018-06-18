@@ -695,11 +695,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor, whole_file_selected = self.select_current_cell()
         if not whole_file_selected:
             self.setTextCursor(cursor)
+        line_from, line_to = self.get_selection_bounds()
         text = self.get_selection_as_executable_code()
         self.last_cursor_cell = init_cursor
         self.__restore_selection(start_pos, end_pos)
         if text is not None:
             text = text.rstrip()
+            text = '\n' * line_from + text
         return text
 
     def get_cell_as_executable_code(self):

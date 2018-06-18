@@ -394,6 +394,7 @@ class EditorStack(QWidget):
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
     exec_in_extconsole = Signal(str, bool)
+    run_cell_in_ipyclient = Signal(str, str, str)
     update_plugin_title = Signal()
     editor_focus_changed = Signal()
     zoom_in = Signal()
@@ -2404,10 +2405,10 @@ class EditorStack(QWidget):
 
     def run_cell(self):
         """Run current cell"""
-        text = self.get_current_editor().get_cell_as_executable_code()
+        code = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
-        if finfo.editor.is_python() and text:
-            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+        if finfo.editor.is_python() and code:
+            self.run_cell_in_ipyclient.emit(code, 'temp', finfo.filename)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
