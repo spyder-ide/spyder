@@ -35,6 +35,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
                             QMessageBox, QPushButton, QTableView,
                             QVBoxLayout, QWidget)
+from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import (
     array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
     get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
@@ -49,7 +50,7 @@ from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, is_text_string,
                               PY3, to_text_string)
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import fix_reference_name, getcwd_or_home
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard

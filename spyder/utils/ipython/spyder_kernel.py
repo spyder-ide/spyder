@@ -193,10 +193,7 @@ class SpyderKernel(IPythonKernel):
     def load_data(self, filename, ext):
         """Load data from filename"""
         from spyder_kernels.utils.iofuncs import iofunctions
-        if not IS_EXT_INTERPRETER:
-            from spyder.utils.misc import fix_reference_name
-        else:
-            from utils.misc import fix_reference_name
+        from spyder_kernels.utils.misc import fix_reference_name
 
         glbs = self._mglobals()
 
