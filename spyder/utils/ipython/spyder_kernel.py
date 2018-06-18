@@ -192,11 +192,10 @@ class SpyderKernel(IPythonKernel):
 
     def load_data(self, filename, ext):
         """Load data from filename"""
+        from spyder_kernels.utils.iofuncs import iofunctions
         if not IS_EXT_INTERPRETER:
-            from spyder.utils.iofuncs import iofunctions
             from spyder.utils.misc import fix_reference_name
         else:
-            from utils.iofuncs import iofunctions
             from utils.misc import fix_reference_name
 
         glbs = self._mglobals()
@@ -222,10 +221,7 @@ class SpyderKernel(IPythonKernel):
     def save_namespace(self, filename):
         """Save namespace into filename"""
         from spyder_kernels.utils.nsview import get_remote_data
-        if not IS_EXT_INTERPRETER:
-            from spyder.utils.iofuncs import iofunctions
-        else:
-            from utils.iofuncs import iofunctions
+        from spyder_kernels.utils.iofuncs import iofunctions
 
         ns = self._get_current_namespace()
         settings = self.namespace_view_settings

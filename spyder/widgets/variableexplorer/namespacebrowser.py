@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
 
 # Third party imports (others)
 import cloudpickle
+from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
@@ -30,7 +31,6 @@ from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils.iofuncs import iofunctions
 from spyder.utils.misc import fix_reference_name, getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
