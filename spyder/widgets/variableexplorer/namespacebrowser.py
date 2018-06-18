@@ -22,9 +22,10 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
 
 # Third party imports (others)
 import cloudpickle
+from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
-from spyder.config.base import _, get_supported_types
+from spyder.config.base import _
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
@@ -37,7 +38,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
-from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()

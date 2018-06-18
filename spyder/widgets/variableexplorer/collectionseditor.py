@@ -35,6 +35,12 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
                             QMessageBox, QPushButton, QTableView,
                             QVBoxLayout, QWidget)
+from spyder_kernels.utils.nsview import (
+    array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
+    get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
+    is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
+    try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
+    get_type_string)
 
 # Local imports
 from spyder.config.base import _
@@ -48,12 +54,6 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
 from spyder.widgets.variableexplorer.texteditor import TextEditor
-from spyder.widgets.variableexplorer.utils import (
-    array, DataFrame, DatetimeIndex, display_to_value, FakeObject,
-    get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
-    is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
-    try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
-    get_type_string)
 
 if ndarray is not FakeObject:
     from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
@@ -1587,7 +1587,7 @@ def remote_editor_test():
     app = qapplication()
 
     from spyder.plugins.variableexplorer import VariableExplorer
-    from spyder.widgets.variableexplorer.utils import make_remote_view
+    from spyder_kernels.utils.nsview import make_remote_view
 
     remote = make_remote_view(get_test_data(),
                               VariableExplorer(None).get_settings())

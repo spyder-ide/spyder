@@ -78,10 +78,7 @@ class SpyderKernel(IPythonKernel):
         * 'size' and 'type' are self-evident
         * and'view' is its value or the text shown in the last column
         """
-        if not IS_EXT_INTERPRETER:
-            from spyder.widgets.variableexplorer.utils import make_remote_view
-        else:
-            from widgets.variableexplorer.utils import make_remote_view
+        from spyder_kernels.utils.nsview import make_remote_view
 
         settings = self.namespace_view_settings
         if settings:
@@ -96,10 +93,7 @@ class SpyderKernel(IPythonKernel):
         Get some properties of the variables in the current
         namespace
         """
-        if not IS_EXT_INTERPRETER:
-            from spyder.widgets.variableexplorer.utils import get_remote_data
-        else:
-            from widgets.variableexplorer.utils import get_remote_data
+        from spyder_kernels.utils.nsview import get_remote_data
 
         settings = self.namespace_view_settings
         if settings:
@@ -227,12 +221,11 @@ class SpyderKernel(IPythonKernel):
 
     def save_namespace(self, filename):
         """Save namespace into filename"""
+        from spyder_kernels.utils.nsview import get_remote_data
         if not IS_EXT_INTERPRETER:
             from spyder.utils.iofuncs import iofunctions
-            from spyder.widgets.variableexplorer.utils import get_remote_data
         else:
             from utils.iofuncs import iofunctions
-            from widgets.variableexplorer.utils import get_remote_data
 
         ns = self._get_current_namespace()
         settings = self.namespace_view_settings
