@@ -2434,12 +2434,13 @@ class EditorStack(QWidget):
             term.setFocus()
 
     def re_run_last_cell(self):
-        text, line = self.get_current_editor().get_last_cell_as_executable_code()
+        text, line = self.get_current_editor().\
+                     get_last_cell_as_executable_code()
         self._run_cell_text(text, line)
 
     def _run_cell_text(self, text, line):
         """Run a cell text in the console
-        
+
         text(str): the text in the cell
         line(int): the cell starting line
         """

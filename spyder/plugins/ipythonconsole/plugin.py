@@ -927,11 +927,11 @@ class IPythonConsole(SpyderPluginWidget):
         is_internal_kernal = False
         if client is not None:
             # Internal kernels, use runcell
-            if True:#client.get_kernel() is not None:
+            if True:  # client.get_kernel() is not None:
                 line = "{}('{}','{}')".format('runcell', norm(cell_name),
                                               norm(filename))
                 is_internal_kernal = True
-            else: # External kernels, just execute the code
+            else:  # External kernels, just execute the code
                 line = code.strip()
 
             try:
@@ -958,7 +958,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.visibility_changed(True)
             self.raise_()
         else:
-            #XXX: not sure it can really happen
+            # XXX: not sure it can really happen
             QMessageBox.warning(self, _('Warning'),
                 _("No IPython console is currently available to run <b>%s</b>."
                   "<br><br>Please open a new one and try again."
