@@ -702,7 +702,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if text is not None:
             text = text.rstrip()
             text = '\n' * line_from + text
-        return text
+        return text, line_from
 
     def get_cell_as_executable_code(self):
         """Return cell contents as executable code"""
@@ -713,8 +713,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if self.last_cursor_cell:
             self.setTextCursor(self.last_cursor_cell)
             self.highlight_current_cell()
-            text = self.__exec_cell()
-        return text
+            text, line = self.__exec_cell()
+        return text, line
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""

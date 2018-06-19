@@ -949,7 +949,9 @@ class IPythonConsole(SpyderPluginWidget):
                 else:
                     if is_internal_kernal:
                         client.shellwidget.silent_execute(
-                            'get_ipython().cell_code = """{}"""'.format(to_text_string(code)))
+                            'get_ipython().cell_code = """{}"""'.format(
+                                to_text_string(code).replace(
+                                    '"""', r'\"\"\"')))
                     self.execute_code(line)
             except AttributeError:
                 pass

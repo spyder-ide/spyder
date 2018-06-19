@@ -2405,10 +2405,8 @@ class EditorStack(QWidget):
 
     def run_cell(self):
         """Run current cell"""
-        code = self.get_current_editor().get_cell_as_executable_code()
-        finfo = self.get_current_finfo()
-        if finfo.editor.is_python() and code:
-            self.run_cell_in_ipyclient.emit(code, 'temp', finfo.filename)
+        text, line = self.get_current_editor().get_cell_as_executable_code()
+        self._run_cell_text(text, line)
 
     def run_cell_and_advance(self):
         """Run current cell and advance to the next one"""
@@ -2436,10 +2434,33 @@ class EditorStack(QWidget):
             term.setFocus()
 
     def re_run_last_cell(self):
-        text = self.get_current_editor().get_last_cell_as_executable_code()
+        text, line = self.get_current_editor().get_last_cell_as_executable_code()
+        self._run_cell_text(text, line)
+
+    def _run_cell_text(self, text, line):
+        """Run a cell text in the console
+        
+        text(str): the text in the cell
+        line(int): the cell starting line
+        """
         finfo = self.get_current_finfo()
+        editor = self.get_current_editor()
+        oe_data = editor.highlighter.get_outlineexplorer_data()
+        try:
+            cell_name = oe_data.get(line-1).text
+        except AttributeError:
+            cell_name = ''
+        cell_name = cell_name.lstrip("#% ")
+        if cell_name.startswith("<codecell>"):
+            cell_name = cell_name[10:].lstrip()
+        elif cell_name.startswith("In["):
+            cell_name = cell_name[2:]
+            if cell_name.endswith("]:"):
+                cell_name = cell_name[:-1]
+            cell_name = cell_name.strip()
         if finfo.editor.is_python() and text:
-            self.exec_in_extconsole.emit(text, self.focus_to_editor)
+            self.run_cell_in_ipyclient.emit(text, cell_name, finfo.filename)
+        editor.setFocus()
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
