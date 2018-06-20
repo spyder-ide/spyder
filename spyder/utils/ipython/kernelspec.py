@@ -61,10 +61,10 @@ class SpyderKernelSpec(KernelSpec):
                 pyexec = pyexec_w
 
         # Command used to start kernels
-        console_path = osp.join(self.spykernel_path, 'console')
         kernel_cmd = [
             pyexec,
-            osp.join("%s" % console_path, "start.py"),
+            '-m',
+            'spyder_kernels.console',
             '-f',
             '{connection_file}'
         ]
