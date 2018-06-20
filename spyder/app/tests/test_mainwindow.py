@@ -237,10 +237,11 @@ def test_filter_numpy_warning(main_window, qtbot):
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = shell._control
-    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=SHELL_TIMEOUT):
-        assert shell._prompt_html
-        
-    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create an array with a nan value
+    with qtbot.waitSignal(shell.executed):
         shell.execute('import numpy as np; A=np.full(16, np.nan)')
 
     qtbot.wait(1000)
