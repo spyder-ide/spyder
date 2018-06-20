@@ -26,8 +26,6 @@ from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
 class SpyderKernelSpec(KernelSpec):
     """Kernel spec for Spyder kernels"""
 
-    spykernel_path = get_module_source_path('spyder_kernels')
-
     def __init__(self, is_cython=False, **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
@@ -74,14 +72,8 @@ class SpyderKernelSpec(KernelSpec):
     @property
     def env(self):
         """Env vars for kernels"""
-        # Paths that we need to add to PYTHONPATH:
-        # 1. sc_path: Path to the kernel sitecustomize
-        # 2. spy_pythonpath: Paths saved by our users with our PYTHONPATH
-        #    manager
-        sc_path = osp.join(self.spykernel_path, 'site')
-        spy_pythonpath = CONF.get('main', 'spyder_pythonpath', default=[])
-        pathlist = [sc_path] + spy_pythonpath
-
+        # Add our PYTHONPATH to the kernel
+        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
         default_interpreter = CONF.get('main_interpreter', 'default')
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
                                             drop_env=(not default_interpreter))
