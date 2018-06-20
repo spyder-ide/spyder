@@ -60,7 +60,8 @@ def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
             continue
 
         # Skip names that end in certain suffixes
-        forbidden_suffixes = ['dist-info', 'egg.info', 'egg-info', 'egg-link']
+        forbidden_suffixes = ['dist-info', 'egg.info', 'egg-info', 'egg-link',
+                              'kernels']
         if any([name.endswith(s) for s in forbidden_suffixes]):
             continue
 
