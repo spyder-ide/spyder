@@ -1543,14 +1543,6 @@ class IPythonConsole(SpyderPluginWidget):
         """Create kernel manager and client."""
         # Kernel spec
         kernel_spec = self.create_kernel_spec(is_cython=is_cython)
-        if not kernel_spec.env.get('PYTHONPATH'):
-            error_msg = _("This error is most probably caused by installing "
-                          "Spyder in a directory with non-ascii characters "
-                          "(i.e. characters with tildes, apostrophes or "
-                          "non-latin symbols).<br><br>"
-                          "To fix it, please <b>reinstall</b> Spyder in a "
-                          "different location.")
-            return (error_msg, None)
 
         # Kernel manager
         try:
