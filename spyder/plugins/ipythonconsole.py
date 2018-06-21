@@ -43,8 +43,7 @@ except ImportError:
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
-                                get_module_path, running_under_pytest)
+from spyder.config.base import _, get_conf_path, get_home_dir
 from spyder.config.main import CONF
 from spyder.plugins import SpyderPluginWidget
 from spyder.plugins.configdialog import PluginConfigPage
@@ -1135,39 +1134,13 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.kernel_manager = km
         shellwidget.kernel_client = kc
 
-    def set_editor(self):
-        """Set the editor used by the %edit magic"""
-        # Get Python executable used by Spyder
-        python = sys.executable
-        if PY2:
-            python = encoding.to_unicode_from_fs(python)
-
-        # Compose command for %edit
-        spy_dir = osp.dirname(get_module_path('spyder'))
-        if DEV:
-            bootstrap = osp.join(spy_dir, 'bootstrap.py')
-            if PY2:
-                bootstrap = encoding.to_unicode_from_fs(bootstrap)
-            editor = u'"{0}" "{1}" --'.format(python, bootstrap)
-        else:
-            import1 = "import sys"
-            # We need to add spy_dir to sys.path so this test can be
-            # run in our CIs
-            if running_under_pytest():
-                if os.name == 'nt':
-                    import1 = (import1 +
-                               '; sys.path.append(""{}"")'.format(spy_dir))
-                else:
-                    import1 = (import1 +
-                               "; sys.path.append('{}')".format(spy_dir))
-            import2 = "from spyder.app.start import send_args_to_spyder"
-            code = "send_args_to_spyder([sys.argv[-1]])"
-            editor = u"\"{0}\" -c \"{1}; {2}; {3}\"".format(python,
-                                                            import1,
-                                                            import2,
-                                                            code)
-
-        return editor
+    @Slot(object, object)
+    def edit_file(self, filename, line):
+        """Handle %edit magic petitions."""
+        if encoding.is_text_file(filename):
+            # The default line number sent by ipykernel is always the last
+            # one, but we prefer to use the first.
+            self.edit_goto.emit(filename, 1, '')
 
     def config_options(self):
         """
@@ -1226,10 +1199,6 @@ class IPythonConsole(SpyderPluginWidget):
         style_sheet = create_qss_style(color_scheme)[0]
         spy_cfg.JupyterWidget.style_sheet = style_sheet
         spy_cfg.JupyterWidget.syntax_style = color_scheme
-
-        # Editor for %edit
-        if CONF.get('main', 'single_instance'):
-            spy_cfg.JupyterWidget.editor = self.set_editor()
 
         # Merge QtConsole and Spyder configs. Spyder prefs will have
         # prevalence over QtConsole ones
@@ -1298,6 +1267,9 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
+
+        # To handle %edit magic petitions
+        shellwidget.custom_edit_requested.connect(self.edit_file)
 
         # Set shell cwd according to preferences
         cwd_path = ''
