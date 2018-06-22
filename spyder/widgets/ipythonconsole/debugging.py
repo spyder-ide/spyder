@@ -17,6 +17,7 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import PICKLE_PROTOCOL
 from spyder.config.main import CONF
+from spyder.py3compat import to_text_string
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -34,11 +35,16 @@ class DebuggingWidget(RichJupyterWidget):
     def set_spyder_breakpoints(self, force=False):
         """Set Spyder breakpoints into a debugging session"""
         if self._reading or force:
-            breakpoints = CONF.get('run', 'breakpoints', {})
-            breakpoints_pkl = pickle.dumps(breakpoints,
-                                           protocol=PICKLE_PROTOCOL)
-            cmd = "!get_ipython().kernel._set_spyder_breakpoints({})"
-            self.kernel_client.input(cmd.format(breakpoints_pkl))
+            breakpoints_dict = CONF.get('run', 'breakpoints', {})
+
+            # We need to enclose pickled values in a list to be able to
+            # send them to the kernel in Python 2
+            serialiazed_breakpoints = [pickle.dumps(breakpoints_dict,
+                                                    protocol=PICKLE_PROTOCOL)]
+            breakpoints = to_text_string(serialiazed_breakpoints)
+
+            cmd = u"!get_ipython().kernel._set_spyder_breakpoints({})"
+            self.kernel_client.input(cmd.format(breakpoints))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
