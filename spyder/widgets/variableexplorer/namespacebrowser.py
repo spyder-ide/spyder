@@ -27,7 +27,7 @@ from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, PICKLE_PROTOCOL
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
@@ -42,9 +42,6 @@ from spyder.widgets.variableexplorer.importwizard import ImportWizard
 
 
 SUPPORTED_TYPES = get_supported_types()
-
-# To be able to get and set variables between Python 2 and 3
-PICKLE_PROTOCOL = 2
 
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6

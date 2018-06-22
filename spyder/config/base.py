@@ -427,6 +427,9 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
 
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
+
 
 #==============================================================================
 # Mac application utilities
