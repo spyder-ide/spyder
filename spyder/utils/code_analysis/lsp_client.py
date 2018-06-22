@@ -224,6 +224,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         params = {
             'processId': self.transport_client.pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
+            'initializationOptions': {
+                'pylsPlugins': {
+                    'pydocstyle': {'enabled': True},
+                    'rope_completion': {'enabled': True}
+                }
+            },
             'capabilities': self.client_capabilites,
             'trace': TRACE
         }
