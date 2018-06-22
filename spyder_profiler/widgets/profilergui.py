@@ -17,6 +17,7 @@ http://docs.python.org/library/profile.html
 from __future__ import with_statement
 import os
 import os.path as osp
+from itertools import islice
 import sys
 import time
 import re
@@ -263,7 +264,7 @@ class ProfilerWidget(QWidget):
                                           lambda: self.read_output(error=True))
         self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
                                       self.finished(ec, es))
-        self.stop_button.clicked.connect(self.process.kill)
+        self.stop_button.clicked.connect(self.kill)
 
         if pythonpath is not None:
             env = [to_text_string(_pth)
@@ -277,6 +278,7 @@ class ProfilerWidget(QWidget):
         
         self.output = ''
         self.error_output = ''
+        self.stopped = False
         
         p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
         if os.name == 'nt':
@@ -299,7 +301,12 @@ class ProfilerWidget(QWidget):
         if not running:
             QMessageBox.critical(self, _("Error"),
                                  _("Process failed to start"))
-    
+
+    def kill(self):
+        """Stop button pressed."""
+        self.process.kill()
+        self.stopped = True
+
     def set_running_state(self, state=True):
         self.start_button.setEnabled(not state)
         self.stop_button.setEnabled(state)
@@ -345,6 +352,11 @@ class ProfilerWidget(QWidget):
         if not filename:
             return
 
+        if self.stopped:
+            self.datelabel.setText(_('Run stopped by user.'))
+            self.datatree.initialize_view()
+            return
+
         self.datelabel.setText(_('Sorting data, please wait...'))
         QApplication.processEvents()
         
@@ -361,7 +373,7 @@ def gettime_s(text):
     
     The text is of the format 0h : 0.min:0.0s:0 ms:0us:0 ns. 
     Spaces are not taken into account and any of the specifiers can be ignored"""
-    pattern = '([+-]?\d+\.?\d*) ?([munsecinh]+)'
+    pattern = r'([+-]?\d+\.?\d*) ?([munsecinh]+)'
     matches = re.findall(pattern, text)
     if len(matches) == 0:
         return None
@@ -464,13 +476,16 @@ class ProfilerDataTree(QTreeWidget):
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
-        stats_indi = [pstats.Stats(profdatafile),]
+        try:
+            stats_indi = [pstats.Stats(profdatafile), ]
+        except (OSError, IOError):
+            return
         self.profdata = stats_indi[0]
         
         if self.compare_file is not None:
             try:
                 stats_indi.append(pstats.Stats(self.compare_file))
-            except IOError as e:
+            except (OSError, IOError) as e:
                 QMessageBox.critical(
                     self, _("Error"),
                     _("Error when trying to load profiler results"))
@@ -541,8 +556,12 @@ class ProfilerDataTree(QTreeWidget):
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
 
-    def format_measure(self, measure):
+    @staticmethod
+    def format_measure(measure):
         """Get format and units for data coming from profiler task."""
+        # Convert to a positive value.
+        measure = abs(measure)
+
         # For number of calls
         if isinstance(measure, int):
             return to_text_string(measure)
@@ -569,29 +588,43 @@ class ProfilerDataTree(QTreeWidget):
             measure = u"{0:.0f}h:{1:.0f}min".format(h, m)
         return measure
 
-    def color_string(self, args):
-        x, fmt = args
+    def color_string(self, x):
+        """Return a string formatted delta for the values in x.
+
+        Args:
+            x: 2-item list of integers (representing number of calls) or
+               2-item list of floats (representing seconds of runtime).
+
+        Returns:
+            A list with [formatted x[0], [color, formatted delta]], where
+            color reflects whether x[1] is lower, greater, or the same as
+            x[0].
+        """
         diff_str = ""
         color = "black"
 
         if len(x) == 2 and self.compare_file is not None:
             difference = x[0] - x[1]
-            if difference < 0:
-                diff_str = "".join(['', fmt[1] % self.format_measure(difference)])
-                color = "green"
-            elif difference > 0:
-                diff_str = "".join(['+', fmt[1] % self.format_measure(difference)])
-                color = "red"
-        return [fmt[0] % self.format_measure(x[0]), [diff_str, color]]
+            if difference:
+                color, sign = ('green', '-') if difference < 0 else ('red', '+')
+                diff_str = '{}{}'.format(sign, self.format_measure(difference))
+        return [self.format_measure(x[0]), [diff_str, color]]
 
     def format_output(self, child_key):
-        """ Formats the data"""
-        if True:
-            data = [x.stats.get(child_key, [0,0,0,0,0]) for x in self.stats1]
-            format_data = zip(list(zip(*data))[1:4],
-                              [["%s"]*2, ["%s", "%s"], ["%s", "%s"]])
-            return (map(self.color_string, format_data))
-            
+        """ Formats the data.
+
+        self.stats1 contains a list of one or two pstat.Stats() instances, with
+        the first being the current run and the second, the saved run, if it
+        exists.  Each Stats instance is a dictionary mapping a function to
+        5 data points - cumulative calls, number of calls, total time,
+        cumulative time, and callers.
+
+        format_output() converts the number of calls, total time, and
+        cumulative time to a string format for the child_key parameter.
+        """
+        data = [x.stats.get(child_key, [0, 0, 0, 0, {}]) for x in self.stats1]
+        return (map(self.color_string, islice(zip(*data), 1, 4)))
+
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
         for child_key in children_list:

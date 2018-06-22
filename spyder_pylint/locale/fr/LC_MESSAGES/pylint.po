@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2017-07-11 13:28+COT\n"
+"POT-Creation-Date: 2018-02-19 11:56+-05\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -47,7 +47,7 @@ msgstr "Résultats"
 msgid "Results are stored here:"
 msgstr "Les résultats sont stockés ici :"
 
-#: spyder_pylint/pylint.py:99 spyder_pylint/widgets/pylintgui.py:51
+#: spyder_pylint/pylint.py:99 spyder_pylint/widgets/pylintgui.py:52
 msgid "Static code analysis"
 msgstr "Analyse de code statique"
 
@@ -67,81 +67,81 @@ msgstr "Démarrer l'analyse de code statique"
 msgid "Maximum entries"
 msgstr "Nombre maximum d'entrées"
 
-#: spyder_pylint/widgets/pylintgui.py:85
+#: spyder_pylint/widgets/pylintgui.py:86
 msgid "Results for "
 msgstr "Résultats pour "
 
-#: spyder_pylint/widgets/pylintgui.py:90
+#: spyder_pylint/widgets/pylintgui.py:91
 msgid "Convention"
 msgstr "Convention"
 
-#: spyder_pylint/widgets/pylintgui.py:92
+#: spyder_pylint/widgets/pylintgui.py:93
 msgid "Refactor"
 msgstr "Factorisation"
 
-#: spyder_pylint/widgets/pylintgui.py:94
+#: spyder_pylint/widgets/pylintgui.py:95
 msgid "Warning"
 msgstr "Avertissement"
 
-#: spyder_pylint/widgets/pylintgui.py:96 spyder_pylint/widgets/pylintgui.py:313
-#: spyder_pylint/widgets/pylintgui.py:341
+#: spyder_pylint/widgets/pylintgui.py:97 spyder_pylint/widgets/pylintgui.py:318
+#: spyder_pylint/widgets/pylintgui.py:346
 msgid "Error"
 msgstr "Erreur"
 
-#: spyder_pylint/widgets/pylintgui.py:174
+#: spyder_pylint/widgets/pylintgui.py:172
 msgid "Analyze"
 msgstr "Analyser"
 
-#: spyder_pylint/widgets/pylintgui.py:175
+#: spyder_pylint/widgets/pylintgui.py:173
 msgid "Run analysis"
 msgstr "Analyser le code source"
 
-#: spyder_pylint/widgets/pylintgui.py:179
+#: spyder_pylint/widgets/pylintgui.py:177
 msgid "Stop"
 msgstr "Arrêter"
 
-#: spyder_pylint/widgets/pylintgui.py:180
+#: spyder_pylint/widgets/pylintgui.py:178
 msgid "Stop current analysis"
 msgstr "Arrêter l'analyse en cours"
 
-#: spyder_pylint/widgets/pylintgui.py:186
-#: spyder_pylint/widgets/pylintgui.py:237
+#: spyder_pylint/widgets/pylintgui.py:184
+#: spyder_pylint/widgets/pylintgui.py:242
 msgid "Select Python file"
 msgstr "Sélectionner un fichier Python"
 
-#: spyder_pylint/widgets/pylintgui.py:192
+#: spyder_pylint/widgets/pylintgui.py:190
 msgid "Output"
 msgstr "Sortie"
 
-#: spyder_pylint/widgets/pylintgui.py:194
+#: spyder_pylint/widgets/pylintgui.py:192
 msgid "Complete output"
 msgstr "Sortie complète"
 
-#: spyder_pylint/widgets/pylintgui.py:238
+#: spyder_pylint/widgets/pylintgui.py:243
 msgid "Python files"
 msgstr "Fichiers Python"
 
-#: spyder_pylint/widgets/pylintgui.py:275
+#: spyder_pylint/widgets/pylintgui.py:280
 msgid "Pylint output"
 msgstr "Analyse Pylint"
 
-#: spyder_pylint/widgets/pylintgui.py:314
+#: spyder_pylint/widgets/pylintgui.py:319
 msgid "Process failed to start"
 msgstr "Le processus n'a pas pu démarrer"
 
-#: spyder_pylint/widgets/pylintgui.py:415
+#: spyder_pylint/widgets/pylintgui.py:420
 msgid "Source code has not been rated yet."
 msgstr "Le code source n'a pas encore été analysé."
 
-#: spyder_pylint/widgets/pylintgui.py:421
+#: spyder_pylint/widgets/pylintgui.py:426
 msgid "Analysis did not succeed (see output for more details)."
 msgstr "L'analyse n'a pas réussi (voir la sortie pour plus de détails)."
 
-#: spyder_pylint/widgets/pylintgui.py:434
+#: spyder_pylint/widgets/pylintgui.py:439
 msgid "Global evaluation:"
 msgstr "Évaluation globale :"
 
-#: spyder_pylint/widgets/pylintgui.py:438
+#: spyder_pylint/widgets/pylintgui.py:443
 msgid "previous run:"
 msgstr "analyse précédente :"
 

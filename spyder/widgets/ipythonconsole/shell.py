@@ -107,12 +107,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         if os.name == 'nt':
             dirname = dirname.replace(u"\\", u"\\\\")
 
-        code = u"get_ipython().kernel.set_cwd(u'{}')".format(dirname)
-        if self._reading:
-            self.kernel_client.input(u'!' + code)
-        else:
-            self.silent_execute(code)
-        self._cwd = dirname
+        if not self.external_kernel:
+            code = u"get_ipython().kernel.set_cwd(u'''{}''')".format(dirname)
+            if self._reading:
+                self.kernel_client.input(u'!' + code)
+            else:
+                self.silent_execute(code)
+            self._cwd = dirname
 
     def get_cwd(self):
         """Update current working directory.
@@ -132,14 +133,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         mpcolor = bsh.get_matched_p_color()
         self._bracket_matcher.format.setBackground(mpcolor)
 
-    def set_color_scheme(self, color_scheme):
+    def set_color_scheme(self, color_scheme, reset=True):
         """Set color scheme of the shell."""
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
         self._syntax_style_changed()
-        self.reset(clear=True)
+        if reset:
+            self.reset(clear=True)
         if not dark_color:
             self.silent_execute("%colors linux")
         else:
@@ -226,18 +228,18 @@ the sympy module (e.g. plot)
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
         self.reset_namespace(silent=True, warning=warning)
 
-    def reset_namespace(self, warning=False, silent=True):
+    def reset_namespace(self, warning=False, silent=True, message=False):
         """Reset the namespace by removing all names defined by the user."""
-        reset_str = _("Reset IPython namespace")
-        warn_str = _("All user-defined variables will be removed."
-                     "<br>Are you sure you want to reset the namespace?")
+        reset_str = _("Remove all variables")
+        warn_str = _("All user-defined variables will be removed. "
+                     "Are you sure you want to proceed?")
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
             box.setWindowTitle(reset_str)
             box.set_checkbox_text(_("Don't show again."))
             box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            box.setDefaultButton(QMessageBox.No)
+            box.setDefaultButton(QMessageBox.Yes)
 
             box.set_checked(False)
             box.set_check_visible(True)
@@ -252,14 +254,26 @@ the sympy module (e.g. plot)
             if answer != QMessageBox.Yes:
                 return
 
-        if self._reading:
-            self.dbg_exec_magic('reset', '-f')
-        else:
-            if silent:
-                self.silent_execute("%reset -f")
-                self.refresh_namespacebrowser()
+        try:
+            if self._reading:
+                self.dbg_exec_magic('reset', '-f')
             else:
-                self.execute("%reset -f")
+                if silent:
+                    if message:
+                        self.reset()
+                        self._append_html(_("<br><br>Removing all variables..."
+                                            "\n<hr>"),
+                                          before_prompt=False)
+                    self.silent_execute("%reset -f")
+                    self.refresh_namespacebrowser()
+                else:
+                    self.execute("%reset -f")
+
+                if not self.external_kernel:
+                    self.silent_execute(
+                        'get_ipython().kernel.close_all_mpl_figures()')
+        except AttributeError:
+            pass
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
@@ -413,9 +427,9 @@ the sympy module (e.g. plot)
                     calling_mayavi = True
                     break
         if calling_mayavi:
-            message = _("Changing backend to Qt for Mayavi")
+            message = _("Changing backend to Qt4 for Mayavi")
             self._append_plain_text(message + '\n')
-            self.silent_execute("%gui inline\n%gui qt")
+            self.silent_execute("%gui inline\n%gui qt4")
 
     def change_mpl_backend(self, command):
         """

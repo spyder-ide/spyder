@@ -315,13 +315,13 @@ class ArrayModel(QAbstractTableModel):
                                      "Value error: %s" % str(e))
                 return False
         try:
-            self.test_array[0] = val # will raise an Exception eventually
+            self.test_array[0] = val  # will raise an Exception eventually
         except OverflowError as e:
-            print(type(e.message))  # spyder: test-skip
+            print("OverflowError: " + str(e))  # spyder: test-skip
             QMessageBox.critical(self.dialog, "Error",
-                                 "Overflow error: %s" % e.message)
+                                 "Overflow error: %s" % str(e))
             return False
-        
+
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
@@ -524,6 +524,7 @@ class ArrayView(QTableView):
 
 
 class ArrayEditorWidget(QWidget):
+
     def __init__(self, parent, data, readonly=False,
                  xlabels=None, ylabels=None):
         QWidget.__init__(self, parent)
@@ -605,6 +606,8 @@ class ArrayEditor(QDialog):
         self.arraywidget = None
         self.stack = None
         self.layout = None
+        self.btn_save_and_close = None
+        self.btn_close = None
         # Values for 3d array editor
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
@@ -671,6 +674,9 @@ class ArrayEditor(QDialog):
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
+        if self.arraywidget:
+            self.arraywidget.model.dataChanged.connect(
+                                                    self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
@@ -724,11 +730,20 @@ class ArrayEditor(QDialog):
                                    "to masked array won't be reflected in "\
                                    "array's data (and vice-versa)."))
                 btn_layout.addWidget(label)
-            btn_layout.addStretch()
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        btn_layout.addWidget(bbox)
+
+        btn_layout.addStretch()
+
+        if not readonly:
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
         self.layout.addLayout(btn_layout, 2, 0)
 
         self.setMinimumSize(400, 300)
@@ -737,9 +752,18 @@ class ArrayEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         
         return True
-            
+
+    @Slot(QModelIndex, QModelIndex)
+    def save_and_close_enable(self, left_top, bottom_right):
+        """Handle the data change event to enable the save and close button."""
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
+
     def current_widget_changed(self, index):
-        self.arraywidget = self.stack.widget(index)     
+        self.arraywidget = self.stack.widget(index)
+        self.arraywidget.model.dataChanged.connect(self.save_and_close_enable)
             
     def change_active_widget(self, index):
         """

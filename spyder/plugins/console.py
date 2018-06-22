@@ -18,12 +18,11 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import Signal, Slot, Qt
-from qtpy.QtWidgets import (QInputDialog, QLineEdit, QMenu, QHBoxLayout,
-                            QMessageBox)
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 
 # Local imports
-from spyder.config.base import _, debug_print
+from spyder.config.base import _, DEV, DEBUG, debug_print
 from spyder.config.main import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.environ import EnvDialog
@@ -35,7 +34,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.widgets.internalshell import InternalShell
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
-from spyder.api.plugins  import SpyderPluginWidget
+from spyder.widgets.reporterror import SpyderErrorDialog
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string
 
 
@@ -96,8 +96,9 @@ class Console(SpyderPluginWidget):
         self.setAcceptDrops(True)
 
         # Traceback MessageBox
-        self.msgbox_traceback= None
+        self.error_dlg = None
         self.error_traceback = ""
+        self.dismiss_error = False
 
     #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):
@@ -203,55 +204,36 @@ class Console(SpyderPluginWidget):
         self.shell.exception_occurred.connect(self.exception_occurred)
     
     def exception_occurred(self, text, is_traceback):
-        """Exception ocurred in the internal console.
-        Show a QMessageBox or the internal console to warn the user"""
-        # Skip errors without traceback
-        if not is_traceback and self.msgbox_traceback is None:
+        """
+        Exception ocurred in the internal console.
+
+        Show a QDialog or the internal console to warn the user.
+        """
+        # Skip errors without traceback or dismiss
+        if (not is_traceback and self.error_dlg is None) or self.dismiss_error:
             return
 
-        if CONF.get('main', 'show_internal_console_if_traceback', False):
+        if CONF.get('main', 'show_internal_errors'):
+            if self.error_dlg is None:
+                self.error_dlg = SpyderErrorDialog(self)
+                self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
+                self.error_dlg.rejected.connect(self.remove_error_dlg)
+                self.error_dlg.details.go_to_error.connect(self.go_to_error)
+                self.error_dlg.show()
+            self.error_dlg.append_traceback(text)
+        elif DEV or DEBUG:
             self.dockwidget.show()
             self.dockwidget.raise_()
-        else:
-            if self.msgbox_traceback is None:
-                self.msgbox_traceback = QMessageBox(
-                    QMessageBox.Critical,
-                    _('Error'),
-                    _("<b>Spyder has encountered a problem.</b><br>"
-                      "Sorry for the inconvenience."
-                      "<br><br>"
-                      "You can automatically submit this error to our Github "
-                      "issues tracker.<br><br>"
-                      "<i>Note:</i> You need a Github account for that."),
-                    QMessageBox.Ok,
-                    parent=self)
 
-                self.submit_btn = self.msgbox_traceback.addButton(
-                        _('Submit to Github'), QMessageBox.YesRole)
-                self.submit_btn.pressed.connect(self.press_submit_btn)
+    def close_error_dlg(self):
+        """Close error dialog."""
+        if self.error_dlg.dismiss_box.isChecked():
+            self.dismiss_error = True
+        self.error_dlg.reject()
 
-                self.msgbox_traceback.setWindowModality(Qt.NonModal)
-                self.error_traceback = ""
-                self.msgbox_traceback.show()
-                self.msgbox_traceback.finished.connect(self.close_msg)
-                self.msgbox_traceback.setDetailedText(' ')
-
-                # open show details (iterate over all buttons and click it)
-                for button in self.msgbox_traceback.buttons():
-                    if (self.msgbox_traceback.buttonRole(button)
-                       == QMessageBox.ActionRole):
-                        button.click()
-                        break
-
-            self.error_traceback += text
-            self.msgbox_traceback.setDetailedText(self.error_traceback)
-
-    def close_msg(self):
-        self.msgbox_traceback = None
-
-    def press_submit_btn(self):
-        self.main.report_issue(self.error_traceback)
-        self.msgbox_traceback = None
+    def remove_error_dlg(self):
+        """Remove error dialog."""
+        self.error_dlg = None
 
     #------ Public API ---------------------------------------------------------
     @Slot()

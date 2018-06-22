@@ -109,6 +109,7 @@ class WorkingDirectory(SpyderPluginWidget):
 
         # Initialize plugin
         self.initialize_plugin()
+        self.options_button.hide()
         
         self.toolbar.setWindowTitle(self.get_plugin_title())
         # Used to save Window state
@@ -228,7 +229,10 @@ class WorkingDirectory(SpyderPluginWidget):
         """Save history to a text file in user home directory"""
         text = [ to_text_string( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
-        encoding.writelines(text, self.LOG_PATH)
+        try:
+            encoding.writelines(text, self.LOG_PATH)
+        except EnvironmentError:
+            pass
     
     @Slot()
     def select_directory(self):

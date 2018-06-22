@@ -487,10 +487,13 @@ class BaseEditMixin(object):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
+
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
+
         if case:
             findflag = findflag | QTextDocument.FindCaseSensitively
+
         moves = [QTextCursor.NoMove]
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
@@ -503,16 +506,20 @@ class BaseEditMixin(object):
                     cursor.movePosition(QTextCursor.PreviousWord)
         else:
             moves += [QTextCursor.End]
-        if not regexp:
+
+        if regexp:
+            text = to_text_string(text)
+        else:
             text = re.escape(to_text_string(text))
+
         if QT55_VERSION:
-            pattern = QRegularExpression(r"\b{}\b".format(text) if words else
+            pattern = QRegularExpression(u"\\b{}\\b".format(text) if words else
                                          text)
             if case:
                 pattern.setPatternOptions(
                     QRegularExpression.CaseInsensitiveOption)
         else:
-            pattern = QRegExp(r"\b{}\b".format(text)
+            pattern = QRegExp(u"\\b{}\\b".format(text)
                               if words else text, Qt.CaseSensitive if case else
                               Qt.CaseInsensitive, QRegExp.RegExp2)
 
@@ -529,26 +536,33 @@ class BaseEditMixin(object):
             if found_cursor is not None and not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
                 return True
+
         return False
 
     def is_editor(self):
         """Needs to be overloaded in the codeeditor where it will be True"""
         return False
 
-    def get_number_matches(self, pattern, source_text='', case=False):
+    def get_number_matches(self, pattern, source_text='', case=False,
+                           regexp=False):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
             return 0
+
+        if not regexp:
+            pattern = re.escape(pattern)
+
         if not source_text:
             source_text = to_text_string(self.toPlainText())
+
         try:
             if case:
                 regobj = re.compile(pattern)
             else:
                 regobj = re.compile(pattern, re.IGNORECASE)
         except sre_constants.error:
-            return
+            return None
 
         number_matches = 0
         for match in regobj.finditer(source_text):
@@ -556,13 +570,13 @@ class BaseEditMixin(object):
 
         return number_matches
 
-    def get_match_number(self, pattern, case=False):
+    def get_match_number(self, pattern, case=False, regexp=False):
         """Get number of the match for the searched text."""
         position = self.textCursor().position()
         source_text = self.get_text(position_from='sof', position_to=position)
         match_number = self.get_number_matches(pattern,
                                                source_text=source_text,
-                                               case=case)
+                                               case=case, regexp=regexp)
         return match_number
 
     # --- Numpy matrix/array helper / See 'spyder/widgets/arraybuilder.py'
@@ -747,7 +761,10 @@ class SaveHistoryMixin(object):
     def create_history_filename(self):
         """Create history_filename with INITHISTORY if it doesn't exist."""
         if self.history_filename and not osp.isfile(self.history_filename):
-            encoding.writelines(self.INITHISTORY, self.history_filename)
+            try:
+                encoding.writelines(self.INITHISTORY, self.history_filename)
+            except EnvironmentError:
+                pass
 
     def add_to_history(self, command):
         """Add command to history"""
@@ -767,8 +784,12 @@ class SaveHistoryMixin(object):
         if self.history_filename not in self.HISTORY_FILENAMES:
             self.HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
-        
-        encoding.write(text, self.history_filename, mode='ab')
+        # Needed to prevent errors when writing history to disk
+        # See issue 6431
+        try:
+            encoding.write(text, self.history_filename, mode='ab')
+        except EnvironmentError:
+            pass
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)
 

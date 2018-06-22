@@ -16,7 +16,8 @@ import re
 # Local imports
 from spyder.config.base import get_supported_types
 from spyder.py3compat import (NUMERIC_TYPES, TEXT_TYPES, to_text_string,
-                              is_text_string, is_binary_string, PY2,
+                              is_text_string, is_type_text_string,
+                              is_binary_string, PY2,
                               to_binary_string, iteritems)
 from spyder.utils import programs
 from spyder import dependencies
@@ -49,14 +50,16 @@ class FakeObject(object):
 #==============================================================================
 try:
     from numpy import (ndarray, array, matrix, recarray,
-                       int64, int32, float64, float32,
-                       complex64, complex128)
+                       int64, int32, int16, int8, uint64, uint32, uint16, uint8,
+                       float64, float32, float16, complex64, complex128, bool_)
     from numpy.ma import MaskedArray
     from numpy import savetxt as np_savetxt
     from numpy import get_printoptions, set_printoptions
 except:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
-    int64 = int32 = float64 = float32 = complex64 = complex128 = FakeObject
+     int64 = int32 = int16 = int8 = uint64 = uint32 = uint16 = uint8 = \
+     float64 = float32 = float16 = complex64 = complex128 = bool_ = FakeObject
+
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
@@ -192,10 +195,10 @@ def str_to_timedelta(value):
         ValueError for strings not matching the above criterion.
 
     """
-    m = re.match('^(?:(?:datetime\.)?timedelta)?'
-                 '\(?'
-                 '([^)]*)'
-                 '\)?$', value)
+    m = re.match(r'^(?:(?:datetime\.)?timedelta)?'
+                 r'\(?'
+                 r'([^)]*)'
+                 r'\)?$', value)
     if not m:
         raise ValueError('Invalid string for datetime.timedelta')
     args = [int(a.strip()) for a in m.group(1).split(',')]
@@ -345,8 +348,10 @@ def value_to_display(value, minmax=False, level=0):
     np_threshold = FakeObject
 
     try:
-        numeric_numpy_types = (int64, int32, float64, float32,
-                               complex128, complex64)
+        numeric_numpy_types = (int64, int32, int16, int8,
+                               uint64, uint32, uint16, uint8,
+                               float64, float32, float16,
+                               complex128, complex64, bool_)
         if ndarray is not FakeObject:
             # Save threshold
             np_threshold = get_printoptions().get('threshold')
@@ -368,11 +373,11 @@ def value_to_display(value, minmax=False, level=0):
                         display = 'Min: %r\nMax: %r' % (value.min(), value.max())
                     except (TypeError, ValueError):
                         if value.dtype.type in numeric_numpy_types:
-                            display = repr(value)
+                            display = str(value)
                         else:
                             display = default_display(value)
                 elif value.dtype.type in numeric_numpy_types:
-                    display = repr(value)
+                    display = str(value)
                 else:
                     display = default_display(value)
             else:
@@ -414,20 +419,33 @@ def value_to_display(value, minmax=False, level=0):
             else:
                 display = 'Index'
         elif is_binary_string(value):
-            try:
-                display = to_text_string(value, 'utf8')
-            except:
-                display = value
-            if level > 0:
-                display = (to_binary_string("'") + display +
-                           to_binary_string("'"))
+            # We don't apply this to classes that extend string types
+            # See issue 5636
+            if is_type_text_string(value):
+                try:
+                    display = to_text_string(value, 'utf8')
+                    if level > 0:
+                        display = u"'" + display + u"'"
+                except:
+                    display = value
+                    if level > 0:
+                        display = b"'" + display + b"'"
+            else:
+                display = default_display(value)
         elif is_text_string(value):
-            display = value
-            if level > 0:
-                display = u"'" + display + u"'"
-        elif (isinstance(value, NUMERIC_TYPES) or isinstance(value, bool) or
-              isinstance(value, datetime.date) or
-              isinstance(value, datetime.timedelta) or
+            # We don't apply this to classes that extend string types
+            # See issue 5636
+            if is_type_text_string(value):
+                display = value
+                if level > 0:
+                    display = u"'" + display + u"'"
+            else:
+                display = default_display(value)
+        elif (isinstance(value, datetime.date) or
+              isinstance(value, datetime.timedelta)):
+            display = str(value)
+        elif (isinstance(value, NUMERIC_TYPES) or
+              isinstance(value, bool) or
               isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:
@@ -441,7 +459,11 @@ def value_to_display(value, minmax=False, level=0):
     # Truncate display at 70 chars to avoid freezing Spyder
     # because of large displays
     if len(display) > 70:
-        display = display[:70].rstrip() + ' ...'
+        if is_binary_string(display):
+            ellipses = b' ...'
+        else:
+            ellipses = u' ...'
+        display = display[:70].rstrip() + ellipses
 
     # Restore Numpy threshold
     if np_threshold is not FakeObject:

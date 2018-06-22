@@ -1,22 +1,25 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.2.4 is released!
+**Subject**: [ANN] Spyder 3.2.8 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.2.4** has been released and is available for
+I'm pleased to announce that Spyder **3.2.8** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes 7 weeks after version 3.2.3 and it adds the following new
+This release comes 2 weeks after version 3.2.7 and it adds the following new
 features:
 
-* Add compatibility with Jedi 0.11
-* Display lists with all types of elements in the Variable Explorer.
+- Editor
+    * Add `Ctrl+Shift+Enter` shortcut to introduce new lines at any point.
 
-In this release we fixed 26 issues and merged 30 pull requests that amount
-to more than 100 commits. For a full list of fixes, please see our
+- IPython console
+    * Always run Cython files in a dedicated console.
+
+In this release we fixed 23 issues and merged 27 pull requests that amount
+to almost 120 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project

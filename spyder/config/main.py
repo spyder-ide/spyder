@@ -12,21 +12,21 @@ quickly load a user config file
 """
 
 import os
-import sys
 import os.path as osp
+import sys
 
 # Local import
 from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
-                                SUBFOLDER, TEST)
+                                SUBFOLDER)
 from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.utils import codeanalysis
 
 
-#==============================================================================
+# =============================================================================
 # Main constants
-#==============================================================================
+# =============================================================================
 # Find in files exclude patterns
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
 
@@ -94,7 +94,7 @@ DEFAULTS = [
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
-              'show_internal_console_if_traceback': False,
+              'show_internal_errors': True,
               'check_updates_on_startup': True,
               'toolbars_visible': True,
               # Global Spyder fonts
@@ -154,16 +154,17 @@ DEFAULTS = [
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
+              'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',
               'greedy_completer': False,
+              'jedi_completer': False,
               'autocall': 0,
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
-              'light_color': True,
-              'dark_color': False
+              'show_elapsed_time': False
               }),
             ('variable_explorer',
              {
@@ -355,6 +356,7 @@ DEFAULTS = [
               'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
               'editor/move line down': "Alt+Down",
+              'editor/go to new line': "Ctrl+Shift+Return",
               'editor/go to definition': "Ctrl+G",
               'editor/toggle comment': "Ctrl+1",
               'editor/blockcomment': "Ctrl+4",
@@ -390,6 +392,8 @@ DEFAULTS = [
               'editor/go to line': 'Ctrl+L',
               'editor/go to previous file': 'Ctrl+Shift+Tab',
               'editor/go to next file': 'Ctrl+Tab',
+              'editor/cycle to previous file': 'Ctrl+PgUp',
+              'editor/cycle to next file': 'Ctrl+PgDown',
               'editor/new file': "Ctrl+N",
               'editor/open last closed':"Ctrl+Shift+T",
               'editor/open file': "Ctrl+O",
@@ -413,6 +417,9 @@ DEFAULTS = [
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': RE_RUN_LAST_CELL_SHORTCUT,
+              'editor/split vertically': "Ctrl+{",
+              'editor/split horizontally': "Ctrl+_",
+              'editor/close split panel': "Alt+Shift+W",
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -643,9 +650,9 @@ DEFAULTS = [
             ]
 
 
-#==============================================================================
+# =============================================================================
 # Config instance
-#==============================================================================
+# =============================================================================
 # IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
@@ -653,14 +660,14 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '41.0.0'
+CONF_VERSION = '43.1.0'
 
 # Main configuration instance
 try:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
+    CONF = UserConfig('spyder', defaults=DEFAULTS, load=True,
                       version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
                       raw_mode=True)
-except:
+except Exception:
     CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
                       version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
                       raw_mode=True)

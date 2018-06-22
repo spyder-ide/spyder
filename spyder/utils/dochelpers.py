@@ -174,7 +174,7 @@ def getsource(obj):
 def getsignaturefromtext(text, objname):
     """Get object signatures from text (object documentation)
     Return a list containing a single string in most cases
-    Example of multiple signatures: PyQt4 objects"""
+    Example of multiple signatures: PyQt5 objects"""
     if isinstance(text, dict):
         text = text.get('docstring', '')
     # Regexps
@@ -242,7 +242,7 @@ def getargs(obj):
         if args is not None:
             return args
         else:
-            # Example: PyQt4
+            # Example: PyQt5
             return getargsfromdoc(obj)
     args, _, _ = inspect.getargs(func_obj.func_code)
     if not args:
@@ -306,14 +306,14 @@ def isdefined(obj, force_import=False, namespace=None):
                 if base not in globals():
                     globals()[base] = module
                 namespace[base] = module
-            except (ImportError, NameError, SyntaxError, SystemExit):
+            except Exception:
                 return False
         else:
             return False
     for attr in attr_list:
         try:
             attr_not_found = not hasattr(eval(base, namespace), attr)
-        except SyntaxError:
+        except (SyntaxError, AttributeError):
             return False
         if attr_not_found:
             if force_import:

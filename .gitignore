@@ -4,6 +4,12 @@
 # gedit files
 *~
 
+# Notepad++ files
+nppBackup/
+
+# Pytest dirs/files
+.pytest_cache/
+
 # Special dirs and files
 build/
 dist/
@@ -16,7 +22,7 @@ spyder_crash.log
 .spyproject
 .idea/
 .cache
-.coverage
+.coverage*
 
 # git .orig files
 *.orig

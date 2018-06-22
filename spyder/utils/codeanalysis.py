@@ -33,7 +33,9 @@ def find_tasks(source_code):
     results = []
     for line, text in enumerate(source_code.splitlines()):
         for todo in re.findall(TASKS_PATTERN, text):
-            results.append((todo[-1].strip().capitalize(), line+1))
+            todo_text = (todo[-1].strip(' :').capitalize() if todo[-1]
+                         else todo[-2])
+            results.append((todo_text, line + 1))
     return results
 
 
@@ -159,6 +161,11 @@ def check(args, source_code, filename=None, options=None):
             text = to_text_string(lines[lineno-1], coding)
         except TypeError:
             text = to_text_string(lines[lineno-1])
+        except UnicodeDecodeError:
+            # Needed to handle UnicodeDecodeError and force the use
+            # of chardet to detect enconding. See issue 6970
+            coding = encoding.get_coding(source_code, force_chardet=True)
+            text = to_text_string(lines[lineno-1], coding)
         if 'analysis:ignore' not in text:
             message = line[line.find(': ')+2:]
             results.append((message, lineno))

@@ -10,6 +10,7 @@
 #
 
 import bdb
+from distutils.version import LooseVersion
 import io
 import os
 import os.path as osp
@@ -34,7 +35,7 @@ if not hasattr(sys, 'argv'):
 #==============================================================================
 # Main constants
 #==============================================================================
-IS_EXT_INTERPRETER = os.environ.get('EXTERNAL_INTERPRETER', '').lower() == "true"
+IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 
 
 #==============================================================================
@@ -166,33 +167,33 @@ if sys.platform == 'darwin':
 
 
 #==============================================================================
-# Add Cython files import and runfile support
+# Cython support
 #==============================================================================
-try:
-    # Import pyximport for enable Cython files support for import statement
-    import pyximport
-    HAS_PYXIMPORT = True
-    pyx_setup_args = {}
-except:
-    HAS_PYXIMPORT = False
+RUN_CYTHON = os.environ.get("SPY_RUN_CYTHON") == "True"
+HAS_CYTHON = False
 
-if HAS_PYXIMPORT:
-    # Add Numpy include dir to pyximport/distutils
+if RUN_CYTHON:
     try:
-        import numpy
-        pyx_setup_args['include_dirs'] = numpy.get_include()
-    except:
+        __import__('Cython')
+        HAS_CYTHON = True
+    except Exception:
         pass
 
-    # Setup pyximport and enable Cython files reload
-    pyximport.install(setup_args=pyx_setup_args, reload_support=True)
-    
-try:
-    # Import cython_inline for runfile function
-    from Cython.Build.Inline import cython_inline
-    HAS_CYTHON = True
-except:
-    HAS_CYTHON = False
+    if HAS_CYTHON:
+        # Import pyximport to enable Cython files support for
+        # import statement
+        import pyximport
+        pyx_setup_args = {}
+
+        # Add Numpy include dir to pyximport/distutils
+        try:
+            import numpy
+            pyx_setup_args['include_dirs'] = numpy.get_include()
+        except Exception:
+            pass
+
+        # Setup pyximport and enable Cython files reload
+        pyximport.install(setup_args=pyx_setup_args, reload_support=True)
 
 
 #==============================================================================
@@ -241,23 +242,8 @@ if os.environ["QT_API"] == 'pyqt':
             sip.setapi(qtype, 2)
     except:
         pass
-
-#==============================================================================
-# This prevents a kernel crash with the inline backend in our IPython
-# consoles on Linux and Python 3 (Fixes Issue 2257)
-#==============================================================================
-try:
-    import matplotlib
-except:
-    matplotlib = None   # analysis:ignore
-
-
-#==============================================================================
-# Matplotlib settings
-#==============================================================================
-if matplotlib is not None:
-    # To have mpl docstrings as rst
-    matplotlib.rcParams['docstring.hardcopy'] = True
+else:
+    os.environ.pop('QT_API')
 
 
 #==============================================================================
@@ -280,12 +266,17 @@ class IPyTesProgram(TestProgram):
         TestProgram.__init__(self, *args, **kwargs)
 unittest.main = IPyTesProgram
 
-# Filter warnings that appear for ipykernel when interacting with
-# the Variable explorer (i.e trying to see a variable)
-# Fixes Issue 5591
-warnings.filterwarnings(action='ignore', category=DeprecationWarning,
-                        module='ipykernel.datapub',
-                        message=".*ipykernel.datapub is deprecated.*")
+# Patch ipykernel to avoid errors when setting the Qt5 Matplotlib
+# backemd
+# Fixes Issue 6091
+import ipykernel
+import IPython
+if LooseVersion(ipykernel.__version__) <= LooseVersion('4.7.0'):
+    if ((PY2 and LooseVersion(IPython.__version__) >= LooseVersion('5.5.0')) or
+        (not PY2 and LooseVersion(IPython.__version__) >= LooseVersion('6.2.0'))
+       ):
+        from ipykernel import eventloops
+        eventloops.loop_map['qt'] = eventloops.loop_map['qt5']
 
 
 #==============================================================================
@@ -309,6 +300,21 @@ try:
     # For 0.18.1+
     warnings.filterwarnings(action='ignore', category=RuntimeWarning,
                             module='pandas.formats.format',
+                            message=".*invalid value encountered in.*")
+except:
+    pass
+
+
+# =============================================================================
+# Numpy adjustments
+# =============================================================================
+try:
+    # Filter warning that appears when users have 'Show max/min'
+    # turned on and Numpy arrays contain a nan value.
+    # Fixes Issue 7063
+    # Note: It only happens in Numpy 1.14+
+    warnings.filterwarnings(action='ignore', category=RuntimeWarning,
+                            module='numpy.core._methods',
                             message=".*invalid value encountered in.*")
 except:
     pass
@@ -484,7 +490,8 @@ def reset(self):
 #     specific behaviour desired?)
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def postcmd(self, stop, line):
-    self.notify_spyder(self.curframe)
+    if line != "!get_ipython().kernel._set_spyder_breakpoints()":
+        self.notify_spyder(self.curframe)
     return self._old_Pdb_postcmd(stop, line)
 
 
@@ -549,7 +556,16 @@ class UserModuleReloader(object):
             namelist = []
         spy_modules = ['sitecustomize', 'spyder', 'spyderplugins']
         mpl_modules = ['matplotlib', 'tkinter', 'Tkinter']
-        self.namelist = namelist + spy_modules + mpl_modules
+        # Add other, necessary modules to the UMR blacklist
+        # astropy: see issue 6962
+        # pytorch: see issue 7041
+        # fastmat: see issue 7190
+        # pythoncom: see issue 7190
+        other_modules = ['pytorch', 'pythoncom']
+        if PY2:
+            py2_modules = ['astropy', 'fastmat']
+            other_modules = other_modules + py2_modules
+        self.namelist = namelist + spy_modules + mpl_modules + other_modules
 
         if pathlist is None:
             pathlist = []
@@ -557,7 +573,7 @@ class UserModuleReloader(object):
         self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
-        if modname.startswith('_cython_inline'):
+        if HAS_CYTHON:
             # Don't return cached inline compiled .PYX files
             return True
         for path in [sys.prefix]+self.pathlist:
@@ -678,14 +694,14 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         # AttributeError --> systematically raised in Python 3
         pass
     global __umr__
-    if os.environ.get("UMR_ENABLED", "").lower() == "true":
+    if os.environ.get("SPY_UMR_ENABLED", "").lower() == "true":
         if __umr__ is None:
-            namelist = os.environ.get("UMR_NAMELIST", None)
+            namelist = os.environ.get("SPY_UMR_NAMELIST", None)
             if namelist is not None:
                 namelist = namelist.split(',')
             __umr__ = UserModuleReloader(namelist=namelist)
         else:
-            verbose = os.environ.get("UMR_VERBOSE", "").lower() == "true"
+            verbose = os.environ.get("SPY_UMR_VERBOSE", "").lower() == "true"
             __umr__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
@@ -706,7 +722,7 @@ def runfile(filename, args=None, wdir=None, namespace=None, post_mortem=False):
         os.chdir(wdir)
     if post_mortem:
         set_post_mortem()
-    if HAS_CYTHON and os.path.splitext(filename)[1].lower() == '.pyx':
+    if HAS_CYTHON:
         # Cython files
         with io.open(filename, encoding='utf-8') as f:
             from IPython.core.getipython import get_ipython

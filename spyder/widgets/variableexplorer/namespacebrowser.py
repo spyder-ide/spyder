@@ -44,7 +44,8 @@ class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
-    
+    sig_free_memory = Signal()
+
     def __init__(self, parent, options_button=None, menu=None,
                  plugin_actions=None):
         QWidget.__init__(self, parent)
@@ -118,6 +119,7 @@ class NamespaceBrowser(QWidget):
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
+        self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
         # Setup layout
         blayout = QHBoxLayout()
@@ -181,8 +183,8 @@ class NamespaceBrowser(QWidget):
                                            icon=ima.icon('filesaveas'),
                                            triggered=self.save_data)
         reset_namespace_button = create_toolbutton(
-                self, text=_("Reset the namespace"),
-                icon=ima.icon('editclear'), triggered=self.reset_namespace)
+                self, text=_("Remove all variables"),
+                icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
         toolbar += [load_button, self.save_button, save_as_button,
                     reset_namespace_button]
@@ -337,7 +339,8 @@ class NamespaceBrowser(QWidget):
     @Slot()
     def reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
-        self.shellwidget.reset_namespace(silent=True, warning=warning)
+        self.shellwidget.reset_namespace(warning=warning, silent=True,
+                                         message=True)
 
     @Slot()
     def save_data(self, filename=None):

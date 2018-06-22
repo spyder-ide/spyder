@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-#
+# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """
-Collections (i.e. dictionary, list, set and tuple) editor widget and dialog
+Collections (i.e. dictionary, list, set and tuple) editor widget and dialog.
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -23,18 +25,18 @@ import gc
 import sys
 
 # Third party imports
-import ipykernel.pickleutil
-from ipykernel.serialize import serialize_object
+import cloudpickle
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
-                            QDateTimeEdit, QDialog, QDialogButtonBox,
+                            QDateTimeEdit, QDialog, QHBoxLayout,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
-                            QMessageBox, QTableView, QVBoxLayout, QWidget)
+                            QMessageBox, QPushButton, QTableView,
+                            QVBoxLayout, QWidget)
 
-# Local import
+# Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
@@ -59,18 +61,15 @@ if DataFrame is not FakeObject:
     from spyder.widgets.variableexplorer.dataframeeditor import DataFrameEditor
 
 
-# XXX --- Disable canning for Numpy arrays for now ---
-# This allows getting values between a Python 3 frontend
-# and a Python 2 kernel, and viceversa, for several types of
-# arrays.
-# See this link for interesting ideas on how to solve this
-# in the future:
-# http://stackoverflow.com/q/30698004/438386
-ipykernel.pickleutil.can_map.pop('numpy.ndarray')
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
+# Maximum length of a serialized variable to be set in the kernel
+MAX_SERIALIZED_LENGHT = 1e6
 
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
+
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -84,19 +83,39 @@ class ProxyObject(object):
         return len(get_object_attrs(self.__obj__))
 
     def __getitem__(self, key):
-        """Get attribute corresponding to key."""
-        return getattr(self.__obj__, key)
+        """Get the attribute corresponding to the given key."""
+        # Catch NotImplementedError to fix #6284 in pandas MultiIndex
+        # due to NA checking not being supported on a multiindex.
+        # Catch AttributeError to fix #5642 in certain special classes like xml
+        # when this method is called on certain attributes.
+        # Catch TypeError to prevent fatal Python crash to desktop after
+        # modifying certain pandas objects. Fix issue #6727 .
+        # Catch ValueError to allow viewing and editing of pandas offsets.
+        # Fix issue #6728 .
+        try:
+            attribute_toreturn = getattr(self.__obj__, key)
+        except (NotImplementedError, AttributeError, TypeError, ValueError):
+            attribute_toreturn = None
+        return attribute_toreturn
 
     def __setitem__(self, key, value):
         """Set attribute corresponding to key with value."""
+        # Catch AttributeError to gracefully handle inability to set an
+        # attribute due to it not being writeable or set-table.
+        # Fix issue #6728 . Also, catch NotImplementedError for safety.
         try:
             setattr(self.__obj__, key, value)
-        except TypeError:
+        except (TypeError, AttributeError, NotImplementedError):
             pass
+        except Exception as e:
+            if "cannot set values for" not in str(e):
+                raise
 
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
+
+    sig_setting_data = Signal()
 
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
@@ -168,7 +187,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
-
+        self.sig_setting_data.emit()
         self.set_size_and_type()
         self.reset()
 
@@ -357,6 +376,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
         self.showndata[ self.keys[index.row()] ] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_human_readable_type(value)
+        self.sig_setting_data.emit()
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
@@ -387,6 +407,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
 
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
+    sig_free_memory = Signal()
 
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -447,30 +468,30 @@ class CollectionsDelegate(QItemDelegate):
                                    ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
-        readonly = isinstance(value, (tuple, set)) or self.parent().readonly \
-                   or not is_known_type(value)
-        #---editor = CollectionsEditor
+        readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
+                    or not is_known_type(value))
+        # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)):
-            editor = CollectionsEditor()
+            editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = ArrayEditor
+        # ArrayEditor for a Numpy array
         elif isinstance(value, (ndarray, MaskedArray)) \
           and ndarray is not FakeObject:
-            editor = ArrayEditor(parent)
+            editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---showing image
+        # ArrayEditor for an images
         elif isinstance(value, Image) and ndarray is not FakeObject \
           and Image is not FakeObject:
             arr = array(value)
-            editor = ArrayEditor(parent)
+            editor = ArrayEditor(parent=parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
             conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
@@ -478,10 +499,10 @@ class CollectionsDelegate(QItemDelegate):
                                             key=key, readonly=readonly,
                                             conv=conv_func))
             return None
-        #--editor = DataFrameEditor
+        # DataFrameEditor for a pandas dataframe, series or index
         elif isinstance(value, (DataFrame, Index, Series)) \
           and DataFrame is not FakeObject:
-            editor = DataFrameEditor()
+            editor = DataFrameEditor(parent=parent)
             if not editor.setup_and_check(value, title=key):
                 return
             editor.dataModel.set_format(index.model().dataframe_format)
@@ -489,47 +510,51 @@ class CollectionsDelegate(QItemDelegate):
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-        #---editor = QDateTimeEdit
-        elif isinstance(value, datetime.datetime):
-            editor = QDateTimeEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
-        #---editor = QDateEdit
+        # QDateEdit and QDateTimeEdit for a dates or datetime respectively
         elif isinstance(value, datetime.date):
-            editor = QDateEdit(value, parent)
-            editor.setCalendarPopup(True)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            return editor
-        #---editor = TextEditor
+            if readonly:
+                return None
+            else:
+                if isinstance(value, datetime.datetime):
+                    editor = QDateTimeEdit(value, parent=parent)
+                else:
+                    editor = QDateEdit(value, parent=parent)
+                editor.setCalendarPopup(True)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                return editor
+        # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40:
-            te = TextEditor(None)
+            te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key)
+                editor = TextEditor(value, key,
+                                    readonly=readonly, parent=parent)
                 self.create_dialog(editor, dict(model=index.model(),
                                                 editor=editor, key=key,
                                                 readonly=readonly))
             return None
-        #---editor = QLineEdit
+        # QLineEdit for an individual value (int, float, short string, etc)
         elif is_editable_type(value):
-            editor = QLineEdit(parent)
-            editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
-            editor.setAlignment(Qt.AlignLeft)
-            # This is making Spyder crash because the QLineEdit that it's
-            # been modified is removed and a new one is created after
-            # evaluation. So the object on which this method is trying to
-            # act doesn't exist anymore.
-            # editor.returnPressed.connect(self.commitAndCloseEditor)
-            return editor
-        #---editor = CollectionsEditor for an arbitrary object
+            if readonly:
+                return None
+            else:
+                editor = QLineEdit(parent=parent)
+                editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                editor.setAlignment(Qt.AlignLeft)
+                # This is making Spyder crash because the QLineEdit that it's
+                # been modified is removed and a new one is created after
+                # evaluation. So the object on which this method is trying to
+                # act doesn't exist anymore.
+                # editor.returnPressed.connect(self.commitAndCloseEditor)
+                return editor
+        # CollectionsEditor for an arbitrary Python object
         else:
-            editor = CollectionsEditor()
+            editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
-            
+
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
         editor.accepted.connect(
@@ -565,7 +590,7 @@ class CollectionsDelegate(QItemDelegate):
 
     def free_memory(self):
         """Free memory after closing an editor."""
-        gc.collect()
+        self.sig_free_memory.emit()
 
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
@@ -643,7 +668,8 @@ class BaseTableView(QTableView):
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
-    
+    sig_free_memory = Signal()
+
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
@@ -685,7 +711,7 @@ class BaseTableView(QTableView):
                                           triggered=self.paste)
         self.copy_action = create_action(self, _("Copy"),
                                          icon=ima.icon('editcopy'),
-                                         triggered=self.copy)                                      
+                                         triggered=self.copy)
         self.edit_action = create_action(self, _("Edit"),
                                          icon=ima.icon('edit'),
                                          triggered=self.edit_item)
@@ -966,8 +992,12 @@ class BaseTableView(QTableView):
         else:
             title = _('Duplicate')
             field_text = _('Variable name:')
-        new_key, valid = QInputDialog.getText(self, title, field_text,
-                                              QLineEdit.Normal, orig_key)
+        data = self.model.get_data()
+        if isinstance(data, (list, set)):
+            new_key, valid = len(data), True
+        else:
+            new_key, valid = QInputDialog.getText(self, title, field_text,
+                                                  QLineEdit.Normal, orig_key)
         if valid and to_text_string(new_key):
             new_key = try_to_eval(to_text_string(new_key))
             if new_key == orig_key:
@@ -1179,7 +1209,12 @@ class CollectionsEditorTableView(BaseTableView):
     def copy_value(self, orig_key, new_key):
         """Copy value"""
         data = self.model.get_data()
-        data[new_key] = data[orig_key]
+        if isinstance(data, list):
+            data.append(data[orig_key])
+        if isinstance(data, set):
+            data.add(data[orig_key])
+        else:
+            data[new_key] = data[orig_key]
         self.set_data(data)
     
     def new_value(self, key, value):
@@ -1265,6 +1300,9 @@ class CollectionsEditorTableView(BaseTableView):
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
         self.insert_action.setEnabled( not self.readonly )
+        self.duplicate_action.setEnabled(condition)
+        condition_rename = not isinstance(data, (tuple, list, set))
+        self.rename_action.setEnabled(condition_rename)
         self.refresh_plot_entries(index)
         
     def set_filter(self, dictfilter=None):
@@ -1307,6 +1345,8 @@ class CollectionsEditor(QDialog):
 
         self.data_copy = None
         self.widget = None
+        self.btn_save_and_close = None
+        self.btn_close = None
 
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
@@ -1326,23 +1366,36 @@ class CollectionsEditor(QDialog):
                 self.data_copy = copy.deepcopy(data)
             except NotImplementedError:
                 self.data_copy = copy.copy(data)
+            except (TypeError, AttributeError):
+                readonly = True
+                self.data_copy = data
             datalen = len(get_object_attrs(data))
-        self.widget = CollectionsEditorWidget(self, self.data_copy, title=title,
-                                              readonly=readonly, remote=remote)
-
+        self.widget = CollectionsEditorWidget(self, self.data_copy,
+                                              title=title, readonly=readonly,
+                                              remote=remote)
+        self.widget.editor.model.sig_setting_data.connect(
+                                                    self.save_and_close_enable)
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
-        
+
         # Buttons configuration
-        buttons = QDialogButtonBox.Ok
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
         if not readonly:
-            buttons = buttons | QDialogButtonBox.Cancel
-        self.bbox = QDialogButtonBox(buttons)
-        self.bbox.accepted.connect(self.accept)
-        if not readonly:
-            self.bbox.rejected.connect(self.reject)
-        layout.addWidget(self.bbox)
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
+
+        layout.addLayout(btn_layout)
 
         constant = 121
         row_height = 30
@@ -1355,6 +1408,14 @@ class CollectionsEditor(QDialog):
             self.setWindowIcon(ima.icon('dictedit'))
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
+
+    @Slot()
+    def save_and_close_enable(self):
+        """Handle the data change event to enable the save and close button."""
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
 
     def get_value(self):
         """Return modified copy of dictionary or list"""
@@ -1402,6 +1463,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setModel(self.model)
 
         self.delegate = RemoteCollectionsDelegate(self)
+        self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1419,8 +1481,19 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            value = serialize_object(value)
-            self.shellwidget.set_value(name, value)
+            # We need to enclose values in a list to be able to send
+            # them to the kernel in Python 2
+            svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
+
+            # Needed to prevent memory leaks. See issue 7158
+            if len(svalue) < MAX_SERIALIZED_LENGHT:
+                self.shellwidget.set_value(name, svalue)
+            else:
+                QMessageBox.warning(self, _("Warning"),
+                                    _("The object you are trying to modify is "
+                                      "too big to be sent back to the kernel. "
+                                      "Therefore, your modifications won't "
+                                      "take place."))
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))
@@ -1513,10 +1586,27 @@ def get_test_data():
     """Create test data."""
     import numpy as np
     from spyder.pil_patch import Image
-    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)),
+    image = Image.fromarray(np.random.randint(256, size=(100, 100)),
                             mode='P')
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
+    test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
+
+    try:
+        import pandas as pd
+    except (ModuleNotFoundError, ImportError):
+        test_timestamp, test_pd_td, test_dtindex, test_series, test_df = None
+    else:
+        test_timestamp = pd.Timestamp("1945-05-08T23:01:00.12345")
+        test_pd_td = pd.Timedelta(days=2193, hours=12)
+        test_dtindex = pd.DatetimeIndex(start="1939-09-01T",
+                                              end="1939-10-06",
+                                              freq="12H")
+        test_series = pd.Series({"series_name": [0, 1, 2, 3, 4, 5]})
+        test_df = pd.DataFrame({"string_col": ["a", "b", "c", "d"],
+                                "int_col": [0, 1, 2, 3],
+                                "float_col": [1.1, 2.2, 3.3, 4.4],
+                                "bool_col": [True, False, False, True]})
 
     class Foobar(object):
 
@@ -1527,29 +1617,44 @@ def get_test_data():
 
     foobar = Foobar()
     return {'object': foobar,
+            'module': np,
             'str': 'kjkj kj k j j kj k jkj',
             'unicode': to_text_string('éù', 'utf-8'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
-            'tuple': ([1, testdate, testdict], 'kjkj', None),
+            'tuple': ([1, testdate, testdict, test_timedelta], 'kjkj', None),
             'dict': testdict,
             'float': 1.2233,
             'int': 223,
             'bool': True,
-            'array': np.random.rand(10, 10),
+            'array': np.random.rand(10, 10).astype(np.int64),
             'masked_array': np.ma.array([[1, 0], [1, 0]],
                                         mask=[[True, False], [False, False]]),
-            '1D-array': np.linspace(-10, 10),
+            '1D-array': np.linspace(-10, 10).astype(np.float16),
+            '3D-array': np.random.randint(2, size=(5, 5, 5)).astype(np.bool_),
             'empty_array': np.array([]),
             'image': image,
             'date': testdate,
-            'datetime': datetime.datetime(1945, 5, 8),
+            'datetime': datetime.datetime(1945, 5, 8, 23, 1, 0, int(1.5e5)),
+            'timedelta': test_timedelta,
             'complex': 2+1j,
             'complex64': np.complex64(2+1j),
+            'complex128': np.complex128(9j),
             'int8_scalar': np.int8(8),
             'int16_scalar': np.int16(16),
             'int32_scalar': np.int32(32),
+            'int64_scalar': np.int64(64),
+            'float16_scalar': np.float16(16),
+            'float32_scalar': np.float32(32),
+            'float64_scalar': np.float64(64),
             'bool_scalar': np.bool(8),
+            'bool__scalar': np.bool_(8),
+            'timestamp': test_timestamp,
+            'timedelta_pd': test_pd_td,
+            'datetimeindex': test_dtindex,
+            'series': test_series,
+            'ddataframe': test_df,
+            'None': None,
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
             # Test for Issue #3518
@@ -1559,7 +1664,7 @@ def get_test_data():
 
 
 def editor_test():
-    """Collections editor test"""
+    """Test Collections editor."""
     from spyder.utils.qthelpers import qapplication
 
     app = qapplication()             #analysis:ignore
@@ -1570,7 +1675,7 @@ def editor_test():
 
 
 def remote_editor_test():
-    """Remote collections editor test"""
+    """Test remote collections editor."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
 

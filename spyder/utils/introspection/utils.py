@@ -21,10 +21,8 @@ from spyder.utils.syntaxhighlighters import (
 )
 
 from pygments.lexer import words
-from pygments.lexers import (
-    get_lexer_for_filename, get_lexer_by_name, TextLexer
-)
-from pygments.util import ClassNotFound
+from pygments.lexers import (get_lexer_for_filename, get_lexer_by_name,
+                             TextLexer)
 from pygments.token import Token
 
 
@@ -178,7 +176,7 @@ def find_lexer_for_filename(filename):
     else:
         try:
             lexer = get_lexer_for_filename(filename)
-        except ClassNotFound:
+        except Exception:
             return TextLexer()
     return lexer
 
@@ -203,7 +201,7 @@ def get_keywords(lexer):
                     ini_val = val[0]
                     if ')\\b' in val[0] or ')(\\s+)' in val[0]:
                         val = re.sub(r'\\.', '', val[0])
-                        val = re.sub('[^0-9a-zA-Z|]+', '', val)
+                        val = re.sub(r'[^0-9a-zA-Z|]+', '', val)
                         if '|' in ini_val:
                             keywords.extend(val.split('|'))
                         else:
@@ -231,7 +229,7 @@ def get_words(file_path=None, content=None, extension=None):
 
     if extension in ['.css']:
         regex = re.compile(r'([^a-zA-Z-])')
-    elif extension in ['.R', '.c', 'md', '.cpp, java', '.py']:
+    elif extension in ['.R', '.c', '.md', '.cpp', '.java', '.py']:
         regex = re.compile(r'([^a-zA-Z_])')
     else:
         regex = re.compile(r'([^a-zA-Z])')
@@ -263,3 +261,8 @@ def get_parent_until(path):
         except ImportError:
             break
     return '.'.join(reversed(items))
+
+
+def default_info_response():
+    """Default response when asking for info."""
+    return dict(name='', argspec='', note='', docstring='', calltip='')

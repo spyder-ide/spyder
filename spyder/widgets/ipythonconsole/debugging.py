@@ -73,7 +73,9 @@ class DebuggingWidget(RichJupyterWidget):
 
         def callback(line):
             # Save history to browse it later
-            self._control.history.append(line)
+            if not (len(self._control.history) > 0
+                    and self._control.history[-1] == line):
+                self._control.history.append(line)
 
             # This is the Spyder addition: add a %plot magic to display
             # plots while debugging
@@ -101,6 +103,8 @@ class DebuggingWidget(RichJupyterWidget):
                 return True
             elif key in (Qt.Key_Return, Qt.Key_Enter):
                 self._control.reset_search_pos()
+            else:
+                self._control.hist_wholeline = False
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
         else:

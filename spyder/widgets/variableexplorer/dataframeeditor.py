@@ -31,22 +31,25 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Signal, Slot,
                          QItemSelectionModel, QEvent)
 from qtpy.QtGui import QColor, QCursor
-from qtpy.QtWidgets import (QApplication, QCheckBox, QDialogButtonBox, QDialog,
-                            QGridLayout, QHBoxLayout, QInputDialog, QLineEdit,
-                            QMenu, QMessageBox, QPushButton, QTableView,
+from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QGridLayout,
+                            QHBoxLayout, QInputDialog, QLineEdit, QMenu,
+                            QMessageBox, QPushButton, QTableView,
                             QScrollBar, QTableWidget, QFrame,
                             QItemDelegate)
 
 from pandas import DataFrame, Index, Series
+try:
+    from pandas._libs.tslib import OutOfBoundsDatetime
+except ImportError:  # For pandas version < 0.20
+    from pandas.tslib import OutOfBoundsDatetime
 import numpy as np
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
-from spyder.py3compat import (io, is_text_string, PY2, to_text_string,
-                              TEXT_TYPES)
-from spyder.utils import encoding
+from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
+                              to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
@@ -56,7 +59,7 @@ from spyder.widgets.variableexplorer.arrayeditor import get_idx_rect
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
 COMPLEX_NUMBER_TYPES = (complex, np.complex64, np.complex128)
 # Used to convert bool intrance to false since bool('False') will return True
-_bool_false = ['false', '0']
+_bool_false = ['false', 'f', '0', '0.', '0.0', ' ']
 
 # Default format for data frames with floats
 DEFAULT_FORMAT = '%.6g'
@@ -288,6 +291,8 @@ class DataFrameModel(QAbstractTableModel):
         # handling, so fallback uses iloc
         try:
             value = self.df.iat[row, column]
+        except OutOfBoundsDatetime:
+            value = self.df.iloc[:, column].astype(str).iat[row]
         except:
             value = self.df.iloc[row, column]
         return value
@@ -311,11 +316,14 @@ class DataFrameModel(QAbstractTableModel):
                     # may happen if format = '%d' and value = NaN;
                     # see issue 4139
                     return to_qvariant(DEFAULT_FORMAT % value)
+            elif is_type_text_string(value):
+                # Don't perform any conversion on strings
+                # because it leads to differences between
+                # the data present in the dataframe and
+                # what is shown by Spyder
+                return value
             else:
-                try:
-                    return to_qvariant(to_text_string(value))
-                except UnicodeDecodeError:
-                    return to_qvariant(encoding.to_unicode(value))
+                return to_qvariant(to_text_string(value))
         elif role == Qt.BackgroundColorRole:
             return to_qvariant(self.get_bgcolor(index))
         elif role == Qt.FontRole:
@@ -385,23 +393,24 @@ class DataFrameModel(QAbstractTableModel):
         else:
             val = from_qvariant(value, str)
             current_value = self.get_value(row, column)
-            if isinstance(current_value, bool):
+            if isinstance(current_value, (bool, np.bool_)):
                 val = bool_false_check(val)
-            supported_types = (bool,) + REAL_NUMBER_TYPES + COMPLEX_NUMBER_TYPES
-            if (isinstance(current_value, supported_types) or 
+            supported_types = (bool, np.bool_) + REAL_NUMBER_TYPES
+            if (isinstance(current_value, supported_types) or
                     is_text_string(current_value)):
                 try:
                     self.df.iloc[row, column] = current_value.__class__(val)
-                except ValueError as e:
+                except (ValueError, OverflowError) as e:
                     QMessageBox.critical(self.dialog, "Error",
-                                         "Value error: %s" % str(e))
+                                         str(type(e).__name__) + ": " + str(e))
                     return False
             else:
                 QMessageBox.critical(self.dialog, "Error",
-                                     "The type of the cell is not a supported "
-                                     "type")
+                                     "Editing dtype {0!s} not yet supported."
+                                     .format(type(current_value).__name__))
                 return False
         self.max_min_col_update()
+        self.dataChanged.emit(index, index)
         return True
 
     def get_data(self):
@@ -655,19 +664,14 @@ class DataFrameHeaderModel(QAbstractTableModel):
             header = section
         else:
             header = self.model.header(self.axis, section)
-            if isinstance(header, TEXT_TYPES):
-                # Get the proper encoding of the text in the header.
-                # Fixes Issue 3896
-                if not PY2:
-                    try:
-                        header = header.encode('utf-8')
-                        coding = 'utf-8-sig'
-                    except UnicodeEncodeError:
-                        coding = encoding.get_coding(header)
-                else:
-                    coding = encoding.get_coding(header)
-                return to_text_string(header, encoding=coding)
-            header = to_text_string(header)
+
+            # Don't perform any conversion on strings
+            # because it leads to differences between
+            # the data present in the dataframe and
+            # what is shown by Spyder
+            if not is_type_text_string(header):
+                header = to_text_string(header)
+
         return header
 
     def data(self, index, role):
@@ -690,7 +694,17 @@ class DataFrameHeaderModel(QAbstractTableModel):
             return None
         if self.axis == 0 and self._shape[0] <= 1:
             return None
-        return to_text_string(self.model.header(self.axis, col, row))
+
+        header = self.model.header(self.axis, col, row)
+
+        # Don't perform any conversion on strings
+        # because it leads to differences between
+        # the data present in the dataframe and
+        # what is shown by Spyder
+        if not is_type_text_string(header):
+            header = to_text_string(header)
+
+        return header
 
 
 class DataFrameLevelModel(QAbstractTableModel):
@@ -837,6 +851,7 @@ class DataFrameEditor(QDialog):
 
         # Create the model and view of the data
         self.dataModel = DataFrameModel(data, parent=self)
+        self.dataModel.dataChanged.connect(self.save_and_close_enable)
         self.create_data_table()
 
         self.layout.addWidget(self.hscroll, 2, 0, 1, 2)
@@ -879,16 +894,31 @@ class DataFrameEditor(QDialog):
         btn_layout.addWidget(self.bgcolor_global)
 
         btn_layout.addStretch()
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        btn_layout.addWidget(bbox)
+
+        self.btn_save_and_close = QPushButton(_('Save and Close'))
+        self.btn_save_and_close.setDisabled(True)
+        self.btn_save_and_close.clicked.connect(self.accept)
+        btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
+
         btn_layout.setContentsMargins(4, 4, 4, 4)
         self.layout.addLayout(btn_layout, 4, 0, 1, 2)
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
         return True
+
+    @Slot(QModelIndex, QModelIndex)
+    def save_and_close_enable(self, top_left, bottom_right):
+        """Handle the data change event to enable the save and close button."""
+        self.btn_save_and_close.setEnabled(True)
+        self.btn_save_and_close.setAutoDefault(True)
+        self.btn_save_and_close.setDefault(True)
 
     def create_table_level(self):
         """Create the QTableView that will hold the level model."""

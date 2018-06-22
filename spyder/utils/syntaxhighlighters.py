@@ -102,7 +102,7 @@ class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
     PROG = None
-    BLANKPROG = re.compile("\s+")
+    BLANKPROG = re.compile(r"\s+")
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     # Syntax highlighting parameters.
@@ -332,6 +332,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b",
+                                r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
     number = any("number",
@@ -413,7 +414,7 @@ class PythonSH(BaseSH):
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
-    OECOMMENT = re.compile('^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
+    OECOMMENT = re.compile(r'^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
     
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
@@ -477,6 +478,14 @@ class PythonSH(BaseSH):
                                 self.found_cell_separators = True
                                 oedata = OutlineExplorerData()
                                 oedata.text = to_text_string(text).strip()
+                                # cell_head: string contaning the first group
+                                # of '%'s in the cell header
+                                cell_head = re.search(r"%+|$",
+                                                      text.lstrip()).group()
+                                if cell_head == '':
+                                    oedata.cell_level = 0
+                                else:
+                                    oedata.cell_level = len(cell_head) - 2
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.CELL
                                 oedata.def_name = text.strip()

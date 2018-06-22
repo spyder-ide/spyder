@@ -20,7 +20,7 @@ requirements:
     - pyqt  # [not osx]
     - rope >=0.9.4
     - pyflakes
-    - jedi >=0.9.0
+    - jedi >=0.11.0
     - qtconsole >=4.2.0
     - nbconvert
     - pygments >=2.0
@@ -33,6 +33,7 @@ requirements:
     - pyzmq
     - chardet >=2.0.0
     - numpydoc
+    - cloudpickle
 
 about:
   home: https://github.com/spyder-ide/spyder

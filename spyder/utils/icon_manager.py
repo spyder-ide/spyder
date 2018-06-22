@@ -211,7 +211,13 @@ _qtaargs = {
     'blockcomment':            [('spyder.circle-hash',), {'color':'grey'}],
     'cell':                    [('spyder.circle-percent',), {'color':'red'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
-    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'github':                  [('fa.github',), {'color': 'black'}],
+    # --- Spyder Tour --------------------------------------------------------
+    'tour.close':              [('fa.close',), {}],
+    'tour.home':               [('fa.fast-backward',), {}],
+    'tour.previous':           [('fa.backward',), {}],
+    'tour.next':               [('fa.forward',), {}],
+    'tour.end':                [('fa.fast-forward',), {}],
     # --- Third party plugins ------------------------------------------------
     'profiler':                [('fa.clock-o',), {}],
     'pylint':                  [('fa.search', 'fa.check'), {'options': [{}, {'offset': (0.125, 0.125), 'color': 'orange'}]}],

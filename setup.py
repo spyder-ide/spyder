@@ -20,8 +20,6 @@ import sys
 import shutil
 
 from distutils.core import setup
-from distutils.command.build import build
-from distutils.command.install import install
 from distutils.command.install_data import install_data
 
 
@@ -36,8 +34,8 @@ PY3 = sys.version_info[0] == 3
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
-    error = "ERROR: Spyder requires Python version 2.7 or 3.3 or above."
+if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 4)):
+    error = "ERROR: Spyder requires Python version 2.7 or 3.4 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -79,11 +77,11 @@ def get_data_files():
     if sys.platform.startswith('linux'):
         if PY3:
             data_files = [('share/applications', ['scripts/spyder3.desktop']),
-                          ('share/pixmaps', ['img_src/spyder3.png']),
+                          ('share/icons', ['img_src/spyder3.png']),
                           ('share/metainfo', ['scripts/spyder3.appdata.xml'])]
         else:
             data_files = [('share/applications', ['scripts/spyder.desktop']),
-                          ('share/pixmaps', ['img_src/spyder.png'])]
+                          ('share/icons', ['img_src/spyder.png'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
                                    'img_src/spyder_reset.ico'])]
@@ -121,87 +119,6 @@ CMDCLASS = {'install_data': MyInstallData}
 
 
 #==============================================================================
-# Sphinx build (documentation)
-#==============================================================================
-def get_html_help_exe():
-    """Return HTML Help Workshop executable path (Windows only)"""
-    if os.name == 'nt':
-        hhc_base = r'C:\Program Files%s\HTML Help Workshop\hhc.exe'
-        for hhc_exe in (hhc_base % '', hhc_base % ' (x86)'):
-            if osp.isfile(hhc_exe):
-                return hhc_exe
-        else:
-            return
-
-try:
-    from sphinx import setup_command
-
-    class MyBuild(build):
-        user_options = [('no-doc', None, "Don't build Spyder documentation")] \
-                       + build.user_options
-        def __init__(self, *args, **kwargs):
-            build.__init__(self, *args, **kwargs)
-            self.no_doc = False
-        def with_doc(self):
-            setup_dir = os.path.dirname(os.path.abspath(__file__))
-            is_doc_dir = os.path.isdir(os.path.join(setup_dir, 'doc'))
-            install_obj = self.distribution.get_command_obj('install')
-            return (is_doc_dir and not self.no_doc and not install_obj.no_doc)
-        sub_commands = build.sub_commands + [('build_doc', with_doc)]
-    CMDCLASS['build'] = MyBuild
-
-
-    class MyInstall(install):
-        user_options = [('no-doc', None, "Don't build Spyder documentation")] \
-                       + install.user_options
-        def __init__(self, *args, **kwargs):
-            install.__init__(self, *args, **kwargs)
-            self.no_doc = False
-    CMDCLASS['install'] = MyInstall
-
-
-    class MyBuildDoc(setup_command.BuildDoc):
-        def run(self):
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-            dirname = self.distribution.get_command_obj('build').build_purelib
-            self.builder_target_dir = osp.join(dirname, 'spyder', 'doc')
-
-            if not osp.exists(self.builder_target_dir):
-                os.mkdir(self.builder_target_dir)
-
-            hhc_exe = get_html_help_exe()
-            self.builder = "html" if hhc_exe is None else "htmlhelp"
-
-            try:
-                setup_command.BuildDoc.run(self)
-            except UnicodeDecodeError:
-                print("ERROR: unable to build documentation because Sphinx "\
-                      "do not handle source path with non-ASCII characters. "\
-                      "Please try to move the source package to another "\
-                      "location (path with *only* ASCII characters).",
-                      file=sys.stderr)
-            sys.path.pop(0)
-
-            # Building chm doc, if HTML Help Workshop is installed
-            if hhc_exe is not None:
-                fname = osp.join(self.builder_target_dir, 'Spyderdoc.chm')
-                subprocess.call('"%s" %s' % (hhc_exe, fname), shell=True)
-                if osp.isfile(fname):
-                    dest = osp.join(dirname, 'spyder')
-                    try:
-                        shutil.move(fname, dest)
-                    except shutil.Error:
-                        print("Unable to replace %s" % dest)
-                    shutil.rmtree(self.builder_target_dir)
-
-    CMDCLASS['build_doc'] = MyBuildDoc
-except ImportError:
-    print('WARNING: unable to build documentation because Sphinx '\
-          'is not installed', file=sys.stderr)
-
-
-#==============================================================================
 # Main scripts
 #==============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
@@ -218,7 +135,7 @@ else:
 #==============================================================================
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js', '.chm', '.ini',
            '.txt', '.rst', '.qss', '.ttf', '.json', '.c', '.cpp', '.java',
-           '.md', '.R', '.csv', '.pyx', '.ipynb']
+           '.md', '.R', '.csv', '.pyx', '.ipynb', '.xml']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
@@ -233,15 +150,15 @@ setup_args = dict(name=NAME,
       long_description=
 """Spyder is an interactive Python development environment providing
 MATLAB-like features in a simple and light-weighted software.
-It also provides ready-to-use pure-Python widgets to your PyQt5 or
-PyQt4 application: source code editor with syntax highlighting and
+It also provides ready-to-use pure-Python widgets to your PyQt5
+application: A source code editor with syntax highlighting and
 code introspection/analysis features, NumPy array editor, dictionary
 editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
       author="The Spyder Project Contributors",
       url=__project_url__,
       license='MIT',
-      keywords='PyQt5 PyQt4 editor shell console widgets IDE',
+      keywords='PyQt5 editor shell console widgets IDE',
       platforms=['any'],
       packages=get_packages(),
       package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
@@ -272,8 +189,9 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
+    'cloudpickle',
     'rope>=0.10.5',
-    'jedi>=0.9.0',
+    'jedi>=0.11.0',
     'pyflakes',
     'pygments>=2.0',
     'qtconsole>=4.2.0',
@@ -288,9 +206,9 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    # This is only needed for our wheels on Linux.
-    # See issue #3332
-    'pyopengl;platform_system=="Linux"'
+    # Packages for pyqt5 are only available in
+    # Python 3
+    'pyqt5<5.10;python_version>="3"'
 ]
 
 extras_require = {

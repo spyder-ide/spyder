@@ -3,7 +3,7 @@
 export CONDA_DEPENDENCIES_FLAGS="--quiet"
 export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
                            qtawesome pickleshare qtpy pyzmq chardet mock nomkl pandas \
-                           pytest pytest-cov numpydoc scipy cython pillow"
+                           pytest pytest-cov numpydoc scipy cython pillow cloudpickle"
 export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-xvfb flaky jedi pycodestyle"
 
 # Download and install miniconda and conda/pip dependencies

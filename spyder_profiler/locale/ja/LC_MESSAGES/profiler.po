@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Spyder\n"
-"POT-Creation-Date: 2017-07-11 13:28+COT\n"
-"PO-Revision-Date: 2017-04-23 17:25+0900\n"
+"POT-Creation-Date: 2018-02-19 11:56+-05\n"
+"PO-Revision-Date: 2018-02-21 16:10+0900\n"
 "Last-Translator: sohnishi <s.ohnishi77+github@gmail.com>\n"
 "Language-Team: Japanese\n"
 "Language: ja\n"
@@ -35,154 +35,163 @@ msgstr ""
 msgid "Profiler"
 msgstr "プロファイラ"
 
-#: spyder_profiler/profiler.py:104 spyder_profiler/widgets/profilergui.py:81
+#: spyder_profiler/profiler.py:104 spyder_profiler/widgets/profilergui.py:83
 msgid "Profile"
 msgstr "プロファイル"
 
-#: spyder_profiler/widgets/profilergui.py:82
+#: spyder_profiler/widgets/profilergui.py:84
 msgid "Run profiler"
 msgstr "プロファイラの実行"
 
-#: spyder_profiler/widgets/profilergui.py:87
+#: spyder_profiler/widgets/profilergui.py:89
 msgid "Stop"
 msgstr "停止"
 
-#: spyder_profiler/widgets/profilergui.py:88
+#: spyder_profiler/widgets/profilergui.py:90
 msgid "Stop current profiling"
 msgstr "現在のプロファイリングを停止"
 
-#: spyder_profiler/widgets/profilergui.py:96
-#: spyder_profiler/widgets/profilergui.py:219
+#: spyder_profiler/widgets/profilergui.py:98
+#: spyder_profiler/widgets/profilergui.py:223
 msgid "Select Python script"
 msgstr "Pythonスクリプトを選択"
 
-#: spyder_profiler/widgets/profilergui.py:102
+#: spyder_profiler/widgets/profilergui.py:104
 msgid "Output"
 msgstr "出力"
 
-#: spyder_profiler/widgets/profilergui.py:104
+#: spyder_profiler/widgets/profilergui.py:106
 msgid "Show program's output"
 msgstr "プログラムの出力を表示"
 
-#: spyder_profiler/widgets/profilergui.py:113
+#: spyder_profiler/widgets/profilergui.py:115
 msgid "Collapse one level up"
 msgstr "1つ上のレベルに折りたたむ"
 
-#: spyder_profiler/widgets/profilergui.py:118
+#: spyder_profiler/widgets/profilergui.py:120
 msgid "Expand one level down"
 msgstr "１つ下のレベルに展開"
 
-#: spyder_profiler/widgets/profilergui.py:121
+#: spyder_profiler/widgets/profilergui.py:123
 msgid "Save data"
 msgstr "データを保存"
 
-#: spyder_profiler/widgets/profilergui.py:124
+#: spyder_profiler/widgets/profilergui.py:126
 msgid "Save profiling data"
 msgstr "プロファイリングデータを保存"
 
-#: spyder_profiler/widgets/profilergui.py:126
+#: spyder_profiler/widgets/profilergui.py:128
 msgid "Load data"
 msgstr "データをロード"
 
-#: spyder_profiler/widgets/profilergui.py:129
+#: spyder_profiler/widgets/profilergui.py:131
 msgid "Load profiling data for comparison"
 msgstr "比較のためのプロファイリングデータをロード"
 
-#: spyder_profiler/widgets/profilergui.py:131
+#: spyder_profiler/widgets/profilergui.py:133
 msgid "Clear comparison"
 msgstr "比較をクリア"
 
-#: spyder_profiler/widgets/profilergui.py:171
+#: spyder_profiler/widgets/profilergui.py:173
 msgid "Please install"
 msgstr "インストールしてください"
 
-#: spyder_profiler/widgets/profilergui.py:172
+#: spyder_profiler/widgets/profilergui.py:174
 msgid "the Python profiler modules"
 msgstr "Pythonプロファイラモジュール"
 
-#: spyder_profiler/widgets/profilergui.py:179
+#: spyder_profiler/widgets/profilergui.py:181
 msgid "Save profiler result"
 msgstr "プロファイラの結果を保存"
 
-#: spyder_profiler/widgets/profilergui.py:182
-#: spyder_profiler/widgets/profilergui.py:188
+#: spyder_profiler/widgets/profilergui.py:184
+#: spyder_profiler/widgets/profilergui.py:191
 msgid "Profiler result"
 msgstr "プロファイラ結果"
 
-#: spyder_profiler/widgets/profilergui.py:187
+#: spyder_profiler/widgets/profilergui.py:190
 msgid "Select script to compare"
 msgstr "比較するスクリプトを選択"
 
-#: spyder_profiler/widgets/profilergui.py:220
+#: spyder_profiler/widgets/profilergui.py:224
 msgid "Python scripts"
 msgstr "Pythonスクリプト"
 
-#: spyder_profiler/widgets/profilergui.py:227
-#: spyder_profiler/widgets/profilergui.py:232
+#: spyder_profiler/widgets/profilergui.py:231
+#: spyder_profiler/widgets/profilergui.py:236
 msgid "Profiler output"
 msgstr "プロファイラ出力"
 
-#: spyder_profiler/widgets/profilergui.py:251
+#: spyder_profiler/widgets/profilergui.py:255
 msgid "Profiling, please wait..."
 msgstr "プロファイリング中、暫くお待ち下さい..."
 
-#: spyder_profiler/widgets/profilergui.py:295
+#: spyder_profiler/widgets/profilergui.py:300
+#: spyder_profiler/widgets/profilergui.py:484
 msgid "Error"
 msgstr "エラー"
 
-#: spyder_profiler/widgets/profilergui.py:296
+#: spyder_profiler/widgets/profilergui.py:301
 msgid "Process failed to start"
 msgstr "プロセスの開始に失敗しました"
 
-#: spyder_profiler/widgets/profilergui.py:343
+#: spyder_profiler/widgets/profilergui.py:354
+msgid "Run stopped by user."
+msgstr "実行はユーザーによって停止されました"
+
+#: spyder_profiler/widgets/profilergui.py:358
 msgid "Sorting data, please wait..."
 msgstr "データをソートしています、お待ち下さい..."
 
-#: spyder_profiler/widgets/profilergui.py:389
+#: spyder_profiler/widgets/profilergui.py:433
 msgid "Function/Module"
 msgstr "関数/モジュール"
 
-#: spyder_profiler/widgets/profilergui.py:389
+#: spyder_profiler/widgets/profilergui.py:433
 msgid "Total Time"
 msgstr "合計時間"
 
-#: spyder_profiler/widgets/profilergui.py:389
-#: spyder_profiler/widgets/profilergui.py:390
+#: spyder_profiler/widgets/profilergui.py:433
+#: spyder_profiler/widgets/profilergui.py:434
 msgid "Diff"
 msgstr "Diff"
 
-#: spyder_profiler/widgets/profilergui.py:390
+#: spyder_profiler/widgets/profilergui.py:434
 msgid "Calls"
 msgstr "コール"
 
-#: spyder_profiler/widgets/profilergui.py:390
+#: spyder_profiler/widgets/profilergui.py:434
 msgid "Local Time"
 msgstr "ローカル時間"
 
-#: spyder_profiler/widgets/profilergui.py:391
+#: spyder_profiler/widgets/profilergui.py:435
 msgid "File:line"
 msgstr "ファイル：行"
 
-#: spyder_profiler/widgets/profilergui.py:565
+#: spyder_profiler/widgets/profilergui.py:485
+msgid "Error when trying to load profiler results"
+msgstr "プロファイル結果ロード中にエラー"
+
+#: spyder_profiler/widgets/profilergui.py:637
 msgid "Function or module name"
 msgstr "関数あるいはモジュール名"
 
-#: spyder_profiler/widgets/profilergui.py:569
+#: spyder_profiler/widgets/profilergui.py:641
 msgid "Time in function (including sub-functions)"
 msgstr "関数内での時間(サブ関数を含む)"
 
-#: spyder_profiler/widgets/profilergui.py:578
+#: spyder_profiler/widgets/profilergui.py:650
 msgid "Local time in function (not in sub-functions)"
 msgstr "関数内でのローカル時間(サブ関数を含まない)"
 
-#: spyder_profiler/widgets/profilergui.py:588
+#: spyder_profiler/widgets/profilergui.py:660
 msgid "Total number of calls (including recursion)"
 msgstr "合計コール回数(再帰呼出しを含む)"
 
-#: spyder_profiler/widgets/profilergui.py:598
+#: spyder_profiler/widgets/profilergui.py:670
 msgid "File:line where function is defined"
 msgstr "関数の定義されている  ファイル:行"
 
-#: spyder_profiler/widgets/profilergui.py:603
+#: spyder_profiler/widgets/profilergui.py:675
 msgid "recursion"
 msgstr "再帰"

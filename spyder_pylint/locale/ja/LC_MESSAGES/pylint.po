@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Spyder\n"
-"POT-Creation-Date: 2017-07-11 13:28+COT\n"
+"POT-Creation-Date: 2018-02-19 11:56+-05\n"
 "PO-Revision-Date: 2017-04-23 17:21+0900\n"
 "Last-Translator: sohnishi <s.ohnishi77+github@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -51,7 +51,7 @@ msgstr "結果"
 msgid "Results are stored here:"
 msgstr "結果は以下に保存されます："
 
-#: spyder_pylint/pylint.py:99 spyder_pylint/widgets/pylintgui.py:51
+#: spyder_pylint/pylint.py:99 spyder_pylint/widgets/pylintgui.py:52
 msgid "Static code analysis"
 msgstr "静的コード分析"
 
@@ -71,81 +71,81 @@ msgstr "静的コード分析を実行"
 msgid "Maximum entries"
 msgstr "最大エントリ数"
 
-#: spyder_pylint/widgets/pylintgui.py:85
+#: spyder_pylint/widgets/pylintgui.py:86
 msgid "Results for "
 msgstr "結果"
 
-#: spyder_pylint/widgets/pylintgui.py:90
+#: spyder_pylint/widgets/pylintgui.py:91
 msgid "Convention"
 msgstr "規約"
 
-#: spyder_pylint/widgets/pylintgui.py:92
+#: spyder_pylint/widgets/pylintgui.py:93
 msgid "Refactor"
 msgstr "リファクター"
 
-#: spyder_pylint/widgets/pylintgui.py:94
+#: spyder_pylint/widgets/pylintgui.py:95
 msgid "Warning"
 msgstr "警告"
 
-#: spyder_pylint/widgets/pylintgui.py:96 spyder_pylint/widgets/pylintgui.py:313
-#: spyder_pylint/widgets/pylintgui.py:341
+#: spyder_pylint/widgets/pylintgui.py:97 spyder_pylint/widgets/pylintgui.py:318
+#: spyder_pylint/widgets/pylintgui.py:346
 msgid "Error"
 msgstr "エラー"
 
-#: spyder_pylint/widgets/pylintgui.py:174
+#: spyder_pylint/widgets/pylintgui.py:172
 msgid "Analyze"
 msgstr "分析"
 
-#: spyder_pylint/widgets/pylintgui.py:175
+#: spyder_pylint/widgets/pylintgui.py:173
 msgid "Run analysis"
 msgstr "分析を実行"
 
-#: spyder_pylint/widgets/pylintgui.py:179
+#: spyder_pylint/widgets/pylintgui.py:177
 msgid "Stop"
 msgstr "停止"
 
-#: spyder_pylint/widgets/pylintgui.py:180
+#: spyder_pylint/widgets/pylintgui.py:178
 msgid "Stop current analysis"
 msgstr "現在の分析を停止"
 
-#: spyder_pylint/widgets/pylintgui.py:186
-#: spyder_pylint/widgets/pylintgui.py:237
+#: spyder_pylint/widgets/pylintgui.py:184
+#: spyder_pylint/widgets/pylintgui.py:242
 msgid "Select Python file"
 msgstr "Pythonファイルを選択"
 
-#: spyder_pylint/widgets/pylintgui.py:192
+#: spyder_pylint/widgets/pylintgui.py:190
 msgid "Output"
 msgstr "出力"
 
-#: spyder_pylint/widgets/pylintgui.py:194
+#: spyder_pylint/widgets/pylintgui.py:192
 msgid "Complete output"
 msgstr "出力を完了"
 
-#: spyder_pylint/widgets/pylintgui.py:238
+#: spyder_pylint/widgets/pylintgui.py:243
 msgid "Python files"
 msgstr "Pythonファイル"
 
-#: spyder_pylint/widgets/pylintgui.py:275
+#: spyder_pylint/widgets/pylintgui.py:280
 msgid "Pylint output"
 msgstr "Pylint出力"
 
-#: spyder_pylint/widgets/pylintgui.py:314
+#: spyder_pylint/widgets/pylintgui.py:319
 msgid "Process failed to start"
 msgstr "プロセスの開始に失敗しました"
 
-#: spyder_pylint/widgets/pylintgui.py:415
+#: spyder_pylint/widgets/pylintgui.py:420
 msgid "Source code has not been rated yet."
 msgstr "ソースコードはまだ評価されていません。"
 
-#: spyder_pylint/widgets/pylintgui.py:421
+#: spyder_pylint/widgets/pylintgui.py:426
 msgid "Analysis did not succeed (see output for more details)."
 msgstr "分析に失敗しました(詳細は出力を見てください)"
 
-#: spyder_pylint/widgets/pylintgui.py:434
+#: spyder_pylint/widgets/pylintgui.py:439
 msgid "Global evaluation:"
 msgstr "全体評価："
 
-#: spyder_pylint/widgets/pylintgui.py:438
+#: spyder_pylint/widgets/pylintgui.py:443
 msgid "previous run:"
 msgstr "前回の実行："
 

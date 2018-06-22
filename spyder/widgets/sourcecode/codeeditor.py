@@ -27,7 +27,6 @@ import sys
 import time
 
 # Third party imports
-from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
@@ -67,9 +66,9 @@ from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
 from spyder.widgets.sourcecode.folding import IndentFoldDetector
 from spyder.widgets.sourcecode.extensions.manager import (
-    EditorExtensionsManager)
+        EditorExtensionsManager)
 from spyder.widgets.sourcecode.extensions.closequotes import (
-    CloseQuotesExtension)
+        CloseQuotesExtension)
 from spyder.widgets.sourcecode.api.decoration import TextDecoration
 from spyder.widgets.sourcecode.utils.lsp import (
     request, handles, class_register)
@@ -498,7 +497,6 @@ class CodeEditor(TextEditBaseWidget):
 
         self.editor_extensions.add(CloseQuotesExtension())
 
-
     def create_shortcuts(self):
         codecomp = config_shortcut(self.do_completion, context='Editor',
                                    name='Code Completion', parent=self)
@@ -512,6 +510,8 @@ class CodeEditor(TextEditBaseWidget):
                                      name='Move line up', parent=self)
         movelinedown = config_shortcut(self.move_line_down, context='Editor',
                                        name='Move line down', parent=self)
+        gotonewline = config_shortcut(self.go_to_new_line, context='Editor',
+                                      name='Go to new line', parent=self)
         gotodef = config_shortcut(self.do_go_to_definition, context='Editor',
                                   name='Go to definition', parent=self)
         toggle_comment = config_shortcut(self.toggle_comment, context='Editor',
@@ -612,7 +612,7 @@ class CodeEditor(TextEditBaseWidget):
                                       name='enter array table', parent=self)
 
         return [codecomp, duplicate_line, copyline, deleteline, movelineup,
-                movelinedown, gotodef, toggle_comment, blockcomment,
+                movelinedown, gotonewline, gotodef, toggle_comment, blockcomment,
                 unblockcomment, transform_uppercase, transform_lowercase,
                 line_start, line_end, prev_line, next_line,
                 prev_char, next_char, prev_word, next_word, kill_line_end,
@@ -632,8 +632,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def closeEvent(self, event):
         TextEditBaseWidget.closeEvent(self, event)
-        if is_pyqt46:
-            self.destroyed.emit()
 
     def get_document_id(self):
         return self.document_id
@@ -1184,12 +1182,14 @@ class CodeEditor(TextEditBaseWidget):
         cursor.endEditBlock()
 
     def fix_indentation(self):
-        """Replace tabs by spaces"""
+        """Replace tabs by spaces."""
         text_before = to_text_string(self.toPlainText())
-        text_after = sourcecode.fix_indentation(text_before)
+        text_after = sourcecode.fix_indentation(text_before, self.indent_chars)
         if text_before != text_after:
-            self.setPlainText(text_after)
-            self.document().setModified(True)
+            # We do the following rather than using self.setPlainText
+            # to benefit from QTextEdit's undo/redo feature.
+            self.selectAll()
+            self.insertPlainText(text_after)
 
     def get_current_object(self):
         """Return current object (string) """
@@ -1199,9 +1199,14 @@ class CodeEditor(TextEditBaseWidget):
 
     @Slot()
     def delete(self):
-        """Remove selected text"""
-        if self.has_selected_text():
-            self.remove_selected_text()
+        """Remove selected text or next character."""
+        if not self.has_selected_text():
+            cursor = self.textCursor()
+            position = cursor.position()
+            if not cursor.atEnd():
+                cursor.setPosition(position + 1, QTextCursor.KeepAnchor)
+            self.setTextCursor(cursor)
+        self.remove_selected_text()
 
     #------Find occurrences
     def __find_first(self, text):
@@ -1419,19 +1424,11 @@ class CodeEditor(TextEditBaseWidget):
             data.breakpoint = True
         elif not edit_condition:
             data.breakpoint = not data.breakpoint
-            old_breakpoint_condition = data.breakpoint_condition
             data.breakpoint_condition = None
-        else:
-            data = BlockUserData(self)
-            data.breakpoint = True
-            old_breakpoint_condition = None
         if condition is not None:
             data.breakpoint_condition = condition
         if edit_condition:
-            data.breakpoint = True
             condition = data.breakpoint_condition
-            if old_breakpoint_condition is not None:
-                condition = old_breakpoint_condition
             condition, valid = QInputDialog.getText(self,
                                         _('Breakpoint'),
                                         _("Condition:"),
@@ -2659,15 +2656,27 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def __unmatched_braces_in_line(self, text):
+    def __unmatched_braces_in_line(self, text, closing_braces_type=None):
+        """
+        Checks if there is an unmatched brace in the 'text'.
+        The brace type can be general or specified by closing_braces_type
+        (')', ']', or '}')
+        """
+        if closing_braces_type is None:
+            opening_braces = ['(', '[', '{']
+            closing_braces = [')', ']', '}']
+        else:
+            closing_braces = [closing_braces_type]
+            opening_braces = [{')': '(', '}': '{',
+                               ']': '['}[closing_braces_type]]
         block = self.textCursor().block()
         line_pos = block.position()
         for pos, char in enumerate(text):
-            if char in ['(', '[', '{']:
+            if char in opening_braces:
                 match = self.find_brace_match(line_pos+pos, char, forward=True)
                 if (match is None) or (match > line_pos+len(text)):
                     return True
-            if char in [')', ']', '}']:
+            if char in closing_braces:
                 match = self.find_brace_match(line_pos+pos, char, forward=False)
                 if (match is None) or (match < line_pos):
                     return True
@@ -2832,6 +2841,7 @@ class CodeEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         text = to_text_string(event.text())
+        has_selection = self.has_selected_text()
         if text:
             self.__clear_occurrences()
         if QToolTip.isVisible():
@@ -2839,22 +2849,25 @@ class CodeEditor(TextEditBaseWidget):
 
         # Handle the Qt Builtin key sequences
         checks = [('SelectAll', 'Select All'),
-                  ('Copy', 'copy'),
-                  ('Cut', 'cut'),
-                  ('Paste', 'paste'),
-                  ('Undo', 'undo'),
-                  ('Redo', 'redo')]
+                  ('Copy', 'Copy'),
+                  ('Cut', 'Cut'),
+                  ('Paste', 'Paste'),
+                  ('Undo', 'Undo'),
+                  ('Redo', 'Redo')]
 
         for qname, name in checks:
             seq = getattr(QKeySequence, qname)
-            # sc = get_shortcut('editor', name)
-            # default = QKeySequence(seq).toString()
-            # if event == seq:
-            if event == seq:
+            sc = get_shortcut('editor', name)
+            default = QKeySequence(seq).toString()
+            # XXX - Using debug_print, it can be seen that event and seq
+            # will never be equal, so this code is never executed.
+            # Need to find out the intended purpose and if it should be
+            # retained.
+            if event == seq and sc != default:
                 # if we have overridden it, call our action
                 for shortcut in self.shortcuts:
-                    qsc, _, keystr = shortcut.data
-                    if keystr == name:
+                    qsc, name, keystr = shortcut.data
+                    if keystr == default:
                         qsc.activated.emit()
                         event.ignore()
                         return
@@ -2900,14 +2913,25 @@ class CodeEditor(TextEditBaseWidget):
         elif shift and key == Qt.Key_Delete:
             # Shift + Del is a Key sequence reserved by most OSes
             # https://github.com/spyder-ide/spyder/issues/3405
-            self.delete_line()
+            # For now, add back reserved sequence for cut (issue 5973).
+            # Since Ctrl+X is configurable, this should also use preferences.
+            # https://doc.qt.io/qt-5/qkeysequence.html
+            if has_selection:
+                self.cut()
+            else:
+                self.delete_line()
+        elif shift and key == Qt.Key_Insert:
+            # For now, add back reserved sequence for paste (issue 5973).
+            # Since Ctrl+V is configurable, this should also use preferences.
+            # https://doc.qt.io/qt-5/qkeysequence.html
+            self.paste()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
-            if self.has_selected_text() or not self.intelligent_backspace:
+            if has_selection or not self.intelligent_backspace:
                 TextEditBaseWidget.keyPressEvent(self, event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
@@ -2959,7 +2983,7 @@ class CodeEditor(TextEditBaseWidget):
               not self.has_selected_text()):
             # self.hide_completion_widget()
             self.handle_parentheses(text)
-        elif (text in ('[', '{') and not self.has_selected_text() and
+        elif (text in ('[', '{') and not has_selection and
               self.close_parentheses_enabled):
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
@@ -2971,7 +2995,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 TextEditBaseWidget.keyPressEvent(self, event)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
-          and not self.has_selected_text() and self.close_parentheses_enabled \
+          and not has_selection and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
@@ -2982,13 +3006,14 @@ class CodeEditor(TextEditBaseWidget):
                          Qt.Key_BracketRight: ']'}[key]
             )
             if (key_matches_next_char
-              and not self.__unmatched_braces_in_line(cursor.block().text())):
+                    and not self.__unmatched_braces_in_line(
+                        cursor.block().text(), text)):
                 # overwrite an existing brace if all braces in line are matched
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
                 TextEditBaseWidget.keyPressEvent(self, event)
-        elif key == Qt.Key_Colon and not self.has_selected_text() \
+        elif key == Qt.Key_Colon and not has_selection \
              and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
@@ -2999,7 +3024,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.unindent(force=True)
             TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Space and not shift and not ctrl \
-             and not self.has_selected_text() and self.auto_unindent_enabled:
+             and not has_selection and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
@@ -3011,7 +3036,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
-            if not self.has_selected_text() and not self.tab_mode:
+            if not has_selection and not self.tab_mode:
                 self.intelligent_tab()
             else:
                 # indent the selected text
@@ -3019,7 +3044,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
-            if not self.has_selected_text() and not self.tab_mode:
+            if not has_selection and not self.tab_mode:
                 self.intelligent_backtab()
             else:
                 # indent the selected text
@@ -3127,6 +3152,23 @@ class CodeEditor(TextEditBaseWidget):
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
         TextEditBaseWidget.leaveEvent(self, event)
+
+    @Slot()
+    def go_to_definition_from_cursor(self, cursor=None):
+        """Go to definition from cursor instance (QTextCursor)"""
+        if not self.go_to_definition_enabled:
+            return
+        if cursor is None:
+            cursor = self.textCursor()
+        if self.in_comment_or_string():
+            return
+        position = cursor.position()
+        text = to_text_string(cursor.selectedText())
+        if len(text) == 0:
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+        if not text is None:
+            self.go_to_definition.emit(position)
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""

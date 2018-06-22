@@ -5,34 +5,41 @@ dist: trusty
 sudo: false
 
 matrix:
+  fast_finish: true
   include:
+    - python: "3.6"
+      env: USE_PYQT=pyqt5 USE_CONDA=yes PYTHON_VERSION=3.6
+      os: osx
+      language: generic
     - python: "2.7"
-      env: USE_PYQT=pyqt4
-      os: linux
-    - python: "2.7"
-      env: USE_PYQT=pyqt5
+      env: USE_PYQT=pyqt5 USE_CONDA=yes
       os: linux
     - python: "3.5"
-      env: USE_PYQT=pyqt4
-      os: linux
-    # This slot runs our tests only with pip packages
-    - python: "3.5"
-      env: USE_PYQT=pyqt5
+      env: USE_PYQT=pyqt5 USE_CONDA=yes
       os: linux
     - python: "3.6"
-      env: USE_PYQT=pyqt5
+      env: USE_PYQT=pyqt5 USE_CONDA=yes
+      os: linux
+    - python: "3.6"
+      env: USE_PYQT=pyqt5 USE_CONDA=no
       os: linux
 
 before_install:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sh -e /etc/init.d/xvfb start; fi
+  # Avoid annoying focus problems when running tests
+  # See discussion in e.g. https://github.com/spyder-ide/spyder/pull/6132
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y matchbox-window-manager; fi
 
 install:
   - ./continuous_integration/travis/install.sh;
   - ./continuous_integration/travis/install-qt.sh;
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then DISPLAY=:99 matchbox-window-manager& fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sleep 5; fi
 
 script:
   - ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh || ./continuous_integration/travis/runtests.sh;
 
 after_success:
-  - export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test && coveralls; fi

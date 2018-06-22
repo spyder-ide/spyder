@@ -20,6 +20,7 @@ import sys
 import tempfile
 
 # Local imports
+from spyder.config.utils import is_anaconda
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 from spyder.py3compat import PY2, is_text_string, to_text_string
@@ -253,22 +254,26 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 
 
 def run_python_script_in_terminal(fname, wdir, args, interact,
-                                  debug, python_args):
+                                  debug, python_args, executable=None):
     """
     Run Python script in an external system terminal.
 
     :str wdir: working directory, may be empty.
     """
-    # If fname has spaces on it it can't be ran on Windows, so we have to
-    # enclose it in quotes. Also wdir can come with / as os.sep, so we
-    # need to take care of it
+    if executable is None:
+        executable = get_python_executable()
+
+    # If fname or python_exe contains spaces, it can't be ran on Windows, so we
+    # have to enclose them in quotes. Also wdir can come with / as os.sep, so
+    # we need to take care of it.
     if os.name == 'nt':
         fname = '"' + fname + '"'
         wdir = wdir.replace('/', '\\')
-    
-    p_args = [get_python_executable()]
+        executable = '"' + executable + '"'
+
+    p_args = [executable]
     p_args += get_python_args(fname, python_args, interact, debug, args)
-    
+
     if os.name == 'nt':
         cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
         # Command line and cwd have to be converted to the filesystem
@@ -328,7 +333,7 @@ def is_stable_version(version):
         version = version.split('.')
     last_part = version[-1]
 
-    if not re.search('[a-zA-Z]', last_part):
+    if not re.search(r'[a-zA-Z]', last_part):
         return True
     else:
         return False
@@ -449,7 +454,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
                 for ver in version.split(';'):
                     output = output and is_module_installed(module_name, ver)
                 return output
-            match = re.search('[0-9]', version)
+            match = re.search(r'[0-9]', version)
             assert match is not None, "Invalid version number"
             symb = version[:match.start()]
             if not symb:
@@ -471,9 +476,46 @@ def is_python_interpreter_valid_name(filename):
 def is_python_interpreter(filename):
     """Evaluate wether a file is a python interpreter or not."""
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
-    if (not osp.isfile(real_filename) or encoding.is_text_file(real_filename)
-        or not is_python_interpreter_valid_name(filename)):
+    if (not osp.isfile(real_filename) or 
+        not is_python_interpreter_valid_name(filename)):
         return False
+    elif is_pythonw(filename):
+        if os.name == 'nt':
+            # pythonw is a binary on Windows
+            if not encoding.is_text_file(real_filename):
+                return True
+            else:
+                return False
+        elif sys.platform == 'darwin':
+            # pythonw is a text file in Anaconda but a binary in
+            # the system
+            if is_anaconda() and encoding.is_text_file(real_filename):
+                return True
+            elif not encoding.is_text_file(real_filename):
+                return True
+            else:
+                return False
+        else:
+            # There's no pythonw in other systems
+            return False
+    elif encoding.is_text_file(real_filename):
+        # At this point we can't have a text file
+        return False
+    else:
+        return check_python_help(filename)
+
+
+def is_pythonw(filename):
+    """Check that the python interpreter has 'pythonw'."""
+    pattern = r'.*python(\d\.?\d*)?w(.exe)?$'
+    if re.match(pattern, filename, flags=re.I) is None:
+        return False
+    else:
+        return True
+
+
+def check_python_help(filename):
+    """Check that the python interpreter can execute help."""
     try:
         proc = run_program(filename, ["-h"])
         output = to_text_string(proc.communicate()[0])

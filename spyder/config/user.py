@@ -15,14 +15,14 @@ from __future__ import print_function
 # Std imports
 import ast
 import os
-import re
 import os.path as osp
+import re
 import shutil
 import time
 
 # Local imports
 from spyder.config.base import (get_conf_path, get_home_dir,
-                                get_module_source_path, TEST)
+                                get_module_source_path)
 from spyder.utils.programs import check_version
 from spyder.py3compat import configparser as cp
 from spyder.py3compat import PY2, is_text_string, to_text_string
@@ -92,10 +92,6 @@ class DefaultsConfig(cp.ConfigParser):
         """
         Save config into the associated .ini file
         """
-        # Don't save settings if we are on testing mode
-        if TEST:
-            return
-
         # See Issue 1086 and 1242 for background on why this
         # method contains all the exception handling.
         fname = self.filename()
@@ -110,10 +106,10 @@ class DefaultsConfig(cp.ConfigParser):
                 with open(fname, 'w', encoding='utf-8') as configfile:
                     self.write(configfile)
 
-        try: # the "easy" way
+        try:  # the "easy" way
             _write_file(fname)
         except IOError:
-            try: # the "delete and sleep" way
+            try:  # the "delete and sleep" way
                 if osp.isfile(fname):
                     os.remove(fname)
                 time.sleep(0.05)
@@ -187,7 +183,8 @@ class UserConfig(DefaultsConfig):
                  remove_obsolete=False):
         DefaultsConfig.__init__(self, name, subfolder)
         self.raw = 1 if raw_mode else 0
-        if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
+        if (version is not None and
+                re.match(r'^(\d+).(\d+).(\d+)$', version) is None):
             raise ValueError("Version number %r is incorrect - must be in X.Y.Z format" % version)
         if isinstance(defaults, dict):
             defaults = [ (self.DEFAULT_SECTION_NAME, defaults) ]

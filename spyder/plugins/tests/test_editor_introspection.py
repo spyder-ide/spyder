@@ -5,22 +5,22 @@
 #
 """Tests for the Editor plugin."""
 
-# Third party imports
-import pytest
+# Standard library imports
 import os
 import os.path as osp
-from flaky import flaky
 
+# Third party imports
+import pytest
 try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock  # Python 2
-
 from qtpy.QtWidgets import QWidget, QApplication
 from qtpy.QtCore import Qt
 
-from spyder.utils.introspection.jedi_plugin import JEDI_010
+# Local imports
 from spyder.utils.qthelpers import qapplication
+from spyder.py3compat import PY2
 
 # Location of this file
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -58,10 +58,8 @@ def setup_editor(qtbot, monkeypatch):
     editor.introspector.plugin_manager.close()
 
 
-@pytest.mark.skipif(os.environ.get('CI', None) is not None,
-                    reason="This test fails too much in the CI :(")
-@pytest.mark.skipif(not JEDI_010,
-                    reason="This feature is only supported in jedy >= 0.10")
+@pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
 def test_introspection(setup_editor):
     """Validate changing path in introspection plugins."""
     editor, qtbot = setup_editor
@@ -73,11 +71,11 @@ def test_introspection(setup_editor):
 
     # Complete fr --> from
     qtbot.keyClicks(code_editor, 'fr')
-    qtbot.wait(5000)
+    qtbot.wait(20000)
 
     # press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=5000) as sig:
+                          timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "from" in sig.args[0]
 

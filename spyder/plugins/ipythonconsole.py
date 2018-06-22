@@ -20,6 +20,7 @@ import os
 import os.path as osp
 import uuid
 import sys
+import traceback
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
@@ -42,7 +43,7 @@ except ImportError:
 # Local imports
 from spyder import dependencies
 from spyder.config.base import (_, DEV, get_conf_path, get_home_dir,
-                                get_module_path)
+                                get_module_path, running_under_pytest)
 from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
@@ -51,7 +52,7 @@ from spyder.utils.ipython.kernelspec import SpyderKernelSpec
 from spyder.utils.ipython.style import create_qss_style
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
 from spyder.utils import icon_manager as ima
-from spyder.utils import programs, sourcecode
+from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.programs import TEMPDIR
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.widgets.findreplace import FindReplace
@@ -75,6 +76,10 @@ dependencies.add("qtconsole", _("Integrate the IPython console"),
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 dependencies.add("IPython", _("IPython interactive python environment"),
                  required_version=IPYTHON_REQVER)
+
+MATPLOTLIB_REQVER = '>=2.0.0'
+dependencies.add("matplotlib", _("Display 2D graphics in the IPython Console"),
+                 required_version=MATPLOTLIB_REQVER, optional=True)
 
 #------------------------------------------------------------------------------
 # Existing kernels
@@ -300,10 +305,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
         reset_namespace_box = newcb(
-                _("Ask for confirmation before resetting the namespace."),
+                _("Ask for confirmation before removing all user-defined "
+                  "variables"),
                 'show_reset_namespace_warning',
                 tip=_("This option lets you hide the warning message shown\n"
                       "when resetting the namespace from Spyder."))
+        show_time_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
@@ -311,6 +318,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_layout.addWidget(reset_namespace_box)
+        interface_layout.addWidget(show_time_box)
         interface_group.setLayout(interface_layout)
 
         comp_group = QGroupBox(_("Completion Type"))
@@ -392,7 +400,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab'))
         pylab_box.toggled.connect(backend_group.setEnabled)
-        
+
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
         inline_label = QLabel(_("Decide how to render the figures created by "
@@ -400,7 +408,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_label.setWordWrap(True)
         formats = (("PNG", 0), ("SVG", 1))
         format_box = self.create_combobox(_("Format:")+"   ", formats,
-                                       'pylab/inline/figure_format', default=0)
+                                          'pylab/inline/figure_format',
+                                          default=0)
         resolution_spin = self.create_spinbox(
                         _("Resolution:")+"  ", " "+_("dpi"),
                         'pylab/inline/resolution', min_=50, max_=999, step=0.1,
@@ -414,7 +423,15 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                           _("Height:")+"  ", " "+_("inches"),
                           'pylab/inline/height', min_=1, max_=20, step=1,
                           tip=_("Default is 4"))
-        
+        bbox_inches_box = newcb(
+            _("Use a tight layout for inline plots"),
+            'pylab/inline/bbox_inches',
+            tip=_("Sets bbox_inches to \"tight\" when\n"
+                  "plotting inline with matplotlib.\n"
+                  "When enabled, can cause discrepancies\n"
+                  "between the image displayed inline and\n"
+                  "that created using savefig."))
+
         inline_v_layout = QVBoxLayout()
         inline_v_layout.addWidget(inline_label)
         inline_layout = QGridLayout()
@@ -429,6 +446,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout.addWidget(height_spin.plabel, 4, 0)
         inline_layout.addWidget(height_spin.spinbox, 4, 1)
         inline_layout.addWidget(height_spin.slabel, 4, 2)
+        inline_layout.addWidget(bbox_inches_box, 5, 0, 1, 4)
+
         inline_h_layout = QHBoxLayout()
         inline_h_layout.addLayout(inline_layout)
         inline_h_layout.addStretch(1)
@@ -473,20 +492,46 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_group.setLayout(run_file_layout)
         
         # ---- Advanced settings ----
+        # Enable Jedi completion
+        jedi_group = QGroupBox(_("Jedi completion"))
+        jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion "
+                                  "in the IPython console; similar to the "
+                                  "greedy completer, but without evaluating "
+                                  "the code.<br>"
+                                  "<b>Warning:</b> Slows down your console "
+                                  "when working with large dataframes!"))
+        jedi_label.setWordWrap(True)
+        jedi_box = newcb(_("Use Jedi completion in the IPython console"), 
+                             "jedi_completer",
+                             tip="<b>Warning</b>: "
+                                 "Slows down your console when working with "
+                                 "large dataframes!<br>"
+                                 "Allows completion of nested lists etc.")
+        
+        jedi_layout = QVBoxLayout()
+        jedi_layout.addWidget(jedi_label)
+        jedi_layout.addWidget(jedi_box)
+        jedi_group.setLayout(jedi_layout)
+                
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
         greedy_label = QLabel(_("Enable <tt>Tab</tt> completion on elements "
                                 "of lists, results of function calls, etc, "
-                                "<i>without</i> assigning them to a "
-                                "variable.<br>"
-                                "For example, you can get completions on "
-                                "things like <tt>li[0].&lt;Tab&gt;</tt> or "
-                                "<tt>ins.meth().&lt;Tab&gt;</tt>"))
+                                "<i>without</i> assigning them to a variable, "
+                                "like <tt>li[0].&lt;Tab&gt;</tt> or "
+                                "<tt>ins.meth().&lt;Tab&gt;</tt> <br>"
+                                "<b>Warning:</b> Due to a bug, IPython's "
+                                "greedy completer requires a leading "
+                                "<tt>&lt;Space&gt;</tt> for some completions; "
+                                "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;"
+                                "</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
+                                "</tt> doesn't."))
         greedy_label.setWordWrap(True)
-        greedy_box = newcb(_("Use the greedy completer"), "greedy_completer",
+        greedy_box = newcb(_("Use greedy completion in the IPython console"),
+                           "greedy_completer",
                            tip="<b>Warning</b>: It can be unsafe because the "
-                                "code is actually evaluated when you press "
-                                "<tt>Tab</tt>.")
+                               "code is actually evaluated when you press "
+                               "<tt>Tab</tt>.")
         
         greedy_layout = QVBoxLayout()
         greedy_layout.addWidget(greedy_label)
@@ -496,10 +541,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_("Autocall makes IPython automatically call "
-                                "any callable object even if you didn't type "
-                                "explicit parentheses.<br>"
-                                "For example, if you type <i>str 43</i> it "
-                                "becomes <i>str(43)</i> automatically."))
+                                  "any callable object even if you didn't "
+                                  "type explicit parentheses.<br>"
+                                  "For example, if you type <i>str 43</i> it "
+                                  "becomes <i>str(43)</i> automatically."))
         autocall_label.setWordWrap(True)
         
         smart = _('Smart')
@@ -571,7 +616,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
                                     _("Startup"))
-        tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
+        tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
@@ -643,7 +688,7 @@ class IPythonConsole(SpyderPluginWidget):
             # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
-        self.tabwidget.move_data.connect(self.move_tab)
+        self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
         self.tabwidget.tabBar().sig_change_name.connect(
             self.rename_tabs_after_change)
 
@@ -691,6 +736,10 @@ class IPythonConsole(SpyderPluginWidget):
         help_o = CONF.get('help', 'connect/ipython_console')
         color_scheme_n = 'color_scheme_name'
         color_scheme_o = CONF.get('color_schemes', 'selected')
+        show_time_n = 'show_elapsed_time'
+        show_time_o = self.get_option(show_time_n)
+        reset_namespace_n = 'show_reset_namespace_warning'
+        reset_namespace_o = self.get_option(reset_namespace_n)
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -699,6 +748,11 @@ class IPythonConsole(SpyderPluginWidget):
                 control.set_help_enabled(help_o)
             if color_scheme_n in options:
                 client.set_color_scheme(color_scheme_o)
+            if show_time_n in options:
+                client.show_time_action.setChecked(show_time_o)
+                client.set_elapsed_time_visible(show_time_o)
+            if reset_namespace_n in options:
+                client.reset_warning = reset_namespace_o
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -748,7 +802,9 @@ class IPythonConsole(SpyderPluginWidget):
             client = self.tabwidget.currentWidget()
             control = client.get_control()
             control.setFocus()
-            widgets = client.get_toolbar_buttons()+[5]
+            buttons = [[b, -7] for b in client.get_toolbar_buttons()]
+            buttons = sum(buttons, [])[:-1]
+            widgets = [client.create_time_label()] + buttons
         else:
             control = None
             widgets = []
@@ -765,12 +821,34 @@ class IPythonConsole(SpyderPluginWidget):
         """Return a list of actions related to plugin."""
         create_client_action = create_action(
                                    self,
-                                   _("Open an &IPython console"),
+                                   _("New console (default settings)"),
                                    icon=ima.icon('ipython_console'),
                                    triggered=self.create_new_client,
                                    context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(create_client_action, context="ipython_console",
                                name="New tab")
+
+        create_pylab_action = create_action(
+                                   self,
+                                   _("New Pylab console (data plotting)"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_pylab_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+
+        create_sympy_action = create_action(
+                                   self,
+                                   _("New SymPy console (symbolic math)"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_sympy_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
+
+        create_cython_action = create_action(
+                                   self,
+                                   _("New Cython console (Python with "
+                                     "C extensions)"),
+                                   icon=ima.icon('ipython_console'),
+                                   triggered=self.create_cython_client,
+                                   context=Qt.WidgetWithChildrenShortcut)
 
         restart_action = create_action(self, _("Restart kernel"),
                                        icon=ima.icon('restart'),
@@ -791,12 +869,17 @@ class IPythonConsole(SpyderPluginWidget):
         # Add the action to the 'Consoles' menu on the main window
         main_consoles_menu = self.main.consoles_menu_actions
         main_consoles_menu.insert(0, create_client_action)
+        main_consoles_menu.insert(1, create_pylab_action)
+        main_consoles_menu.insert(2, create_sympy_action)
+        main_consoles_menu.insert(3, create_cython_action)
         main_consoles_menu += [MENU_SEPARATOR, restart_action,
                                connect_to_kernel_action,
                                MENU_SEPARATOR]
 
         # Plugin actions
-        self.menu_actions = [create_client_action, MENU_SEPARATOR,
+        self.menu_actions = [create_client_action, create_pylab_action,
+                             create_sympy_action, create_cython_action,
+                             MENU_SEPARATOR,
                              restart_action, connect_to_kernel_action,
                              MENU_SEPARATOR, rename_tab_action,
                              MENU_SEPARATOR]
@@ -861,6 +944,11 @@ class IPythonConsole(SpyderPluginWidget):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
 
+        # Run Cython files in a dedicated console
+        is_cython = osp.splitext(filename)[1] == '.pyx'
+        if is_cython:
+            current_client = False
+
         # Select client to execute code on it
         is_new_client = False
         if current_client:
@@ -868,7 +956,7 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             client = self.get_client_for_file(filename)
             if client is None:
-                self.create_client_for_file(filename)
+                self.create_client_for_file(filename, is_cython=is_cython)
                 client = self.get_current_client()
                 is_new_client = True
 
@@ -891,8 +979,20 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
+
             try:
-                if current_client:
+                if client.shellwidget._executing:
+                    # Don't allow multiple executions when there's
+                    # still an execution taking place
+                    # Fixes issue 7293
+                    pass
+                elif client.shellwidget._reading:
+                    client.shellwidget._append_html(
+                        _("<br><b>Please exit from debugging before trying to "
+                          "run a file in this console.</b>\n<hr><br>"),
+                        before_prompt=True)
+                    return
+                elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
                     if is_new_client:
@@ -948,12 +1048,15 @@ class IPythonConsole(SpyderPluginWidget):
                         sw.sig_prompt_ready.disconnect()
                     except TypeError:
                         pass
-                    sw.silent_execute(
-                        'get_ipython().kernel.close_all_mpl_figures()')
                     sw.reset_namespace(warning=False, silent=True)
                 elif current_client and clear_variables:
                     sw.reset_namespace(warning=False, silent=True)
-                sw.execute(to_text_string(lines))
+                # Needed to handle an error when kernel_client is none
+                # See issue 6308
+                try:
+                    sw.execute(to_text_string(lines))
+                except AttributeError:
+                    pass
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
@@ -966,20 +1069,30 @@ class IPythonConsole(SpyderPluginWidget):
     @Slot(bool)
     @Slot(str)
     @Slot(bool, str)
-    def create_new_client(self, give_focus=True, filename=''):
+    @Slot(bool, bool)
+    @Slot(bool, str, bool)
+    def create_new_client(self, give_focus=True, filename='', is_cython=False,
+                          is_pylab=False, is_sympy=False, given_name=None):
         """Create a new client"""
         self.master_clients += 1
         client_id = dict(int_id=to_text_string(self.master_clients),
                          str_id='A')
         cf = self._new_connection_file()
+        show_elapsed_time = self.get_option('show_elapsed_time')
+        reset_warning = self.get_option('show_reset_namespace_warning')
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
-                              additional_options=self.additional_options(),
+                              additional_options=self.additional_options(
+                                      is_pylab=is_pylab,
+                                      is_sympy=is_sympy),
                               interpreter_versions=self.interpreter_versions(),
                               connection_file=cf,
                               menu_actions=self.menu_actions,
-                              options_button=self.options_button)
+                              options_button=self.options_button,
+                              show_elapsed_time=show_elapsed_time,
+                              reset_warning=reset_warning,
+                              given_name=given_name)
         if self.testing:
             client.stderr_dir = self.test_dir
         self.add_tab(client, name=client.get_name(), filename=filename)
@@ -993,26 +1106,43 @@ class IPythonConsole(SpyderPluginWidget):
         # Else we won't be able to create a client
         if not CONF.get('main_interpreter', 'default'):
             pyexec = CONF.get('main_interpreter', 'executable')
-            ipykernel_present = programs.is_module_installed('ipykernel',
-                                                            interpreter=pyexec)
-            if not ipykernel_present:
+            has_ipykernel = programs.is_module_installed('ipykernel',
+                                                         interpreter=pyexec)
+            has_cloudpickle = programs.is_module_installed('cloudpickle',
+                                                           interpreter=pyexec)
+            if not (has_ipykernel and has_cloudpickle):
                 client.show_kernel_error(_("Your Python environment or "
                                      "installation doesn't "
-                                     "have the <tt>ipykernel</tt> module "
-                                     "installed on it. Without this module is "
-                                     "not possible for Spyder to create a "
+                                     "have the <tt>ipykernel</tt> and "
+                                     "<tt>cloudpickle</tt> modules "
+                                     "installed on it. Without these modules "
+                                     "is not possible for Spyder to create a "
                                      "console for you.<br><br>"
-                                     "You can install <tt>ipykernel</tt> by "
-                                     "running in a terminal:<br><br>"
-                                     "<tt>pip install ipykernel</tt><br><br>"
+                                     "You can install them by running "
+                                     "in a system terminal:<br><br>"
+                                     "<tt>pip install ipykernel cloudpickle</tt>"
+                                     "<br><br>"
                                      "or<br><br>"
-                                     "<tt>conda install ipykernel</tt>"))
+                                     "<tt>conda install ipykernel cloudpickle</tt>"))
                 return
 
-        self.connect_client_to_kernel(client)
+        self.connect_client_to_kernel(client, is_cython=is_cython,
+                                      is_pylab=is_pylab, is_sympy=is_sympy)
         if client.shellwidget.kernel_manager is None:
             return
         self.register_client(client)
+
+    def create_pylab_client(self):
+        """Force creation of Pylab client"""
+        self.create_new_client(is_pylab=True, given_name="Pylab")
+
+    def create_sympy_client(self):
+        """Force creation of SymPy client"""
+        self.create_new_client(is_sympy=True, given_name="SymPy")
+
+    def create_cython_client(self):
+        """Force creation of Cython client"""
+        self.create_new_client(is_cython=True, given_name="Cython")
 
     @Slot()
     def create_client_for_kernel(self):
@@ -1025,7 +1155,8 @@ class IPythonConsole(SpyderPluginWidget):
             self._create_client_for_kernel(connection_file, hostname, sshkey,
                                            password)
 
-    def connect_client_to_kernel(self, client):
+    def connect_client_to_kernel(self, client, is_cython=False,
+                                 is_pylab=False, is_sympy=False):
         """Connect a client to its kernel"""
         connection_file = client.connection_file
 
@@ -1034,8 +1165,13 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             stderr_file = client.stderr_file
 
-        km, kc = self.create_kernel_manager_and_kernel_client(connection_file,
-                                                              stderr_file)
+        km, kc = self.create_kernel_manager_and_kernel_client(
+                     connection_file,
+                     stderr_file,
+                     is_cython=is_cython,
+                     is_pylab=is_pylab,
+                     is_sympy=is_sympy)
+
         # An error occurred if this is True
         if is_string(km) and kc is None:
             client.shellwidget.kernel_manager = None
@@ -1052,21 +1188,37 @@ class IPythonConsole(SpyderPluginWidget):
 
     def set_editor(self):
         """Set the editor used by the %edit magic"""
+        # Get Python executable used by Spyder
         python = sys.executable
+        if PY2:
+            python = encoding.to_unicode_from_fs(python)
+
+        # Compose command for %edit
+        spy_dir = osp.dirname(get_module_path('spyder'))
         if DEV:
-            spyder_start_directory = get_module_path('spyder')
-            bootstrap_script = osp.join(osp.dirname(spyder_start_directory),
-                                        'bootstrap.py')
-            editor = u'{0} {1} --'.format(python, bootstrap_script)
+            bootstrap = osp.join(spy_dir, 'bootstrap.py')
+            if PY2:
+                bootstrap = encoding.to_unicode_from_fs(bootstrap)
+            editor = u'"{0}" "{1}" --'.format(python, bootstrap)
         else:
             import1 = "import sys"
+            # We need to add spy_dir to sys.path so this test can be
+            # run in our CIs
+            if running_under_pytest():
+                if os.name == 'nt':
+                    import1 = (import1 +
+                               '; sys.path.append(""{}"")'.format(spy_dir))
+                else:
+                    import1 = (import1 +
+                               "; sys.path.append('{}')".format(spy_dir))
             import2 = "from spyder.app.start import send_args_to_spyder"
             code = "send_args_to_spyder([sys.argv[-1]])"
-            editor = u"{0} -c '{1}; {2}; {3}'".format(python,
-                                                      import1,
-                                                      import2,
-                                                      code)
-        return to_text_string(editor)
+            editor = u"\"{0}\" -c \"{1}; {2}; {3}\"".format(python,
+                                                            import1,
+                                                            import2,
+                                                            code)
+
+        return editor
 
     def config_options(self):
         """
@@ -1165,7 +1317,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         return versions
 
-    def additional_options(self):
+    def additional_options(self, is_pylab=False, is_sympy=False):
         """
         Additional options for shell widgets that are not defined
         in JupyterWidget config options
@@ -1176,6 +1328,13 @@ class IPythonConsole(SpyderPluginWidget):
             sympy=self.get_option('symbolic_math'),
             show_banner=self.get_option('show_banner')
         )
+
+        if is_pylab is True:
+            options['autoload_pylab'] = True
+            options['sympy'] = False
+        if is_sympy is True:
+            options['autoload_pylab'] = False
+            options['sympy'] = True
 
         return options
 
@@ -1257,6 +1416,12 @@ class IPythonConsole(SpyderPluginWidget):
             # Close client
             client.stop_button_click_handler()
         except RuntimeError:
+            pass
+
+        # Disconnect timer needed to update elapsed time
+        try:
+            client.timer.timeout.disconnect(client.show_time)
+        except (RuntimeError, TypeError):
             pass
 
         # Check if related clients or kernels are opened
@@ -1364,10 +1529,10 @@ class IPythonConsole(SpyderPluginWidget):
         sw = self.get_current_shellwidget()
         sw.set_cwd(path)
 
-    def create_client_for_file(self, filename):
+    def create_client_for_file(self, filename, is_cython=False):
         """Create a client to execute code related to a file."""
         # Create client
-        self.create_new_client(filename=filename)
+        self.create_new_client(filename=filename, is_cython=is_cython)
 
         # Don't increase the count of master clients
         self.master_clients -= 1
@@ -1387,6 +1552,17 @@ class IPythonConsole(SpyderPluginWidget):
                 client = cl
                 break
         return client
+
+    def set_elapsed_time(self, client):
+        """Set elapsed time for slave clients."""
+        related_clients = self.get_related_clients(client)
+        for cl in related_clients:
+            if cl.timer is not None:
+                client.create_time_label()
+                client.t0 = cl.t0
+                client.timer.timeout.connect(client.show_time)
+                client.timer.start(1000)
+                break
 
     #------ Public API (for kernels) ------------------------------------------
     def ssh_tunnel(self, *args, **kwargs):
@@ -1411,22 +1587,30 @@ class IPythonConsole(SpyderPluginWidget):
                             timeout)
         return tuple(lports)
 
-    def create_kernel_spec(self):
+    def create_kernel_spec(self, is_cython=False,
+                           is_pylab=False, is_sympy=False):
         """Create a kernel spec for our own kernels"""
         # Before creating our kernel spec, we always need to
         # set this value in spyder.ini
         if not self.testing:
             CONF.set('main', 'spyder_pythonpath',
                      self.main.get_spyder_pythonpath())
-        return SpyderKernelSpec()
+        return SpyderKernelSpec(is_cython=is_cython,
+                                is_pylab=is_pylab,
+                                is_sympy=is_sympy)
 
     def create_kernel_manager_and_kernel_client(self, connection_file,
-                                                stderr_file):
+                                                stderr_file,
+                                                is_cython=False,
+                                                is_pylab=False,
+                                                is_sympy=False):
         """Create kernel manager and client."""
         # Kernel spec
-        kernel_spec = self.create_kernel_spec()
+        kernel_spec = self.create_kernel_spec(is_cython=is_cython,
+                                              is_pylab=is_pylab,
+                                              is_sympy=is_sympy)
         if not kernel_spec.env.get('PYTHONPATH'):
-            error_msg = _("This error was most probably caused by installing "
+            error_msg = _("This error is most probably caused by installing "
                           "Spyder in a directory with non-ascii characters "
                           "(i.e. characters with tildes, apostrophes or "
                           "non-latin symbols).<br><br>"
@@ -1435,13 +1619,23 @@ class IPythonConsole(SpyderPluginWidget):
             return (error_msg, None)
 
         # Kernel manager
-        kernel_manager = QtKernelManager(connection_file=connection_file,
-                                         config=None, autorestart=True)
+        try:
+            kernel_manager = QtKernelManager(connection_file=connection_file,
+                                             config=None, autorestart=True)
+        except Exception:
+            error_msg = _("The error is:<br><br>"
+                          "<tt>{}</tt>").format(traceback.format_exc())
+            return (error_msg, None)
         kernel_manager._kernel_spec = kernel_spec
 
         # Save stderr in a file to read it later in case of errors
         if stderr_file is not None:
-            stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+            # Needed to prevent any error that could appear.
+            # See issue 6267
+            try:
+                stderr = codecs.open(stderr_file, 'w', encoding='utf-8')
+            except Exception:
+                stderr = None
         else:
             stderr = None
         kernel_manager.start_kernel(stderr=stderr)
@@ -1516,16 +1710,25 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.setTabText(index, client.get_name())
 
     def rename_tabs_after_change(self, given_name):
+        """Rename tabs after a change in name."""
         client = self.get_current_client()
 
+        # Prevent renames that want to assign the same name of
+        # a previous tab
+        repeated = False
+        for cl in self.get_clients():
+            if id(client) != id(cl) and given_name == cl.given_name:
+                repeated = True
+                break
+
         # Rename current client tab to add str_id
-        if client.allow_rename and not u'/' in given_name:
+        if client.allow_rename and not u'/' in given_name and not repeated:
             self.rename_client_tab(client, given_name)
         else:
             self.rename_client_tab(client, None)
 
         # Rename related clients
-        if client.allow_rename and not u'/' in given_name:
+        if client.allow_rename and not u'/' in given_name and not repeated:
             for cl in self.get_related_clients(client):
                 self.rename_client_tab(cl, given_name)
 
@@ -1655,6 +1858,8 @@ class IPythonConsole(SpyderPluginWidget):
                          str_id=chr(slave_ord + 1))
 
         # Creating the client
+        show_elapsed_time = self.get_option('show_elapsed_time')
+        reset_warning = self.get_option('show_reset_namespace_warning')
         client = ClientWidget(self,
                               id_=client_id,
                               given_name=given_name,
@@ -1666,7 +1871,9 @@ class IPythonConsole(SpyderPluginWidget):
                               menu_actions=self.menu_actions,
                               hostname=hostname,
                               external_kernel=external_kernel,
-                              slave=True)
+                              slave=True,
+                              show_elapsed_time=show_elapsed_time,
+                              reset_warning=reset_warning)
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
@@ -1698,6 +1905,10 @@ class IPythonConsole(SpyderPluginWidget):
             client.shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)
             client.shellwidget.is_spyder_kernel()
+
+        # Set elapsed time, if possible
+        if not external_kernel:
+            self.set_elapsed_time(client)
 
         # Adding a new tab for the client
         self.add_tab(client, name=client.get_name())

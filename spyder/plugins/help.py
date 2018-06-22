@@ -65,7 +65,7 @@ class ObjectComboBox(EditableComboBox):
             return True
         if qstr is None:
             qstr = self.currentText()
-        if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
+        if not re.search(r'^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         objtxt = to_text_string(qstr)
         if self.help.get_option('automatic_import'):
@@ -116,7 +116,7 @@ class HelpConfigPage(PluginConfigPage):
         connections_label.setWordWrap(True)
         editor_box = self.create_checkbox(_("Editor"), 'connect/editor')
         rope_installed = programs.is_module_installed('rope')
-        jedi_installed = programs.is_module_installed('jedi', '>=0.8.1')
+        jedi_installed = programs.is_module_installed('jedi', '>=0.11.0')
         editor_box.setEnabled(rope_installed or jedi_installed)
         if not rope_installed and not jedi_installed:
             editor_tip = _("This feature requires the Rope or Jedi libraries.\n"
@@ -299,10 +299,12 @@ class SphinxThread(QThread):
                                                math=self.math_option,
                                                img_path=self.img_path)
                     html_text = sphinxify(doc['docstring'], context)
-                    if doc['docstring'] == '' and \
-                      any([doc['name'], doc['argspec'], doc['note']]):
-                        msg = _("No further documentation available")
-                        html_text += '<div class="hr"></div>'
+                    if doc['docstring'] == '':
+                        if any([doc['name'], doc['argspec'], doc['note']]):
+                            msg = _("No further documentation available")
+                            html_text += '<div class="hr"></div>'
+                        else:
+                            msg = _("No documentation available")
                         html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
                     self.error_msg.emit(to_text_string(error))
@@ -328,10 +330,11 @@ class Help(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
         self.internal_shell = None
+        self.console = None
 
         # Initialize plugin
         self.initialize_plugin()
@@ -377,7 +380,7 @@ class Help(SpyderPluginWidget):
         self.source_combo.addItems([_("Console"), _("Editor")])
         self.source_combo.currentIndexChanged.connect(self.source_changed)
         if (not programs.is_module_installed('rope') and
-                not programs.is_module_installed('jedi', '>=0.8.1')):
+                not programs.is_module_installed('jedi', '>=0.11.0')):
             self.source_combo.hide()
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
@@ -494,7 +497,9 @@ class Help(SpyderPluginWidget):
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         self.main.console.set_help(self)
+
         self.internal_shell = self.main.console.shell
+        self.console = self.main.console
 
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -725,6 +730,10 @@ class Help(SpyderPluginWidget):
 
     @Slot()
     def show_tutorial(self):
+        """Show the Spyder tutorial in the Help plugin, opening it if needed"""
+        if not self.dockwidget.isVisible():
+            self.dockwidget.show()
+            self.toggle_view_action.setChecked(True)
         tutorial_path = get_module_source_path('spyder.utils.help')
         tutorial = osp.join(tutorial_path, 'tutorial.rst')
         text = open(tutorial).read()
@@ -798,13 +807,13 @@ class Help(SpyderPluginWidget):
         index = self.source_combo.currentIndex()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
-            if self.dockwidget and (force or self.dockwidget.isVisible()) \
-               and not self.ismaximized \
-               and (force or text != self._last_texts[index]):
+            if (self.dockwidget and (force or self.dockwidget.isVisible()) and
+                    not self.ismaximized and
+                    (force or text != self._last_texts[index])):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
-                if self.main.console.dockwidget not in dockwidgets and \
-                   (hasattr(self.main, 'ipyconsole') and \
-                    self.main.ipyconsole.dockwidget not in dockwidgets):
+                if (self.console.dockwidget not in dockwidgets and
+                        self.main.ipyconsole is not None and
+                        self.main.ipyconsole.dockwidget not in dockwidgets):
                     self.dockwidget.show()
                     self.dockwidget.raise_()
         self._last_texts[index] = text
@@ -820,9 +829,12 @@ class Help(SpyderPluginWidget):
 
     def save_history(self):
         """Save history to a text file in user home directory"""
-        open(self.LOG_PATH, 'w').write("\n".join( \
-                [to_text_string(self.combo.itemText(index))
-                 for index in range(self.combo.count())] ))
+        try:
+            open(self.LOG_PATH, 'w').write("\n".join( \
+                    [to_text_string(self.combo.itemText(index))
+                     for index in range(self.combo.count())] ))
+        except (UnicodeDecodeError, EnvironmentError):
+            pass
 
     @Slot(bool)
     def toggle_plain_text(self, checked):
@@ -897,8 +909,11 @@ class Help(SpyderPluginWidget):
     def render_sphinx_doc(self, doc, context=None):
         """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
-        fname = self.parent().parent().editor.get_current_filename()
-        dname = osp.dirname(fname)
+        if self.main.editor is not None:
+            fname = self.main.editor.get_current_filename()
+            dname = osp.dirname(fname)
+        else:
+            dname = ''
         self._sphinx_thread.render(doc, context, self.get_option('math'),
                                    dname)
 

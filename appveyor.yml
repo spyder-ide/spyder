@@ -11,9 +11,10 @@ environment:
     CONDA_DEPENDENCIES_FLAGS: "--quiet"
     CONDA_DEPENDENCIES: >
       rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
-      qtawesome pickleshare pyzmq chardet mock pandas pytest
+      qtawesome cloudpickle pickleshare pyzmq chardet mock pandas pytest
       pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi pywin32
-    PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky"
+      sympy cython
+    PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky codecov"
 
   matrix:
     - PYTHON_VERSION: "2.7"
@@ -41,8 +42,17 @@ install:
   - "pip install git+https://github.com/spyder-ide/qtpy.git"
   - "conda remove -q -y qtconsole"
   - "pip install git+https://github.com/jupyter/qtconsole.git"
+  # Run with tornado < 5.0 to avoid hangs
+  - "conda install tornado=4.5.3"
+  # Fix connection to external kernels
+  - "conda install jupyter_client=5.2.2"
+  # Fix problems with latest pyqt
+  - "conda install pyqt=5.6*"
 
 build: false
 
 test_script:
   - "%CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py || %CMD_IN_ENV% python runtests.py"
+
+on_success:
+  - codecov
