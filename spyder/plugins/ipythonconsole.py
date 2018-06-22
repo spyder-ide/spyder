@@ -1084,11 +1084,11 @@ class IPythonConsole(SpyderPluginWidget):
                         _("Your Python environment or installation doesn't "
                           "have the <tt>spyder-kernels</tt> module installed "
                           "on it. Without this module is not possible for "
-                          "Spyder to create a console for you.<br><br>You "
-                          "can install them by running in a system terminal"
-                          ":<br><br><tt>pip install spyder-kernels</tt>"
+                          "Spyder to create a console for you.<br><br>"
+                          "You can install it by running in a system terminal"
+                          ":<br><br><tt>conda install spyder-kernels</tt>"
                           "<br><br>or<br><br>"
-                          "<tt>conda install spyder-kernels</tt>"))
+                          "<tt>pip install spyder-kernels</tt>"))
                 return
 
         self.connect_client_to_kernel(client, is_cython=is_cython)
