@@ -25,7 +25,7 @@ from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
                                         SERVER_CAPABILITES, TRACE,
                                         TEXT_DOCUMENT_SYNC_OPTIONS,
                                         LSPRequestTypes,
-                                        LSPEventTypes)
+                                        LSPEventTypes, ClientConstants)
 from spyder.utils.code_analysis.decorators import (send_request,
                                                    class_register,
                                                    handles)
@@ -148,6 +148,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.context.destroy()
 
     def send(self, method, params, requires_response):
+        if ClientConstants.CANCEL in params:
+            return
         msg = {
             'id': self.request_seq,
             'method': method,

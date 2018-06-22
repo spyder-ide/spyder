@@ -11,7 +11,7 @@ import os.path as osp
 from spyder.py3compat import PY2
 from spyder.utils.code_analysis.decorators import handles, send_request
 from spyder.utils.code_analysis import (
-    LSPRequestTypes, InsertTextFormat, CompletionItemKind)
+    LSPRequestTypes, InsertTextFormat, CompletionItemKind, ClientConstants)
 
 if PY2:
     import pathlib2 as pathlib
@@ -206,15 +206,18 @@ class DocumentProvider:
                 'uri': filename
             }
         }
-        signals = self.watched_files[filename]
-        idx = -1
-        for i, signal in enumerate(signals):
-            if id(file_signal) == id(signal):
-                idx = i
-                break
-        if idx > 0:
-            signals.pop(idx)
+        if filename not in self.watched_files:
+            params[ClientConstants.CANCEL] = True
+        else:
+            signals = self.watched_files[filename]
+            idx = -1
+            for i, signal in enumerate(signals):
+                if id(file_signal) == id(signal):
+                    idx = i
+                    break
+            if idx > 0:
+                signals.pop(idx)
 
-        if len(signals) == 0:
-            self.watched_files.pop(filename)
+            if len(signals) == 0:
+                self.watched_files.pop(filename)
         return params

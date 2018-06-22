@@ -481,3 +481,10 @@ class TextDocumentSaveReason:
     MANUAL = 1
     AFTER_DELAY = 2
     FOCUS_OUT = 3
+
+# ----------------------- INTERNAL CONSTANTS ------------------------
+
+
+class ClientConstants:
+    """Internal LSP Client constants."""
+    CANCEL = 'lsp-cancel'

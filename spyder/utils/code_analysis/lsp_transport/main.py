@@ -60,8 +60,8 @@ logging.basicConfig(level=logging.ERROR, format=LOG_FORMAT)
 LOGGER = logging.getLogger(__name__)
 
 LEVEL = 'info'
-# if args.transport_debug:
-#     LEVEL = 'debug'
+if args.transport_debug:
+    LEVEL = 'debug'
 
 coloredlogs.install(level=LEVEL)
 

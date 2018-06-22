@@ -50,8 +50,8 @@ class IncomingMessageThread(Thread):
                 self.expect.expect('\r\n\r\n', timeout=None)
                 headers = self.expect.before
                 headers = self.parse_headers(headers)
-                content_length = int(headers['Content-Length'])
                 LOGGER.debug(headers)
+                content_length = int(headers[b'Content-Length'])
                 # recv = self.socket.recv(content_length)
                 # LOGGER.debug(recv)
                 body = self.expect.read(size=content_length)
@@ -73,53 +73,10 @@ class IncomingMessageThread(Thread):
         LOGGER.debug('Thread stopped.')
 
     def parse_headers(self, headers):
-        headers = headers.split('\r\n')
-        header_dict = dict([x.split(': ') for x in headers])
+        LOGGER.debug(headers)
+        headers = headers.split(b'\r\n')
+        header_dict = dict([x.split(b': ') for x in headers])
         return header_dict
-
-    def process_response(self, response):
-        err = True
-        body = None
-        response = str(response.decode('utf-8'))
-        msg_parts = response.split('\r\n\r\n')
-        if len(msg_parts) == 1:
-            if self.expect_body:
-                body = msg_parts[0]
-                try:
-                    body = json.loads(body)
-                    err = False
-                    self.expect_body = False
-                except ValueError:
-                    pass
-        elif len(msg_parts) == 2:
-            headers, body = msg_parts
-            headers = headers.split('\r\n')
-            content_length_header = next(
-                (x for x in headers if x.startswith('Content-Length')))
-            content_length = int(content_length_header.split(': ')[-1])
-            if content_length > len(body.encode('utf-8')):
-                remaining = content_length - len(body.encode('utf-8'))
-                while remaining > 0:
-                    recv = self.socket.recv(min(
-                        self.CHUNK_BYTE_SIZE, remaining))
-                    body += str(recv.decode('utf-8'))
-                    remaining -= len(recv)
-            if len(body) == 0:
-                # headers = headers.split(';')
-                if headers[0].startswith('Content-Length'):
-                    self.expect_body = True
-                    err = False
-            else:
-                try:
-                    body = json.loads(body)
-                    err = False
-                    self.expect_body = False
-                except ValueError:
-                    pass
-        if err:
-            LOGGER.error('Invalid message recieved, discarding')
-
-        return err, body
 
     def stop(self):
         with self.mutex:
