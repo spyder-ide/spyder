@@ -326,6 +326,8 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @pytest.mark.single_instance
+@pytest.mark.skipif(PY2 and os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs in Python 2")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and for %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
@@ -1492,6 +1494,8 @@ def test_tabfilter_typeerror_full(main_window):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs")
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     HELP_STR = "Help"
