@@ -1076,8 +1076,9 @@ class IPythonConsole(SpyderPluginWidget):
         if not CONF.get('main_interpreter', 'default'):
             pyexec = CONF.get('main_interpreter', 'executable')
             has_spyder_kernels = programs.is_module_installed(
-                                                            'spyder_kernels',
-                                                            interpreter=pyexec)
+                                                        'spyder_kernels',
+                                                        interpreter=pyexec,
+                                                        version='<1.0.0')
             if not has_spyder_kernels:
                 client.show_kernel_error(
                         _("Your Python environment or installation doesn't "
