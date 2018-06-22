@@ -886,7 +886,8 @@ class CodeEditor(TextEditBaseWidget):
             parameter_str = ''
             color_change_str = ('<span style=\'font-family: "{0}"; '
                                 'font-size: {1}pt; color: {2}\'>')
-            if len(parameter['documentation']) > 0:
+            if (parameter['documentation'] is not None and
+                    len(parameter['documentation']) > 0):
                 parameter_fmt = ('{0}<b>{1}</b></span>: {2}\n')
                 parameter_str = parameter_fmt.format(
                     color_change_str.format(family, size, '#daa520'),
@@ -3056,6 +3057,7 @@ class CodeEditor(TextEditBaseWidget):
         if len(text) > 0:
             # print(self.get_cursor_line_column(), text)
             self.document_did_change(text)
+            # self.do_completion(automatic=True)
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
