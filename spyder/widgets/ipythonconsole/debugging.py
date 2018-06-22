@@ -10,10 +10,13 @@ mode and Spyder
 """
 
 import ast
+import pickle
 
 from qtpy.QtCore import Qt
-
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+
+from spyder.config.base import PICKLE_PROTOCOL
+from spyder.config.main import CONF
 
 
 class DebuggingWidget(RichJupyterWidget):
@@ -28,11 +31,14 @@ class DebuggingWidget(RichJupyterWidget):
         """Send raw characters to the IPython kernel through stdin"""
         self.kernel_client.input(line)
 
-    def set_spyder_breakpoints(self):
+    def set_spyder_breakpoints(self, force=False):
         """Set Spyder breakpoints into a debugging session"""
-        if self._reading:
-            self.kernel_client.input(
-                "!get_ipython().kernel._set_spyder_breakpoints()")
+        if self._reading or force:
+            breakpoints = CONF.get('run', 'breakpoints', {})
+            breakpoints_pkl = pickle.dumps(breakpoints,
+                                           protocol=PICKLE_PROTOCOL)
+            cmd = "!get_ipython().kernel._set_spyder_breakpoints({})"
+            self.kernel_client.input(cmd.format(breakpoints_pkl))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
