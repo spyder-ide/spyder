@@ -113,6 +113,9 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
+    if [[ $f == spyder/utils/code_analysis/lsp_*/*.py ]]; then
+        continue
+    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1
@@ -123,9 +126,6 @@ done
 # Spyderplugins
 for f in spyder_*/widgets/*.py; do
     if [[ $f == *test*/*.* ]]; then
-        continue
-    fi
-    if [[ $f == spyder/utils/lsp_transport/*.py ]]; then
         continue
     fi
     python "$f"
