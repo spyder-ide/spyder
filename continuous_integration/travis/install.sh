@@ -10,7 +10,7 @@ else
                                qtawesome cloudpickle pickleshare qtpy pyzmq chardet mock nomkl pandas \
                                pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle sympy"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky \
-                             coloredlogs python-language-server[all] pydocstyle"
+                             coloredlogs python-language-server[all] pydocstyle pexpect"
 fi
 
 

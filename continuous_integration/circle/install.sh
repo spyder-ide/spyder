@@ -5,7 +5,7 @@ export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert
                            qtawesome pickleshare qtpy pyzmq chardet mock nomkl pandas \
                            pytest pytest-cov numpydoc scipy cython pillow cloudpickle"
 export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-xvfb flaky jedi pycodestyle \
-                         coloredlogs python-language-server[all] pydocstyle"
+                         coloredlogs python-language-server[all] pydocstyle pexpect"
 
 # Download and install miniconda and conda/pip dependencies
 # with astropy helpers

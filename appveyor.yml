@@ -16,7 +16,7 @@ environment:
       sympy cython
     PIP_DEPENDENCIES: >
       pytest-qt pytest-mock pytest-timeout flaky codecov
-      coloredlogs python-language-server[all] pydocstyle
+      coloredlogs python-language-server[all] pydocstyle pexpect
     APPVEYOR_RDP_PASSWORD: "dcca4c4863E30d56c2e0dda6327370b3#"
 
   matrix:
@@ -51,6 +51,7 @@ install:
   - "conda install jupyter_client=5.2.2"
   # Fix problems with latest pyqt
   - "conda install pyqt=5.6*"
+  - "python setup.py install"
 
 build: false
 
