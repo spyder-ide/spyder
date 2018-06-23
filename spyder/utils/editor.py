@@ -18,6 +18,7 @@ from qtpy.QtGui import QColor, QTextCursor, QTextBlock, QTextDocument, QCursor
 
 from qtpy.QtWidgets import QApplication
 
+from spyder.config.base import debug_print
 from spyder.py3compat import to_text_string
 
 
@@ -44,7 +45,7 @@ def drift_color(base_color, factor=110):
 
 class DelayJobRunner(object):
     """
-    Utility class for running job after a certain delay. 
+    Utility class for running job after a certain delay.
     If a new request is made during this delay, the previous request is dropped
     and the timer is restarted for the new request.
 
@@ -69,8 +70,8 @@ class DelayJobRunner(object):
         """
         Request a job execution.
 
-        The job will be executed after the delay specified in the 
-        DelayJobRunner contructor elapsed if no other job is requested until 
+        The job will be executed after the delay specified in the
+        DelayJobRunner contructor elapsed if no other job is requested until
         then.
 
         :param job: job.
@@ -133,7 +134,7 @@ class TextHelper(object):
         """
         line = min(line, self.line_count())
         text_cursor = self._move_cursor_to(line)
-        print(end_column)
+        debug_print(end_column)
         if column:
             text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
                                      column)

@@ -132,11 +132,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
         # self.notifier.activated.connect(self.debug_print)
         self.notifier.activated.connect(self.on_msg_received)
-        # print(self.notifier.isEnabled())
         # self.initialize()
 
     def stop(self):
-        # print('Stopping')
         # self.shutdown()
         # self.exit()
         debug_print('LSP Client ==> Stopping...')
@@ -171,7 +169,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         while True:
             try:
                 # events = self.zmq_in_socket.poll(1500)
-                # print(events)
                 resp = self.zmq_in_socket.recv_pyobj(flags=zmq.NOBLOCK)
                 debug_print('\n[{0}] LSP-Client <==='.format(self.language))
                 debug_print(resp)

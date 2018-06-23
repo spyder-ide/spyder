@@ -239,7 +239,6 @@ class CompletionWidget(QListWidget):
         if item is None:
             item = self.currentItem()
         # index = self.currentIndex()
-        # print(index)
         # self.textedit.show_calltip()
         self.textedit.insert_completion(to_text_string(item.text()))
         self.hide()
@@ -267,20 +266,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     zoom_reset = Signal()
     focus_changed = Signal()
     sig_eol_chars_changed = Signal(str)
-    
+
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         self.extra_selections_dict = {}
-        
+
         self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
-        
+
         self.indent_chars = " "*4
         self.tab_stop_width_spaces = 4
-        
+
         # Code completion / calltips
         if parent is not None:
             mainwin = parent
@@ -304,7 +303,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         self.has_cell_separators = False
         self.highlight_current_cell_enabled = False
-        
+
         # The color values may be overridden by the syntax highlighter
         # Highlight current line color
         self.currentline_color = QColor(Qt.red).lighter(190)
@@ -445,7 +444,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                      to_qvariant(True))
         selection.format.setBackground(self.currentcell_color)
 
-        if whole_file_selected: 
+        if whole_file_selected:
             self.clear_extra_selections('current_cell')
         elif whole_screen_selected:
             if self.has_cell_separators:
@@ -501,7 +500,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             else:
                 # no matching brace
                 return
-    
+
     def __highlight(self, positions, color=None, cancel=False):
         if cancel:
             self.clear_extra_selections('brace_matching')
@@ -550,17 +549,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
         self.codecompletion_auto = state
-        
+
     def set_codecompletion_case(self, state):
         """Case sensitive completion"""
         self.codecompletion_case = state
         self.completion_widget.case_sensitive = state
-        
+
     def set_codecompletion_enter(self, state):
         """Enable Enter key to select completion"""
         self.codecompletion_enter = state
         self.completion_widget.enter_select = state
-        
+
     def set_calltips(self, state):
         """Set calltips state"""
         self.calltips = state
@@ -577,8 +576,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             wrap_mode = QTextOption.NoWrap
         self.setWordWrapMode(wrap_mode)
-        
-        
+
+
     #------Reimplementing Qt methods
     @Slot()
     def copy(self):
@@ -588,7 +587,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """
         if self.get_selected_text():
             QApplication.clipboard().setText(self.get_selected_text())
-    
+
     def toPlainText(self):
         """
         Reimplement Qt method
@@ -622,9 +621,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Return selected text as a processed text,
         to be executable in a Python/IPython interpreter"""
         ls = self.get_line_separator()
-        
+
         _indent = lambda line: len(line)-len(line.lstrip())
-        
+
         line_from, line_to = self.get_selection_bounds()
         text = self.get_selected_text()
         if not text:
@@ -635,7 +634,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             # Multiline selection -> eventually fixing indentation
             original_indent = _indent(self.get_text_line(line_from))
             text = (" "*(original_indent-_indent(lines[0])))+text
-            
+
         # If there is a common indent to all lines, find it.
         # Moving from bottom line to top line ensures that blank
         # lines inherit the indent of the line *below* it,
@@ -689,7 +688,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 lines[-1] += ls
             else:
                 lines.append(ls)
-        
+
         return ls.join(lines)
 
     def __exec_cell(self):
@@ -779,7 +778,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def select_current_cell_in_visible_portion(self):
         """Select cell under cursor in the visible portion of the file
         cell = group of lines separated by CELL_SEPARATORS
-        returns 
+        returns
          -the textCursor
          -a boolean indicating if the entire file is selected
          -a boolean indicating if the entire visible portion of the file is selected"""
@@ -788,7 +787,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cur_pos = prev_pos = cursor.position()
 
         beg_pos = self.cursorForPosition(QPoint(0, 0)).position()
-        bottom_right = QPoint(self.viewport().width() - 1, 
+        bottom_right = QPoint(self.viewport().width() - 1,
                               self.viewport().height() - 1)
         end_pos = self.cursorForPosition(bottom_right).position()
 
@@ -903,7 +902,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             if not to_text_string(cursor.selectedText()):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 end_pos = cursor.position()
-            
+
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
         while cursor.position() <= end_pos:
@@ -913,64 +912,64 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 cursor_temp.clearSelection()
                 cursor_temp.insertText(self.get_line_separator())
                 break
-            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)            
+            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
         text = cursor.selectedText()
         cursor.clearSelection()
-        
+
         if not after_current_line:
             # Moving cursor before current line/selected text
             cursor.setPosition(start_pos)
             cursor.movePosition(QTextCursor.StartOfBlock)
             start_pos += len(text)
             end_pos += len(text)
-        
+
         cursor.insertText(text)
         cursor.endEditBlock()
         self.setTextCursor(cursor)
         self.__restore_selection(start_pos, end_pos)
-    
+
     def duplicate_line(self):
         """
         Duplicate current line or selected text
         Paste the duplicated text *after* the current line/selected text
         """
         self.__duplicate_line_or_selection(after_current_line=True)
-    
+
     def copy_line(self):
         """
         Copy current line or selected text
         Paste the duplicated text *before* the current line/selected text
         """
         self.__duplicate_line_or_selection(after_current_line=False)
-        
+
     def __move_line_or_selection(self, after_current_line=True):
         """Move current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
         start_pos, end_pos = self.__save_selection()
         last_line = False
-        
+
         # ------ Select text
-        
+
         # Get selection start location
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
         start_pos = cursor.position()
-        
+
         # Get selection end location
         cursor.setPosition(end_pos)
         if not cursor.atBlockStart() or end_pos == start_pos:
             cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.movePosition(QTextCursor.NextBlock)
         end_pos = cursor.position()
-        
+
         # Check if selection ends on the last line of the document
         if cursor.atEnd():
             if not cursor.atBlockStart() or end_pos == start_pos:
                 last_line = True
-                
+
         # ------ Stop if at document boundary
-        
+
         cursor.setPosition(start_pos)
         if cursor.atStart() and not after_current_line:
             # Stop if selection is already at top of the file while moving up
@@ -978,7 +977,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.setTextCursor(cursor)
             self.__restore_selection(start_pos, end_pos)
             return
-                
+
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
         if last_line and after_current_line:
             # Stop if selection is already at end of the file while moving down
@@ -986,22 +985,22 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.setTextCursor(cursor)
             self.__restore_selection(start_pos, end_pos)
             return
-        
+
         # ------ Move text
-        
+
         sel_text = to_text_string(cursor.selectedText())
         cursor.removeSelectedText()
-        
-        
+
+
         if after_current_line:
             # Shift selection down
-            text = to_text_string(cursor.block().text())  
+            text = to_text_string(cursor.block().text())
             sel_text = os.linesep + sel_text[0:-1]  # Move linesep at the start
             cursor.movePosition(QTextCursor.EndOfBlock)
             start_pos += len(text)+1
             end_pos += len(text)
             if not cursor.atEnd():
-                end_pos += 1        
+                end_pos += 1
         else:
             # Shift selection up
             if last_line:
@@ -1021,20 +1020,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.endEditBlock()
         self.setTextCursor(cursor)
         self.__restore_selection(start_pos, end_pos)
-    
+
     def move_line_up(self):
         """Move up current line or selected text"""
         self.__move_line_or_selection(after_current_line=False)
-        
+
     def move_line_down(self):
         """Move down current line or selected text"""
         self.__move_line_or_selection(after_current_line=True)
-        
+
     def go_to_new_line(self):
         """Go to the end of the current line and create a new line"""
         self.stdkey_end(False, False)
         self.insert_text(self.get_line_separator())
-        
+
     def extend_selection_to_complete_lines(self):
         """Extend current selection to complete lines"""
         cursor = self.textCursor()
@@ -1047,7 +1046,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cursor.movePosition(QTextCursor.EndOfBlock,
                                 QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
-        
+
     def delete_line(self):
         """Delete current line"""
         cursor = self.textCursor()
@@ -1111,7 +1110,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def show_completion_widget(self, textlist, automatic=True):
         """Show completion widget"""
         self.completion_widget.show_list(textlist, automatic=automatic)
-        
+
     def hide_completion_widget(self):
         """Hide completion widget"""
         self.completion_widget.hide()
@@ -1135,11 +1134,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                              key=lambda x: str_lower(x[0]))
         completions += sorted(underscore, key=lambda x: str_lower(x[0]))
         self.show_completion_widget(completions, automatic=automatic)
-        
+
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
-        
+
     def insert_completion(self, text):
         if text:
             cursor = self.textCursor()
@@ -1153,14 +1152,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
         return self.completion_widget.isVisible()
-    
-        
+
+
     #------Standard keys
     def stdkey_clear(self):
         if not self.has_selected_text():
             self.moveCursor(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
         self.remove_selected_text()
-    
+
     def stdkey_backspace(self):
         if not self.has_selected_text():
             self.moveCursor(QTextCursor.PreviousCharacter,
@@ -1180,7 +1179,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.insert_text(self.indent_chars)
 
     def stdkey_home(self, shift, ctrl, prompt_pos=None):
-        """Smart HOME feature: cursor is first moved at 
+        """Smart HOME feature: cursor is first moved at
         indentation position, then at the start of the line"""
         move_mode = self.__get_move_mode(shift)
         if ctrl:
@@ -1215,7 +1214,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def stdkey_escape(self):
         pass
 
-                
+
     #----Qt Events
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -1247,12 +1246,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.focus_in.emit()
         self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
-        
+
     def focusOutEvent(self, event):
         """Reimplemented to handle focus"""
         self.focus_changed.emit()
         QPlainTextEdit.focusOutEvent(self, event)
-    
+
     def wheelEvent(self, event):
         """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
         # This feature is disabled on MacOS, see Issue 1510
@@ -1278,7 +1277,7 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
         ANSIEscapeCodeHandler.__init__(self)
         self.base_format = None
         self.current_format = None
-        
+
     def set_light_background(self, state):
         if state:
             self.default_foreground_color = 30
@@ -1286,13 +1285,13 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
         else:
             self.default_foreground_color = 37
             self.default_background_color = 40
-        
+
     def set_base_format(self, base_format):
         self.base_format = base_format
-        
+
     def get_format(self):
         return self.current_format
-        
+
     def set_style(self):
         """
         Set font style with the following attributes:
@@ -1308,7 +1307,7 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
         else:
             cstr = self.ANSI_COLORS[self.foreground_color-30][self.intensity]
             qcolor = QColor(cstr)
-        self.current_format.setForeground(qcolor)        
+        self.current_format.setForeground(qcolor)
         # Background color
         if self.background_color is None:
             qcolor = self.base_format.background()
@@ -1316,7 +1315,7 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
             cstr = self.ANSI_COLORS[self.background_color-40][self.intensity]
             qcolor = QColor(cstr)
         self.current_format.setBackground(qcolor)
-        
+
         font = self.current_format.font()
         # Italic
         if self.italic is None:
@@ -1344,7 +1343,7 @@ def inverse_color(color):
 
 
 class ConsoleFontStyle(object):
-    def __init__(self, foregroundcolor, backgroundcolor, 
+    def __init__(self, foregroundcolor, backgroundcolor,
                  bold, italic, underline):
         self.foregroundcolor = foregroundcolor
         self.backgroundcolor = backgroundcolor
@@ -1352,7 +1351,7 @@ class ConsoleFontStyle(object):
         self.italic = italic
         self.underline = underline
         self.format = None
-        
+
     def apply_style(self, font, light_background, is_default):
         self.format = QTextCharFormat()
         self.format.setFont(font)
@@ -1378,23 +1377,23 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     exception_occurred = Signal(str, bool)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
-    
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
-        
+
         self.light_background = True
 
         self.setMaximumBlockCount(300)
 
         # ANSI escape code handler
         self.ansi_handler = QtANSIEscapeCodeHandler()
-                
+
         # Disable undo/redo (nonsense for a console widget...):
         self.setUndoRedoEnabled(False)
-        
+
         self.userListActivated.connect(lambda user_id, text:
                                    self.completion_widget_activated.emit(text))
-        
+
         self.default_style = ConsoleFontStyle(
                             foregroundcolor=0x000000, backgroundcolor=0xFFFFFF,
                             bold=False, italic=False, underline=False)
@@ -1411,7 +1410,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                             self.traceback_link_style, self.prompt_style)
         self.set_pythonshell_font()
         self.setMouseTracking(True)
-        
+
     def set_light_background(self, state):
         self.light_background = state
         if state:
@@ -1429,19 +1428,19 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         # Eventually this maybe should wrap to insert_text_to if
         # backspace-handling is required
         self.textCursor().insertText(text, self.default_style.format)
-        
+
     def paste(self):
         """Reimplement Qt method"""
         if self.has_selected_text():
             self.remove_selected_text()
         self.insert_text(QApplication.clipboard().text())
-        
+
     def append_text_to_shell(self, text, error, prompt):
         """
         Append text to Python shell
-        In a way, this method overrides the method 'insert_text' when text is 
+        In a way, this method overrides the method 'insert_text' when text is
         inserted at the end of the text widget for a Python shell
-        
+
         Handles error messages and show blue underlined links
         Handles ANSI color sequences
         Handles ANSI FF sequence

@@ -645,7 +645,7 @@ class LSPManager(SpyderPluginWidget):
             if language not in self.clients:
                 self.clients[language] = config
             else:
-                print(self.clients[language]['config'] != config['config'])
+                debug_print(self.clients[language]['config'] != config['config'])
                 if self.clients[language]['config'] != config['config']:
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config

@@ -846,7 +846,6 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
-        # print('Here!')
         if len(params['params']) > 0:
             completion_list = sorted(
                 params['params'], key=lambda x: x['sortText'])
@@ -3055,7 +3054,6 @@ class CodeEditor(TextEditBaseWidget):
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
         if len(text) > 0:
-            # print(self.get_cursor_line_column(), text)
             self.document_did_change(text)
             # self.do_completion(automatic=True)
         if not event.modifiers():

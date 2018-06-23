@@ -28,7 +28,8 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                             QVBoxLayout, QWidget, QListWidget, QListWidgetItem)
 
 # Local imports
-from spyder.config.base import _, DEBUG, STDERR, STDOUT, running_under_pytest
+from spyder.config.base import (_, debug_print, DEBUG, STDERR,
+                                STDOUT, running_under_pytest)
 from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -536,7 +537,7 @@ class EditorStack(QWidget):
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
                                            triggered=self.close_all_but_this)
-        
+
         if sys.platform == 'darwin':
            text=_("Show in Finder")
         else:
@@ -886,10 +887,10 @@ class EditorStack(QWidget):
         self.fileswitcher_dlg.is_visible = True
 
     @Slot()
-    def open_symbolfinder_dlg(self): 
+    def open_symbolfinder_dlg(self):
         self.open_fileswitcher_dlg()
         self.fileswitcher_dlg.set_search_text('@')
-        
+
     def get_current_tab_manager(self):
         """Get the widget with the TabWidget attribute."""
         return self
@@ -1439,7 +1440,7 @@ class EditorStack(QWidget):
             else:
                 self.stack_history.remove_and_append(index)
 
-            return editor  
+            return editor
 
     def is_file_opened(self, filename=None):
         """Return if filename is in the editor stack.
@@ -1568,7 +1569,7 @@ class EditorStack(QWidget):
         """Notify language server availability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
-            print(editor.language.lower(), language)
+            debug_print(editor.language.lower(), language)
             if editor.language.lower() == language:
                 editor.start_lsp_services(config)
 
@@ -1583,19 +1584,19 @@ class EditorStack(QWidget):
         n = self.get_stack_count()
         for i in range(num, n-1):
             self.close_file(num+1)
-    
+
     def close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
         for i in range(0, self.get_stack_count()-1  ):
             self.close_file(0)
-            
+
     def add_last_closed_file(self, fname):
         """Add to last closed file list."""
         if fname in self.last_closed_files:
             self.last_closed_files.remove(fname)
         self.last_closed_files.insert(0, fname)
-        if len(self.last_closed_files) > 10: 
+        if len(self.last_closed_files) > 10:
             self.last_closed_files.pop(-1)
 
     def get_last_closed_files(self):
@@ -2122,7 +2123,7 @@ class EditorStack(QWidget):
                           "your changes?") % name,
                         QMessageBox.Yes | QMessageBox.No,
                         self)
-                    answer = self.msgbox.exec_()  
+                    answer = self.msgbox.exec_()
                     if answer == QMessageBox.Yes:
                         self.reload(index)
                     else:
@@ -2232,7 +2233,7 @@ class EditorStack(QWidget):
                       ) % osp.basename(filename),
                     QMessageBox.Yes | QMessageBox.No,
                     self)
-            answer = self.msgbox.exec_()  
+            answer = self.msgbox.exec_()
             if answer != QMessageBox.Yes:
                 return
         self.reload(index)
@@ -2309,7 +2310,7 @@ class EditorStack(QWidget):
         editor.sig_cursor_position_changed.connect(
                                            self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
-        print("Connecting signal...")
+        debug_print("Connecting signal...")
         editor.sig_perform_lsp_request.connect(
             lambda lang, method, params: self.perform_lsp_request.emit(
                 lang, method, params))
@@ -2417,10 +2418,10 @@ class EditorStack(QWidget):
 
     def set_os_eol_chars(self, index=None, osname=None):
         """Sets the EOL character(s) based on the operating system.
-        
+
         If `osname` is None, then the default line endings for the current
         operating system (`os.name` value) will be used.
-        
+
         `osname` can be one of:
             ('posix', 'nt', 'java')
         """
@@ -2450,7 +2451,7 @@ class EditorStack(QWidget):
     #------ Run
     def run_selection(self):
         """
-        Run selected text or current line in console. 
+        Run selected text or current line in console.
 
         If some text is selected, then execute that text in console.
 
@@ -2926,7 +2927,7 @@ class EditorMainWindow(QMainWindow):
     def add_toolbars_to_menu(self, menu_title, actions):
         """Add toolbars to a menu."""
         # Six is the position of the view menu in menus list
-        # that you can find in plugins/editor.py setup_other_windows. 
+        # that you can find in plugins/editor.py setup_other_windows.
         view_menu = self.menus[6]
         if actions == self.toolbars and view_menu:
             toolbars = []
@@ -2938,7 +2939,7 @@ class EditorMainWindow(QMainWindow):
     def load_toolbars(self):
         """Loads the last visible toolbars from the .ini file."""
         toolbars_names = CONF.get('main', 'last_visible_toolbars', default=[])
-        if toolbars_names:            
+        if toolbars_names:
             dic = {}
             for toolbar in self.toolbars:
                 dic[toolbar.objectName()] = toolbar
