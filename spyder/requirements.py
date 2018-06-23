@@ -23,6 +23,7 @@ def show_warning(message):
         pass
     raise RuntimeError(message)
 
+
 def check_path():
     """Check sys.path: is Spyder properly installed?"""
     dirname = osp.abspath(osp.join(osp.dirname(__file__), osp.pardir))
@@ -31,6 +32,7 @@ def check_path():
                      "(e.g. from source: 'python setup.py install'),\n"
                      "or directory '%s' must be in PYTHONPATH "
                      "environment variable." % dirname)
+
 
 def check_qt():
     """Check Qt binding requirements"""
@@ -46,8 +48,23 @@ def check_qt():
     except ImportError:
         show_warning("Failed to import qtpy.\n"
                      "Please check Spyder installation requirements:\n\n"
-                     "qtpy 1.1.0+ and either\n"
-                     "%s %s+ or\n"
+                     "qtpy 1.2.0+ and\n"
                      "%s %s+\n\n"
                      "are required to run Spyder."
-                     % (qt_infos['pyqt5'] + qt_infos['pyqt']))
+                     % (qt_infos['pyqt5']))
+
+
+def check_spyder_kernels():
+    """Check spyder-kernel requirement."""
+    try:
+        import spyder_kernels
+        required_ver = '1.0.0'
+        actual_ver = spyder_kernels.__version__
+        if LooseVersion(actual_ver) >= LooseVersion(required_ver):
+            show_warning("Please check Spyder installation requirements:\n"
+                         "spyder-kernels < 1.0 is required (found %s)."
+                         % actual_ver)
+    except ImportError:
+        show_warning("Failed to import spyder-kernels.\n"
+                     "Please check Spyder installation requirements:\n\n"
+                     "spyder-kernels < 1.0 is required")

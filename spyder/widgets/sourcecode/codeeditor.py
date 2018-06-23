@@ -39,6 +39,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QTextEdit, QToolTip, QVBoxLayout, QWidget)
+from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
@@ -51,7 +52,6 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
-from spyder.utils.dochelpers import getobj
 from spyder.utils.programs import check_version
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES

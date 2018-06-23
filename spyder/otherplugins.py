@@ -60,7 +60,8 @@ def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
             continue
 
         # Skip names that end in certain suffixes
-        forbidden_suffixes = ['dist-info', 'egg.info', 'egg-info', 'egg-link']
+        forbidden_suffixes = ['dist-info', 'egg.info', 'egg-info', 'egg-link',
+                              'kernels']
         if any([name.endswith(s) for s in forbidden_suffixes]):
             continue
 
@@ -87,7 +88,7 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
             module = None
 
         # Then restore the actual loaded module instead of the mock
-        if module:
+        if module and getattr(module, 'PLUGIN_CLASS', False):
             sys.modules[module_name] = module
             modlist.append(module)
             modnames.append(module_name)

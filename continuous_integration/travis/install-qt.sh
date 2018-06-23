@@ -10,8 +10,11 @@ if [ "$USE_CONDA" = "no" ]; then
 
     # Install qtpy from Github
     pip install git+https://github.com/spyder-ide/qtpy.git
+    pip install -q spyder-kernels==0.*
 elif [ "$USE_PYQT" = "pyqt5" ]; then
     conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
+    pip install -q --no-deps spyder-kernels==0.*
 else
     conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
+    pip install -q --no-deps spyder-kernels==0.*
 fi
