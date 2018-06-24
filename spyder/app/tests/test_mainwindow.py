@@ -289,7 +289,9 @@ def test_get_help(main_window, qtbot):
 
     # --- From the editor ---
     qtbot.wait(3000)
-    # config_status = main_window.lspmanager.clients['python']['status']
+    config_status = main_window.lspmanager.clients['python']['status']
+    if config_status == main_window.lspmanager.RUNNING:
+        main_window.lspmanager.close_client('python')
     if 'python' not in main_window.editor.lsp_editor_settings:
         with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
                               timeout=30000):
