@@ -194,7 +194,7 @@ def main_window(request):
 @pytest.mark.slow
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2,
+@pytest.mark.skipif(os.name == 'nt' or not PY2,
                     reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
 @pytest.mark.timeout(timeout=120, method='thread')
 def test_calltip(main_window, qtbot):
