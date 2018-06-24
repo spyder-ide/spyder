@@ -289,12 +289,17 @@ def test_get_help(main_window, qtbot):
 
     # --- From the editor ---
     qtbot.wait(3000)
-    with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
-                          timeout=30000):
+    # config_status = main_window.lspmanager.clients['python']['status']
+    if 'python' not in main_window.editor.lsp_editor_settings:
+        with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
+                              timeout=30000):
+            main_window.editor.new(fname='test.py', text="")
+    else:
         main_window.editor.new(fname='test.py', text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
-
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
 
 
     # Write some object in the editor
@@ -307,7 +312,7 @@ def test_get_help(main_window, qtbot):
 
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=30000)
 
 
 @pytest.mark.slow
