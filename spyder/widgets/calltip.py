@@ -122,7 +122,7 @@ class CallTipWidget(QLabel):
         """
         super(CallTipWidget, self).leaveEvent(event)
         self._leave_event_hide()
-    
+
     def mousePressEvent(self, event):
         super(CallTipWidget, self).mousePressEvent(event)
         self.hide()

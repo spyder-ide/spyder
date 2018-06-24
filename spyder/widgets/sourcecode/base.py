@@ -1143,7 +1143,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if text:
             cursor = self.textCursor()
             word = self.get_current_word()
-            text = text[len(word):]
+            start = len(word) if word is not None else 0
+            text = text[start:]
             # cursor.movePosition(QTextCursor.PreviousCharacter,
             #                     QTextCursor.KeepAnchor,
             #                     len(self.completion_text))

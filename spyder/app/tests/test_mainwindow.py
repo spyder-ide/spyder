@@ -32,7 +32,8 @@ from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
-from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
+from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit, QTabBar,
+                            QToolTip)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
 
@@ -193,9 +194,9 @@ def main_window(request):
 @pytest.mark.slow
 @pytest.mark.use_introspection
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or not PY2,
+@pytest.mark.skipif(os.name == 'nt' or PY2,
                     reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
-@pytest.mark.timeout(timeout=45, method='thread')
+@pytest.mark.timeout(timeout=120, method='thread')
 def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file
@@ -212,18 +213,20 @@ def test_calltip(main_window, qtbot):
     code_editor.set_text(text)
     code_editor.go_to_line(2)
     code_editor.move_cursor(5)
-    calltip = code_editor.calltip_widget
-    assert not calltip.isVisible()
+    # calltip = code_editor.calltip_widget
+    assert not QToolTip.isVisible()
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+    with qtbot.waitSignal(code_editor.sig_signature_invoked, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
         # qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
-    print(calltip.isVisible())
-    qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
+    # qtbot.wait(1000)
+    # print(calltip.isVisible())
+    qtbot.waitUntil(lambda: QToolTip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Space)
-    assert not calltip.isVisible()
+    qtbot.waitUntil(lambda: not QToolTip.isVisible(), timeout=3000)
+    assert not QToolTip.isVisible()
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
 
@@ -292,15 +295,12 @@ def test_get_help(main_window, qtbot):
 
     # --- From the editor ---
     qtbot.wait(3000)
-    config_status = main_window.lspmanager.clients['python']['status']
-    if config_status == main_window.lspmanager.RUNNING:
-        main_window.lspmanager.close_client('python')
-    if 'python' not in main_window.editor.lsp_editor_settings:
-        with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
-                              timeout=30000):
-            main_window.editor.new(fname='test.py', text="")
-    else:
-        main_window.editor.new(fname='test.py', text="")
+    # config_status = main_window.lspmanager.clients['python']['status']
+    # if config_status == main_window.lspmanager.RUNNING:
+    #     main_window.lspmanager.close_client('python')
+    with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
+                          timeout=30000):
+        main_window.editor.new(fname="test.py", text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):

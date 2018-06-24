@@ -286,6 +286,7 @@ class CodeEditor(TextEditBaseWidget):
     sig_perform_lsp_request = Signal(str, str, dict)
     lsp_response_signal = Signal(str, dict)
     sig_display_signature = Signal(str)
+    sig_signature_invoked = Signal()
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -872,6 +873,7 @@ class CodeEditor(TextEditBaseWidget):
         signature = params['params']
         if (signature is not None and
                 'activeParameter' in signature):
+            self.sig_signature_invoked.emit()
             line, _ = self.get_cursor_line_column()
             active_parameter_idx = signature['activeParameter']
             signature = signature['signatures']
@@ -899,7 +901,8 @@ class CodeEditor(TextEditBaseWidget):
                     color_change_str.format(family, size, '#daa520'),
                     parameter['label']))
             tooltip_text = "{0}{1}".format(parameter_str, func_doc)
-            self.show_calltip(title, tooltip_text, color='#999999')
+            self.show_calltip(
+                title, tooltip_text, color='#999999')
 
     # ------------- LSP: Hover ---------------------------------------
 

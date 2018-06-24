@@ -618,10 +618,10 @@ class Editor(SpyderPluginWidget):
         language = options['language']
         callback = options['signal']
         stat = self.main.lspmanager.start_lsp_client(language.lower())
+        self.main.lspmanager.register_file(
+            language.lower(), filename, callback)
         if stat:
             if language.lower() in self.lsp_editor_settings:
-                self.main.lspmanager.register_file(
-                    language.lower(), filename, callback)
                 self.lsp_server_ready(
                     language.lower(), self.lsp_editor_settings[
                         language.lower()])
