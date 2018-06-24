@@ -254,7 +254,7 @@ def test_filter_numpy_warning(main_window, qtbot):
     CONF.set('variable_explorer', 'minmax', False)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 def test_get_help(main_window, qtbot):
@@ -285,16 +285,22 @@ def test_get_help(main_window, qtbot):
 
     # --- From the editor ---
     qtbot.wait(3000)
-    main_window.editor.new()
+    with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
+                          timeout=30000):
+        main_window.editor.new(fname='test.py', text="")
     code_editor = main_window.editor.get_focus_widget()
     editorstack = main_window.editor.get_current_editorstack()
+
+
 
     # Write some object in the editor
     code_editor.set_text('range')
     code_editor.move_cursor(len('range'))
 
     # Get help
-    editorstack.inspect_current_object()
+    with qtbot.waitSignal(code_editor.sig_display_signature, timeout=30000):
+        editorstack.inspect_current_object()
+
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=6000)
