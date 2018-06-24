@@ -31,9 +31,9 @@ class LSPEditorWrapper(QObject):
         self.sig_initialize.connect(self.initialize_callback)
 
     def initialize_callback(self, settings, language):
-        self.editor.start_lsp_services(settings)
         self.lsp_manager.register_file(
-             'python', 'test.py', self.editor.lsp_response_signal)
+            'python', 'test.py', self.editor.lsp_response_signal)
+        self.editor.start_lsp_services(settings)
 
     def perform_request(self, language, request, params):
         self.lsp_manager.send_request(language, request, params)
@@ -45,14 +45,16 @@ def construct_editor(qtbot, *args, **kwargs):
     lsp_manager = LSPManager(parent=None)
     editor = CodeEditor(parent=None)
     kwargs['language'] = 'Python'
+    editor.setup_editor(*args, **kwargs)
     print("Ah?")
     wrapper = LSPEditorWrapper(None, editor, lsp_manager)
 
     lsp_manager.register_plugin_type(
         LSPEventTypes.DOCUMENT, wrapper.sig_initialize)
     with qtbot.waitSignal(wrapper.sig_initialize, timeout=30000):
+        editor.filename = 'test.py'
+        editor.language = 'Python'
         lsp_manager.start_lsp_client('python')
-    editor.setup_editor(*args, **kwargs)
 
     text = ("def some_function():\n"
             "    \n"  # W293 trailing spaces
@@ -62,7 +64,6 @@ def construct_editor(qtbot, *args, **kwargs):
             "    return a\n"
             )
     editor.set_text(text)
-    editor.filename = 'test.py'
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()
 
