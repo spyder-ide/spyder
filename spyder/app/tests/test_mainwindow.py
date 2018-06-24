@@ -208,6 +208,7 @@ def test_calltip(main_window, qtbot):
     # Set text to start
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.set_text(text)
+        code_editor.document_did_change()
     code_editor.go_to_line(2)
     code_editor.move_cursor(5)
     calltip = code_editor.calltip_widget
