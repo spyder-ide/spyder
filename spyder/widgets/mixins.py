@@ -24,13 +24,13 @@ from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
 from qtpy import QT_VERSION
+from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
+                                             getsignaturefromtext)
 
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
-from spyder.utils.dochelpers import (getargspecfromtext, getobj,
-                                     getsignaturefromtext)
 from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import NumpyArrayDialog
 

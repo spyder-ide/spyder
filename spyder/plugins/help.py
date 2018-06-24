@@ -254,7 +254,7 @@ class SphinxThread(QThread):
     doc : str or dict
         A string containing a raw rst text or a dict containing
         the doc string components to be rendered.
-        See spyder.utils.dochelpers.getdoc for description.
+        See spyder_kernels.utils.dochelpers.getdoc for description.
     context : dict
         A dict containing the substitution variables for the
         layout template

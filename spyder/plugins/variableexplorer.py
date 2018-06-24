@@ -9,15 +9,27 @@
 # Third party imports
 from qtpy.QtCore import QTimer, Signal, Slot
 from qtpy.QtWidgets import QGroupBox, QStackedWidget, QVBoxLayout
+from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
+from spyder import dependencies
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions
 from spyder.widgets.variableexplorer.namespacebrowser import NamespaceBrowser
-from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
+
+
+PANDAS_REQVER = '>=0.13.1'
+dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
+                              "Variable Explorer"),
+                 required_version=PANDAS_REQVER, optional=True)
+
+NUMPY_REQVER = '>=1.7'
+dependencies.add("numpy", _("View and edit two and three dimensional arrays "
+                            "in the Variable Explorer"),
+                 required_version=NUMPY_REQVER, optional=True)
 
 
 class VariableExplorerConfigPage(PluginConfigPage):

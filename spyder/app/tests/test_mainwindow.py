@@ -40,7 +40,7 @@ from matplotlib.testing.compare import compare_images
 from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.plugins.help import ObjectComboBox
@@ -326,17 +326,22 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @pytest.mark.single_instance
+@pytest.mark.skipif(PY2 and os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs in Python 2")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and for %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    lock_code = ("from spyder.config.base import get_conf_path\n"
+    spy_dir = osp.dirname(get_module_path('spyder'))
+    lock_code = ("import sys\n"
+                 "sys.path.append('{}')\n"
+                 "from spyder.config.base import get_conf_path\n"
                  "from spyder.utils.external import lockfile\n"
                  "lock_file = get_conf_path('spyder.lock')\n"
                  "lock = lockfile.FilesystemLock(lock_file)\n"
-                 "lock_created = lock.lock()")
+                 "lock_created = lock.lock()".format(spy_dir))
 
     # Test single instance
     with qtbot.waitSignal(shell.executed):
@@ -1489,6 +1494,8 @@ def test_tabfilter_typeerror_full(main_window):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs")
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
     HELP_STR = "Help"

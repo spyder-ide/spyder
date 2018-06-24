@@ -58,10 +58,10 @@ def create_dialog(obj, obj_name):
     oedit to show eMZed related data)
     """
     # Local import
+    from spyder_kernels.utils.nsview import (ndarray, FakeObject,
+                                             Image, is_known_type, DataFrame,
+                                             Series)
     from spyder.widgets.variableexplorer.texteditor import TextEditor
-    from spyder.widgets.variableexplorer.utils import (ndarray, FakeObject,
-                                               Image, is_known_type, DataFrame,
-                                               Series)
     from spyder.widgets.variableexplorer.collectionseditor import CollectionsEditor
     from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
     if DataFrame is not FakeObject:

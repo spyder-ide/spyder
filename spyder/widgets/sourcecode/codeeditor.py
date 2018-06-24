@@ -38,7 +38,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
-from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
+from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
@@ -51,7 +51,6 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
-from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.utils.editor import TextHelper
@@ -64,6 +63,7 @@ from spyder.widgets.panels.indentationguides import IndentationGuide
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
+from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 from spyder.widgets.sourcecode.folding import IndentFoldDetector
 from spyder.widgets.sourcecode.extensions.manager import (
         EditorExtensionsManager)
