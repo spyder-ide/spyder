@@ -217,7 +217,8 @@ def test_calltip(main_window, qtbot):
 
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
-        qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+        # qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+    print(calltip.isVisible())
     qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)

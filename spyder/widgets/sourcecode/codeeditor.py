@@ -771,6 +771,7 @@ class CodeEditor(TextEditBaseWidget):
         if not self.lsp_ready:
             self.parse_lsp_config(config)
             self.lsp_ready = True
+            self.document_did_open()
 
     def parse_lsp_config(self, config):
         """Parse and load LSP server editor capabilities."""
