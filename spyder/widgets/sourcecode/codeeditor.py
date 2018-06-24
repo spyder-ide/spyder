@@ -285,6 +285,7 @@ class CodeEditor(TextEditBaseWidget):
     # LSP Signals
     sig_perform_lsp_request = Signal(str, str, dict)
     lsp_response_signal = Signal(str, dict)
+    sig_display_signature = Signal(str)
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -913,6 +914,7 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         text = contents['params']
+        self.sig_display_signature.emit(text)
         self.show_calltip(_("Hint"), text, at_point=self.mouse_point)
         # QTimer.singleShot(20000, lambda: QToolTip.hideText())
 

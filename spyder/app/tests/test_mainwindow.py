@@ -254,7 +254,7 @@ def test_filter_numpy_warning(main_window, qtbot):
     CONF.set('variable_explorer', 'minmax', False)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 def test_get_help(main_window, qtbot):

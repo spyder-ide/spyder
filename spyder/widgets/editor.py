@@ -17,6 +17,7 @@ import os
 import os.path as osp
 import sys
 from collections import MutableSequence
+import unicodedata
 
 # Third party imports
 from qtpy.compat import getsavefilename
@@ -919,15 +920,26 @@ class EditorStack(QWidget):
 
     def inspect_current_object(self):
         """Inspect current object in the Help plugin"""
-        if self.introspector:
-            editor = self.get_current_editor()
-            position = editor.get_position('cursor')
-            self.help.switch_to_editor_source()
-            self.introspector.show_object_info(position, auto=False)
-        else:
-            text = self.get_current_editor().get_current_object()
-            if text:
-                self.send_to_help(text, force=True)
+        # if self.introspector:
+        editor = self.get_current_editor()
+        editor.sig_display_signature.connect(self.display_signature_help)
+        line, col = editor.get_cursor_line_column()
+        editor.request_hover(line, col)
+        # editor.request_signature()
+        # position = editor.get_position('cursor')
+        # self.help.switch_to_editor_source()
+        # self.introspector.show_object_info(position, auto=False)
+        # else:
+        #     text = self.get_current_editor().get_current_object()
+        #     if text:
+        #         self.send_to_help(text, force=True)
+
+    def display_signature_help(self, signature):
+        editor = self.get_current_editor()
+        name = editor.get_current_word()
+        self.help.switch_to_editor_source()
+        editor.sig_display_signature.disconnect(self.display_signature_help)
+        self.send_to_help(name, signature, force=True)
 
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -2348,26 +2360,25 @@ class EditorStack(QWidget):
         """Cursor position of one of the editor in the stack has changed"""
         self.sig_editor_cursor_position_changed.emit(line, index)
 
-    def send_to_help(self, qstr1, qstr2=None, qstr3=None, qstr4=None,
-                     force=False):
+    def send_to_help(self, name, signature, force=False):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.help_enabled:
             return
         if self.help is not None \
           and (force or self.help.dockwidget.isVisible()):
-            # Help plugin exists and is visible
-            if qstr4 is None:
-                self.help.set_object_text(qstr1, ignore_unknown=True,
-                                          force_refresh=force)
-            else:
-                objtxt = to_text_string(qstr1)
-                name = objtxt.split('.')[-1]
-                argspec = to_text_string(qstr2)
-                note = to_text_string(qstr3)
-                docstring = to_text_string(qstr4)
-                doc = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
-                       'note': note, 'docstring': docstring}
-                self.help.set_editor_doc(doc, force_refresh=force)
+            signature = to_text_string(signature)
+            signature = unicodedata.normalize("NFKD", signature)
+            parts = signature.split('\n\n')
+            definition = parts[0]
+            documentation = '\n\n'.join(parts[1:])
+            args = ''
+            if '(' in definition:
+                args = definition[definition.find('('):]
+
+            doc = {'obj_text': '', 'name': name,
+                   'argspec': args, 'note': '',
+                   'docstring': documentation}
+            self.help.set_editor_doc(doc, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
 
