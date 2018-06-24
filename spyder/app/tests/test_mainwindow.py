@@ -200,18 +200,22 @@ def test_calltip(main_window, qtbot):
     """Test that the calltip in editor is hidden when matching ')' is found."""
     # Load test file
     text = 'a = [1,2,3]\n(max'
-    main_window.editor.new(fname="test.py", text=text)
+    with qtbot.waitSignal(main_window.editor.sig_lsp_notification,
+                          timeout=30000):
+        main_window.editor.new(fname="test.py", text=text)
     code_editor = main_window.editor.get_focus_widget()
 
     # Set text to start
-    code_editor.set_text(text)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.set_text(text)
     code_editor.go_to_line(2)
     code_editor.move_cursor(5)
     calltip = code_editor.calltip_widget
     assert not calltip.isVisible()
 
-    qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
-    qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=3000)
+        qtbot.keyPress(code_editor, Qt.Key_A, delay=1000)
     qtbot.waitUntil(lambda: calltip.isVisible(), timeout=3000)
 
     qtbot.keyPress(code_editor, Qt.Key_ParenRight, delay=1000)
