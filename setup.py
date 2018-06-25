@@ -209,7 +209,8 @@ install_requires = [
     'keyring',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<5.10;python_version>="3"'
+    'pyqt5<5.10;python_version>="3"',
+    'spyder-kernels<1.0'
 ]
 
 extras_require = {

@@ -185,7 +185,8 @@ class FilesystemLock:
 
                         # Valid names for main script
                         names = set(['spyder', 'spyder3', 'spyder.exe',
-                                     'spyder3.exe', 'bootstrap.py'])
+                                     'spyder3.exe', 'bootstrap.py',
+                                     'spyder-script.py'])
                         if running_under_pytest():
                             names.add('runtests.py')
 

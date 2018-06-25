@@ -62,6 +62,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
+        self.custom_edit = True
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient

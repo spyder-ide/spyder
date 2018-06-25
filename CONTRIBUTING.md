@@ -187,6 +187,8 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
+[Online Documentation](https://docs.spyder-ide.org/)
+
 [Spyder Github](https://github.com/spyder-ide/spyder)
 
 [Troubleshooting Guide and FAQ](

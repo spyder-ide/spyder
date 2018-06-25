@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import atexit
 import errno
+import gc
 import os
 import os.path as osp
 import re
@@ -47,6 +48,7 @@ ORIGINAL_SYS_EXIT = sys.exit
 from spyder import requirements
 requirements.check_path()
 requirements.check_qt()
+requirements.check_spyder_kernels()
 
 
 #==============================================================================
@@ -637,7 +639,7 @@ class MainWindow(QMainWindow):
 
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
-
+        self.projects_menu.aboutToShow.connect(self.valid_project)
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
 
@@ -1954,6 +1956,24 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     # --- Other
+    def valid_project(self):
+        """Handle an invalid active project."""
+        if bool(self.projects.get_active_project_path()):
+            path = self.projects.get_active_project_path()
+            if not self.projects.is_valid_project(path):
+                if path:
+                    QMessageBox.critical(
+                        self,
+                        _('Error'),
+                        _("<b>{}</b> is no longer a valid Spyder project! "
+                          "Since it is the current active project, it will "
+                          "be closed automatically.").format(path))
+                self.projects.close_project()
+
+    def free_memory(self):
+        """Free memory after event."""
+        gc.collect()
+
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         self.update_edit_menu()
@@ -2442,7 +2462,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def google_group(self):
-        """Open Spyder troubleshooting guide in a web browser."""
+        """Open Spyder Google Group in a web browser."""
         url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
@@ -2870,7 +2890,7 @@ class MainWindow(QMainWindow):
         error_msg = self.worker_updates.error
 
         url_r = __project_url__ + '/releases'
-        url_i = 'http://pythonhosted.org/spyder/installation.html'
+        url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,

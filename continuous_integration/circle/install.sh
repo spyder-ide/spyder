@@ -17,5 +17,5 @@ source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
-# Install ciocheck (not working right now)
-#conda install -q ciocheck -c spyder-ide --no-update-deps
+# Install spyder-kernels
+pip install -q --no-deps spyder-kernels==0.*

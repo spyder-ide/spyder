@@ -5,19 +5,18 @@
 
 
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
-[![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
+[![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
 [![download count](https://img.shields.io/conda/dn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
-[![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
 [![OpenCollective Backers](https://opencollective.com/spyder/backers/badge.svg?color=blue)](#backers)
 [![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
-
+[![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)<br>
+[![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
 [![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
-[![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 
 
 ![Screenshot of Spyder's main window](./img_src/screenshot.png)
@@ -80,14 +79,14 @@ https://www.spyder-ide.org/).
 
 ## Documentation
 
-You can read the Spyder documentation online at [PythonHosted](
-http://pythonhosted.org/spyder/).
+You can read the Spyder documentation online on [the Spyder Docs website](
+https://docs.spyder-ide.org/).
 
 
 ## Installation
 
 For a detailed guide to installing Spyder, please refer to our
-[installation instructions](http://pythonhosted.org/spyder/installation.html).
+[installation instructions](https://docs.spyder-ide.org/installation.html).
 
 The easiest way to install Spyder on any of our supported platforms
 is to download it as part of the [Anaconda](https://www.anaconda.com/download/)
@@ -152,7 +151,7 @@ Alternatively, you can use `pip` to install PyQt5 separately and
 the other *runtime dependencies* listed below. However, beware:
 this method is recommended for experts only, and you'll need to solve any
 problems on your own. See the
-[installation instructions](http://pythonhosted.org/spyder/installation.html)
+[installation instructions](https://docs.spyder-ide.org/installation.html)
 for more details.
 
 
@@ -206,6 +205,8 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
+[Online Documentation](https://docs.spyder-ide.org/)
+
 [Spyder Github](https://github.com/spyder-ide/spyder)
 
 [Troubleshooting Guide and FAQ](
@@ -215,7 +216,7 @@ https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
 
 [Gitter Chatroom](https://gitter.im/spyder-ide/public)
 
-[Google Group](http://groups.google.com/group/spyderlib)
+[Google Group](https://groups.google.com/group/spyderlib)
 
 [@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
 

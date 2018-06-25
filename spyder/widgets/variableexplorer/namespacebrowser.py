@@ -22,28 +22,26 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
 
 # Third party imports (others)
 import cloudpickle
+from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.misc import fix_reference_name
+from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
-from spyder.config.base import _, get_supported_types
+from spyder.config.base import _, PICKLE_PROTOCOL
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils.iofuncs import iofunctions
-from spyder.utils.misc import fix_reference_name, getcwd_or_home
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout)
 from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
-from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()
-
-# To be able to get and set variables between Python 2 and 3
-PICKLE_PROTOCOL = 2
 
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6
@@ -53,7 +51,8 @@ class NamespaceBrowser(QWidget):
     """Namespace browser (global variables explorer widget)"""
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
-    
+    sig_free_memory = Signal()
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
@@ -139,6 +138,7 @@ class NamespaceBrowser(QWidget):
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
+        self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
         # Setup layout
         blayout = QHBoxLayout()

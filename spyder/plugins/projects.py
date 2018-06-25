@@ -345,7 +345,9 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
 
     def set_project_filenames(self, recent_files):
         """Set the list of open file names in a project"""
-        if self.current_active_project:
+        if (self.current_active_project
+                and self.is_valid_project(
+                        self.current_active_project.root_path)):
             self.current_active_project.set_recent_files(recent_files)
 
     def get_active_project_path(self):
