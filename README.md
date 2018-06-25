@@ -188,7 +188,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
-* **spyder-kernels** 0.2.3+: Jupyter kernels for the Spyder console.
+* **spyder-kernels** 0.2.3+;1.0-: Jupyter kernels for the Spyder console.
 * **keyring**: Save Github credentials to report errors securely.
 
 ### Optional dependencies
