@@ -420,48 +420,17 @@ _ = get_translation("spyder")
 #==============================================================================
 # Namespace Browser (Variable Explorer) configuration management
 #==============================================================================
-def get_supported_types():
-    """
-    Return a dictionnary containing types lists supported by the 
-    namespace browser:
-    dict(picklable=picklable_types, editable=editables_types)
-         
-    See:
-    get_remote_data function in spyder/widgets/variableexplorer/utils/monitor.py
-    
-    Note:
-    If you update this list, don't forget to update doc/variablexplorer.rst
-    """
-    from datetime import date, timedelta
-    editable_types = [int, float, complex, list, set, dict, tuple, date,
-                      timedelta] + list(TEXT_TYPES) + list(INT_TYPES)
-    try:
-        from numpy import ndarray, matrix, generic
-        editable_types += [ndarray, matrix, generic]
-    except:
-        pass
-    try:
-        from pandas import DataFrame, Series, Index
-        editable_types += [DataFrame, Series, Index]
-    except:
-        pass
-    picklable_types = editable_types[:]
-    try:
-        from spyder.pil_patch import Image
-        editable_types.append(Image.Image)
-    except:
-        pass
-    return dict(picklable=picklable_types, editable=editable_types)
-
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
-#  see widgets/variableexplorer/namespacebrowser.py:NamespaceBrowser.save_data)
 CHECK_ALL = False #XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
+
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 
 #==============================================================================

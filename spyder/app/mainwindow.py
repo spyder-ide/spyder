@@ -48,6 +48,7 @@ ORIGINAL_SYS_EXIT = sys.exit
 from spyder import requirements
 requirements.check_path()
 requirements.check_qt()
+requirements.check_spyder_kernels()
 
 
 #==============================================================================

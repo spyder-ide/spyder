@@ -20,21 +20,23 @@ from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
                             QMessageBox, QToolButton, QVBoxLayout, QWidget)
 
+from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.misc import fix_reference_name
+from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
+
 # Local imports
-from spyder.config.base import _, get_supported_types
+from spyder.config.base import _, PICKLE_PROTOCOL
 from spyder.config.main import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils.iofuncs import iofunctions
-from spyder.utils.misc import fix_reference_name, getcwd_or_home
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout)
 from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
-from spyder.widgets.variableexplorer.utils import REMOTE_SETTINGS
 
 
 SUPPORTED_TYPES = get_supported_types()

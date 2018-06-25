@@ -77,12 +77,6 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/help/*.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/ipython/start_kernel.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/utils/ipython/spyder_kernel.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/site/sitecustomize.py ]]; then
         continue
     fi

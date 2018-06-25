@@ -13,14 +13,14 @@ from __future__ import absolute_import
 
 import re
 
-from qtpy.QtCore import QEventLoop
-
 from qtconsole.ansi_code_processor import ANSI_OR_SPECIAL_PATTERN
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtpy.QtCore import QEventLoop
+from spyder_kernels.utils.dochelpers import (getargspecfromtext,
+                                             getsignaturefromtext)
 
 from spyder.config.base import _
 from spyder.py3compat import PY3
-from spyder.utils.dochelpers import getargspecfromtext, getsignaturefromtext
 
 
 class HelpWidget(RichJupyterWidget):
