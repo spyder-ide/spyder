@@ -80,6 +80,8 @@ class DlgGitHubLogin(QDialog):
         valid_py_os = not (PY2 and sys.platform.startswith('linux'))
         if self.is_keyring_available() and valid_py_os:
             self.cb_remember = QCheckBox(_("Remember me"))
+            self.cb_remember.setToolTip(_("Spyder will save your credentials "
+                                          "safely"))
             self.cb_remember.setChecked(remember)
             basic_form_layout.setWidget(4, QFormLayout.FieldRole,
                                         self.cb_remember)
