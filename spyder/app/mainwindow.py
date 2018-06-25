@@ -97,7 +97,7 @@ from qtawesome.iconic_font import FontError
 
 #==============================================================================
 # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
-# be set before creating the application. 
+# be set before creating the application.
 #==============================================================================
 from spyder.config.main import CONF
 
@@ -121,7 +121,7 @@ else:
 MAIN_APP.setWindowIcon(APP_ICON)
 
 #==============================================================================
-# Create splash screen out of MainWindow to reduce perceived startup time. 
+# Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
 from spyder.config.base import _, get_image_path, DEV, running_under_pytest
 
@@ -342,7 +342,7 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
-        
+
         # File switcher
         self.fileswitcher = None
 
@@ -354,7 +354,7 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.plugins.configdialog import (MainConfigPage, 
+        from spyder.plugins.configdialog import (MainConfigPage,
                                                  ColorSchemeConfigPage)
         from spyder.plugins.shortcuts import ShortcutsConfigPage
         from spyder.plugins.runconfig import RunConfigPage
@@ -841,7 +841,7 @@ class MainWindow(QMainWindow):
 
         # Start LSP client
         self.set_splash(_("Launching LSP Client..."))
-        # self.lsp_client.start()
+        self.lspmanager.start_lsp_client('python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -1320,8 +1320,8 @@ class MainWindow(QMainWindow):
         else:
             hexstate = get_func(section, prefix+'state', None)
         pos = get_func(section, prefix+'position')
-        
-        # It's necessary to verify if the window/position value is valid 
+
+        # It's necessary to verify if the window/position value is valid
         # with the current screen. See issue 3748
         width = pos[0]
         height = pos[1]
@@ -1330,7 +1330,7 @@ class MainWindow(QMainWindow):
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
             pos = CONF.get_default(section, prefix+'position')
-        
+
         is_maximized =  get_func(section, prefix+'is_maximized')
         is_fullscreen = get_func(section, prefix+'is_fullscreen')
         return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
@@ -1432,12 +1432,12 @@ class MainWindow(QMainWindow):
 
             # Now that the initial setup is done, copy the window settings,
             # except for the hexstate in the quick layouts sections for the
-            # default layouts. 
+            # default layouts.
             # Order and name of the default layouts is found in config.py
             section = 'quick_layouts'
             get_func = CONF.get_default if default else CONF.get
             order = get_func(section, 'order')
-            
+
             # restore the original defaults if reset layouts is called
             if default:
                 CONF.set(section, 'active', order)
@@ -1454,7 +1454,7 @@ class MainWindow(QMainWindow):
             section = 'quick_layouts'
             self.save_current_window_settings(prefix, section, none_state=True)
             self.current_quick_layout = 'default'
-            
+
             # Regenerate menu
             self.quick_layout_set_menu()
         self.set_window_settings(*settings)
@@ -1465,7 +1465,7 @@ class MainWindow(QMainWindow):
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
-       
+
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time"""
         self.set_window_settings(*settings)
@@ -1517,7 +1517,7 @@ class MainWindow(QMainWindow):
                                         [1.0],          # column 2, row heights
                                         [0.46, 0.54]],  # column 3, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],                               
+                    'hidden toolbars': [],
                     }
         r_layout = {'widgets': [
                     # column 0
@@ -1532,7 +1532,7 @@ class MainWindow(QMainWindow):
                     'height fraction': [[0.55, 0.45],   # column 0, row heights
                                         [0.55, 0.45]],  # column 1, row heights
                     'hidden widgets': [outline],
-                    'hidden toolbars': [],                               
+                    'hidden toolbars': [],
                     }
         # Matlab
         m_layout = {'widgets': [
@@ -1594,7 +1594,7 @@ class MainWindow(QMainWindow):
 
         layout = layouts[index]
 
-        widgets_layout = layout['widgets']         
+        widgets_layout = layout['widgets']
         widgets = []
         for column in widgets_layout :
             for row in column:
@@ -1615,7 +1615,7 @@ class MainWindow(QMainWindow):
                 self.splitDockWidget(first.dockwidget, second.dockwidget,
                                      Qt.Horizontal)
 
-        # Arrange rows vertically 
+        # Arrange rows vertically
         for column in widgets_layout :
             for i in range(len(column) - 1):
                 first_row, second_row = column[i], column[i+1]
@@ -1663,7 +1663,7 @@ class MainWindow(QMainWindow):
 #            widget.setMinimumWidth(new_width)
 #            widget.setMaximumWidth(new_width)
 #            widget.updateGeometry()
-        
+
         # fix column height
         for c, column in enumerate(widgets_layout):
             for r in range(len(column) - 1):
@@ -2164,7 +2164,7 @@ class MainWindow(QMainWindow):
 
         # To be used by the tour to be able to resize
         self.sig_resized.emit(event)
-        
+
     def moveEvent(self, event):
         """Reimplement Qt method"""
         if not self.isMaximized() and not self.fullscreen_flag:

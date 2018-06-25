@@ -610,11 +610,12 @@ class LSPManager(SpyderPluginWidget):
         self.lsp_plugins[type] = sig
 
     def register_file(self, language, filename, signal):
-        language_client = self.clients[language]['instance']
-        if language_client is None:
-            self.register_queue[language].append((filename, signal))
-        else:
-            language_client.register_file(filename, signal)
+        if language in self.clients:
+            language_client = self.clients[language]['instance']
+            if language_client is None:
+                self.register_queue[language].append((filename, signal))
+            else:
+                language_client.register_file(filename, signal)
 
     def start_lsp_client(self, language):
         started = False
@@ -679,5 +680,8 @@ class LSPManager(SpyderPluginWidget):
             language_client['status'] = self.STOPPED
 
     def send_request(self, language, request, params):
-        client = self.clients[language]['instance']
-        client.perform_request(request, params)
+        if language in self.clients:
+            language_client = self.clients[language]
+            if language_client['status'] == self.RUNNING:
+                client = self.clients[language]['instance']
+                client.perform_request(request, params)

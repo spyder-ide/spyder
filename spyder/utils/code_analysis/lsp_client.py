@@ -123,10 +123,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             # self.stdout_log = open(osp.join(getcwd(), stdout_log_file), 'w')
             self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
 
+        new_env = dict(os.environ)
+        python_path = os.pathsep.join(sys.path)[1:]
+        new_env['PYTHONPATH'] = python_path
         self.transport_args = map(str, self.transport_args)
         self.transport_client = subprocess.Popen(self.transport_args,
                                                  stdout=self.stdout_log,
-                                                 stderr=self.stderr_log)
+                                                 stderr=self.stderr_log,
+                                                 env=new_env)
 
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
