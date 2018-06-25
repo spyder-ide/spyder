@@ -424,8 +424,12 @@ def test_dataframemodel_set_data_overflow(monkeypatch):
         assert not model.setData(index, str(int(2 ** bit_exponent)))
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == idx
-        assert numpy.sum(test_df[0].as_matrix() ==
-                         model.df.as_matrix()) == len(test_df)
+        try:
+            assert numpy.sum(test_df[0].values ==
+                             model.df.values) == len(test_df)
+        except AttributeError:
+            assert numpy.sum(test_df[0].as_matrix() ==
+                             model.df.as_matrix()) == len(test_df)
 
 
 @flaky(max_runs=3)
@@ -475,8 +479,13 @@ def test_dataframeeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.wait(200)
         dialog.accept()
         qtbot.wait(500)
-        assert numpy.sum(expected_df[0].as_matrix() ==
-                         dialog.get_value().as_matrix()) == len(expected_df)
+        try:
+            assert numpy.sum(expected_df[0].values ==
+                             dialog.get_value().values) == len(expected_df)
+        except AttributeError:
+            assert numpy.sum(
+                    expected_df[0].as_matrix() ==
+                    dialog.get_value().as_matrix()) == len(expected_df)
 
 
 def test_dataframemodel_set_data_complex(monkeypatch):
@@ -499,8 +508,12 @@ def test_dataframemodel_set_data_complex(monkeypatch):
         assert not model.setData(index, '42')
         MockQMessageBox.critical.assert_called_with(ANY, "Error", ANY)
         assert MockQMessageBox.critical.call_count == count
-        assert numpy.sum(test_df[0].as_matrix() ==
-                         model.df.as_matrix()) == len(test_df)
+        try:
+            assert numpy.sum(test_df[0].values ==
+                             model.df.values) == len(test_df)
+        except AttributeError:
+            assert numpy.sum(test_df[0].as_matrix() ==
+                             model.df.as_matrix()) == len(test_df)
 
 
 @flaky(max_runs=3)
@@ -545,8 +558,12 @@ def test_dataframeeditor_edit_complex(qtbot, monkeypatch):
         qtbot.wait(200)
         dialog.accept()
         qtbot.wait(500)
-        assert numpy.sum(test_df[0].as_matrix() ==
-                         dialog.get_value().as_matrix()) == len(test_df)
+        try:
+            assert numpy.sum(test_df[0].values ==
+                             dialog.get_value().values) == len(test_df)
+        except AttributeError:
+            assert numpy.sum(test_df[0].as_matrix() ==
+                             dialog.get_value().as_matrix()) == len(test_df)
 
 
 def test_dataframemodel_set_data_bool(monkeypatch):
@@ -566,8 +583,12 @@ def test_dataframemodel_set_data_bool(monkeypatch):
         for idx, test_str in enumerate(test_strs):
             assert model.setData(model.createIndex(idx, 0), test_str)
             assert not MockQMessageBox.critical.called
-        assert numpy.sum(expected_df[0].as_matrix() ==
-                         model.df.as_matrix()[:, 0]) == len(expected_df)
+        try:
+            assert numpy.sum(expected_df[0].values ==
+                             model.df.values[:, 0]) == len(expected_df)
+        except AttributeError:
+            assert numpy.sum(expected_df[0].as_matrix() ==
+                             model.df.as_matrix()[:, 0]) == len(expected_df)
 
 
 @flaky(max_runs=3)
@@ -602,9 +623,14 @@ def test_dataframeeditor_edit_bool(qtbot, monkeypatch):
         qtbot.wait(200)
         dialog.accept()
         qtbot.wait(500)
-        assert (numpy.sum(expected_df[0].as_matrix() ==
-                          dialog.get_value().as_matrix()[:, 0]) ==
-                len(expected_df))
+        try:
+            assert (numpy.sum(expected_df[0].values ==
+                              dialog.get_value().values[:, 0]) ==
+                    len(expected_df))
+        except AttributeError:
+            assert (numpy.sum(expected_df[0].as_matrix() ==
+                              dialog.get_value().as_matrix()[:, 0]) ==
+                    len(expected_df))
 
 
 def test_non_ascii_index():
