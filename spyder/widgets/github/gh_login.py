@@ -75,7 +75,8 @@ class DlgGitHubLogin(QDialog):
         basic_form_layout.setWidget(2, QFormLayout.FieldRole, self.le_password)
 
         self.cb_remember = None
-        # Check if we are in Python 2 and Linux where keyring needs a backend
+        # Check if we are not in Python 2 and Linux because
+        # there's no keyring backend there
         valid_py_os = not PY2 and not sys.platform.startswith('linux')
         if self.is_keyring_available() and valid_py_os:
             self.cb_remember = QCheckBox(_("Remember me"))
