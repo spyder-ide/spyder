@@ -220,9 +220,8 @@ class GithubBackend(BaseBackend):
         """Get user credentials with the login dialog."""
         password = None
         token = None
-        username, remember_me, remember_token = (
-                                        self._get_credentials_from_settings()
-                                        )
+        (username, remember_me,
+         remember_token) = self._get_credentials_from_settings()
         valid_py_os = not (PY2 and sys.platform.startswith('linux'))
         if username and remember_me and valid_py_os:
             # Get password from keyring
