@@ -115,6 +115,6 @@ if __name__ == '__main__':
     except TerminateSignal:
         pass
     client.stop()
-    sig_manager.restore()
+    # sig_manager.restore()
     process.terminate()
     process.wait()

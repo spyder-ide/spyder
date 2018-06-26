@@ -164,10 +164,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        if WINDOWS:
-            self.transport_client.send_signal(signal.CTRL_BREAK_EVENT)
-        else:
-            self.transport_client.kill()
+        # if WINDOWS:
+        #     self.transport_client.send_signal(signal.CTRL_BREAK_EVENT)
+        # else:
+        self.transport_client.kill()
         self.context.destroy()
         self.lsp_server.kill()
 
