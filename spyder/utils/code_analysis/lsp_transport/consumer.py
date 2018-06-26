@@ -12,6 +12,7 @@ client via ZMQ.
 import os
 import json
 import socket
+import select
 import logging
 from threading import Thread, Lock
 from pexpect.fdpexpect import fdspawn
@@ -36,9 +37,50 @@ class IncomingMessageThread(Thread):
 
     def initialize(self, sock, zmq_sock, req_status):
         self.socket = sock
-        self.expect = fdspawn(self.socket)
+        self.expect = None
+        self.read_sock = self.expect_windows
+        if not WINDOWS:
+            self.read_sock = self.read_posix
+            self.expect = fdspawn(self.socket)
         self.zmq_sock = zmq_sock
         self.req_status = req_status
+
+
+    def read_posix(self):
+        self.expect.expect('\r\n\r\n', timeout=None)
+        headers = self.expect.before
+        headers = self.parse_headers(headers)
+        LOGGER.debug(headers)
+        content_length = int(headers[b'Content-Length'])
+        body = self.expect.read(size=content_length)
+        return body
+
+
+    def expect_windows(self):
+        read_ready, _, _ = select.select([self.socket], [self.socket],
+                                         [self.socket])
+        if self.socket in read_ready:
+            buffer = b''
+            headers = b''
+            continue_reading = True
+            while continue_reading:
+                try:
+                    buffer += self.socket.recv(1024)
+                    if b'\r\n\r\n' in buffer:
+                        headers, buffer = buffer.split(b'\r\n\r\n')
+                        continue_reading = False
+                except socket.error as e:
+                    LOGGER.error(e)
+                    raise e
+            headers = self.parse_headers(headers)
+            LOGGER.debug(headers)
+            content_length = int(headers[b'Content-Length'])
+            pending_bytes = content_length - len(buffer)
+            while pending_bytes > 0:
+                recv = self.socket.recv(min(1024, pending_bytes))
+                buffer += recv
+                pending_bytes -= len(recv)
+            return buffer
 
     def run(self):
         while True:
@@ -47,23 +89,12 @@ class IncomingMessageThread(Thread):
                     LOGGER.debug('Stopping Thread...')
                     break
             try:
-                self.expect.expect('\r\n\r\n', timeout=None)
-                headers = self.expect.before
-                headers = self.parse_headers(headers)
-                LOGGER.debug(headers)
-                content_length = int(headers[b'Content-Length'])
-                # recv = self.socket.recv(content_length)
-                # LOGGER.debug(recv)
-                body = self.expect.read(size=content_length)
+                body = self.read_sock()
                 err = False
                 try:
                     body = json.loads(body)
                 except ValueError:
                     err = True
-                # recv = self.socket.recv(self.CHUNK_BYTE_SIZE)
-                # LOGGER.debug(body)
-                # err, body = self.process_response(recv)
-                # LOGGER.debug(body)
                 if not err:
                     LOGGER.debug(body)
                     self.zmq_sock.send_pyobj(body)
