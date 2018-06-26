@@ -36,7 +36,7 @@ class DlgGitHubLogin(QDialog):
         super(DlgGitHubLogin, self).__init__(parent)
 
         title = _("Sign in to Github")
-        self.resize(400, 340)
+        self.resize(415, 375)
         self.setWindowTitle(title)
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
