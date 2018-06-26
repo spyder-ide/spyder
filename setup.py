@@ -206,6 +206,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
+    'keyring',
     # Packages for pyqt5 are only available in
     # Python 3
     'pyqt5<5.10;python_version>="3"',
