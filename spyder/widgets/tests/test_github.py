@@ -58,7 +58,8 @@ def test_dialog(qtbot):
     # Assert Sign in is disabled
     assert not dlg.bt_sign_in.isEnabled()
 
-    # Add token
+    # Change tab and add token
+    dlg.tabs.setCurrentIndex(1)
     qtbot.keyClicks(dlg.le_token, 'token')
 
     # Assert Sign in button is enabled
