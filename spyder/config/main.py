@@ -110,7 +110,6 @@ DEFAULTS = [
               'completion/size': (300, 180),
               'report_error/remember_me': False,
               'report_error/remember_token': False,
-              'report_error/username': ''
               }),
             ('quick_layouts',
              {
