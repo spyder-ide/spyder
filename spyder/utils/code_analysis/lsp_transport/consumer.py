@@ -12,7 +12,6 @@ client via ZMQ.
 import os
 import json
 import socket
-import select
 import logging
 from threading import Thread, Lock
 from pexpect.fdpexpect import fdspawn
@@ -30,8 +29,9 @@ class IncomingMessageThread(Thread):
     CHUNK_BYTE_SIZE = 4096
 
     def __init__(self):
-        Thread.__init__(self, daemon=True)
+        Thread.__init__(self)
         self.stopped = False
+        self.daemon = True
         self.expect_body = False
         self.mutex = Lock()
 
@@ -57,32 +57,29 @@ class IncomingMessageThread(Thread):
 
 
     def expect_windows(self):
-        read_ready, _, _ = select.select([self.socket], [self.socket],
-                                         [self.socket])
-        if self.socket in read_ready:
-            buffer = b''
-            headers = b''
-            continue_reading = True
-            while continue_reading:
-                try:
-                    buffer += self.socket.recv(1024)
-                    if b'\r\n\r\n' in buffer:
-                        split = buffer.split(b'\r\n\r\n')
-                        if len(split) == 2:
-                            headers, buffer = split
-                            continue_reading = False
-                except socket.error as e:
-                    LOGGER.error(e)
-                    raise e
-            headers = self.parse_headers(headers)
-            LOGGER.debug(headers)
-            content_length = int(headers[b'Content-Length'])
-            pending_bytes = content_length - len(buffer)
-            while pending_bytes > 0:
-                recv = self.socket.recv(min(1024, pending_bytes))
-                buffer += recv
-                pending_bytes -= len(recv)
-            return buffer
+        buffer = b''
+        headers = b''
+        continue_reading = True
+        while continue_reading:
+            try:
+                buffer += self.socket.recv(1024)
+                if b'\r\n\r\n' in buffer:
+                    split = buffer.split(b'\r\n\r\n')
+                    if len(split) == 2:
+                        headers, buffer = split
+                        continue_reading = False
+            except socket.error as e:
+                LOGGER.error(e)
+                raise e
+        headers = self.parse_headers(headers)
+        LOGGER.debug(headers)
+        content_length = int(headers[b'Content-Length'])
+        pending_bytes = content_length - len(buffer)
+        while pending_bytes > 0:
+            recv = self.socket.recv(min(1024, pending_bytes))
+            buffer += recv
+            pending_bytes -= len(recv)
+        return buffer
 
     def run(self):
         while True:
