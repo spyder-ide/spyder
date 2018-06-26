@@ -105,7 +105,12 @@ def test_flag_painting(editor_bot):
     # Trigger the painting of all flag types.
     editor.add_remove_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    editor.process_code_analysis([['E227 warning', 4], ['syntax error', 5]])
+    analysis = [{'source': 'pycodestyle', 'range':{'start': 0, 'end': 1},
+                 'line': 4, 'code': 'E227','message': 'E227 warning',
+                 'severity': 2},
+                 {'source': 'pyflakes', 'range':{'start': 0, 'end': 1},
+                  'line': 5, 'message': 'syntax error', 'severity': 1}]
+    editor.process_code_analysis(analysis)
     editor.highlight_found_results('line6')
     with qtbot.waitSignal(editor.sig_flags_changed, raising=True,
                           timeout=5000):
@@ -120,7 +125,12 @@ def test_flag_painting(editor_bot):
     # Trigger the painting of all flag types.
     editor.add_remove_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    editor.process_code_analysis([['E227 warning', 4], ['syntax error', 5]])
+    analysis = [{'source': 'pycodestyle', 'range':{'start': 0, 'end': 1},
+                 'line': 4, 'code': 'E227','message': 'E227 warning',
+                 'severity': 2},
+                 {'source': 'pyflakes', 'range':{'start': 0, 'end': 1},
+                  'line': 5, 'message': 'syntax error', 'severity': 1}]
+    editor.process_code_analysis(analysis)
     editor.highlight_found_results('line6')
     with qtbot.waitSignal(editor.sig_flags_changed, raising=True,
                           timeout=5000):
