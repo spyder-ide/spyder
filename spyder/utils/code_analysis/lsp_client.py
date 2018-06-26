@@ -48,6 +48,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(),
 PENDING = 'pending'
 SERVER_READY = 'server_ready'
 
+WINDOWS = os.name == 'nt'
 
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn):
@@ -91,11 +92,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.context = zmq.Context()
 
         server_args = server_args_fmt % (server_settings)
-        transport_args = self.local_server_fmt % (server_settings)
-        if self.external_server:
-            transport_args = self.external_server_fmt % (server_settings)
+        # transport_args = self.local_server_fmt % (server_settings)
+        # if self.external_server:
+        transport_args = self.external_server_fmt % (server_settings)
 
-        self.server_args = server_args.split(' ')
+        self.server_args = [server_settings['cmd']]
+        self.server_args += server_args.split(' ')
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
         if DEV:
@@ -110,8 +112,24 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]
 
+        self.lsp_server_log = subprocess.PIPE
+        if DEV:
+            lsp_server_file = 'lsp_server_logfile.log'
+            self.lsp_server_log = open(osp.join(
+                getcwd(), lsp_server_file), 'w')
+
         if not self.external_server:
-            self.transport_args += self.server_args
+            debug_print('Starting server: {0}'.format(
+                ' '.join(self.server_args)))
+            creation_flags = 0
+            if WINDOWS:
+                creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
+            self.lsp_server = subprocess.Popen(
+                self.server_args,
+                stdout=self.lsp_server_log,
+                stderr=subprocess.STDOUT,
+                creationflags=creation_flags)
+            # self.transport_args += self.server_args
 
         self.stdout_log = subprocess.PIPE
         self.stderr_log = subprocess.PIPE
@@ -146,8 +164,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        self.transport_client.kill()
+        if WINDOWS:
+            self.transport_client.send_signal(signal.CTRL_BREAK_EVENT)
+        else:
+            self.transport_client.kill()
         self.context.destroy()
+        self.lsp_server.kill()
 
     def send(self, method, params, requires_response):
         if ClientConstants.CANCEL in params:
