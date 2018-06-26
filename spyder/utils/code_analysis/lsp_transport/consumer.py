@@ -93,7 +93,7 @@ class IncomingMessageThread(Thread):
                 err = False
                 try:
                     body = json.loads(body)
-                except ValueError:
+                except (ValueError, TypeError):
                     err = True
                 if not err:
                     LOGGER.debug(body)
