@@ -30,7 +30,7 @@ class IncomingMessageThread(Thread):
     CHUNK_BYTE_SIZE = 4096
 
     def __init__(self):
-        Thread.__init__(self)
+        Thread.__init__(self, daemon=True)
         self.stopped = False
         self.expect_body = False
         self.mutex = Lock()
@@ -67,8 +67,10 @@ class IncomingMessageThread(Thread):
                 try:
                     buffer += self.socket.recv(1024)
                     if b'\r\n\r\n' in buffer:
-                        headers, buffer = buffer.split(b'\r\n\r\n')
-                        continue_reading = False
+                        split = buffer.split(b'\r\n\r\n')
+                        if len(split) == 2:
+                            headers, buffer = split
+                            continue_reading = False
                 except socket.error as e:
                     LOGGER.error(e)
                     raise e

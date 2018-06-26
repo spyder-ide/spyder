@@ -76,7 +76,7 @@ class LanguageServerClient:
                          "with the language server, terminating process...")
             raise Exception('Error!')
 
-        self.socket.setblocking(False)
+        self.socket.setblocking(True)
 
         # LOGGER.info('Initializing server connection...')
         # self.__initialize()
