@@ -13,7 +13,7 @@ environment:
       rope pyflakes sphinx pygments pylint pycodestyle psutil nbconvert
       qtawesome cloudpickle pickleshare pyzmq chardet mock pandas pytest
       pytest-cov numpydoc scipy pillow qtconsole matplotlib jedi pywin32
-      sympy cython
+      sympy cython keyring
     PIP_DEPENDENCIES: "pytest-qt pytest-mock pytest-timeout flaky codecov"
 
   matrix:
