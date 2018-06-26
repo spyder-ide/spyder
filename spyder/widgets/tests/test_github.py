@@ -22,7 +22,7 @@ from spyder.widgets.github.gh_login import DlgGitHubLogin
 @pytest.fixture
 def setup_dialog(qtbot):
     """Set up error report dialog."""
-    widget = DlgGitHubLogin(None, None, None)
+    widget = DlgGitHubLogin(None, None, None, None)
     qtbot.addWidget(widget)
     return widget
 

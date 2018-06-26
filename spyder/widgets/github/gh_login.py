@@ -31,7 +31,8 @@ TOKEN_URL = "https://github.com/settings/tokens/new?scopes=public_repo"
 class DlgGitHubLogin(QDialog):
     """Dialog to submit error reports to Github."""
 
-    def __init__(self, parent, username, password, remember=False):
+    def __init__(self, parent, username, password, token, remember=False,
+                 remember_token=False):
         super(DlgGitHubLogin, self).__init__(parent)
 
         title = _("Sign in to Github")
@@ -49,7 +50,7 @@ class DlgGitHubLogin(QDialog):
         lbl_html = QLabel(html.format(mark=mark, title=title))
 
         # Tabs
-        tabs = QTabWidget()
+        self.tabs = QTabWidget()
 
         # Basic form layout
         basic_form_layout = QFormLayout()
@@ -97,7 +98,7 @@ class DlgGitHubLogin(QDialog):
         basic_layout.addSpacerItem(
             QSpacerItem(QSpacerItem(0, 1000, vPolicy=QSizePolicy.Expanding)))
         basic_auth.setLayout(basic_layout)
-        tabs.addTab(basic_auth, _("Password Only"))
+        self.tabs.addTab(basic_auth, _("Password Only"))
 
         # Token form layout
         token_form_layout = QFormLayout()
@@ -122,6 +123,17 @@ class DlgGitHubLogin(QDialog):
         self.le_token.textChanged.connect(self.update_btn_state)
         token_form_layout.setWidget(1, QFormLayout.FieldRole, self.le_token)
 
+        self.cb_remember_token = None
+        # Same validation as with cb_remember
+        if self.is_keyring_available() and valid_py_os:
+            self.cb_remember_token = QCheckBox(_("Remember token"))
+            self.cb_remember_token.setToolTip(_("Spyder will save your "
+                                                "token safely"))
+            self.cb_remember_token.setChecked(remember_token)
+            token_form_layout.setWidget(3, QFormLayout.FieldRole,
+                                        self.cb_remember_token)
+
+
         # Token auth tab
         token_auth = QWidget()
         token_layout = QVBoxLayout()
@@ -133,7 +145,7 @@ class DlgGitHubLogin(QDialog):
         token_layout.addSpacerItem(
             QSpacerItem(QSpacerItem(0, 1000, vPolicy=QSizePolicy.Expanding)))
         token_auth.setLayout(token_layout)
-        tabs.addTab(token_auth, _("Access Token"))
+        self.tabs.addTab(token_auth, _("Access Token"))
 
         # Sign in button
         self.bt_sign_in = QPushButton(_("Sign in"))
@@ -143,7 +155,7 @@ class DlgGitHubLogin(QDialog):
         # Main layout
         layout = QVBoxLayout()
         layout.addWidget(lbl_html)
-        layout.addWidget(tabs)
+        layout.addWidget(self.tabs)
         layout.addWidget(self.bt_sign_in)
         self.setLayout(layout)
 
@@ -155,12 +167,15 @@ class DlgGitHubLogin(QDialog):
         elif username:
             self.le_user.setText(username)
             self.le_password.setFocus()
+        elif token:
+            self.le_token.setText(token)
         else:
             self.le_user.setFocus()
 
         self.setFixedSize(self.width(), self.height())
         self.le_password.installEventFilter(self)
         self.le_user.installEventFilter(self)
+        self.tabs.currentChanged.connect(self.update_btn_state)
 
     def eventFilter(self, obj, event):
         interesting_objects = [self.le_password, self.le_user]
@@ -176,7 +191,9 @@ class DlgGitHubLogin(QDialog):
         user = to_text_string(self.le_user.text()).strip() != ''
         password = to_text_string(self.le_password.text()).strip() != ''
         token = to_text_string(self.le_token.text()).strip() != ''
-        enable = (user and password) or token
+        enable = ((user and password and
+                  self.tabs.currentIndex() == 0) or
+                  (token and self.tabs.currentIndex() == 1))
         self.bt_sign_in.setEnabled(enable)
 
     def is_keyring_available(self):
@@ -188,8 +205,10 @@ class DlgGitHubLogin(QDialog):
             return False
 
     @classmethod
-    def login(cls, parent, username, password, remember):
-        dlg = DlgGitHubLogin(parent, username, password, remember)
+    def login(cls, parent, username, password, token,
+              remember, remember_token):
+        dlg = DlgGitHubLogin(parent, username, password, token, remember,
+                             remember_token)
         if dlg.exec_() == dlg.Accepted:
             user = dlg.le_user.text()
             password = dlg.le_password.text()
@@ -198,17 +217,21 @@ class DlgGitHubLogin(QDialog):
                 remember = dlg.cb_remember.isChecked()
             else:
                 remember = False
-            if token != '':
-                return (token,)
+            if dlg.cb_remember_token:
+                remember_token = dlg.cb_remember_token.isChecked()
             else:
+                remember_token = False
+            if token != '' and dlg.tabs.currentIndex() == 1:
+                return token, remember_token
+            elif dlg.tabs.currentIndex() == 0:
                 return user, password, remember
-        return None, None, remember
+        return None, None, None, remember, remember_token
 
 
 def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()  # analysis:ignore
-    dlg = DlgGitHubLogin(None, None, None)
+    dlg = DlgGitHubLogin(None, None, None, None)
     dlg.show()
     sys.exit(dlg.exec_())
 

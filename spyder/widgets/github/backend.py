@@ -117,12 +117,16 @@ class GithubBackend(BaseBackend):
 
         # Credentials
         credentials = self.get_user_credentials()
-        if len(credentials) == 1:
-            token = credentials
+        if len(credentials) == 2:
+            token, remember_token = credentials
             username, password = None, None
-        else:
+        elif len(credentials) == 3:
             token = None
             username, password, remember = credentials
+        else:
+            username = None
+            password = None
+            token = None
         if username is None and password is None and token is None:
             return False
         _logger().debug('got user credentials')
@@ -172,12 +176,13 @@ class GithubBackend(BaseBackend):
 
     def _get_credentials_from_settings(self):
         """Get the stored credentials if any."""
-        remember = CONF.get('main', 'report_error/remember_me')
+        remember_me = CONF.get('main', 'report_error/remember_me')
+        remember_token = CONF.get('main', 'report_error/remember_token')
         username = CONF.get('main', 'report_error/username')
-        if not remember:
+        if not remember_me:
             username = ''
 
-        return username, remember
+        return username, remember_me, remember_token
 
     def _store_credentials(self, username, password, remember=False):
         """Store credentials for future use."""
@@ -195,25 +200,62 @@ class GithubBackend(BaseBackend):
                 remember = False
         CONF.set('main', 'report_error/remember_me', remember)
 
+    def _store_token(self, token, remember=False):
+        """Store token for future use."""
+        if token and remember:
+            try:
+                keyring.set_password('github', 'token', token)
+            except Exception:
+                QMessageBox.warning(self.parent_widget,
+                                    _('Failed to store token'),
+                                    _('It was not possible to securely save '
+                                      'your token. You will be prompted for'
+                                      'your Github token next time you '
+                                      'want to report an issue.'))
+                remember = False
+        CONF.set('main', 'report_error/remember_token', remember)
+
+
     def get_user_credentials(self):
         """Get user credentials with the login dialog."""
         password = None
-        username, remember = self._get_credentials_from_settings()
+        token = None
+        username, remember_me, remember_token = (
+                                        self._get_credentials_from_settings()
+                                        )
         valid_py_os = not (PY2 and sys.platform.startswith('linux'))
-        if username and remember and valid_py_os:
-            # get password from keyring
+        if username and remember_me and valid_py_os:
+            # Get password from keyring
             try:
                 password = keyring.get_password('github', username)
             except Exception:
-                # no safe keyring backend
+                # No safe keyring backend
                 QMessageBox.warning(self.parent_widget,
                                     _('Failed to retrieve password'),
                                     _('It was not possible to retrieve your '
                                       'password. Please introduce it again.'))
+        if remember_token and valid_py_os:
+            # Get token from keyring
+            try:
+                token = keyring.get_password('github', 'token')
+            except Exception:
+                # No safe keyring backend
+                QMessageBox.warning(self.parent_widget,
+                                    _('Failed to retrieve token'),
+                                    _('It was not possible to retrieve your '
+                                      'token. Please introduce it again.'))
         credentials = DlgGitHubLogin.login(self.parent_widget, username,
-                                           password, remember)
+                                           password, token, remember_me,
+                                           remember_token)
         if len(credentials) == 3 and valid_py_os:
             self._store_credentials(*credentials)
+        elif len(credentials) == 2 and valid_py_os:
+            self._store_token(*credentials)
+        elif len(credentials) == 4:
+            # Remember me value
+            CONF.set('main', 'report_error/remember_me', credentials[3])
+            # Remember token value
+            CONF.set('main', 'report_error/remember_token', credentials[4])
 
         return credentials
 
