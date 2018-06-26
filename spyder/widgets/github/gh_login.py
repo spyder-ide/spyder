@@ -221,11 +221,18 @@ class DlgGitHubLogin(QDialog):
                 remember_token = dlg.cb_remember_token.isChecked()
             else:
                 remember_token = False
-            if token != '' and dlg.tabs.currentIndex() == 1:
-                return token, remember_token
-            elif dlg.tabs.currentIndex() == 0:
-                return user, password, remember
-        return None, None, None, remember, remember_token
+
+            credentials = dict(username=user,
+                               password=password,
+                               token=token,
+                               remember=remember,
+                               remember_token=remember_token)
+            return credentials
+        return dict(username=None,
+                    password=None,
+                    token=None,
+                    remember=False,
+                    remember_token=False)
 
 
 def test():

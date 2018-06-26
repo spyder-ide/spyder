@@ -25,7 +25,7 @@ from qtpy.QtWidgets import qApp, QMessageBox
 
 
 from spyder.config.main import CONF
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import PY2
 from spyder.utils.external import github
 from spyder.widgets.github.gh_login import DlgGitHubLogin
@@ -117,16 +117,12 @@ class GithubBackend(BaseBackend):
 
         # Credentials
         credentials = self.get_user_credentials()
-        if len(credentials) == 2:
-            token, remember_token = credentials
-            username, password = None, None
-        elif len(credentials) == 3:
-            token = None
-            username, password, remember = credentials
-        else:
-            username = None
-            password = None
-            token = None
+        username = credentials['username']
+        password = credentials['password']
+        remember = credentials['remember']
+        token = credentials['token']
+        remember_token = credentials['remember_token']
+
         if username is None and password is None and token is None:
             return False
         _logger().debug('got user credentials')
@@ -178,7 +174,7 @@ class GithubBackend(BaseBackend):
         """Get the stored credentials if any."""
         remember_me = CONF.get('main', 'report_error/remember_me')
         remember_token = CONF.get('main', 'report_error/remember_token')
-        username = CONF.get('main', 'report_error/username')
+        username = CONF.get('main', 'report_error/username', '')
         if not remember_me:
             username = ''
 
@@ -191,12 +187,14 @@ class GithubBackend(BaseBackend):
             try:
                 keyring.set_password('github', username, password)
             except Exception:
-                QMessageBox.warning(self.parent_widget,
-                                    _('Failed to store password'),
-                                    _('It was not possible to securely save '
-                                      'your password. You will be prompted for'
-                                      'your Github credentials next time you '
-                                      'want to report an issue.'))
+                if self._show_msgbox:
+                    QMessageBox.warning(self.parent_widget,
+                                        _('Failed to store password'),
+                                        _('It was not possible to securely '
+                                          'save your password. You will be '
+                                          'prompted for your Github '
+                                          'credentials next time you want '
+                                          'to report an issue.'))
                 remember = False
         CONF.set('main', 'report_error/remember_me', remember)
 
@@ -206,12 +204,14 @@ class GithubBackend(BaseBackend):
             try:
                 keyring.set_password('github', 'token', token)
             except Exception:
-                QMessageBox.warning(self.parent_widget,
-                                    _('Failed to store token'),
-                                    _('It was not possible to securely save '
-                                      'your token. You will be prompted for'
-                                      'your Github token next time you '
-                                      'want to report an issue.'))
+                if self._show_msgbox:
+                    QMessageBox.warning(self.parent_widget,
+                                        _('Failed to store token'),
+                                        _('It was not possible to securely '
+                                          'save your token. You will be '
+                                          'prompted for your Github token '
+                                          'next time you want to report '
+                                          'an issue.'))
                 remember = False
         CONF.set('main', 'report_error/remember_token', remember)
 
@@ -229,32 +229,49 @@ class GithubBackend(BaseBackend):
                 password = keyring.get_password('github', username)
             except Exception:
                 # No safe keyring backend
-                QMessageBox.warning(self.parent_widget,
-                                    _('Failed to retrieve password'),
-                                    _('It was not possible to retrieve your '
-                                      'password. Please introduce it again.'))
+                if self._show_msgbox:
+                    QMessageBox.warning(self.parent_widget,
+                                        _('Failed to retrieve password'),
+                                        _('It was not possible to retrieve '
+                                          'your password. Please introduce '
+                                          'it again.'))
         if remember_token and valid_py_os:
             # Get token from keyring
             try:
                 token = keyring.get_password('github', 'token')
             except Exception:
                 # No safe keyring backend
-                QMessageBox.warning(self.parent_widget,
-                                    _('Failed to retrieve token'),
-                                    _('It was not possible to retrieve your '
-                                      'token. Please introduce it again.'))
-        credentials = DlgGitHubLogin.login(self.parent_widget, username,
-                                           password, token, remember_me,
-                                           remember_token)
-        if len(credentials) == 3 and valid_py_os:
-            self._store_credentials(*credentials)
-        elif len(credentials) == 2 and valid_py_os:
-            self._store_token(*credentials)
-        elif len(credentials) == 4:
+                if self._show_msgbox:
+                    QMessageBox.warning(self.parent_widget,
+                                        _('Failed to retrieve token'),
+                                        _('It was not possible to retrieve '
+                                          'your token. Please introduce it '
+                                          'again.'))
+
+        if not running_under_pytest():
+            credentials = DlgGitHubLogin.login(self.parent_widget, username,
+                                            password, token, remember_me,
+                                            remember_token)
+
+            if (credentials['username'] and credentials['password'] and
+                    valid_py_os):
+                self._store_credentials(credentials['username'],
+                                        credentials['password'],
+                                        credentials['remember'])
+            if credentials['token'] and valid_py_os:
+                self._store_token(credentials['token'],
+                                credentials['remember_token'])
             # Remember me value
-            CONF.set('main', 'report_error/remember_me', credentials[3])
+            CONF.set('main', 'report_error/remember_me', credentials['remember'])
             # Remember token value
-            CONF.set('main', 'report_error/remember_token', credentials[4])
+            CONF.set('main', 'report_error/remember_token',
+                    credentials['remember_token'])
+        else:
+            return dict(username=username,
+                        password=password,
+                        token='',
+                        remember=remember_me,
+                        remember_token=remember_token)
 
         return credentials
 
