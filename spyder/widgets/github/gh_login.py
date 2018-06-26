@@ -228,6 +228,7 @@ class DlgGitHubLogin(QDialog):
                                remember=remember,
                                remember_token=remember_token)
             return credentials
+
         return dict(username=None,
                     password=None,
                     token=None,

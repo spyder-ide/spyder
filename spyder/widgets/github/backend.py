@@ -258,14 +258,14 @@ class GithubBackend(BaseBackend):
                 self._store_credentials(credentials['username'],
                                         credentials['password'],
                                         credentials['remember'])
+                CONF.set('main', 'report_error/remember_me',
+                         credentials['remember'])
+
             if credentials['token'] and valid_py_os:
                 self._store_token(credentials['token'],
-                                credentials['remember_token'])
-            # Remember me value
-            CONF.set('main', 'report_error/remember_me', credentials['remember'])
-            # Remember token value
-            CONF.set('main', 'report_error/remember_token',
-                    credentials['remember_token'])
+                                  credentials['remember_token'])
+                CONF.set('main', 'report_error/remember_token',
+                         credentials['remember_token'])
         else:
             return dict(username=username,
                         password=password,
