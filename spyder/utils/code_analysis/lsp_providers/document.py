@@ -9,6 +9,7 @@
 import os.path as osp
 
 from spyder.py3compat import PY2
+from spyder.config.base import debug_print
 from spyder.utils.code_analysis.decorators import handles, send_request
 from spyder.utils.code_analysis import (
     LSPRequestTypes, InsertTextFormat, CompletionItemKind, ClientConstants)
@@ -200,7 +201,10 @@ class DocumentProvider:
                   requires_response=False)
     def document_did_close(self, params):
         file_signal = params['signal']
+        debug_print('[{0}] File: {1}'.format(
+            LSPRequestTypes.DOCUMENT_DID_CLOSE, params['file']))
         filename = path_as_uri(params['file'])
+
         params = {
             'textDocument': {
                 'uri': filename

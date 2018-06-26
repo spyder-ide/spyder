@@ -978,11 +978,12 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
     def notify_close(self):
-        params = {
-            'file': self.filename,
-            'signal': self.lsp_response_signal
-        }
-        return params
+        if self.lsp_ready:
+            params = {
+                'file': self.filename,
+                'signal': self.lsp_response_signal
+            }
+            return params
 
     # -------------------------------------------------------------------------
 
