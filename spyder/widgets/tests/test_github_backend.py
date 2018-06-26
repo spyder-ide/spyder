@@ -11,8 +11,14 @@ Taken from the QCrash Project:
 https://github.com/ColinDuquesnoy/QCrash
 """
 
+import os
+import sys
+
+import pytest
+
 from spyder.config.main import CONF
 from spyder.widgets.github import backend
+
 
 USERNAME = 'tester'
 PASSWORD = 'test1234'
@@ -106,6 +112,9 @@ def test_get_credentials_from_settings():
     assert remember_token is True
 
 
+@pytest.mark.skipif((os.environ.get('CI', None) is not None and
+                     sys.platform.startswith('linux')),
+                    reason="Hard to make it work in our CIs and Linux")
 def test_store_user_credentials():
     b = get_backend()
     b._store_credentials('user', 'toto', True)
