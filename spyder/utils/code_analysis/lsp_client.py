@@ -136,8 +136,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if DEV:
             stdout_log_file = 'lsp_client_out.log'.format(
                 datetime.datetime.now().isoformat())
-            stderr_log_file = 'lsp_client_err.log'.format(
-                datetime.datetime.now().isoformat())
+            stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
             # self.stdout_log = open(osp.join(getcwd(), stdout_log_file), 'w')
             self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
 

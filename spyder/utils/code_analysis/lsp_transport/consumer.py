@@ -56,7 +56,9 @@ class IncomingMessageThread(Thread):
         return self.encode_body(body, headers)
 
     def encode_body(self, body, headers):
-        encoding = headers[b'Content-Type'].split(b'=')[-1].decode('utf8')
+        encoding = 'utf8'
+        if b'Content-Type' in headers:
+            encoding = headers[b'Content-Type'].split(b'=')[-1].decode('utf8')
         body = body.decode(encoding)
         return body
 

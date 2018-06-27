@@ -658,6 +658,7 @@ class LSPManager(SpyderPluginWidget):
                       'instance': None}
             if language not in self.clients:
                 self.clients[language] = config
+                self.register_queue[language] = []
             else:
                 debug_print(
                         self.clients[language]['config'] != config['config'])

@@ -8,6 +8,7 @@ Tests for editor codeanalysis warnings.
 '''
 
 # Third party imports
+import os
 import pytest
 from qtpy.QtCore import Signal, QObject
 
@@ -40,7 +41,9 @@ class LSPEditorWrapper(QObject):
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
+@pytest.fixture
 def construct_editor(qtbot, *args, **kwargs):
+    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
     app = qapplication()
     lsp_manager = LSPManager(parent=None)
     editor = CodeEditor(parent=None)
@@ -67,12 +70,14 @@ def construct_editor(qtbot, *args, **kwargs):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()
 
-    return editor, lsp_manager
+    yield editor, lsp_manager
+    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
+    lsp_manager.closing_plugin()
 
 
-def test_adding_warnings(qtbot):
+def test_adding_warnings(qtbot, construct_editor):
     """Test that warning are saved in the blocks of the editor."""
-    editor, lsp_manager = construct_editor(qtbot)
+    editor, lsp_manager = construct_editor
 
     block = editor.textCursor().block()
     line_count = editor.document().blockCount()
@@ -88,11 +93,10 @@ def test_adding_warnings(qtbot):
     expected_warnings = {2: 'W293', 3: 'E261', 5: 'undefined name'}
     for i, warning in warnings:
         assert expected_warnings[i] in warning
-    lsp_manager.close_client('python')
 
 
-def test_move_warnings(qtbot):
-    editor, lsp_manager = construct_editor(qtbot)
+def test_move_warnings(qtbot, construct_editor):
+    editor, lsp_manager = construct_editor
 
     # Move between warnings
     editor.go_to_next_warning()
