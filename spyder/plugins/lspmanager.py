@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import os
 import re
 
 # Third party imports
@@ -622,6 +623,9 @@ class LSPManager(SpyderPluginWidget):
         if language in self.clients:
             language_client = self.clients[language]
             queue = self.register_queue[language]
+            if (os.environ.get('CI', False) and
+                    not os.environ.get('SPY_TEST_USE_INTROSPECTION')):
+                return started
             started = language_client['status'] == self.RUNNING
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
@@ -655,7 +659,8 @@ class LSPManager(SpyderPluginWidget):
             if language not in self.clients:
                 self.clients[language] = config
             else:
-                debug_print(self.clients[language]['config'] != config['config'])
+                debug_print(
+                        self.clients[language]['config'] != config['config'])
                 if self.clients[language]['config'] != config['config']:
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
