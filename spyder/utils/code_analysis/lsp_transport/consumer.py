@@ -53,8 +53,12 @@ class IncomingMessageThread(Thread):
         LOGGER.debug(headers)
         content_length = int(headers[b'Content-Length'])
         body = self.expect.read(size=content_length)
-        return body
+        return self.encode_body(body, headers)
 
+    def encode_body(self, body, headers):
+        encoding = headers[b'Content-Type'].split(b'=')[-1].decode('utf8')
+        body = body.decode(encoding)
+        return body
 
     def expect_windows(self):
         buffer = b''
@@ -79,7 +83,7 @@ class IncomingMessageThread(Thread):
             recv = self.socket.recv(min(1024, pending_bytes))
             buffer += recv
             pending_bytes -= len(recv)
-        return buffer
+        return self.encode_body(buffer, headers)
 
     def run(self):
         while True:
