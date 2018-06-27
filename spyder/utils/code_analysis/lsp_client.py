@@ -168,7 +168,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # else:
         self.transport_client.kill()
         self.context.destroy()
-        self.lsp_server.kill()
+        if not self.external_server:
+            self.lsp_server.kill()
 
     def send(self, method, params, requires_response):
         if ClientConstants.CANCEL in params:
@@ -280,6 +281,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             kind = server_capabilites['textDocumentSync']
             server_capabilites['textDocumentSync'] = TEXT_DOCUMENT_SYNC_OPTIONS
             server_capabilites['textDocumentSync']['change'] = kind
+        if server_capabilites['textDocumentSync'] is None:
+            server_capabilites.pop('textDocumentSync')
 
         self.server_capabilites.update(server_capabilites)
 

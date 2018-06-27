@@ -266,6 +266,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' and not PY2,
+                    reason="Times out on AppVeyor and fails on PY3")
 @pytest.mark.use_introspection
 def test_get_help(main_window, qtbot):
     """

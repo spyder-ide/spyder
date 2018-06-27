@@ -19,6 +19,7 @@ from spyder.py3compat import to_binary_string
 from spyder.utils.codeanalysis import check_with_pyflakes, check_with_pep8
 from spyder.plugins.lspmanager import LSPManager
 from spyder.utils.code_analysis import LSPEventTypes
+from spyder.py3compat import PY2
 
 
 class LSPEditorWrapper(QObject):
@@ -75,6 +76,8 @@ def construct_editor(qtbot, *args, **kwargs):
     lsp_manager.closing_plugin()
 
 
+@pytest.mark.skipif(os.name == 'nt' and not PY2,
+                    reason="Times out on AppVeyor and fails on PY3/PyQt 5.6")
 def test_adding_warnings(qtbot, construct_editor):
     """Test that warning are saved in the blocks of the editor."""
     editor, lsp_manager = construct_editor

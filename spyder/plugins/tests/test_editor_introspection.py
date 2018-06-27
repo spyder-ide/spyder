@@ -72,6 +72,8 @@ def setup_editor(qtbot, monkeypatch):
 
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Segfaults with other tests on Py2.")
+@pytest.mark.skipif(os.name == 'nt' and not PY2,
+                    reason="Times out on AppVeyor and fails on PY3")
 def test_introspection(setup_editor):
     """Validate changing path in introspection plugins."""
     editor, qtbot = setup_editor

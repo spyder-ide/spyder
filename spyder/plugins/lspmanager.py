@@ -39,7 +39,7 @@ from spyder.utils.code_analysis.lsp_client import LSPClient
 LSP_LANGUAGES = [
     'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
     'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript'
+    'Python', 'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang'
 ]
 
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
