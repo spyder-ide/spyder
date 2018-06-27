@@ -96,8 +96,9 @@ class IncomingMessageThread(Thread):
                 err = False
                 try:
                     body = json.loads(body)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError) as e:
                     err = True
+                    LOGGER.error(e)
                 if not err:
                     LOGGER.debug(body)
                     self.zmq_sock.send_pyobj(body)
