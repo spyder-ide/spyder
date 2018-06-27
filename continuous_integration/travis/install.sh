@@ -2,7 +2,7 @@
 
 if [ "$USE_CONDA" = "no" ]; then
     export PIP_DEPENDENCIES_FLAGS="-q"
-    export PIP_DEPENDENCIES="coveralls"
+    export PIP_DEPENDENCIES="coveralls coloredlogs python-language-server[all] pydocstyle pexpect"
     export CONDA_DEPENDENCIES=""
 else
     export CONDA_DEPENDENCIES_FLAGS="--quiet"
