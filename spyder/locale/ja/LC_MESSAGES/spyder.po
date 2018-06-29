@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-06-26 19:16+-05\n"
-"PO-Revision-Date: 2018-02-21 19:02+0900\n"
+"PO-Revision-Date: 2018-06-30 00:25+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
 "Language: ja\n"
@@ -549,6 +549,8 @@ msgid ""
 "<b>{}</b> is no longer a valid Spyder project! Since it is the current "
 "active project, it will be closed automatically."
 msgstr ""
+"<b>{}</b> はもはやSpyderプロジェクトではありません！現在のアクティブプロジェ"
+"クトであるため自動的に閉じられます。"
 
 #: spyder/app/mainwindow.py:2234 spyder/app/mainwindow.py:2235
 msgid "Maximize current pane"
@@ -2227,9 +2229,8 @@ msgid "IPython interactive python environment"
 msgstr "IPythonインタラクティブpython環境"
 
 #: spyder/plugins/ipythonconsole.py:81
-#, fuzzy
 msgid "Display 2D graphics in the IPython Console"
-msgstr "IPythonコンソールでの記号数学"
+msgstr "IPythonコンソールで2D画像を表示"
 
 #: spyder/plugins/ipythonconsole.py:132
 msgid ""
@@ -2504,7 +2505,7 @@ msgstr "デフォルトは4です"
 
 #: spyder/plugins/ipythonconsole.py:427
 msgid "Use a tight layout for inline plots"
-msgstr ""
+msgstr "インラインプロットのためにタイトなレイアウトを使う"
 
 #: spyder/plugins/ipythonconsole.py:429
 msgid ""
@@ -2514,6 +2515,11 @@ msgid ""
 "between the image displayed inline and\n"
 "that created using savefig."
 msgstr ""
+"matplotlibを使ってインラインプロット\n"
+"するためにbbox_inchesに\"tight\"を設定します。\n"
+"これが有効化された場合、インライン表示された画像と\n"
+"savefigによって作成された画像の間に食い違いが\n"
+"出る場合があります。"
 
 #: spyder/plugins/ipythonconsole.py:462
 msgid ""
@@ -2545,9 +2551,8 @@ msgid "Use the following file:"
 msgstr "以下のファイルを使う:"
 
 #: spyder/plugins/ipythonconsole.py:496
-#, fuzzy
 msgid "Jedi completion"
-msgstr "Greedy completion"
+msgstr "Jediモジュールによる補完"
 
 #: spyder/plugins/ipythonconsole.py:497
 msgid ""
@@ -2555,18 +2560,19 @@ msgid ""
 "the greedy completer, but without evaluating the code.<br><b>Warning:</b> "
 "Slows down your console when working with large dataframes!"
 msgstr ""
+"IPythonコンソールでjediベースの<tt>タブ</tt>補完を有効化する；貪欲(greedy)な"
+"補完と類似しているがコードの評価はしない。<br><b>警告：</b> サイズの大きい"
+"データフレームを扱っている場合コンソールの処理速度が低下することがあります。"
 
 #: spyder/plugins/ipythonconsole.py:504
-#, fuzzy
 msgid "Use Jedi completion in the IPython console"
-msgstr "IPythonコンソールでの記号数学"
+msgstr "IPythonコンソールでJediモジュールによる補完を使う"
 
 #: spyder/plugins/ipythonconsole.py:517
 msgid "Greedy completion"
 msgstr "Greedy completion"
 
 #: spyder/plugins/ipythonconsole.py:518
-#, fuzzy
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
 "calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;"
@@ -2575,14 +2581,17 @@ msgid ""
 "for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> "
 "works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't."
 msgstr ""
-"リスト要素、関数呼び出し結果等を変数に<i>割り当てずに</i>に<tt>Tab</tt> 補完"
-"を有効にする。<br>例えば <tt>li[0].&lt;Tab&gt;</tt> や <tt>ins.meth().&lt;"
-"Tab&gt;</tt> のように補完できる"
+"リスト要素や関数呼び出し結果等で<tt>Tab</tt>補完を有効化する。 この場合結果等"
+"を変数に<i>割り当てずに</i>に<tt>Tab</tt> 補完を有効にする。<br>例えば "
+"<tt>li[0].&lt;Tab&gt;</tt> や <tt>ins.meth().&lt;Tab&gt;</tt> のように補完で"
+"きる、<br><b>警告：</b>バグにより、IPythonのgreedy補完ではいくつかの補完に対"
+"して<tt>&lt;Space&gt;</tt> が必要となる。例：<tt>np.sin(&lt;Space&gt;np.&lt;"
+"Tab&gt;</tt> は正しく動作するが、<tt>np.sin(np.&lt;Tab&gt; </tt> は動作しな"
+"い。"
 
 #: spyder/plugins/ipythonconsole.py:530
-#, fuzzy
 msgid "Use greedy completion in the IPython console"
-msgstr "IPythonコンソールを統合"
+msgstr "IPythonコンソールで貪欲な補完(greedy completion)を使う"
 
 #: spyder/plugins/ipythonconsole.py:542
 msgid "Autocall"
@@ -2715,6 +2724,9 @@ msgid ""
 "console.</b>\n"
 "<hr><br>"
 msgstr ""
+"<br><b>コンソールでファイルを実行しようとする前に、デバッグを終了して下さい。"
+"</b>\n"
+"<hr><br>"
 
 #: spyder/plugins/ipythonconsole.py:986
 msgid ""
@@ -2725,7 +2737,6 @@ msgstr ""
 "試行してください。"
 
 #: spyder/plugins/ipythonconsole.py:1084
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>spyder-kernels</"
 "tt> module installed on it. Without this module is not possible for Spyder "
@@ -2733,11 +2744,11 @@ msgid ""
 "system terminal:<br><br><tt>conda install spyder-kernels</"
 "tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
 msgstr ""
-"Python環境に<tt>ipykernel</tt>と<tt>cloudpickle</tt> モジュールがインストール"
-"されていません。これらのモジュールがない場合Spyderでコンソールを開くことがで"
-"きない場合があります。<br><br>システムのターミナルで以下のコマンドでインス"
-"トールすることが可能です。:<br><br><tt>pip install ipykernel cloudpickle</"
-"tt><br><br>あるいは<br><br><tt>conda install ipykernel cloudpickle</tt>"
+"Python環境に<tt>spyder-kernels</tt>モジュールがインストールされておりません。"
+"これらのモジュールがない場合Spyderでコンソールを開くことができない場合があり"
+"ます。<br><br>システムのターミナルで以下のコマンドでインストールすることが可"
+"能です。:<br><br><tt>conda install spyder-kernels</tt><br><br>あるいは"
+"<br><br><tt>pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1348
 msgid "Do you want to close this console?"
@@ -2758,7 +2769,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:1525
 msgid "The error is:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "エラー：<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1723
 msgid "IPython"
@@ -3593,9 +3604,8 @@ msgstr "<b>%s</b> は変更されています。<br>保存しますか?"
 
 #: spyder/widgets/editor.py:1625 spyder/widgets/editor.py:1788
 #: spyder/widgets/explorer.py:82
-#, fuzzy
 msgid "Save Error"
-msgstr "配列を保存"
+msgstr "エラーを保存"
 
 #: spyder/widgets/editor.py:1626 spyder/widgets/editor.py:1789
 #: spyder/widgets/explorer.py:83
@@ -4100,111 +4110,102 @@ msgid "no matches"
 msgstr "一致なし"
 
 #: spyder/widgets/github/backend.py:148
-#, fuzzy
 msgid "Invalid credentials"
-msgstr "不正なキー入力"
+msgstr "不正な認証情報"
 
 #: spyder/widgets/github/backend.py:149
 msgid "Failed to create Github issue, invalid credentials..."
 msgstr ""
+"Github issueの作成に失敗しました。認証情報が有効ではない可能性があります..."
 
 #: spyder/widgets/github/backend.py:156
-#, fuzzy
 msgid "Failed to create issue"
-msgstr "新規ファイルは以下のディレクトリに作成されます:"
+msgstr "issueの作成に失敗しました"
 
 #: spyder/widgets/github/backend.py:157
 msgid "Failed to create Github issue. Error %d"
-msgstr ""
+msgstr "Githubでのissueの作成に失敗しました。エラー %d"
 
 #: spyder/widgets/github/backend.py:164
 msgid "Issue created on Github"
-msgstr ""
+msgstr "IssueがGithub上に作成されました"
 
 #: spyder/widgets/github/backend.py:165
 msgid ""
 "Issue successfully created. Would you like to open the issue in your web "
 "browser?"
-msgstr ""
+msgstr "Issueの作成に成功しました。ブラウザでissueのページを開きますか？"
 
 #: spyder/widgets/github/backend.py:192
 msgid "Failed to store password"
-msgstr ""
+msgstr "パスワードの保存に失敗しました"
 
 #: spyder/widgets/github/backend.py:193
 msgid ""
 "It was not possible to securely save your password. You will be prompted for "
 "your Github credentials next time you want to report an issue."
 msgstr ""
+"安全な状態でパスワードを保存することができなかったか可能性があります。次回"
+"issueを報告する時に認証情報が確認されます。"
 
 #: spyder/widgets/github/backend.py:209
 msgid "Failed to store token"
-msgstr ""
+msgstr "トークンの保存に失敗しました"
 
 #: spyder/widgets/github/backend.py:210
 msgid ""
 "It was not possible to securely save your token. You will be prompted for "
 "your Github token next time you want to report an issue."
 msgstr ""
+"トークンが安全な状態で保存されなかった可能性があります。次回issue報告時に確認"
+"されます。"
 
 #: spyder/widgets/github/backend.py:234
-#, fuzzy
 msgid "Failed to retrieve password"
-msgstr "情報が取得できません"
+msgstr "パスワードの取得に失敗しました"
 
 #: spyder/widgets/github/backend.py:235
-#, fuzzy
 msgid ""
 "It was not possible to retrieve your password. Please introduce it again."
-msgstr ""
-"このオブジェクトに対してリッチテキストのヘルプを生成できませんでした。</br>プ"
-"レーンテキストを参照してください。"
+msgstr "パスワードを取得できませんでした。再度導入して下さい。"
 
 #: spyder/widgets/github/backend.py:246
-#, fuzzy
 msgid "Failed to retrieve token"
-msgstr "情報が取得できません"
+msgstr "トークンの取得に失敗しました"
 
 #: spyder/widgets/github/backend.py:247
-#, fuzzy
 msgid "It was not possible to retrieve your token. Please introduce it again."
-msgstr ""
-"このオブジェクトに対してリッチテキストのヘルプを生成できませんでした。</br>プ"
-"レーンテキストを参照してください。"
+msgstr "トークンの入手に失敗しました。再度導入して下さい。"
 
 #: spyder/widgets/github/gh_login.py:38
-#, fuzzy
 msgid "Sign in to Github"
-msgstr "Githubへ送信する"
+msgstr "Githubへサインインする"
 
 #: spyder/widgets/github/gh_login.py:59
 msgid ""
 "For regular users, i.e. users <b>without</b> two-factor authentication "
 "enabled"
-msgstr ""
+msgstr "通常ユーザー、即ち2要素認証の<b>無い</b>ユーザーが有効化"
 
 #: spyder/widgets/github/gh_login.py:64
-#, fuzzy
 msgid "Username:"
-msgstr "新しい名前:"
+msgstr "ユーザー名："
 
 #: spyder/widgets/github/gh_login.py:71
-#, fuzzy
 msgid "Password: "
-msgstr "パスワード"
+msgstr "パスワード："
 
 #: spyder/widgets/github/gh_login.py:83
 msgid "Remember me"
-msgstr ""
+msgstr "私の情報を記憶する"
 
 #: spyder/widgets/github/gh_login.py:84
 msgid "Spyder will save your credentials safely"
-msgstr ""
+msgstr "Spyderは認証情報を安全な状態で保存します"
 
 #: spyder/widgets/github/gh_login.py:101
-#, fuzzy
 msgid "Password Only"
-msgstr "パスワード"
+msgstr "パスワードのみ"
 
 #: spyder/widgets/github/gh_login.py:107
 msgid ""
@@ -4213,23 +4214,26 @@ msgid ""
 "and click \"Generate token\" at the bottom to create a new token to use for "
 "this, with the appropriate permissions."
 msgstr ""
+"2要素認証を有効化<b>している</b>ユーザー、あるいはアプリケーション単位での"
+"トークン認証を行いたいユーザーは、<br><br>以下のサイト(<b><a href=\"{}\">こち"
+"ら</a></b>)へ行ってページ下部の\"Generate token\"をクリックし、適切な認証の下"
+"で新しいトークンを作成することができます。"
 
 #: spyder/widgets/github/gh_login.py:129
 msgid "Remember token"
-msgstr ""
+msgstr "トークンを記憶する"
 
 #: spyder/widgets/github/gh_login.py:130
-#, fuzzy
 msgid "Spyder will save your token safely"
-msgstr "Spyderは最新の状態です。"
+msgstr "Spyderはトークンを安全な状態で保存しました"
 
 #: spyder/widgets/github/gh_login.py:148
 msgid "Access Token"
-msgstr ""
+msgstr "トークンへアクセス"
 
 #: spyder/widgets/github/gh_login.py:151
 msgid "Sign in"
-msgstr ""
+msgstr "サインイン"
 
 #: spyder/widgets/internalshell.py:263
 msgid "Help..."
@@ -4367,9 +4371,8 @@ msgstr ""
 "<hr>"
 
 #: spyder/widgets/ipythonconsole/shell.py:431
-#, fuzzy
 msgid "Changing backend to Qt4 for Mayavi"
-msgstr "MayaviのバックエンドをQtに変更中"
+msgstr "MayaviのバックエンドをQt4に変更しています"
 
 #: spyder/widgets/ipythonconsole/shell.py:476
 msgid "Kernel died, restarting"
@@ -4598,16 +4601,15 @@ msgstr "モジュールあるいはパッケージ:"
 
 #: spyder/widgets/reporterror.py:128
 msgid "Issue reporter"
-msgstr ""
+msgstr "Issueレポーター"
 
 #: spyder/widgets/reporterror.py:136
-#, fuzzy
 msgid "Please fill the following information"
-msgstr "以下のファイルを使う:"
+msgstr "以下の情報を入力して下さい"
 
 #: spyder/widgets/reporterror.py:138
 msgid "Spyder has encountered an internal problem!"
-msgstr ""
+msgstr "Spyderで内部エラーが発生しました！"
 
 #: spyder/widgets/reporterror.py:140
 msgid ""
@@ -4617,19 +4619,23 @@ msgid ""
 "\"{project_url}\">known bugs</a></b> matching your error message or problem "
 "description for a quicker solution."
 msgstr ""
+"<h3>{title}</h3>この問題を報告する前に、 <i>どうか</i> <b><a href="
+"\"{trouble_url}\">トラブルシュートガイド</a></b> を参照して下さい。これは大半"
+"の問題解決の助けになります。またより迅速に解決するために<b><a href="
+"\"{project_url}\">既知のバグリスト</a></b> でエラーメッセージあるいは問題の概"
+"要を検索して下さい。"
 
 #: spyder/widgets/reporterror.py:158 spyder/widgets/reporterror.py:190
-#, fuzzy
 msgid "{} more characters to go..."
-msgstr "まだ入力可能です…"
+msgstr "{}文字入力可能です..."
 
 #: spyder/widgets/reporterror.py:162
 msgid "<b>Title</b>: {}"
-msgstr ""
+msgstr "<b>タイトル</b>: {}"
 
 #: spyder/widgets/reporterror.py:168
 msgid "<b>Steps to reproduce:</b> {}"
-msgstr ""
+msgstr "<b>問題を再現するステップ</b> {}"
 
 #: spyder/widgets/reporterror.py:169
 msgid ""
@@ -4637,11 +4643,13 @@ msgid ""
 "to the problem below. Issue reports without a clear way to reproduce them "
 "will be closed."
 msgstr ""
+"どのようにして問題が発生したか、以下の一問一答式の記述に詳細に入力して下さ"
+"い。状況を再現するための情報が不足しているレポートは回答前にcloseされる場合が"
+"あります。"
 
 #: spyder/widgets/reporterror.py:194
-#, fuzzy
 msgid "Hide all future errors during this session"
-msgstr "このセッションでの以後のエラー全てを隠す"
+msgstr "このセッションでの以後のエラーを隠す"
 
 #: spyder/widgets/reporterror.py:201
 msgid "Submit to Github"
@@ -4666,6 +4674,9 @@ msgid ""
 "your clipboard into the issue report box that will appear in a new browser "
 "tab before clicking <i>Submit</i> on that page."
 msgstr ""
+"Githubへissueを自動送信中にエラーが発生しました。手動で送信しますか？<br><br>"
+"その場合、ブラウザで開いたページの<i>Submit</i>ボタンを押す前に、レポートボッ"
+"クスにクリップボードの中身を貼り付けてているか確認して下さい。"
 
 #: spyder/widgets/reporterror.py:320
 msgid "Hide details"
@@ -4677,11 +4688,11 @@ msgstr "まだ入力可能です…"
 
 #: spyder/widgets/reporterror.py:331
 msgid "Description complete; thanks!"
-msgstr ""
+msgstr "入力が完了しました；感謝！"
 
 #: spyder/widgets/reporterror.py:339
 msgid "Title complete; thanks!"
-msgstr ""
+msgstr "タイトルが完了しました；感謝！"
 
 #: spyder/widgets/shell.py:131
 msgid "Save history log..."
@@ -4922,9 +4933,8 @@ msgstr ""
 #: spyder/widgets/variableexplorer/collectionseditor.py:1370
 #: spyder/widgets/variableexplorer/dataframeeditor.py:732
 #: spyder/widgets/variableexplorer/texteditor.py:67
-#, fuzzy
 msgid "Save and Close"
-msgstr "すべてのファイルを保存"
+msgstr "保存して閉じる"
 
 #: spyder/widgets/variableexplorer/collectionseditor.py:151
 msgid "Index"
@@ -5277,6 +5287,8 @@ msgid ""
 "The object you are trying to modify is too big to be sent back to the "
 "kernel. Therefore, your modifications won't take place."
 msgstr ""
+"変更中のオブジェクトはカーネルへ送るには大きすぎます。このため変更は適用され"
+"ませんでした。"
 
 #: spyder/widgets/variableexplorer/namespacebrowser.py:417
 msgid ""
