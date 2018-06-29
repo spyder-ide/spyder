@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2018-06-26 19:16+-05\n"
-"PO-Revision-Date: 2018-05-21 00:14-0500\n"
+"PO-Revision-Date: 2018-06-29 10:20+0200\n"
 "Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.0.7\n"
+"X-Generator: Poedit 2.0.8\n"
 
 #: spyder/app/mainwindow.py:134
 msgid "Initializing..."
@@ -553,6 +553,8 @@ msgid ""
 "<b>{}</b> is no longer a valid Spyder project! Since it is the current "
 "active project, it will be closed automatically."
 msgstr ""
+"<b>{}</b> n'est plus un projet Spyder valide ! Comme il s'agit du projet en "
+"cours, il va être automatiquement fermé."
 
 #: spyder/app/mainwindow.py:2234 spyder/app/mainwindow.py:2235
 msgid "Maximize current pane"
@@ -2550,7 +2552,7 @@ msgstr "Par défaut : 4"
 
 #: spyder/plugins/ipythonconsole.py:427
 msgid "Use a tight layout for inline plots"
-msgstr ""
+msgstr "Utiliser une disposition ajustée pour les graphes en ligne"
 
 #: spyder/plugins/ipythonconsole.py:429
 msgid ""
@@ -2560,6 +2562,11 @@ msgid ""
 "between the image displayed inline and\n"
 "that created using savefig."
 msgstr ""
+"Définir bbox_inches à \"ajusté\" pour\n"
+"les graphes en ligne avec matplotlib.\n"
+"Lorsqu'activée, cette option peut être source\n"
+"de différences entre l'image en ligne et\n"
+"celle créée lors de la sauvegarde de la figure."
 
 #: spyder/plugins/ipythonconsole.py:462
 msgid ""
@@ -2600,6 +2607,10 @@ msgid ""
 "the greedy completer, but without evaluating the code.<br><b>Warning:</b> "
 "Slows down your console when working with large dataframes!"
 msgstr ""
+"Activer l'auto complétion utilisant Jedi avec <tt>Tab</tt> dans la console "
+"IPython ; similaire à la complétion normale mais sans évaluation du code."
+"<br><b>Attention :</b> Ralentissement de la console lors de l'utilisation de "
+"dataframes volumineux !"
 
 #: spyder/plugins/ipythonconsole.py:504
 #, fuzzy
@@ -2764,6 +2775,9 @@ msgid ""
 "console.</b>\n"
 "<hr><br>"
 msgstr ""
+"<br><b>Merci de quitter le débuggeur avant de lancer l'exécution d'un "
+"fichier dans cette console.</b>\n"
+"<hr><br>"
 
 #: spyder/plugins/ipythonconsole.py:986
 msgid ""
@@ -2811,7 +2825,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole.py:1525
 msgid "The error is:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "L'erreur est :<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole.py:1723
 msgid "IPython"
@@ -4197,6 +4211,8 @@ msgstr "Vous avez entré une clé non valide"
 #: spyder/widgets/github/backend.py:149
 msgid "Failed to create Github issue, invalid credentials..."
 msgstr ""
+"Echec lors de la création du rapport d'erreur Github, identifiants non "
+"valides..."
 
 #: spyder/widgets/github/backend.py:156
 #, fuzzy
@@ -4205,37 +4221,44 @@ msgstr "Les fichiers sont créés dans :"
 
 #: spyder/widgets/github/backend.py:157
 msgid "Failed to create Github issue. Error %d"
-msgstr ""
+msgstr "Echec lors de la création du rapport d'erreur Github. Erreur %d"
 
 #: spyder/widgets/github/backend.py:164
 msgid "Issue created on Github"
-msgstr ""
+msgstr "Rapport d'erreur créé sur Github"
 
 #: spyder/widgets/github/backend.py:165
 msgid ""
 "Issue successfully created. Would you like to open the issue in your web "
 "browser?"
 msgstr ""
+"Rapport d'erreur créé avec succès. Ouvrir ce rapport dans le navigateur "
+"internet ?"
 
 #: spyder/widgets/github/backend.py:192
 msgid "Failed to store password"
-msgstr ""
+msgstr "Echec lors de l'enregistrement du mot de passe"
 
 #: spyder/widgets/github/backend.py:193
 msgid ""
 "It was not possible to securely save your password. You will be prompted for "
 "your Github credentials next time you want to report an issue."
 msgstr ""
+"Impossible d'enregistrer le mot de passe de façon sécurisée. Vous serez "
+"invité à entrer vos identifiants lors de la prochaine création de rapport "
+"d'erreur."
 
 #: spyder/widgets/github/backend.py:209
 msgid "Failed to store token"
-msgstr ""
+msgstr "Echec de l'enregistrement du token"
 
 #: spyder/widgets/github/backend.py:210
 msgid ""
 "It was not possible to securely save your token. You will be prompted for "
 "your Github token next time you want to report an issue."
 msgstr ""
+"Impossible d'enregistrer le token de façon sécurisée. Vous serez invité à "
+"entrer votre token lors de la prochaine création de rapport d'erreur."
 
 #: spyder/widgets/github/backend.py:234
 #, fuzzy
@@ -4272,6 +4295,8 @@ msgid ""
 "For regular users, i.e. users <b>without</b> two-factor authentication "
 "enabled"
 msgstr ""
+"Pour les utilisateurs classiques, c'est-à-dire les utilisateurs <b>sans</b> "
+"l'authentification à deux facteurs activée"
 
 #: spyder/widgets/github/gh_login.py:64
 #, fuzzy
@@ -4285,11 +4310,11 @@ msgstr "Mot de passe"
 
 #: spyder/widgets/github/gh_login.py:83
 msgid "Remember me"
-msgstr ""
+msgstr "Se souvenir de moi"
 
 #: spyder/widgets/github/gh_login.py:84
 msgid "Spyder will save your credentials safely"
-msgstr ""
+msgstr "Spyder va enregistrer les identifiants de façon sécurisée"
 
 #: spyder/widgets/github/gh_login.py:101
 #, fuzzy
@@ -4303,10 +4328,15 @@ msgid ""
 "and click \"Generate token\" at the bottom to create a new token to use for "
 "this, with the appropriate permissions."
 msgstr ""
+"Pour les utilisateurs <b>sans</b> l'authentification double facteur activée, "
+"ou pour ceux qui préfèrent une authentification avec un token par "
+"application.<br><br>Se connecter <b><a href=\"{}\">ici</a></b> et cliquer  "
+"sur \"Generate token\" en bas de page pour créer un nouveau token à utiliser "
+"ici avec les autorisations appropriées."
 
 #: spyder/widgets/github/gh_login.py:129
 msgid "Remember token"
-msgstr ""
+msgstr "Se souvenir du token"
 
 #: spyder/widgets/github/gh_login.py:130
 #, fuzzy
@@ -4315,11 +4345,11 @@ msgstr "Spyder est à jour."
 
 #: spyder/widgets/github/gh_login.py:148
 msgid "Access Token"
-msgstr ""
+msgstr "Accéder au Token"
 
 #: spyder/widgets/github/gh_login.py:151
 msgid "Sign in"
-msgstr ""
+msgstr "S'identifier"
 
 #: spyder/widgets/internalshell.py:263
 msgid "Help..."
@@ -4697,7 +4727,7 @@ msgstr "Module ou paquet :"
 
 #: spyder/widgets/reporterror.py:128
 msgid "Issue reporter"
-msgstr ""
+msgstr "Rapporteur d'erreur"
 
 #: spyder/widgets/reporterror.py:136
 #, fuzzy
@@ -4706,7 +4736,7 @@ msgstr "Utiliser le fichier suivant :"
 
 #: spyder/widgets/reporterror.py:138
 msgid "Spyder has encountered an internal problem!"
-msgstr ""
+msgstr "Spyder a rencontré un problème interne !"
 
 #: spyder/widgets/reporterror.py:140
 msgid ""
@@ -4716,6 +4746,11 @@ msgid ""
 "\"{project_url}\">known bugs</a></b> matching your error message or problem "
 "description for a quicker solution."
 msgstr ""
+"<h3>{title}</h3>Avant de rapporter cette erreur, <i>merci</i> de consulter "
+"le <b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> détaillé qui "
+"permet de résoudre la majorité des problèmes et de chercher des <b><a href="
+"\"{project_url}\">erreurs déjà rapportées</a></b> similaires à la votre afin "
+"d'obtenir une solution plus rapide."
 
 #: spyder/widgets/reporterror.py:158 spyder/widgets/reporterror.py:190
 #, fuzzy
@@ -4724,11 +4759,11 @@ msgstr "ajouter encore des caractères..."
 
 #: spyder/widgets/reporterror.py:162
 msgid "<b>Title</b>: {}"
-msgstr ""
+msgstr "<b>Titre </b>: {}"
 
 #: spyder/widgets/reporterror.py:168
 msgid "<b>Steps to reproduce:</b> {}"
-msgstr ""
+msgstr "<b>Etapes pour reproduire :</b> {}"
 
 #: spyder/widgets/reporterror.py:169
 msgid ""
@@ -4776,11 +4811,11 @@ msgstr "ajouter encore des caractères..."
 
 #: spyder/widgets/reporterror.py:331
 msgid "Description complete; thanks!"
-msgstr ""
+msgstr "Description complète ; Merci !"
 
 #: spyder/widgets/reporterror.py:339
 msgid "Title complete; thanks!"
-msgstr ""
+msgstr "Titre complet ; merci !"
 
 #: spyder/widgets/shell.py:131
 msgid "Save history log..."
