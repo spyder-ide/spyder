@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2018-06-26 19:16+-05\n"
-"PO-Revision-Date: 2018-06-30 18:28+0200\n"
+"PO-Revision-Date: 2018-06-30 18:48+0200\n"
 "Last-Translator: Melaine Euzenat <melaine.euzenat@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -4729,7 +4729,7 @@ msgstr ""
 "<h3>{title}</h3>Avant de rapporter cette erreur, <i>merci</i> de consulter "
 "le <b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> détaillé qui "
 "permet de résoudre la majorité des problèmes et de chercher des <b><a href="
-"\"{project_url}\">erreurs déjà rapportées</a></b> similaires à la votre afin "
+"\"{project_url}\">erreurs déjà rapportées</a></b> similaires à la vôtre afin "
 "d'obtenir une solution plus rapide."
 
 #: spyder/widgets/reporterror.py:158 spyder/widgets/reporterror.py:190
@@ -4797,7 +4797,7 @@ msgstr "ajouter encore des caractères..."
 
 #: spyder/widgets/reporterror.py:331
 msgid "Description complete; thanks!"
-msgstr "Description complète ; Merci !"
+msgstr "Description complète ; merci !"
 
 #: spyder/widgets/reporterror.py:339
 msgid "Title complete; thanks!"
