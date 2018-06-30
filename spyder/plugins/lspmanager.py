@@ -14,6 +14,7 @@
 # Standard library imports
 import os
 import re
+import json
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -33,7 +34,9 @@ from spyder.utils.programs import find_program
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.widgets.helperwidgets import ItemDelegate
+from spyder.config.gui import get_font, get_color_scheme
 from spyder.utils.code_analysis.lsp_client import LSPClient
+from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 
 LSP_LANGUAGES = [
@@ -56,13 +59,15 @@ class LSPServer:
     """Convenience class to store LSP Server configuration values."""
 
     def __init__(self, language=None, cmd='', host='127.0.0.1',
-                 port=2084, args='', external=False):
+                 port=2084, args='', external=False,
+                 configurations={}):
         self.index = 0
         self.language = language
         if self.language in LSP_LANGUAGE_NAME:
             self.language = LSP_LANGUAGE_NAME[self.language]
         self.cmd = cmd
         self.args = args
+        self.configurations = configurations
         self.port = port
         self.host = host
         self.external = external
@@ -103,12 +108,16 @@ class LSPServerEditor(QDialog):
     DEFAULT_PORT = 2084
     DEFAULT_CMD = ''
     DEFAULT_ARGS = ''
+    DEFAULT_CONFIGURATION = '{}'
     DEFAULT_EXTERNAL = False
     HOST_REGEX = re.compile(r'^\w+([.]\w+)*$')
     NON_EMPTY_REGEX = re.compile(r'^\S+$')
+    JSON_VALID = _('JSON valid')
+    JSON_INVALID = _('JSON invalid')
 
     def __init__(self, parent, language=None, cmd='', host='127.0.0.1',
-                 port=2084, args='', external=False, **kwargs):
+                 port=2084, args='', external=False, configurations={},
+                 **kwargs):
         super(LSPServerEditor, self).__init__(parent)
         self.parent = parent
         self.external = external
@@ -123,7 +132,7 @@ class LSPServerEditor(QDialog):
                         'name for the server to execute '
                         '(If the instance is local), '
                         'and the host and port. Finally, '
-                        'you will to provide the '
+                        'you need to provide the '
                         'arguments that the server accepts. '
                         'The placeholders <tt>%(host)s</tt> and '
                         '<tt>%(port)s</tt> refer to the host '
@@ -172,15 +181,42 @@ class LSPServerEditor(QDialog):
                                      'start the server'))
         self.args_input.setText(args)
 
+        conf_label = QLabel(_('LSP Server Configurations:'))
+        self.conf_input = CodeEditor(None)
+        self.conf_input.textChanged.connect(self.validate)
+        color_scheme = CONF.get('color_schemes', 'selected')
+        self.conf_input.setup_editor(
+            language='JSON',
+            color_scheme=color_scheme,
+            wrap=False,
+            edge_line=True,
+            highlight_current_line=True,
+            highlight_current_cell=True,
+            occurrence_highlighting=True,
+            auto_unindent=True,
+            font=get_font(),
+            filename='config.json')
+        self.conf_input.setToolTip(_('Additional LSP server configurations '
+                                     'set at runtime. JSON required'))
+        conf_text = '{}'
+        try:
+            conf_text = json.dumps(configurations, indent=4, sort_keys=True)
+        except Exception:
+            pass
+        self.conf_input.set_text(conf_text)
+        self.json_label = QLabel(self.JSON_VALID, self)
+
         self.external_cb = QCheckBox(_('External server'), self)
         self.external_cb.setToolTip(_('Check if the server runs '
                                       'on a remote location'))
-        self.external_cb.stateChanged.connect(self.set_local_options)
         self.external_cb.setChecked(external)
+        self.external_cb.stateChanged.connect(self.set_local_options)
+
+        hlayout = QHBoxLayout()
+        general_vlayout = QVBoxLayout()
+        general_vlayout.addWidget(server_settings_description)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(server_settings_description)
-
         lang_layout = QVBoxLayout()
         lang_layout.addWidget(lang_label)
         lang_layout.addWidget(self.lang_cb)
@@ -212,9 +248,18 @@ class LSPServerEditor(QDialog):
         args_layout.addWidget(args_label)
         args_layout.addWidget(self.args_input)
         vlayout.addLayout(args_layout)
-        vlayout.addWidget(bbox)
 
-        self.setLayout(vlayout)
+        conf_layout = QVBoxLayout()
+        conf_layout.addWidget(conf_label)
+        conf_layout.addWidget(self.conf_input)
+        conf_layout.addWidget(self.json_label)
+
+        hlayout.addLayout(vlayout)
+        hlayout.addLayout(conf_layout)
+        general_vlayout.addLayout(hlayout)
+
+        general_vlayout.addWidget(bbox)
+        self.setLayout(general_vlayout)
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         self.lang_cb.currentIndexChanged.connect(
@@ -259,6 +304,18 @@ class LSPServerEditor(QDialog):
                     "QLineEdit{border: 1px solid green;}")
                 self.cmd_input.setToolTip('Program was found on your system')
                 self.button_ok.setEnabled(True)
+        try:
+            json.loads(self.conf_input.toPlainText())
+            try:
+                self.json_label.setText(self.JSON_VALID)
+            except:
+                pass
+        except (ValueError, json.decoder.JSONDecodeError):
+            try:
+                self.json_label.setText(self.JSON_INVALID)
+                self.button_ok.setEnabled(False)
+            except:
+                pass
 
     def form_status(self, status):
         self.host_input.setEnabled(status)
@@ -266,6 +323,8 @@ class LSPServerEditor(QDialog):
         self.external_cb.setEnabled(status)
         self.cmd_input.setEnabled(status)
         self.args_input.setEnabled(status)
+        self.conf_input.setEnabled(status)
+        self.json_label.setVisible(status)
 
     @Slot()
     def lang_selection_changed(self):
@@ -283,6 +342,8 @@ class LSPServerEditor(QDialog):
                 self.external_cb.setChecked(server.external)
                 self.cmd_input.setText(server.cmd)
                 self.args_input.setText(server.args)
+                self.conf_input.set_text(json.dumps(server.configurations))
+                self.json_label.setText(self.JSON_VALID)
                 self.button_ok.setEnabled(True)
             else:
                 self.set_defaults()
@@ -295,6 +356,8 @@ class LSPServerEditor(QDialog):
         self.external_cb.setChecked(self.DEFAULT_EXTERNAL)
         self.cmd_input.setText(self.DEFAULT_CMD)
         self.args_input.setText(self.DEFAULT_ARGS)
+        self.conf_input.set_text(self.DEFAULT_CONFIGURATION)
+        self.json_label.setText(self.JSON_VALID)
 
     @Slot(bool)
     @Slot(int)
@@ -306,7 +369,10 @@ class LSPServerEditor(QDialog):
             self.cmd_input.setEnabled(False)
             self.cmd_input.setStyleSheet('')
             self.args_input.setEnabled(False)
-        self.validate()
+        try:
+            self.validate()
+        except:
+            pass
 
     def get_options(self):
         language_idx = self.lang_cb.currentIndex()
@@ -316,8 +382,10 @@ class LSPServerEditor(QDialog):
         external = self.external_cb.isChecked()
         args = self.args_input.text()
         cmd = self.cmd_input.text()
+        configurations = json.loads(self.conf_input.toPlainText())
         server = LSPServer(language=language.lower(), cmd=cmd, args=args,
-                           host=host, port=port, external=external)
+                           host=host, port=port, external=external,
+                           configurations=configurations)
         return server
 
 
@@ -634,6 +702,7 @@ class LSPManager(SpyderPluginWidget):
                     config['port'] = port
                 language_client['instance'] = LSPClient(
                     self, config['args'], config, config['external'],
+                    plugin_configurations=config.get('configurations', {}),
                     language=language)
 
                 for plugin in self.lsp_plugins:
@@ -662,13 +731,26 @@ class LSPManager(SpyderPluginWidget):
             else:
                 debug_print(
                         self.clients[language]['config'] != config['config'])
-                if self.clients[language]['config'] != config['config']:
+                current_config = self.clients[language]['config']
+                new_config = config['config']
+                configuration_diff = (current_config['configurations'] !=
+                    new_config['configurations'])
+                restart_diff = ['cmd', 'args', 'host', 'port', 'external']
+                restart = any([current_config[x] != new_config[x]
+                               for x in restart_diff])
+                if restart:
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
                         self.close_client(language)
                         self.clients[language] = config
                         self.start_lsp_client(language)
+                else:
+                    if configuration_diff:
+                        if self.clients[language]['status'] == self.RUNNING:
+                            client = self.clients[language]['instance']
+                            client.send_plugin_configurations(
+                                new_config['configurations'])
 
     def update_client_status(self, active_set):
         for language in self.clients:
@@ -680,8 +762,8 @@ class LSPManager(SpyderPluginWidget):
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 debug_print("Closing LSP")
-                language_client['instance'].shutdown()
-                language_client['instance'].exit()
+                # language_client['instance'].shutdown()
+                # language_client['instance'].exit()
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 

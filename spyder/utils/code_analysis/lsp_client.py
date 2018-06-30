@@ -63,7 +63,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     def __init__(self, parent, server_args_fmt='',
                  server_settings={}, external_server=False,
-                 folder=getcwd(), language='python'):
+                 folder=getcwd(), language='python',
+                 plugin_configurations={}):
         QObject.__init__(self)
         # LSPMethodProviderMixIn.__init__(self)
         self.manager = parent
@@ -87,6 +88,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.external_server = external_server
 
         self.folder = folder
+        self.plugin_configurations = plugin_configurations
         self.client_capabilites = CLIENT_CAPABILITES
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
@@ -247,12 +249,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         params = {
             'processId': self.transport_client.pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
-            'initializationOptions': {
-                'pylsPlugins': {
-                    'pydocstyle': {'enabled': True},
-                    'rope_completion': {'enabled': True}
-                }
-            },
             'capabilities': self.client_capabilites,
             'trace': TRACE
         }
@@ -274,6 +270,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     @handles(LSPRequestTypes.INITIALIZE)
     def process_server_capabilities(self, server_capabilites, *args):
+        self.send_plugin_configurations(self.plugin_configurations)
         self.initialized = True
         server_capabilites = server_capabilites['capabilities']
 
@@ -289,6 +286,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         for sig in self.plugin_registry[LSPEventTypes.DOCUMENT]:
             sig.emit(self.server_capabilites, self.language)
 
+    @send_request(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
+                  requires_response=False)
+    def send_plugin_configurations(self, configurations, *args):
+        self.plugin_configurations = configurations
+        params = {
+            'settings': configurations
+        }
+        return params
 
 def test():
     """Test LSP client."""
