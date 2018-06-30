@@ -50,7 +50,6 @@ def construct_editor(qtbot, *args, **kwargs):
     editor = CodeEditor(parent=None)
     kwargs['language'] = 'Python'
     editor.setup_editor(*args, **kwargs)
-    print("Ah?")
     wrapper = LSPEditorWrapper(None, editor, lsp_manager)
 
     lsp_manager.register_plugin_type(
@@ -60,7 +59,7 @@ def construct_editor(qtbot, *args, **kwargs):
         editor.language = 'Python'
         lsp_manager.start_lsp_client('python')
 
-    text = ("def some_function():\n"
+    text = ("def some_function():\n"  # D100, D103: Missing docstring
             "    \n"  # W293 trailing spaces
             "    a = 1 # a comment\n"  # E261 two spaces before inline comment
             "\n"
@@ -89,13 +88,18 @@ def test_adding_warnings(qtbot, construct_editor):
     for i in range(line_count):
         data = block.userData()
         if data:
-            print(data.code_analysis)
-            warnings.append((i+1, data.code_analysis[0][-1]))
+            for analysis in data.code_analysis:
+                warnings.append((i+1, analysis[-1]))
         block = block.next()
 
-    expected_warnings = {2: 'W293', 3: 'E261', 5: 'undefined name'}
+    print(warnings)
+    expected_warnings = {1: ['D100', 'D103'],
+                         2: ['W293'],
+                         3: ['E261'], 5: ['undefined name']}
     for i, warning in warnings:
-        assert expected_warnings[i] in warning
+            assert any([expected in warning
+                        for expected in expected_warnings[i]])
+            # assert expected in warning
 
 
 def test_move_warnings(qtbot, construct_editor):
