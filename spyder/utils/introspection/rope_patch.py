@@ -130,7 +130,7 @@ def apply():
     # 3. get_calltip
     # To easily get calltips of forced builtins
     from rope.contrib import codeassist
-    from spyder.utils.dochelpers import getdoc
+    from spyder_kernels.utils.dochelpers import getdoc
     from rope.base import exceptions
     class PatchedPyDocExtractor(codeassist.PyDocExtractor):
         def get_builtin_doc(self, pyobject):

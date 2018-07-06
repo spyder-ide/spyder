@@ -13,7 +13,8 @@ import os.path as osp
 
 from jupyter_client.kernelspec import KernelSpec
 
-from spyder.config.base import get_module_source_path
+from spyder.config.base import (SAFE_MODE, get_module_source_path,
+                                running_under_pytest)
 from spyder.config.main import CONF
 from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.programs import is_python_interpreter
@@ -25,11 +26,12 @@ from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
 class SpyderKernelSpec(KernelSpec):
     """Kernel spec for Spyder kernels"""
 
-    spy_path = get_module_source_path('spyder')
-
-    def __init__(self, is_cython=False, **kwargs):
+    def __init__(self, is_cython=False, is_pylab=False,
+                 is_sympy=False, **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
+        self.is_pylab = is_pylab
+        self.is_sympy = is_sympy
 
         self.display_name = 'Python 2 (Spyder)' if PY2 else 'Python 3 (Spyder)'
         self.language = 'python2' if PY2 else 'python3'
@@ -60,11 +62,10 @@ class SpyderKernelSpec(KernelSpec):
                 pyexec = pyexec_w
 
         # Command used to start kernels
-        utils_path = osp.join(self.spy_path, 'plugins', 'ipythonconsole',
-                              'utils')
         kernel_cmd = [
             pyexec,
-            osp.join("%s" % utils_path, "start_kernel.py"),
+            '-m',
+            'spyder_kernels.console',
             '-f',
             '{connection_file}'
         ]
@@ -74,21 +75,10 @@ class SpyderKernelSpec(KernelSpec):
     @property
     def env(self):
         """Env vars for kernels"""
-        # Paths that we need to add to PYTHONPATH:
-        # 1. sc_path: Path to our sitecustomize
-        # 2. spy_path: Path to our main module, so we can use our config
-        #    system to configure kernels started by exterrnal interpreters
-        # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
-        #    manager
-        sc_path = osp.join(self.spy_path, 'plugins', 'ipythonconsole', 'utils',
-                           'site')
-        spy_pythonpath = CONF.get('main', 'spyder_pythonpath', default=[])
+        # Add our PYTHONPATH to the kernel
+        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
 
         default_interpreter = CONF.get('main_interpreter', 'default')
-        if default_interpreter:
-            pathlist = [sc_path] + spy_pythonpath
-        else:
-            pathlist = [sc_path, self.spy_path] + spy_pythonpath
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
                                             drop_env=(not default_interpreter))
 
@@ -117,6 +107,8 @@ class SpyderKernelSpec(KernelSpec):
                                              'pylab/autoload'),
             'SPY_FORMAT_O': CONF.get('ipython_console',
                                      'pylab/inline/figure_format'),
+            'SPY_BBOX_INCHES_O': CONF.get('ipython_console',
+                                          'pylab/inline/bbox_inches'),
             'SPY_RESOLUTION_O': CONF.get('ipython_console',
                                          'pylab/inline/resolution'),
             'SPY_WIDTH_O': CONF.get('ipython_console', 'pylab/inline/width'),
@@ -126,9 +118,23 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_RUN_FILE_O': CONF.get('ipython_console', 'startup/run_file'),
             'SPY_AUTOCALL_O': CONF.get('ipython_console', 'autocall'),
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
+            'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-            'SPY_RUN_CYTHON': self.is_cython
+            'SPY_TESTING': running_under_pytest() or SAFE_MODE
         }
+
+        if self.is_pylab is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
+            env_vars['SPY_SYMPY_O'] = False
+            env_vars['SPY_RUN_CYTHON'] = False
+        if self.is_sympy is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
+            env_vars['SPY_SYMPY_O'] = True
+            env_vars['SPY_RUN_CYTHON'] = False
+        if self.is_cython is True:
+            env_vars['SPY_AUTOLOAD_PYLAB_O'] = False
+            env_vars['SPY_SYMPY_O'] = False
+            env_vars['SPY_RUN_CYTHON'] = True
 
         # Add our PYTHONPATH to env_vars
         env_vars.update(pypath)
@@ -156,5 +162,4 @@ class SpyderKernelSpec(KernelSpec):
                                                  encoding='utf-8')
             else:
                 env_vars[key] = to_text_string(var)
-
         return env_vars

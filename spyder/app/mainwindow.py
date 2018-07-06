@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import atexit
 import errno
+import gc
 import os
 import os.path as osp
 import re
@@ -48,6 +49,7 @@ ORIGINAL_SYS_EXIT = sys.exit
 from spyder import requirements
 requirements.check_path()
 requirements.check_qt()
+requirements.check_spyder_kernels()
 
 
 #==============================================================================
@@ -83,10 +85,8 @@ from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
                             QMenu, QMessageBox, QShortcut, QSplashScreen,
                             QStyleFactory)
+
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
-# when PySide is selected by the QT_API environment variable and when PyQt4
-# is also installed (or any other Qt-based application prepending a directory
-# containing incompatible Qt DLLs versions in PATH):
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
@@ -142,10 +142,9 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, get_versions)
-from spyder.config.base import (get_conf_path, get_module_data_path,
-                                get_module_source_path, STDERR, DEBUG,
-                                debug_print, MAC_APP_NAME, get_home_dir,
+                    __trouble_url__, __trouble_url_short__, get_versions)
+from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
+                                DEBUG, debug_print, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
@@ -158,8 +157,9 @@ from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.introspection import module_completion
 from spyder.utils.programs import is_module_installed
-from spyder.utils.misc import select_port, getcwd_or_home
+from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.widgets.fileswitcher import FileSwitcher
+
 
 #==============================================================================
 # Local gui imports
@@ -213,18 +213,6 @@ def get_python_doc_path():
         return file_uri(python_doc)
 
 
-def get_focus_python_shell():
-    """Extract and return Python shell from widget
-    Return None if *widget* is not a Python shell (e.g. IPython kernel)"""
-    widget = QApplication.focusWidget()
-    from spyder.plugins.console.widgets.shell import PythonShellWidget
-    from spyder.widgets.externalshell.pythonshell import ExternalPythonShell
-    if isinstance(widget, PythonShellWidget):
-        return widget
-    elif isinstance(widget, ExternalPythonShell):
-        return widget.shell
-
-
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -243,12 +231,6 @@ class MainWindow(QMainWindow):
           _("Numpy and Scipy documentation")),
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
           _("Matplotlib documentation")),
-         ('PyQt4',
-          "http://pyqt.sourceforge.net/Docs/PyQt4/",
-          _("PyQt4 Reference Guide")),
-         ('PyQt4',
-          "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
-          _("PyQt4 API Reference")),
          ('PyQt5',
           "http://pyqt.sourceforge.net/Docs/PyQt5/",
           _("PyQt5 Reference Guide")),
@@ -657,7 +639,7 @@ class MainWindow(QMainWindow):
 
         # Projects menu
         self.projects_menu = self.menuBar().addMenu(_("&Projects"))
-
+        self.projects_menu.aboutToShow.connect(self.valid_project)
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
 
@@ -732,11 +714,7 @@ class MainWindow(QMainWindow):
             if qtlact:
                 break
         args = ['-no-opengl'] if os.name == 'nt' else []
-        qteact = create_python_script_action(self,
-                                _("Qt examples"), 'qt.png', "PyQt4",
-                                osp.join("examples", "demos",
-                                        "qtdemo", "qtdemo"), args)
-        for act in (qtdact, qtlact, qteact):
+        for act in (qtdact, qtlact):
             if act:
                 additact.append(act)
         if additact and is_module_installed('winpython'):
@@ -757,7 +735,7 @@ class MainWindow(QMainWindow):
                                     "guidata",
                                     osp.join("tests", "__init__"))
             gdgq_act += [guidata_act]
-        except (ImportError, AssertionError):
+        except:
             pass
         try:
             from guidata import configtools
@@ -773,7 +751,7 @@ class MainWindow(QMainWindow):
                         sift_icon, "guiqwt", osp.join("tests", "sift"))
             if sift_act:
                 gdgq_act += [sift_act]
-        except (ImportError, AssertionError):
+        except:
             pass
         if gdgq_act:
             self.external_tools_menu_actions += [None] + gdgq_act
@@ -965,25 +943,7 @@ class MainWindow(QMainWindow):
                                                 triggered=self.check_updates)
 
         # Spyder documentation
-        doc_path = get_module_data_path('spyder', relpath="doc",
-                                        attr_name='DOCPATH')
-        # * Trying to find the chm doc
-        spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(doc_path, os.pardir, "Spyderdoc.chm")
-        # * Trying to find the html doc
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(doc_path, "index.html")
-        # * Trying to find the development-version html doc
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(get_module_source_path('spyder'),
-                                    os.pardir, 'build', 'lib', 'spyder',
-                                    'doc', "index.html")
-        # * If we totally fail, point to our web build
-        if not osp.isfile(spyder_doc):
-            spyder_doc = 'http://pythonhosted.org/spyder'
-        else:
-            spyder_doc = file_uri(spyder_doc)
+        spyder_doc = 'https://docs.spyder-ide.org/'
         doc_action = create_action(self, _("Spyder documentation"),
                                    icon=ima.icon('DialogHelpButton'),
                                    triggered=lambda:
@@ -2006,6 +1966,24 @@ class MainWindow(QMainWindow):
         self._update_show_toolbars_action()
 
     # --- Other
+    def valid_project(self):
+        """Handle an invalid active project."""
+        if bool(self.projects.get_active_project_path()):
+            path = self.projects.get_active_project_path()
+            if not self.projects.is_valid_project(path):
+                if path:
+                    QMessageBox.critical(
+                        self,
+                        _('Error'),
+                        _("<b>{}</b> is no longer a valid Spyder project! "
+                          "Since it is the current active project, it will "
+                          "be closed automatically.").format(path))
+                self.projects.close_project()
+
+    def free_memory(self):
+        """Free memory after event."""
+        gc.collect()
+
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         self.update_edit_menu()
@@ -2417,23 +2395,11 @@ class MainWindow(QMainWindow):
         if versions['revision']:
             revision = versions['revision']
 
-        # Store and format the reminder message for the troubleshooting guide
-        reminder_message = (
-            "<!--- **PLEASE READ:** Before submitting here, please carefully "
-            "consult our *Troubleshooting Guide*: {0!s} and search the "
-            "issues page for your error/problem, as most posted bugs are "
-            "duplicates or easy fixes.\n\n"
-            "If you don't find anything, please provide a detailed step-by-"
-            "step description (in English) of the problem and what led up to "
-            "it below. Issue reports without a clear way to reproduce them "
-            "will be closed. Thanks! --->"
-            ).format(__trouble_url__)
-
         # Make a description header in case no description is supplied
         if not description:
-            description = "### What steps will reproduce the problem?"
+            description = "### What steps reproduce the problem?"
 
-        # Make error section from traceback
+        # Make error section from traceback and add appropriate reminder header
         if traceback:
             error_section = ("### Traceback\n"
                              "```python-traceback\n"
@@ -2442,29 +2408,26 @@ class MainWindow(QMainWindow):
         else:
             error_section = ''
         issue_template = """\
-{reminder_message}
-
-## Problem Description
+## Description
 
 {description}
 
 {error_section}
 
-## Package Versions
+## Versions
 
 * Spyder version: {spyder_version} {commit}
 * Python version: {python_version}
 * Qt version: {qt_version}
 * {qt_api_name} version: {qt_api_version}
-* Operating system: {os_name} {os_version}
+* Operating System: {os_name} {os_version}
 
 ### Dependencies
 
 ```
 {dependencies}
 ```
-""".format(reminder_message=reminder_message,
-           description=description,
+""".format(description=description,
            error_section=error_section,
            spyder_version=versions['spyder'],
            commit=revision,
@@ -2479,39 +2442,37 @@ class MainWindow(QMainWindow):
         return issue_template
 
     @Slot()
-    def report_issue(self, body=None, title=None):
+    def report_issue(self, body=None, title=None, open_webpage=False):
         """Report a Spyder issue to github, generating body text if needed."""
-        if PY3:
-            from urllib.parse import quote
-        else:
-            from urllib import quote     # analysis:ignore
-
         if body is None:
-            body = self.render_issue()
-
-        url = QUrl(__project_url__ + '/issues/new')
-        if PYQT5:
-            from qtpy.QtCore import QUrlQuery
-            query = QUrlQuery()
-            query.addQueryItem("body", quote(body))
-            if title:
-                query.addQueryItem("title", quote(title))
-            url.setQuery(query)
+            from spyder.widgets.reporterror import SpyderErrorDialog
+            report_dlg = SpyderErrorDialog(self, is_report=True)
+            report_dlg.show()
         else:
-            url.addEncodedQueryItem("body", quote(body))
-            if title:
-                url.addEncodedQueryItem("title", quote(title))
-        QDesktopServices.openUrl(url)
+            if open_webpage:
+                if PY3:
+                    from urllib.parse import quote
+                else:
+                    from urllib import quote     # analysis:ignore
+                from qtpy.QtCore import QUrlQuery
+
+                url = QUrl(__project_url__ + '/issues/new')
+                query = QUrlQuery()
+                query.addQueryItem("body", quote(body))
+                if title:
+                    query.addQueryItem("title", quote(title))
+                url.setQuery(query)
+                QDesktopServices.openUrl(url)
 
     @Slot()
     def trouble_guide(self):
-        """Open Spyder troubleshooting guide in a web browser"""
+        """Open Spyder troubleshooting guide in a web browser."""
         url = QUrl(__trouble_url__)
         QDesktopServices.openUrl(url)
 
     @Slot()
     def google_group(self):
-        """Open Spyder troubleshooting guide in a web browser"""
+        """Open Spyder Google Group in a web browser."""
         url = QUrl(__forum_url__)
         QDesktopServices.openUrl(url)
 
@@ -2542,8 +2503,13 @@ class MainWindow(QMainWindow):
         if systerm:
             # Running script in an external system terminal
             try:
-                programs.run_python_script_in_terminal(fname, wdir, args,
-                                                interact, debug, python_args)
+                if CONF.get('main_interpreter', 'default'):
+                    executable = get_python_executable()
+                else:
+                    executable = CONF.get('main_interpreter', 'executable')
+                programs.run_python_script_in_terminal(
+                        fname, wdir, args, interact, debug, python_args,
+                        executable)
             except NotImplementedError:
                 QMessageBox.critical(self, _("Run"),
                                      _("Running an external system terminal "
@@ -2617,8 +2583,12 @@ class MainWindow(QMainWindow):
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
-        encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
-        encoding.writelines(self.not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
+        try:
+            encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
+            encoding.writelines(self.not_active_path,
+                                self.SPYDER_NOT_ACTIVE_PATH)
+        except EnvironmentError:
+            pass
         self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):
@@ -2930,7 +2900,7 @@ class MainWindow(QMainWindow):
         error_msg = self.worker_updates.error
 
         url_r = __project_url__ + '/releases'
-        url_i = 'http://pythonhosted.org/spyder/installation.html'
+        url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,

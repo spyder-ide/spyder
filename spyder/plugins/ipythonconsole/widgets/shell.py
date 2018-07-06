@@ -64,6 +64,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
+        self.custom_edit = True
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient
@@ -429,9 +430,9 @@ the sympy module (e.g. plot)
                     calling_mayavi = True
                     break
         if calling_mayavi:
-            message = _("Changing backend to Qt for Mayavi")
+            message = _("Changing backend to Qt4 for Mayavi")
             self._append_plain_text(message + '\n')
-            self.silent_execute("%gui inline\n%gui qt")
+            self.silent_execute("%gui inline\n%gui qt4")
 
     def change_mpl_backend(self, command):
         """

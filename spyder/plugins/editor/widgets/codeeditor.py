@@ -27,7 +27,6 @@ import sys
 import time
 
 # Third party imports
-from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
@@ -39,7 +38,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
-from spyder.plugins.editor.panels.classfunctiondropdown import ClassFunctionDropdown
+from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
@@ -52,7 +51,6 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
-from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.outlineexplorer.languages import PythonCFM
@@ -65,6 +63,7 @@ from spyder.plugins.editor.panels.indentationguides import IndentationGuide
 from spyder.plugins.editor.panels.scrollflag import ScrollFlagArea
 from spyder.plugins.editor.panels.manager import PanelsManager
 from spyder.plugins.editor.panels.codefolding import FoldingPanel
+from spyder.plugins.editor.panels.classfunctiondropdown import ClassFunctionDropdown
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.extensions.manager import (
@@ -598,8 +597,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def closeEvent(self, event):
         TextEditBaseWidget.closeEvent(self, event)
-        if is_pyqt46:
-            self.destroyed.emit()
 
     def get_document_id(self):
         return self.document_id

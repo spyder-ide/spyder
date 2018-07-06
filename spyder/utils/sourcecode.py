@@ -50,6 +50,14 @@ def has_mixed_eol_chars(text):
     return repr(correct_text) != repr(text)
 
 
+def normalize_eols(text, eol='\n'):
+    """Use the same eol's in text"""
+    for eol_char, _ in EOL_CHARS:
+        if eol_char != eol:
+            text = text.replace(eol_char, eol)
+    return text
+
+
 def fix_indentation(text, indent_chars):
     """Replace tabs by spaces"""
     return text.replace('\t', indent_chars)

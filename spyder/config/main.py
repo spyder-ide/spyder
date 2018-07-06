@@ -12,21 +12,21 @@ quickly load a user config file
 """
 
 import os
-import sys
 import os.path as osp
+import sys
 
 # Local import
 from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
-                                SUBFOLDER, TEST)
+                                SUBFOLDER)
 from spyder.config.fonts import BIG, MEDIUM, MONOSPACE, SANS_SERIF
 from spyder.config.user import UserConfig
 from spyder.config.utils import IMPORT_EXT
 from spyder.utils import codeanalysis
 
 
-#==============================================================================
+# =============================================================================
 # Main constants
-#==============================================================================
+# =============================================================================
 # Find in files exclude patterns
 EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.git']
 
@@ -108,6 +108,8 @@ DEFAULTS = [
               'rich_font/bold': False,
               'cursor/width': 2,
               'completion/size': (300, 180),
+              'report_error/remember_me': False,
+              'report_error/remember_token': False,
               }),
             ('quick_layouts',
              {
@@ -154,10 +156,12 @@ DEFAULTS = [
               'pylab/inline/resolution': 72,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
+              'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,
               'startup/run_file': '',
               'greedy_completer': False,
+              'jedi_completer': False,
               'autocall': 0,
               'symbolic_math': False,
               'in_prompt': '',
@@ -650,9 +654,9 @@ DEFAULTS = [
             ]
 
 
-#==============================================================================
+# =============================================================================
 # Config instance
-#==============================================================================
+# =============================================================================
 # IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
 #    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
@@ -660,14 +664,14 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '43.0.0'
+CONF_VERSION = '43.1.0'
 
 # Main configuration instance
 try:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not TEST),
+    CONF = UserConfig('spyder', defaults=DEFAULTS, load=True,
                       version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
                       raw_mode=True)
-except:
+except Exception:
     CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
                       version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
                       raw_mode=True)

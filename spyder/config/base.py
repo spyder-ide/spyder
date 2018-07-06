@@ -20,6 +20,8 @@ import os.path as osp
 import os
 import shutil
 import sys
+import getpass
+import tempfile
 
 # Local imports
 from spyder.utils import encoding
@@ -34,9 +36,9 @@ from spyder.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
 # SPYDER_DEV is (and *only* has to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
-# For testing purposes
-# SPYDER_TEST can be set using the --test option of bootstrap.py
-TEST = os.environ.get('SPYDER_TEST')
+# Make Spyder use a temp clean configuration directory for testing purposes
+# SPYDER_SAFE_MODE can be set using the --safe-mode option of bootstrap.py
+SAFE_MODE = os.environ.get('SPYDER_SAFE_MODE')
 
 
 def running_under_pytest():
@@ -104,32 +106,53 @@ def get_home_dir():
     """
     try:
         # expanduser() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent file paths.
+        # decoded with the codec that the OS is using to represent
+        # file paths.
         path = encoding.to_unicode_from_fs(osp.expanduser('~'))
-    except:
+    except Exception:
         path = ''
-    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
-        if osp.isdir(path):
-            break
-        # os.environ.get() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent environment
-        # variables.
-        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
-    if path:
+
+    if osp.isdir(path):
         return path
     else:
-        raise RuntimeError('Please define environment variable $HOME')
+        # Get home from alternative locations
+        for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+            # os.environ.get() returns a raw byte string which needs to be
+            # decoded with the codec that the OS is using to represent
+            # environment variables.
+            path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
+            if osp.isdir(path):
+                return path
+            else:
+                path = ''
+
+        if not path:
+            raise RuntimeError('Please set the environment variable HOME to '
+                               'your user/home directory path so Spyder can '
+                               'start properly.')
+
+
+def get_clean_conf_dir():
+    """
+    Return the path to a temp clean configuration dir, for tests and safe mode.
+    """
+    if sys.platform.startswith("win"):
+        current_user = ''
+    else:
+        current_user = '-' + str(getpass.getuser())
+
+    conf_dir = osp.join(str(tempfile.gettempdir()),
+                        'pytest-spyder{0!s}'.format(current_user),
+                        SUBFOLDER)
+    return conf_dir
 
 
 def get_conf_path(filename=None):
-    """Return absolute path for configuration file with specified filename"""
+    """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
-    if running_under_pytest():
-        import py
-        from _pytest.tmpdir import get_user
-        conf_dir = osp.join(str(py.path.local.get_temproot()),
-                            'pytest-of-{}'.format(get_user()),
-                            SUBFOLDER)
+    if running_under_pytest() or SAFE_MODE:
+        # Use clean config dir if running tests or the user requests it.
+        conf_dir = get_clean_conf_dir()
     elif sys.platform.startswith('linux'):
         # This makes us follow the XDG standard to save our settings
         # on Linux, as it was requested on Issue 2629
@@ -144,7 +167,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest():
+        if running_under_pytest() or SAFE_MODE:
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
@@ -152,7 +175,7 @@ def get_conf_path(filename=None):
         return conf_dir
     else:
         return osp.join(conf_dir, filename)
-        
+
 
 def get_module_path(modname):
     """Return module *modname* base path"""
@@ -350,13 +373,27 @@ def get_translation(modname, dirname=None):
     """Return translation callback for module *modname*"""
     if dirname is None:
         dirname = modname
+
+    def translate_dumb(x):
+        """Dumb function to not use translations."""
+        if not is_unicode(x):
+            return to_text_string(x, "utf-8")
+        return x
+
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
-    # If LANG is defined in ubuntu, a warning message is displayed, so in unix
-    # systems we define the LANGUAGE variable.
+
+    # If LANG is defined in Ubuntu, a warning message is displayed,
+    # so in Unix systems we define the LANGUAGE variable.
     language = load_lang_conf()
     if os.name == 'nt':
-        os.environ["LANG"] = language      # Works on Windows
+        # Trying to set LANG on Windows can fail when Spyder is
+        # run with admin privileges.
+        # Fixes issue 6886
+        try:
+            os.environ["LANG"] = language      # Works on Windows
+        except Exception:
+            return translate_dumb
     else:
         os.environ["LANGUAGE"] = language  # Works on Linux
  
@@ -373,12 +410,7 @@ def get_translation(modname, dirname=None):
             else:
                 return to_text_string(y, "utf-8")
         return translate_gettext
-    except IOError as _e:  # analysis:ignore
-        # Not using translations
-        def translate_dumb(x):
-            if not is_unicode(x):
-                return to_text_string(x, "utf-8")
-            return x
+    except Exception:
         return translate_dumb
 
 # Translation callback
@@ -388,48 +420,17 @@ _ = get_translation("spyder")
 #==============================================================================
 # Namespace Browser (Variable Explorer) configuration management
 #==============================================================================
-def get_supported_types():
-    """
-    Return a dictionnary containing types lists supported by the 
-    namespace browser:
-    dict(picklable=picklable_types, editable=editables_types)
-         
-    See:
-    get_remote_data function in spyder/plugins/variableexplorer/utils.py
-    
-    Note:
-    If you update this list, don't forget to update doc/variablexplorer.rst
-    """
-    from datetime import date, timedelta
-    editable_types = [int, float, complex, list, set, dict, tuple, date,
-                      timedelta] + list(TEXT_TYPES) + list(INT_TYPES)
-    try:
-        from numpy import ndarray, matrix, generic
-        editable_types += [ndarray, matrix, generic]
-    except:
-        pass
-    try:
-        from pandas import DataFrame, Series, Index
-        editable_types += [DataFrame, Series, Index]
-    except:
-        pass
-    picklable_types = editable_types[:]
-    try:
-        from spyder.pil_patch import Image
-        editable_types.append(Image.Image)
-    except:
-        pass
-    return dict(picklable=picklable_types, editable=editable_types)
-
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
-#  see widgets/variableexplorer/namespacebrowser.py:NamespaceBrowser.save_data)
 CHECK_ALL = False #XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
+
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 
 #==============================================================================

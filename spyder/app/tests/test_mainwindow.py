@@ -19,6 +19,8 @@ try:
     from unittest.mock import Mock, MagicMock
 except ImportError:
     from mock import Mock, MagicMock  # Python 2
+import re
+import sys
 
 # Third party imports
 from flaky import flaky
@@ -26,17 +28,19 @@ from jupyter_client.manager import KernelManager
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
-from qtpy import PYQT4, PYQT5, PYQT_VERSION
+from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
 from qtpy.QtTest import QTest
+from qtpy.QtGui import QImage
 from qtpy.QtWidgets import QApplication, QFileDialog, QLineEdit, QTabBar
 from qtpy.QtWebEngineWidgets import WEBENGINE
+from matplotlib.testing.compare import compare_images
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.main import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
@@ -162,6 +166,14 @@ def main_window(request):
     else:
         CONF.set('main', 'single_instance', False)
 
+    # Get config values passed in parametrize and apply them
+    try:
+        param = request.param
+        if isinstance(param, dict) and 'spy_config' in param:
+            CONF.set(*param['spy_config'])
+    except AttributeError:
+        pass
+
     # Start the window
     window = start.main()
 
@@ -213,6 +225,37 @@ def test_calltip(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(np.__version__ < '1.14.0', reason="This only happens in Numpy 1.14+")
+@pytest.mark.parametrize('main_window', [{'spy_config': ('variable_explorer', 'minmax', True)}], indirect=True)
+def test_filter_numpy_warning(main_window, qtbot):
+    """
+    Test that we filter a warning shown when an array contains nan
+    values and the Variable Explorer option 'Show arrays min/man'
+    is on.
+
+    For issue 7063
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create an array with a nan value
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import numpy as np; A=np.full(16, np.nan)')
+
+    qtbot.wait(1000)
+
+    # Assert that no warnings are shown in the console
+    assert "warning" not in control.toPlainText()
+    assert "Warning" not in control.toPlainText()
+
+    # Restore default config value
+    CONF.set('variable_explorer', 'minmax', False)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.use_introspection
 def test_get_help(main_window, qtbot):
     """
@@ -258,7 +301,6 @@ def test_get_help(main_window, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(PYQT4 and not PY2, reason="Fails for a strange reason")
 def test_window_title(main_window, tmpdir):
     """Test window title with non-ascii characters."""
     projects = main_window.projects
@@ -284,17 +326,22 @@ def test_window_title(main_window, tmpdir):
 
 @pytest.mark.slow
 @pytest.mark.single_instance
+@pytest.mark.skipif(PY2 and os.environ.get('CI', None) is None,
+                    reason="It's not meant to be run outside of CIs in Python 2")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and for %edit magic."""
     editorstack = main_window.editor.get_current_editorstack()
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    lock_code = ("from spyder.config.base import get_conf_path\n"
+    spy_dir = osp.dirname(get_module_path('spyder'))
+    lock_code = ("import sys\n"
+                 "sys.path.append('{}')\n"
+                 "from spyder.config.base import get_conf_path\n"
                  "from spyder.utils.external import lockfile\n"
                  "lock_file = get_conf_path('spyder.lock')\n"
                  "lock = lockfile.FilesystemLock(lock_file)\n"
-                 "lock_created = lock.lock()")
+                 "lock_created = lock.lock()".format(spy_dir))
 
     # Test single instance
     with qtbot.waitSignal(shell.executed):
@@ -318,8 +365,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or PY2 or PYQT4,
-                    reason="It fails sometimes")
+@pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
 def test_move_to_first_breakpoint(main_window, qtbot):
     """Test that we move to the first breakpoint if there's one present."""
     # Wait until the window is fully up
@@ -376,8 +422,8 @@ def test_move_to_first_breakpoint(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run locally")
+@pytest.mark.skipif(os.environ.get('CI', None) is None or sys.platform == 'darwin',
+                    reason="It's not meant to be run locally and fails in macOS")
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
     CONF.set('run', 'configurations', [])
@@ -432,7 +478,8 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' and PY2, reason="It's failing there")
+@pytest.mark.skipif((os.name == 'nt' and PY2) or sys.platform == 'darwin',
+                    reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     # ---- Load test file ----
@@ -578,6 +625,7 @@ def test_change_types_in_varexp(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and File Explorer when
@@ -608,6 +656,7 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize("test_directory", [u"non_ascii_ñ_í_ç", u"test_dir"])
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
 def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     """
     Test synchronization with working directory and IPython console when
@@ -636,8 +685,9 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' or not is_module_installed('Cython'),
-                    reason="Hard to test on Windows and Cython is needed")
+@pytest.mark.skipif((os.name == 'nt' or not is_module_installed('Cython') or
+                     sys.platform == 'darwin'),
+                    reason="Hard to test on Windows and macOS and Cython is needed")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
@@ -767,16 +817,20 @@ def test_set_new_breakpoints(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-def test_run_code(main_window, qtbot):
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
+def test_run_code(main_window, qtbot, tmpdir):
     """Test all the different ways we have to run code"""
     # ---- Setup ----
+    p = tmpdir.mkdir(u"runtest's folder èáïü Øαôå 字分误").join(u"runtest's file èáïü Øαôå 字分误.py")
+    filepath = to_text_string(p)
+    shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
+
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Load test file
-    main_window.editor.load(osp.join(LOCATION, 'script.py'))
+    main_window.editor.load(filepath)
 
     # Move to the editor's first line
     code_editor = main_window.editor.get_focus_widget()
@@ -976,7 +1030,7 @@ def test_issue_4066(main_window, qtbot):
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 0, timeout=EVAL_TIMEOUT)
 
     # Close editor
-    ok_widget = obj_editor.bbox.button(obj_editor.bbox.Ok)
+    ok_widget = obj_editor.btn_close
     qtbot.mouseClick(ok_widget, Qt.LeftButton)
 
     # Wait for the segfault
@@ -1199,8 +1253,116 @@ def test_varexp_magic_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
-                    reason="It's not meant to be run outside of a CI")
+@pytest.mark.skipif(PY2, reason="It times out sometimes")
+def test_tight_layout_option_for_inline_plot(main_window, qtbot):
+    """
+    Test that the option to set bbox_inches to 'tight' or 'None' is
+    working when plotting inline in the IPython console. By default, figures
+    are plotted inline with bbox_inches='tight'.
+    """
+    # Assert that the default is True.
+    assert CONF.get('ipython_console', 'pylab/inline/bbox_inches') is True
+
+    fig_dpi = float(CONF.get('ipython_console', 'pylab/inline/resolution'))
+    fig_width = float(CONF.get('ipython_console', 'pylab/inline/width'))
+    fig_height = float(CONF.get('ipython_console', 'pylab/inline/height'))
+
+    # Wait until the window is fully up.
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    client = main_window.ipyconsole.get_current_client()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = main_window.ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a plot inline with bbox_inches=tight (since it is default) and
+    # save the figure with savefig.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig, ax = plt.subplots()\n"
+                       "fig.set_size_inches(%f, %f)\n"
+                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
+                       "ax.set_xticks(range(10))\n"
+                       "ax.xaxis.set_ticklabels([])\n"
+                       "ax.set_yticks(range(10))\n"
+                       "ax.yaxis.set_ticklabels([])\n"
+                       "ax.tick_params(axis='both', length=0)\n"
+                       "for loc in ax.spines:\n"
+                       "    ax.spines[loc].set_color('#000000')\n"
+                       "    ax.spines[loc].set_linewidth(2)\n"
+                       "ax.axis([0, 9, 0, 9])\n"
+                       "ax.plot(range(10), color='#000000', lw=2)\n"
+                       "fig.savefig('savefig_bbox_inches_tight.png',\n"
+                       "            bbox_inches='tight',\n"
+                       "            dpi=%f)"
+                       ) % (fig_width, fig_height, fig_dpi))
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # then save it to a file.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+    qimg = shell._get_image(img_name)
+    assert isinstance(qimg, QImage)
+
+    # Save the inline figure and assert it is similar to the one generated
+    # with savefig.
+    qimg.save('inline_bbox_inches_tight.png')
+    assert compare_images('savefig_bbox_inches_tight.png',
+                          'inline_bbox_inches_tight.png',
+                          0.1) is None
+
+    # Change the option so that bbox_inches=None.
+    CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
+
+    # Restart the kernel and wait until it's up again
+    shell._prompt_html = None
+    client.restart_kernel()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Generate the same plot inline with bbox_inches='tight' and save the
+    # figure with savefig.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(("import matplotlib.pyplot as plt\n"
+                       "fig, ax = plt.subplots()\n"
+                       "fig.set_size_inches(%f, %f)\n"
+                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
+                       "ax.set_xticks(range(10))\n"
+                       "ax.xaxis.set_ticklabels([])\n"
+                       "ax.set_yticks(range(10))\n"
+                       "ax.yaxis.set_ticklabels([])\n"
+                       "ax.tick_params(axis='both', length=0)\n"
+                       "for loc in ax.spines:\n"
+                       "    ax.spines[loc].set_color('#000000')\n"
+                       "    ax.spines[loc].set_linewidth(2)\n"
+                       "ax.axis([0, 9, 0, 9])\n"
+                       "ax.plot(range(10), color='#000000', lw=2)\n"
+                       "fig.savefig('savefig_bbox_inches_None.png',\n"
+                       "            bbox_inches=None,\n"
+                       "            dpi=%f)"
+                       ) % (fig_width, fig_height, fig_dpi))
+
+    # Get the image name from the html, fetch the image from the shell, and
+    # then save it to a file.
+    html = shell._control.toHtml()
+    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+    qimg = shell._get_image(img_name)
+    assert isinstance(qimg, QImage)
+
+    # Save the inline figure and assert it is similar to the one generated
+    # with savefig.
+    qimg.save('inline_bbox_inches_None.png')
+    assert compare_images('savefig_bbox_inches_None.png',
+                          'inline_bbox_inches_None.png',
+                          0.1) is None
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.environ.get('CI', None) is None or sys.platform == 'darwin',
+                    reason="It's not meant to be run outside of a CI and fails in macOS")
 def test_fileswitcher(main_window, qtbot):
     """Test the use of shorten paths when necessary in the fileswitcher."""
     # Load tests files
@@ -1253,7 +1415,6 @@ def test_fileswitcher(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not PYQT5, reason="It times out.")
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Wait until the window is fully up
@@ -1415,30 +1576,19 @@ def test_report_issue_url(monkeypatch):
     attr_to_patch = ('spyder.app.mainwindow.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
-    # Test when body=None, i.e. when Help > Report Issue is chosen
-    target_url = QUrl(target_url_base + '?body=' + body_autogenerated)
-    MainWindow.report_issue(mockMainWindow_instance, body=None, title=None)
-    assert MockQDesktopServices.openUrl.call_count == 1
-    MockQDesktopServices.openUrl.assert_called_once_with(target_url)
-
-    # Test with body=None and title != None
-    target_url = QUrl(target_url_base + '?body=' + body_autogenerated
-                      + "&title=" + title)
-    MainWindow.report_issue(mockMainWindow_instance, body=None, title=title)
-    assert MockQDesktopServices.openUrl.call_count == 2
-    mockQDesktopServices_instance.openUrl.called_with(target_url)
-
     # Test when body != None, i.e. when auto-submitting error to Github
     target_url = QUrl(target_url_base + '?body=' + body)
-    MainWindow.report_issue(mockMainWindow_instance, body=body, title=None)
-    assert MockQDesktopServices.openUrl.call_count == 3
+    MainWindow.report_issue(mockMainWindow_instance, body=body, title=None,
+                            open_webpage=True)
+    assert MockQDesktopServices.openUrl.call_count == 1
     mockQDesktopServices_instance.openUrl.called_with(target_url)
 
     # Test when body != None and title != None
     target_url = QUrl(target_url_base + '?body=' + body
                       + "&title=" + title)
-    MainWindow.report_issue(mockMainWindow_instance, body=body, title=title)
-    assert MockQDesktopServices.openUrl.call_count == 4
+    MainWindow.report_issue(mockMainWindow_instance, body=body, title=title,
+                            open_webpage=True)
+    assert MockQDesktopServices.openUrl.call_count == 2
     mockQDesktopServices_instance.openUrl.called_with(target_url)
 
 

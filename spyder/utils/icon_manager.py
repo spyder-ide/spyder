@@ -203,7 +203,7 @@ _qtaargs = {
     'attribute':               [('spyder.circle-letter-a',), {'color': 'magenta'}],
     'module':                  [('spyder.circle-letter-m',), {'color': '#daa520'}],
     'no_match':                [('fa.circle',), {'color': 'gray'}],
-    'no_match':                [('fa.circle',), {'color': 'gray'}],
+    'github':                  [('fa.github',), {'color': 'black'}],
     # --- Spyder Tour --------------------------------------------------------
     'tour.close':              [('fa.close',), {}],
     'tour.home':               [('fa.fast-backward',), {}],

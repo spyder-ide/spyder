@@ -253,7 +253,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.stop_button.setEnabled(True)
 
     def disable_stop_button(self):
-        self.stop_button.setDisabled(True)
+        # This avoids disabling automatically the button when
+        # re-running files on dedicated consoles.
+        # See issue #5958
+        if not self.shellwidget._executing:
+            self.stop_button.setDisabled(True)
 
     @Slot()
     def stop_button_click_handler(self):
@@ -299,6 +303,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # Adding id to name
             client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
             name = name + u' ' + client_id
+        elif self.given_name in ["Pylab", "SymPy", "Cython"]:
+            client_id = self.id_['int_id'] + u'/' + self.id_['str_id']
+            name = self.given_name + u' ' + client_id
         else:
             name = self.given_name + u'/' + self.id_['str_id']
         return name
@@ -439,7 +446,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def set_color_scheme(self, color_scheme, reset=True):
         """Set IPython color scheme."""
-        self.shellwidget.set_color_scheme(color_scheme, reset)
+        # Needed to handle not initialized kernel_client
+        # See issue 6996
+        try:
+            self.shellwidget.set_color_scheme(color_scheme, reset)
+        except AttributeError:
+            pass
 
     def shutdown(self):
         """Shutdown kernel"""

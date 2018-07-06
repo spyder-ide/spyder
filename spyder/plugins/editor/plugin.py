@@ -433,7 +433,11 @@ class Editor(SpyderPluginWidget):
                 '# -*- coding: utf-8 -*-',
                 '"""', 'Created on %(date)s', '',
                 '@author: %(username)s', '"""', '', '']
-            encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
+            try:
+                encoding.write(os.linesep.join(header), self.TEMPLATE_PATH,
+                               'utf-8')
+            except EnvironmentError:
+                pass
 
         self.projects = None
         self.outlineexplorer = None
@@ -1831,7 +1835,13 @@ class Editor(SpyderPluginWidget):
                        '"""', '', '']
             text = os.linesep.join([encoding.to_unicode(qstr)
                                     for qstr in default])
-            encoding.write(to_text_string(text), self.TEMPFILE_PATH, 'utf-8')
+            try:
+                encoding.write(to_text_string(text), self.TEMPFILE_PATH,
+                               'utf-8')
+            except EnvironmentError:
+                self.new()
+                return
+
         self.load(self.TEMPFILE_PATH)
 
     @Slot()
@@ -2529,11 +2539,16 @@ class Editor(SpyderPluginWidget):
         if editorstack.save():
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
-            
-            # Escape single and double quotes in fname (Fixes Issue 2158)
-            fname = fname.replace("'", r"\'")
-            fname = fname.replace('"', r'\"')
-            
+
+            # Get fname's dirname before we escape the single and double
+            # quotes (Fixes Issue #6771)
+            dirname = osp.dirname(fname)
+
+            # Escape single and double quotes in fname and dirname
+            # (Fixes Issue #2158)
+            fname = fname.replace("'", r"\'").replace('"', r'\"')
+            dirname = dirname.replace("'", r"\'").replace('"', r'\"')
+
             runconf = get_run_configuration(fname)
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
@@ -2565,7 +2580,7 @@ class Editor(SpyderPluginWidget):
             clear_namespace = runconf.clear_namespace
 
             if runconf.file_dir:
-                wdir = osp.dirname(fname)
+                wdir = dirname
             elif runconf.cw_dir:
                 wdir = ''
             elif osp.isdir(runconf.dir):

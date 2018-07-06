@@ -1,103 +1,114 @@
-# Spyder - The Scientific PYthon Development EnviRonment
+![Spyder — The Scientific Python Development Environment](
+./img_src/spyder_readme_banner.png)
 
-Copyright © Spyder Project Contributors.
+*Copyright © 2009–2018 Spyder Project Contributors*
 
 
-## Project details
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE)
-[![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.python.org/pypi/spyder)
-[![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)
+[![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
+[![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
+[![download count](https://img.shields.io/conda/dn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
 [![OpenCollective Backers](https://opencollective.com/spyder/backers/badge.svg?color=blue)](#backers)
 [![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
-
-
-## Build status
+[![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)<br>
+[![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![AppVeyor status](https://ci.appveyor.com/api/projects/status/tvjcqa4kf53br8s0/branch/master?svg=true)](https://ci.appveyor.com/project/spyder-ide/spyder/branch/master)
-[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=svg)](https://circleci.com/gh/spyder-ide/spyder)
+[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 
+![Screenshot of Spyder's main window](./img_src/screenshot.png)
+
 ----
 
-## Important Announcement: Spyder is unfunded!
+## Help support Spyder, the community-developed scientific IDE!
 
-Since mid November/2017, [Anaconda, Inc](https://www.anaconda.com/) has
-stopped funding Spyder development, after doing it for the past 18
-months. Because of that, development will focus from now on maintaining
-Spyder 3 at a much slower pace than before.
+Thanks to your continuing support, we are on track for a
+Spyder 4 release in early 2019 with all of your most-requested features
+(a new debugger and completion architecture, better Projects, new Editor
+functionality, full Variable Explorer object support, a built-in dark theme
+and [much more](https://github.com/spyder-ide/spyder/wiki/Roadmap))!
 
-If you want to contribute to maintain Spyder, please consider donating at
+Spyder development is made possible by contributions from our global user
+community, along with organizations like [NumFOCUS](https://www.numfocus.org)
+and [Quansight](https://www.quansight.com).
+There are numerous [ways you can help](
+https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder), many of
+which don't require any programming. If you'd like to make a [donation](
+https://opencollective.com/spyder/donate) to help fund further improvements,
+we're on [OpenCollective](https://opencollective.com/spyder).
 
-https://opencollective.com/spyder
-
-We appreciate all the help you can provide us and can't thank you enough for
-supporting the work of Spyder devs and Spyder development.
-
-If you want to know more about this, please read this
-[page](https://github.com/spyder-ide/spyder/wiki/Anaconda-stopped-funding-Spyder).
+Thanks for all you do to make the Spyder project thrive! [More details](
+https://github.com/spyder-ide/spyder/wiki/Current-Funding-and-Development-Status)
 
 ----
 
 ## Overview
 
-![screenshot](./img_src/screenshot.png)
+Spyder is a powerful scientific environment written in Python, for Python,
+and designed by and for scientists, engineers and data analysts. It offers a
+unique combination of the advanced editing, analysis, debugging, and profiling
+functionality of a comprehensive development tool with the data exploration,
+interactive execution, deep inspection, and beautiful visualization
+capabilities of a scientific package.
 
-Spyder is a Python development environment with many features for research,
-data analysis, and scientific package creation:
+Beyond its many built-in features, its abilities can be extended even further
+via its plugin system and API. Furthermore, Spyder can also be used as a PyQt5
+extension library, allowing you to build upon its functionality and embed
+its components, such as the interactive console, in your own software.
+
+For more general information about Spyder and to stay up to date on the
+latest Spyder news and information, please check out [our new website](
+https://www.spyder-ide.org/).
+
+
+## Core components
 
 * **Editor**
 
-    Multi-language editor with function/class browser, code analysis
-    features (pyflakes and pylint are currently supported), code
-    completion, horizontal and vertical splitting, and goto definition.
+    Work efficiently in a multi-language editor with a function/class browser,
+    real-time code analysis tools (`pyflakes`, `pylint`, and `pycodestyle`),
+    automatic code completion (`jedi` and `rope`),
+    horizontal/vertical splitting, and go-to-definition.
 
 * **Interactive console**
 
-    IPython consoles with workspace and debugging support to
-    instantly evaluate the code written in the Editor.
-    Spyder consoles also come with Matplotlib figures integration.
+    Harness the power of as many IPython consoles as you like with full
+    workspace and debugging support, all within the flexibility of a full
+    GUI interface. Instantly run your code by line, cell, or file,
+    and render plots right inline with the output or in interactive windows.
 
 * **Documentation viewer**
 
-    Show documentation for any class or function call made either in the
-    Editor or a Console.
+    Render documentation in real-time with Sphinx for any class or function,
+    whether external or user-created, from either the Editor or a Console.
 
 * **Variable explorer**
 
-    Explore variables created during the execution of a file. Editing
-    them is also possible with several GUI based editors, like a
-    dictionary and Numpy array ones.
+    Inspect any variables, functions or objects created during your session.
+    Editing and interaction is supported with many common types, including
+    numeric/strings/bools, Python lists/tuples/dictionaries, dates/timedeltas,
+    Numpy arrays, Pandas index/series/dataframes, PIL/Pillow images, and more.
 
-* **Find in files**
+* **Development tools**
 
-    Search for queries across multiple files in your project,
-    with full support for regular expressions.
-
-* **File explorer**
-
-    Interact with your filesystem from within the IDE.
-
-* **History log**
-
-    Browse an automatically de-duplicated listing of every command you run
-    on any Spyder console.
-
-Spyder may also be used as a PyQt5/PyQt4 extension library (module `spyder`).
-For example, the Python interactive shell widget used in
-Spyder may be embedded in your own PyQt5/PyQt4 application.
+    Examine your code with the static analyzer, trace its execution with the
+    interactive debugger, and unleash its performance with the profiler.
+    Keep things organized with project support and a builtin file explorer, and
+    use find in files to search across entire projects with full regex support.
 
 
 ## Documentation
 
-You can read the Spyder documentation online on
-[PythonHosted](http://pythonhosted.org/spyder/).
+You can read the Spyder documentation online on [the Spyder Docs website](
+https://docs.spyder-ide.org/).
 
 
 ## Installation
 
 For a detailed guide to installing Spyder, please refer to our
-[installation instructions](http://pythonhosted.org/spyder/installation.html).
+[installation instructions](https://docs.spyder-ide.org/installation.html).
 
 The easiest way to install Spyder on any of our supported platforms
 is to download it as part of the [Anaconda](https://www.anaconda.com/download/)
@@ -109,16 +120,34 @@ unexpected issues we are unable to help you with; it generally has the
 least likelihood of potential pitfalls for non-experts, and we may be
 able to provide limited assistance if you do run into trouble.
 
-Other install options exist, including the 
+Other install options exist, including:
 
 * The [WinPython](https://winpython.github.io/) distribution for Windows
-* The [MacPorts](http://www.macports.org/), project for macOS, and
-* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux, and
+* The [MacPorts](http://www.macports.org/) project for macOS
+* Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux
 * The `pip` package manager, included with most Python installations
 
-**However,** we lack the resources to provide individual support for users who
+**However**, we lack the resources to provide individual support for users who
 install via these methods, and they may be out of date or contain bugs outside
 our control, so we recommend the Anaconda version instead if you run into issues.
+
+
+## Troubleshooting
+
+Before posting a report, *please* carefully read our **[Troubleshooting Guide](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
+
+
+## Contributing
+
+Everyone is welcome to help with Spyder. Please read our
+[contributing instructions](
+https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md)
+to get started!
 
 
 ## Running from a Github clone
@@ -140,29 +169,29 @@ cd spyder
 python bootstrap.py
 ```
 
-Alternatively, you can use `pip` to install PyQt5 (or PyQt4) separately and
+Alternatively, you can use `pip` to install PyQt5 separately and
 the other *runtime dependencies* listed below. However, beware:
 this method is recommended for experts only, and you'll need to solve any
 problems on your own. See the
-[installation instructions](http://pythonhosted.org/spyder/installation.html)
+[installation instructions](https://docs.spyder-ide.org/installation.html)
 for more details.
 
 
 ## Dependencies
 
-**Important note**: Most if not all the dependencies listed below come
-with *Anaconda* or other scientific Python distributions, so you don't need 
+**Important Note**: Most or all of the dependencies listed below come
+with *Anaconda* and other scientific Python distributions, so you don't need
 to install them seperatly in those cases.
 
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version greater than 2.7 or 3.3 (Python <=3.2 is not supported anymore).
+a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 
 ### Runtime dependencies
 
-* **Python** 2.7 or 3.3+
-* **PyQt5** 5.2+ or **PyQt4** 4.6+: PyQt5 is recommended.
+* **Python** 2.7 or 3.4+: The core language Spyder is written in and for.
+* **PyQt5** 5.5+: Python bindings for Qt, used for Spyder's GUI.
 * **qtconsole** 4.2.0+: Enhanced Python interpreter.
 * **Rope** 0.9.4+ and **Jedi** 0.11.0+: Editor code completion, calltips
   and go-to-definition.
@@ -170,42 +199,28 @@ a Python version greater than 2.7 or 3.3 (Python <=3.2 is not supported anymore)
 * **Sphinx**: Rich text mode for the Help pane.
 * **Pygments** 2.0+: Syntax highlighting for all file types it supports.
 * **Pylint**: Static code analysis.
-* **Pycodestyle**: Style analysis.
+* **Pycodestyle**: Real-time code style analysis.
 * **Psutil**: CPU and memory usage on the status bar.
 * **Nbconvert**: Manipulation of notebooks in the Editor.
 * **Qtawesome** 0.4.1+: To have an icon theme based on FontAwesome.
 * **Pickleshare**: Show import completions on the Python consoles.
 * **PyZMQ**: Run introspection services asynchronously.
-* **QtPy** 1.2.0+: Abstracion layer for Python Qt bindings so that Spyder can run on PyQt4
-  and PyQt5.
+* **QtPy** 1.2.0+: Abstraction layer for Python Qt bindings so that Spyder
+  can run on multiple Qt bindings and versions.
 * **Chardet**: Character encoding auto-detection in Python.
-* **Numpydoc**: Used by Jedi to get return types for functions with Numpydoc docstrings.
-* **Cloudpickle**: Serialize variables in the IPython kernel to send them to Spyder.
+* **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
+* **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
+* **spyder-kernels** 1.0+: Jupyter kernels for the Spyder console.
+* **keyring**: Save Github credentials to report errors securely.
 
 ### Optional dependencies
 
 * **Matplotlib**: 2D/3D plotting in the Python and IPython consoles.
 * **Pandas**: View and edit DataFrames and Series in the Variable Explorer.
-* **Numpy**: View and edit two or three dimensional arrays in the Variable Explorer.
+* **Numpy**: View and edit 2- or 3-dimensional arrays in the Variable Explorer.
 * **SymPy**: Symbolic mathematics in the IPython console.
 * **SciPy**: Import Matlab workspace files in the Variable Explorer.
 * **Cython**: Run Cython files in the IPython console.
-
-
-## Contributing
-
-Everyone is welcome to help with Spyder. Please read our
-[contributing instructions](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md)
-to get started!
-
-
-## Troubleshooting
-
-Before posting a report, *please* carefully read our **[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
-and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
-for your error message and problem description, as the great majority of bugs
-are either duplicates, or can be fixed on the user side with a few easy steps.
-Thanks!
 
 
 ## Backers
@@ -224,14 +239,25 @@ Become a sponsor to get your logo on our README on Github.
 
 ## More information
 
-* For Spyder development details:
+[Main Website](https://www.spyder-ide.org/)
 
-    <https://github.com/spyder-ide/spyder>
+[Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
 
-* For bug reports and feature requests:
+[Online Documentation](https://docs.spyder-ide.org/)
 
-    <https://github.com/spyder-ide/spyder/issues>
+[Spyder Github](https://github.com/spyder-ide/spyder)
 
-* For discussions and troubleshooting:
+[Troubleshooting Guide and FAQ](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
 
-    <http://groups.google.com/group/spyderlib>
+[Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
+
+[Gitter Chatroom](https://gitter.im/spyder-ide/public)
+
+[Google Group](https://groups.google.com/group/spyderlib)
+
+[@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
+
+[@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
+
+[Support Spyder on OpenCollective](https://opencollective.com/spyder/)

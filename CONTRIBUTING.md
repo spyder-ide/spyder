@@ -1,4 +1,4 @@
-# Contributing to Spyder-IDE
+# Contributing to Spyder
 
 :+1::tada: First off, thanks for taking the time to contribute to Spyder! :tada::+1:
 
@@ -7,15 +7,28 @@
 
 This page documents at a very high level how to contribute to Spyder.
 Please check the
-[Spyder IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
+[Spyder IDE Contributor Documentation](
+https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder)
 for a more detailed guide on how to do so.
+
+
+## Troubleshooting
+
+Before posting a report, *please* carefully read our
+**[Troubleshooting Guide](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
+and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
+for your error message and problem description, as the great majority of bugs
+are either duplicates, or can be fixed on the user side with a few easy steps.
+Thanks!
 
 
 ## Submitting a Helpful Issue
 
 Submitting useful, effective and to-the-point issue reports can go a long
 way toward improving Spyder for everyone. Accordingly, please read the
-[relevant section](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ#calling-for-help-still-have-a-problem)
+[relevant section](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ#calling-for-help-still-have-a-problem)
 of the Spyder Troubleshooting Guide, which describes in detail how to do
 just that.
 
@@ -76,9 +89,8 @@ the directory where your git clone is stored and run:
   $ pip install -r requirements/requirements.txt
 ```
 
-If you are using `pip` and Python 2, you also need to install a Qt binding
-package (PyQt4 or PyQt5, with the latter strongly recommended).
-This can be achieved by running:
+If you are using `pip` and Python 3, you also need to install a Qt binding
+package (PyQt5). This can be achieved by running:
 
 ```bash
   $ pip install pyqt5
@@ -169,11 +181,27 @@ To run the Spyder test suite, please use (from the `spyder` root directory):
 ```
 
 
-## Troubleshooting
+## More information
 
-Before posting a report, *please* carefully read our
-**[Troubleshooting Guide](https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)**
-and search the [issue tracker](https://github.com/spyder-ide/spyder/issues)
-for your error message and problem description, as the great majority of bugs
-are either duplicates, or can be fixed on the user side with a few easy steps.
-Thanks!
+[Main Website](https://www.spyder-ide.org/)
+
+[Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
+
+[Online Documentation](https://docs.spyder-ide.org/)
+
+[Spyder Github](https://github.com/spyder-ide/spyder)
+
+[Troubleshooting Guide and FAQ](
+https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
+
+[Development Wiki](https://github.com/spyder-ide/spyder/wiki/Dev:-Index)
+
+[Gitter Chatroom](https://gitter.im/spyder-ide/public)
+
+[Google Group](http://groups.google.com/group/spyderlib)
+
+[@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
+
+[@SpyderIDE on Facebook](https://www.facebook.com/SpyderIDE/)
+
+[Support Spyder on OpenCollective](https://opencollective.com/spyder/)

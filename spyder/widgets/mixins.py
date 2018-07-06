@@ -24,13 +24,13 @@ from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QCursor, QTextCursor, QTextDocument
 from qtpy.QtWidgets import QApplication, QToolTip
 from qtpy import QT_VERSION
+from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
+                                             getsignaturefromtext)
 
 # Local imports
 from spyder.config.base import _
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
-from spyder.utils.dochelpers import (getargspecfromtext, getobj,
-                                     getsignaturefromtext)
 from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import NumpyArrayDialog
 
@@ -485,10 +485,13 @@ class BaseEditMixin(object):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
+
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
+
         if case:
             findflag = findflag | QTextDocument.FindCaseSensitively
+
         moves = [QTextCursor.NoMove]
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
@@ -501,16 +504,20 @@ class BaseEditMixin(object):
                     cursor.movePosition(QTextCursor.PreviousWord)
         else:
             moves += [QTextCursor.End]
-        if not regexp:
+
+        if regexp:
+            text = to_text_string(text)
+        else:
             text = re.escape(to_text_string(text))
+
         if QT55_VERSION:
-            pattern = QRegularExpression(r"\b{}\b".format(text) if words else
+            pattern = QRegularExpression(u"\\b{}\\b".format(text) if words else
                                          text)
             if case:
                 pattern.setPatternOptions(
                     QRegularExpression.CaseInsensitiveOption)
         else:
-            pattern = QRegExp(r"\b{}\b".format(text)
+            pattern = QRegExp(u"\\b{}\\b".format(text)
                               if words else text, Qt.CaseSensitive if case else
                               Qt.CaseInsensitive, QRegExp.RegExp2)
 
@@ -527,6 +534,7 @@ class BaseEditMixin(object):
             if found_cursor is not None and not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
                 return True
+
         return False
 
     def is_editor(self):
@@ -539,10 +547,13 @@ class BaseEditMixin(object):
         pattern = to_text_string(pattern)
         if not pattern:
             return 0
+
         if not regexp:
             pattern = re.escape(pattern)
+
         if not source_text:
             source_text = to_text_string(self.toPlainText())
+
         try:
             if case:
                 regobj = re.compile(pattern)
@@ -748,7 +759,10 @@ class SaveHistoryMixin(object):
     def create_history_filename(self):
         """Create history_filename with INITHISTORY if it doesn't exist."""
         if self.history_filename and not osp.isfile(self.history_filename):
-            encoding.writelines(self.INITHISTORY, self.history_filename)
+            try:
+                encoding.writelines(self.INITHISTORY, self.history_filename)
+            except EnvironmentError:
+                pass
 
     def add_to_history(self, command):
         """Add command to history"""
@@ -772,7 +786,7 @@ class SaveHistoryMixin(object):
         # See issue 6431
         try:
             encoding.write(text, self.history_filename, mode='ab')
-        except (IOError, OSError):
+        except EnvironmentError:
             pass
         if self.append_to_history is not None:
             self.append_to_history.emit(self.history_filename, text)

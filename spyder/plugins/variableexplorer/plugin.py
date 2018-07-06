@@ -7,17 +7,28 @@
 """Variable Explorer Plugin."""
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import QTimer, Signal, Slot
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
+from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
+from spyder import dependencies
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils import icon_manager as ima
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser)
-from spyder.plugins.variableexplorer.utils import REMOTE_SETTINGS
 from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage
+
+PANDAS_REQVER = '>=0.13.1'
+dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
+                              "Variable Explorer"),
+                 required_version=PANDAS_REQVER, optional=True)
+
+NUMPY_REQVER = '>=1.7'
+dependencies.add("numpy", _("View and edit two and three dimensional arrays "
+                            "in the Variable Explorer"),
+                 required_version=NUMPY_REQVER, optional=True)
 
 
 class VariableExplorer(SpyderPluginWidget):
@@ -25,6 +36,8 @@ class VariableExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
+    SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
@@ -79,6 +92,15 @@ class VariableExplorer(SpyderPluginWidget):
             new_value = new_value[1:]
         self.sig_option_changed.emit(option_name, new_value)
 
+    @Slot()
+    def free_memory(self):
+        """Free memory signal."""
+        self.main.free_memory()
+        QTimer.singleShot(self.INITIAL_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
+        QTimer.singleShot(self.SECONDARY_FREE_MEMORY_TIME_TRIGGER,
+                          lambda: self.main.free_memory())
+
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
         self.stack.setCurrentWidget(nsb)
@@ -112,6 +134,7 @@ class VariableExplorer(SpyderPluginWidget):
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
+            nsb.sig_free_memory.connect(self.free_memory)
             self.add_widget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget_from_id(shellwidget_id)

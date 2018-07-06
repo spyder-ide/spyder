@@ -16,7 +16,6 @@ except ImportError:
 
 # Third party imports
 import pytest
-from qtpy import PYQT4
 from qtpy.QtCore import Qt
 
 # Local imports
@@ -301,8 +300,7 @@ def test_set_layout_settings_dont_goto(editor_splitter_layout_bot):
     assert es.count() == 2  # One EditorStack and one EditorSplitter.
     assert es.widget(1).count() == 2  # One EditorStack and one EditorSplitter.
     assert es.widget(1).widget(1).count() == 1  # One EditorStack.
-    if not PYQT4:
-        assert get_settings['hexstate'] == state
+    assert get_settings['hexstate'] == state
 
     # All the lines for each tab and split are at the last line number.
     assert get_settings['splitsettings'] == [(False, 'foo.py', [5, 2, linecount]),

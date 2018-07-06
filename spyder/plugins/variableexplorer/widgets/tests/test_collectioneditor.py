@@ -123,7 +123,11 @@ def test_collectionsmodel_with_index():
         assert data(cm, 0, 0) == 'rng'
         assert data(cm, 0, 1) == rng_name
         assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
+    try:
+        assert data(cm, 0, 3) == rng._summary()
+    except AttributeError:
         assert data(cm, 0, 3) == rng.summary()
+
 
 def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
     for rng_name, rng in generate_pandas_indexes().items():
