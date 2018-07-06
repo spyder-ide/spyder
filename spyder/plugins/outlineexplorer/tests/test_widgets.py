@@ -191,14 +191,16 @@ def test_outline_explorer(outline_explorer_bot):
 # --------------------------------
 @pytest.fixture
 def outline_explorer_bot2(qtbot):
-    editor = CodeEditor()
-    editor = CodeEditor(None)
-    editor.set_language('py', 'test_file.py')
-    editor.set_text(dedent(code))
+    code_editor = CodeEditor()
+    code_editor = CodeEditor(None)
+    code_editor.set_language('py', 'test_file.py')
+    code_editor.set_text(dedent(code))
+
+    editor = OutlineExplorerProxyEditor(code_editor,
+                                        'test_file.py')
 
     outline_explorer = OutlineExplorerWidget()
-    outline_explorer.set_current_editor(
-            editor, 'test_file.py', False, False)
+    outline_explorer.set_current_editor(editor, False, False)
 
     qtbot.addWidget(outline_explorer)
 
