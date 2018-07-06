@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-version_info = (3, 3, 0, "dev0")
+version_info = (3, 3, 0)
 
 __version__ = '.'.join(map(str, version_info))
 __license__ = __doc__
