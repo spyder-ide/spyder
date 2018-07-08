@@ -1958,8 +1958,12 @@ class MainWindow(QMainWindow):
     # --- Other
     def valid_project(self):
         """Handle an invalid active project."""
-        if bool(self.projects.get_active_project_path()):
+        try:
             path = self.projects.get_active_project_path()
+        except AttributeError:
+            return
+
+        if bool(path):
             if not self.projects.is_valid_project(path):
                 if path:
                     QMessageBox.critical(
