@@ -147,10 +147,10 @@ cd spyder
 python bootstrap.py
 ```
 
-You also need to make sure the correct ``spyder-kernels`` version is installed
+You also need to make sure the correct `spyder-kernels` version is installed
 for the version of Spyder you are testing. The above procedure will give you
-``spyer-kernels`` 0.x for the ``3.x`` branch (Spyder 3),
-so to run the ``master`` branch (Spyder 4) you need to additionally execute:
+`spyer-kernels` 0.x for the `3.x` branch (Spyder 3),
+so to run the `master` branch (Spyder 4) you need to additionally execute:
 
 ```bash
 conda install spyder-kernels=1.*
