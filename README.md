@@ -161,7 +161,7 @@ they are officially released.
 If using `conda` (strongly recommended), this can be done by running the
 following from the command line (the Anaconda Prompt, if on Windows):
 
-```
+```bash
 conda install spyder
 conda remove spyder
 git clone https://github.com/spyder-ide/spyder.git
@@ -169,19 +169,29 @@ cd spyder
 python bootstrap.py
 ```
 
-Alternatively, you can use `pip` to install PyQt5 separately and
-the other *runtime dependencies* listed below. However, beware:
+You also need to make sure the correct `spyder-kernels` version is installed
+for the version of Spyder you are testing. The above procedure will give you
+`spyer-kernels` 0.x for the `3.x` branch (Spyder 3),
+so to run the `master` branch (Spyder 4) you need to additionally execute:
+
+```bash
+conda install spyder-kernels=1.*
+```
+
+Alternatively, you can use `pip` to install PyQt5 the other
+*runtime dependencies* listed below. However, beware:
 this method is recommended for experts only, and you'll need to solve any
-problems on your own. See the
-[installation instructions](https://docs.spyder-ide.org/installation.html)
-for more details.
+problems on your own.
+
+See the [installation instructions](
+https://docs.spyder-ide.org/installation.html) for more details on all of this.
 
 
 ## Dependencies
 
 **Important Note**: Most or all of the dependencies listed below come
 with *Anaconda* and other scientific Python distributions, so you don't need
-to install them seperatly in those cases.
+to install them separately in those cases.
 
 ### Build dependencies
 
