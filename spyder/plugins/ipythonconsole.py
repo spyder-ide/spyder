@@ -1112,11 +1112,13 @@ class IPythonConsole(SpyderPluginWidget):
             if not has_spyder_kernels:
                 client.show_kernel_error(
                         _("Your Python environment or installation doesn't "
-                          "have the <tt>spyder-kernels</tt> module installed "
-                          "on it. Without this module is not possible for "
+                          "have the <tt>spyder-kernels</tt> module or the "
+                          "right version of it installed. "
+                          "Without this module is not possible for "
                           "Spyder to create a console for you.<br><br>"
-                          "You can install it by running in a system terminal"
-                          ":<br><br><tt>conda install spyder-kernels</tt>"
+                          "You can install it by running in a system terminal:"
+                          "<br><br>"
+                          "<tt>conda install spyder-kernels</tt>"
                           "<br><br>or<br><br>"
                           "<tt>pip install spyder-kernels</tt>"))
                 return
