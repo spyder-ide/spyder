@@ -18,4 +18,4 @@ export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
 # Install spyder-kernels
-pip install -q --no-deps spyder-kernels==0.*
+pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels@0.x
