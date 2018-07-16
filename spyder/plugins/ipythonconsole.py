@@ -1799,9 +1799,9 @@ class IPythonConsole(SpyderPluginWidget):
                 return
 
         # Assign kernel manager and client to shellwidget
+        kernel_client.start_channels()
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
-        kernel_client.start_channels()
         if external_kernel:
             client.shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)
