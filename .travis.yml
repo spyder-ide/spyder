@@ -8,20 +8,20 @@ matrix:
   fast_finish: true
   include:
     - python: "3.6"
-      env: USE_PYQT=pyqt5 USE_CONDA=yes PYTHON_VERSION=3.6
+      env: USE_CONDA=yes PYTHON_VERSION=3.6
       os: osx
       language: generic
     - python: "2.7"
-      env: USE_PYQT=pyqt5 USE_CONDA=yes
+      env: USE_CONDA=yes
       os: linux
     - python: "3.5"
-      env: USE_PYQT=pyqt5 USE_CONDA=yes
+      env: USE_CONDA=yes
       os: linux
     - python: "3.6"
-      env: USE_PYQT=pyqt5 USE_CONDA=yes
+      env: USE_CONDA=yes
       os: linux
     - python: "3.6"
-      env: USE_PYQT=pyqt5 USE_CONDA=no
+      env: USE_CONDA=no
       os: linux
 
 before_install:

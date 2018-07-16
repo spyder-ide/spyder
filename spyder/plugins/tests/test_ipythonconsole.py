@@ -21,7 +21,6 @@ from textwrap import dedent
 # Third party imports
 import cloudpickle
 from flaky import flaky
-import ipykernel
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
@@ -128,8 +127,6 @@ def ipyconsole(qtbot, request):
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
-@pytest.mark.xfail(zmq.__version__ >= '17.0.0' and ipykernel.__version__ <= "4.8.1",
-                   reason="A bug with pyzmq 17 and ipykernel 4.8.1")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend is working correctly."""
     # Wait until the window is fully up

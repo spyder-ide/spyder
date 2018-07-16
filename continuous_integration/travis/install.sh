@@ -29,16 +29,4 @@ if [ "$USE_CONDA" = "no" ]; then
 
     # Install Spyder and its dependencies
     pip install -q -e .[test]
-
-    # Run with tornado < 5.0 to avoid hangs
-    pip install tornado==4.5.3
-
-    # Fix connection to external kernels
-    pip install jupyter-client==5.2.2
-else
-    # Run with tornado < 5.0 to avoid hangs
-    conda install tornado=4.5.3
-
-    # Fix connection to external kernels
-    conda install jupyter_client=5.2.2
 fi
