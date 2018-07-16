@@ -251,6 +251,7 @@ the sympy module (e.g. plot)
             # Update checkbox based on user interaction
             CONF.set('ipython_console', 'show_reset_namespace_warning',
                      not box.is_checked())
+            self.ipyclient.reset_warning = not box.is_checked()
 
             if answer != QMessageBox.Yes:
                 return
