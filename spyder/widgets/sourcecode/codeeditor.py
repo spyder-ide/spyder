@@ -709,7 +709,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
-        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -752,6 +751,9 @@ class CodeEditor(TextEditBaseWidget):
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
             self.set_color_scheme(color_scheme)
+
+        # Set tab spacing after font is set
+        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         self.toggle_wrap_mode(wrap)
 
