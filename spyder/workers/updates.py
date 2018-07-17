@@ -27,8 +27,9 @@ else:
 
 class WorkerUpdates(QObject):
     """
-    Worker that checks for releases using the Github API without blocking the
-    Spyder user interface, in case of connections issues.
+    Worker that checks for releases using the win-64 main channel
+    if Anaconda without blocking the Spyder user interface,
+    in case of connections issues.
     """
     sig_ready = Signal()
 
@@ -43,14 +44,14 @@ class WorkerUpdates(QObject):
         """Checks if there is an update available.
 
         It takes as parameters the current version of Spyder and a list of
-        valid cleaned releases in chronological order (what github api returns
-        by default). Example: ['2.3.4', '2.3.3' ...]
+        valid cleaned releases in chronological order.
+        Example: ['2.3.2', '2.3.3' ...]
         """
         if is_stable_version(version):
             # Remove non stable versions from the list
             releases = [r for r in releases if is_stable_version(r)]
 
-        latest_release = releases[0]
+        latest_release = releases[-1]
 
         if version.endswith('dev'):
             return (False, latest_release)
@@ -59,7 +60,7 @@ class WorkerUpdates(QObject):
 
     def start(self):
         """Main method of the WorkerUpdates worker"""
-        self.url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+        self.url = 'https://repo.continuum.io/pkgs/main/win-64/repodata.json'
         self.update_available = False
         self.latest_release = __version__
 
@@ -81,9 +82,13 @@ class WorkerUpdates(QObject):
                     data = data.decode()
 
                 data = json.loads(data)
-                releases = [item['tag_name'].replace('v', '') for item in data]
-                version = __version__
 
+                releases = []
+                for item in data['packages']:
+                    if 'spyder' in item and 'spyder-kernels' not in item:
+                        releases.append(item.split('-')[1])
+
+                version = __version__
                 result = self.check_update_available(version, releases)
                 self.update_available, self.latest_release = result
             except Exception:
