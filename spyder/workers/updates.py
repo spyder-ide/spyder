@@ -67,7 +67,7 @@ class WorkerUpdates(QObject):
     def start(self):
         """Main method of the WorkerUpdates worker"""
         if is_anaconda():
-            self.url = 'https://repo.continuum.io/pkgs/main'
+            self.url = 'https://repo.anaconda.com/pkgs/main'
             if os.name == 'nt':
                 self.url += '/win-64/repodata.json'
             elif sys.platform == 'darwin':
@@ -75,7 +75,8 @@ class WorkerUpdates(QObject):
             else:
                 self.url += '/linux-64/repodata.json'
         else:
-            self.url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
+            self.url = ('https://api.github.com/repos/'
+                        'spyder-ide/spyder/releases')
         self.update_available = False
         self.latest_release = __version__
 
@@ -107,7 +108,7 @@ class WorkerUpdates(QObject):
                     result = self.check_update_available(version, releases)
                 else:
                     releases = [item['tag_name'].replace('v', '')
-                                                            for item in data]
+                                for item in data]
                     result = self.check_update_available(version, releases,
                                                          github=True)
                 self.update_available, self.latest_release = result
