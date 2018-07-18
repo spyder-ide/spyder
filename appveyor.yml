@@ -44,6 +44,8 @@ install:
   - "pip install git+https://github.com/jupyter/qtconsole.git"
   # Fix problems with latest pyqt
   - "conda install pyqt=5.6*"
+  # Reinstall Matplotlib in case it had been removed
+  - "conda install --no-deps matplotlib"
   # Install spyder-kernels from Github
   - "pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels"
 
