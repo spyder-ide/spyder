@@ -296,7 +296,7 @@ def get_available_translations():
         if lang not in LANGUAGE_CODES:
             error = ('Update LANGUAGE_CODES (inside config/base.py) if a new '
                      'translation has been added to Spyder')
-            print(error)
+            print(error)  # spyder: test-skip
             return ['en']
     return langs
 
