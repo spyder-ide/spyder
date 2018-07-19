@@ -417,7 +417,8 @@ class InternalShell(PythonShellWidget):
             else:
                 self.write(_('In order to use commands like "raw_input" '
                              'or "input" run Spyder with the multithread '
-                             'option (--multithread)'), error=True)
+                             'option (--multithread) from a system terminal'),
+                           error=True)
         else:
             self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
     
