@@ -24,6 +24,7 @@ import sys
 
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
+PY36 = sys.version_info[:2] == (3, 6)
 
 #==============================================================================
 # Data types
