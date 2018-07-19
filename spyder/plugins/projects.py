@@ -302,6 +302,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.sig_pythonpath_changed.emit()
 
             if self.dockwidget is not None:
+                self.set_option('visible_if_project_open',
+                                self.dockwidget.isVisible())
                 self.dockwidget.close()
 
             self.clear()
