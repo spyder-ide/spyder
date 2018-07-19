@@ -36,12 +36,13 @@ class WorkerUpdates(QObject):
     """
     sig_ready = Signal()
 
-    def __init__(self, parent, startup):
+    def __init__(self, parent, startup, version=""):
         QObject.__init__(self)
         self._parent = parent
         self.error = None
         self.latest_release = None
         self.startup = startup
+        self.version = version
 
     def check_update_available(self, version, releases, github=False):
         """Checks if there is an update available.
@@ -98,18 +99,21 @@ class WorkerUpdates(QObject):
                     data = data.decode()
 
                 data = json.loads(data)
-                version = __version__
+                if not self.version:
+                    self.version = __version__
 
                 if is_anaconda():
                     releases = []
                     for item in data['packages']:
                         if 'spyder' in item and 'spyder-kernels' not in item:
                             releases.append(item.split('-')[1])
-                    result = self.check_update_available(version, releases)
+                    result = self.check_update_available(self.version,
+                                                         releases)
                 else:
                     releases = [item['tag_name'].replace('v', '')
                                 for item in data]
-                    result = self.check_update_available(version, releases,
+                    result = self.check_update_available(self.version,
+                                                         releases,
                                                          github=True)
                 self.update_available, self.latest_release = result
             except Exception:
