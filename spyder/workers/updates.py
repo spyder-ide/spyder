@@ -30,9 +30,10 @@ else:
 
 class WorkerUpdates(QObject):
     """
-    Worker that checks for releases using the win-64 main channel
-    of Anaconda without blocking the Spyder user interface,
-    in case of connections issues.
+    Worker that checks for releases using either the Anaconda
+    default channels or the Github Releases page without
+    blocking the Spyder user interface, in case of connection
+    issues.
     """
     sig_ready = Signal()
 
