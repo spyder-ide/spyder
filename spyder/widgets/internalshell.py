@@ -408,10 +408,19 @@ class InternalShell(PythonShellWidget):
         else:
             if history:
                 self.add_to_history(cmd)
-        self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
         if not self.multithreaded:
-            self.interpreter.run_line()
-            self.refresh.emit()
+            if 'input' not in cmd:
+                self.interpreter.stdin_write.write(
+                                                to_binary_string(cmd + '\n'))
+                self.interpreter.run_line()
+                self.refresh.emit()
+            else:
+                self.write(_('In order to use commands like "raw_input" '
+                             'or "input" run Spyder with the multithread '
+                             'option (--multithread) from a system terminal'),
+                           error=True)
+        else:
+            self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
     
     
     #------ Code completion / Calltips
