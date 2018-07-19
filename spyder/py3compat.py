@@ -24,7 +24,7 @@ import sys
 
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
-PY36 = sys.version_info[:2] == (3, 6)
+PY36_OR_MORE = sys.version_info[0] >= 3 and sys.version_info[1] >= 6
 
 #==============================================================================
 # Data types

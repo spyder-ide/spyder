@@ -25,7 +25,8 @@ from qtpy.QtWidgets import QApplication
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.py3compat import builtins, is_text_string, to_text_string, PY36
+from spyder.py3compat import (builtins, is_text_string, to_text_string,
+                              PY36_OR_MORE)
 from spyder.utils.sourcecode import CELL_LANGUAGES
 from spyder.utils.workers import WorkerManager
 
@@ -299,9 +300,9 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                     r"\b[+-]?0[oO][0-7]+[lL]?\b",
                     r"\b[+-]?0[bB][01]+[lL]?\b",
                     r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"]
-    # Needed to achieve correct highlighting in Python 3.6
+    # Needed to achieve correct highlighting in Python 3.6+
     # See issue 7324
-    if PY36:
+    if PY36_OR_MORE:
         # Based on
         # https://github.com/python/cpython/blob/
         # 81950495ba2c36056e0ce48fd37d514816c26747/Lib/tokenize.py#L117
