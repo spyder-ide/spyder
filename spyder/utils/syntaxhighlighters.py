@@ -25,7 +25,8 @@ from qtpy.QtWidgets import QApplication
 from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.main import CONF
-from spyder.py3compat import builtins, is_text_string, to_text_string
+from spyder.py3compat import (builtins, is_text_string, to_text_string,
+                              PY36_OR_MORE)
 from spyder.utils.sourcecode import CELL_LANGUAGES
 from spyder.utils.workers import WorkerManager
 
@@ -294,12 +295,30 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                                 r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
-    number = any("number",
-                 [r"\b[+-]?[0-9]+[lLjJ]?\b",
-                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
-                  r"\b[+-]?0[oO][0-7]+[lL]?\b",
-                  r"\b[+-]?0[bB][01]+[lL]?\b",
-                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"])
+    number_regex = [r"\b[+-]?[0-9]+[lLjJ]?\b",
+                    r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                    r"\b[+-]?0[oO][0-7]+[lL]?\b",
+                    r"\b[+-]?0[bB][01]+[lL]?\b",
+                    r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"]
+    # Needed to achieve correct highlighting in Python 3.6+
+    # See issue 7324
+    if PY36_OR_MORE:
+        # Based on
+        # https://github.com/python/cpython/blob/
+        # 81950495ba2c36056e0ce48fd37d514816c26747/Lib/tokenize.py#L117
+        # In order: Hexnumber, Binnumber, Octnumber, Decnumber,
+        # Pointfloat + Exponent, Expfloat, Imagnumber
+        number_regex = [
+                r"\b[+-]?0[xX](?:_?[0-9A-Fa-f])+[lL]?\b",
+                r"\b[+-]?0[bB](?:_?[01])+[lL]?\b",
+                r"\b[+-]?0[oO](?:_?[0-7])+[lL]?\b",
+                r"\b[+-]?(?:0(?:_?0)*|[1-9](?:_?[0-9])*)[lL]?\b",
+                r"\b((\.[0-9](?:_?[0-9])*')|\.[0-9](?:_?[0-9])*)"
+                "([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+                r"\b[0-9](?:_?[0-9])*([eE][+-]?[0-9](?:_?[0-9])*)?[jJ]?\b",
+                r"\b[0-9](?:_?[0-9])*[jJ]\b"]
+    number = any("number", number_regex)
+
     sqstring =     r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring =     r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     uf_sqstring =  r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$"
