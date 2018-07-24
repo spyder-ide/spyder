@@ -230,8 +230,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         dlg.sig_project_creation_requested.connect(self._create_project)
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
-            pass
-            if active_project is None:
+            if (active_project is None
+                and self.get_option('visible_if_project_open')):
                 self.show_explorer()
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
@@ -267,7 +267,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                 self.editor.save_open_files()
             if self.editor is not None:
                 self.editor.set_option('last_working_dir', getcwd_or_home())
-            self.show_explorer()
+            if self.get_option('visible_if_project_open'):
+                self.show_explorer()
         else:
             # We are switching projects
             if self.editor is not None:

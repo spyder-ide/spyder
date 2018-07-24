@@ -69,7 +69,9 @@ def test_close_project_sets_visible_config(projects_with_dockwindow, tmpdir,
     projects.set_option('visible_if_project_open', not value)
 
     projects.open_project(path=to_text_string(tmpdir))
-    if value is False:
+    if value:
+        projects.show_explorer()
+    else:
         projects.dockwidget.close()
     projects.close_project()
     assert projects.get_option('visible_if_project_open') == value
@@ -87,10 +89,22 @@ def test_closing_plugin_sets_visible_config(
     assert projects.get_option('visible_if_project_open') == (not value)
 
     projects.open_project(path=to_text_string(tmpdir))
-    if value is False:
+    if value:
+        projects.show_explorer()
+    else:
         projects.dockwidget.close()
     projects.close_project()
     assert projects.get_option('visible_if_project_open') == value
+
+@pytest.mark.parametrize('value', [True, False])
+def test_open_project_uses_visible_config(
+        projects_with_dockwindow, tmpdir, value):
+    """Test that when a project is opened, the project explorer is only opened
+    if the config option visible_if_project_open is set."""
+    projects = projects_with_dockwindow
+    projects.set_option('visible_if_project_open', value)
+    projects.open_project(path=to_text_string(tmpdir))
+    assert projects.dockwidget.isVisible() == value
 
 
 if __name__ == "__main__":
