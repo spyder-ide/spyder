@@ -377,11 +377,18 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                       default=getcwd_or_home())
 
     def save_config(self):
-        """Save configuration: opened projects & tree widget state"""
+        """
+        Save configuration: opened projects & tree widget state.
+
+        Also save whether dock widget is visible if a project is open.
+        """
         self.set_option('recent_projects', self.recent_projects)
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.treewidget.get_scrollbar_position())
+        if self.current_active_project and self.dockwidget:
+            self.set_option('visible_if_project_open',
+                            self.dockwidget.isVisible())
 
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""

@@ -74,5 +74,24 @@ def test_close_project_sets_visible_config(projects_with_dockwindow, tmpdir,
     projects.close_project()
     assert projects.get_option('visible_if_project_open') == value
 
+@pytest.mark.parametrize('value', [True, False])
+def test_closing_plugin_sets_visible_config(
+        projects_with_dockwindow, tmpdir, value):
+    """Test that closing_plugin() sets config option visible_if_project_open
+    if a project is open."""
+    projects = projects_with_dockwindow
+    projects.set_option('visible_if_project_open', not value)
+    projects.closing_plugin()
+
+    # No project is open so config option should remain unchanged
+    assert projects.get_option('visible_if_project_open') == (not value)
+
+    projects.open_project(path=to_text_string(tmpdir))
+    if value is False:
+        projects.dockwidget.close()
+    projects.close_project()
+    assert projects.get_option('visible_if_project_open') == value
+
+
 if __name__ == "__main__":
     pytest.main()
