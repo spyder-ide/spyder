@@ -29,6 +29,7 @@ def projects(qtbot):
     qtbot.addWidget(projects)
     return projects
 
+
 @pytest.fixture
 def projects_with_dockwindow(projects, mocker):
     """Fixture for Projects plugin with a dockwindow"""
@@ -58,6 +59,7 @@ def test_open_project(projects, tmpdir, test_directory):
     # Close project
     projects.close_project()
 
+
 @pytest.mark.parametrize('value', [True, False])
 def test_close_project_sets_visible_config(projects_with_dockwindow, tmpdir,
                                            value):
@@ -75,6 +77,7 @@ def test_close_project_sets_visible_config(projects_with_dockwindow, tmpdir,
         projects.dockwidget.close()
     projects.close_project()
     assert projects.get_option('visible_if_project_open') == value
+
 
 @pytest.mark.parametrize('value', [True, False])
 def test_closing_plugin_sets_visible_config(
@@ -95,6 +98,7 @@ def test_closing_plugin_sets_visible_config(
         projects.dockwidget.close()
     projects.close_project()
     assert projects.get_option('visible_if_project_open') == value
+
 
 @pytest.mark.parametrize('value', [True, False])
 def test_open_project_uses_visible_config(

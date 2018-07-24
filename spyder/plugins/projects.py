@@ -231,7 +231,7 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
             if (active_project is None
-                and self.get_option('visible_if_project_open')):
+                    and self.get_option('visible_if_project_open')):
                 self.show_explorer()
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
