@@ -22,7 +22,6 @@ import sys
 import mimetypes as mime
 
 # Third party imports
-from qtpy import API, is_pyqt46
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl,
@@ -77,8 +76,13 @@ def fixpath(path):
 def create_script(fname):
     """Create a new Python script"""
     text = os.linesep.join(["# -*- coding: utf-8 -*-", "", ""])
-    encoding.write(to_text_string(text), fname, 'utf-8')
-
+    try:
+        encoding.write(to_text_string(text), fname, 'utf-8')
+    except EnvironmentError as error:
+        QMessageBox.critical(_("Save Error"),
+                             _("<b>Unable to save file '%s'</b>"
+                               "<br><br>Error message:<br>%s"
+                               ) % (osp.basename(fname), str(error)))
 
 def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', show_all=False,
             folders_only=False):
@@ -219,9 +223,8 @@ class DirView(QTreeView):
     def setup_view(self):
         """Setup view"""
         self.install_model()
-        if not is_pyqt46:
-            self.fsmodel.directoryLoaded.connect(
-                                        lambda: self.resizeColumnToContents(0))
+        self.fsmodel.directoryLoaded.connect(
+            lambda: self.resizeColumnToContents(0))
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
@@ -404,16 +407,10 @@ class DirView(QTreeView):
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
             # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                commit_slot = lambda _checked, fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'commit')
-                browse_slot = lambda _checked, fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'browse')
-            else:
-                commit_slot = lambda fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'commit')
-                browse_slot = lambda fnames=[dirname]:\
-                                    self.vcs_command(fnames, 'browse')
+            commit_slot = lambda fnames=[dirname]:\
+                                self.vcs_command(fnames, 'commit')
+            browse_slot = lambda fnames=[dirname]:\
+                                self.vcs_command(fnames, 'browse')
             vcs_ci = create_action(self, _("Commit"),
                                    icon=ima.icon('vcs_commit'),
                                    triggered=commit_slot)
@@ -492,8 +489,13 @@ class DirView(QTreeView):
                 
     def contextMenuEvent(self, event):
         """Override Qt method"""
-        self.update_menu()
-        self.menu.popup(event.globalPos())
+        # Needed to handle not initialized menu.
+        # See issue 6975
+        try:
+            self.update_menu()
+            self.menu.popup(event.globalPos())
+        except AttributeError:
+            pass
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -910,7 +912,7 @@ class DirView(QTreeView):
                     self._to_be_loaded = []
                 self._to_be_loaded.append(path)
                 self.setExpanded(self.get_index(path), True)
-        if not self.__expanded_state and not is_pyqt46:
+        if not self.__expanded_state:
             self.fsmodel.directoryLoaded.disconnect(self.restore_directory_state)
                 
     def follow_directories_loaded(self, fname):
@@ -920,8 +922,7 @@ class DirView(QTreeView):
         path = osp.normpath(to_text_string(fname))
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
-        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0 \
-          and not is_pyqt46:
+        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
             self.fsmodel.directoryLoaded.disconnect(
                                         self.follow_directories_loaded)
             if self._scrollbar_positions is not None:
@@ -932,7 +933,7 @@ class DirView(QTreeView):
         """Restore all items expanded state"""
         if self.__expanded_state is not None:
             # In the old project explorer, the expanded state was a dictionnary:
-            if isinstance(self.__expanded_state, list) and not is_pyqt46:
+            if isinstance(self.__expanded_state, list):
                 self.fsmodel.directoryLoaded.connect(
                                                   self.restore_directory_state)
                 self.fsmodel.directoryLoaded.connect(

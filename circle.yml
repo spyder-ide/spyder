@@ -6,8 +6,6 @@ machine:
     PY_VERSIONS: "2.7 3.5 3.6"
     # Environment variable used by astropy helpers
     TRAVIS_OS_NAME: "linux"
-    # PyQt version to test with
-    USE_PYQT: pyqt5
 
 dependencies:
   pre:

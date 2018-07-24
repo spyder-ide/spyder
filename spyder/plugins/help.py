@@ -254,7 +254,7 @@ class SphinxThread(QThread):
     doc : str or dict
         A string containing a raw rst text or a dict containing
         the doc string components to be rendered.
-        See spyder.utils.dochelpers.getdoc for description.
+        See spyder_kernels.utils.dochelpers.getdoc for description.
     context : dict
         A dict containing the substitution variables for the
         layout template
@@ -829,9 +829,12 @@ class Help(SpyderPluginWidget):
 
     def save_history(self):
         """Save history to a text file in user home directory"""
-        open(self.LOG_PATH, 'w').write("\n".join( \
-                [to_text_string(self.combo.itemText(index))
-                 for index in range(self.combo.count())] ))
+        try:
+            open(self.LOG_PATH, 'w').write("\n".join( \
+                    [to_text_string(self.combo.itemText(index))
+                     for index in range(self.combo.count())] ))
+        except (UnicodeDecodeError, EnvironmentError):
+            pass
 
     @Slot(bool)
     def toggle_plain_text(self, checked):

@@ -195,6 +195,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             # Run Pdb continue to get to the first breakpoint
             # Fixes 2034
             self.write_to_stdin('continue')
+        elif spyder_msg_type == 'set_breakpoints':
+            self.set_spyder_breakpoints(force=True)
         else:
             debug_print("No such spyder message type: %s" % spyder_msg_type)
 

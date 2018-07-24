@@ -31,9 +31,17 @@ from qtpy.QtCore import (QAbstractTableModel, QDateTime, QModelIndex, Qt,
                          Signal, Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QDateEdit,
-                            QDateTimeEdit, QDialog, QDialogButtonBox,
+                            QDateTimeEdit, QDialog, QHBoxLayout,
                             QInputDialog, QItemDelegate, QLineEdit, QMenu,
-                            QMessageBox, QTableView, QVBoxLayout, QWidget)
+                            QMessageBox, QPushButton, QTableView,
+                            QVBoxLayout, QWidget)
+from spyder_kernels.utils.misc import fix_reference_name
+from spyder_kernels.utils.nsview import (
+    array, DataFrame, Index, display_to_value, FakeObject,
+    get_color_name, get_human_readable_type, get_size, Image, is_editable_type,
+    is_known_type, MaskedArray, ndarray, np_savetxt, Series, sort_against,
+    try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
+    get_type_string)
 
 # Local imports
 from spyder.config.base import _
@@ -42,16 +50,11 @@ from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, is_text_string,
                               PY3, to_text_string)
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import fix_reference_name, getcwd_or_home
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
 from spyder.widgets.variableexplorer.texteditor import TextEditor
-from spyder.widgets.variableexplorer.utils import (
-    array, DataFrame, Index, display_to_value, FakeObject, get_color_name,
-    get_human_readable_type, get_size, Image, is_editable_type, is_known_type,
-    MaskedArray, ndarray, np_savetxt, Series, sort_against, try_to_eval,
-    unsorted_unique, value_to_display, get_object_attrs, get_type_string)
 
 if ndarray is not FakeObject:
     from spyder.widgets.variableexplorer.arrayeditor import ArrayEditor
@@ -62,6 +65,9 @@ if DataFrame is not FakeObject:
 
 # To be able to get and set variables between Python 2 and 3
 PICKLE_PROTOCOL = 2
+
+# Maximum length of a serialized variable to be set in the kernel
+MAX_SERIALIZED_LENGHT = 1e6
 
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
@@ -110,6 +116,8 @@ class ProxyObject(object):
 
 class ReadOnlyCollectionsModel(QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
+
+    sig_setting_data = Signal()
 
     def __init__(self, parent, data, title="", names=False,
                  minmax=False, dataframe_format=None, remote=False):
@@ -181,7 +189,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.rows_loaded = ROWS_TO_LOAD
         else:
             self.rows_loaded = self.total_rows
-
+        self.sig_setting_data.emit()
         self.set_size_and_type()
         self.reset()
 
@@ -370,6 +378,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
         self.showndata[ self.keys[index.row()] ] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_human_readable_type(value)
+        self.sig_setting_data.emit()
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
@@ -400,6 +409,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
 
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
+    sig_free_memory = Signal()
 
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -582,7 +592,7 @@ class CollectionsDelegate(QItemDelegate):
 
     def free_memory(self):
         """Free memory after closing an editor."""
-        gc.collect()
+        self.sig_free_memory.emit()
 
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
@@ -660,7 +670,8 @@ class BaseTableView(QTableView):
     sig_option_changed = Signal(str, object)
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
-    
+    sig_free_memory = Signal()
+
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
@@ -1336,6 +1347,8 @@ class CollectionsEditor(QDialog):
 
         self.data_copy = None
         self.widget = None
+        self.btn_save_and_close = None
+        self.btn_close = None
 
     def setup(self, data, title='', readonly=False, width=650, remote=False,
               icon=None, parent=None):
@@ -1362,20 +1375,29 @@ class CollectionsEditor(QDialog):
         self.widget = CollectionsEditorWidget(self, self.data_copy,
                                               title=title, readonly=readonly,
                                               remote=remote)
-
+        self.widget.editor.model.sig_setting_data.connect(
+                                                    self.save_and_close_enable)
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
 
         # Buttons configuration
-        buttons = QDialogButtonBox.Ok
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
         if not readonly:
-            buttons = buttons | QDialogButtonBox.Cancel
-        self.bbox = QDialogButtonBox(buttons)
-        self.bbox.accepted.connect(self.accept)
-        if not readonly:
-            self.bbox.rejected.connect(self.reject)
-        layout.addWidget(self.bbox)
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.setDisabled(True)
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
+
+        self.btn_close = QPushButton(_('Close'))
+        self.btn_close.setAutoDefault(True)
+        self.btn_close.setDefault(True)
+        self.btn_close.clicked.connect(self.reject)
+        btn_layout.addWidget(self.btn_close)
+
+        layout.addLayout(btn_layout)
 
         constant = 121
         row_height = 30
@@ -1388,6 +1410,14 @@ class CollectionsEditor(QDialog):
             self.setWindowIcon(ima.icon('dictedit'))
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
+
+    @Slot()
+    def save_and_close_enable(self):
+        """Handle the data change event to enable the save and close button."""
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
 
     def get_value(self):
         """Return modified copy of dictionary or list"""
@@ -1435,6 +1465,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.setModel(self.model)
 
         self.delegate = RemoteCollectionsDelegate(self)
+        self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
@@ -1455,7 +1486,16 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             # We need to enclose values in a list to be able to send
             # them to the kernel in Python 2
             svalue = [cloudpickle.dumps(value, protocol=PICKLE_PROTOCOL)]
-            self.shellwidget.set_value(name, svalue)
+
+            # Needed to prevent memory leaks. See issue 7158
+            if len(svalue) < MAX_SERIALIZED_LENGHT:
+                self.shellwidget.set_value(name, svalue)
+            else:
+                QMessageBox.warning(self, _("Warning"),
+                                    _("The object you are trying to modify is "
+                                      "too big to be sent back to the kernel. "
+                                      "Therefore, your modifications won't "
+                                      "take place."))
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))
@@ -1642,8 +1682,8 @@ def remote_editor_test():
     app = qapplication()
 
     from spyder.config.main import CONF
-    from spyder.widgets.variableexplorer.utils import (make_remote_view,
-                                                       REMOTE_SETTINGS)
+    from spyder_kernels.utils.nsview import (make_remote_view,
+                                             REMOTE_SETTINGS)
 
     settings = {}
     for name in REMOTE_SETTINGS:

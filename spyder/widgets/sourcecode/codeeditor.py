@@ -27,7 +27,6 @@ import sys
 import time
 
 # Third party imports
-from qtpy import is_pyqt46
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QRegExp, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
@@ -39,7 +38,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QToolTip, QVBoxLayout, QScrollBar)
-from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
+from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
@@ -52,7 +51,6 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
-from spyder.utils.dochelpers import getobj
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.utils.editor import TextHelper
@@ -65,6 +63,7 @@ from spyder.widgets.panels.indentationguides import IndentationGuide
 from spyder.widgets.panels.scrollflag import ScrollFlagArea
 from spyder.widgets.panels.manager import PanelsManager
 from spyder.widgets.panels.codefolding import FoldingPanel
+from spyder.widgets.panels.classfunctiondropdown import ClassFunctionDropdown
 from spyder.widgets.sourcecode.folding import IndentFoldDetector
 from spyder.widgets.sourcecode.extensions.manager import (
         EditorExtensionsManager)
@@ -595,8 +594,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def closeEvent(self, event):
         TextEditBaseWidget.closeEvent(self, event)
-        if is_pyqt46:
-            self.destroyed.emit()
 
     def get_document_id(self):
         return self.document_id
@@ -651,7 +648,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
-        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -704,6 +700,9 @@ class CodeEditor(TextEditBaseWidget):
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
             self.set_color_scheme(color_scheme)
+
+        # Set tab spacing after font is set
+        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         self.toggle_wrap_mode(wrap)
 

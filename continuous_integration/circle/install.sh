@@ -3,7 +3,7 @@
 export CONDA_DEPENDENCIES_FLAGS="--quiet"
 export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
                            qtawesome pickleshare qtpy pyzmq chardet mock nomkl pandas \
-                           pytest pytest-cov numpydoc scipy cython pillow cloudpickle"
+                           pytest pytest-cov numpydoc scipy cython pillow cloudpickle keyring"
 export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-xvfb flaky jedi pycodestyle"
 
 # Download and install miniconda and conda/pip dependencies
@@ -17,5 +17,5 @@ source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
-# Install ciocheck (not working right now)
-#conda install -q ciocheck -c spyder-ide --no-update-deps
+# Install spyder-kernels
+pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels

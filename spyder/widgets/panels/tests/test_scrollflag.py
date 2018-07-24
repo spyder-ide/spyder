@@ -15,7 +15,6 @@ import pytest
 
 # Local imports
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
-from qtpy import PYQT4
 
 
 # ---------------------------------------------------------------------------
