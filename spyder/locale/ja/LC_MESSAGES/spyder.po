@@ -2142,7 +2142,7 @@ msgstr "使用法"
 
 #: spyder/plugins/help.py:706
 msgid "New to Spyder? Read our"
-msgstr "Spypderは初めてですか？ 読んでください。"
+msgstr "Spyderは初めてですか？ 読んでください。"
 
 #: spyder/plugins/help.py:707
 msgid "tutorial"
@@ -3617,7 +3617,7 @@ msgid ""
 "<b>%s</b> is unavailable (this file may have been removed, moved or renamed "
 "outside Spyder).<br>Do you want to close it?"
 msgstr ""
-"<b>%s</b> は利用できません (このファイルはSpypder外で削除、移動あるいは名前変"
+"<b>%s</b> は利用できません (このファイルはSpyder外で削除、移動あるいは名前変"
 "更されています)。<br>閉じますか?"
 
 #: spyder/widgets/editor.py:1999
@@ -4449,7 +4449,7 @@ msgid ""
 "Spyder without having to configure sys.path. <br>Do you want to clear "
 "contents of PYTHONPATH before adding Spyder's path list?"
 msgstr ""
-"sys.pathを変更することなくSpypder外でPythonモジュールを実行できるように、"
+"sys.pathを変更することなくSpyder外でPythonモジュールを実行できるように、"
 "Spyderのパスはユーザーの <b>PYTHONPATH</b> 環境変数に同期されます。 "
 "<br>Spyderのパスリストを追加する前にPYTHONPATHの値をクリアしますか？"
 
