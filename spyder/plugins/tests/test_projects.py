@@ -14,7 +14,7 @@ Tests for the Projects plugin.
 import pytest
 
 # Local imports
-import spyder.plugins.base
+import spyder.plugins
 from spyder.plugins.projects import Projects
 from spyder.py3compat import to_text_string
 
@@ -34,7 +34,7 @@ def projects(qtbot):
 def projects_with_dockwindow(projects, mocker):
     """Fixture for Projects plugin with a dockwindow"""
     projects.shortcut = None
-    mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
+    mocker.patch.object(spyder.plugins.SpyderDockWidget,
                         'install_tab_event_filter')
     mocker.patch.object(projects, 'toggle_view_action')
     projects.create_dockwidget()
