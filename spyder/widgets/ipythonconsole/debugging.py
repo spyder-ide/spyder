@@ -10,6 +10,7 @@ mode and Spyder
 """
 
 import ast
+import pdb
 import pickle
 
 from qtpy.QtCore import Qt
@@ -86,7 +87,10 @@ class DebuggingWidget(RichJupyterWidget):
             # Save history to browse it later
             if not (len(self._control.history) > 0
                     and self._control.history[-1] == line):
-                self._control.history.append(line)
+                # do not save pdb commands
+                cmd = line.split(" ")[0]
+                if "do_" + cmd not in dir(pdb.Pdb):
+                    self._control.history.append(line)
 
             # This is the Spyder addition: add a %plot magic to display
             # plots while debugging
