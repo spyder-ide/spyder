@@ -106,21 +106,30 @@ def get_home_dir():
     """
     try:
         # expanduser() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent file paths.
+        # decoded with the codec that the OS is using to represent
+        # file paths.
         path = encoding.to_unicode_from_fs(osp.expanduser('~'))
-    except:
+    except Exception:
         path = ''
-    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
-        if osp.isdir(path):
-            break
-        # os.environ.get() returns a raw byte string which needs to be
-        # decoded with the codec that the OS is using to represent environment
-        # variables.
-        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
-    if path:
+
+    if osp.isdir(path):
         return path
     else:
-        raise RuntimeError('Please define environment variable $HOME')
+        # Get home from alternative locations
+        for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+            # os.environ.get() returns a raw byte string which needs to be
+            # decoded with the codec that the OS is using to represent
+            # environment variables.
+            path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
+            if osp.isdir(path):
+                return path
+            else:
+                path = ''
+
+        if not path:
+            raise RuntimeError('Please set the environment variable HOME to '
+                               'your user/home directory path so Spyder can '
+                               'start properly.')
 
 
 def get_clean_conf_dir():
@@ -285,9 +294,10 @@ def get_available_translations():
     # is added, to ensure LANGUAGE_CODES is updated.
     for lang in langs:
         if lang not in LANGUAGE_CODES:
-            error = _('Update LANGUAGE_CODES (inside config/base.py) if a new '
-                      'translation has been added to Spyder')
-            raise Exception(error)
+            error = ('Update LANGUAGE_CODES (inside config/base.py) if a new '
+                     'translation has been added to Spyder')
+            print(error)  # spyder: test-skip
+            return ['en']
     return langs
 
 
@@ -409,48 +419,17 @@ _ = get_translation("spyder")
 #==============================================================================
 # Namespace Browser (Variable Explorer) configuration management
 #==============================================================================
-def get_supported_types():
-    """
-    Return a dictionnary containing types lists supported by the 
-    namespace browser:
-    dict(picklable=picklable_types, editable=editables_types)
-         
-    See:
-    get_remote_data function in spyder/widgets/variableexplorer/utils/monitor.py
-    
-    Note:
-    If you update this list, don't forget to update doc/variablexplorer.rst
-    """
-    from datetime import date, timedelta
-    editable_types = [int, float, complex, list, dict, tuple, date, timedelta
-                      ] + list(TEXT_TYPES) + list(INT_TYPES)
-    try:
-        from numpy import ndarray, matrix, generic
-        editable_types += [ndarray, matrix, generic]
-    except:
-        pass
-    try:
-        from pandas import DataFrame, Series, DatetimeIndex
-        editable_types += [DataFrame, Series, DatetimeIndex]
-    except:
-        pass
-    picklable_types = editable_types[:]
-    try:
-        from spyder.pil_patch import Image
-        editable_types.append(Image.Image)
-    except:
-        pass
-    return dict(picklable=picklable_types, editable=editable_types)
-
 # Variable explorer display / check all elements data types for sequences:
 # (when saving the variable explorer contents, check_all is True,
-#  see widgets/variableexplorer/namespacebrowser.py:NamespaceBrowser.save_data)
 CHECK_ALL = False #XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
+
+# To be able to get and set variables between Python 2 and 3
+PICKLE_PROTOCOL = 2
 
 
 #==============================================================================

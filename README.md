@@ -79,14 +79,14 @@ https://www.spyder-ide.org/).
 
 ## Documentation
 
-You can read the Spyder documentation online at [PythonHosted](
-http://pythonhosted.org/spyder/).
+You can read the Spyder documentation online on [the Spyder Docs website](
+https://docs.spyder-ide.org/).
 
 
 ## Installation
 
 For a detailed guide to installing Spyder, please refer to our
-[installation instructions](http://pythonhosted.org/spyder/installation.html).
+[installation instructions](https://docs.spyder-ide.org/installation.html).
 
 The easiest way to install Spyder on any of our supported platforms
 is to download it as part of the [Anaconda](https://www.anaconda.com/download/)
@@ -139,7 +139,7 @@ they are officially released.
 If using `conda` (strongly recommended), this can be done by running the
 following from the command line (the Anaconda Prompt, if on Windows):
 
-```
+```bash
 conda install spyder
 conda remove spyder
 git clone https://github.com/spyder-ide/spyder.git
@@ -147,19 +147,29 @@ cd spyder
 python bootstrap.py
 ```
 
-Alternatively, you can use `pip` to install PyQt5 separately and
-the other *runtime dependencies* listed below. However, beware:
+You also need to make sure the correct `spyder-kernels` version is installed
+for the version of Spyder you are testing. The above procedure will give you
+`spyer-kernels` 0.x for the `3.x` branch (Spyder 3),
+so to run the `master` branch (Spyder 4) you need to additionally execute:
+
+```bash
+conda install spyder-kernels=1.*
+```
+
+Alternatively, you can use `pip` to install PyQt5 the other
+*runtime dependencies* listed below. However, beware:
 this method is recommended for experts only, and you'll need to solve any
-problems on your own. See the
-[installation instructions](http://pythonhosted.org/spyder/installation.html)
-for more details.
+problems on your own.
+
+See the [installation instructions](
+https://docs.spyder-ide.org/installation.html) for more details on all of this.
 
 
 ## Dependencies
 
 **Important Note**: Most or all of the dependencies listed below come
 with *Anaconda* and other scientific Python distributions, so you don't need
-to install them seperatly in those cases.
+to install them separately in those cases.
 
 ### Build dependencies
 
@@ -188,6 +198,8 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **Chardet**: Character encoding auto-detection in Python.
 * **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
 * **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
+* **spyder-kernels** 0.2.3+;1.0-: Jupyter kernels for the Spyder console.
+* **keyring**: Save Github credentials to report errors securely.
 
 ### Optional dependencies
 
@@ -204,6 +216,8 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 [Main Website](https://www.spyder-ide.org/)
 
 [Download Spyder (with Anaconda)](https://www.anaconda.com/download/)
+
+[Online Documentation](https://docs.spyder-ide.org/)
 
 [Spyder Github](https://github.com/spyder-ide/spyder)
 

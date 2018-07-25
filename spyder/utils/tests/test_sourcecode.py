@@ -12,6 +12,11 @@ import pytest
 from spyder.utils import sourcecode
 
 
+def test_normalize_eols():
+    text = "a\nb\r\nc\rd"
+    assert sourcecode.normalize_eols(text) == "a\nb\nc\nd"
+
+
 def test_get_primary_at():
     code = 'import functools\nfunctools.partial'
     assert sourcecode.get_primary_at(code, len(code)) == 'functools.partial'

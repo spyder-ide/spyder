@@ -8,7 +8,7 @@ else
     export CONDA_DEPENDENCIES_FLAGS="--quiet"
     export CONDA_DEPENDENCIES="rope pyflakes sphinx pygments pylint psutil nbconvert \
                                qtawesome cloudpickle pickleshare qtpy pyzmq chardet mock nomkl pandas \
-                               pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle"
+                               pytest pytest-cov numpydoc scipy cython pillow jedi pycodestyle keyring"
     export PIP_DEPENDENCIES="coveralls pytest-qt pytest-mock pytest-timeout flaky"
 fi
 
@@ -28,16 +28,4 @@ if [ "$USE_CONDA" = "no" ]; then
 
     # Install Spyder and its dependencies
     pip install -q -e .[test]
-
-    # Run with tornado < 5.0 to avoid hangs
-    pip install tornado==4.5.3
-
-    # Fix connection to external kernels
-    pip install jupyter-client==5.2.2
-else
-    # Run with tornado < 5.0 to avoid hangs
-    conda install tornado=4.5.3
-
-    # Fix connection to external kernels
-    conda install jupyter_client=5.2.2
 fi

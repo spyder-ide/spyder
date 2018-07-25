@@ -11,10 +11,11 @@ Rope introspection plugin
 import time
 import imp
 
+from spyder_kernels.utils.dochelpers import getsignaturefromtext
+
 from spyder.config.base import get_conf_path, STDERR
 from spyder.utils import encoding, programs
 from spyder.py3compat import PY2
-from spyder.utils.dochelpers import getsignaturefromtext
 from spyder.utils import sourcecode
 from spyder.utils.debug import log_last_error, log_dt
 from spyder.utils.introspection.manager import (

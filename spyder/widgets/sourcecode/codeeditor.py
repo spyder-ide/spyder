@@ -39,6 +39,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QInputDialog, QLabel,
                             QLineEdit, QMenu, QMessageBox, QSplitter,
                             QTextEdit, QToolTip, QVBoxLayout, QWidget)
+from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
@@ -51,7 +52,6 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils import encoding, sourcecode
-from spyder.utils.dochelpers import getobj
 from spyder.utils.programs import check_version
 from spyder.utils.qthelpers import add_actions, create_action, mimedata2url
 from spyder.utils.sourcecode import ALL_LANGUAGES, CELL_LANGUAGES
@@ -709,7 +709,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
-        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -752,6 +751,9 @@ class CodeEditor(TextEditBaseWidget):
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
             self.set_color_scheme(color_scheme)
+
+        # Set tab spacing after font is set
+        self.set_tab_stop_width_spaces(tab_stop_width_spaces)
 
         self.toggle_wrap_mode(wrap)
 

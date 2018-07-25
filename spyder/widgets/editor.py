@@ -1067,8 +1067,8 @@ class EditorStack(QWidget):
         self.tab_stop_width_spaces = tab_stop_width_spaces
         if self.data:
             for finfo in self.data:
-                finfo.editor.setTabStopWidth(tab_stop_width_spaces
-                                             * self.fontMetrics().width('9'))
+                finfo.editor.tab_stop_width_spaces = tab_stop_width_spaces
+                finfo.editor.update_tab_stop_width_spaces()
 
     def set_help_enabled(self, state):
         self.help_enabled = state

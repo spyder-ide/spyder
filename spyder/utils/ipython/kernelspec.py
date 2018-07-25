@@ -26,8 +26,6 @@ from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
 class SpyderKernelSpec(KernelSpec):
     """Kernel spec for Spyder kernels"""
 
-    spy_path = get_module_source_path('spyder')
-
     def __init__(self, is_cython=False, **kwargs):
         super(SpyderKernelSpec, self).__init__(**kwargs)
         self.is_cython = is_cython
@@ -61,10 +59,10 @@ class SpyderKernelSpec(KernelSpec):
                 pyexec = pyexec_w
 
         # Command used to start kernels
-        utils_path = osp.join(self.spy_path, 'utils', 'ipython')
         kernel_cmd = [
             pyexec,
-            osp.join("%s" % utils_path, "start_kernel.py"),
+            '-m',
+            'spyder_kernels.console',
             '-f',
             '{connection_file}'
         ]
@@ -74,20 +72,9 @@ class SpyderKernelSpec(KernelSpec):
     @property
     def env(self):
         """Env vars for kernels"""
-        # Paths that we need to add to PYTHONPATH:
-        # 1. sc_path: Path to our sitecustomize
-        # 2. spy_path: Path to our main module, so we can use our config
-        #    system to configure kernels started by exterrnal interpreters
-        # 3. spy_pythonpath: Paths saved by our users with our PYTHONPATH
-        #    manager
-        sc_path = osp.join(self.spy_path, 'utils', 'site')
-        spy_pythonpath = CONF.get('main', 'spyder_pythonpath', default=[])
-
+        # Add our PYTHONPATH to the kernel
+        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
         default_interpreter = CONF.get('main_interpreter', 'default')
-        if default_interpreter:
-            pathlist = [sc_path] + spy_pythonpath
-        else:
-            pathlist = [sc_path, self.spy_path] + spy_pythonpath
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
                                             drop_env=(not default_interpreter))
 
