@@ -265,7 +265,8 @@ DEFAULTS = [
              {
               'name_filters': NAME_FILTERS,
               'show_all': True,
-              'show_hscrollbar': True
+              'show_hscrollbar': True,
+              'visible_if_project_open': True
               }),
             ('explorer',
              {
