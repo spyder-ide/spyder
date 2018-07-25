@@ -230,8 +230,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
         dlg.sig_project_creation_requested.connect(self._create_project)
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
-            pass
-            if active_project is None:
+            if (active_project is None
+                    and self.get_option('visible_if_project_open')):
                 self.show_explorer()
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
@@ -267,7 +267,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                 self.editor.save_open_files()
             if self.editor is not None:
                 self.editor.set_option('last_working_dir', getcwd_or_home())
-            self.show_explorer()
+            if self.get_option('visible_if_project_open'):
+                self.show_explorer()
         else:
             # We are switching projects
             if self.editor is not None:
@@ -302,6 +303,8 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
             self.sig_pythonpath_changed.emit()
 
             if self.dockwidget is not None:
+                self.set_option('visible_if_project_open',
+                                self.dockwidget.isVisible())
                 self.dockwidget.close()
 
             self.clear()
@@ -375,11 +378,18 @@ class Projects(ProjectExplorerWidget, SpyderPluginMixin):
                                       default=getcwd_or_home())
 
     def save_config(self):
-        """Save configuration: opened projects & tree widget state"""
+        """
+        Save configuration: opened projects & tree widget state.
+
+        Also save whether dock widget is visible if a project is open.
+        """
         self.set_option('recent_projects', self.recent_projects)
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.treewidget.get_scrollbar_position())
+        if self.current_active_project and self.dockwidget:
+            self.set_option('visible_if_project_open',
+                            self.dockwidget.isVisible())
 
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
