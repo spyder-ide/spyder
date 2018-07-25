@@ -76,13 +76,9 @@ class DebuggingWidget(RichJupyterWidget):
             # Save history to browse it later
             if not (len(self._control.history) > 0
                     and self._control.history[-1] == line):
-                ignore_pdb_cmd_setting = True
-                if ignore_pdb_cmd_setting:
-                    # do not save pdb commands
-                    cmd = line.split(" ")[0]
-                    if "do_" + cmd not in dir(pdb.Pdb):
-                        self._control.history.append(line)
-                else:
+                # do not save pdb commands
+                cmd = line.split(" ")[0]
+                if "do_" + cmd not in dir(pdb.Pdb):
                     self._control.history.append(line)
 
             # This is the Spyder addition: add a %plot magic to display
