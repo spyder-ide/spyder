@@ -7,8 +7,6 @@ export PYTHONPATH=.
 export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
-conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
-
 # Depth 1
 for f in spyder/*.py; do
     if [[ $f == *test*/*.* ]]; then
