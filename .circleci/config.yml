@@ -1,0 +1,62 @@
+version: 2
+
+jobs:
+  python2.7:
+    machine: true
+    environment:
+      - PYTHON_VERSION: "2.7"
+    steps:
+      - checkout
+      - run:
+          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
+      - run:
+          name: Install system packages
+          command: |
+            sudo apt-get update
+            sudo apt-get install libegl1-mesa
+      - run:
+          command: ./.circleci/install.sh
+      - run:
+          command: ./.circleci/modules_test.sh
+  python3.5:
+    machine: true
+    environment:
+      - PYTHON_VERSION: "3.5"
+    steps:
+      - checkout
+      - run:
+          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
+      - run:
+          name: Install system packages
+          command: |
+            sudo apt-get update
+            sudo apt-get install libegl1-mesa
+      - run:
+          command: ./.circleci/install.sh
+      - run:
+          command: ./.circleci/modules_test.sh
+  python3.6:
+    machine: true
+    environment:
+      - PYTHON_VERSION: "3.6"
+    steps:
+      - checkout
+      - run:
+          command: docker pull dorowu/ubuntu-desktop-lxde-vnc:trusty
+      - run:
+          name: Install system packages
+          command: |
+            sudo apt-get update
+            sudo apt-get install libegl1-mesa
+      - run:
+          command: ./.circleci/install.sh
+      - run:
+          command: ./.circleci/modules_test.sh
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - python2.7
+      - python3.5
+      - python3.6
