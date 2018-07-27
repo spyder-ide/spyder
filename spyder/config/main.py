@@ -139,6 +139,7 @@ DEFAULTS = [
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
+              'custom_list': [],
               }),
             ('ipython_console',
              {

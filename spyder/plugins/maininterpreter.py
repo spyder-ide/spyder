@@ -56,7 +56,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
 
     def initialize(self):
         GeneralConfigPage.initialize(self)
-        self.pyexec_edit.textChanged.connect(self.python_executable_changed)
         self.cus_exec_radio.toggled.connect(self.python_executable_switched)
 
     def setup_page(self):
@@ -78,15 +77,28 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         else:
             filters = None
         pyexec_file = self.create_browsefile('', 'executable', filters=filters)
+
         for le in self.lineedits:
             if self.lineedits[le][0] == 'executable':
                 self.pyexec_edit = le
         def_exec_radio.toggled.connect(pyexec_file.setDisabled)
         self.cus_exec_radio.toggled.connect(pyexec_file.setEnabled)
+
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
         pyexec_layout.addWidget(def_exec_radio)
         pyexec_layout.addWidget(self.cus_exec_radio)
+        if self.get_option('custom_list'):
+            self.cus_exec_combo = self.create_combobox(
+                                            _('Recent custom interpreters'),
+                                            self.get_option('custom_list'),
+                                            'executable'
+                                            )
+            def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
+            self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
+            pyexec_layout.addWidget(self.cus_exec_combo)
+            combobox = self.cus_exec_combo.combobox
+            combobox.currentTextChanged.connect(self.pyexec_edit.setText)
         pyexec_layout.addWidget(pyexec_file)
         pyexec_group.setLayout(pyexec_layout)
 
@@ -222,5 +234,21 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                 fixed_namelist = []
             self.set_option('umr/namelist', fixed_namelist)
 
+    def set_custom_interpreters_list(self, executable):
+        """Set the list of custom interpreters used."""
+        custom_list = self.get_option('custom_list')
+        if ((executable, executable) not in custom_list
+                and executable != get_python_executable()):
+            custom_list.append((executable, executable))
+            self.set_option('custom_list', custom_list)
+        combobox = self.cus_exec_combo.combobox
+        combobox.addItem(executable, executable)
+        index = combobox.findData(executable)
+        if index != -1:
+            combobox.setCurrentIndex(index)
+
     def apply_settings(self, options):
+        executable = self.pyexec_edit.text()
+        self.python_executable_changed(executable)
+        self.set_custom_interpreters_list(executable)
         self.main.apply_settings()
