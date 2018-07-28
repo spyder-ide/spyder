@@ -680,9 +680,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def create_file_combobox(self, text, choices, option, default=NoDefault,
                              tip=None, restart=False, filters=None,
-                             adjust_to_contents=False):
+                             adjust_to_contents=False,
+                             default_line_edit=False):
         """choices: couples (name, key)"""
-        combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents)
+        combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
+                                default_line_edit=default_line_edit)
         edit = combobox.lineEdit()
         edit.label_text = text
         edit.restart_required = restart

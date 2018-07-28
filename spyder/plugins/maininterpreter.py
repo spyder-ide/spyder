@@ -87,7 +87,8 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                                             _('Recent custom interpreters'),
                                             self.get_option('custom_list'),
                                             'executable',
-                                            filters=filters
+                                            filters=filters,
+                                            default_line_edit=True
                                             )
         def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
@@ -238,6 +239,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
 
     def apply_settings(self, options):
         executable = self.pyexec_edit.text()
+        executable = osp.normpath(executable)
         if executable.endswith('pythonw.exe'):
             executable = executable.replace("pythonw.exe", "python.exe")
         self.python_executable_changed(executable)

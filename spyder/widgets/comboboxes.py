@@ -20,7 +20,8 @@ import os.path as osp
 # Third party imports
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QComboBox, QCompleter, QSizePolicy, QToolTip
+from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
+                            QSizePolicy, QToolTip)
 
 # Local imports
 from spyder.config.base import _
@@ -310,8 +311,13 @@ class FileComboBox(PathComboBox):
     """
     QComboBox handling File paths
     """
-    def __init__(self, parent=None, adjust_to_contents=False):
+    def __init__(self, parent=None, adjust_to_contents=False,
+                 default_line_edit=False):
         PathComboBox.__init__(self, parent, adjust_to_contents)
+
+        if default_line_edit:
+            line_edit = QLineEdit(self)
+            self.setLineEdit(line_edit)
 
         # Widget setup
         if adjust_to_contents:
