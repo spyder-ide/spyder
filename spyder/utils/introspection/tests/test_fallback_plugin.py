@@ -92,19 +92,23 @@ def test_get_completions():
     assert ('sigMessageReady', '') in comp
 
     code = 'var = 1; f\'{v'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
-    assert ('sigMessageReady', '') in comp
+    comp = p.get_completions(CodeInfo('completions', code, len(code),
+                                      'dummy.py'))
+    assert ('var', '') in comp
 
     code = 'var = 1; F\'{v'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
+    comp = p.get_completions(CodeInfo('completions', code, len(code),
+                                      'dummy.py'))
     assert ('var', '') in comp
 
     code = 'var = 1; f"{v'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
+    comp = p.get_completions(CodeInfo('completions', code, len(code),
+                                      'dummy.py'))
     assert ('var', '') in comp
 
     code = 'var = 1; F"{v'
-    comp = p.get_completions(CodeInfo('completions', code, len(code), 'dummy.py'))
+    comp = p.get_completions(CodeInfo('completions', code, len(code),
+                                      'dummy.py'))
     assert ('var', '') in comp
 
     code = 'bob = 1; bo'
