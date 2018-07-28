@@ -35,6 +35,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         GeneralConfigPage.__init__(self, parent, main)
         self.cus_exec_radio = None
         self.pyexec_edit = None
+        self.cus_exec_combo = None
 
         # Python executable selection (initializing default values as well)
         executable = self.get_option('executable', get_python_executable())
@@ -53,6 +54,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             # the Python executable has already been set with pythonw.exe:
             self.set_option('executable',
                             executable.replace("pythonw.exe", "python.exe"))
+        self.set_custom_interpreters_list(executable)
 
     def initialize(self):
         GeneralConfigPage.initialize(self)
@@ -76,31 +78,23 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             filters = _("Executables")+" (*.exe)"
         else:
             filters = None
-        pyexec_file = self.create_browsefile('', 'executable', filters=filters)
-
-        for le in self.lineedits:
-            if self.lineedits[le][0] == 'executable':
-                self.pyexec_edit = le
-        def_exec_radio.toggled.connect(pyexec_file.setDisabled)
-        self.cus_exec_radio.toggled.connect(pyexec_file.setEnabled)
 
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
         pyexec_layout.addWidget(def_exec_radio)
         pyexec_layout.addWidget(self.cus_exec_radio)
-        if self.get_option('custom_list'):
-            self.cus_exec_combo = self.create_combobox(
+        self.cus_exec_combo = self.create_file_combobox(
                                             _('Recent custom interpreters'),
                                             self.get_option('custom_list'),
-                                            'executable'
+                                            'executable',
+                                            filters=filters
                                             )
-            def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
-            self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
-            pyexec_layout.addWidget(self.cus_exec_combo)
-            combobox = self.cus_exec_combo.combobox
-            combobox.currentTextChanged.connect(self.pyexec_edit.setText)
-        pyexec_layout.addWidget(pyexec_file)
+        def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
+        self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
+        pyexec_layout.addWidget(self.cus_exec_combo)
         pyexec_group.setLayout(pyexec_layout)
+
+        self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()
 
         # UMR Group
         umr_group = QGroupBox(_("User Module Reloader (UMR)"))
@@ -235,20 +229,17 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             self.set_option('umr/namelist', fixed_namelist)
 
     def set_custom_interpreters_list(self, executable):
-        """Set the list of custom interpreters used."""
+        """Update the list of interpreters used and the current one."""
         custom_list = self.get_option('custom_list')
-        if ((executable, executable) not in custom_list
-                and executable != get_python_executable()):
+        if (executable, executable) not in custom_list:
             custom_list.append((executable, executable))
             self.set_option('custom_list', custom_list)
-        combobox = self.cus_exec_combo.combobox
-        combobox.addItem(executable, executable)
-        index = combobox.findData(executable)
-        if index != -1:
-            combobox.setCurrentIndex(index)
+        self.set_option('executable', executable)
 
     def apply_settings(self, options):
         executable = self.pyexec_edit.text()
+        if executable.endswith('pythonw.exe'):
+            executable = executable.replace("pythonw.exe", "python.exe")
         self.python_executable_changed(executable)
         self.set_custom_interpreters_list(executable)
         self.main.apply_settings()

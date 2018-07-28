@@ -38,6 +38,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.colors import ColorLayout
+from spyder.widgets.comboboxes import FileComboBox
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 
@@ -676,7 +677,51 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         combobox.restart_required = restart
         combobox.label_text = text
         return widget
-    
+
+    def create_file_combobox(self, text, choices, option, default=NoDefault,
+                             tip=None, restart=False, filters=None,
+                             adjust_to_contents=False):
+        """choices: couples (name, key)"""
+        combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents)
+        edit = combobox.lineEdit()
+        edit.label_text = text
+        edit.restart_required = restart
+        self.lineedits[edit] = (option, default)
+
+        if tip is not None:
+            combobox.setToolTip(tip)
+        for name, key in choices:
+            if not (name is None and key is None):
+                combobox.addItem(name, to_qvariant(key))
+        # Insert separators
+        count = 0
+        for index, item in enumerate(choices):
+            name, key = item
+            if name is None and key is None:
+                combobox.insertSeparator(index + count)
+                count += 1
+        self.comboboxes[combobox] = (option, default)
+
+        msg = _('Invalid file path')
+        self.validate_data[edit] = (osp.isfile, msg)
+        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
+        browse_btn.setToolTip(_("Select file"))
+        browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
+
+        layout = QHBoxLayout()
+        layout.addWidget(combobox)
+        layout.addWidget(browse_btn)
+        layout.addStretch(1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget(self)
+        widget.combobox = combobox
+        widget.browse_btn = browse_btn
+        widget.setLayout(layout)
+        combobox.restart_required = restart
+        combobox.label_text = text
+
+        return widget
+
     def create_fontgroup(self, option=None, text=None, title=None,
                          tip=None, fontfilters=None, without_group=False):
         """Option=None -> setting plugin font"""

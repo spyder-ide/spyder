@@ -306,6 +306,27 @@ class UrlComboBox(PathComboBox):
         return QUrl(qstr).isValid()
 
 
+class FileComboBox(PathComboBox):
+    """
+    QComboBox handling File paths
+    """
+    def __init__(self, parent=None, adjust_to_contents=False):
+        PathComboBox.__init__(self, parent, adjust_to_contents)
+
+        # Widget setup
+        if adjust_to_contents:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        else:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToContentsOnFirstShow)
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+    def is_valid(self, qstr=None):
+        """Return True if string is valid"""
+        if qstr is None:
+            qstr = self.currentText()
+        return osp.isfile(to_text_string(qstr))
+
+
 def is_module_or_package(path):
     """Return True if path is a Python module/package"""
     is_module = osp.isfile(path) and osp.splitext(path)[1] in ('.py', '.pyw')
