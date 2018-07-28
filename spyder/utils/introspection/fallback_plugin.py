@@ -42,7 +42,16 @@ class FallbackPlugin(IntrospectionPlugin):
             return
         items = []
         obj = info['obj']
+        context = info['context']
+        line = info['line']
+        possible_f_string = ['f"', 'f\'', 'F"', 'F\'']
+
         if info['context']:
+            if (context in Token.Literal.String
+                    and any(f_string in line
+                            for f_string in possible_f_string)):
+                obj = obj.split('{')[-1]
+                context = Token.Literal.Name
             lexer = find_lexer_for_filename(info['filename'])
             # get a list of token matches for the current object
             tokens = lexer.get_tokens(info['source_code'])
@@ -53,23 +62,22 @@ class FallbackPlugin(IntrospectionPlugin):
                         obj != token):
                     items.append(token)
             # add in keywords if not in a string
-            if context not in Token.Literal.String:
+            if info['context'] not in Token.Literal.String:
                 try:
                     keywords = get_keywords(lexer)
                     items.extend(k for k in keywords if k.startswith(obj))
                 except Exception:
-                    pass
+                        pass
+        tokens = set(re.findall(info['id_regex'], info['source_code']))
+        items += [item for item in tokens if
+                  item.startswith(obj) and len(item) > len(obj)]
+        if '.' in obj:
+            start = obj.rfind('.') + 1
         else:
-            tokens = set(re.findall(info['id_regex'], info['source_code']))
-            items = [item for item in tokens if
-                 item.startswith(obj) and len(item) > len(obj)]
-            if '.' in obj:
-                start = obj.rfind('.') + 1
-            else:
-                start = 0
+            start = 0
 
-            items = [i[start:len(obj)] + i[len(obj):].split('.')[0]
-                 for i in items]
+        items += [i[start:len(obj)] + i[len(obj):].split('.')[0]
+                  for i in items]
         # get path completions
         # get last word back to a space or a quote character
         match = re.search(r'''[ "\']([\w\.\\\\/]+)\Z''', info['line'])

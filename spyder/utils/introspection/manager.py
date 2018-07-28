@@ -101,7 +101,6 @@ class PluginManager(QObject):
             # Use all but the fallback
             plugins = list(self.plugins.values())[:-1]
             self.desired = list(self.plugins.keys())[:-1]
-
         self._start_time = time.time()
         self.waiting = True
         method = 'get_%s' % info.name
@@ -275,13 +274,21 @@ class IntrospectionManager(QObject):
             return
         completion_text = info.obj
         prev_text = prev_info.obj
+        line = prev_info.line
 
         if prev_info.obj is None:
             completion_text = ''
             prev_text = ''
 
-        if not completion_text.startswith(prev_text):
+        possible_f_string = ['f"', 'f\'', 'F"', 'F\'']
+
+        if (not completion_text.startswith(prev_text)
+                and not any(f_string in line
+                            for f_string in possible_f_string)):
             return
+
+        if any(f_string in line for f_string in possible_f_string):
+            completion_text = completion_text.split('{')[-1]
 
         if info.full_obj and len(info.full_obj) > len(info.obj):
             new_list = [(c, t) for (c, t) in comp_list
