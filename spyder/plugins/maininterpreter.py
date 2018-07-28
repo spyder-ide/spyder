@@ -54,7 +54,8 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             # the Python executable has already been set with pythonw.exe:
             self.set_option('executable',
                             executable.replace("pythonw.exe", "python.exe"))
-        self.set_custom_interpreters_list(executable)
+        self.set_custom_interpreters_list(executable, executable)
+        self.validate_custom_interpreters_list()
 
     def initialize(self):
         GeneralConfigPage.initialize(self)
@@ -83,6 +84,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         pyexec_layout.addWidget(pyexec_label)
         pyexec_layout.addWidget(def_exec_radio)
         pyexec_layout.addWidget(self.cus_exec_radio)
+        self.validate_custom_interpreters_list()
         self.cus_exec_combo = self.create_file_combobox(
                                             _('Recent custom interpreters'),
                                             self.get_option('custom_list'),
@@ -230,13 +232,22 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                 fixed_namelist = []
             self.set_option('umr/namelist', fixed_namelist)
 
-    def set_custom_interpreters_list(self, executable):
+    def set_custom_interpreters_list(self, display_value, value):
         """Update the list of interpreters used and the current one."""
         custom_list = self.get_option('custom_list')
-        if (executable, executable) not in custom_list:
-            custom_list.append((executable, executable))
+        if (display_value, value) not in custom_list:
+            custom_list.append((display_value, value))
             self.set_option('custom_list', custom_list)
-        self.set_option('executable', executable)
+        self.set_option('executable', value)
+
+    def validate_custom_interpreters_list(self):
+        """Check that the used custom interpreters are still valid."""
+        custom_list = self.get_option('custom_list')
+        valid_custom_list = []
+        for name, value in custom_list:
+            if osp.isfile(value):
+                valid_custom_list.append((name, value))
+        self.set_option('custom_list', valid_custom_list)
 
     def apply_settings(self, options):
         executable = self.pyexec_edit.text()
@@ -245,5 +256,5 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             executable = executable.replace("pythonw.exe", "python.exe")
         change = self.python_executable_changed(executable)
         if change:
-            self.set_custom_interpreters_list(executable)
+            self.set_custom_interpreters_list(executable, executable)
         self.main.apply_settings()
