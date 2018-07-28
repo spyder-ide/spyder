@@ -159,6 +159,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                       "make sure to select a valid one."), QMessageBox.Ok)
             self.pyexec_edit.setText(def_pyexec)
             return
+        return True
 
     def python_executable_switched(self, custom):
         """Python executable default/custom radio button has been toggled"""
@@ -242,6 +243,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         executable = osp.normpath(executable)
         if executable.endswith('pythonw.exe'):
             executable = executable.replace("pythonw.exe", "python.exe")
-        self.python_executable_changed(executable)
-        self.set_custom_interpreters_list(executable)
+        change = self.python_executable_changed(executable)
+        if change:
+            self.set_custom_interpreters_list(executable)
         self.main.apply_settings()
