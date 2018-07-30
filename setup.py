@@ -154,14 +154,23 @@ if os.name == 'nt':
 #==============================================================================
 setup_args = dict(name=NAME,
       version=__version__,
-      description='Scientific PYthon Development EnviRonment',
+      description='The Scientific Python Development Environment',
       long_description=
-"""Spyder is an interactive Python development environment providing
-MATLAB-like features in a simple and light-weighted software.
-It also provides ready-to-use pure-Python widgets to your PyQt5
-application: A source code editor with syntax highlighting and
-code introspection/analysis features, NumPy array editor, dictionary
-editor, Python console, etc.""",
+"""Spyder is a powerful scientific environment written in Python, for Python,
+and designed by and for scientists, engineers and data analysts.
+It features a unique combination of the advanced editing, analysis, debugging
+and profiling functionality of a comprehensive development tool with the data
+exploration, interactive execution, deep inspection and beautiful visualization
+capabilities of a scientific package.
+Furthermore, Spyder offers built-in integration with many popular
+scientific packages, including NumPy, SciPy, Pandas, IPython, QtConsole,
+Matplotlib, SymPy, and more.
+Beyond its many built-in features, Spyder's abilities can be extended even
+further via its plugin system and API.
+Spyder can also be used as a PyQt5 extension library, allowing you to build
+upon its functionality and embed its components, such as the interactive
+console or advanced editor, in your own software.
+""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
       author="The Spyder Project Contributors",
       url=__project_url__,
