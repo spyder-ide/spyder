@@ -174,6 +174,7 @@ console or advanced editor, in your own software.
 """),
     download_url=__website_url__ + "#fh5co-download",
     author="The Spyder Project Contributors",
+    author_email="spyderlib@googlegroups.com",
     url=__website_url__,
     license='MIT',
     keywords='PyQt5 editor console widgets IDE science data analysis IPython',
