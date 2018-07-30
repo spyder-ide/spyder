@@ -35,6 +35,7 @@ __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
 __trouble_url__ = __project_url__ + '/wiki/Troubleshooting-Guide-and-FAQ'
 __trouble_url_short__ = 'https://tinyurl.com/SpyderHelp'
+__website_url__ = 'https://www.spyder-ide.org/'
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the
 # following path to module's data (images) and translations:
