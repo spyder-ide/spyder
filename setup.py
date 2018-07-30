@@ -167,14 +167,13 @@ Furthermore, Spyder offers built-in integration with many popular
 scientific packages, including NumPy, SciPy, Pandas, IPython, QtConsole,
 Matplotlib, SymPy, and more.
 Beyond its many built-in features, Spyder's abilities can be extended even
-further via its plugin system and API.
+further via first- and third-party plugins.
 Spyder can also be used as a PyQt5 extension library, allowing you to build
 upon its functionality and embed its components, such as the interactive
 console or advanced editor, in your own software.
 """),
     download_url=__website_url__ + "#fh5co-download",
     author="The Spyder Project Contributors",
-    author_email="ccordoba12@gmail.com",
     url=__website_url__,
     license='MIT',
     keywords='PyQt5 editor console widgets IDE science data analysis IPython',
