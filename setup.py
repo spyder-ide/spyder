@@ -173,7 +173,7 @@ console or advanced editor, in your own software.
 """,
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
       author="The Spyder Project Contributors",
-      url=__project_url__,
+      url=__website_url__,
       license='MIT',
       keywords='PyQt5 editor shell console widgets IDE',
       platforms=['any'],
