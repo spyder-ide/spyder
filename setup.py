@@ -171,7 +171,7 @@ Spyder can also be used as a PyQt5 extension library, allowing you to build
 upon its functionality and embed its components, such as the interactive
 console or advanced editor, in your own software.
 """,
-      download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
+      download_url=__website_url__ + "#fh5co-download",
       author="The Spyder Project Contributors",
       url=__website_url__,
       license='MIT',
