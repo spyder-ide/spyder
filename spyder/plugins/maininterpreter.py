@@ -147,12 +147,12 @@ class MainInterpreterConfigPage(GeneralConfigPage):
     def python_executable_changed(self, pyexec):
         """Custom Python executable value has been changed"""
         if not self.cus_exec_radio.isChecked():
-            return
+            return False
         def_pyexec = get_python_executable()
         if not is_text_string(pyexec):
             pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
         if pyexec == def_pyexec:
-            return
+            return False
         if (not programs.is_python_interpreter(pyexec) or
                 not self.warn_python_compatibility(pyexec)):
             QMessageBox.warning(self, _('Warning'),
@@ -160,7 +160,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                       "console so the previous interpreter will stay. Please "
                       "make sure to select a valid one."), QMessageBox.Ok)
             self.pyexec_edit.setText(def_pyexec)
-            return
+            return False
         return True
 
     def python_executable_switched(self, custom):
@@ -238,7 +238,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         if (display_value, value) not in custom_list:
             custom_list.append((display_value, value))
             self.set_option('custom_list', custom_list)
-        self.set_option('executable', value)
 
     def validate_custom_interpreters_list(self):
         """Check that the used custom interpreters are still valid."""
@@ -257,4 +256,5 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         change = self.python_executable_changed(executable)
         if change:
             self.set_custom_interpreters_list(executable, executable)
+            self.set_option('executable', executable)
         self.main.apply_settings()
