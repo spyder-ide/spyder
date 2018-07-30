@@ -53,7 +53,7 @@ if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 4)):
 #==============================================================================
 NAME = 'spyder'
 LIBNAME = 'spyder'
-from spyder import __version__, __project_url__
+from spyder import __version__, __website_url__  #analysis:ignore
 
 
 #==============================================================================
@@ -152,10 +152,11 @@ if os.name == 'nt':
 #==============================================================================
 # Setup arguments
 #==============================================================================
-setup_args = dict(name=NAME,
-      version=__version__,
-      description='The Scientific Python Development Environment',
-      long_description=
+setup_args = dict(
+    name=NAME,
+    version=__version__,
+    description='The Scientific Python Development Environment',
+    long_description=(
 """Spyder is a powerful scientific environment written in Python, for Python,
 and designed by and for scientists, engineers and data analysts.
 It features a unique combination of the advanced editing, analysis, debugging
@@ -170,42 +171,47 @@ further via its plugin system and API.
 Spyder can also be used as a PyQt5 extension library, allowing you to build
 upon its functionality and embed its components, such as the interactive
 console or advanced editor, in your own software.
-""",
-      download_url=__website_url__ + "#fh5co-download",
-      author="The Spyder Project Contributors",
-      author_email="ccordoba12@gmail.com",
-      url=__website_url__,
-      license='MIT',
-      keywords='PyQt5 editor console widgets IDE science data analysis IPython',
-      platforms=["Windows", "Linux", "Mac OS-X"],
-      packages=get_packages(),
-      package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
-                    'spyder_breakpoints': get_package_data('spyder_breakpoints', EXTLIST),
-                    'spyder_profiler': get_package_data('spyder_profiler', EXTLIST),
-                    'spyder_pylint': get_package_data('spyder_pylint', EXTLIST),
-                    'spyder_io_dcm': get_package_data('spyder_io_dcm', EXTLIST),
-                    'spyder_io_hdf5': get_package_data('spyder_io_hdf5', EXTLIST),
-                    },
-      scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
-      data_files=get_data_files(),
-      classifiers=['License :: OSI Approved :: MIT License',
-                   'Operating System :: MacOS',
-                   'Operating System :: Microsoft :: Windows',
-                   'Operating System :: POSIX :: Linux',
-                   'Programming Language :: Python :: 2',
-                   'Programming Language :: Python :: 2.7',
-                   'Programming Language :: Python :: 3',
-                   'Programming Language :: Python :: 3.4',
-                   'Programming Language :: Python :: 3.5',
-                   'Programming Language :: Python :: 3.6',
-                   'Programming Language :: Python :: 3.7',
-                   'Development Status :: 5 - Production/Stable',
-                   'Intended Audience :: Education',
-                   'Intended Audience :: Science/Research',
-                   'Intended Audience :: Developers',
-                   'Topic :: Scientific/Engineering',
-                   'Topic :: Software Development :: Widget Sets'],
-      cmdclass=CMDCLASS)
+"""),
+    download_url=__website_url__ + "#fh5co-download",
+    author="The Spyder Project Contributors",
+    author_email="ccordoba12@gmail.com",
+    url=__website_url__,
+    license='MIT',
+    keywords='PyQt5 editor console widgets IDE science data analysis IPython',
+    platforms=["Windows", "Linux", "Mac OS-X"],
+    packages=get_packages(),
+    package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
+                  'spyder_breakpoints': get_package_data('spyder_breakpoints',
+                                                         EXTLIST),
+                  'spyder_profiler': get_package_data('spyder_profiler',
+                                                      EXTLIST),
+                  'spyder_pylint': get_package_data('spyder_pylint',
+                                                    EXTLIST),
+                  'spyder_io_dcm': get_package_data('spyder_io_dcm',
+                                                    EXTLIST),
+                  'spyder_io_hdf5': get_package_data('spyder_io_hdf5',
+                                                     EXTLIST),
+                  },
+    scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
+    data_files=get_data_files(),
+    classifiers=['License :: OSI Approved :: MIT License',
+                 'Operating System :: MacOS',
+                 'Operating System :: Microsoft :: Windows',
+                 'Operating System :: POSIX :: Linux',
+                 'Programming Language :: Python :: 2',
+                 'Programming Language :: Python :: 2.7',
+                 'Programming Language :: Python :: 3',
+                 'Programming Language :: Python :: 3.4',
+                 'Programming Language :: Python :: 3.5',
+                 'Programming Language :: Python :: 3.6',
+                 'Programming Language :: Python :: 3.7',
+                 'Development Status :: 5 - Production/Stable',
+                 'Intended Audience :: Education',
+                 'Intended Audience :: Science/Research',
+                 'Intended Audience :: Developers',
+                 'Topic :: Scientific/Engineering',
+                 'Topic :: Software Development :: Widget Sets'],
+    cmdclass=CMDCLASS)
 
 
 #==============================================================================
