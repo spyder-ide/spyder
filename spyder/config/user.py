@@ -218,9 +218,9 @@ class UserConfig(DefaultsConfig):
                     self._update_defaults(defaults, old_ver)
                 if check_version(old_ver, '44.1.0', '<'):
                     run_lines = to_text_string(self.get('ipython_console',
-                                                       'startup/run_lines'))
+                                                        'startup/run_lines'))
                     if run_lines is not NoDefault:
-                        run_lines = run_lines.replace(',',';')
+                        run_lines = run_lines.replace(',', ';')
                         self.set('ipython_console',
                                  'startup/run_lines', run_lines)
                 # Remove deprecated options if major version has changed
