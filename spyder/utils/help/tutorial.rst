@@ -1,5 +1,5 @@
 ======================================================
-Spyder - the Scientific PYthon Development EnviRonment
+Spyder - the Scientific Python Development Environment
 ======================================================
 
 *Spyder* is an Integrated Development Environment (IDE) for scientific
