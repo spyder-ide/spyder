@@ -149,14 +149,14 @@ python bootstrap.py
 
 You also need to make sure the correct `spyder-kernels` version is installed
 for the version of Spyder you are testing. The above procedure will give you
-`spyer-kernels` 0.x for the `3.x` branch (Spyder 3),
+`spyder-kernels` 0.x for the `3.x` branch (Spyder 3),
 so to run the `master` branch (Spyder 4) you need to additionally execute:
 
 ```bash
-conda install spyder-kernels=1.*
+conda install -c conda-forge spyder-kernels=1.*
 ```
 
-Alternatively, you can use `pip` to install PyQt5 the other
+Alternatively, you can use `pip` to install PyQt5 and the other
 *runtime dependencies* listed below. However, beware:
 this method is recommended for experts only, and you'll need to solve any
 problems on your own.
