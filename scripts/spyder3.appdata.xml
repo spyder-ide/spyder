@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>spyder3.desktop</id>
   <name>Spyder</name>
-  <summary>Scientific Python Development Environment</summary>
+  <summary>The Scientific Python Development Environment</summary>
 
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
@@ -10,18 +10,17 @@
 
   <description>
     <p>
-      Spyder is a free open-source Python development environment providing MATLAB-like features in a simple and light-weighted software.
+      Spyder is a powerful scientific environment written in Python, for Python, and designed by and for scientists, engineers and data analysts.
+      It features a unique combination of the advanced editing, analysis, debugging and profiling functionality of a comprehensive development tool
+      with the data exploration, interactive execution, deep inspection and beautiful visualization capabilities of an analysis package.
     </p>
     <p>
-      It contains a powerful interactive development environment for the Python language with advanced editing, interactive testing, debugging and introspection features
-      and a numerical computing environment thanks to the support of IPython (enhanced interactive Python interpreter) and popular Python libraries such as NumPy
-      (linear algebra), SciPy (signal and image processing) or matplotlib (interactive 2D/3D plotting).
+      Furthermore, Spyder offers built-in integration with many popular scientific libraries,
+      including NumPy, SciPy, Pandas, IPython, QtConsole, Matplotlib, SymPy, and more, and can be extended further with full plugin support.
+      Spyder can also be used as a PyQt5 extension library, allowing you to build upon its functionality and embed its components,
+      such as the interactive console, in your own software.
     </p>
-    <p>
-      Spyder may also be used as a library providing powerful console-related widgets for your PyQt-based applications – for example, it may be used to integrate
-      a debugging console directly in the layout of your graphical user interface.
-    </p>
-  </description>
+  </description>q
 
   <screenshots>
 ​    <screenshot type="default">

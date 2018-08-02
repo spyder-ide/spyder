@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder, the Scientific PYthon Development EnviRonment
+Spyder, the Scientific Python Development Environment
 =====================================================
 
 Developped and maintained by the Spyder Project
@@ -2336,7 +2336,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
-            <br>The Scientific PYthon Development EnviRonment
+            <br>The Scientific Python Development Environment
             <br>Copyright &copy; The Spyder Project Contributors
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut.
