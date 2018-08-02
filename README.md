@@ -153,7 +153,7 @@ for the version of Spyder you are testing. The above procedure will give you
 so to run the `master` branch (Spyder 4) you need to additionally execute:
 
 ```bash
-conda install -c conda-forge spyder-kernels=1.*
+conda install -c spyder-ide spyder-kernels=1.*
 ```
 
 Alternatively, you can use `pip` to install PyQt5 and the other
