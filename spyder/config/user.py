@@ -220,7 +220,7 @@ class UserConfig(DefaultsConfig):
                     run_lines = to_text_string(self.get('ipython_console',
                                                         'startup/run_lines'))
                     if run_lines is not NoDefault:
-                        run_lines = run_lines.replace(',', ';')
+                        run_lines = run_lines.replace(',', '; ')
                         self.set('ipython_console',
                                  'startup/run_lines', run_lines)
                 # Remove deprecated options if major version has changed
