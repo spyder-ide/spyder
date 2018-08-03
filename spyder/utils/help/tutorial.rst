@@ -11,7 +11,7 @@ effectively develop the programs you need as a scientist.
 
 
 This tutorial is authored by
-`Hans Fangohr <http://www.southampton.ac.uk/~fangohr>`__ from the
+`Hans Fangohr <https://fangohr.github.io/>`__ from the
 University of Southampton (UK) (see `historical note`_ for more
 detail).
 
@@ -307,7 +307,7 @@ shows that we are using the ``console`` -- basically a normal Python
 console session (with some added functionality from Spyder).
 
 Instead, we would like to use an *Interactive Python* console, short *IPython*
-from the `IPython project <http://www.ipython.org>`__. To do this, select
+from the `IPython project <https://ipython.org>`__. To do this, select
 ``Consoles > Open an IPython Console``.
 
 You should see in the consolse window a new shell appearing, and the
@@ -316,7 +316,7 @@ IPython prompt ``In [1]:`` should be displayed.
 Reset the name space
 --------------------
 
-The `name space <http://bytebaker.com/2008/07/30/python-namespaces/>`__
+The `name space <https://bytebaker.com/2008/07/30/python-namespaces/>`__
 (i.e. the collection of objects defined in the console at any given time)
 can be cleared in IPython using the ``%reset`` command. Type ``%reset``
 and press return, then confirm with ``y``::
@@ -363,7 +363,7 @@ Strive for PEP8 Compliance
 In addition to the syntax that is enforced by the Python programming
 language, there are additional conventions regarding the layout of
 the source code, in particular the `Style Guide for Python source code 
-<http://www.python.org/dev/peps/pep-0008/>`__ known as "PEP8". By
+<https://www.python.org/dev/peps/pep-0008/>`__ known as "PEP8". By
 following this guide and writing code in the same style as almost all
 Python programmers do, it becomes easier to read, and thus easier to
 debug and re-use -- both for the original author and others.
@@ -399,7 +399,7 @@ Automatic Symbolic Python
 
 Through ``Preferences > IPython console > Advanced Settings > Use
 symbolic math`` we can activate IPython's SYMbolic PYthon (sympy) mode that is
-provided by the `sympy <http://sympy.org>`__ module. This mode
+provided by the `sympy <https://www.sympy.org/>`__ module. This mode
 in Spyder allows nicely rendered mathematical output (LaTeX style) and also
 imports some sympy objects automatically when the IPython console starts, and
 reports what it has done.
@@ -940,11 +940,11 @@ Historical note
 ###############
 
 This tutorial is based on `notes
-<http://www.southampton.ac.uk/~fangohr/blog/spyder-the-python-ide.html>`__
-by `Hans Fangohr <http://www.southampton.ac.uk/~fangohr>`__, that are
-used at the `University of Southampton <http://www.soton.ac.uk>`__ to
+<https://fangohr.github.io/blog/spyder-the-python-ide-spyder-23.html>`__
+by `Hans Fangohr <https://fangohr.github.io/>`__, that are
+used at the `University of Southampton <https://www.southampton.ac.uk/>`__ to
 `teach Python for computational modelling
-<http://www.southampton.ac.uk/~fangohr/teaching/python.html>`__ to
+<https://www.southampton.ac.uk/~fangohr/teaching/python.html>`__ to
 undergraduate engineers and postgraduate PhD students for the
-`Next Generation Computational Modelling <http://ngcm.soton.ac.uk>`__
+`Next Generation Computational Modelling <http://www.ngcm.soton.ac.uk/>`__
 doctoral training centre.
