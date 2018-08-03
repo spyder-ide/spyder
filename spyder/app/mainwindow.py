@@ -226,9 +226,9 @@ class MainWindow(QMainWindow):
           _("Python2 documentation")),
          ('Python3', "https://docs.python.org/3/index.html",
           _("Python3 documentation")),
-         ('numpy', "http://docs.scipy.org/doc/",
+         ('numpy', "https://docs.scipy.org/doc/",
           _("Numpy and Scipy documentation")),
-         ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
+         ('matplotlib', "https://matplotlib.org/contents.html",
           _("Matplotlib documentation")),
          ('PyQt5',
           "http://pyqt.sourceforge.net/Docs/PyQt5/",
@@ -2354,9 +2354,8 @@ class MainWindow(QMainWindow):
             <p>This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development. The popular Python distributions
-            <a href="http://continuum.io/downloads">Anaconda</a>,
-            <a href="https://winpython.github.io/">WinPython</a> and
-            <a href="http://python-xy.github.io/">Python(x,y)</a>
+            <a href="https://www.anaconda.com/download/">Anaconda</a> and
+            <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s
             <p><small>Most of the icons for the Spyder 2 theme come from the Crystal

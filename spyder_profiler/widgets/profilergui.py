@@ -10,7 +10,7 @@
 Profiler widget
 
 See the official documentation on python profiling:
-http://docs.python.org/library/profile.html
+https://docs.python.org/3/library/profile.html
 """
 
 # Standard library imports
@@ -169,7 +169,7 @@ class ProfilerWidget(QWidget):
             for widget in (self.datatree, self.filecombo,
                            self.start_button, self.stop_button):
                 widget.setDisabled(True)
-            url = 'http://docs.python.org/library/profile.html'
+            url = 'https://docs.python.org/3/library/profile.html'
             text = '%s <a href=%s>%s</a>' % (_('Please install'), url,
                                              _("the Python profiler modules"))
             self.datelabel.setText(text)

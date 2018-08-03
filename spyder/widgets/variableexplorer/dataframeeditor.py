@@ -446,7 +446,7 @@ class DataFrameModel(QAbstractTableModel):
 class FrozenTableView(QTableView):
     """This class implements a table with its first column frozen
     For more information please see:
-    http://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html"""
+    https://doc.qt.io/qt-5/qtwidgets-itemviews-frozencolumn-example.html"""
     def __init__(self, parent):
         """Constructor."""
         QTableView.__init__(self, parent)
