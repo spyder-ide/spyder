@@ -41,7 +41,7 @@ from spyder.widgets.colors import ColorLayout
 from spyder.widgets.sourcecode.codeeditor import CodeEditor
 
 
-HDPI_QT_PAGE = "http://doc.qt.io/qt-5/highdpi.html"
+HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
 
 class ConfigAccessMixin(object):

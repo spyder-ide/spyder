@@ -42,7 +42,7 @@ else:
     import ctypes
     from ctypes import wintypes
 
-    # http://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx
+    # https://docs.microsoft.com/en-us/windows/desktop/ProcThread/process-security-and-access-rights
     PROCESS_QUERY_INFORMATION = 0x400
 
     # GetExitCodeProcess uses a special exit code to indicate that the
@@ -50,7 +50,7 @@ else:
     STILL_ACTIVE = 259
     
     def _is_pid_running(pid):
-        """Taken from http://www.madebuild.org/blog/?p=30"""
+        """Taken from https://www.madebuild.org/blog/?p=30"""
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid)
         if handle == 0:
