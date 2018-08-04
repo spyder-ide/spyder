@@ -139,7 +139,7 @@ def path_components(path):
     Return the individual components of a given file path
     string (for the local operating system).
 
-    Taken from http://stackoverflow.com/q/21498939/438386
+    Taken from https://stackoverflow.com/q/21498939/438386
     """
     components = []
     # The loop guarantees that the returned components can be
@@ -159,7 +159,7 @@ def differentiate_prefix(path_components0, path_components1):
     """
     Return the differentiated prefix of the given two iterables. 
      
-    Taken from http://stackoverflow.com/q/21498939/438386
+    Taken from https://stackoverflow.com/q/21498939/438386
     """
     longest_prefix = []
     root_comparison = False

@@ -123,7 +123,7 @@ able to provide limited assistance if you do run into trouble.
 Other install options exist, including:
 
 * The [WinPython](https://winpython.github.io/) distribution for Windows
-* The [MacPorts](http://www.macports.org/) project for macOS
+* The [MacPorts](https://www.macports.org/) project for macOS
 * Your distribution's package manager (i.e. `apt-get`, `yum`, etc) on Linux
 * The `pip` package manager, included with most Python installations
 

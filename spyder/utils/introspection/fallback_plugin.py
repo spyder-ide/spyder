@@ -294,7 +294,7 @@ def _listdir(root):
 
 def _complete_path(path=None):
     """Perform completion of filesystem path.
-    http://stackoverflow.com/questions/5637124/tab-completion-in-pythons-raw-input
+    https://stackoverflow.com/questions/5637124/tab-completion-in-pythons-raw-input
     """
     if not path:
         return _listdir('.')
