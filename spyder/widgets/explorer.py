@@ -1122,9 +1122,13 @@ class ExplorerTreeWidget(DirView):
         
     def update_history(self, directory):
         """Update browse history"""
-        directory = osp.abspath(to_text_string(directory))
-        if directory in self.history:
-            self.histindex = self.history.index(directory)
+        try:
+            directory = osp.abspath(to_text_string(directory))
+            if directory in self.history:
+                self.histindex = self.history.index(directory)
+        except Exception:
+            user_directory = osp.expanduser('~')
+            self.chdir(directory=user_directory, browsing_history=True)
         
     def chdir(self, directory=None, browsing_history=False):
         """Set directory as working directory"""
