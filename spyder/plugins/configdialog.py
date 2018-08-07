@@ -343,7 +343,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 # integer for example (see qtpy.compat.from_qvariant):
                 if to_text_string(data) == to_text_string(value):
                     break
-            combobox.setCurrentIndex(index)
+            else:
+                if combobox.count() == 0:
+                    index = None
+            if index:
+                combobox.setCurrentIndex(index)
             combobox.currentIndexChanged.connect(lambda _foo, opt=option:
                                                  self.has_been_modified(opt))
             if combobox.restart_required:
@@ -685,6 +689,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         """choices: couples (name, key)"""
         combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
                                 default_line_edit=default_line_edit)
+        combobox.restart_required = restart
+        combobox.label_text = text
         edit = combobox.lineEdit()
         edit.label_text = text
         edit.restart_required = restart
@@ -710,17 +716,14 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
 
-        layout = QHBoxLayout()
-        layout.addWidget(combobox)
-        layout.addWidget(browse_btn)
-        layout.addStretch(1)
+        layout = QGridLayout()
+        layout.addWidget(combobox, 0, 0, 0, 9)
+        layout.addWidget(browse_btn, 0, 10)
         layout.setContentsMargins(0, 0, 0, 0)
         widget = QWidget(self)
         widget.combobox = combobox
         widget.browse_btn = browse_btn
         widget.setLayout(layout)
-        combobox.restart_required = restart
-        combobox.label_text = text
 
         return widget
 

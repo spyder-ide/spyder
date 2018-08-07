@@ -54,12 +54,14 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             # the Python executable has already been set with pythonw.exe:
             self.set_option('executable',
                             executable.replace("pythonw.exe", "python.exe"))
-        self.set_custom_interpreters_list(executable, executable)
-        self.validate_custom_interpreters_list()
+        if not self.get_option('default'):
+            if not self.get_option('custom_executable'):
+                self.set_option('custom_executable', ' ')
+            self.set_custom_interpreters_list(executable, executable)
+            self.validate_custom_interpreters_list()
 
     def initialize(self):
         GeneralConfigPage.initialize(self)
-        self.cus_exec_radio.toggled.connect(self.python_executable_switched)
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -69,7 +71,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         pyexec_bg = QButtonGroup(pyexec_group)
         pyexec_label = QLabel(_("Select the Python interpreter for all Spyder "
                                 "consoles"))
-        def_exec_radio = self.create_radiobutton(
+        self.def_exec_radio = self.create_radiobutton(
                                 _("Default (i.e. the same as Spyder's)"),
                                 'default', button_group=pyexec_bg)
         self.cus_exec_radio = self.create_radiobutton(
@@ -82,17 +84,18 @@ class MainInterpreterConfigPage(GeneralConfigPage):
 
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
-        pyexec_layout.addWidget(def_exec_radio)
+        pyexec_layout.addWidget(self.def_exec_radio)
         pyexec_layout.addWidget(self.cus_exec_radio)
         self.validate_custom_interpreters_list()
         self.cus_exec_combo = self.create_file_combobox(
                                             _('Recent custom interpreters'),
                                             self.get_option('custom_list'),
-                                            'executable',
+                                            'custom_executable',
                                             filters=filters,
-                                            default_line_edit=True
+                                            default_line_edit=True,
+                                            adjust_to_contents=True
                                             )
-        def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
+        self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
         pyexec_group.setLayout(pyexec_layout)
@@ -159,14 +162,9 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                     _("You selected an invalid Python interpreter for the "
                       "console so the previous interpreter will stay. Please "
                       "make sure to select a valid one."), QMessageBox.Ok)
-            self.pyexec_edit.setText(def_pyexec)
+            self.def_exec_radio.setChecked(True)
             return False
         return True
-
-    def python_executable_switched(self, custom):
-        """Python executable default/custom radio button has been toggled"""
-        if custom:
-            self.python_executable_changed(self.pyexec_edit.text())
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
@@ -235,7 +233,8 @@ class MainInterpreterConfigPage(GeneralConfigPage):
     def set_custom_interpreters_list(self, display_value, value):
         """Update the list of interpreters used and the current one."""
         custom_list = self.get_option('custom_list')
-        if (display_value, value) not in custom_list:
+        if ((display_value, value) not in custom_list
+                and value != get_python_executable()):
             custom_list.append((display_value, value))
             self.set_option('custom_list', custom_list)
 
@@ -249,12 +248,15 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         self.set_option('custom_list', valid_custom_list)
 
     def apply_settings(self, options):
-        executable = self.pyexec_edit.text()
-        executable = osp.normpath(executable)
-        if executable.endswith('pythonw.exe'):
-            executable = executable.replace("pythonw.exe", "python.exe")
-        change = self.python_executable_changed(executable)
-        if change:
-            self.set_custom_interpreters_list(executable, executable)
-            self.set_option('executable', executable)
+        if not self.def_exec_radio.isChecked():
+            executable = self.pyexec_edit.text()
+            executable = osp.normpath(executable)
+            if executable.endswith('pythonw.exe'):
+                executable = executable.replace("pythonw.exe", "python.exe")
+            change = self.python_executable_changed(executable)
+            if change:
+                self.set_custom_interpreters_list(executable, executable)
+                self.set_option('executable', executable)
+        if not self.pyexec_edit.text():
+            self.set_option('custom_executable', ' ')
         self.main.apply_settings()
