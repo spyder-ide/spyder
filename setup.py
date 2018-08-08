@@ -238,11 +238,13 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'keyring',
+    'spyder-kernels>=1.0',
+    # Don't require keyring for Python 2 and Linux
+    # because it depends on system packages
+    'keyring;sys_platform!="linux2"',
     # Packages for pyqt5 are only available in
     # Python 3
-    'pyqt5<5.10;python_version>="3"',
-    'spyder-kernels>=1.0'
+    'pyqt5<5.10;python_version>="3"'
 ]
 
 extras_require = {
