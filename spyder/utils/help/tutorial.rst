@@ -14,7 +14,7 @@ First steps with Spyder
 #######################
 
 This section is aimed at Python and Spyder beginners.
-If you find it too simple, please continue to the `next one <python_beginners_ref_>`_.
+If you find it too simple, please continue to the `next one <python-beginners-ref_>`__.
 
 Execute a given program
 -----------------------
@@ -75,8 +75,10 @@ If you are just starting to learn Python, this is probably a good point to retur
 
 The next section gives more detailed information how you can execute *parts* of your code from the editor in the IPython console.
 This is a more advanced technique but can be very useful.
-You may also be interested in the option to execute chunks (so-called "cells") of code that are separated by delimiters -- see `Shortcuts for useful functions`_.
+You may also be interested in the option to execute "cells", `chunks of code that are separated by delimiters <cell-shortcut-ref_>`__.
 
+
+.. _call-functions-console-ref:
 
 Call existing functions in the console
 --------------------------------------
@@ -112,7 +114,7 @@ Inspecting objects defined in the console
   .. note::
 
     If you get a long list of defined objects, then Spyder may have done some convenience imports for you already.
-    To address this you may want to `Reset the namespace`_ , execute ``hello.py`` again by pressing F5, then run ``dir()`` as suggested above.
+    To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute ``hello.py`` again by pressing F5, then run ``dir()`` as suggested above.
 
 * Once an object is visible in the current namespace (as is ``hello`` in this example), we can use the ``help`` function as follows to learn about it.
   Typing ``help(hello)`` at the console prompt, you should see an output like this::
@@ -161,7 +163,7 @@ Looking at the details
 We need to start with a clearly defined state.
 To do this, please change the function ``hello()`` back so that it prints ``Hello World``, then press F5 to run the whole program and check that it prints ``Hello World``.
 
-* Call the function ``hello()`` from the command prompt (as described in `Call existing functions in the console`_).
+* Call the function ``hello()`` from the command prompt (as described `previously <call-functions-console-ref_>`__).
   You should see ``Hello World`` printed.
 
 * Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, i.e. do NOT press F5 yet).
@@ -200,7 +202,7 @@ For example, by modifying only the functions (or classes/objects, etc). that we 
 
 
 
-.. _python_beginners_ref:
+.. _python-beginners-ref:
 
 Recommended first steps for Python beginners
 ############################################
@@ -209,6 +211,8 @@ Before we begin, make sure to have an IPython console open (bottom-right by defa
 This uses the `IPython <https://ipython.org>`__ interpreter, standard in the scientific community.
 To open a new console at any time, select ``Consoles > Open an IPython Console``.
 
+
+.. _reset-namespace-ref:
 
 Reset the namespace
 -------------------
@@ -255,7 +259,7 @@ Strive for PEP8 Compliance
 In addition to the syntax that is enforced by the Python programming language, there are additional conventions regarding the layout of the source code, in particular the `Style Guide for Python source code <https://www.python.org/dev/peps/pep-0008/>`__ known as "PEP 8".
 By following this guide and writing code in the same style as almost all Python programmers do, it becomes easier to read, and thus easier to debug and re-use -- both for the original author and others.
 
-To have Spyder check this for you automatically, see the `next section <Warn if PEP 8 code style guidelines are violated_>`_.
+To have Spyder check this for you automatically, see the `next section <pep8-enable-ref_>`__.
 
 
 
@@ -272,6 +276,8 @@ Where this is located in the menu depends on your operating system:
 
 * On macOS, navigate to ``Python/Spyder > Preferences``
 
+.. _pep8-enable-ref:
+
 Warn if PEP 8 code style guidelines are violated
 ------------------------------------------------
 
@@ -280,7 +286,7 @@ Go to ``Preferences > Editor > Code Introspection/Analysis`` and tick the checkb
 Automatic Symbolic Python
 -------------------------
 
-Through ``Preferences > IPython console > Advanced Settings > Use symbolic math`` we can activate the console's SYMbolic PYthon (sympy) mode that is provided by the `SymPy <https://www.sympy.org/>`__ Python package.
+Through ``Preferences > IPython console > Advanced Settings > Use symbolic math`` we can activate the console's SYMbolic PYthon (sympy) mode that is provided by the `SymPy <https://www.sympy.org/>`_ Python package.
 This allows nicely rendered mathematical output (LaTeX style), imports some SymPy objects automatically when the IPython console starts, and reports what it has done.
 You'll need to have SymPy installed for it to work, and a LaTeX distribution on your system to see the formatted output (see the `Getting LaTeX <https://www.latex-project.org/get/>`__ page on the LaTeX site to acquire the latter, if you don't already have it).
 
@@ -299,6 +305,7 @@ We can now use the variables ``x`` and ``y``, for example like this:
      :align: center
 
 
+.. _shortcut-list-ref:
 
 Shortcuts for useful functions
 ##############################
@@ -326,6 +333,8 @@ Shortcuts for useful functions
   If the name is not uniquely identifiable given the letters ``my``, a list field will be displayed from which the desired variable can be chosen.
   Choosing from the list can be done with the ``<Arrow up>`` key and ``<Arrow down>`` key and the ``Enter`` key to select, or by typing more letters of the name in question (the selection will update automatically) and confirming by pressing ``Enter`` when the appropriate name is identified.
 
+.. _cell-shortcut-ref:
+
 - ``Ctrl+Enter``\* executes the current cell (menu entry ``Run > Run cell``).
   A cell is defined as the code between two lines which start with the characters ``#%%``, ``# %%`` or ``# <codecell>``.
 
@@ -350,6 +359,8 @@ Shortcuts for useful functions
 
 - ``Ctrl+S``\* *in the Editor* saves the file currently being edited.
   This also forces various warning triangles in the left column of the Editor to be updated (otherwise they update every 2.5 seconds by default, which is also configurable).
+
+.. _save-shortcut-console-ref:
 
 - ``Ctrl+S``\* *in the console* saves the current IPython session as an HTML file, including any figures that may be displayed inline.
   This is useful as a quick way of recording what has been done in a session.
@@ -428,7 +439,7 @@ However, running it in a new IPython console session (or via ``python hello.py``
 The problem arises because the code makes use of an object (here ``i``) without creating it first.
 This also affects importing of modules: if we had imported ``sympy`` at the IPython prompt, then our program will see that when executed in this IPython console session.
 
-To learn how we can double check that our code does not depend on such existing objects, see `How to double check your code executes correctly "on its own"`_ .
+To learn how we can double check that our code does not depend on such existing objects, see `below <check-code-independent-ref_>`_ .
 
 Execute in a dedicated console
 ------------------------------
@@ -439,6 +450,9 @@ Every time we run the code in the editor, the IPython console in which the code 
 
 This is a safe option, but provides less flexibility in interactive execution.
 
+
+.. _check-code-independent-ref:
+
 How to double check your code executes correctly "on its own"
 -------------------------------------------------------------
 
@@ -448,14 +462,15 @@ Assuming you have selected the `Execute in current console`_ option, you have tw
 
   Alternatively, if you want to stay with the current console, you can
 
-* Use IPython's magic ``%reset`` command or the ``Remove all variables`` menu option which will clear all objects (such as ``i`` in the example above) from the current namespace, and then execute the code from the Editor.
+* First `reset the namespace <reset-namespace-ref_>`_ with IPython's magic ``%reset`` command or the ``Remove all variables`` menu option, which will clear all objects, such as ``i`` in the example above from the current namespace.
+  Then, execute the code from the Editor.
 
 Recommendation
 --------------
 
 My recommendation for beginners would be to `Execute in current console`_.
 
-Once you have completed a piece of code, double check that it executes independently using one of the options explained in `How to double check your code executes correctly "on its own"`_\ .
+Once you have completed a piece of code, double check that it executes independently using one of the options explained `above <check-code-independent-ref_>`_.
 
 
 
@@ -497,7 +512,7 @@ Documentation string formatting
 ###############################
 
 If you want to document the code you are developing (and you certainly should!), we recommend you write documentation strings (or *docstrings*) for it, using a special format called `reStructuredText (reST) <http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`__.
-In the scientific Python world, a further set of conventions called the `Numpydoc standard <https://numpydoc.readthedocs.io/en/latest/format.html>`__ is typically followed (although other conventions exist).
+In the scientific Python world, a further set of conventions called the `Numpydoc standard <https://numpydoc.readthedocs.io/en/latest/format.html>`__ is typically followed (although other systems exist).
 If you follow those guidelines, you can obtain beautifully formatted docstrings in Spyder.
 
 For example, to get an ``average()`` function look like this in the Spyder Help pane:
@@ -644,7 +659,7 @@ You can decide whether figures created with Matplotlib will show
 
 * Inside a *new window*, with an options toolbar.
 
-The first option is convenient to save a record of the interactive session (``Ctrl+S`` in the console; see `Shortcuts for useful functions`_ for more).
+The first option is convenient to save a record of the interactive session (``Ctrl+S`` `in the console <save-shortcut-console-ref_>`_).
 
 The second option allows you to interactively zoom into the figure, manipulate it, set various plot and display options, and save it to different file formats via a menu.
 
@@ -652,7 +667,7 @@ The command to get the figures to appear *inline* in the IPython console is::
 
     In [3]: %matplotlib inline
 
-The command to get figures appear in their own window (which technically is a Qt window) is::
+The command to get figures appear in their own window (rendered by the Qt backend) is::
 
     In [4]: %matplotlib qt
 
