@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QFileSystemModel, QHBoxLayout, QFileIconProvider,
                             QMessageBox, QToolButton, QTreeView, QVBoxLayout,
                             QWidget)
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, get_home_dir
 from spyder.py3compat import (str_lower, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
@@ -1127,7 +1127,7 @@ class ExplorerTreeWidget(DirView):
             if directory in self.history:
                 self.histindex = self.history.index(directory)
         except Exception:
-            user_directory = osp.expanduser('~')
+            user_directory = get_home_dir()
             self.chdir(directory=user_directory, browsing_history=True)
         
     def chdir(self, directory=None, browsing_history=False):
