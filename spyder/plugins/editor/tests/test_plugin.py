@@ -223,7 +223,7 @@ def test_no_template(setup_editor):
 def test_editor_has_autosave_component(setup_editor):
     """Test that Editor includes an AutosaveComponent."""
     editor, qtbot = setup_editor
-    assert type(editor.autosave) == AutosaveComponent
+    assert isinstance(editor.autosave, AutosaveComponent)
 
 
 def test_autosave_component_timer(qtbot, mocker):

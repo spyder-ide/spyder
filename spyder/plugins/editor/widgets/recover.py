@@ -19,6 +19,9 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
+from spyder.py3compat import PY2
+if PY2:
+    import shutil
 
 
 def gather_file_data(name):
@@ -94,6 +97,10 @@ class RecoveryDialog(QDialog):
         the tuple is a dict as returned by gather_file_data().
         """
         self.data = []
+        try:
+            FileNotFoundError
+        except NameError:  # Python 2
+            FileNotFoundError = OSError
         # In Python 3, easier to use os.scandir()
         try:
             for name in os.listdir(self.autosave_dir):
@@ -173,7 +180,11 @@ class RecoveryDialog(QDialog):
             if not orig_name:
                  return
         try:
-            os.replace(autosave['name'], orig_name)
+            try:
+                os.replace(autosave['name'], orig_name)
+            except AttributeError:  # Python 2
+                shutil.copy2(autosave['name'], orig_name)
+                os.remove(autosave['name'])
             self.deactivate(idx)
         except EnvironmentError as error:
             text = (_('Unable to restore {} using {}')
@@ -276,7 +287,7 @@ def test():  # pragma: no cover
     _, autosave_dir, autosave_mapping = make_temporary_files(tempdir)
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     dialog.exec_()
-    print('files_to_open =', dialog.files_to_open)
+    print('files_to_open =', dialog.files_to_open)  # spyder: test-skip
     shutil.rmtree(tempdir)
 
 
