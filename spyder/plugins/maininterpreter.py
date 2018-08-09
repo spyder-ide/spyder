@@ -243,7 +243,8 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         custom_list = self.get_option('custom_list')
         valid_custom_list = []
         for name, value in custom_list:
-            if osp.isfile(value):
+            if (osp.isfile(value) and programs.is_python_interpreter(value)
+                    and value != get_python_executable()):
                 valid_custom_list.append((name, value))
         self.set_option('custom_list', valid_custom_list)
 
@@ -258,5 +259,5 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                 self.set_custom_interpreters_list(executable, executable)
                 self.set_option('executable', executable)
         if not self.pyexec_edit.text():
-            self.set_option('custom_executable', ' ')
+            self.set_option('custom_executable', '')
         self.main.apply_settings()
