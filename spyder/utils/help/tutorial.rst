@@ -35,10 +35,10 @@ Execute a given program
      # Main program starts here
      hello()
 
-* To use this program, please create a new file in the Spyder editor pane (with ``File > New file``, or ``Ctrl+N``/``Cmd-N``).
+* To use this program, please create a new file in the Spyder editor pane (with ``File > New file``, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
   Then copy and paste the code inside the box above into the file, and save it with the name :file:`hello.py`.
 
-* To execute the program, select ``Run > Run`` from the menu (or press F5), and confirm the ``Run settings`` if required.
+* To execute the program, select ``Run > Run`` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
 
   If this is your first time, you should see an output like this::
 
@@ -67,7 +67,7 @@ What happens when you execute the program?
 * When Python comes across commands (other than ``def ...`` and a few other keywords) that are written in the left-most column, it will execute these immediately.
   In the :file:`hello.py` file this is only the line reading ``hello()`` which will actually call (*i.e.* *execute*) the function with name ``hello``.
 
-  If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing F5, or selecting ``Run > Run``), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
+  If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing :kbd:`F5`, or selecting ``Run > Run``), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
 
 
 Now you should know how to execute a Python program that you have in the editor pane in Spyder using the IPython console.
@@ -88,7 +88,7 @@ Call existing functions in the console
 Once you have executed the :file:`hello.py` program, the function object ``hello`` is defined and known to the IPython console.
 We can thus call the function from the console like this:
 
-* Type ``hello()`` in the console (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the ``Enter`` key.
+* Type ``hello()`` in the console (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the :kbd:`Enter` key.
 
   You should find that the ``hello()`` function is executed again, *i.e.* printing ``Hello World`` a second time.
   Your function call at the console together with the output should look like this::
@@ -98,9 +98,9 @@ We can thus call the function from the console like this:
 
 * Can you see how this differs from executing the whole program again?
 
-  When we execute the whole program (by pressing F5), Python goes through the file, creates the ``hello`` function object (overriding the previous object), reaches the ``hello()`` line and calls the function.
+  When we execute the whole program (by pressing :kbd:`F5`), Python goes through the file, creates the ``hello`` function object (overriding the previous object), reaches the ``hello()`` line and calls the function.
 
-  When we call ``hello()`` in the console, we only call the function object ``hello`` that has been defined in the IPython console when we executed the whole :file:`hello.py` file earlier (by pressing F5).
+  When we call ``hello()`` in the console, we only call the function object ``hello`` that has been defined in the IPython console when we executed the whole :file:`hello.py` file earlier (by pressing :kbd:`F5`).
 
   This will become clearer over time, as we work with larger examples.
   You may want to return to this tutorial at a slightly later stage.
@@ -116,7 +116,7 @@ Inspecting objects defined in the console
   .. note::
 
     If you get a long list of defined objects, then Spyder may have done some convenience imports for you already.
-    To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute :file:`hello.py` again by pressing F5, then run ``dir()`` as suggested above.
+    To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute :file:`hello.py` again by pressing :kbd:`F5`, then run ``dir()`` as suggested above.
 
 * Once an object is visible in the current namespace (as is ``hello`` in this example), we can use the ``help`` function as follows to learn about it.
   Typing ``help(hello)`` at the console prompt, you should see an output like this::
@@ -136,7 +136,7 @@ Inspecting objects defined in the console
 
 * The Spyder environment also provides a ``Help`` pane which by default is located in the top right corner.
 
-  While the cursor is on the name of an object, press ``Ctrl+I`` (or ``Cmd+I`` on Mac), and you should find that the same information as we obtained from ``help(hello)`` is provided automatically in the Help pane:
+  While the cursor is on the name of an object, press :kbd:`Ctrl-I` (or :kbd:`Command-I` on macOS), and you should find that the same information as we obtained from ``help(hello)`` is provided automatically in the Help pane:
 
   .. image:: images/spyder-hello-docstring.png
        :align: center
@@ -155,23 +155,23 @@ Simple strategy: Re-execute whole program
 
 * In the Editor window, change the function ``hello`` so that it prints ``Good Bye World`` rather than ``Hello World``.
 
-* Press F5 (to execute the whole program) and check that the output of the program is now::
+* Press :kbd:`F5` (to execute the whole program) and check that the output of the program is now::
 
     Good Bye World
 
-What has happened when you pressed F5 is this: Python has gone through the :file:`hello.py` file and created a new function object ``hello`` (overriding the function object ``hello`` we had defined before) and then executed the function.
+What has happened when you pressed :kbd:`F5` is this: Python has gone through the :file:`hello.py` file and created a new function object ``hello`` (overriding the function object ``hello`` we had defined before) and then executed the function.
 
 
 Looking at the details
 ----------------------
 
 We need to start with a clearly defined state.
-To do this, please change the function ``hello()`` back so that it prints ``Hello World``, then press F5 to run the whole program and check that it prints ``Hello World``.
+To do this, please change the function ``hello()`` back so that it prints ``Hello World``, then press :kbd:`F5` to run the whole program and check that it prints ``Hello World``.
 
 * Call the function ``hello()`` from the command prompt (as described `previously <call-functions-console-ref_>`__).
   You should see ``Hello World`` printed.
 
-* Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, *i.e.* do NOT press F5 yet).
+* Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, *i.e.* do NOT press :kbd:`F5` yet).
 
 * Call the function ``hello()`` in the console again.
   You should find that the text printed reads ``Hello World``, like here::
@@ -185,10 +185,10 @@ To do this, please change the function ``hello()`` back so that it prints ``Hell
 
 To update the console's namespace with modified function, we have two options:
 
-* Option 1: Execute the whole file :file:`hello.py` again by pressing F5: this creates a new function object ``hello`` (and overrides the old one).
-  You should find that if you press F5, and then call ``hello()`` at the prompt, the new text ``Later World`` is printed.
+* Option 1: Execute the whole file :file:`hello.py` again by pressing :kbd:`F5`: this creates a new function object ``hello`` (and overrides the old one).
+  You should find that if you press :kbd:`F5`, and then call ``hello()`` at the prompt, the new text ``Later World`` is printed.
 
-* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click ``Run > Run selection or current line`` or press F9.
+* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click ``Run > Run selection or current line`` or press :kbd:`F9`.
 
   This will update the ``hello`` object in the console without having to execute the whole :file:`hello.py` file::
 
@@ -224,7 +224,7 @@ Reset the namespace
 ~~~~~~~~~~~~~~~~~~~
 
 The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (*i.e.* the collection of objects defined in the console at any given time) can be cleared in IPython using the ``%reset`` command.
-Type ``%reset`` and press return, then confirm with ``y``::
+Type ``%reset`` and press :kbd:`Enter`, then confirm with ``y``::
 
   In [1]: %reset
 
@@ -327,12 +327,12 @@ Shortcuts for useful functions
    The following are the default shortcuts; however, those marked with ``*`` can be customized through the Keyboard shortcuts tab in the Preferences.
    Also, macOS users should substitute ``Command`` for ``Ctrl``, and ``Option`` for ``Alt``.
 
-* ``F5``\* executes the current file.
+* :kbd:`F5`\* executes the current file.
 
-* ``F9``\* executes the currently highlighted chunk of code; this is very useful to (say) update definitions of functions in the console session without having to run the whole file again.
-  If nothing is selected, ``F9``\* executes the current line.
+* :kbd:`F9`\* executes the currently highlighted chunk of code; this is very useful to (say) update definitions of functions in the console session without having to run the whole file again.
+  If nothing is selected, :kbd:`F9`\* executes the current line.
 
-* ``Tab``\* auto-completes commands, function names, variable names, and methods in the console and the Editor.
+* :kbd:`Tab`\* auto-completes commands, function names, variable names, and methods in the console and the Editor.
   This feature is very useful, and should be employed routinely.
   Do try it now if auto-completion is new to you.
   Assume you have defined a variable::
@@ -340,46 +340,46 @@ Shortcuts for useful functions
     mylongvariablename = 42
 
   Suppose we need to write code that computes ``mylongvariablename + 100``.
-  We can simply type ``my`` and then press the ``Tab`` key.
+  We can simply type ``my`` and then press the :kbd:`Tab` key.
   The full variable name will be completed and inserted at the cursor position if the name is unique, and then we can carry on and type `` + 100``.
   If the name is not uniquely identifiable given the letters ``my``, a list field will be displayed from which the desired variable can be chosen.
-  Choosing from the list can be done with the ``<Arrow up>`` key and ``<Arrow down>`` key and the ``Enter`` key to select, or by typing more letters of the name in question (the selection will update automatically) and confirming by pressing ``Enter`` when the appropriate name is identified.
+  Choosing from the list can be done with the :kbd:`Up` and :kbd:`Down` keys with the :kbd:`Enter` key to select, or by typing more letters of the name in question (the selection will update automatically) and confirming by pressing :kbd:`Enter` when the appropriate name is identified.
 
 .. _cell-shortcut-ref:
 
-* ``Ctrl+Enter``\* executes the current cell (menu entry ``Run > Run cell``).
+* :kbd:`Ctrl-Enter`\* executes the current cell (menu entry ``Run > Run cell``).
   A cell is defined as the code between two lines which start with the characters ``#%%``, ``# %%`` or ``# <codecell>``.
 
-* ``Shift+Enter``\* executes the current cell and advances the cursor to the next cell (menu entry ``Run > Run cell and advance``).
+* :kbd:`Shift-Enter`\* executes the current cell and advances the cursor to the next cell (menu entry ``Run > Run cell and advance``).
 
   Cells are useful to execute a large file/code segment in smaller units.
   (It is a little bit like a cell in an IPython notebook, in that chunks of code can be run independently).
 
-* ``Alt+<Up Arrow>``\* moves the current line up.
+* :kbd:`Alt-Up`\* moves the current line up.
   If multiple lines are highlighted, they are moved up together.
-  ``Alt+<Down arrow>``\* works correspondingly, moving line(s) down.
+  :kbd:`Alt-Down`\* works correspondingly, moving line(s) down.
 
-* ``Ctrl+Left Mouse Click`` or ``Alt+G``\* on a function/method in the Editor opens a new Editor tab showing the definition of that function.
+* :kbd:`Ctrl-LeftMouseButton` or :kbd:`Alt-G`\* on a function/method in the Editor opens a new Editor tab showing the definition of that function.
 
-* ``Shift+Ctrl+Alt+M``\* maximizes the current window (or changes the size back to normal if pressed in a maximized window).
+* :kbd:`Shift-Ctrl-Alt-M`\* maximizes the current window (or changes the size back to normal if pressed in a maximized window).
 
-* ``Ctrl+Shift+F``\* activates the Find in Files pane, allowing ``grep``-like searches across all files in a specified scope.
+* :kbd:`Ctrl-Shift-F`\* activates the Find in Files pane, allowing ``grep``-like searches across all files in a specified scope.
 
-* ``Ctrl + =`` will increase the font size in the Editor or the console, whereas ``Ctrl + -`` will decrease it.
+* :kbd:`Ctrl - =` will increase the font size in the Editor or the console, whereas :kbd:`Ctrl - -` will decrease it.
 
   The font face and size for other parts of the UI can be set under ``Preferences > General > Appearance > Fonts``.
 
-* ``Ctrl+S``\* *in the Editor* saves the file currently being edited.
+* :kbd:`Ctrl-S`\* *in the Editor* saves the file currently being edited.
   This also forces various warning triangles in the left column of the Editor to be updated (otherwise they update every 2.5 seconds by default, which is also configurable).
 
 .. _save-shortcut-console-ref:
 
-* ``Ctrl+S``\* *in the console* saves the current IPython session as an HTML file, including any figures that may be displayed inline.
+* :kbd:`Ctrl-S`\* *in the console* saves the current IPython session as an HTML file, including any figures that may be displayed inline.
   This is useful as a quick way of recording what has been done in a session.
 
   (It is not currently possible to load this saved record back into the session -- if you need functionality like this, look for the IPython Notebook).
 
-* ``Ctrl+I``\* when pressed while the cursor is on an object opens documentation for that object in the help pane.
+* :kbd:`Ctrl-I`\* when pressed while the cursor is on an object opens documentation for that object in the help pane.
 
 
 
@@ -387,10 +387,10 @@ Shortcuts for useful functions
 Run configuration
 =================
 
-These are the settings that define how the file in the editor is executed if we select ``Run > Run`` or press F5.
+These are the settings that define how the file in the editor is executed if we select ``Run > Run`` or press :kbd:`F5`.
 
 By default, the settings box will appear the first time we try to run a file.
-If we want to change the settings at any other time, they can be found under ``Run > Configure`` or by pressing F6.
+If we want to change the settings at any other time, they can be found under ``Run > Configure`` or by pressing :kbd:`F6`.
 
 There are three choices for the console to use, of which I'll discuss the first two.
 Let's assume we have a program :file:`hello.py` in the editor which reads
@@ -588,7 +588,7 @@ Debugging
 Line by line step execution of code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Activating the debug mode (with the ``Debug > Debug`` menu option or ``Ctrl+F5) the IPython debugger ``ipdb``.
+Start debug execution (with the ``Debug > Debug`` menu option or :kbd:`Ctrl-F5`) to activate the IPython debugger, ``ipdb``.
 The Editor pane will then highlight the line that is about to be executed, and the Variable Explorer will display variables in the current context of the point of program execution.
 
 After entering debug mode, you can execute the code line by line using the ``Step`` button of the Debug toolbar:
@@ -596,22 +596,22 @@ After entering debug mode, you can execute the code line by line using the ``Ste
 .. image:: images/debug-step-over.png
      :align: center
 
-or the shortcut ``Ctrl+F10``.
+or the shortcut :kbd:`Ctrl-F10`.
 You can also inspect how a particular function is working by stepping into it with the ``Step Into`` button
 
 .. image:: images/debug-step-in.png
      :align: center
 
-or the shortcut ``Ctrl+F11``.
+or the shortcut :kbd:`Ctrl-F11`.
 Finally, to get out of a function and continue with the next line you need to use the ``Step Return`` button
 
 .. image:: images/debug-step-out.png
      :align: center
 
-or the shortcut ``Ctrl+Shift+F12``.
+or the shortcut :kbd:`Ctrl-Shift-F12`.
 
 If you prefer to inspect your program at a specific point, you need to insert a
-*breakpoint* by pressing F12 on the line on which you want to stop, or double-clicking to the left of the line number.
+*breakpoint* by pressing :kbd:`F12` on the line on which you want to stop, or double-clicking to the left of the line number.
 A red dot in this position indicates a breakpoint; it can be removed by repeating the same procedure.
 
 After entering the Debugger, you can press the ``Continue`` button
@@ -629,7 +629,7 @@ to stop the execution at the first breakpoint.
 
    * ``s`` to Step into the current statement. If this is a function call, step into that function.
 
-   * ``r`` to complete all statements in the current function and Return from that function before returning control.
+   * ``r`` to complete all statements in the current function and return from that function before returning control.
 
 Inside the debugger, you can also interactively execute many of the statements you can normally, including assigning and modifying variables, defining and calling functions, setting new breakpoints, and more.
 
@@ -658,7 +658,7 @@ You should see x changing in the Variable Explorer and when its value is printed
 
 This debugging ability to execute code line by line, to inspect variables as they change, and to modify them manually is a powerful tool to understand what a piece of code is doing (and to correct it if desired).
 
-To leave the debugging mode, you can type ``exit``, select ``Debug > Stop`` or press ``Ctrl+Shift_F12``.
+To terminate the debugger, you can type ``exit``, select ``Debug > Stop`` or press :kbd:`Ctrl-Shift-F12`.
 
 
 Debugging once an exception has occurred in the console
@@ -683,7 +683,7 @@ You can decide whether figures created with Matplotlib will show
 
 * Inside a *new window*, with an options toolbar.
 
-The first option is convenient to save a record of the interactive session (``Ctrl+S`` `in the console <save-shortcut-console-ref_>`_).
+The first option is convenient to save a record of the interactive session (:kbd:`Ctrl-S` `in the console <save-shortcut-console-ref_>`_).
 
 The second option allows you to interactively zoom into the figure, manipulate it, set various plot and display options, and save it to different file formats via a menu.
 
