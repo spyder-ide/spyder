@@ -35,10 +35,10 @@ Execute a given program
      # Main program starts here
      hello()
 
-* To use this program, please create a new file in the Spyder editor pane (with ``File > New file``, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
+* To use this program, please create a new file in the Spyder editor pane (with :menuselection:`File --> New file`, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
   Then copy and paste the code inside the box above into the file, and save it with the name :file:`hello.py`.
 
-* To execute the program, select ``Run > Run`` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
+* To execute the program, select :menuselection:`Run --> Run` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
 
   If this is your first time, you should see an output like this::
 
@@ -67,7 +67,7 @@ What happens when you execute the program?
 * When Python comes across commands (other than ``def ...`` and a few other keywords) that are written in the left-most column, it will execute these immediately.
   In the :file:`hello.py` file this is only the line reading ``hello()`` which will actually call (*i.e.* *execute*) the function with name ``hello``.
 
-  If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing :kbd:`F5`, or selecting ``Run > Run``), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
+  If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing :kbd:`F5`, or selecting :menuselection:`Run --> Run`), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
 
 
 Now you should know how to execute a Python program that you have in the editor pane in Spyder using the IPython console.
@@ -188,7 +188,7 @@ To update the console's namespace with modified function, we have two options:
 * Option 1: Execute the whole file :file:`hello.py` again by pressing :kbd:`F5`: this creates a new function object ``hello`` (and overrides the old one).
   You should find that if you press :kbd:`F5`, and then call ``hello()`` at the prompt, the new text ``Later World`` is printed.
 
-* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click ``Run > Run selection or current line`` or press :kbd:`F9`.
+* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click :menuselection:`Run --> Run selection or current line` or press :kbd:`F9`.
 
   This will update the ``hello`` object in the console without having to execute the whole :file:`hello.py` file::
 
@@ -215,7 +215,7 @@ Recommended first steps for Python beginners
 
 Before we begin, make sure to have an IPython console open (bottom-right by default).
 This uses the `IPython <https://ipython.org>`__ interpreter, standard in the scientific community.
-To open a new console at any time, select ``Consoles > Open an IPython Console``.
+To open a new console at any time, select :menuselection:`Consoles --> Open an IPython Console`.
 
 
 .. _reset-namespace-ref:
@@ -280,9 +280,9 @@ Where are the preferences?
 A lot of Spyder's behaviour can be configured through its Preferences.
 Where this is located in the menu depends on your operating system:
 
-* On Windows and Linux, go to ``Tools > Preferences``
+* On Windows and Linux, go to :menuselection:`Tools --> Preferences`
 
-* On macOS, navigate to ``Python/Spyder > Preferences``
+* On macOS, navigate to :menuselection:`Python/Spyder --> Preferences`
 
 
 .. _pep8-enable-ref:
@@ -290,13 +290,13 @@ Where this is located in the menu depends on your operating system:
 Warn if PEP 8 code style guidelines are violated
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Go to ``Preferences > Editor > Code Introspection/Analysis`` and tick the checkbox next to ``Real-time code style analysis``.
+Go to :menuselection:`Preferences --> Editor --> Code Introspection/Analysis` and tick the checkbox next to ``Real-time code style analysis``.
 
 
 Automatic Symbolic Python
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Through ``Preferences > IPython console > Advanced Settings > Use symbolic math`` we can activate the console's SYMbolic PYthon (sympy) mode that is provided by the `SymPy <https://www.sympy.org/>`_ Python package.
+Through :menuselection:`Preferences --> IPython console --> Advanced Settings --> Use symbolic math` we can activate the console's SYMbolic PYthon (sympy) mode that is provided by the `SymPy <https://www.sympy.org/>`_ Python package.
 This allows nicely rendered mathematical output (LaTeX style), imports some SymPy objects automatically when the IPython console starts, and reports what it has done.
 You'll need to have SymPy installed for it to work, and a LaTeX distribution on your system to see the formatted output (see the `Getting LaTeX <https://www.latex-project.org/get/>`__ page on the LaTeX site to acquire the latter, if you don't already have it).
 
@@ -347,10 +347,10 @@ Shortcuts for useful functions
 
 .. _cell-shortcut-ref:
 
-* :kbd:`Ctrl-Enter`\* executes the current cell (menu entry ``Run > Run cell``).
+* :kbd:`Ctrl-Enter`\* executes the current cell (menu entry :menuselection:`Run --> Run cell`).
   A cell is defined as the code between two lines which start with the characters ``#%%``, ``# %%`` or ``# <codecell>``.
 
-* :kbd:`Shift-Enter`\* executes the current cell and advances the cursor to the next cell (menu entry ``Run > Run cell and advance``).
+* :kbd:`Shift-Enter`\* executes the current cell and advances the cursor to the next cell (menu entry :menuselection:`Run --> Run cell and advance`).
 
   Cells are useful to execute a large file/code segment in smaller units.
   (It is a little bit like a cell in an IPython notebook, in that chunks of code can be run independently).
@@ -367,7 +367,7 @@ Shortcuts for useful functions
 
 * :kbd:`Ctrl - =` will increase the font size in the Editor or the console, whereas :kbd:`Ctrl - -` will decrease it.
 
-  The font face and size for other parts of the UI can be set under ``Preferences > General > Appearance > Fonts``.
+  The font face and size for other parts of the UI can be set under :menuselection:`Preferences --> General --> Appearance --> Fonts`.
 
 * :kbd:`Ctrl-S`\* *in the Editor* saves the file currently being edited.
   This also forces various warning triangles in the left column of the Editor to be updated (otherwise they update every 2.5 seconds by default, which is also configurable).
@@ -387,10 +387,10 @@ Shortcuts for useful functions
 Run configuration
 =================
 
-These are the settings that define how the file in the editor is executed if we select ``Run > Run`` or press :kbd:`F5`.
+These are the settings that define how the file in the editor is executed if we select :menuselection:`Run --> Run` or press :kbd:`F5`.
 
 By default, the settings box will appear the first time we try to run a file.
-If we want to change the settings at any other time, they can be found under ``Run > Configure`` or by pressing :kbd:`F6`.
+If we want to change the settings at any other time, they can be found under :menuselection:`Run --> Configure` or by pressing :kbd:`F6`.
 
 There are three choices for the console to use, of which I'll discuss the first two.
 Let's assume we have a program :file:`hello.py` in the editor which reads
@@ -416,14 +416,14 @@ This is the default option, and generally a good choice.
 Persistence of objects after code execution
 -------------------------------------------
 
-Choosing the ``Execute in current console`` setting under ``Run > Configure`` means that:
+Choosing the ``Execute in current console`` setting under :menuselection:`Run --> Configure` means that:
 
 * When the execution of :file:`hello.py` is completed, we can interact with the console in which the program ran.
 
 * In particular, we can inspect and interact with objects that the execution of our program created, such as ``i`` and ``hello()``.
 
 This is generally very useful for incremental coding, testing and debugging.
-For example, we can call ``hello()`` directly from the console prompt, and don't need to execute the whole :file:`hello.py` for this (although if we change the function ``hello()``, we need to execute the file, or at least the function definition, to make the new version of ``hello()`` visible at the console; either by re-executing the whole script or via ``Run > Run Selection``).
+For example, we can call ``hello()`` directly from the console prompt, and don't need to execute the whole :file:`hello.py` for this (although if we change the function ``hello()``, we need to execute the file, or at least the function definition, to make the new version of ``hello()`` visible at the console; either by re-executing the whole script or via :menuselection:`Run --> Run Selection`).
 
 
 Persistence of objects from before code execution
@@ -460,7 +460,7 @@ To learn how we can double check that our code does not depend on such existing 
 Execute in a dedicated console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Choosing ``Execute in a dedicated console` under ``Run > Configure`` will start *a new IPython console every time* the :file:`hello.py` program is executed.
+Choosing ``Execute in a dedicated console`` under :menuselection:`Run --> Configure` will start *a new IPython console every time* the :file:`hello.py` program is executed.
 The major advantage of this mode over `Execute in current console`_ is that we can be certain that there are no global objects defined in this console which originate from debugging and repeated execution of our code.
 Every time we run the code in the editor, the IPython console in which the code runs is restarted.
 
@@ -588,7 +588,7 @@ Debugging
 Line by line step execution of code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Start debug execution (with the ``Debug > Debug`` menu option or :kbd:`Ctrl-F5`) to activate the IPython debugger, ``ipdb``.
+Start debug execution (with the :menuselection:`Debug --> Debug` menu option or :kbd:`Ctrl-F5`) to activate the IPython debugger, ``ipdb``.
 The Editor pane will then highlight the line that is about to be executed, and the Variable Explorer will display variables in the current context of the point of program execution.
 
 After entering debug mode, you can execute the code line by line using the ``Step`` button of the Debug toolbar:
@@ -642,7 +642,7 @@ For example, enter the following code into a new or temporary file::
 
    demo(0)
 
-If we execute this (``Run > Run``), we should see the output::
+If we execute this (:menuselection:`Run --> Run`), we should see the output::
 
 	i = 0, x = 0
 	i = 1, x = 1
@@ -650,7 +650,7 @@ If we execute this (``Run > Run``), we should see the output::
 	i = 3, x = 3
 	i = 4, x = 4
 
-Now run this using the debugger (``Debug > Debug``), press the ``Step`` button until the highlighted line reaches the ``demo(0)`` function call, then press the ``Step into`` to inspect this function.
+Now run this using the debugger (:menuselection:`Debug --> Debug`), press the ``Step`` button until the highlighted line reaches the ``demo(0)`` function call, then press the ``Step into`` to inspect this function.
 Keep pressing the ``Step`` button to execute the next lines.
 Then, modify ``x`` by typing ``x = 10`` in the debugger prompt.
 You should see x changing in the Variable Explorer and when its value is printed as part of the ``demo()`` function.
@@ -658,7 +658,7 @@ You should see x changing in the Variable Explorer and when its value is printed
 
 This debugging ability to execute code line by line, to inspect variables as they change, and to modify them manually is a powerful tool to understand what a piece of code is doing (and to correct it if desired).
 
-To terminate the debugger, you can type ``exit``, select ``Debug > Stop`` or press :kbd:`Ctrl-Shift-F12`.
+To terminate the debugger, you can type ``exit``, select :menuselection:`Debug --> Stop` or press :kbd:`Ctrl-Shift-F12`.
 
 
 Debugging once an exception has occurred in the console
@@ -695,7 +695,7 @@ The command to get figures appear in their own window (rendered by the Qt backen
 
     In [4]: %matplotlib qt
 
-The Spyder preferences can be used to customize the default behavior, under  ``Preferences > IPython Console > Graphics > Graphics Backend``.
+The Spyder preferences can be used to customize the default behavior, under  :menuselection:`Preferences --> IPython Console --> Graphics --> Graphics Backend`.
 
 Here are two lines you can use to quickly create a plot and test this::
 
