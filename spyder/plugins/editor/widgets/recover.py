@@ -14,7 +14,7 @@ import time
 # Third party imports
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QLabel, 
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QLabel,
                             QMessageBox, QPushButton, QVBoxLayout)
 
 # Local imports
@@ -175,10 +175,10 @@ class RecoveryDialog(QDialog):
             orig_name = orig['name']
         else:
             orig_name, ignored = getsavefilename(
-                 self, _('Restore autosave file to ...'),
-                 osp.basename(autosave['name']))
+                self, _('Restore autosave file to ...'),
+                osp.basename(autosave['name']))
             if not orig_name:
-                 return
+                return
         try:
             try:
                 os.replace(autosave['name'], orig_name)

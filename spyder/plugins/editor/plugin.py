@@ -2916,7 +2916,7 @@ class Editor(SpyderPluginWidget):
     def setup_open_files(self):
         """
         Open the list of saved files per project.
-        
+
         Also open any files that the user selected in the recovery dialog.
         """
         self.set_create_new_file_if_empty(False)
@@ -3026,7 +3026,7 @@ class AutosaveComponent:
         """Offer to recover files from autosave."""
         autosave_dir = get_conf_path('autosave')
         autosave_mapping = CONF.get('editor', 'autosave_mapping', {})
-        dialog = RecoveryDialog(autosave_dir, autosave_mapping, 
+        dialog = RecoveryDialog(autosave_dir, autosave_mapping,
                                 parent=self.editor)
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]
