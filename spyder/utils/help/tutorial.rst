@@ -1,6 +1,6 @@
-=====================================================
+#####################################################
 Spyder: The Scientific Python Development Environment
-=====================================================
+#####################################################
 
 *Spyder* is an Integrated Development Environment (IDE) for scientific computing, written in and for the Python programming language.
 It comes with an Editor to write code, a Console to evaluate it and view the results at any time, a Variable Explorer to examine the variables defined during evaluation, and several other facilities to help you effectively develop the programs you need as a scientist.
@@ -10,14 +10,16 @@ This tutorial was originally authored by `Hans Fangohr <https://fangohr.github.i
 
 
 
+=======================
 First steps with Spyder
-#######################
+=======================
 
 This section is aimed at Python and Spyder beginners.
 If you find it too simple, please continue to the `next one <python-beginners-ref_>`__.
 
+
 Execute a given program
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 * We are going to use this program as a first example:
 
@@ -53,7 +55,7 @@ Execute a given program
 
 
 What happens when you execute the program?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
 * Python reads the file line by line, ignoring comments (i.e. lines starting with the ``#`` symbol).
 
@@ -81,7 +83,7 @@ You may also be interested in the option to execute "cells", `chunks of code tha
 .. _call-functions-console-ref:
 
 Call existing functions in the console
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once you have executed the ``hello.py`` program, the function object ``hello`` is defined and known to the IPython console.
 We can thus call the function from the console like this:
@@ -105,7 +107,7 @@ We can thus call the function from the console like this:
 
 
 Inspecting objects defined in the console
------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Python provides a function that displays all known objects in the current namespace of the console, called ``dir``.
   Type ``dir()`` at the prompt, and ignore everything starting with an underscore (``_``) for now.
@@ -143,10 +145,13 @@ Inspecting objects defined in the console
 
 
 Updating objects
-----------------
+~~~~~~~~~~~~~~~~
 
-Simple strategy: re-execute whole program
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Let's say you wanted to change how an existing function behaves -- how should you get Python to recognize your changes?
+
+
+Simple strategy: Re-execute whole program
+-----------------------------------------
 
 * In the Editor window, change the function ``hello`` so that it prints ``Good Bye World`` rather than ``Hello World``.
 
@@ -158,7 +163,7 @@ What has happened when you pressed F5 is this: Python has gone through the ``hel
 
 
 Looking at the details
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 We need to start with a clearly defined state.
 To do this, please change the function ``hello()`` back so that it prints ``Hello World``, then press F5 to run the whole program and check that it prints ``Hello World``.
@@ -204,8 +209,9 @@ For example, by modifying only the functions (or classes/objects, etc). that we 
 
 .. _python-beginners-ref:
 
+============================================
 Recommended first steps for Python beginners
-############################################
+============================================
 
 Before we begin, make sure to have an IPython console open (bottom-right by default).
 This uses the `IPython <https://ipython.org>`__ interpreter, standard in the scientific community.
@@ -215,7 +221,7 @@ To open a new console at any time, select ``Consoles > Open an IPython Console``
 .. _reset-namespace-ref:
 
 Reset the namespace
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (i.e. the collection of objects defined in the console at any given time) can be cleared in IPython using the ``%reset`` command.
 Type ``%reset`` and press return, then confirm with ``y``::
@@ -253,8 +259,9 @@ We can list all of them using the ``dir()`` command::
 
 Finally, if you like to skip the confirmation step of the ``reset`` command, you can use ``%reset -f`` instead of ``%reset``; or, tick the ``Don't show again`` checkbox in the ``Remove all variables`` dialog.
 
+
 Strive for PEP8 Compliance
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In addition to the syntax that is enforced by the Python programming language, there are additional conventions regarding the layout of the source code, in particular the `Style Guide for Python source code <https://www.python.org/dev/peps/pep-0008/>`__ known as "PEP 8".
 By following this guide and writing code in the same style as almost all Python programmers do, it becomes easier to read, and thus easier to debug and re-use -- both for the original author and others.
@@ -263,11 +270,12 @@ To have Spyder check this for you automatically, see the `next section <pep8-ena
 
 
 
+====================
 Selected preferences
-####################
+====================
 
 Where are the preferences?
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A lot of Spyder's behaviour can be configured through its Preferences.
 Where this is located in the menu depends on your operating system:
@@ -276,15 +284,17 @@ Where this is located in the menu depends on your operating system:
 
 * On macOS, navigate to ``Python/Spyder > Preferences``
 
+
 .. _pep8-enable-ref:
 
 Warn if PEP 8 code style guidelines are violated
-------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Go to ``Preferences > Editor > Code Introspection/Analysis`` and tick the checkbox next to ``Real-time code style analysis``.
 
+
 Automatic Symbolic Python
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Through ``Preferences > IPython console > Advanced Settings > Use symbolic math`` we can activate the console's SYMbolic PYthon (sympy) mode that is provided by the `SymPy <https://www.sympy.org/>`_ Python package.
 This allows nicely rendered mathematical output (LaTeX style), imports some SymPy objects automatically when the IPython console starts, and reports what it has done.
@@ -305,10 +315,12 @@ We can now use the variables ``x`` and ``y``, for example like this:
      :align: center
 
 
+
 .. _shortcut-list-ref:
 
+==============================
 Shortcuts for useful functions
-##############################
+==============================
 
 .. note::
 
@@ -371,8 +383,9 @@ Shortcuts for useful functions
 
 
 
+=================
 Run configuration
-#################
+=================
 
 These are the settings that define how the file in the editor is executed if we select ``Run > Run`` or press F5.
 
@@ -395,12 +408,13 @@ Let's assume we have a program ``hello.py`` in the editor which reads
 
 
 Execute in current console
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is the default option, and generally a good choice.
 
+
 Persistence of objects after code execution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 Choosing the ``Execute in current console`` setting under ``Run > Configure`` means that:
 
@@ -411,8 +425,9 @@ Choosing the ``Execute in current console`` setting under ``Run > Configure`` me
 This is generally very useful for incremental coding, testing and debugging.
 For example, we can call ``hello()`` directly from the console prompt, and don't need to execute the whole ``hello.py`` for this (although if we change the function ``hello()``, we need to execute the file, or at least the function definition, to make the new version of ``hello()`` visible at the console; either by re-executing the whole script or via ``Run > Run Selection``).
 
+
 Persistence of objects from before code execution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------
 
 However, executing the code in the editor in the current console also entails a third effect:
 
@@ -441,8 +456,9 @@ This also affects importing of modules: if we had imported ``sympy`` at the IPyt
 
 To learn how we can double check that our code does not depend on such existing objects, see `below <check-code-independent-ref_>`_ .
 
+
 Execute in a dedicated console
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Choosing ``Execute in a dedicated console` under ``Run > Configure`` will start *a new IPython console every time* the ``hello.py`` program is executed.
 The major advantage of this mode over `Execute in current console`_ is that we can be certain that there are no global objects defined in this console which originate from debugging and repeated execution of our code.
@@ -454,7 +470,7 @@ This is a safe option, but provides less flexibility in interactive execution.
 .. _check-code-independent-ref:
 
 How to double check your code executes correctly "on its own"
--------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Assuming you have selected the `Execute in current console`_ option, you have two methods to check that your code works on its own (i.e. it does not depend on undefined variables, unimported modules and commands etc).
 
@@ -465,8 +481,9 @@ Assuming you have selected the `Execute in current console`_ option, you have tw
 * First `reset the namespace <reset-namespace-ref_>`_ with IPython's magic ``%reset`` command or the ``Remove all variables`` menu option, which will clear all objects, such as ``i`` in the example above from the current namespace.
   Then, execute the code from the Editor.
 
+
 Recommendation
---------------
+~~~~~~~~~~~~~~
 
 My recommendation for beginners would be to `Execute in current console`_.
 
@@ -474,11 +491,12 @@ Once you have completed a piece of code, double check that it executes independe
 
 
 
+==================
 Other observations
-##################
+==================
 
 Multiple files
---------------
+~~~~~~~~~~~~~~
 
 When multiple files are opened in the Editor, the corresponding tabs at the top of the window area are arranged in the order they are opened, but can be easily moved around if you wish.
 
@@ -486,19 +504,22 @@ On the left of the tabs, there is as icon that shows ``Browse tabs`` if the mous
 It is useful to jump to a particular file directly, if many files are open.
 You can also summon the file switcher through tapping ``Ctrl-Tab`` or ``Ctrl-P``, which navigates your tabs in most-recently-used order.
 
+
 Environment variables
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Environment variables can be displayed from the IPython Console window (bottom right window in default layout).
 Click on the ``Options`` menu ("Gear" icon), then select ``Show environment variables``.
 
+
 Reset all customization
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 All customization saved on disk can be reset by calling Spyder from the command line with the switch ``--reset``, i.e. running ``spyder --reset``.
 
-Objects in the variable explorer
---------------------------------
+
+Objects in the Variable Explorer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Right-clicking on objects in the Variable Explorer displays options to plot and analyze these further.
 
@@ -508,8 +529,9 @@ Python collections (lists, dictionaries, tuples...), Numpy arrays, Pandas ``Inde
 
 
 
+===============================
 Documentation string formatting
-###############################
+===============================
 
 If you want to document the code you are developing (and you certainly should!), we recommend you write documentation strings (or *docstrings*) for it, using a special format called `reStructuredText (reST) <http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`__.
 In the scientific Python world, a further set of conventions called the `Numpydoc standard <https://numpydoc.readthedocs.io/en/latest/format.html>`__ is typically followed (although other systems exist).
@@ -559,11 +581,12 @@ Often it is a good idea to include an example too, as shown.
 
 
 
+=========
 Debugging
-#########
+=========
 
 Line by line step execution of code
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Activating the debug mode (with the ``Debug > Debug`` menu option or ``Ctrl+F5) the IPython debugger ``ipdb``.
 The Editor pane will then highlight the line that is about to be executed, and the Variable Explorer will display variables in the current context of the point of program execution.
@@ -638,8 +661,8 @@ This debugging ability to execute code line by line, to inspect variables as the
 To leave the debugging mode, you can type ``exit``, select ``Debug > Stop`` or press ``Ctrl+Shift_F12``.
 
 
-Debugging once an exception has occurred with IPython
------------------------------------------------------
+Debugging once an exception has occurred in the console
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In the IPython console, we can call ``%debug`` straight after an exception has been raised: this will start the IPython debug mode, which allows inspection of local variables at the point where the exception occurred as described above.
 This is a lot more efficient than adding ``print`` statements to the code an running it again.
@@ -650,8 +673,9 @@ You can also enable (or disable) this debugger being triggered automatically whe
 
 
 
+========
 Plotting
-########
+========
 
 You can decide whether figures created with Matplotlib will show
 
@@ -680,7 +704,8 @@ Here are two lines you can use to quickly create a plot and test this::
 
 
 
+===============
 Historical note
-###############
+===============
 
 This tutorial was originally based on `notes <https://fangohr.github.io/blog/spyder-the-python-ide-spyder-23.html>`__ by `Hans Fangohr <https://fangohr.github.io/>`__, that are used at the `University of Southampton <https://www.southampton.ac.uk/>`__ to `teach Python for computational modelling <https://www.southampton.ac.uk/~fangohr/teaching/python.html>`__ to undergraduate engineers and postgraduate PhD students for the `Next Generation Computational Modelling <http://www.ngcm.soton.ac.uk/>`__ doctoral training centre.
