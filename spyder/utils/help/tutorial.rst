@@ -36,7 +36,7 @@ Execute a given program
      hello()
 
 * To use this program, please create a new file in the Spyder editor pane (with ``File > New file``, or ``Ctrl+N``/``Cmd-N``).
-  Then copy and paste the code inside the box above into the file, and save it with the name ``hello.py``.
+  Then copy and paste the code inside the box above into the file, and save it with the name :file:`hello.py`.
 
 * To execute the program, select ``Run > Run`` from the menu (or press F5), and confirm the ``Run settings`` if required.
 
@@ -65,7 +65,7 @@ What happens when you execute the program?
   Note that the function object is created at this point in the file, but the function is not yet called (*i.e.* not executed).
 
 * When Python comes across commands (other than ``def ...`` and a few other keywords) that are written in the left-most column, it will execute these immediately.
-  In the ``hello.py`` file this is only the line reading ``hello()`` which will actually call (*i.e.* *execute*) the function with name ``hello``.
+  In the :file:`hello.py` file this is only the line reading ``hello()`` which will actually call (*i.e.* *execute*) the function with name ``hello``.
 
   If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing F5, or selecting ``Run > Run``), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
 
@@ -85,7 +85,7 @@ You may also be interested in the option to execute "cells", `chunks of code tha
 Call existing functions in the console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you have executed the ``hello.py`` program, the function object ``hello`` is defined and known to the IPython console.
+Once you have executed the :file:`hello.py` program, the function object ``hello`` is defined and known to the IPython console.
 We can thus call the function from the console like this:
 
 * Type ``hello()`` in the console (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the ``Enter`` key.
@@ -100,7 +100,7 @@ We can thus call the function from the console like this:
 
   When we execute the whole program (by pressing F5), Python goes through the file, creates the ``hello`` function object (overriding the previous object), reaches the ``hello()`` line and calls the function.
 
-  When we call ``hello()`` in the console, we only call the function object ``hello`` that has been defined in the IPython console when we executed the whole ``hello.py`` file earlier (by pressing F5).
+  When we call ``hello()`` in the console, we only call the function object ``hello`` that has been defined in the IPython console when we executed the whole :file:`hello.py` file earlier (by pressing F5).
 
   This will become clearer over time, as we work with larger examples.
   You may want to return to this tutorial at a slightly later stage.
@@ -116,7 +116,7 @@ Inspecting objects defined in the console
   .. note::
 
     If you get a long list of defined objects, then Spyder may have done some convenience imports for you already.
-    To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute ``hello.py`` again by pressing F5, then run ``dir()`` as suggested above.
+    To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute :file:`hello.py` again by pressing F5, then run ``dir()`` as suggested above.
 
 * Once an object is visible in the current namespace (as is ``hello`` in this example), we can use the ``help`` function as follows to learn about it.
   Typing ``help(hello)`` at the console prompt, you should see an output like this::
@@ -159,7 +159,7 @@ Simple strategy: Re-execute whole program
 
     Good Bye World
 
-What has happened when you pressed F5 is this: Python has gone through the ``hello.py`` file and created a new function object ``hello`` (overriding the function object ``hello`` we had defined before) and then executed the function.
+What has happened when you pressed F5 is this: Python has gone through the :file:`hello.py` file and created a new function object ``hello`` (overriding the function object ``hello`` we had defined before) and then executed the function.
 
 
 Looking at the details
@@ -181,16 +181,16 @@ To do this, please change the function ``hello()`` back so that it prints ``Hell
 
   Why is this so?
   Because the ``hello`` function object in the console is the old one which prints ``Hello World``.
-  So far, we have changed the file ``hello.py`` (and replaced ``Hello World`` in there with ``Later World``) in the editor but this has not affected the objects that have previously been created in the console.
+  So far, we have changed the file :file:`hello.py` (and replaced ``Hello World`` in there with ``Later World``) in the editor but this has not affected the objects that have previously been created in the console.
 
 To update the console's namespace with modified function, we have two options:
 
-* Option 1: Execute the whole file ``hello.py`` again by pressing F5: this creates a new function object ``hello`` (and overrides the old one).
+* Option 1: Execute the whole file :file:`hello.py` again by pressing F5: this creates a new function object ``hello`` (and overrides the old one).
   You should find that if you press F5, and then call ``hello()`` at the prompt, the new text ``Later World`` is printed.
 
 * Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click ``Run > Run selection or current line`` or press F9.
 
-  This will update the ``hello`` object in the console without having to execute the whole ``hello.py`` file::
+  This will update the ``hello`` object in the console without having to execute the whole :file:`hello.py` file::
 
      In [ ]: def hello():
         ...:     """Print "Hello World" and return None"""
@@ -393,7 +393,7 @@ By default, the settings box will appear the first time we try to run a file.
 If we want to change the settings at any other time, they can be found under ``Run > Configure`` or by pressing F6.
 
 There are three choices for the console to use, of which I'll discuss the first two.
-Let's assume we have a program ``hello.py`` in the editor which reads
+Let's assume we have a program :file:`hello.py` in the editor which reads
 
 .. code-block:: python
 
@@ -418,12 +418,12 @@ Persistence of objects after code execution
 
 Choosing the ``Execute in current console`` setting under ``Run > Configure`` means that:
 
-* When the execution of ``hello.py`` is completed, we can interact with the console in which the program ran.
+* When the execution of :file:`hello.py` is completed, we can interact with the console in which the program ran.
 
 * In particular, we can inspect and interact with objects that the execution of our program created, such as ``i`` and ``hello()``.
 
 This is generally very useful for incremental coding, testing and debugging.
-For example, we can call ``hello()`` directly from the console prompt, and don't need to execute the whole ``hello.py`` for this (although if we change the function ``hello()``, we need to execute the file, or at least the function definition, to make the new version of ``hello()`` visible at the console; either by re-executing the whole script or via ``Run > Run Selection``).
+For example, we can call ``hello()`` directly from the console prompt, and don't need to execute the whole :file:`hello.py` for this (although if we change the function ``hello()``, we need to execute the file, or at least the function definition, to make the new version of ``hello()`` visible at the console; either by re-executing the whole script or via ``Run > Run Selection``).
 
 
 Persistence of objects from before code execution
@@ -440,15 +440,15 @@ This visibility of objects in the console namespace to the code we execute may a
 
 Here is an example: Imagine that:
 
-#. We run the code ``hello.py``.
+#. We run the code :file:`hello.py`.
    Subsequently, the variable ``i`` is known in the console as a global variable.
 
-#. We edit the ``hello.py`` source and accidentally delete the line ``i = 42``.
+#. We edit the :file:`hello.py` source and accidentally delete the line ``i = 42``.
 
-#. We execute the file containing ``hello.py`` again.
-   At this point, the call of ``hello(i)`` will *not* fail because the console has an object of name ``i`` defined, although this is not defined in the source of ``hello.py``.
+#. We execute the file containing :file:`hello.py` again.
+   At this point, the call of ``hello(i)`` will *not* fail because the console has an object of name ``i`` defined, although this is not defined in the source of :file:`hello.py`.
 
-At this point, we could save ``hello.py`` and (falsely) think it would execute correctly.
+At this point, we could save :file:`hello.py` and (falsely) think it would execute correctly.
 However, running it in a new IPython console session (or via ``python hello.py`` in a system shell, say) would result in an error, because ``i`` is not defined.
 
 The problem arises because the code makes use of an object (here ``i``) without creating it first.
@@ -460,7 +460,7 @@ To learn how we can double check that our code does not depend on such existing 
 Execute in a dedicated console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Choosing ``Execute in a dedicated console` under ``Run > Configure`` will start *a new IPython console every time* the ``hello.py`` program is executed.
+Choosing ``Execute in a dedicated console` under ``Run > Configure`` will start *a new IPython console every time* the :file:`hello.py` program is executed.
 The major advantage of this mode over `Execute in current console`_ is that we can be certain that there are no global objects defined in this console which originate from debugging and repeated execution of our code.
 Every time we run the code in the editor, the IPython console in which the code runs is restarted.
 
