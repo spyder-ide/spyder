@@ -21,61 +21,60 @@ If you find it too simple, please continue to the `next one <python-beginners-re
 Execute a given program
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-* We are going to use this program as a first example:
+We are going to use run program as a first example:
 
-  .. code-block:: python
+.. code-block:: python
 
-        # Demo file for Spyder Tutorial
-        # Hans Fangohr, University of Southampton, UK
+    # Demo file for Spyder Tutorial
+    # Hans Fangohr, University of Southampton, UK
 
-        def hello():
-            """Print "Hello World" and return None."""
-            print("Hello World")
+    def hello():
+        """Print "Hello World" and return None."""
+        print("Hello World")
 
-        # Main program starts here
-        hello()
+    # Main program starts here
+    hello()
 
-* To use this program, please create a new file in the Spyder :guilabel:`Editor` pane (with :menuselection:`File --> New file`, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
-  Then copy and paste the code inside the box above into the file, and save it with the name :file:`hello.py`.
+#. Please create a new file in the Spyder :guilabel:`Editor` pane (with :menuselection:`File --> New file`, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
+   Then copy and paste the code inside the box above into the file, and save it with the name :file:`hello.py`.
 
-* To execute the program, select :menuselection:`Run --> Run` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
+#. To execute the program, select :menuselection:`Run --> Run` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
 
-  If this is your first time, you should see an output like this:
+#. If this is your first running something, you should see an output like this:
 
-  .. code-block:: python
+   .. code-block:: python
 
         In [1]: runfile('/File/Path/hello.py', wdir=r'/File/Path')
         Hello World
 
         In [2]:
 
-  If so, then you have just run your first Python program -- well done.
+If so, then you have just run your first Python program -- well done.
 
-  .. note::
+.. note::
 
-     The particular paths shown inside ``runfile()`` will depend on where you have saved the file, but this is inserted by Spyder automatically.
+   The particular paths shown inside ``runfile()`` will depend on where you have saved the file, but this is inserted by Spyder automatically.
 
 
-What happens when you execute the program?
-------------------------------------------
+What happens when you execute a program?
+----------------------------------------
 
-* Python reads the file line by line, ignoring comments (*i.e.* lines starting with the ``#`` symbol).
+#. Python reads the file line by line, ignoring comments (*i.e.* lines starting with the ``#`` symbol).
 
-* When it comes across the ``def`` keyword, it knows that a function is DEFined in this and the next (one or more) lines.
-  All *indented* lines following ``def hello():`` belong to the function body.
+#. When it comes across the ``def`` keyword, it knows that a function is DEFined in this and the next (one or more) lines.
+   All *indented* lines following ``def hello():`` belong to the function body.
 
-  Note that the function object is created at this point in the file, but the function is not yet called (*i.e.* not executed).
+   Note that the function object is created at this point in the file, but the function is not yet called (*i.e.* not executed).
 
-* When Python comes across commands (other than ``def ...`` and a few other keywords) that are written in the left-most column, it will execute these immediately.
-  In the :file:`hello.py` file this is only the line reading ``hello()`` which will actually call (*i.e.* *execute*) the function with name ``hello``.
+#. When the Python interpreter encounters commands (other than ``def ...`` and a few other keywords) that are written in the left-most column, it will execute these immediately.
 
-  If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing :kbd:`F5`, or selecting :menuselection:`Run --> Run`), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
+#. In the :file:`hello.py` file this is only the line reading ``hello()`` which will actually call (*i.e.* *execute*) the function with name ``hello``.
 
+   If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing :kbd:`F5`, or selecting :menuselection:`Run --> Run`), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
 
 Now you should know how to execute a Python program that you have in the :guilabel:`Editor` pane in Spyder using the :guilabel:`IPython Console`.
 
 If you are just starting to learn Python, this is probably a good point to return to your text book/course and look at further basic examples.
-
 
 The next section gives more detailed information how you can execute *parts* of your code from the :guilabel:`Editor` in the :guilabel:`IPython Console`.
 This is a more advanced technique but can be very useful.
@@ -88,66 +87,65 @@ Call existing functions in the Console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once you have executed the :file:`hello.py` program, the function object ``hello`` is defined and known to the :guilabel:`IPython Console`.
-We can thus call the function from the :guilabel:`Console` like this:
+We can thus call the function from the :guilabel:`Console`.
 
-* Type ``hello()`` in the :guilabel:`Console` (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the :kbd:`Enter` key.
+Type ``hello()`` in the :guilabel:`Console` (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the :kbd:`Enter` key.
 
-  You should find that the ``hello()`` function is executed again, *i.e.* printing ``Hello World`` a second time.
-  Your function call at the :guilabel:`Console` together with the output should look like this:
+You should find that the ``hello()`` function is executed again, *i.e.* printing ``Hello World`` a second time.
+Your function call at the :guilabel:`Console` together with the output should look like this:
 
-  .. code-block:: python
+.. code-block:: python
 
-        In [ ]: hello()
-        Hello World
+    In [ ]: hello()
+    Hello World
 
-* Can you see how this differs from executing the whole program again?
+Can you see how this differs from executing the whole program again?
 
-  When we execute the whole program (by pressing :kbd:`F5`), Python goes through the file, creates the ``hello`` function object (overriding the previous object), reaches the ``hello()`` line and calls the function.
+When we execute the whole program (by pressing :kbd:`F5`), Python goes through the file, creates the ``hello`` function object (overriding the previous object), reaches the ``hello()`` line and calls the function.
 
-  When we call ``hello()`` in the :guilabel:`Console`, we only call the function object ``hello`` that has been defined in the :guilabel:`IPython Console` when we executed the whole :file:`hello.py` file earlier (by pressing :kbd:`F5`).
+When we call ``hello()`` in the :guilabel:`Console`, we only call the function object ``hello`` that has been defined in the :guilabel:`IPython Console` when we executed the whole :file:`hello.py` file earlier (by pressing :kbd:`F5`).
 
-  This will become clearer over time, as we work with larger examples.
-  You may want to return to this tutorial at a slightly later stage.
+This will become clearer over time, as we work with larger examples.
+You may want to return to this tutorial at a slightly later stage.
 
 
 Inspecting objects defined in the Console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Python provides a function that displays all known objects in the current namespace of the :guilabel:`Console`, called ``dir``.
-  Type ``dir()`` at the prompt, and ignore everything starting with an underscore (``_``) for now.
-  Can you see ``hello`` in the list?
+Python provides a function that displays all known objects in the current namespace of the :guilabel:`Console`, called ``dir``.
+Type ``dir()`` at the prompt, and ignore everything starting with an underscore (``_``) for now.
+Can you see ``hello`` in the list?
 
-  .. note::
+.. note::
 
-    If you get a long list of defined objects, then Spyder may have done some convenience imports for you already.
-    To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute :file:`hello.py` again by pressing :kbd:`F5`, then run ``dir()`` as suggested above.
+   If you get a long list of defined objects, then Spyder may have done some convenience imports for you already.
+   To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute :file:`hello.py` again by pressing :kbd:`F5`, then run ``dir()`` as suggested above.
 
-* Once an object is visible in the current namespace (as is ``hello`` in this example), we can use the ``help`` function as follows to learn about it.
-  Typing ``help(hello)`` at the :guilabel:`Console` prompt, you should see an output like this:
+Once an object is visible in the current namespace (as is ``hello`` in this example), we can use the ``help`` function as follows to learn about it.
+Typing ``help(hello)`` at the :guilabel:`Console` prompt, you should see an output like this:
 
-  .. code-block:: python
+.. code-block:: python
 
-        In [ ]: help(hello)
-        Help on function hello in module __main__:
+    In [ ]: help(hello)
+    Help on function hello in module __main__:
 
-        hello()
-            Print "Hello World" and return None
+    hello()
+        Print "Hello World" and return None
 
+Where does Python get that information from?
+Some of it (like the number of input arguments and names of those variables; here we have none) Python can find through inspecting its objects.
+Additional information comes from the documentation string provided for the function object ``hello``.
+The documentation string, or *docstring*, is the first string immediately below the line ``def hello():``.
+By convention, and as they usually extend over multiple lines, they are enclosed by triple double quotes (``"""``).
 
-  Where does Python get that information from?
-  Some of it (like the number of input arguments and names of those variables; here we have none) Python can find through inspecting its objects.
-  Additional information comes from the documentation string provided for the function object ``hello``.
-  The documentation string, or *docstring*, is the first string immediately below the line ``def hello():``.
-  By convention, and as they usually extend over multiple lines, they are enclosed by triple double quotes (``"""``).
+The Spyder environment also provides a :guilabel:`Help` pane which by default is located in the top right corner.
 
-* The Spyder environment also provides a :guilabel:`Help` pane which by default is located in the top right corner.
+While the cursor is on the name of an object, press :kbd:`Ctrl-I` (or :kbd:`Command-I` on macOS), and you should find that the same information as we obtained from ``help(hello)`` is provided automatically in the :guilabel:`Help` pane:
 
-  While the cursor is on the name of an object, press :kbd:`Ctrl-I` (or :kbd:`Command-I` on macOS), and you should find that the same information as we obtained from ``help(hello)`` is provided automatically in the :guilabel:`Help` pane:
+.. image:: images/spyder-hello-docstring.png
+   :align: center
 
-  .. image:: images/spyder-hello-docstring.png
-       :align: center
-
-  This works in the :guilabel:`Console` and in the :guilabel:`Editor`.
+This works in the :guilabel:`Console` and in the :guilabel:`Editor`.
 
 
 Updating objects
@@ -159,11 +157,13 @@ Let's say you wanted to change how an existing function behaves -- how should yo
 Simple strategy: Re-execute whole program
 -----------------------------------------
 
-* In the :guilabel:`Editor` window, change the function ``hello`` so that it prints ``Good Bye World`` rather than ``Hello World``.
+#. In the :guilabel:`Editor` window, change the function ``hello`` so that it prints ``Good Bye World`` rather than ``Hello World``.
 
-* Press :kbd:`F5` (to execute the whole program) and check that the output of the program is now:
+#. Press :kbd:`F5` (to execute the whole program)
 
-  .. code-block:: python
+#. Check that the output of the program is now:
+
+   .. code-block:: python
 
         Good Bye World
 
@@ -173,23 +173,27 @@ What has happened when you pressed :kbd:`F5` is this: Python has gone through th
 Looking at the details
 ----------------------
 
-We need to start with a clearly defined state.
-To do this, please change the function ``hello()`` back so that it prints ``Hello World``, then press :kbd:`F5` to run the whole program and check that it prints ``Hello World``.
+We'll now investigate this behavior in a little more depth:
 
-* Call the function ``hello()`` from the command prompt (as described `previously <call-functions-console-ref_>`__).
-  You should see ``Hello World`` printed.
+#. We need to start with a clearly defined state.
+   To do this, please change the function ``hello()`` back so that it prints ``Hello World``, then press :kbd:`F5` to run the whole program and check that it prints ``Hello World``.
 
-* Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, *i.e.* do NOT press :kbd:`F5` yet).
+#. Call the function ``hello()`` from the command prompt (as described `previously <call-functions-console-ref_>`__).
+   You should see ``Hello World`` printed.
 
-* Call the function ``hello()`` in the :guilabel:`Console` again.
-  You should find that the text printed reads ``Hello World``, like here::
+#. Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, *i.e.* do NOT press :kbd:`F5` yet).
 
-    In [ ]: hello()
-    Hello World
+#. Call the function ``hello()`` in the :guilabel:`Console` again.
+   You should find that the text printed reads ``Hello World``, like here:
 
-  Why is this so?
-  Because the ``hello`` function object in the :guilabel:`Console` is the old one which prints ``Hello World``.
-  So far, we have changed the file :file:`hello.py` (and replaced ``Hello World`` in there with ``Later World``) in the :guilabel:`Editor` but this has not affected the objects that have previously been created in the :guilabel:`Console`.
+   .. code-block:: python
+
+        In [ ]: hello()
+        Hello World
+
+Why is this so?
+Because the ``hello`` function object in the :guilabel:`Console` is the old one which prints ``Hello World``.
+So far, we have changed the file :file:`hello.py` (and replaced ``Hello World`` in there with ``Later World``) in the :guilabel:`Editor` but this has not affected the objects that have previously been created in the :guilabel:`Console`.
 
 To update the console's namespace with modified function, we have two options:
 
@@ -198,17 +202,21 @@ To update the console's namespace with modified function, we have two options:
 
 * Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click :menuselection:`Run --> Run selection or current line` or press :kbd:`F9`.
 
-  This will update the ``hello`` object in the :guilabel:`Console` without having to execute the whole :file:`hello.py` file::
+  This will update the ``hello`` object in the :guilabel:`Console` without having to execute the whole :file:`hello.py` file:
 
-     In [ ]: def hello():
-        ...:     """Print "Hello World" and return None"""
-        ...:     print("Later world")
-        ...:
+  .. code-block:: python
 
-  If we now type ``hello()``, we see the updated response::
+        In [ ]: def hello():
+           ...:     """Print "Hello World" and return None"""
+           ...:     print("Later world")
+           ...:
 
-     In [ ]: hello()
-     Later world
+  If we now type ``hello()``, we see the updated response:
+
+  .. code-block:: python
+
+        In [ ]: hello()
+        Later world
 
 The ability to execute *parts of the code* to update some objects in the :guilabel:`Console` (in the example above, we updated the function object ``hello``), is of great use when developing and debugging more complex programs, and when re-creating objects/data in the :guilabel:`Console` session takes time.
 For example, by modifying only the functions (or classes/objects, etc). that we are actually developing or debugging, we can keep re-using the data and other objects created previously.
@@ -327,8 +335,6 @@ We can now use the variables ``x`` and ``y``, for example like this:
      :align: center
 
 
-
-.. _shortcut-list-ref:
 
 ==============================
 Shortcuts for useful functions
@@ -484,7 +490,7 @@ This is a safe option, but provides less flexibility in interactive execution.
 How to double check your code executes correctly "on its own"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Assuming you have selected the `Execute in current console`_ option, you have two methods to check that your code works on its own (*i.e.* it does not depend on undefined variables, unimported modules and commands etc).
+Assuming you have selected the `Execute in current console`_ option, you have two methods to check that your code works on its own (*i.e.* it does not depend on undefined variables, unimported modules and commands etc):
 
 * Switch from `Execute in current console`_ to `Execute in a dedicated console`_, and run the code from the :guilabel:`Editor`.
 
