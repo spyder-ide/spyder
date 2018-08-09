@@ -327,12 +327,12 @@ Shortcuts for useful functions
    The following are the default shortcuts; however, those marked with ``*`` can be customized through the Keyboard shortcuts tab in the Preferences.
    Also, macOS users should substitute ``Command`` for ``Ctrl``, and ``Option`` for ``Alt``.
 
-- ``F5``\* executes the current file.
+* ``F5``\* executes the current file.
 
-- ``F9``\* executes the currently highlighted chunk of code; this is very useful to (say) update definitions of functions in the console session without having to run the whole file again.
+* ``F9``\* executes the currently highlighted chunk of code; this is very useful to (say) update definitions of functions in the console session without having to run the whole file again.
   If nothing is selected, ``F9``\* executes the current line.
 
-- ``Tab``\* auto-completes commands, function names, variable names, and methods in the console and the Editor.
+* ``Tab``\* auto-completes commands, function names, variable names, and methods in the console and the Editor.
   This feature is very useful, and should be employed routinely.
   Do try it now if auto-completion is new to you.
   Assume you have defined a variable::
@@ -347,39 +347,39 @@ Shortcuts for useful functions
 
 .. _cell-shortcut-ref:
 
-- ``Ctrl+Enter``\* executes the current cell (menu entry ``Run > Run cell``).
+* ``Ctrl+Enter``\* executes the current cell (menu entry ``Run > Run cell``).
   A cell is defined as the code between two lines which start with the characters ``#%%``, ``# %%`` or ``# <codecell>``.
 
-- ``Shift+Enter``\* executes the current cell and advances the cursor to the next cell (menu entry ``Run > Run cell and advance``).
+* ``Shift+Enter``\* executes the current cell and advances the cursor to the next cell (menu entry ``Run > Run cell and advance``).
 
   Cells are useful to execute a large file/code segment in smaller units.
   (It is a little bit like a cell in an IPython notebook, in that chunks of code can be run independently).
 
-- ``Alt+<Up Arrow>``\* moves the current line up.
+* ``Alt+<Up Arrow>``\* moves the current line up.
   If multiple lines are highlighted, they are moved up together.
   ``Alt+<Down arrow>``\* works correspondingly, moving line(s) down.
 
-- ``Ctrl+Left Mouse Click`` or ``Alt+G``\* on a function/method in the Editor opens a new Editor tab showing the definition of that function.
+* ``Ctrl+Left Mouse Click`` or ``Alt+G``\* on a function/method in the Editor opens a new Editor tab showing the definition of that function.
 
-- ``Shift+Ctrl+Alt+M``\* maximizes the current window (or changes the size back to normal if pressed in a maximized window).
+* ``Shift+Ctrl+Alt+M``\* maximizes the current window (or changes the size back to normal if pressed in a maximized window).
 
-- ``Ctrl+Shift+F``\* activates the Find in Files pane, allowing ``grep``-like searches across all files in a specified scope.
+* ``Ctrl+Shift+F``\* activates the Find in Files pane, allowing ``grep``-like searches across all files in a specified scope.
 
-- ``Ctrl + =`` will increase the font size in the Editor or the console, whereas ``Ctrl + -`` will decrease it.
+* ``Ctrl + =`` will increase the font size in the Editor or the console, whereas ``Ctrl + -`` will decrease it.
 
   The font face and size for other parts of the UI can be set under ``Preferences > General > Appearance > Fonts``.
 
-- ``Ctrl+S``\* *in the Editor* saves the file currently being edited.
+* ``Ctrl+S``\* *in the Editor* saves the file currently being edited.
   This also forces various warning triangles in the left column of the Editor to be updated (otherwise they update every 2.5 seconds by default, which is also configurable).
 
 .. _save-shortcut-console-ref:
 
-- ``Ctrl+S``\* *in the console* saves the current IPython session as an HTML file, including any figures that may be displayed inline.
+* ``Ctrl+S``\* *in the console* saves the current IPython session as an HTML file, including any figures that may be displayed inline.
   This is useful as a quick way of recording what has been done in a session.
 
   (It is not currently possible to load this saved record back into the session -- if you need functionality like this, look for the IPython Notebook).
 
-- ``Ctrl+I``\* when pressed while the cursor is on an object opens documentation for that object in the help pane.
+* ``Ctrl+I``\* when pressed while the cursor is on an object opens documentation for that object in the help pane.
 
 
 
