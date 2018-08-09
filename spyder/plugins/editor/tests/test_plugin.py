@@ -233,7 +233,7 @@ def test_autosave_component_timer(qtbot, mocker):
     addon = AutosaveComponent(None)
     addon.do_autosave.assert_not_called()
     qtbot.wait(500)
-    addon.do_autosave.assert_called()
+    assert addon.do_autosave.called
 
 
 def test_autosave_component_do_autosave(setup_editor, mocker):
@@ -243,7 +243,7 @@ def test_autosave_component_do_autosave(setup_editor, mocker):
     editorStack = editor.get_current_editorstack()
     mocker.patch.object(editorStack.autosave, 'autosave_all')
     editor.autosave.do_autosave()
-    editorStack.autosave.autosave_all.assert_called()
+    assert editorStack.autosave.autosave_all.called
 
 
 def test_editor_transmits_sig_option_changed(setup_editor):
@@ -288,7 +288,7 @@ def test_editor_calls_recoverydialog_exec_if_nonempty(qtbot, monkeypatch):
                         mock_RecoveryDialog)
     setup_editor_iter = setup_editor(qtbot, monkeypatch)
     editor, qtbot = next(setup_editor_iter)
-    mock_RecoveryDialog.return_value.exec_if_nonempty.assert_called()
+    assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
 if __name__ == "__main__":

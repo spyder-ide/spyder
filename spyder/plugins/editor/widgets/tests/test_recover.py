@@ -85,7 +85,7 @@ def test_recoverydialog_exec_if_nonempty_when_nonempty(
     dialog = RecoveryDialog(autosave_dir, autosave_mapping)
     mocker.patch.object(dialog, 'exec_', return_value='eggs')
     assert dialog.exec_if_nonempty() == 'eggs'
-    dialog.exec_.assert_called()
+    assert dialog.exec_.called
 
 
 def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
