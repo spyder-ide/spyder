@@ -3,7 +3,7 @@ Spyder: The Scientific Python Development Environment
 #####################################################
 
 *Spyder* is an Integrated Development Environment (IDE) for scientific computing, written in and for the Python programming language.
-It comes with an Editor to write code, a Console to evaluate it and view the results at any time, a Variable Explorer to examine the variables defined during evaluation, and several other facilities to help you effectively develop the programs you need as a scientist.
+It comes with an :guilabel:`Editor` to write code, a :guilabel:`Console` to evaluate it and view the results at any time, a :guilabel:`Variable Explorer` to examine the variables defined during evaluation, and several other facilities to help you effectively develop the programs you need as a scientist.
 
 
 This tutorial was originally authored by `Hans Fangohr <https://fangohr.github.io/>`__ from the University of Southampton (UK), and subsequently updated for Spyder 3.3.x by the development team (see `Historical note`_ for more details).
@@ -35,7 +35,7 @@ Execute a given program
         # Main program starts here
         hello()
 
-* To use this program, please create a new file in the Spyder editor pane (with :menuselection:`File --> New file`, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
+* To use this program, please create a new file in the Spyder :guilabel:`Editor` pane (with :menuselection:`File --> New file`, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
   Then copy and paste the code inside the box above into the file, and save it with the name :file:`hello.py`.
 
 * To execute the program, select :menuselection:`Run --> Run` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
@@ -72,28 +72,28 @@ What happens when you execute the program?
   If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing :kbd:`F5`, or selecting :menuselection:`Run --> Run`), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
 
 
-Now you should know how to execute a Python program that you have in the editor pane in Spyder using the IPython console.
+Now you should know how to execute a Python program that you have in the :guilabel:`Editor` pane in Spyder using the :guilabel:`IPython Console`.
 
 If you are just starting to learn Python, this is probably a good point to return to your text book/course and look at further basic examples.
 
 
-The next section gives more detailed information how you can execute *parts* of your code from the editor in the IPython console.
+The next section gives more detailed information how you can execute *parts* of your code from the :guilabel:`Editor` in the :guilabel:`IPython Console`.
 This is a more advanced technique but can be very useful.
 You may also be interested in the option to execute "cells", `chunks of code that are separated by delimiters <cell-shortcut-ref_>`__.
 
 
 .. _call-functions-console-ref:
 
-Call existing functions in the console
+Call existing functions in the Console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you have executed the :file:`hello.py` program, the function object ``hello`` is defined and known to the IPython console.
-We can thus call the function from the console like this:
+Once you have executed the :file:`hello.py` program, the function object ``hello`` is defined and known to the :guilabel:`IPython Console`.
+We can thus call the function from the :guilabel:`Console` like this:
 
-* Type ``hello()`` in the console (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the :kbd:`Enter` key.
+* Type ``hello()`` in the :guilabel:`Console` (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the :kbd:`Enter` key.
 
   You should find that the ``hello()`` function is executed again, *i.e.* printing ``Hello World`` a second time.
-  Your function call at the console together with the output should look like this:
+  Your function call at the :guilabel:`Console` together with the output should look like this:
 
   .. code-block:: python
 
@@ -104,16 +104,16 @@ We can thus call the function from the console like this:
 
   When we execute the whole program (by pressing :kbd:`F5`), Python goes through the file, creates the ``hello`` function object (overriding the previous object), reaches the ``hello()`` line and calls the function.
 
-  When we call ``hello()`` in the console, we only call the function object ``hello`` that has been defined in the IPython console when we executed the whole :file:`hello.py` file earlier (by pressing :kbd:`F5`).
+  When we call ``hello()`` in the :guilabel:`Console`, we only call the function object ``hello`` that has been defined in the :guilabel:`IPython Console` when we executed the whole :file:`hello.py` file earlier (by pressing :kbd:`F5`).
 
   This will become clearer over time, as we work with larger examples.
   You may want to return to this tutorial at a slightly later stage.
 
 
-Inspecting objects defined in the console
+Inspecting objects defined in the Console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Python provides a function that displays all known objects in the current namespace of the console, called ``dir``.
+* Python provides a function that displays all known objects in the current namespace of the :guilabel:`Console`, called ``dir``.
   Type ``dir()`` at the prompt, and ignore everything starting with an underscore (``_``) for now.
   Can you see ``hello`` in the list?
 
@@ -123,7 +123,7 @@ Inspecting objects defined in the console
     To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute :file:`hello.py` again by pressing :kbd:`F5`, then run ``dir()`` as suggested above.
 
 * Once an object is visible in the current namespace (as is ``hello`` in this example), we can use the ``help`` function as follows to learn about it.
-  Typing ``help(hello)`` at the console prompt, you should see an output like this:
+  Typing ``help(hello)`` at the :guilabel:`Console` prompt, you should see an output like this:
 
   .. code-block:: python
 
@@ -140,14 +140,14 @@ Inspecting objects defined in the console
   The documentation string, or *docstring*, is the first string immediately below the line ``def hello():``.
   By convention, and as they usually extend over multiple lines, they are enclosed by triple double quotes (``"""``).
 
-* The Spyder environment also provides a ``Help`` pane which by default is located in the top right corner.
+* The Spyder environment also provides a :guilabel:`Help` pane which by default is located in the top right corner.
 
-  While the cursor is on the name of an object, press :kbd:`Ctrl-I` (or :kbd:`Command-I` on macOS), and you should find that the same information as we obtained from ``help(hello)`` is provided automatically in the Help pane:
+  While the cursor is on the name of an object, press :kbd:`Ctrl-I` (or :kbd:`Command-I` on macOS), and you should find that the same information as we obtained from ``help(hello)`` is provided automatically in the :guilabel:`Help` pane:
 
   .. image:: images/spyder-hello-docstring.png
        :align: center
 
-  This works in the console and in the editor.
+  This works in the :guilabel:`Console` and in the :guilabel:`Editor`.
 
 
 Updating objects
@@ -159,7 +159,7 @@ Let's say you wanted to change how an existing function behaves -- how should yo
 Simple strategy: Re-execute whole program
 -----------------------------------------
 
-* In the Editor window, change the function ``hello`` so that it prints ``Good Bye World`` rather than ``Hello World``.
+* In the :guilabel:`Editor` window, change the function ``hello`` so that it prints ``Good Bye World`` rather than ``Hello World``.
 
 * Press :kbd:`F5` (to execute the whole program) and check that the output of the program is now:
 
@@ -181,15 +181,15 @@ To do this, please change the function ``hello()`` back so that it prints ``Hell
 
 * Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, *i.e.* do NOT press :kbd:`F5` yet).
 
-* Call the function ``hello()`` in the console again.
+* Call the function ``hello()`` in the :guilabel:`Console` again.
   You should find that the text printed reads ``Hello World``, like here::
 
     In [ ]: hello()
     Hello World
 
   Why is this so?
-  Because the ``hello`` function object in the console is the old one which prints ``Hello World``.
-  So far, we have changed the file :file:`hello.py` (and replaced ``Hello World`` in there with ``Later World``) in the editor but this has not affected the objects that have previously been created in the console.
+  Because the ``hello`` function object in the :guilabel:`Console` is the old one which prints ``Hello World``.
+  So far, we have changed the file :file:`hello.py` (and replaced ``Hello World`` in there with ``Later World``) in the :guilabel:`Editor` but this has not affected the objects that have previously been created in the :guilabel:`Console`.
 
 To update the console's namespace with modified function, we have two options:
 
@@ -198,7 +198,7 @@ To update the console's namespace with modified function, we have two options:
 
 * Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later Wold")``, then click :menuselection:`Run --> Run selection or current line` or press :kbd:`F9`.
 
-  This will update the ``hello`` object in the console without having to execute the whole :file:`hello.py` file::
+  This will update the ``hello`` object in the :guilabel:`Console` without having to execute the whole :file:`hello.py` file::
 
      In [ ]: def hello():
         ...:     """Print "Hello World" and return None"""
@@ -210,7 +210,7 @@ To update the console's namespace with modified function, we have two options:
      In [ ]: hello()
      Later world
 
-The ability to execute *parts of the code* to update some objects in the console (in the example above, we updated the function object ``hello``), is of great use when developing and debugging more complex programs, and when re-creating objects/data in the console session takes time.
+The ability to execute *parts of the code* to update some objects in the :guilabel:`Console` (in the example above, we updated the function object ``hello``), is of great use when developing and debugging more complex programs, and when re-creating objects/data in the :guilabel:`Console` session takes time.
 For example, by modifying only the functions (or classes/objects, etc). that we are actually developing or debugging, we can keep re-using the data and other objects created previously.
 
 
@@ -221,9 +221,9 @@ For example, by modifying only the functions (or classes/objects, etc). that we 
 Recommended first steps for Python beginners
 ============================================
 
-Before we begin, make sure to have an IPython console open (bottom-right by default).
+Before we begin, make sure to have an :guilabel:`IPython Console` open (bottom-right by default).
 This uses the `IPython <https://ipython.org>`__ interpreter, standard in the scientific community.
-To open a new console at any time, select :menuselection:`Consoles --> Open an IPython Console`.
+To open a new :guilabel:`Console` at any time, select :menuselection:`Consoles --> Open an IPython Console`.
 
 
 .. _reset-namespace-ref:
@@ -231,7 +231,7 @@ To open a new console at any time, select :menuselection:`Consoles --> Open an I
 Reset the namespace
 ~~~~~~~~~~~~~~~~~~~
 
-The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (*i.e.* the collection of objects defined in the console at any given time) can be cleared in IPython using the ``%reset`` command.
+The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (*i.e.* the collection of objects defined in the :guilabel:`Console` at any given time) can be cleared in IPython using the ``%reset`` command.
 Type ``%reset`` and press :kbd:`Enter`, then confirm with ``y``:
 
 .. code-block:: none
@@ -242,7 +242,7 @@ Type ``%reset`` and press :kbd:`Enter`, then confirm with ``y``:
 
     In [2]:
 
-You can also accomplish the same thing by selecting ``Remove all variables`` from the "Gear" option menu in the top right of the IPython console pane.
+You can also accomplish the same thing by selecting ``Remove all variables`` from the "Gear" option menu in the top right of the :guilabel:`IPython Console` pane.
 We discuss this a little further, but you can skip the following if you are not interested.
 
 After issuing the ``%reset`` command or selecting ``Remove all variables``, we should only have a few objects defined in the namespace of that session.
@@ -309,7 +309,7 @@ Automatic Symbolic Python
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Through :menuselection:`Preferences --> IPython console --> Advanced Settings --> Use symbolic math` we can activate the console's SYMbolic PYthon (sympy) mode that is provided by the `SymPy <https://www.sympy.org/>`_ Python package.
-This allows nicely rendered mathematical output (LaTeX style), imports some SymPy objects automatically when the IPython console starts, and reports what it has done.
+This allows nicely rendered mathematical output (LaTeX style), imports some SymPy objects automatically when the :guilabel:`IPython Console` starts, and reports what it has done.
 You'll need to have SymPy installed for it to work, and a LaTeX distribution on your system to see the formatted output (see the `Getting LaTeX <https://www.latex-project.org/get/>`__ page on the LaTeX site to acquire the latter, if you don't already have it).
 
 .. code-block:: python
@@ -341,10 +341,10 @@ Shortcuts for useful functions
 
 * :kbd:`F5`\* executes the current file.
 
-* :kbd:`F9`\* executes the currently highlighted chunk of code; this is very useful to (say) update definitions of functions in the console session without having to run the whole file again.
+* :kbd:`F9`\* executes the currently highlighted chunk of code; this is very useful to (say) update definitions of functions in the :guilabel:`Console` session without having to run the whole file again.
   If nothing is selected, :kbd:`F9`\* executes the current line.
 
-* :kbd:`Tab`\* auto-completes commands, function names, variable names, and methods in the console and the Editor.
+* :kbd:`Tab`\* auto-completes commands, function names, variable names, and methods in the :guilabel:`Console` and the :guilabel:`Editor`.
   This feature is very useful, and should be employed routinely.
   Do try it now if auto-completion is new to you.
   Assume you have defined a variable::
@@ -371,22 +371,22 @@ Shortcuts for useful functions
   If multiple lines are highlighted, they are moved up together.
   :kbd:`Alt-Down`\* works correspondingly, moving line(s) down.
 
-* :kbd:`Ctrl-LeftMouseButton` or :kbd:`Alt-G`\* on a function/method in the Editor opens a new Editor tab showing the definition of that function.
+* :kbd:`Ctrl-LeftMouseButton` or :kbd:`Alt-G`\* on a function/method in the :guilabel:`Editor` opens a new :guilabel:`Editor` tab showing the definition of that function.
 
 * :kbd:`Shift-Ctrl-Alt-M`\* maximizes the current window (or changes the size back to normal if pressed in a maximized window).
 
 * :kbd:`Ctrl-Shift-F`\* activates the Find in Files pane, allowing ``grep``-like searches across all files in a specified scope.
 
-* :kbd:`Ctrl - =` will increase the font size in the Editor or the console, whereas :kbd:`Ctrl - -` will decrease it.
+* :kbd:`Ctrl - =` will increase the font size in the :guilabel:`Editor` or the :guilabel:`Console`, whereas :kbd:`Ctrl - -` will decrease it.
 
   The font face and size for other parts of the UI can be set under :menuselection:`Preferences --> General --> Appearance --> Fonts`.
 
-* :kbd:`Ctrl-S`\* *in the Editor* saves the file currently being edited.
-  This also forces various warning triangles in the left column of the Editor to be updated (otherwise they update every 2.5 seconds by default, which is also configurable).
+* :kbd:`Ctrl-S`\* *in the* :guilabel:`Editor` saves the file currently being edited.
+  This also forces various warning triangles in the left column of the :guilabel:`Editor` to be updated (otherwise they update every 2.5 seconds by default, which is also configurable).
 
 .. _save-shortcut-console-ref:
 
-* :kbd:`Ctrl-S`\* *in the console* saves the current IPython session as an HTML file, including any figures that may be displayed inline.
+* :kbd:`Ctrl-S`\* *in the* :guilabel:`Console` saves the current IPython session as an HTML file, including any figures that may be displayed inline.
   This is useful as a quick way of recording what has been done in a session.
 
   (It is not currently possible to load this saved record back into the session -- if you need functionality like this, look for the IPython Notebook).
@@ -399,13 +399,13 @@ Shortcuts for useful functions
 Run configuration
 =================
 
-These are the settings that define how the file in the editor is executed if we select :menuselection:`Run --> Run` or press :kbd:`F5`.
+These are the settings that define how the file in the :guilabel:`Editor` is executed if we select :menuselection:`Run --> Run` or press :kbd:`F5`.
 
 By default, the settings box will appear the first time we try to run a file.
 If we want to change the settings at any other time, they can be found under :menuselection:`Run --> Configure` or by pressing :kbd:`F6`.
 
-There are three choices for the console to use, of which I'll discuss the first two.
-Let's assume we have a program :file:`hello.py` in the editor which reads
+There are three choices for the :guilabel:`Console` to use, of which I'll discuss the first two.
+Let's assume we have a program :file:`hello.py` in the :guilabel:`Editor` which reads
 
 .. code-block:: python
 
@@ -430,41 +430,41 @@ Persistence of objects after code execution
 
 Choosing the ``Execute in current console`` setting under :menuselection:`Run --> Configure` means that:
 
-* When the execution of :file:`hello.py` is completed, we can interact with the console in which the program ran.
+* When the execution of :file:`hello.py` is completed, we can interact with the :guilabel:`Console` in which the program ran.
 
 * In particular, we can inspect and interact with objects that the execution of our program created, such as ``i`` and ``hello()``.
 
 This is generally very useful for incremental coding, testing and debugging.
-For example, we can call ``hello()`` directly from the console prompt, and don't need to execute the whole :file:`hello.py` for this (although if we change the function ``hello()``, we need to execute the file, or at least the function definition, to make the new version of ``hello()`` visible at the console; either by re-executing the whole script or via :menuselection:`Run --> Run Selection`).
+For example, we can call ``hello()`` directly from the :guilabel:`Console` prompt, and don't need to execute the whole :file:`hello.py` for this (although if we change the function ``hello()``, we need to execute the file, or at least the function definition, to make the new version of ``hello()`` visible at the :guilabel:`Console`; either by re-executing the whole script or via :menuselection:`Run --> Run Selection`).
 
 
 Persistence of objects from before code execution
 -------------------------------------------------
 
-However, executing the code in the editor in the current console also entails a third effect:
+However, executing the code in the :guilabel:`Editor` in the current :guilabel:`Console` also entails a third effect:
 
-* The code that executes can see other (global) objects that were defined in the console session.
+* The code that executes can see other (global) objects that were defined in the :guilabel:`Console` session.
 
 *This* persistence of objects is easily forgotten and usually not required when working on small programs (although it can be of great value occasionally).
-These objects could come from previous execution of code, from interactive work in the console, or from convenience imports such as ``from sympy import *`` (Spyder may do some of those convenience imports automatically).
+These objects could come from previous execution of code, from interactive work in the :guilabel:`Console`, or from convenience imports such as ``from sympy import *`` (Spyder may do some of those convenience imports automatically).
 
-This visibility of objects in the console namespace to the code we execute may also result in coding mistakes if the code inadvertently relies on these objects.
+This visibility of objects in the :guilabel:`Console` namespace to the code we execute may also result in coding mistakes if the code inadvertently relies on these objects.
 
 Here is an example: Imagine that:
 
 #. We run the code :file:`hello.py`.
-   Subsequently, the variable ``i`` is known in the console as a global variable.
+   Subsequently, the variable ``i`` is known in the :guilabel:`Console` as a global variable.
 
 #. We edit the :file:`hello.py` source and accidentally delete the line ``i = 42``.
 
 #. We execute the file containing :file:`hello.py` again.
-   At this point, the call of ``hello(i)`` will *not* fail because the console has an object of name ``i`` defined, although this is not defined in the source of :file:`hello.py`.
+   At this point, the call of ``hello(i)`` will *not* fail because the :guilabel:`Console` has an object of name ``i`` defined, although this is not defined in the source of :file:`hello.py`.
 
 At this point, we could save :file:`hello.py` and (falsely) think it would execute correctly.
-However, running it in a new IPython console session (or via ``python hello.py`` in a system shell, say) would result in an error, because ``i`` is not defined.
+However, running it in a new :guilabel:`IPython Console` session (or via ``python hello.py`` in a system shell, say) would result in an error, because ``i`` is not defined.
 
 The problem arises because the code makes use of an object (here ``i``) without creating it first.
-This also affects importing of modules: if we had imported ``sympy`` at the IPython prompt, then our program will see that when executed in this IPython console session.
+This also affects importing of modules: if we had imported ``sympy`` at the IPython prompt, then our program will see that when executed in this :guilabel:`IPython Console` session.
 
 To learn how we can double check that our code does not depend on such existing objects, see `below <check-code-independent-ref_>`_ .
 
@@ -472,9 +472,9 @@ To learn how we can double check that our code does not depend on such existing 
 Execute in a dedicated console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Choosing ``Execute in a dedicated console`` under :menuselection:`Run --> Configure` will start *a new IPython console every time* the :file:`hello.py` program is executed.
-The major advantage of this mode over `Execute in current console`_ is that we can be certain that there are no global objects defined in this console which originate from debugging and repeated execution of our code.
-Every time we run the code in the editor, the IPython console in which the code runs is restarted.
+Choosing ``Execute in a dedicated console`` under :menuselection:`Run --> Configure` will start *a new* :guilabel:`IPython Console` *every time* the :file:`hello.py` program is executed.
+The major advantage of this mode over `Execute in current console`_ is that we can be certain that there are no global objects defined in this :guilabel:`Console` which originate from debugging and repeated execution of our code.
+Every time we run the code in the :guilabel:`Editor`, the :guilabel:`IPython Console` in which the code runs is restarted.
 
 This is a safe option, but provides less flexibility in interactive execution.
 
@@ -486,12 +486,12 @@ How to double check your code executes correctly "on its own"
 
 Assuming you have selected the `Execute in current console`_ option, you have two methods to check that your code works on its own (*i.e.* it does not depend on undefined variables, unimported modules and commands etc).
 
-* Switch from `Execute in current console`_ to `Execute in a dedicated console`_, and run the code from the Editor.
+* Switch from `Execute in current console`_ to `Execute in a dedicated console`_, and run the code from the :guilabel:`Editor`.
 
-  Alternatively, if you want to stay with the current console, you can
+  Alternatively, if you want to stay with the current :guilabel:`Console`, you can
 
 * First `reset the namespace <reset-namespace-ref_>`_ with IPython's magic ``%reset`` command or the ``Remove all variables`` menu option, which will clear all objects, such as ``i`` in the example above from the current namespace.
-  Then, execute the code from the Editor.
+  Then, execute the code from the :guilabel:`Editor`.
 
 
 Recommendation
@@ -510,7 +510,7 @@ Other observations
 Multiple files
 ~~~~~~~~~~~~~~
 
-When multiple files are opened in the Editor, the corresponding tabs at the top of the window area are arranged in the order they are opened, but can be easily moved around if you wish.
+When multiple files are opened in the :guilabel:`Editor`, the corresponding tabs at the top of the window area are arranged in the order they are opened, but can be easily moved around if you wish.
 
 On the left of the tabs, there is as icon that shows ``Browse tabs`` if the mouse hovers over it.
 It is useful to jump to a particular file directly, if many files are open.
@@ -533,7 +533,7 @@ All customization saved on disk can be reset by calling Spyder from the command 
 Objects in the Variable Explorer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Right-clicking on objects in the Variable Explorer displays options to plot and analyze these further.
+Right-clicking on objects in the :guilabel:`Variable Explorer` displays options to plot and analyze these further.
 
 Double-clicking on simple variables allows them to be edited directly, and double-clicking on objects opens a new window that displays their contents and often allows them to be edited.
 
@@ -549,7 +549,7 @@ If you want to document the code you are developing (and you certainly should!),
 In the scientific Python world, a further set of conventions called the `Numpydoc standard <https://numpydoc.readthedocs.io/en/latest/format.html>`__ is typically followed (although other systems exist).
 If you follow those guidelines, you can obtain beautifully formatted docstrings in Spyder.
 
-For example, to get an ``average()`` function look like this in the Spyder Help pane:
+For example, to get an ``average()`` function look like this in the Spyder :guilabel:`Help` pane:
 
 .. image:: images/spyder-nice-docstring-rendering.png
      :align: center
@@ -601,9 +601,9 @@ Line by line step execution of code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Start debug execution (with the :menuselection:`Debug --> Debug` menu option or :kbd:`Ctrl-F5`) to activate the IPython debugger, ``ipdb``.
-The Editor pane will then highlight the line that is about to be executed, and the Variable Explorer will display variables in the current context of the point of program execution.
+The :guilabel:`Editor` pane will then highlight the line that is about to be executed, and the :guilabel:`Variable Explorer` will display variables in the current context of the point of program execution.
 
-After entering debug mode, you can execute the code line by line using the ``Step`` button of the Debug toolbar:
+After entering debug mode, you can execute the code line by line using the ``Step`` button of the :guilabel:`Debug` toolbar:
 
 .. image:: images/debug-step-over.png
      :align: center
@@ -635,7 +635,7 @@ to stop the execution at the first breakpoint.
 
 .. note::
 
-   You can also control the debugging process by issuing these commands at the console prompt:
+   You can also control the debugging process by issuing these commands at the :guilabel:`Console` prompt:
 
    * ``n`` to move to the Next statement.
 
@@ -667,7 +667,7 @@ If we execute this (:menuselection:`Run --> Run`), we should see the output:
 Now run this using the debugger (:menuselection:`Debug --> Debug`), press the ``Step`` button until the highlighted line reaches the ``demo(0)`` function call, then press the ``Step into`` to inspect this function.
 Keep pressing the ``Step`` button to execute the next lines.
 Then, modify ``x`` by typing ``x = 10`` in the debugger prompt.
-You should see x changing in the Variable Explorer and when its value is printed as part of the ``demo()`` function.
+You should see x changing in the :guilabel:`Variable Explorer` and when its value is printed as part of the ``demo()`` function.
 (The printed output appears between your debugger commands and responses).
 
 This debugging ability to execute code line by line, to inspect variables as they change, and to modify them manually is a powerful tool to understand what a piece of code is doing (and to correct it if desired).
@@ -675,10 +675,10 @@ This debugging ability to execute code line by line, to inspect variables as the
 To terminate the debugger, you can type ``exit``, select :menuselection:`Debug --> Stop` or press :kbd:`Ctrl-Shift-F12`.
 
 
-Debugging once an exception has occurred in the console
+Debugging once an exception has occurred in the Console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the IPython console, we can call ``%debug`` straight after an exception has been raised: this will start the IPython debug mode, which allows inspection of local variables at the point where the exception occurred as described above.
+In the :guilabel:`IPython Console`, we can call ``%debug`` straight after an exception has been raised: this will start the IPython debug mode, which allows inspection of local variables at the point where the exception occurred as described above.
 This is a lot more efficient than adding ``print`` statements to the code an running it again.
 
 If you use this, you may also want to use the commands ``up`` (*i.e.* press ``u`` at the debugger) and ``down`` (*i.e.* press ``d``) which navigate the inspection point up and down the stack.
@@ -693,7 +693,7 @@ Plotting
 
 You can decide whether figures created with Matplotlib will show
 
-* *Inline*, *i.e.* inside the IPython console, or
+* *Inline*, *i.e.* inside the :guilabel:`IPython Console`, or
 
 * Inside a *new window*, with an options toolbar.
 
@@ -701,7 +701,7 @@ The first option is convenient to save a record of the interactive session (:kbd
 
 The second option allows you to interactively zoom into the figure, manipulate it, set various plot and display options, and save it to different file formats via a menu.
 
-The command to get the figures to appear *inline* in the IPython console is:
+The command to get the figures to appear *inline* in the :guilabel:`IPython Console` is:
 
 .. code-block:: python
 
