@@ -25,29 +25,31 @@ Execute a given program
 
   .. code-block:: python
 
-     # Demo file for Spyder Tutorial
-     # Hans Fangohr, University of Southampton, UK
+        # Demo file for Spyder Tutorial
+        # Hans Fangohr, University of Southampton, UK
 
-     def hello():
-         """Print "Hello World" and return None."""
-         print("Hello World")
+        def hello():
+            """Print "Hello World" and return None."""
+            print("Hello World")
 
-     # Main program starts here
-     hello()
+        # Main program starts here
+        hello()
 
 * To use this program, please create a new file in the Spyder editor pane (with :menuselection:`File --> New file`, or :kbd:`Ctrl-N`/ :kbd:`Command-N`).
   Then copy and paste the code inside the box above into the file, and save it with the name :file:`hello.py`.
 
 * To execute the program, select :menuselection:`Run --> Run` from the menu (or press :kbd:`F5`), and confirm the ``Run settings`` if required.
 
-  If this is your first time, you should see an output like this::
+  If this is your first time, you should see an output like this:
 
-    In [1]: runfile('/Path/To/File/hello.py', wdir=r'/Path/To/File')
-    Hello World
+  .. code-block:: python
 
-    In [2]:
+        In [1]: runfile('/File/Path/hello.py', wdir=r'/File/Path')
+        Hello World
 
-  If so, then you have just run your first Python program - well done.
+        In [2]:
+
+  If so, then you have just run your first Python program -- well done.
 
   .. note::
 
@@ -91,10 +93,12 @@ We can thus call the function from the console like this:
 * Type ``hello()`` in the console (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the :kbd:`Enter` key.
 
   You should find that the ``hello()`` function is executed again, *i.e.* printing ``Hello World`` a second time.
-  Your function call at the console together with the output should look like this::
+  Your function call at the console together with the output should look like this:
 
-    In [ ]: hello()
-    Hello World
+  .. code-block:: python
+
+        In [ ]: hello()
+        Hello World
 
 * Can you see how this differs from executing the whole program again?
 
@@ -119,13 +123,15 @@ Inspecting objects defined in the console
     To address this you may want to `reset the namespace <reset-namespace-ref_>`_, execute :file:`hello.py` again by pressing :kbd:`F5`, then run ``dir()`` as suggested above.
 
 * Once an object is visible in the current namespace (as is ``hello`` in this example), we can use the ``help`` function as follows to learn about it.
-  Typing ``help(hello)`` at the console prompt, you should see an output like this::
+  Typing ``help(hello)`` at the console prompt, you should see an output like this:
 
-    In [ ]: help(hello)
-    Help on function hello in module __main__:
+  .. code-block:: python
 
-    hello()
-        Print "Hello World" and return None
+        In [ ]: help(hello)
+        Help on function hello in module __main__:
+
+        hello()
+            Print "Hello World" and return None
 
 
   Where does Python get that information from?
@@ -155,9 +161,11 @@ Simple strategy: Re-execute whole program
 
 * In the Editor window, change the function ``hello`` so that it prints ``Good Bye World`` rather than ``Hello World``.
 
-* Press :kbd:`F5` (to execute the whole program) and check that the output of the program is now::
+* Press :kbd:`F5` (to execute the whole program) and check that the output of the program is now:
 
-    Good Bye World
+  .. code-block:: python
+
+        Good Bye World
 
 What has happened when you pressed :kbd:`F5` is this: Python has gone through the :file:`hello.py` file and created a new function object ``hello`` (overriding the function object ``hello`` we had defined before) and then executed the function.
 
@@ -224,38 +232,42 @@ Reset the namespace
 ~~~~~~~~~~~~~~~~~~~
 
 The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (*i.e.* the collection of objects defined in the console at any given time) can be cleared in IPython using the ``%reset`` command.
-Type ``%reset`` and press :kbd:`Enter`, then confirm with ``y``::
+Type ``%reset`` and press :kbd:`Enter`, then confirm with ``y``:
 
-  In [1]: %reset
+.. code-block:: none
 
-  Once deleted, variables cannot be recovered. Proceed (y/[n])? y
+    In [1]: %reset
 
-  In [2]:
+    Once deleted, variables cannot be recovered. Proceed (y/[n])? y
+
+    In [2]:
 
 You can also accomplish the same thing by selecting ``Remove all variables`` from the "Gear" option menu in the top right of the IPython console pane.
 We discuss this a little further, but you can skip the following if you are not interested.
 
 After issuing the ``%reset`` command or selecting ``Remove all variables``, we should only have a few objects defined in the namespace of that session.
-We can list all of them using the ``dir()`` command::
+We can list all of them using the ``dir()`` command:
 
-  In [2]: dir()
-  Out[2]:
-  ['In',
-   'Out',
-   '__builtin__',
-   '__builtins__',
-   '__name__',
-   '_dh',
-   '_i',
-   '_i2',
-   '_ih',
-   '_ii',
-   '_iii',
-   '_oh',
-   '_sh',
-   'exit',
-   'get_ipython',
-   'quit']
+.. code-block:: python
+
+    In [2]: dir()
+    Out[2]:
+    ['In',
+    'Out',
+    '__builtin__',
+    '__builtins__',
+    '__name__',
+    '_dh',
+    '_i',
+    '_i2',
+    '_ih',
+    '_ii',
+    '_iii',
+    '_oh',
+    '_sh',
+    'exit',
+    'get_ipython',
+    'quit']
 
 Finally, if you like to skip the confirmation step of the ``reset`` command, you can use ``%reset -f`` instead of ``%reset``; or, tick the ``Don't show again`` checkbox in the ``Remove all variables`` dialog.
 
@@ -397,14 +409,14 @@ Let's assume we have a program :file:`hello.py` in the editor which reads
 
 .. code-block:: python
 
-   def hello(name):
-       """Given an object 'name', print 'Hello ' and the object."""
-       print("Hello {}".format(name))
+    def hello(name):
+        """Given an object 'name', print 'Hello ' and the object."""
+        print("Hello {}".format(name))
 
 
-   i = 42
-   if __name__ == "__main__":
-       hello(i)
+    i = 42
+    if __name__ == "__main__":
+        hello(i)
 
 
 Execute in current console
@@ -548,19 +560,19 @@ you need to format the documentation string as follows:
 
     def average(a, b):
         """
-        Given two numbers a and b, return their average value.
+        Return the average value (arithmetic mean) of two numbers.
 
         Parameters
         ----------
-        a : number
-          A number
-        b : number
-          Another number
+        a : numeric
+            A number to average.
+        b : numeric
+            Another number to average.
 
         Returns
         -------
-        res : number
-          The average of a and b, computed using 0.5 * (a + b)
+        result : numeric
+            The average of a and b, computed using ``0.5 * (a + b)``.
 
         Example
         -------
@@ -571,8 +583,8 @@ you need to format the documentation string as follows:
 
         return (a + b) * 0.5
 
-What matters here, is that the word ``Parameters`` is used, and underlined.
-The line ``a : number`` shows us that the type of the parameter ``a`` is ``number``.
+What matters here is that the word ``Parameters`` is used, and underlined.
+The line ``a : numeric`` shows us that the type of the parameter ``a`` is ``numeric``.
 In the next line, which is indented, we can write a more extended explanation of what this variable represents, what conditions the allowed types have to fulfill, etc.
 
 The same for all parameters, and also for the returned value.
@@ -642,7 +654,9 @@ For example, enter the following code into a new or temporary file::
 
    demo(0)
 
-If we execute this (:menuselection:`Run --> Run`), we should see the output::
+If we execute this (:menuselection:`Run --> Run`), we should see the output:
+
+.. code-block:: python
 
 	i = 0, x = 0
 	i = 1, x = 1
@@ -687,20 +701,26 @@ The first option is convenient to save a record of the interactive session (:kbd
 
 The second option allows you to interactively zoom into the figure, manipulate it, set various plot and display options, and save it to different file formats via a menu.
 
-The command to get the figures to appear *inline* in the IPython console is::
+The command to get the figures to appear *inline* in the IPython console is:
 
-    In [3]: %matplotlib inline
+.. code-block:: python
 
-The command to get figures appear in their own window (rendered by the Qt backend) is::
+    In [ ]: %matplotlib inline
 
-    In [4]: %matplotlib qt
+The command to get figures appear in their own window (rendered by the Qt backend) is:
+
+.. code-block:: python
+
+    In [ ]: %matplotlib qt
 
 The Spyder preferences can be used to customize the default behavior, under  :menuselection:`Preferences --> IPython Console --> Graphics --> Graphics Backend`.
 
-Here are two lines you can use to quickly create a plot and test this::
+Here are two lines you can use to quickly create a plot and test this:
 
-    In [5]: import matplotlib.pyplot as plt
-    In [6]: plt.plot(range(10), 'o')
+.. code-block:: python
+
+    In [ ]: import matplotlib.pyplot as plt
+    In [ ]: plt.plot(range(10), 'o')
 
 
 
