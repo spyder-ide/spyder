@@ -81,10 +81,10 @@ This is a more advanced technique but can be very useful.
 You may also be interested in the option to execute "cells", `chunks of code that are separated by delimiters <cell-shortcut-ref_>`__.
 
 
-.. _call-functions-console-ref:
-
 Call existing functions in the Console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _call-functions-console-ref:
 
 Once you have executed the :file:`hello.py` program, the function object ``hello`` is defined and known to the :guilabel:`IPython Console`.
 We can thus call the function from the :guilabel:`Console`.
@@ -223,21 +223,21 @@ For example, by modifying only the functions (or classes/objects, etc). that we 
 
 
 
-.. _python-beginners-ref:
-
 ============================================
 Recommended first steps for Python beginners
 ============================================
+
+.. _python-beginners-ref:
 
 Before we begin, make sure to have an :guilabel:`IPython Console` open (bottom-right by default).
 This uses the `IPython <https://ipython.org>`__ interpreter, standard in the scientific community.
 To open a new :guilabel:`Console` at any time, select :menuselection:`Consoles --> Open an IPython Console`.
 
 
-.. _reset-namespace-ref:
-
 Reset the namespace
 ~~~~~~~~~~~~~~~~~~~
+
+.. _reset-namespace-ref:
 
 The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (*i.e.* the collection of objects defined in the :guilabel:`Console` at any given time) can be cleared in IPython using the ``%reset`` command.
 Type ``%reset`` and press :kbd:`Enter`, then confirm with ``y``:
@@ -305,10 +305,10 @@ Where this is located in the menu depends on your operating system:
 * On macOS, navigate to :menuselection:`Python/Spyder --> Preferences`
 
 
-.. _pep8-enable-ref:
-
 Warn if PEP 8 code style guidelines are violated
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _pep8-enable-ref:
 
 Go to :menuselection:`Preferences --> Editor --> Code Introspection/Analysis` and tick the checkbox next to ``Real-time code style analysis``.
 
@@ -485,10 +485,10 @@ Every time we run the code in the :guilabel:`Editor`, the :guilabel:`IPython Con
 This is a safe option, but provides less flexibility in interactive execution.
 
 
-.. _check-code-independent-ref:
-
 How to double check your code executes correctly "on its own"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _check-code-independent-ref:
 
 Assuming you have selected the `Execute in current console`_ option, you have two methods to check that your code works on its own (*i.e.* it does not depend on undefined variables, unimported modules and commands etc):
 
