@@ -57,17 +57,17 @@ Execute a given program
 What happens when you execute the program?
 ------------------------------------------
 
-* Python reads the file line by line, ignoring comments (i.e. lines starting with the ``#`` symbol).
+* Python reads the file line by line, ignoring comments (*i.e.* lines starting with the ``#`` symbol).
 
 * When it comes across the ``def`` keyword, it knows that a function is DEFined in this and the next (one or more) lines.
   All *indented* lines following ``def hello():`` belong to the function body.
 
-  Note that the function object is created at this point in the file, but the function is not yet called (i.e. not executed).
+  Note that the function object is created at this point in the file, but the function is not yet called (*i.e.* not executed).
 
 * When Python comes across commands (other than ``def ...`` and a few other keywords) that are written in the left-most column, it will execute these immediately.
-  In the ``hello.py`` file this is only the line reading ``hello()`` which will actually call (i.e. *execute*) the function with name ``hello``.
+  In the ``hello.py`` file this is only the line reading ``hello()`` which will actually call (*i.e.* *execute*) the function with name ``hello``.
 
-  If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing F5, or selecting ``Run > Run``), nothing will be printed (because the function ``hello`` is defined but not called, i.e. not executed).
+  If you comment or remove the line ``hello()`` from the program and run the whole file again (by pressing F5, or selecting ``Run > Run``), nothing will be printed (because the function ``hello`` is defined but not called, *i.e.* not executed).
 
 
 Now you should know how to execute a Python program that you have in the editor pane in Spyder using the IPython console.
@@ -90,7 +90,7 @@ We can thus call the function from the console like this:
 
 * Type ``hello()`` in the console (next to ``In [?]`` prompt, where ``?`` is a count of the number of times you've executed something), and press the ``Enter`` key.
 
-  You should find that the ``hello()`` function is executed again, i.e. printing ``Hello World`` a second time.
+  You should find that the ``hello()`` function is executed again, *i.e.* printing ``Hello World`` a second time.
   Your function call at the console together with the output should look like this::
 
     In [ ]: hello()
@@ -171,7 +171,7 @@ To do this, please change the function ``hello()`` back so that it prints ``Hell
 * Call the function ``hello()`` from the command prompt (as described `previously <call-functions-console-ref_>`__).
   You should see ``Hello World`` printed.
 
-* Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, i.e. do NOT press F5 yet).
+* Now change the function definition so that it would print ``Later World``, and save the file (but do NOT execute the program, *i.e.* do NOT press F5 yet).
 
 * Call the function ``hello()`` in the console again.
   You should find that the text printed reads ``Hello World``, like here::
@@ -223,7 +223,7 @@ To open a new console at any time, select ``Consoles > Open an IPython Console``
 Reset the namespace
 ~~~~~~~~~~~~~~~~~~~
 
-The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (i.e. the collection of objects defined in the console at any given time) can be cleared in IPython using the ``%reset`` command.
+The `namespace <https://bytebaker.com/2008/07/30/python-namespaces/>`__ (*i.e.* the collection of objects defined in the console at any given time) can be cleared in IPython using the ``%reset`` command.
 Type ``%reset`` and press return, then confirm with ``y``::
 
   In [1]: %reset
@@ -472,7 +472,7 @@ This is a safe option, but provides less flexibility in interactive execution.
 How to double check your code executes correctly "on its own"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Assuming you have selected the `Execute in current console`_ option, you have two methods to check that your code works on its own (i.e. it does not depend on undefined variables, unimported modules and commands etc).
+Assuming you have selected the `Execute in current console`_ option, you have two methods to check that your code works on its own (*i.e.* it does not depend on undefined variables, unimported modules and commands etc).
 
 * Switch from `Execute in current console`_ to `Execute in a dedicated console`_, and run the code from the Editor.
 
@@ -515,7 +515,7 @@ Click on the ``Options`` menu ("Gear" icon), then select ``Show environment vari
 Reset all customization
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-All customization saved on disk can be reset by calling Spyder from the command line with the switch ``--reset``, i.e. running ``spyder --reset``.
+All customization saved on disk can be reset by calling Spyder from the command line with the switch ``--reset``, *i.e.* running ``spyder --reset``.
 
 
 Objects in the Variable Explorer
@@ -667,7 +667,7 @@ Debugging once an exception has occurred in the console
 In the IPython console, we can call ``%debug`` straight after an exception has been raised: this will start the IPython debug mode, which allows inspection of local variables at the point where the exception occurred as described above.
 This is a lot more efficient than adding ``print`` statements to the code an running it again.
 
-If you use this, you may also want to use the commands ``up`` (i.e. press ``u`` at the debugger) and ``down`` (i.e. press ``d``) which navigate the inspection point up and down the stack.
+If you use this, you may also want to use the commands ``up`` (*i.e.* press ``u`` at the debugger) and ``down`` (*i.e.* press ``d``) which navigate the inspection point up and down the stack.
 (Up the stack means to the functions that have called the current function; down is the opposite direction).
 You can also enable (or disable) this debugger being triggered automatically when an exception occurs by typing ``pdb`` at any time.
 
@@ -679,7 +679,7 @@ Plotting
 
 You can decide whether figures created with Matplotlib will show
 
-* *Inline*, i.e. inside the IPython console, or
+* *Inline*, *i.e.* inside the IPython console, or
 
 * Inside a *new window*, with an options toolbar.
 
