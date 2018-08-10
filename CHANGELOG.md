@@ -4,8 +4,13 @@
 
 ### New features
 
+#### Preferences
+
 * Save the list of custom interpreters introduced in
   `Preferences > Python interpreter`.
+
+#### IPython console
+* Do not save pdb commands in debugging history
 
 ### Issues Closed
 
