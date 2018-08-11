@@ -1,5 +1,81 @@
 # History of changes
 
+## Version 3.3.1 (2018-08-11)
+
+### New features
+
+#### Preferences
+
+* Save the list of custom interpreters introduced in
+  `Preferences > Python interpreter`.
+
+#### IPython console
+* Do not save pdb commands in debugging history
+
+### Issues Closed
+
+* [Issue 7652](https://github.com/spyder-ide/spyder/issues/7652) - Tutorial should be conformed to the Spyder Docs style guide ([PR 7659](https://github.com/spyder-ide/spyder/pull/7659))
+* [Issue 7641](https://github.com/spyder-ide/spyder/issues/7641) - Tutorial is out of date and needs updating ([PR 7643](https://github.com/spyder-ide/spyder/pull/7643))
+* [Issue 7639](https://github.com/spyder-ide/spyder/issues/7639) - Include runtests.py in tarball ([PR 7651](https://github.com/spyder-ide/spyder/pull/7651))
+* [Issue 7581](https://github.com/spyder-ide/spyder/issues/7581) - Update setup.py with polished, up to date description, links and metadata for PyPI ([PR 7582](https://github.com/spyder-ide/spyder/pull/7582))
+* [Issue 7529](https://github.com/spyder-ide/spyder/issues/7529) - Improve selection of custom Python interpreter in Preferences ([PR 7566](https://github.com/spyder-ide/spyder/pull/7566))
+* [Issue 7513](https://github.com/spyder-ide/spyder/issues/7513) - IOError when getting saved file names in a project ([PR 7515](https://github.com/spyder-ide/spyder/pull/7515))
+* [Issue 7489](https://github.com/spyder-ide/spyder/issues/7489) - NameError: name '_' is not defined ([PR 7495](https://github.com/spyder-ide/spyder/pull/7495))
+* [Issue 7465](https://github.com/spyder-ide/spyder/issues/7465) - "switch to console" keyboard shortcut doesn't do anything ([PR 7471](https://github.com/spyder-ide/spyder/pull/7471))
+* [Issue 7452](https://github.com/spyder-ide/spyder/issues/7452) - Check for new conda packages in Anaconda's repos instead of Github ([PR 7478](https://github.com/spyder-ide/spyder/pull/7478))
+* [Issue 7432](https://github.com/spyder-ide/spyder/issues/7432) - Error in display of tabulator in editor ([PR 7464](https://github.com/spyder-ide/spyder/pull/7464))
+* [Issue 7404](https://github.com/spyder-ide/spyder/issues/7404) - Don't ask again ineffective in Console delete all variables dialog  ([PR 7462](https://github.com/spyder-ide/spyder/pull/7462))
+* [Issue 7403](https://github.com/spyder-ide/spyder/issues/7403) - AttributeError: 'NoneType' object has no attribute 'get_active_project_path' ([PR 7409](https://github.com/spyder-ide/spyder/pull/7409))
+* [Issue 7337](https://github.com/spyder-ide/spyder/issues/7337) - Update readme and contributing guide to reflect need to install (correct version of) spyder-kernels ([PR 7418](https://github.com/spyder-ide/spyder/pull/7418))
+* [Issue 7328](https://github.com/spyder-ide/spyder/issues/7328) - Failure checking out a branch and the opened file is in a different path ([PR 7642](https://github.com/spyder-ide/spyder/pull/7642))
+* [Issue 7324](https://github.com/spyder-ide/spyder/issues/7324) - Syntax highlighting for numeric literals containing underscores ([PR 7505](https://github.com/spyder-ide/spyder/pull/7505))
+* [Issue 7299](https://github.com/spyder-ide/spyder/issues/7299) - Debugging history saves both python commands and pdb commands ([PR 7300](https://github.com/spyder-ide/spyder/pull/7300))
+* [Issue 7082](https://github.com/spyder-ide/spyder/issues/7082) - Error when connecting to external kernels ([PR 7463](https://github.com/spyder-ide/spyder/pull/7463))
+* [Issue 6292](https://github.com/spyder-ide/spyder/issues/6292) - Do not reopen Project explorer on startup ([PR 7546](https://github.com/spyder-ide/spyder/pull/7546))
+* [Issue 1329](https://github.com/spyder-ide/spyder/issues/1329) - Spyder hangs on interactive input in internal console (input is not redirected) ([PR 7500](https://github.com/spyder-ide/spyder/pull/7500))
+
+In this release 19 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 7659](https://github.com/spyder-ide/spyder/pull/7659) - PR: Conform tutorial to docs style guide and further minor improvements ([7652](https://github.com/spyder-ide/spyder/issues/7652))
+* [PR 7651](https://github.com/spyder-ide/spyder/pull/7651) - PR: Add runtests.py and conftest.py to our tarball ([7639](https://github.com/spyder-ide/spyder/issues/7639))
+* [PR 7650](https://github.com/spyder-ide/spyder/pull/7650) - PR: Don't require keyring for Python 2 and Linux in our wheels
+* [PR 7643](https://github.com/spyder-ide/spyder/pull/7643) - PR: Edit tutorial to update it, fix errors, copyedit and clarify ([7641](https://github.com/spyder-ide/spyder/issues/7641))
+* [PR 7642](https://github.com/spyder-ide/spyder/pull/7642) - PR: Handle error when doing a browser history update ([7328](https://github.com/spyder-ide/spyder/issues/7328))
+* [PR 7611](https://github.com/spyder-ide/spyder/pull/7611) - PR: Upgrade all links to use HTTPS where available, and fix link targets when broken/redirected
+* [PR 7610](https://github.com/spyder-ide/spyder/pull/7610) - PR: Update conda install command for spyder-kernels 1.x
+* [PR 7606](https://github.com/spyder-ide/spyder/pull/7606) - PR: Fix bug in spyder3.appdata.xml
+* [PR 7605](https://github.com/spyder-ide/spyder/pull/7605) - PR: Send reported issues to Spyder's main repo in DEV mode
+* [PR 7598](https://github.com/spyder-ide/spyder/pull/7598) - PR: Update capitalization of Spyder name, and standardize description with everywhere else
+* [PR 7582](https://github.com/spyder-ide/spyder/pull/7582) - PR: Update setup.py description, metadata, links, and more ([7581](https://github.com/spyder-ide/spyder/issues/7581))
+* [PR 7566](https://github.com/spyder-ide/spyder/pull/7566) - PR: Improve selection of custom interpreter ([7529](https://github.com/spyder-ide/spyder/issues/7529))
+* [PR 7560](https://github.com/spyder-ide/spyder/pull/7560) - PR: Migrate to CircleCI 2.0
+* [PR 7546](https://github.com/spyder-ide/spyder/pull/7546) - PR: Do not automatically open Project Explorer when opening project if user closed it ([6292](https://github.com/spyder-ide/spyder/issues/6292))
+* [PR 7543](https://github.com/spyder-ide/spyder/pull/7543) - PR: Fix misspelling in Japanese translation
+* [PR 7515](https://github.com/spyder-ide/spyder/pull/7515) - PR: Catch errors when saving/getting the list of open files per project ([7513](https://github.com/spyder-ide/spyder/issues/7513))
+* [PR 7505](https://github.com/spyder-ide/spyder/pull/7505) - PR: Add support for numeric literals with underscores highlighting in Python 3.6 ([7324](https://github.com/spyder-ide/spyder/issues/7324))
+* [PR 7502](https://github.com/spyder-ide/spyder/pull/7502) - PR: Setting tab stop width by using the width of multiple spaces ([7432](https://github.com/spyder-ide/spyder/issues/7432))
+* [PR 7500](https://github.com/spyder-ide/spyder/pull/7500) - PR: Handle input commands correctly in the internal console. ([1329](https://github.com/spyder-ide/spyder/issues/1329))
+* [PR 7497](https://github.com/spyder-ide/spyder/pull/7497) - PR: Reinstall Matplotlib in Appveyor in case it had been removed
+* [PR 7495](https://github.com/spyder-ide/spyder/pull/7495) - PR: Avoid raising an error when getting available translations ([7489](https://github.com/spyder-ide/spyder/issues/7489))
+* [PR 7478](https://github.com/spyder-ide/spyder/pull/7478) - PR: Change way to check for updates ([7452](https://github.com/spyder-ide/spyder/issues/7452))
+* [PR 7471](https://github.com/spyder-ide/spyder/pull/7471) - PR: Remove old shortcut for the Python console ([7465](https://github.com/spyder-ide/spyder/issues/7465))
+* [PR 7464](https://github.com/spyder-ide/spyder/pull/7464) - PR: Fix tabulation spacing by setting tab spacing after the font ([7432](https://github.com/spyder-ide/spyder/issues/7432))
+* [PR 7463](https://github.com/spyder-ide/spyder/pull/7463) - PR: Fix connection to external kernels ([7082](https://github.com/spyder-ide/spyder/issues/7082))
+* [PR 7462](https://github.com/spyder-ide/spyder/pull/7462) - PR: Really hide reset namespace warning in IPython console ([7404](https://github.com/spyder-ide/spyder/issues/7404))
+* [PR 7453](https://github.com/spyder-ide/spyder/pull/7453) - PR: Improve message about the lack of spyder-kernels in external interpreters
+* [PR 7418](https://github.com/spyder-ide/spyder/pull/7418) - PR: Update the running Github clone procedure in the readme and contributing guide to include spyder-kernels ([7337](https://github.com/spyder-ide/spyder/issues/7337))
+* [PR 7409](https://github.com/spyder-ide/spyder/pull/7409) - PR: Catch AttributeError when trying to get the active project path ([7403](https://github.com/spyder-ide/spyder/issues/7403))
+* [PR 7408](https://github.com/spyder-ide/spyder/pull/7408) - PR: Remove conda recipe
+* [PR 7300](https://github.com/spyder-ide/spyder/pull/7300) - PR: Do not save pdb commands in debugging history ([7299](https://github.com/spyder-ide/spyder/issues/7299))
+
+In this release 31 pull requests were closed.
+
+
+----
+
+
 ## Version 3.3 (2018-07-06)
 
 ### New features
@@ -14,7 +90,7 @@
 * Add an option to use a tight layout with inline plots. Activate it under
   `Preferences > IPython console > Graphics`.
 * Add an option to turn on/off Jedi completions. Activate it under
-  `Preferences > IPython console > Advanced``.
+  `Preferences > IPython console > Advanced`.
 
 #### Variable Explorer
 
@@ -96,49 +172,49 @@ In this release 51 issues were closed.
 * [PR 7376](https://github.com/spyder-ide/spyder/pull/7376) - PR: Update Brazilian Portuguese translation for 3.3
 * [PR 7370](https://github.com/spyder-ide/spyder/pull/7370) - PR: French translation for 3.3
 * [PR 7367](https://github.com/spyder-ide/spyder/pull/7367) - PR: Update Japanese translation for 3.3
-* [PR 7335](https://github.com/spyder-ide/spyder/pull/7335) - PR: Handle deprecated Pandas methods in tests ([7312](https://github.com/spyder-ide/spyder/issues/7312), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7335](https://github.com/spyder-ide/spyder/pull/7335) - PR: Handle deprecated Pandas methods in tests ([7312](https://github.com/spyder-ide/spyder/issues/7312))
 * [PR 7306](https://github.com/spyder-ide/spyder/pull/7306) - PR: Move all kernel code to an external package called spyder-kernels ([6469](https://github.com/spyder-ide/spyder/issues/6469), [6297](https://github.com/spyder-ide/spyder/issues/6297))
-* [PR 7296](https://github.com/spyder-ide/spyder/pull/7296) - PR: Fix history browsing while debugging ([7295](https://github.com/spyder-ide/spyder/issues/7295), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7296](https://github.com/spyder-ide/spyder/pull/7296) - PR: Fix history browsing while debugging ([7295](https://github.com/spyder-ide/spyder/issues/7295))
 * [PR 7294](https://github.com/spyder-ide/spyder/pull/7294) - PR: Don't allow multiple executions in the IPython console when one is taking place ([7293](https://github.com/spyder-ide/spyder/issues/7293))
 * [PR 7287](https://github.com/spyder-ide/spyder/pull/7287) - PR: Improve detection of users' home directory ([6351](https://github.com/spyder-ide/spyder/issues/6351))
 * [PR 7279](https://github.com/spyder-ide/spyder/pull/7279) - PR: Fix crash while running our tests on CircleCI
-* [PR 7278](https://github.com/spyder-ide/spyder/pull/7278) - PR: Fix links to Travis CI and Google Group ([1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7272](https://github.com/spyder-ide/spyder/pull/7272) - PR: Add validation when renaming the active project outside Spyder ([6036](https://github.com/spyder-ide/spyder/issues/6036), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7278](https://github.com/spyder-ide/spyder/pull/7278) - PR: Fix links to Travis CI and Google Group
+* [PR 7272](https://github.com/spyder-ide/spyder/pull/7272) - PR: Add validation when renaming the active project outside Spyder ([6036](https://github.com/spyder-ide/spyder/issues/6036))
 * [PR 7263](https://github.com/spyder-ide/spyder/pull/7263) - PR: Catch any error when trying to load third-party plugins ([7259](https://github.com/spyder-ide/spyder/issues/7259))
-* [PR 7260](https://github.com/spyder-ide/spyder/pull/7260) - PR: Add spyder-script.py as a valid name to be detected by lockfile ([6899](https://github.com/spyder-ide/spyder/issues/6899), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7254](https://github.com/spyder-ide/spyder/pull/7254) - PR: Prevent realtime code analysis failures due to encoding errors ([6970](https://github.com/spyder-ide/spyder/issues/6970), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7251](https://github.com/spyder-ide/spyder/pull/7251) - PR: Stop editor from jumping around when adding/removing lines with breakpoints while debugging ([5201](https://github.com/spyder-ide/spyder/issues/5201), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7260](https://github.com/spyder-ide/spyder/pull/7260) - PR: Add spyder-script.py as a valid name to be detected by lockfile ([6899](https://github.com/spyder-ide/spyder/issues/6899))
+* [PR 7254](https://github.com/spyder-ide/spyder/pull/7254) - PR: Prevent realtime code analysis failures due to encoding errors ([6970](https://github.com/spyder-ide/spyder/issues/6970))
+* [PR 7251](https://github.com/spyder-ide/spyder/pull/7251) - PR: Stop editor from jumping around when adding/removing lines with breakpoints while debugging ([5201](https://github.com/spyder-ide/spyder/issues/5201))
 * [PR 7248](https://github.com/spyder-ide/spyder/pull/7248) - PR: Save credentials in the Github login dialog
 * [PR 7246](https://github.com/spyder-ide/spyder/pull/7246) - PR: Catch possible errors when writing Help's history to disk ([6864](https://github.com/spyder-ide/spyder/issues/6864))
 * [PR 7245](https://github.com/spyder-ide/spyder/pull/7245) - PR: Avoid disabling consoles stop button when an execution is taking place ([5958](https://github.com/spyder-ide/spyder/issues/5958))
 * [PR 7243](https://github.com/spyder-ide/spyder/pull/7243) - PR: Show message in our consoles when trying to run a file while on debugging ([6851](https://github.com/spyder-ide/spyder/issues/6851))
 * [PR 7242](https://github.com/spyder-ide/spyder/pull/7242) - PR: Fix error when viewing dataframe with a non-ascii index ([5833](https://github.com/spyder-ide/spyder/issues/5833))
 * [PR 7237](https://github.com/spyder-ide/spyder/pull/7237) - PR: Improve pythonw detection
-* [PR 7234](https://github.com/spyder-ide/spyder/pull/7234) - PR: Call garbage collector from Main Window after closing Variable Explorer editors ([7157](https://github.com/spyder-ide/spyder/issues/7157), [5830](https://github.com/spyder-ide/spyder/issues/5830), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7234](https://github.com/spyder-ide/spyder/pull/7234) - PR: Call garbage collector from Main Window after closing Variable Explorer editors ([7157](https://github.com/spyder-ide/spyder/issues/7157), [5830](https://github.com/spyder-ide/spyder/issues/5830))
 * [PR 7232](https://github.com/spyder-ide/spyder/pull/7232) - PR: Run tests in macOS
 * [PR 7230](https://github.com/spyder-ide/spyder/pull/7230) - PR: Use the error dialog to report issues too ([7101](https://github.com/spyder-ide/spyder/issues/7101))
-* [PR 7218](https://github.com/spyder-ide/spyder/pull/7218) - PR: Limit length of serialized values in Variable Explorer when applying modifications ([7158](https://github.com/spyder-ide/spyder/issues/7158), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7218](https://github.com/spyder-ide/spyder/pull/7218) - PR: Limit length of serialized values in Variable Explorer when applying modifications ([7158](https://github.com/spyder-ide/spyder/issues/7158))
 * [PR 7210](https://github.com/spyder-ide/spyder/pull/7210) - PR: Catch EnvironmentError in all places we write to disk ([6901](https://github.com/spyder-ide/spyder/issues/6901))
 * [PR 7209](https://github.com/spyder-ide/spyder/pull/7209) - PR: Fix error when using unicode to search text with regular expressions in the Editor ([6812](https://github.com/spyder-ide/spyder/issues/6812))
 * [PR 7206](https://github.com/spyder-ide/spyder/pull/7206) - PR: Add bytes or unicode ellipses in value_to_display ([6942](https://github.com/spyder-ide/spyder/issues/6942))
-* [PR 7202](https://github.com/spyder-ide/spyder/pull/7202) - PR: Change behavior of Variable Explorer editor buttons ([7156](https://github.com/spyder-ide/spyder/issues/7156), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7198](https://github.com/spyder-ide/spyder/pull/7198) - PR: Add fastmat and pythoncom to UMR blacklist. ([7190](https://github.com/spyder-ide/spyder/issues/7190), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7202](https://github.com/spyder-ide/spyder/pull/7202) - PR: Change behavior of Variable Explorer editor buttons ([7156](https://github.com/spyder-ide/spyder/issues/7156))
+* [PR 7198](https://github.com/spyder-ide/spyder/pull/7198) - PR: Add fastmat and pythoncom to UMR blacklist. ([7190](https://github.com/spyder-ide/spyder/issues/7190))
 * [PR 7189](https://github.com/spyder-ide/spyder/pull/7189) - PR: Add env var to prevent showing useless warning in macOS
-* [PR 7170](https://github.com/spyder-ide/spyder/pull/7170) - PR: Change validation to allow pythonw executables as valid interpreters ([7059](https://github.com/spyder-ide/spyder/issues/7059), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7170](https://github.com/spyder-ide/spyder/pull/7170) - PR: Change validation to allow pythonw executables as valid interpreters ([7059](https://github.com/spyder-ide/spyder/issues/7059))
 * [PR 7169](https://github.com/spyder-ide/spyder/pull/7169) - PR: Remove internal copy of our docs
-* [PR 7168](https://github.com/spyder-ide/spyder/pull/7168) - PR: Add astropy and pythorch to UMR blacklist by default. ([7041](https://github.com/spyder-ide/spyder/issues/7041), [6962](https://github.com/spyder-ide/spyder/issues/6962), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7166](https://github.com/spyder-ide/spyder/pull/7166) - PR: Add Matplotlib as optional dependency for the IPython Console. ([6887](https://github.com/spyder-ide/spyder/issues/6887), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7165](https://github.com/spyder-ide/spyder/pull/7165) - PR: Handle not initialized menu in DirView. ([6975](https://github.com/spyder-ide/spyder/issues/6975), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7164](https://github.com/spyder-ide/spyder/pull/7164) - PR: Handle AttributeError when setting color scheme in the IPython Console. ([6996](https://github.com/spyder-ide/spyder/issues/6996), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7168](https://github.com/spyder-ide/spyder/pull/7168) - PR: Add astropy and pythorch to UMR blacklist by default. ([7041](https://github.com/spyder-ide/spyder/issues/7041), [6962](https://github.com/spyder-ide/spyder/issues/6962))
+* [PR 7166](https://github.com/spyder-ide/spyder/pull/7166) - PR: Add Matplotlib as optional dependency for the IPython Console. ([6887](https://github.com/spyder-ide/spyder/issues/6887))
+* [PR 7165](https://github.com/spyder-ide/spyder/pull/7165) - PR: Handle not initialized menu in DirView. ([6975](https://github.com/spyder-ide/spyder/issues/6975))
+* [PR 7164](https://github.com/spyder-ide/spyder/pull/7164) - PR: Handle AttributeError when setting color scheme in the IPython Console. ([6996](https://github.com/spyder-ide/spyder/issues/6996))
 * [PR 7163](https://github.com/spyder-ide/spyder/pull/7163) - PR: Show errors generated when creating QtKernelManager inside the IPython console ([7161](https://github.com/spyder-ide/spyder/issues/7161))
-* [PR 7160](https://github.com/spyder-ide/spyder/pull/7160) - PR: Fix typo in 'Save File' french translation. ([7100](https://github.com/spyder-ide/spyder/issues/7100), [1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7160](https://github.com/spyder-ide/spyder/pull/7160) - PR: Fix typo in 'Save File' french translation. ([7100](https://github.com/spyder-ide/spyder/issues/7100))
 * [PR 7159](https://github.com/spyder-ide/spyder/pull/7159) - PR: Fix a couple of problems when setting and detecting the system locale ([7051](https://github.com/spyder-ide/spyder/issues/7051), [6886](https://github.com/spyder-ide/spyder/issues/6886))
 * [PR 7154](https://github.com/spyder-ide/spyder/pull/7154) - PR: Filter a Numpy 1.14 warning shown in our consoles ([7063](https://github.com/spyder-ide/spyder/issues/7063))
 * [PR 7151](https://github.com/spyder-ide/spyder/pull/7151) - PR: Avoid loading/saving IPython console history in safe mode or testing ([7149](https://github.com/spyder-ide/spyder/issues/7149))
 * [PR 7150](https://github.com/spyder-ide/spyder/pull/7150) - PR: Catch any exception when trying to get Pygments lexers ([7148](https://github.com/spyder-ide/spyder/issues/7148))
-* [PR 7132](https://github.com/spyder-ide/spyder/pull/7132) - PR: Limit the number of lines in history according to the relevant setting ([7080](https://github.com/spyder-ide/spyder/issues/7080), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7115](https://github.com/spyder-ide/spyder/pull/7115) - PR: Add --safe-mode option to start with a clean config directory ([7112](https://github.com/spyder-ide/spyder/issues/7112), [1234](https://github.com/spyder-ide/spyder/issues/1234))
-* [PR 7079](https://github.com/spyder-ide/spyder/pull/7079) - PR: Add Twitter and Facebook links to Readme, for SEO/visibility ([1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 7132](https://github.com/spyder-ide/spyder/pull/7132) - PR: Limit the number of lines in history according to the relevant setting ([7080](https://github.com/spyder-ide/spyder/issues/7080))
+* [PR 7115](https://github.com/spyder-ide/spyder/pull/7115) - PR: Add --safe-mode option to start with a clean config directory ([7112](https://github.com/spyder-ide/spyder/issues/7112))
+* [PR 7079](https://github.com/spyder-ide/spyder/pull/7079) - PR: Add Twitter and Facebook links to Readme, for SEO/visibility
 * [PR 7075](https://github.com/spyder-ide/spyder/pull/7075) - PR: Remove Jedi pinnings in our CIs
 * [PR 7029](https://github.com/spyder-ide/spyder/pull/7029) - PR: Load libGL using low-level function without requiring pyopengl ([6968](https://github.com/spyder-ide/spyder/issues/6968))
 * [PR 7007](https://github.com/spyder-ide/spyder/pull/7007) - PR: Update links to docs when they are ready  ([5986](https://github.com/spyder-ide/spyder/issues/5986))
@@ -154,7 +230,7 @@ In this release 51 issues were closed.
 * [PR 6919](https://github.com/spyder-ide/spyder/pull/6919) - PR: Fix Mayavi plotting in our consoles ([6339](https://github.com/spyder-ide/spyder/issues/6339))
 * [PR 6909](https://github.com/spyder-ide/spyder/pull/6909) - PR: Update readme screenshot, streamline organization, add banner and update/cleanup content
 * [PR 6890](https://github.com/spyder-ide/spyder/pull/6890) - PR: Bump next version to be 3.3.0
-* [PR 6870](https://github.com/spyder-ide/spyder/pull/6870) - PR: Add checklists for Github issue report and pull requests ([1234](https://github.com/spyder-ide/spyder/issues/1234))
+* [PR 6870](https://github.com/spyder-ide/spyder/pull/6870) - PR: Add checklists for Github issue report and pull requests
 * [PR 6845](https://github.com/spyder-ide/spyder/pull/6845) - PR: Remove old code present in our kernel
 * [PR 6832](https://github.com/spyder-ide/spyder/pull/6832) - PR: Add option to use Jedi in the IPython console + warning on greedy completer
 * [PR 6826](https://github.com/spyder-ide/spyder/pull/6826) - PR: Add instance pattern "cls" for class methods

@@ -1,45 +1,26 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.3 is released!
+**Subject**: [ANN] Spyder 3.3.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.3** has been released and is available for
+I'm pleased to announce that Spyder **3.3.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes almost 4 months after version 3.2.8 and it adds the following new
+This release comes one month after version 3.3.0 and it adds the following new
 features:
 
-- Main Window
-    * Add a new error reporting dialog to simplify and automate the process of
-      submitting reports to Github.
+- Preferences
+    * Save the list of custom interpreters introduced in
+      `Preferences > Python interpreter`.
 
 - IPython console
-    * Add an option to use a tight layout with inline plots. Activate it under
-      `Preferences > IPython console > Graphics`.
-    * Add an option to turn on/off Jedi completions. Activate it under
-      `Preferences > IPython console > Advanced``.
+    * Do not save pdb commands in debugging history.
 
-- Variable Explorer
-    * Change the button names of all its viewers from `Ok` and `Cancel` to
-      `Save and Close` and `Close`, respectively, to better express what each
-      one really does.
-    * Fix several critical memory leaks.
-
-- Under the hood
-    * Remove support for PyQt 5.4 and older versions.
-    * Remove support for PyQt4.
-    * Remove support for Python 3.3.
-    * Move all code used to create kernels for our consoles to a new package
-      called `spyder-kernels`. It's required version for Spyder 3.3+ is any
-      `0.x.x` release (e.g `0.2.3`).
-    * Add the `keyring` package as a new dependency to safely save users
-      Github passwords.
-
-In this release we fixed 51 issues and merged 73 pull requests that amount
-to almost 370 commits. For a full list of fixes, please see our
+In this release we fixed 19 issues and merged 31 pull requests that amount
+to more than 120 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project
