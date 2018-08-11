@@ -20,7 +20,7 @@ import subprocess
 import os.path as osp
 # from spyder.config.base import DEV
 from spyder.py3compat import PY2, getcwd
-from spyder.config.base import debug_print
+from spyder.config.base import debug_print, get_conf_path
 from spyder.utils.code_analysis import (CLIENT_CAPABILITES,
                                         SERVER_CAPABILITES, TRACE,
                                         TEXT_DOCUMENT_SYNC_OPTIONS,
@@ -136,11 +136,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.stdout_log = subprocess.PIPE
         self.stderr_log = subprocess.PIPE
         if DEV:
-            stdout_log_file = 'lsp_client_out.log'.format(
-                datetime.datetime.now().isoformat())
             stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
-            # self.stdout_log = open(osp.join(getcwd(), stdout_log_file), 'w')
-            self.stderr_log = open(osp.join(getcwd(), stderr_log_file), 'w')
+            log_file = get_conf_path(osp.join('lsp_logs', stderr_log_file))
+            if not osp.exists(osp.basename(log_file)):
+                self.stderr_log = open(log_file, stderr_log_file, 'w')
 
         new_env = dict(os.environ)
         python_path = os.pathsep.join(sys.path)[1:]

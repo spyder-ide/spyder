@@ -321,9 +321,6 @@ class MainWindow(QMainWindow):
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
 
-        # Language Server Protocol Client
-        # self.lsp_client = None
-
         # Plugins
         self.console = None
         self.workingdirectory = None
@@ -805,11 +802,7 @@ class MainWindow(QMainWindow):
         self.console.register_plugin()
 
         # Language Server Protocol Client initialization
-        # lsp_server_args_fmt = '--host %(host)s --port %(port)s --tcp'
-        # lsp_server_settings = {'host': '127.0.0.1', 'port': 2087,
-        #                        'server_cmd': 'pyls'}
         self.set_splash(_("Creating LSP Manager..."))
-        # self.lsp_client = LSPClient(lsp_server_args_fmt, lsp_server_settings)
         self.lspmanager = LSPManager(self)
 
         # Working directory plugin
