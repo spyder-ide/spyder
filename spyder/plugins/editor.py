@@ -258,7 +258,7 @@ class EditorConfigPage(PluginConfigPage):
                                'always_remove_trailing_spaces', default=False)
 
         analysis_group = QGroupBox(_("Analysis"))
-        pep_url = '<a href="http://www.python.org/dev/peps/pep-0008/">PEP8</a>'
+        pep_url = '<a href="https://www.python.org/dev/peps/pep-0008">PEP8</a>'
         pep8_label = QLabel(_("<i>(Refer to the {} page)</i>").format(pep_url))
         pep8_label.setOpenExternalLinks(True)
         is_pyflakes = codeanalysis.is_pyflakes_installed()

@@ -275,7 +275,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             error = error.replace(eol, '<br>')
 
         # Don't break lines in hyphens
-        # From http://stackoverflow.com/q/7691569/438386
+        # From https://stackoverflow.com/q/7691569/438386
         error = error.replace('-', '&#8209')
 
         # Create error page

@@ -24,7 +24,7 @@ import time
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Property, QCoreApplication, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QKeySequence, QTextCharFormat, QTextCursor
-from qtpy.QtWidgets import QApplication, QMenu, QMessageBox, QToolTip
+from qtpy.QtWidgets import QApplication, QMenu, QToolTip
 
 # Local import
 from spyder.config.base import _, DEBUG, get_conf_path, STDERR

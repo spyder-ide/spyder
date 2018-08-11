@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Spyder\n"
-"POT-Creation-Date: 2018-02-19 11:56+-05\n"
+"POT-Creation-Date: 2018-06-26 19:16+-05\n"
 "PO-Revision-Date: 2018-02-21 16:10+0900\n"
 "Last-Translator: sohnishi <s.ohnishi77+github@gmail.com>\n"
 "Language-Team: Japanese\n"

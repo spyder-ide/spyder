@@ -365,7 +365,7 @@ def test():
     app = qapplication(test_time=8)
     widget = WebBrowser()
     widget.show()
-    widget.set_home_url('http://www.google.com/')
+    widget.set_home_url('https://www.google.com/')
     widget.go_home()
     sys.exit(app.exec_())
 

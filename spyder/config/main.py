@@ -139,6 +139,8 @@ DEFAULTS = [
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
+              'custom_list': [],
+              'custom_executable': '',
               }),
             ('ipython_console',
              {
@@ -265,7 +267,8 @@ DEFAULTS = [
              {
               'name_filters': NAME_FILTERS,
               'show_all': True,
-              'show_hscrollbar': True
+              'show_hscrollbar': True,
+              'visible_if_project_open': True
               }),
             ('explorer',
              {
@@ -333,7 +336,6 @@ DEFAULTS = [
               '_/switch to historylog': "Ctrl+Shift+L",
               '_/switch to onlinehelp': "Ctrl+Shift+D",
               '_/switch to project_explorer': "Ctrl+Shift+P",
-              '_/switch to console': "Ctrl+Shift+C",
               '_/switch to ipython_console': "Ctrl+Shift+I",
               '_/switch to variable_explorer': "Ctrl+Shift+V",
               '_/switch to find_in_files': "Ctrl+Shift+F",
@@ -727,7 +729,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '43.1.0'
+CONF_VERSION = '44.0.0'
 
 # Main configuration instance
 try:

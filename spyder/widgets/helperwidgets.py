@@ -102,7 +102,7 @@ class MessageCheckBox(QMessageBox):
 class HTMLDelegate(QStyledItemDelegate):
     """With this delegate, a QListWidgetItem or a QTableItem can render HTML.
 
-    Taken from http://stackoverflow.com/a/5443112/2399799
+    Taken from https://stackoverflow.com/a/5443112/2399799
     """
     def __init__(self, parent, margin=0):
         super(HTMLDelegate, self).__init__(parent)

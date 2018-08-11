@@ -13,3 +13,5 @@ include README.md
 include LICENSE
 include CHANGELOG.md
 include bootstrap.py
+include runtests.py
+include conftest.py
