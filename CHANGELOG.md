@@ -1,6 +1,6 @@
 # History of changes
 
-## Version 3.3.1 (2018-08-10)
+## Version 3.3.1 (2018-08-11)
 
 ### New features
 
