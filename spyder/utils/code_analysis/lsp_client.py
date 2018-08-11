@@ -138,8 +138,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if DEV:
             stderr_log_file = 'lsp_client_{0}.log'.format(self.language)
             log_file = get_conf_path(osp.join('lsp_logs', stderr_log_file))
-            if not osp.exists(osp.basename(log_file)):
-                self.stderr_log = open(log_file, 'w')
+            if not osp.exists(osp.dirname(log_file)):
+                os.makedirs(osp.dirname(log_file))
+            self.stderr_log = open(log_file, 'w')
 
         new_env = dict(os.environ)
         python_path = os.pathsep.join(sys.path)[1:]
