@@ -1,5 +1,199 @@
 # History of changes
 
+## Version 4.0beta1 (2018-08-12)
+
+### Issues Closed
+
+* [Issue 7078](https://github.com/spyder-ide/spyder/issues/7078) - Shortcuts to open pylab and sympy consoles  ([PR 7099](https://github.com/spyder-ide/spyder/pull/7099))
+* [Issue 6516](https://github.com/spyder-ide/spyder/issues/6516) - AttributeError in jedi_plugin.py:102 ([PR 6523](https://github.com/spyder-ide/spyder/pull/6523))
+* [Issue 6474](https://github.com/spyder-ide/spyder/issues/6474) - test_completions_custom_path fails with jedi 0.9.0 (Spyder 4) ([PR 6497](https://github.com/spyder-ide/spyder/pull/6497))
+* [Issue 5821](https://github.com/spyder-ide/spyder/issues/5821) - Outline Explorer: disable `if/else/try/for` statements ([PR 5842](https://github.com/spyder-ide/spyder/pull/5842))
+* [Issue 5763](https://github.com/spyder-ide/spyder/issues/5763) - Make arrow-key selection in multiple-option tab-completion dialogs "roll over" ([PR 5771](https://github.com/spyder-ide/spyder/pull/5771))
+* [Issue 5756](https://github.com/spyder-ide/spyder/issues/5756) - Ctrl-PageUp/Down does not go through tabs in Spyder 4.x
+* [Issue 5721](https://github.com/spyder-ide/spyder/issues/5721) - Update obsolete QMessageBox Standard Button values ([PR 5722](https://github.com/spyder-ide/spyder/pull/5722))
+* [Issue 5711](https://github.com/spyder-ide/spyder/issues/5711) - "Show blank spaces" with split view editor 
+* [Issue 5678](https://github.com/spyder-ide/spyder/issues/5678) - Fix Indentation always uses 4 spaces instead of the selected number of spaces ([PR 6063](https://github.com/spyder-ide/spyder/pull/6063))
+* [Issue 5667](https://github.com/spyder-ide/spyder/issues/5667) - Strange font rendering in the splash ([PR 5706](https://github.com/spyder-ide/spyder/pull/5706))
+* [Issue 5652](https://github.com/spyder-ide/spyder/issues/5652) - Improved dependency dialog ([PR 5691](https://github.com/spyder-ide/spyder/pull/5691))
+* [Issue 5639](https://github.com/spyder-ide/spyder/issues/5639) - Use argparse instead of optparse ([PR 5689](https://github.com/spyder-ide/spyder/pull/5689))
+* [Issue 5594](https://github.com/spyder-ide/spyder/issues/5594) - Right-clicking in empty Project Explorer shows error ([PR 5603](https://github.com/spyder-ide/spyder/pull/5603))
+* [Issue 5488](https://github.com/spyder-ide/spyder/issues/5488) - Code style (pep8) toggle in source menu ([PR 5497](https://github.com/spyder-ide/spyder/pull/5497))
+* [Issue 5486](https://github.com/spyder-ide/spyder/issues/5486) - Spyder crash when dragging a plugin with the mouse ([PR 5487](https://github.com/spyder-ide/spyder/pull/5487))
+* [Issue 5458](https://github.com/spyder-ide/spyder/issues/5458) - Can't indent code blocks more than once (using tab) on Spyder 4 ([PR 5468](https://github.com/spyder-ide/spyder/pull/5468))
+* [Issue 5454](https://github.com/spyder-ide/spyder/issues/5454) - Toggle comment (ctrl+1) does not always preserve indentation with 2 spaces ([PR 5470](https://github.com/spyder-ide/spyder/pull/5470))
+* [Issue 5365](https://github.com/spyder-ide/spyder/issues/5365) - Add "Save all files with <eol> EOL characters" option ([PR 5367](https://github.com/spyder-ide/spyder/pull/5367))
+* [Issue 5256](https://github.com/spyder-ide/spyder/issues/5256) - Update spyder splash for spyder4 ([PR 5262](https://github.com/spyder-ide/spyder/pull/5262))
+* [Issue 5176](https://github.com/spyder-ide/spyder/issues/5176) - Unify how extra selection are added to the editor
+* [Issue 5171](https://github.com/spyder-ide/spyder/issues/5171) - Variable explorer showing different format when using MultiIndex ([PR 3873](https://github.com/spyder-ide/spyder/pull/3873))
+* [Issue 5131](https://github.com/spyder-ide/spyder/issues/5131) - Sources checkable preferences aren't sync with preferences
+* [Issue 5116](https://github.com/spyder-ide/spyder/issues/5116) - Internal console error when selecting Source -> Next warning/error (or Previous warning/error) ([PR 5117](https://github.com/spyder-ide/spyder/pull/5117))
+* [Issue 5085](https://github.com/spyder-ide/spyder/issues/5085) - There are two scroll bars in the Editor ([PR 5215](https://github.com/spyder-ide/spyder/pull/5215))
+* [Issue 4963](https://github.com/spyder-ide/spyder/issues/4963) - Open project error ([PR 4968](https://github.com/spyder-ide/spyder/pull/4968))
+* [Issue 4948](https://github.com/spyder-ide/spyder/issues/4948) - Class function dropdown should be deactivated by default
+* [Issue 4884](https://github.com/spyder-ide/spyder/issues/4884) - prefix 'b' of bytes is not highlighting in the editor window ([PR 5011](https://github.com/spyder-ide/spyder/pull/5011))
+* [Issue 4854](https://github.com/spyder-ide/spyder/issues/4854) - Error when trying to show indentation guidelines ([PR 4889](https://github.com/spyder-ide/spyder/pull/4889))
+* [Issue 4787](https://github.com/spyder-ide/spyder/issues/4787) - Show spaces bug at start ([PR 4788](https://github.com/spyder-ide/spyder/pull/4788))
+* [Issue 4778](https://github.com/spyder-ide/spyder/issues/4778) - Code folding does not open the correct line from the backtrace of the ipython window
+* [Issue 4777](https://github.com/spyder-ide/spyder/issues/4777) - Code folding does not support clicking left to the line numbers (editor)
+* [Issue 4709](https://github.com/spyder-ide/spyder/issues/4709) - Find does not open code-folded blocks ([PR 4731](https://github.com/spyder-ide/spyder/pull/4731))
+* [Issue 4708](https://github.com/spyder-ide/spyder/issues/4708) - Code folding is wrong on commented lines ([PR 4728](https://github.com/spyder-ide/spyder/pull/4728))
+* [Issue 4705](https://github.com/spyder-ide/spyder/issues/4705) - Unable to vertically split window
+* [Issue 4590](https://github.com/spyder-ide/spyder/issues/4590) - Improve floating panels in the editor  ([PR 5132](https://github.com/spyder-ide/spyder/pull/5132))
+* [Issue 4543](https://github.com/spyder-ide/spyder/issues/4543) - Code completion widget misplaced in the Editor ([PR 4545](https://github.com/spyder-ide/spyder/pull/4545))
+* [Issue 4463](https://github.com/spyder-ide/spyder/issues/4463) - Code folding does not work on indentation level 0
+* [Issue 4423](https://github.com/spyder-ide/spyder/issues/4423) - Missing manpage for spyder ([PR 4506](https://github.com/spyder-ide/spyder/pull/4506))
+* [Issue 4376](https://github.com/spyder-ide/spyder/issues/4376) - Tab switcher dialog is not populated completely ([PR 4392](https://github.com/spyder-ide/spyder/pull/4392))
+* [Issue 4153](https://github.com/spyder-ide/spyder/issues/4153) - vertical end-of-line in wrong place
+* [Issue 4147](https://github.com/spyder-ide/spyder/issues/4147) - Improve visual style of code folding
+* [Issue 4124](https://github.com/spyder-ide/spyder/issues/4124) - language reset to japanese on reboot ([PR 4159](https://github.com/spyder-ide/spyder/pull/4159))
+* [Issue 4081](https://github.com/spyder-ide/spyder/issues/4081) - Add keyboard shortcuts for Source > Next|Previous Warning/Error ([PR 5126](https://github.com/spyder-ide/spyder/pull/5126))
+* [Issue 4018](https://github.com/spyder-ide/spyder/issues/4018) - Add multiindex header support for the Variable Explorer ([PR 3873](https://github.com/spyder-ide/spyder/pull/3873))
+* [Issue 3942](https://github.com/spyder-ide/spyder/issues/3942) - Error when deleting the file with last focus in a project ([PR 3953](https://github.com/spyder-ide/spyder/pull/3953))
+* [Issue 3923](https://github.com/spyder-ide/spyder/issues/3923) - Profiler error when no filename is passed to it ([PR 3909](https://github.com/spyder-ide/spyder/pull/3909))
+* [Issue 3887](https://github.com/spyder-ide/spyder/issues/3887) - Menus "File",  "Edit" and "Search" in master not available for mouse click ([PR 3892](https://github.com/spyder-ide/spyder/pull/3892))
+* [Issue 3857](https://github.com/spyder-ide/spyder/issues/3857) - Go to line doesn't correspond to the correct file ([PR 5321](https://github.com/spyder-ide/spyder/pull/5321))
+* [Issue 3790](https://github.com/spyder-ide/spyder/issues/3790) - Create new windows when undocking all plugins ([PR 3824](https://github.com/spyder-ide/spyder/pull/3824))
+* [Issue 3758](https://github.com/spyder-ide/spyder/issues/3758) - Variable explorer should show variables of type pandas.indexes.base.Index ([PR 5149](https://github.com/spyder-ide/spyder/pull/5149))
+* [Issue 3721](https://github.com/spyder-ide/spyder/issues/3721) - DataFrame viewer should display tooltips for truncated column headers ([PR 3873](https://github.com/spyder-ide/spyder/pull/3873))
+* [Issue 3645](https://github.com/spyder-ide/spyder/issues/3645) - Autocompletion on Python consoles is crashing in master ([PR 3650](https://github.com/spyder-ide/spyder/pull/3650))
+* [Issue 3592](https://github.com/spyder-ide/spyder/issues/3592) - Add multiple edgelines options in settings window ([PR 3607](https://github.com/spyder-ide/spyder/pull/3607))
+* [Issue 3591](https://github.com/spyder-ide/spyder/issues/3591) - DataFrame viewer should use custom index name
+* [Issue 3585](https://github.com/spyder-ide/spyder/issues/3585) - Editor grabs focus when opening files at startup ([PR 3858](https://github.com/spyder-ide/spyder/pull/3858))
+* [Issue 3571](https://github.com/spyder-ide/spyder/issues/3571) - Help fails to produce Rich Text on annotated functions ([PR 3577](https://github.com/spyder-ide/spyder/pull/3577))
+* [Issue 3563](https://github.com/spyder-ide/spyder/issues/3563) - Docks confusion when pressing undocking button ([PR 3824](https://github.com/spyder-ide/spyder/pull/3824))
+* [Issue 3448](https://github.com/spyder-ide/spyder/issues/3448) - Break plugin creation into a spyder/api module for better decoupling and organization ([PR 3468](https://github.com/spyder-ide/spyder/pull/3468))
+* [Issue 3345](https://github.com/spyder-ide/spyder/issues/3345) - Feature suggestion:  scroll over the end of file in the editor ([PR 5122](https://github.com/spyder-ide/spyder/pull/5122))
+* [Issue 2987](https://github.com/spyder-ide/spyder/issues/2987) - Add feature that shows vertical lines to help identifying indentation structure
+* [Issue 2845](https://github.com/spyder-ide/spyder/issues/2845) - Comment out lines according to indentation ([PR 3958](https://github.com/spyder-ide/spyder/pull/3958))
+* [Issue 2627](https://github.com/spyder-ide/spyder/issues/2627) - Add optional display of current class/function that you're in. ([PR 4225](https://github.com/spyder-ide/spyder/pull/4225))
+* [Issue 2553](https://github.com/spyder-ide/spyder/issues/2553) - Share code with gtabview
+* [Issue 2419](https://github.com/spyder-ide/spyder/issues/2419) - Shortcuts for splitting and closing panels ([PR 5512](https://github.com/spyder-ide/spyder/pull/5512))
+* [Issue 2406](https://github.com/spyder-ide/spyder/issues/2406) - File explorer enhancements ([PR 4939](https://github.com/spyder-ide/spyder/pull/4939))
+* [Issue 2355](https://github.com/spyder-ide/spyder/issues/2355) - Variable Explorer does not show sets ([PR 5230](https://github.com/spyder-ide/spyder/pull/5230))
+* [Issue 1785](https://github.com/spyder-ide/spyder/issues/1785) - Spyder comments (Ctrl+1 and Ctrl+4) generate pep8 warnings ([PR 3958](https://github.com/spyder-ide/spyder/pull/3958))
+* [Issue 1778](https://github.com/spyder-ide/spyder/issues/1778) - Add a 72-char vertical line for docstrings ([PR 3512](https://github.com/spyder-ide/spyder/pull/3512))
+* [Issue 1754](https://github.com/spyder-ide/spyder/issues/1754) - No undo for Source->Fix identation
+* [Issue 1584](https://github.com/spyder-ide/spyder/issues/1584) - Newline added to default file ([PR 5797](https://github.com/spyder-ide/spyder/pull/5797))
+* [Issue 1396](https://github.com/spyder-ide/spyder/issues/1396) - Autocomplete doesnt work in undocked Editor window
+* [Issue 970](https://github.com/spyder-ide/spyder/issues/970) - History plugin: add an option to show/hide line numbers ([PR 5363](https://github.com/spyder-ide/spyder/pull/5363))
+* [Issue 877](https://github.com/spyder-ide/spyder/issues/877) - Quote by select + ' or "
+* [Issue 706](https://github.com/spyder-ide/spyder/issues/706) - Code folding missing in the Editor ([PR 3833](https://github.com/spyder-ide/spyder/pull/3833))
+
+In this release 74 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 7597](https://github.com/spyder-ide/spyder/pull/7597) - PR: Separate startup run_lines with semicolon instead of comma
+* [PR 7410](https://github.com/spyder-ide/spyder/pull/7410) - PR: Remove manpage
+* [PR 7262](https://github.com/spyder-ide/spyder/pull/7262) - PR: Update donation/funding status message in Readme
+* [PR 7167](https://github.com/spyder-ide/spyder/pull/7167) - PR: Remove missing PyQt4 references in our tests
+* [PR 7107](https://github.com/spyder-ide/spyder/pull/7107) - PR: Show group cells in Outline Explorer ([7086](https://github.com/spyder-ide/spyder/issues/7086))
+* [PR 7099](https://github.com/spyder-ide/spyder/pull/7099) - PR: Add new menu entries to open Pylab, Sympy and Cython consoles ([7078](https://github.com/spyder-ide/spyder/issues/7078))
+* [PR 6923](https://github.com/spyder-ide/spyder/pull/6923) - PR: Improve and update wording of funding announcement, and put screenshot above it
+* [PR 6523](https://github.com/spyder-ide/spyder/pull/6523) - PR: Fix AttributeError in jedi_plugin ([6516](https://github.com/spyder-ide/spyder/issues/6516))
+* [PR 6497](https://github.com/spyder-ide/spyder/pull/6497) - PR: Bump required version for Jedi to 0.11.0  ([6474](https://github.com/spyder-ide/spyder/issues/6474))
+* [PR 6440](https://github.com/spyder-ide/spyder/pull/6440) - PR: Skip test_window_title in PyQt4 and PY3 because it's failing
+* [PR 6340](https://github.com/spyder-ide/spyder/pull/6340) - PR: Fix EditorStack and EditorSplitter not closing correctly.
+* [PR 6296](https://github.com/spyder-ide/spyder/pull/6296) - PR: Fix tests on Travis
+* [PR 6151](https://github.com/spyder-ide/spyder/pull/6151) - PR: Hide unneeded Options buttons
+* [PR 6133](https://github.com/spyder-ide/spyder/pull/6133) - PR: Fix test_dataframemodel_set_data_overflow
+* [PR 6079](https://github.com/spyder-ide/spyder/pull/6079) - PR: Fix flaky test_find_in_files_search
+* [PR 6063](https://github.com/spyder-ide/spyder/pull/6063) - PR: Change fix_indentation to use preference for number of spaces ([5678](https://github.com/spyder-ide/spyder/issues/5678))
+* [PR 5842](https://github.com/spyder-ide/spyder/pull/5842) - PR: Remove `if/else/try/for` statements from the outline explorer tree ([5821](https://github.com/spyder-ide/spyder/issues/5821))
+* [PR 5836](https://github.com/spyder-ide/spyder/pull/5836) - PR: Give a more modern appearence to the tour
+* [PR 5797](https://github.com/spyder-ide/spyder/pull/5797) - PR: Don't add extra newline when using new file template ([1584](https://github.com/spyder-ide/spyder/issues/1584))
+* [PR 5771](https://github.com/spyder-ide/spyder/pull/5771) - PR: Make arrow-key selection in completion widget "roll over" ([5763](https://github.com/spyder-ide/spyder/issues/5763))
+* [PR 5768](https://github.com/spyder-ide/spyder/pull/5768) - PR: Fix broken shortcuts for changing editor tabs (Ctrl+PageUp, Ctrl+PageDown)
+* [PR 5722](https://github.com/spyder-ide/spyder/pull/5722) - PR: Update obsolete enums in QMessageBox ([5721](https://github.com/spyder-ide/spyder/issues/5721))
+* [PR 5706](https://github.com/spyder-ide/spyder/pull/5706) - PR: Splash SVG font change and convert font to path ([5667](https://github.com/spyder-ide/spyder/issues/5667))
+* [PR 5691](https://github.com/spyder-ide/spyder/pull/5691) - PR: Improve dependencies dialog ([5652](https://github.com/spyder-ide/spyder/issues/5652))
+* [PR 5689](https://github.com/spyder-ide/spyder/pull/5689) - PR: Convert command line options from optparse to argparse ([5639](https://github.com/spyder-ide/spyder/issues/5639))
+* [PR 5657](https://github.com/spyder-ide/spyder/pull/5657) - PR: Allow undo/redo on Source > Fix indentation
+* [PR 5603](https://github.com/spyder-ide/spyder/pull/5603) - PR: Fix crash on empty project explorer context menu ([5594](https://github.com/spyder-ide/spyder/issues/5594))
+* [PR 5512](https://github.com/spyder-ide/spyder/pull/5512) - PR: Add shortcuts for splitting and closing panels ([2419](https://github.com/spyder-ide/spyder/issues/2419))
+* [PR 5497](https://github.com/spyder-ide/spyder/pull/5497) - PR: Add option to toggle code style checks from Source menu ([5488](https://github.com/spyder-ide/spyder/issues/5488))
+* [PR 5487](https://github.com/spyder-ide/spyder/pull/5487) - PR: Handle 'unlocked panes' state for undocking without generating a new window ([5486](https://github.com/spyder-ide/spyder/issues/5486))
+* [PR 5471](https://github.com/spyder-ide/spyder/pull/5471) - PR: Fix test_sort_dataframe_with_category_dtypes
+* [PR 5470](https://github.com/spyder-ide/spyder/pull/5470) - PR: Use indentation preferences to comment/uncomment. ([5454](https://github.com/spyder-ide/spyder/issues/5454))
+* [PR 5468](https://github.com/spyder-ide/spyder/pull/5468) - PR: Fix indentation with selection ([5458](https://github.com/spyder-ide/spyder/issues/5458))
+* [PR 5367](https://github.com/spyder-ide/spyder/pull/5367) - PR: Add an option to the Editor to convert EOL characters on save ([5365](https://github.com/spyder-ide/spyder/issues/5365))
+* [PR 5363](https://github.com/spyder-ide/spyder/pull/5363) - PR: Add an option to show/hide line numbers to History ([970](https://github.com/spyder-ide/spyder/issues/970))
+* [PR 5321](https://github.com/spyder-ide/spyder/pull/5321) - PR: Rearrange line count when opening files to correspond to the correct one ([3857](https://github.com/spyder-ide/spyder/issues/3857))
+* [PR 5309](https://github.com/spyder-ide/spyder/pull/5309) - PR: Update font decorations when adding them to the editor.
+* [PR 5274](https://github.com/spyder-ide/spyder/pull/5274) - PR: Remove duplicated logic in Editor checkable Actions
+* [PR 5262](https://github.com/spyder-ide/spyder/pull/5262) - PR: Update version in splash screen ([5256](https://github.com/spyder-ide/spyder/issues/5256))
+* [PR 5230](https://github.com/spyder-ide/spyder/pull/5230) - PR: Support for sets in the Variable Explorer ([2355](https://github.com/spyder-ide/spyder/issues/2355))
+* [PR 5215](https://github.com/spyder-ide/spyder/pull/5215) - PR: Scroll flag area improvements ([5085](https://github.com/spyder-ide/spyder/issues/5085))
+* [PR 5203](https://github.com/spyder-ide/spyder/pull/5203) - PR: Unify how extra selections are added to the Editor
+* [PR 5159](https://github.com/spyder-ide/spyder/pull/5159) - PR: Make Ctrl+C to quit Spyder on Posix systems ([5305](https://github.com/spyder-ide/spyder/issues/5305))
+* [PR 5149](https://github.com/spyder-ide/spyder/pull/5149) - PR: Support for all Pandas indexes in Variable Explorer ([3758](https://github.com/spyder-ide/spyder/issues/3758))
+* [PR 5139](https://github.com/spyder-ide/spyder/pull/5139) - PR: Fix error Editor loosing focus
+* [PR 5132](https://github.com/spyder-ide/spyder/pull/5132) - PR: Improve how floating panels are painted ([4590](https://github.com/spyder-ide/spyder/issues/4590))
+* [PR 5130](https://github.com/spyder-ide/spyder/pull/5130) - PR: Deactivate class/function dropdown by default
+* [PR 5126](https://github.com/spyder-ide/spyder/pull/5126) - PR: Add keyboard shortcuts for Next|Previous Warning/Error ([4081](https://github.com/spyder-ide/spyder/issues/4081))
+* [PR 5122](https://github.com/spyder-ide/spyder/pull/5122) - PR: Enable scrolling past the end of the document ([3345](https://github.com/spyder-ide/spyder/issues/3345))
+* [PR 5117](https://github.com/spyder-ide/spyder/pull/5117) - PR: Fix traceback error when selecting Next/Previous warning/error ([5116](https://github.com/spyder-ide/spyder/issues/5116))
+* [PR 5083](https://github.com/spyder-ide/spyder/pull/5083) - PR: Fix unable to split editor
+* [PR 5011](https://github.com/spyder-ide/spyder/pull/5011) - PR: Add all possible string prefixes for syntax highlighting ([4884](https://github.com/spyder-ide/spyder/issues/4884))
+* [PR 5002](https://github.com/spyder-ide/spyder/pull/5002) - PR: Add Editor extensions
+* [PR 4968](https://github.com/spyder-ide/spyder/pull/4968) - PR: Fix error when threre are no layout settings ([4963](https://github.com/spyder-ide/spyder/issues/4963))
+* [PR 4939](https://github.com/spyder-ide/spyder/pull/4939) - PR: Some File Explorer Enhancements ([2406](https://github.com/spyder-ide/spyder/issues/2406))
+* [PR 4889](https://github.com/spyder-ide/spyder/pull/4889) - PR: Fix error at startup when trying to set indent_guides. ([4854](https://github.com/spyder-ide/spyder/issues/4854))
+* [PR 4804](https://github.com/spyder-ide/spyder/pull/4804) - PR: Fix some code folding related errors
+* [PR 4788](https://github.com/spyder-ide/spyder/pull/4788) - PR: Add validation for editorstacks in showing spaces function ([4787](https://github.com/spyder-ide/spyder/issues/4787))
+* [PR 4762](https://github.com/spyder-ide/spyder/pull/4762) - PR: Add missing QMessageBox import
+* [PR 4731](https://github.com/spyder-ide/spyder/pull/4731) - PR: Make searching text to expand folded blocks ([4709](https://github.com/spyder-ide/spyder/issues/4709))
+* [PR 4728](https://github.com/spyder-ide/spyder/pull/4728) - PR: Make folding to ignore indented comments ([4708](https://github.com/spyder-ide/spyder/issues/4708))
+* [PR 4627](https://github.com/spyder-ide/spyder/pull/4627) - PR: Add pyopengl to Linux wheels only
+* [PR 4618](https://github.com/spyder-ide/spyder/pull/4618) - PR: Add German translation
+* [PR 4572](https://github.com/spyder-ide/spyder/pull/4572) - PR: Add indentation guidelines
+* [PR 4545](https://github.com/spyder-ide/spyder/pull/4545) - PR: Take panels widths into account when calculating positions in the Editor  ([4543](https://github.com/spyder-ide/spyder/issues/4543))
+* [PR 4540](https://github.com/spyder-ide/spyder/pull/4540) - PR: Fix update title signal
+* [PR 4538](https://github.com/spyder-ide/spyder/pull/4538) - PR: Add Shift+Del shortcut to delete lines in the Editor  ([4496](https://github.com/spyder-ide/spyder/issues/4496), [3405](https://github.com/spyder-ide/spyder/issues/3405))
+* [PR 4506](https://github.com/spyder-ide/spyder/pull/4506) - PR: Add manpage for Spyder ([4423](https://github.com/spyder-ide/spyder/issues/4423))
+* [PR 4505](https://github.com/spyder-ide/spyder/pull/4505) - PR: Fix links to Fedora and openSUSE in docs
+* [PR 4503](https://github.com/spyder-ide/spyder/pull/4503) - PR: Fold improvements
+* [PR 4470](https://github.com/spyder-ide/spyder/pull/4470) - PR: Fix error in Find in Files because of changes in master
+* [PR 4392](https://github.com/spyder-ide/spyder/pull/4392) - PR: Update StackHistory when focus isn't given to the Editor ([4376](https://github.com/spyder-ide/spyder/issues/4376))
+* [PR 4286](https://github.com/spyder-ide/spyder/pull/4286) - PR: Only show removal message in Python consoles ([4284](https://github.com/spyder-ide/spyder/issues/4284))
+* [PR 4265](https://github.com/spyder-ide/spyder/pull/4265) - PR: Improvements to visual style of code-folding
+* [PR 4234](https://github.com/spyder-ide/spyder/pull/4234) - PR: Fix test that looks for print statements
+* [PR 4225](https://github.com/spyder-ide/spyder/pull/4225) - PR: Add a new panel to show/explore class and methods/functions present in the current file ([2627](https://github.com/spyder-ide/spyder/issues/2627))
+* [PR 4210](https://github.com/spyder-ide/spyder/pull/4210) - PR: Fix syntax highlighter missing Cython keywords
+* [PR 4198](https://github.com/spyder-ide/spyder/pull/4198) - PR : Add Cython files import and run support
+* [PR 4164](https://github.com/spyder-ide/spyder/pull/4164) - PR: Fix error edgeline offset, take code folding panel width in account. ([4163](https://github.com/spyder-ide/spyder/issues/4163))
+* [PR 4162](https://github.com/spyder-ide/spyder/pull/4162) - PR: Fix wrong usage of is_text_string
+* [PR 4159](https://github.com/spyder-ide/spyder/pull/4159) - PR: Try to eval string setting values after decoding in python2.7 ([4124](https://github.com/spyder-ide/spyder/issues/4124))
+* [PR 4155](https://github.com/spyder-ide/spyder/pull/4155) - PR: Fix error edge line in python2.7
+* [PR 3958](https://github.com/spyder-ide/spyder/pull/3958) - PR: Comment lines taking into account code indentation and pep8 ([2845](https://github.com/spyder-ide/spyder/issues/2845), [1785](https://github.com/spyder-ide/spyder/issues/1785))
+* [PR 3953](https://github.com/spyder-ide/spyder/pull/3953) - PR: Prevent error when file with last focus is deleted from project ([3942](https://github.com/spyder-ide/spyder/issues/3942))
+* [PR 3937](https://github.com/spyder-ide/spyder/pull/3937) - PR: Change ScrollFlagArea panel to use panel API
+* [PR 3909](https://github.com/spyder-ide/spyder/pull/3909) - PR: Fix "TypeError: got multiple values for argument" in Profiler ([3923](https://github.com/spyder-ide/spyder/issues/3923))
+* [PR 3892](https://github.com/spyder-ide/spyder/pull/3892) - PR: Raise the menu bar to the top of the main window widget's stack. ([3887](https://github.com/spyder-ide/spyder/issues/3887))
+* [PR 3873](https://github.com/spyder-ide/spyder/pull/3873) - PR: Add multi-index display support to the Dataframe editor ([5171](https://github.com/spyder-ide/spyder/issues/5171), [4018](https://github.com/spyder-ide/spyder/issues/4018), [3721](https://github.com/spyder-ide/spyder/issues/3721))
+* [PR 3858](https://github.com/spyder-ide/spyder/pull/3858) - PR: Load files in the background and set focus to the last one with focus in the previous session ([3585](https://github.com/spyder-ide/spyder/issues/3585))
+* [PR 3833](https://github.com/spyder-ide/spyder/pull/3833) - PR: Add code folding to the Editor ([706](https://github.com/spyder-ide/spyder/issues/706))
+* [PR 3824](https://github.com/spyder-ide/spyder/pull/3824) - PR: Create a separate window when undocking plugins ([3790](https://github.com/spyder-ide/spyder/issues/3790), [3563](https://github.com/spyder-ide/spyder/issues/3563))
+* [PR 3803](https://github.com/spyder-ide/spyder/pull/3803) - PR: Add CircleCI to run pytest, ciocheck and coveralls
+* [PR 3778](https://github.com/spyder-ide/spyder/pull/3778) - PR: Add Panels and PanelsManager, and use it to add LineNumberArea to editor
+* [PR 3727](https://github.com/spyder-ide/spyder/pull/3727) - PR: Remove SpyderPluginMixin and improve external API
+* [PR 3676](https://github.com/spyder-ide/spyder/pull/3676) - PR: Refactor and simplify NamespaceBrowser widget
+* [PR 3650](https://github.com/spyder-ide/spyder/pull/3650) - PR: Revert error introduced by linenumber migration ([3645](https://github.com/spyder-ide/spyder/issues/3645))
+* [PR 3607](https://github.com/spyder-ide/spyder/pull/3607) - PR: Multiple edge lines preferences ([3592](https://github.com/spyder-ide/spyder/issues/3592), [1778](https://github.com/spyder-ide/spyder/issues/1778))
+* [PR 3577](https://github.com/spyder-ide/spyder/pull/3577) - PR: Use inspect.getfullargspec() in getdoc for PY3 to support annotated functions. ([3571](https://github.com/spyder-ide/spyder/issues/3571))
+* [PR 3574](https://github.com/spyder-ide/spyder/pull/3574) - PR: Improve style of scientific startup script
+* [PR 3534](https://github.com/spyder-ide/spyder/pull/3534) - PR: Added the Solarized color scheme
+* [PR 3512](https://github.com/spyder-ide/spyder/pull/3512) - PR: Move edge line code out of editor to EdgeLine class ([1778](https://github.com/spyder-ide/spyder/issues/1778))
+* [PR 3468](https://github.com/spyder-ide/spyder/pull/3468) - PR: Move plugin creation to spyder/api/plugins.py for decoupling  ([3448](https://github.com/spyder-ide/spyder/issues/3448))
+* [PR 3463](https://github.com/spyder-ide/spyder/pull/3463) - PR: Migrate line number area to a panel widget
+* [PR 2431](https://github.com/spyder-ide/spyder/pull/2431) - PR: Use right python.exe to run Spyder when multiple versions of Python are installled on Windows
+
+In this release 104 pull requests were closed.
+
+
+----
+
+
 ## Version 3.3.1 (2018-08-11)
 
 ### New features
