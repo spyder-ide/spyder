@@ -460,9 +460,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_lines_group = QGroupBox(_("Run code"))
         run_lines_label = QLabel(_("You can run several lines of code when "
                                    "a console is started. Please introduce "
-                                   "each one separated by commas, for "
-                                   "example:<br>"
-                                   "<i>import os, import sys</i>"))
+                                   "each one separated by semicolons and a "
+                                   "space, for example:<br>"
+                                   "<i>import os; import sys</i>"))
         run_lines_label.setWordWrap(True)
         run_lines_edit = self.create_lineedit(_("Lines:"), 'startup/run_lines',
                                               '', alignment=Qt.Horizontal)
