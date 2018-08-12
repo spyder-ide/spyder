@@ -173,7 +173,7 @@ For a complete list of changes, please see our
 You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
-    conda install -c spyder-ide spyder==4.0.0b1
+    conda install -c spyder-ide spyder=4.0.0b1
 
 Or you can use pip with this command:
 
@@ -181,4 +181,4 @@ Or you can use pip with this command:
 
 
 Enjoy!
--Carlos
+Carlos
