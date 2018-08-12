@@ -7,14 +7,6 @@ export PYTHONPATH=.
 export PATH="$HOME/miniconda/bin:$PATH"
 source activate test
 
-
-if [ "$USE_PYQT" = "pyqt5" ]; then
-    conda install -q qt=5.* pyqt=5.* qtconsole matplotlib
-else
-    conda install -q qt=4.* pyqt=4.* qtconsole matplotlib
-fi
-
-
 # Depth 1
 for f in spyder/*.py; do
     if [[ $f == *test*/*.* ]]; then
@@ -41,9 +33,6 @@ for f in spyder/*/*.py; do
     if [[ $f == spyder/plugins/*.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/inputhooks.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/qthelpers.py ]]; then
         continue
     fi
@@ -68,25 +57,16 @@ for f in spyder/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
-    if [[ $f == spyder/external/*/*.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/external/*.py ]]; then
         continue
     fi
     if [[ $f == spyder/plugins/*/plugin.py ]]; then
         continue
     fi
-    if [[ $f == spyder/plugins/*/__init__.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/utils/introspection/plugin_client.py ]]; then
         continue
     fi
     if [[ $f == spyder/utils/introspection/numpy_docstr.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/widgets/externalshell/systemshell.py ]]; then
         continue
     fi
     python "$f"

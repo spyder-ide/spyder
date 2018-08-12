@@ -460,9 +460,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_lines_group = QGroupBox(_("Run code"))
         run_lines_label = QLabel(_("You can run several lines of code when "
                                    "a console is started. Please introduce "
-                                   "each one separated by commas, for "
-                                   "example:<br>"
-                                   "<i>import os, import sys</i>"))
+                                   "each one separated by semicolons and a "
+                                   "space, for example:<br>"
+                                   "<i>import os; import sys</i>"))
         run_lines_label.setWordWrap(True)
         run_lines_edit = self.create_lineedit(_("Lines:"), 'startup/run_lines',
                                               '', alignment=Qt.Horizontal)
@@ -1112,11 +1112,13 @@ class IPythonConsole(SpyderPluginWidget):
             if not has_spyder_kernels:
                 client.show_kernel_error(
                         _("Your Python environment or installation doesn't "
-                          "have the <tt>spyder-kernels</tt> module installed "
-                          "on it. Without this module is not possible for "
+                          "have the <tt>spyder-kernels</tt> module or the "
+                          "right version of it installed. "
+                          "Without this module is not possible for "
                           "Spyder to create a console for you.<br><br>"
-                          "You can install it by running in a system terminal"
-                          ":<br><br><tt>conda install spyder-kernels</tt>"
+                          "You can install it by running in a system terminal:"
+                          "<br><br>"
+                          "<tt>conda install spyder-kernels</tt>"
                           "<br><br>or<br><br>"
                           "<tt>pip install spyder-kernels</tt>"))
                 return
@@ -1858,9 +1860,9 @@ class IPythonConsole(SpyderPluginWidget):
                 return
 
         # Assign kernel manager and client to shellwidget
+        kernel_client.start_channels()
         client.shellwidget.kernel_client = kernel_client
         client.shellwidget.kernel_manager = kernel_manager
-        kernel_client.start_channels()
         if external_kernel:
             client.shellwidget.sig_is_spykernel.connect(
                     self.connect_external_kernel)

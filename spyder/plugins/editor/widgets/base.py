@@ -302,7 +302,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def update_tab_stop_width_spaces(self):
         self.setTabStopWidth(self.fontMetrics().width(
-                '9' * self.tab_stop_width_spaces))
+                             ' ' * self.tab_stop_width_spaces))
 
     def set_palette(self, background, foreground):
         """

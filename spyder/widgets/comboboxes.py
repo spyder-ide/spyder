@@ -20,7 +20,8 @@ import os.path as osp
 # Third party imports
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QComboBox, QCompleter, QSizePolicy, QToolTip
+from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
+                            QSizePolicy, QToolTip)
 
 # Local imports
 from spyder.config.base import _
@@ -304,6 +305,32 @@ class UrlComboBox(PathComboBox):
         if qstr is None:
             qstr = self.currentText()
         return QUrl(qstr).isValid()
+
+
+class FileComboBox(PathComboBox):
+    """
+    QComboBox handling File paths
+    """
+    def __init__(self, parent=None, adjust_to_contents=False,
+                 default_line_edit=False):
+        PathComboBox.__init__(self, parent, adjust_to_contents)
+
+        if default_line_edit:
+            line_edit = QLineEdit(self)
+            self.setLineEdit(line_edit)
+
+        # Widget setup
+        if adjust_to_contents:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        else:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToContentsOnFirstShow)
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+    def is_valid(self, qstr=None):
+        """Return True if string is valid"""
+        if qstr is None:
+            qstr = self.currentText()
+        return osp.isfile(to_text_string(qstr))
 
 
 def is_module_or_package(path):
