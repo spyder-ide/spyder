@@ -1356,6 +1356,12 @@ class CollectionsEditor(QDialog):
                                               remote=remote)
         self.widget.editor.model.sig_setting_data.connect(
                                                     self.save_and_close_enable)
+
+        # If the copy has a different type, then do not allow editing, because
+        # this would change the type after saving; cf. issue #6936
+        if type(self.data_copy) != type(data):
+            readonly = True
+
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
         self.setLayout(layout)
