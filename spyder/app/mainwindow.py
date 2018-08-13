@@ -760,12 +760,6 @@ class MainWindow(QMainWindow):
         if gdgq_act:
             self.external_tools_menu_actions += [None] + gdgq_act
 
-        # ViTables
-        vitables_act = create_program_action(self, _("ViTables"),
-                                                "vitables", 'vitables.png')
-        if vitables_act:
-            self.external_tools_menu_actions += [None, vitables_act]
-
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
                                         triggered=self.maximize_dockwidget,
