@@ -286,7 +286,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                                 error=error)
 
         # Show error
-        self.infowidget.setHtml(page)
+        self.infowidget.setHtml(page, QUrl.fromLocalFile(CSS_PATH))
         self.shellwidget.hide()
         self.infowidget.show()
 
