@@ -263,11 +263,6 @@ spyder/images/chevron-left.png
 spyder/images/chevron-right.png
 
 
-[6] BSD License
-
-spyder/images/scipy.png
-
-
 [7] Creative Commons Attribution 2.5 License
 (FamFamFam Silk icon set 1.3)
 
@@ -295,10 +290,6 @@ spyder/images/filetypes/pyw.png
 [9] zlib/libpng license
 spyder/images/filetypes/nsh.png
 spyder/images/filetypes/nsi.png
-
-
-[10] Eclipse Public License
-spyder/images/projects/pydev.png
 
 
 [11] Creative Commons Attribution 3.0 License
