@@ -705,16 +705,15 @@ class MainWindow(QMainWindow):
                     programs.run_python_script('winpython', 'controlpanel'))
         if os.name == 'nt' and is_module_installed('winpython'):
             self.external_tools_menu_actions.append(self.wp_action)
+
         # Qt-related tools
         additact = []
         for name in ("designer-qt4", "designer"):
-            qtdact = create_program_action(self, _("Qt Designer"),
-                                            name, 'qtdesigner.png')
+            qtdact = create_program_action(self, _("Qt Designer"), name)
             if qtdact:
                 break
         for name in ("linguist-qt4", "linguist"):
-            qtlact = create_program_action(self, _("Qt Linguist"),
-                                            "linguist", 'qtlinguist.png')
+            qtlact = create_program_action(self, _("Qt Linguist"), "linguist")
             if qtlact:
                 break
         args = ['-no-opengl'] if os.name == 'nt' else []
