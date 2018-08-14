@@ -474,5 +474,34 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
                     == getattr(expected_obj, key) for key in keys])
 
 
+def test_collectionseditor_with_class_having_buggy_copy(qtbot):
+    """
+    Test that editor for object whose .copy() returns a different type is
+    readonly; cf. issue #6936.
+    """
+    class MyDictWithBuggyCopy(dict):
+        pass
+
+    md = MyDictWithBuggyCopy({1: 2})
+    editor = CollectionsEditor()
+    editor.setup(md)
+    assert editor.widget.editor.readonly
+
+
+def test_collectionseditor_with_class_having_correct_copy(qtbot):
+    """
+    Test that editor for object whose .copy() returns the same type is not
+    readonly; cf. issue #6936.
+    """
+    class MyDictWithCorrectCopy(dict):
+        def copy(self):
+            return MyDictWithCorrectCopy(self)
+
+    md = MyDictWithCorrectCopy({1: 2})
+    editor = CollectionsEditor()
+    editor.setup(md)
+    assert not editor.widget.editor.readonly
+
+
 if __name__ == "__main__":
     pytest.main()
