@@ -43,5 +43,11 @@ def get_options():
     parser.add_option('-p', '--project', default=None, type=str,
                       dest="open_project",
                       help="Path that contains an Spyder project")
+    parser.add_option('--opengl', default=None, type='choice',
+                      dest="opengl_implementation",
+                      choices=['software', 'desktop'],
+                      help=("OpenGL implementation to pass to Qt. Possible "
+                            "options are 'software' and 'desktop'")
+                      )
     options, args = parser.parse_args()
     return options, args
