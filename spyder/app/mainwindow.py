@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        self.open_project = options.open_project
+        self.open_project = options.project
         self.window_title = options.window_title
 
         self.debug_print("Start of MainWindow constructor")
@@ -3109,7 +3109,7 @@ def main():
         options.profile = False
         options.multithreaded = False
         options.new_instance = False
-        options.open_project = None
+        options.project = None
         options.window_title = None
         options.opengl_implementation = None
 
