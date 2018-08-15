@@ -179,60 +179,6 @@ spyder/images/file/filesave.png
 spyder/images/file/filesaveas.png
 spyder/images/file/print.png
 spyder/images/file/save_all.png
-spyder/images/filetypes/bat.png
-spyder/images/filetypes/bmp.png
-spyder/images/filetypes/c.png
-spyder/images/filetypes/cc.png
-spyder/images/filetypes/cfg.png
-spyder/images/filetypes/chm.png
-spyder/images/filetypes/cl.png
-spyder/images/filetypes/cmd.png
-spyder/images/filetypes/cpp.png
-spyder/images/filetypes/css.png
-spyder/images/filetypes/cxx.png
-spyder/images/filetypes/diff.png
-spyder/images/filetypes/doc.png
-spyder/images/filetypes/exe.png
-spyder/images/filetypes/f.png
-spyder/images/filetypes/f77.png
-spyder/images/filetypes/f90.png
-spyder/images/filetypes/gif.png
-spyder/images/filetypes/h.png
-spyder/images/filetypes/hh.png
-spyder/images/filetypes/hpp.png
-spyder/images/filetypes/htm.png
-spyder/images/filetypes/html.png
-spyder/images/filetypes/hxx.png
-spyder/images/filetypes/inf.png
-spyder/images/filetypes/ini.png
-spyder/images/filetypes/jpeg.png
-spyder/images/filetypes/jpg.png
-spyder/images/filetypes/js.png
-spyder/images/filetypes/log.png
-spyder/images/filetypes/nt.png
-spyder/images/filetypes/patch.png
-spyder/images/filetypes/pdf.png
-spyder/images/filetypes/png.png
-spyder/images/filetypes/pps.png
-spyder/images/filetypes/properties.png
-spyder/images/filetypes/ps.png
-spyder/images/filetypes/pxd.png
-spyder/images/filetypes/pxi.png
-spyder/images/filetypes/pyx.png
-spyder/images/filetypes/rar.png
-spyder/images/filetypes/readme.png
-spyder/images/filetypes/reg.png
-spyder/images/filetypes/rej.png
-spyder/images/filetypes/session.png
-spyder/images/filetypes/tar.png
-spyder/images/filetypes/tex.png
-spyder/images/filetypes/tgz.png
-spyder/images/filetypes/tif.png
-spyder/images/filetypes/tiff.png
-spyder/images/filetypes/txt.png
-spyder/images/filetypes/xls.png
-spyder/images/filetypes/xml.png
-spyder/images/filetypes/zip.png
 spyder/images/projects/add_to_path.png
 spyder/images/projects/folder.png
 spyder/images/projects/package.png
@@ -244,12 +190,6 @@ spyder/images/projects/project_closed.png
 spyder/images/projects/pythonpath.png
 spyder/images/projects/remove_from_path.png
 spyder/images/projects/show_all.png
-
-
-[3] GNU Lesser General Public License (Version 2.1)
-
-spyder/images/filetypes/ts.png
-spyder/images/filetypes/ui.png
 
 
 [5] MIT License
@@ -271,21 +211,11 @@ spyder/images/editor/class.png
 spyder/images/editor/convention.png
 spyder/images/editor/todo.png
 spyder/images/editor/warning.png
-spyder/images/filetypes/po.png
-spyder/images/filetypes/pot.png
 
 
 [8] PSF LICENSE AGREEMENT FOR PYTHON
 spyder/images/console/python.png
 spyder/images/console/python_t.png
-spyder/images/filetypes/py.png
-spyder/images/filetypes/pyc.png
-spyder/images/filetypes/pyw.png
-
-
-[9] zlib/libpng license
-spyder/images/filetypes/nsh.png
-spyder/images/filetypes/nsi.png
 
 
 [11] Creative Commons Attribution 3.0 License
