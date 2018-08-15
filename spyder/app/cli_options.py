@@ -41,7 +41,13 @@ def get_options():
     parser.add_option('--window-title', type=str, default=None,
                       help="String to show in the main window title")
     parser.add_option('-p', '--project', default=None, type=str,
-                      dest="open_project",
+                      dest="project",
                       help="Path that contains an Spyder project")
+    parser.add_option('--opengl', default=None, type='choice',
+                      dest="opengl_implementation",
+                      choices=['software', 'desktop'],
+                      help=("OpenGL implementation to pass to Qt. Possible "
+                            "options are 'software' and 'desktop'")
+                      )
     options, args = parser.parse_args()
     return options, args

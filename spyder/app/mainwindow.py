@@ -102,7 +102,8 @@ from qtawesome.iconic_font import FontError
 from spyder.config.main import CONF
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, CONF.get('main', 'high_dpi_scaling'))
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
+                                  CONF.get('main', 'high_dpi_scaling'))
 
 
 #==============================================================================
@@ -264,7 +265,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        self.open_project = options.open_project
+        self.open_project = options.project
         self.window_title = options.window_title
 
         self.debug_print("Start of MainWindow constructor")
@@ -3108,8 +3109,9 @@ def main():
         options.profile = False
         options.multithreaded = False
         options.new_instance = False
-        options.open_project = None
+        options.project = None
         options.window_title = None
+        options.opengl_implementation = None
 
         app = initialize()
         window = run_spyder(app, options, None)
@@ -3120,6 +3122,17 @@ def main():
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, optparse won't be able to exit if --help option is passed
     options, args = get_options()
+
+    if options.opengl_implementation:
+        if options.opengl_implementation == 'software':
+            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif options.opengl_implementation == 'desktop':
+            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+    else:
+        if CONF.get('main', 'opengl') == 'software':
+            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif CONF.get('main', 'opengl') == 'desktop':
+            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
 
     if options.show_console:
         print("(Deprecated) --show console does nothing, now the default "
