@@ -483,7 +483,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         else:
             result = None
 
-        if result == QMessageBox.Yes or running_under_pytest() or not self.ask_before_restart:
+        if (result == QMessageBox.Yes or
+           running_under_pytest() or
+           not self.ask_before_restart):
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()

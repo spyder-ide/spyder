@@ -311,7 +311,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                 tip=_("This option lets you hide the warning message shown\n"
                       "when resetting the namespace from Spyder."))
         show_time_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
-        ask_restart_box = newcb(_("Ask for confirmation before restarting"),
+        ask_restart_box = newcb(
+                _("Ask for confirmation before restarting"),
                 'ask_before_restart',
                 tip=_("This option lets you hide the warning message shown\n"
                       "when restarting the kernel."))
