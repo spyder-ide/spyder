@@ -93,7 +93,7 @@ def test_adding_warnings(qtbot, construct_editor):
         block = block.next()
 
     print(warnings)
-    expected_warnings = {1: ['D100', 'D103'],
+    expected_warnings = {# 1: ['D100', 'D103'],
                          2: ['W293'],
                          3: ['E261'], 5: ['undefined name']}
     for i, warning in warnings:
@@ -118,7 +118,7 @@ def test_move_warnings(qtbot, construct_editor):
     # Test cycling behaviour
     editor.go_to_line(5)
     editor.go_to_next_warning()
-    assert 1 == editor.get_cursor_line_number()
+    assert 2 == editor.get_cursor_line_number()
 
     editor.go_to_previous_warning()
     assert 5 == editor.get_cursor_line_number()
