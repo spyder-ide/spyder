@@ -72,6 +72,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/lsp_transport/*.py ]]; then
         continue
     fi
+    if [[ $f == spyder/utils/code_analysis/*.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/widgets/ipythonconsole/__init__.py ]]; then
         continue
     fi
