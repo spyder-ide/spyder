@@ -64,9 +64,9 @@ def check_with_pyflakes(source_code, filename=None):
                 results = [(value.args[0], value.lineno)]
         except (ValueError, TypeError):
             # Example of ValueError: file contains invalid \x escape character
-            # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797)
+            # (see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797)
             # Example of TypeError: file contains null character
-            # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796)
+            # (see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796)
             results = []
         else:
             # Okay, it's syntactically valid.  Now check it.

@@ -16,7 +16,7 @@ add_init = true
 
 # -----------------------------------------------------------------------------
 # pep8
-# http://pep8.readthedocs.io/en/latest/intro.html#configuration
+# https://pep8.readthedocs.io/en/latest/intro.html#configuration
 # -----------------------------------------------------------------------------
 [pep8]
 exclude = */tests/*
@@ -33,7 +33,7 @@ inherit = false
 
 # -----------------------------------------------------------------------------
 # Flake 8
-# http://flake8.readthedocs.io/en/latest/config.html
+# http://flake8.pycqa.org/en/latest/user/configuration.html
 # -----------------------------------------------------------------------------
 [flake8]
 exclude = */tests/*
@@ -73,7 +73,7 @@ spaces_before_comment = 2
 
 # -----------------------------------------------------------------------------
 # autopep8
-# http://pep8.readthedocs.io/en/latest/intro.html#configuration
+# https://pep8.readthedocs.io/en/latest/intro.html#configuration
 # -----------------------------------------------------------------------------
 [autopep8]
 exclude = */tests/*

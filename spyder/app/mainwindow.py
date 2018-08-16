@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder, the Scientific PYthon Development EnviRonment
+Spyder, the Scientific Python Development Environment
 =====================================================
 
 Developped and maintained by the Spyder Project
@@ -102,7 +102,8 @@ from qtawesome.iconic_font import FontError
 from spyder.config.main import CONF
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, CONF.get('main', 'high_dpi_scaling'))
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
+                                  CONF.get('main', 'high_dpi_scaling'))
 
 
 #==============================================================================
@@ -226,9 +227,9 @@ class MainWindow(QMainWindow):
           _("Python2 documentation")),
          ('Python3', "https://docs.python.org/3/index.html",
           _("Python3 documentation")),
-         ('numpy', "http://docs.scipy.org/doc/",
+         ('numpy', "https://docs.scipy.org/doc/",
           _("Numpy and Scipy documentation")),
-         ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
+         ('matplotlib', "https://matplotlib.org/contents.html",
           _("Matplotlib documentation")),
          ('PyQt5',
           "http://pyqt.sourceforge.net/Docs/PyQt5/",
@@ -264,7 +265,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        self.open_project = options.open_project
+        self.open_project = options.project
         self.window_title = options.window_title
 
         self.debug_print("Start of MainWindow constructor")
@@ -2343,7 +2344,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>Spyder %s</b> %s
-            <br>The Scientific PYthon Development EnviRonment
+            <br>The Scientific Python Development Environment
             <br>Copyright &copy; The Spyder Project Contributors
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut.
@@ -2357,9 +2358,8 @@ class MainWindow(QMainWindow):
             <p>This project is part of a larger effort to promote and
             facilitate the use of Python for scientific and engineering
             software development. The popular Python distributions
-            <a href="http://continuum.io/downloads">Anaconda</a>,
-            <a href="https://winpython.github.io/">WinPython</a> and
-            <a href="http://python-xy.github.io/">Python(x,y)</a>
+            <a href="https://www.anaconda.com/download/">Anaconda</a> and
+            <a href="https://winpython.github.io/">WinPython</a>
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s
             <p><small>Most of the icons for the Spyder 2 theme come from the Crystal
@@ -3112,8 +3112,9 @@ def main():
         options.profile = False
         options.multithreaded = False
         options.new_instance = False
-        options.open_project = None
+        options.project = None
         options.window_title = None
+        options.opengl_implementation = None
 
         app = initialize()
         window = run_spyder(app, options, None)
@@ -3124,6 +3125,17 @@ def main():
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, argparse won't be able to exit if --help option is passed
     options, args = get_options()
+
+    if options.opengl_implementation:
+        if options.opengl_implementation == 'software':
+            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif options.opengl_implementation == 'desktop':
+            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+    else:
+        if CONF.get('main', 'opengl') == 'software':
+            QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+        elif CONF.get('main', 'opengl') == 'desktop':
+            QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
 
     if options.show_console:
         print("(Deprecated) --show console does nothing, now the default "

@@ -69,6 +69,7 @@ DEFAULTS = [
             ('main',
              {
               'icon_theme': 'spyder 3',
+              'opengl': 'automatic',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
@@ -139,6 +140,8 @@ DEFAULTS = [
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
+              'custom_list': [],
+              'custom_executable': '',
               }),
             ('ipython_console',
              {
@@ -270,7 +273,8 @@ DEFAULTS = [
              {
               'name_filters': NAME_FILTERS,
               'show_all': True,
-              'show_hscrollbar': True
+              'show_hscrollbar': True,
+              'visible_if_project_open': True
               }),
             ('explorer',
              {
@@ -656,7 +660,7 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '44.0.0'
+CONF_VERSION = '44.1.0'
 
 # Main configuration instance
 try:

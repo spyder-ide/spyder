@@ -108,7 +108,7 @@ corresponding `1.x` version of `spyder-kernels`.
 This can be done via two methods: installing the correct version via `conda`:
 
 ```bash
- conda install spyder-kernels=1
+conda install -c spyder-ide spyder-kernels=1.*
 ```
 
 or `pip`:
@@ -229,7 +229,7 @@ https://github.com/spyder-ide/spyder/wiki/Troubleshooting-Guide-and-FAQ)
 
 [Gitter Chatroom](https://gitter.im/spyder-ide/public)
 
-[Google Group](http://groups.google.com/group/spyderlib)
+[Google Group](https://groups.google.com/group/spyderlib)
 
 [@Spyder_IDE on Twitter](https://twitter.com/spyder_ide)
 

@@ -33,7 +33,7 @@ class HelpWidget(RichJupyterWidget):
         """
         Replace invalid variable chars in a string by underscores
 
-        Taken from http://stackoverflow.com/a/3305731/438386
+        Taken from https://stackoverflow.com/a/3305731/438386
         """
         return re.sub(r'\W|^(?=\d)', '_', var)
 
