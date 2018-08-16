@@ -186,8 +186,8 @@ DEFAULTS = [
              }),
             ('figure_explorer',
              {
-              'mute_inline': True,
-              'show_oultine': False,
+              'mute_inline_plotting': False,
+              'show_plot_outline': False,
              }),
             ('editor',
              {
