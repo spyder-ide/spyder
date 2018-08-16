@@ -667,10 +667,10 @@ DEFAULTS = [
                                     'enabled': True
                                 },
                                 'yapf': {
-                                    'enabled': True
+                                    'enabled': False
                                 },
                                 'pydocstyle': {
-                                    'enabled': True,
+                                    'enabled': False,
                                     'convention': 'pep257',
                                     'addIgnore': [],
                                     'addSelect': [],
@@ -684,7 +684,7 @@ DEFAULTS = [
                                     'ropeFolder': []
                                 },
                                 'rope_completion': {
-                                    'enabled': True
+                                    'enabled': False
                                 },
                                 'jedi_completion': {
                                     'enabled': True
@@ -703,7 +703,7 @@ DEFAULTS = [
                                     'all_scopes': True
                                 },
                                 'mccabe': {
-                                    'enabled': True,
+                                    'enabled': False,
                                     'threshold': 15
                                 },
                                 'preload': {
