@@ -125,8 +125,10 @@ class NamespaceBrowser(QWidget):
 
         # Setup layout
         blayout = QHBoxLayout()
-        toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
-                                     exclude_capitalized, exclude_unsupported)
+        self.setup_option_actions(exclude_private, exclude_uppercase,
+                                  exclude_capitalized, exclude_unsupported)
+
+        toolbar = self.setup_toolbar()
         for widget in toolbar:
             blayout.addWidget(widget)
 
@@ -167,12 +169,8 @@ class NamespaceBrowser(QWidget):
         """Get actions of the widget."""
         return self.actions
 
-    def setup_toolbar(self, exclude_private, exclude_uppercase,
-                      exclude_capitalized, exclude_unsupported):
+    def setup_toolbar(self):
         """Setup toolbar"""
-        self.setup_in_progress = True
-        toolbar = []
-
         load_button = create_toolbutton(self, text=_('Import data'),
                                         icon=ima.icon('fileimport'),
                                         triggered=lambda: self.import_data())
@@ -188,8 +186,13 @@ class NamespaceBrowser(QWidget):
                 self, text=_("Remove all variables"),
                 icon=ima.icon('editdelete'), triggered=self.reset_namespace)
 
-        toolbar += [load_button, self.save_button, save_as_button,
-                    reset_namespace_button]
+        return [load_button, self.save_button, save_as_button,
+                reset_namespace_button]
+
+    def setup_option_actions(self, exclude_private, exclude_uppercase,
+                             exclude_capitalized, exclude_unsupported):
+        """Setup the actions to show in the cog menu."""
+        self.setup_in_progress = True
 
         self.exclude_private_action = create_action(self,
                 _("Exclude private references"),
@@ -221,10 +224,14 @@ class NamespaceBrowser(QWidget):
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
-        
+
+        self.actions = [
+            self.exclude_private_action, self.exclude_uppercase_action,
+            self.exclude_capitalized_action, self.exclude_unsupported_action]
+        if is_module_installed('numpy'):
+            self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
+
         self.setup_in_progress = False
-        
-        return toolbar
 
     def option_changed(self, option, value):
         """Option has changed"""
