@@ -169,7 +169,8 @@ DEFAULTS = [
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
-              'show_elapsed_time': False
+              'show_elapsed_time': False,
+              'ask_before_restart': True
               }),
             ('variable_explorer',
              {
