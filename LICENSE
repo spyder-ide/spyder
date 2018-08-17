@@ -63,6 +63,7 @@ spyder/images/editor/blockcomment.png
 spyder/images/editor/refactor.png
 spyder/images/console/ipython_console.png
 spyder/images/console/ipython_console_t.png
+spyder/images/console/loading_sprites.png
 
 
 [2] Crystal Project Icons
@@ -248,10 +249,3 @@ spyder/images/editor/run_cell_advance.png
 spyder/images/editor/run_selection.png
 spyder/images/editor/run_settings.png
 spyder/images/console/run_small.png
-
-[13] http://preloaders.net/
-(According to the website: "All animated GIF and APNG images are completely
-free to use in all projects (web and desktop applications, freeware and
-commercial projects)")
-
-spyder/images/console/loading_sprites.png
