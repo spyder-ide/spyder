@@ -222,7 +222,6 @@ class NamespaceBrowser(QWidget):
             self.options_menu = QMenu(self)
             add_actions(self.options_menu, actions)
             self.options_button.setMenu(self.options_menu)
-            self.set_options_button(self.options_button)
 
         if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
             self.tools_layout.insertWidget(
