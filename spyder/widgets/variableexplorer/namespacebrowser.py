@@ -33,7 +33,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout)
+                                    create_toolbutton, create_plugin_layout,
+                                    MENU_SEPARATOR)
 from spyder.widgets.variableexplorer.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.widgets.variableexplorer.importwizard import ImportWizard
@@ -48,8 +49,7 @@ class NamespaceBrowser(QWidget):
     sig_collapse = Signal()
     sig_free_memory = Signal()
 
-    def __init__(self, parent, options_button=None, menu=None,
-                 plugin_actions=None):
+    def __init__(self, parent, options_button=None, plugin_actions=[]):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
@@ -74,7 +74,6 @@ class NamespaceBrowser(QWidget):
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
         self.options_button = options_button
-        self.menu = menu
         self.actions = None
         self.plugin_actions = plugin_actions
 
@@ -123,39 +122,21 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_files_dropped.connect(self.import_data)
         self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
-        # Setup layout
-        blayout = QHBoxLayout()
         self.setup_option_actions(exclude_private, exclude_uppercase,
                                   exclude_capitalized, exclude_unsupported)
 
+        # Setup toolbar layout.
+
+        self.tools_layout = QHBoxLayout()
         toolbar = self.setup_toolbar()
         for widget in toolbar:
-            blayout.addWidget(widget)
+            self.tools_layout.addWidget(widget)
+        self.tools_layout.addStretch()
+        self.setup_options_button()
 
-        # Options menu
-        editor = self.editor
-        actions = [self.exclude_private_action, self.exclude_uppercase_action,
-                   self.exclude_capitalized_action,
-                   self.exclude_unsupported_action, None]
-        if is_module_installed('numpy'):
-            actions.append(editor.minmax_action)
-        if self.plugin_actions:
-            actions = actions + self.plugin_actions
-        self.actions = actions
-        if not self.options_button:
-            self.options_button = create_toolbutton(
-                                        self, text=_('Options'),
-                                        icon=ima.icon('tooloptions'))
-            self.options_button.setPopupMode(QToolButton.InstantPopup)
-        if not self.menu:
-            self.menu = QMenu(self)
-        add_actions(self.menu, self.actions)
-        self.options_button.setMenu(self.menu)
+        # Setup layout.
 
-        blayout.addStretch()
-        blayout.addWidget(self.options_button)
-
-        layout = create_plugin_layout(blayout, self.editor)
+        layout = create_plugin_layout(self.tools_layout, self.editor)
         self.setLayout(layout)
 
     def set_shellwidget(self, shellwidget):
@@ -230,6 +211,24 @@ class NamespaceBrowser(QWidget):
             self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
 
         self.setup_in_progress = False
+
+    def setup_options_button(self):
+        """Add the cog menu button to the toolbar."""
+        if not self.options_button:
+            self.options_button = create_toolbutton(
+                self, text=_('Options'), icon=ima.icon('tooloptions'))
+
+            actions = self.actions + [MENU_SEPARATOR] + self.plugin_actions
+            self.options_menu = QMenu(self)
+            add_actions(self.options_menu, actions)
+            self.options_button.setMenu(self.options_menu)
+            self.set_options_button(self.options_button)
+
+        if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
+            self.tools_layout.insertWidget(
+                self.tools_layout.count() - 1, self.options_button)
+        else:
+            self.tools_layout.addWidget(self.options_button)
 
     def option_changed(self, option, value):
         """Option has changed"""
