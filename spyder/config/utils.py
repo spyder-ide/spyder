@@ -122,7 +122,10 @@ def get_edit_filetypes():
     if os.name == 'nt':
         supported_exts = []
     else:
-        supported_exts = _get_pygments_extensions()
+        try:
+            supported_exts = _get_pygments_extensions()
+        except Exception:
+            supported_exts = []
 
     # NOTE: Try to not add too much extensions to this list to not
     # make the filter look too big on Windows
