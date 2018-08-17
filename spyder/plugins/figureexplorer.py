@@ -131,10 +131,7 @@ class FigureExplorer(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        if not self.current_widget():
-            return []
-        else:
-            return self.current_widget().actions
+        return self.current_widget().actions if self.current_widget() else []
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
