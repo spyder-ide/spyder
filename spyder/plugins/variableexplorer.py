@@ -140,6 +140,10 @@ class VariableExplorer(SpyderPluginWidget):
     # ----- Stack accesors ----------------------------------------------------
     def set_current_widget(self, nsb):
         self.stack.setCurrentWidget(nsb)
+        # We update the actions of the options button (cog menu) and we move
+        # it to the layout of the current widget.
+        self.refresh_actions()
+        nsb.setup_options_button()
 
     def current_widget(self):
         return self.stack.currentWidget()
@@ -164,9 +168,7 @@ class VariableExplorer(SpyderPluginWidget):
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self.shellwidgets:
             self.options_button.setVisible(True)
-            nsb = NamespaceBrowser(self,
-                                   options_button=self.options_button,
-                                   plugin_actions=[self.undock_action])
+            nsb = NamespaceBrowser(self, options_button=self.options_button)
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**self.get_settings())
             nsb.sig_option_changed.connect(self.change_option)
@@ -225,8 +227,8 @@ class VariableExplorer(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
-    
+        return self.current_widget().actions if self.current_widget() else []
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
