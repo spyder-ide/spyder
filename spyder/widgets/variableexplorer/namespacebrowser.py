@@ -54,7 +54,7 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.is_visible = True
-        self.setup_in_progress = False
+        self.setup_in_progress = None
 
         # Remote dict editor settings
         self.check_all = None
@@ -118,7 +118,7 @@ class NamespaceBrowser(QWidget):
                         shellwidget=self.shellwidget,
                         dataframe_format=dataframe_format)
 
-        self.editor.sig_option_changed.connect(self.option_changed)
+        self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
         self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
@@ -139,6 +139,8 @@ class NamespaceBrowser(QWidget):
         layout = create_plugin_layout(self.tools_layout, self.editor)
         self.setLayout(layout)
 
+        self.sig_option_changed.connect(self.option_changed)
+        
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
@@ -178,30 +180,30 @@ class NamespaceBrowser(QWidget):
                 tip=_("Exclude references which name starts"
                             " with an underscore"),
                 toggled=lambda state:
-                self.option_changed('exclude_private', state))
+                self.sig_option_changed.emit('exclude_private', state))
         self.exclude_private_action.setChecked(exclude_private)
-
+        
         self.exclude_uppercase_action = create_action(self,
                 _("Exclude all-uppercase references"),
                 tip=_("Exclude references which name is uppercase"),
                 toggled=lambda state:
-                self.option_changed('exclude_uppercase', state))
+                self.sig_option_changed.emit('exclude_uppercase', state))
         self.exclude_uppercase_action.setChecked(exclude_uppercase)
-
+        
         self.exclude_capitalized_action = create_action(self,
                 _("Exclude capitalized references"),
                 tip=_("Exclude references which name starts with an "
                       "uppercase character"),
                 toggled=lambda state:
-                self.option_changed('exclude_capitalized', state))
+                self.sig_option_changed.emit('exclude_capitalized', state))
         self.exclude_capitalized_action.setChecked(exclude_capitalized)
-
+        
         self.exclude_unsupported_action = create_action(self,
                 _("Exclude unsupported data types"),
                 tip=_("Exclude references to unsupported data types"
                             " (i.e. which won't be handled/saved correctly)"),
                 toggled=lambda state:
-                self.option_changed('exclude_unsupported', state))
+                self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
 
         self.actions = [
@@ -234,8 +236,6 @@ class NamespaceBrowser(QWidget):
         setattr(self, to_text_string(option), value)
         self.shellwidget.set_namespace_view_settings()
         self.refresh_table()
-        if self.setup_in_progress is False:
-            self.sig_option_changed.emit(option, value)
 
     def get_view_settings(self):
         """Return dict editor view settings"""
