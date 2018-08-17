@@ -128,12 +128,10 @@ class FigureBrowser(QWidget):
         for widget in toolbar:
             self.tools_layout.addWidget(widget)
         self.tools_layout.addStretch()
-        self.tools_layout.addWidget(self.options_button)
+        self.setup_options_button()
 
         layout = create_plugin_layout(self.tools_layout, main_widget)
         self.setLayout(layout)
-
-        self.setup_options_button()
 
     def setup_toolbar(self):
         """Setup the toolbar"""
@@ -219,6 +217,7 @@ class FigureBrowser(QWidget):
         self.actions = [self.mute_inline_action, self.show_plot_outline_action]
 
     def setup_options_button(self):
+        """Add the cog menu button to the toolbar."""
         if not self.options_button:
             self.options_button = create_toolbutton(
                 self, text=_('Options'), icon=ima.icon('tooloptions'))
