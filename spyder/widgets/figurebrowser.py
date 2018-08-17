@@ -31,9 +31,11 @@ from qtpy.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QMenu,
 # ---- Local library imports
 
 from spyder.config.base import _
-from spyder.py3compat import is_unicode
+from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (create_toolbutton, create_plugin_layout)
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_toolbutton, create_plugin_layout,
+                                    MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
 
 
@@ -70,8 +72,7 @@ class FigureBrowser(QWidget):
     sig_option_changed = Signal(str, object)
     sig_collapse = Signal()
 
-    def __init__(self, parent, options_button=None, menu=None,
-                 plugin_actions=None):
+    def __init__(self, parent, options_button=None, plugin_actions=[]):
         super(FigureBrowser, self).__init__(parent)
 
         self.shellwidget = None
@@ -79,39 +80,32 @@ class FigureBrowser(QWidget):
         self.figviewer = None
         self.setup_in_progress = None
 
+        # Options :
+
+        self.mute_inline_plotting = None
+        self.show_plot_outline = None
+
+        # Option actions :
+
+        self.mute_inline_action = None
+        self.show_plot_outline_action = None
+
         self.options_button = options_button
-        self.menu = menu
         self.plugin_actions = plugin_actions
 
-    def setup(self):
-        """
-        Setup the figure browser with provided settings.
-        """
+    def setup(self, mute_inline_plotting=None, show_plot_outline=None):
+        """Setup the figure browser with provided settings."""
         assert self.shellwidget is not None
 
-        # Options menu :
+        self.mute_inline_plotting = mute_inline_plotting
+        self.show_plot_outline = show_plot_outline
 
-        actions = []
-        if self.plugin_actions:
-            actions = actions + self.plugin_actions
-        self.actions = actions
-        if not self.options_button:
-            self.options_button = create_toolbutton(
-                    self, text=_('Options'), icon=ima.icon('tooloptions'))
-        if not self.menu:
-            self.menu = QMenu(self)
-        self.mute_inline_chbox = QCheckBox(_("Mute inline plotting"))
-        self.mute_inline_chbox.setToolTip(
-                _("Mute inline plotting in the ipython console."))
-        self.mute_inline_chbox.setChecked(True)
+        if self.figviewer is not None:
+            self.mute_inline_action.setChecked(mute_inline_plotting)
+            self.show_plot_outline_action.setChecked(show_plot_outline)
+            return
 
-        self.show_outline_chbox = QCheckBox(_("Show outline"))
-        self.show_outline_chbox.setToolTip(_("Show the figure outline."))
-        self.show_outline_chbox.setChecked(False)
-        self.show_outline_chbox.stateChanged.connect(
-            self.show_fig_outline_in_viewer)
-
-        # Create the main layout.
+        self.setup_option_actions()
 
         self.figviewer = FigureViewer()
         self.figviewer.setStyleSheet("FigureViewer{"
@@ -122,30 +116,24 @@ class FigureBrowser(QWidget):
                                      "}")
         self.thumnails_sb = ThumbnailScrollBar(self.figviewer)
 
-        splitter = QSplitter()
-        splitter.addWidget(self.figviewer)
-        splitter.addWidget(self.thumnails_sb)
-        splitter.setFrameStyle(QScrollArea().frameStyle())
+        # Create the layout :
 
-        # Setup the blayout.
+        main_widget = QSplitter()
+        main_widget.addWidget(self.figviewer)
+        main_widget.addWidget(self.thumnails_sb)
+        main_widget.setFrameStyle(QScrollArea().frameStyle())
 
-        blayout = QHBoxLayout()
+        self.tools_layout = QHBoxLayout()
         toolbar = self.setup_toolbar()
         for widget in toolbar:
-            blayout.addWidget(widget)
-        blayout.addStretch()
-        blayout.addWidget(self.show_outline_chbox)
-        blayout.addWidget(self.mute_inline_chbox)
-        blayout.addWidget(self.options_button)
+            self.tools_layout.addWidget(widget)
+        self.tools_layout.addStretch()
+        self.tools_layout.addWidget(self.options_button)
 
-        # Connect the figviewer zoom changed signal to the toolbar widget.
-
-        self.figviewer.sig_zoom_changed.connect(self.zoom_disp.setValue)
-
-        # Create the plugin layout.
-
-        layout = create_plugin_layout(blayout, splitter)
+        layout = create_plugin_layout(self.tools_layout, main_widget)
         self.setLayout(layout)
+
+        self.setup_options_button()
 
     def setup_toolbar(self):
         """Setup the toolbar"""
@@ -202,6 +190,7 @@ class FigureBrowser(QWidget):
         self.zoom_disp.setSuffix(' %')
         self.zoom_disp.setRange(0, 9999)
         self.zoom_disp.setValue(100)
+        self.figviewer.sig_zoom_changed.connect(self.zoom_disp.setValue)
 
         zoom_pan = QWidget()
         layout = QHBoxLayout(zoom_pan)
@@ -214,16 +203,52 @@ class FigureBrowser(QWidget):
         return [savefig_btn, saveall_btn, closefig_btn, closeall_btn, vsep1,
                 goback_btn, gonext_btn, vsep2, zoom_pan]
 
-    @property
-    def mute_inline_plotting(self):
-        return self.mute_inline_chbox.isChecked()
+    def setup_option_actions(self):
+        """Setup the actions to show in the cog menu."""
+        self.mute_inline_action = create_action(
+            self, _("Mute inline plotting"),
+            tip=_("Mute inline plotting in the ipython console."),
+            toggled=lambda state:
+            self.option_changed('mute_inline_plotting', state)
+            )
+        self.show_plot_outline_action = create_action(
+            self, _("Show plot outline"),
+            tip=_("Show the plot outline."),
+            toggled=self.show_fig_outline_in_viewer
+            )
+        self.actions = [self.mute_inline_action, self.show_plot_outline_action]
+
+    def setup_options_button(self):
+        if not self.options_button:
+            self.options_button = create_toolbutton(
+                self, text=_('Options'), icon=ima.icon('tooloptions'))
+
+            actions = self.actions + [MENU_SEPARATOR] + self.plugin_actions
+            self.options_menu = QMenu(self)
+            add_actions(self.options_menu, actions)
+            self.options_button.setMenu(self.options_menu)
+            self.set_options_button(self.options_button)
+
+        if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
+            self.tools_layout.insertWidget(
+                self.tools_layout.count() - 1, self.options_button)
+        else:
+            self.tools_layout.addWidget(self.options_button)
+
+    def option_changed(self, option, value):
+        """Handle when the value of an option has changed"""
+        setattr(self, to_text_string(option), value)
+        self.shellwidget.set_namespace_view_settings()
+        self.sig_option_changed.emit(option, value)
 
     def show_fig_outline_in_viewer(self, state):
-        if state == Qt.Checked:
+        """Draw a frame around the figure viewer if state is True."""
+        if state is True:
             self.figviewer.figcanvas.setStyleSheet(
                     "FigureCanvas{border: 1px solid lightgrey;}")
         else:
             self.figviewer.figcanvas.setStyleSheet("FigureCanvas{}")
+        self.option_changed('show_plot_outline', state)
 
     def set_shellwidget(self, shellwidget):
         """Bind the shellwidget instance to the figure browser"""

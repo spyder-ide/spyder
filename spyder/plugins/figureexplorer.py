@@ -50,6 +50,8 @@ class FigureExplorer(SpyderPluginWidget):
 
     def set_current_widget(self, fig_browser):
         self.stack.setCurrentWidget(fig_browser)
+        self.refresh_actions()
+        fig_browser.setup_options_button()
 
     def current_widget(self):
         return self.stack.currentWidget()
@@ -129,7 +131,10 @@ class FigureExplorer(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        return []
+        if not self.current_widget():
+            return []
+        else:
+            return self.current_widget().actions
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
