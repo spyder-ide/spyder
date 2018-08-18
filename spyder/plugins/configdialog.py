@@ -698,16 +698,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
         if tip is not None:
             combobox.setToolTip(tip)
-        for name, key in choices:
-            if not (name is None and key is None):
-                combobox.addItem(name, to_qvariant(key))
-        # Insert separators
-        count = 0
-        for index, item in enumerate(choices):
-            name, key = item
-            if name is None and key is None:
-                combobox.insertSeparator(index + count)
-                count += 1
+        combobox.addItems(choices)
         self.comboboxes[combobox] = (option, default)
 
         msg = _('Invalid file path')
