@@ -30,6 +30,7 @@ class FigureExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'figure_explorer'
     CONFIGWIDGET_CLASS = FigureExplorerConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
     sig_option_changed = Signal(str, object)
 
     def __init__(self, parent):
