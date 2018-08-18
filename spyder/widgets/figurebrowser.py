@@ -78,7 +78,7 @@ class FigureBrowser(QWidget):
         self.shellwidget = None
         self.is_visible = True
         self.figviewer = None
-        self.setup_in_progress = None
+        self.setup_in_progress = False
 
         # Options :
 
@@ -105,8 +105,6 @@ class FigureBrowser(QWidget):
             self.show_plot_outline_action.setChecked(show_plot_outline)
             return
 
-        self.setup_option_actions()
-
         self.figviewer = FigureViewer()
         self.figviewer.setStyleSheet("FigureViewer{"
                                      "border: 1px solid lightgrey;"
@@ -115,6 +113,10 @@ class FigureBrowser(QWidget):
                                      "border-left-width: 0px;"
                                      "}")
         self.thumnails_sb = ThumbnailScrollBar(self.figviewer)
+
+        # Option actions :
+
+        self.setup_option_actions(mute_inline_plotting, show_plot_outline)
 
         # Create the layout :
 
@@ -201,24 +203,33 @@ class FigureBrowser(QWidget):
         return [savefig_btn, saveall_btn, closefig_btn, closeall_btn, vsep1,
                 goback_btn, gonext_btn, vsep2, zoom_pan]
 
-    def setup_option_actions(self):
+    def setup_option_actions(self, mute_inline_plotting, show_plot_outline):
         """Setup the actions to show in the cog menu."""
+        self.setup_in_progress = True
         self.mute_inline_action = create_action(
             self, _("Mute inline plotting"),
             tip=_("Mute inline plotting in the ipython console."),
             toggled=lambda state:
             self.option_changed('mute_inline_plotting', state)
             )
+        self.mute_inline_action.setChecked(mute_inline_plotting)
+
         self.show_plot_outline_action = create_action(
             self, _("Show plot outline"),
             tip=_("Show the plot outline."),
             toggled=self.show_fig_outline_in_viewer
             )
+        self.show_plot_outline_action.setChecked(show_plot_outline)
+
         self.actions = [self.mute_inline_action, self.show_plot_outline_action]
+        self.setup_in_progress = False
 
     def setup_options_button(self):
         """Add the cog menu button to the toolbar."""
         if not self.options_button:
+            # When the FigureBowser widget is instatiated outside of the
+            # plugin (for testing purpose for instance), we need to create
+            # the options_button and set its menu.
             self.options_button = create_toolbutton(
                 self, text=_('Options'), icon=ima.icon('tooloptions'))
 
@@ -226,7 +237,6 @@ class FigureBrowser(QWidget):
             self.options_menu = QMenu(self)
             add_actions(self.options_menu, actions)
             self.options_button.setMenu(self.options_menu)
-            self.set_options_button(self.options_button)
 
         if self.tools_layout.itemAt(self.tools_layout.count() - 1) is None:
             self.tools_layout.insertWidget(
@@ -238,7 +248,8 @@ class FigureBrowser(QWidget):
         """Handle when the value of an option has changed"""
         setattr(self, to_text_string(option), value)
         self.shellwidget.set_namespace_view_settings()
-        self.sig_option_changed.emit(option, value)
+        if self.setup_in_progress is False:
+            self.sig_option_changed.emit(option, value)
 
     def show_fig_outline_in_viewer(self, state):
         """Draw a frame around the figure viewer if state is True."""

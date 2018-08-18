@@ -46,10 +46,22 @@ class FigureExplorer(SpyderPluginWidget):
         # Initialize plugin
         self.initialize_plugin()
 
+    def get_settings(self):
+        """Retrieve all Figure Explorer configuration settings."""
+        return {name: self.get_option(name) for name in
+                ['mute_inline_plotting',  'show_plot_outline']}
+
     # ---- Stack accesors
 
     def set_current_widget(self, fig_browser):
+        """
+        Set the currently visible fig_browser in the stack widget, refresh the
+        actions of the cog menu button and move it to the layout of the new
+        fig_browser.
+        """
         self.stack.setCurrentWidget(fig_browser)
+        # We update the actions of the options button (cog menu) and
+        # we move it to the layout of the current widget.
         self.refresh_actions()
         fig_browser.setup_options_button()
 
@@ -77,15 +89,14 @@ class FigureExplorer(SpyderPluginWidget):
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self.shellwidgets:
             self.options_button.setVisible(True)
-            fig_browser = FigureBrowser(self,
-                                        options_button=self.options_button,
-                                        plugin_actions=[self.undock_action])
+            fig_browser = FigureBrowser(
+                self, options_button=self.options_button)
             fig_browser.set_shellwidget(shellwidget)
-            fig_browser.setup()
+            fig_browser.setup(**self.get_settings())
+            fig_browser.sig_option_changed.connect(
+                self.sig_option_changed.emit)
             fig_browser.thumnails_sb.redirect_stdio.connect(
                 self.main.redirect_internalshell_stdio)
-            # fig_browser.setup(**self.get_settings())
-            # fig_browser.sig_option_changed.connect(self.change_option)
             self.add_widget(fig_browser)
             self.shellwidgets[shellwidget_id] = fig_browser
             self.set_shellwidget_from_id(shellwidget_id)
@@ -140,5 +151,4 @@ class FigureExplorer(SpyderPluginWidget):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for fig_browser in list(self.shellwidgets.values()):
-            pass
-            # fig_browser.setup(**self.get_settings())
+            fig_browser.setup(**self.get_settings())
