@@ -126,8 +126,6 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.addAction(self.previous_action)
         
         # Next dir action
-        self.history = []
-        self.histindex = None
         self.next_action = create_action(self, "next", None,
                                      ima.icon('next'), _('Next'),
                                      triggered=self.next_directory)
