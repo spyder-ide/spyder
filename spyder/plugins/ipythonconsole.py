@@ -1617,7 +1617,15 @@ class IPythonConsole(SpyderPluginWidget):
                 stderr = None
         else:
             stderr = None
-        kernel_manager.start_kernel(stderr=stderr)
+
+        # Catch any error generated when trying to start the kernel
+        # See issue 7302
+        try:
+            kernel_manager.start_kernel(stderr=stderr)
+        except Exception:
+            error_msg = _("The error is:<br><br>"
+                          "<tt>{}</tt>").format(traceback.format_exc())
+            return (error_msg, None)
 
         # Kernel client
         kernel_client = kernel_manager.client()
