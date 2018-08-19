@@ -20,10 +20,9 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 class FigureBrowserWidget(RichJupyterWidget):
     """
     Widget with the necessary attributes and methods to intercept the figures
-    sent by the kernel to the Ipython Console and send it to the Figure
-    Explorer plugin. This widget can also block the plotting of inline
-    figure in the Ipython Console so that figures are only plotted in the
-    explorer plugin.
+    sent by the kernel to the IPython Console and send it to the plots plugin.
+    This widget can also block the plotting of inline figures in the IPython
+    Console so that figures are only plotted in the plots plugin.
     """
 
     # Reference to the figurebrowser widget connected to this client

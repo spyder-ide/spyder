@@ -64,7 +64,7 @@ def get_unique_figname(dirname, root, ext):
 
 class FigureBrowser(QWidget):
     """
-    Widget to browse the figures that were sent by the kernel to the ipython
+    Widget to browse the figures that were sent by the kernel to the IPython
     console to be plotted inline.
     """
     sig_option_changed = Signal(str, object)
@@ -138,7 +138,7 @@ class FigureBrowser(QWidget):
 
         saveall_btn = create_toolbutton(
                 self, icon=ima.icon('save_all'),
-                tip=_("Save All Image..."),
+                tip=_("Save All Images..."),
                 triggered=self.thumbnails_sb.save_all_figures_as)
 
         closefig_btn = create_toolbutton(
@@ -169,12 +169,12 @@ class FigureBrowser(QWidget):
 
         zoom_out_btn = create_toolbutton(
                 self, icon=ima.icon('zoom_out'),
-                tip=_("Zoom out (ctrl + mouse-wheel-down)"),
+                tip=_("Zoom out (Ctrl + mouse-wheel-down)"),
                 triggered=self.zoom_out)
 
         zoom_in_btn = create_toolbutton(
                 self, icon=ima.icon('zoom_in'),
-                tip=_("Zoom in (ctrl + mouse-wheel-up)"),
+                tip=_("Zoom in (Ctrl + mouse-wheel-up)"),
                 triggered=self.zoom_in)
 
         self.zoom_disp = QSpinBox()
@@ -266,7 +266,7 @@ class FigureBrowser(QWidget):
 
     def _handle_new_figure(self, fig, fmt):
         """
-        Handle when a new figure is sent to the ipython console by the
+        Handle when a new figure is sent to the IPython console by the
         kernel.
         """
         self.thumbnails_sb.add_thumbnail(fig, fmt)
