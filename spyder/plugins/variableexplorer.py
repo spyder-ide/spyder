@@ -72,6 +72,7 @@ class VariableExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
     SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
     sig_option_changed = Signal(str, object)
