@@ -18,11 +18,11 @@ import os.path as osp
 
 # ---- Third library imports
 
-from qtconsole.svg import save_svg, svg_to_clipboard, svg_to_image
-from qtpy.compat import getsavefilename, getopenfilenames, getexistingdirectory
-from qtpy.QtCore import Qt, Signal, Slot, QRect, QEvent, QObject
-from qtpy.QtGui import QImage, QPixmap, QPainter
-from qtpy.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QMenu,
+from qtconsole.svg import svg_to_image
+from qtpy.compat import getsavefilename, getexistingdirectory
+from qtpy.QtCore import Qt, Signal, QRect, QEvent
+from qtpy.QtGui import QPixmap, QPainter
+from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
                             QScrollArea, QPushButton, QScrollBar, QSizePolicy,
                             QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
