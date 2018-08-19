@@ -7,7 +7,7 @@
 """
 Figure browser widget
 
-This is the main widget used in the Figure Explorer plugin
+This is the main widget used in the Plots plugin
 """
 
 

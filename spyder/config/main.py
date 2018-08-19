@@ -185,7 +185,7 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False
              }),
-            ('figure_explorer',
+            ('plots',
              {
               'mute_inline_plotting': False,
               'show_plot_outline': False,

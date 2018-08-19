@@ -6,7 +6,7 @@
 
 """
 Widget that handles communications between the IPython Console and
-the Figure Explorer
+the Plots plugin
 """
 
 # ---- Standard library imports

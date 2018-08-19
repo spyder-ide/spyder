@@ -4,12 +4,12 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Figure Explorer Plugin"""
+"""Plots Plugin"""
 
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QGroupBox, QStackedWidget, QGridLayout
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QStackedWidget, QGridLayout
 
 # Local imports
 from spyder.config.base import _
@@ -19,17 +19,17 @@ from spyder.utils import icon_manager as ima
 from spyder.widgets.figurebrowser import FigureBrowser
 
 
-class FigureExplorerConfigPage(PluginConfigPage):
+class PlotsConfigPage(PluginConfigPage):
 
     def setup_page(self):
         pass
 
 
-class FigureExplorer(SpyderPluginWidget):
-    """Figure Explorer plugin."""
+class Plots(SpyderPluginWidget):
+    """Plots plugin."""
 
-    CONF_SECTION = 'figure_explorer'
-    CONFIGWIDGET_CLASS = FigureExplorerConfigPage
+    CONF_SECTION = 'plots'
+    CONFIGWIDGET_CLASS = PlotsConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     sig_option_changed = Signal(str, object)
 
@@ -48,7 +48,7 @@ class FigureExplorer(SpyderPluginWidget):
         self.initialize_plugin()
 
     def get_settings(self):
-        """Retrieve all Figure Explorer configuration settings."""
+        """Retrieve all Plots configuration settings."""
         return {name: self.get_option(name) for name in
                 ['mute_inline_plotting',  'show_plot_outline']}
 
@@ -120,7 +120,7 @@ class FigureExplorer(SpyderPluginWidget):
 
     def get_plugin_title(self):
         """Return widget title"""
-        return _('Figure explorer')
+        return _('Plots')
 
     def get_plugin_icon(self):
         """Return plugin icon"""

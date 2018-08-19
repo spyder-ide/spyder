@@ -662,7 +662,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.help = None               # Help plugin
         self.historylog = None         # History log plugin
         self.variableexplorer = None   # Variable explorer plugin
-        self.figureexplorer = None   # Variable explorer plugin
+        self.plots = None              # plots plugin
         self.editor = None             # Editor plugin
         self.projects = None           # Projects plugin
 
@@ -823,7 +823,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client and not self.testing:
             sw = client.shellwidget
             self.variableexplorer.set_shellwidget_from_id(id(sw))
-            self.figureexplorer.set_shellwidget_from_id(id(sw))
+            self.plots.set_shellwidget_from_id(id(sw))
             self.help.set_shell(sw)
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
@@ -909,7 +909,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.help = self.main.help
         self.historylog = self.main.historylog
         self.variableexplorer = self.main.variableexplorer
-        self.figureexplorer = self.main.figureexplorer
+        self.plots = self.main.plots
         self.editor = self.main.editor
         self.explorer = self.main.explorer
         self.projects = self.main.projects
@@ -1766,14 +1766,14 @@ class IPythonConsole(SpyderPluginWidget):
             self.help.set_shell(client.shellwidget)
         if self.variableexplorer is not None:
             self.variableexplorer.add_shellwidget(client.shellwidget)
-        if self.figureexplorer is not None:
-            self.figureexplorer.add_shellwidget(client.shellwidget)
+        if self.plots is not None:
+            self.plots.add_shellwidget(client.shellwidget)
 
     def process_finished(self, client):
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(id(client.shellwidget))
-        if self.figureexplorer is not None:
-            self.figureexplorer.remove_shellwidget(id(client.shellwidget))
+        if self.plots is not None:
+            self.plots.remove_shellwidget(id(client.shellwidget))
 
     def connect_external_kernel(self, shellwidget):
         """
