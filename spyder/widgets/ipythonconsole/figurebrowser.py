@@ -10,11 +10,9 @@ the Plots plugin
 """
 
 # ---- Standard library imports
-
 from base64 import decodestring
 
 # ---- Third party library imports
-
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 # from qtconsole.svg import save_svg, svg_to_clipboard, svg_to_image
 
@@ -32,13 +30,11 @@ class FigureBrowserWidget(RichJupyterWidget):
     figurebrowser = None
 
     # ---- Public API
-
     def set_figurebrowser(self, figurebrowser):
         """Set the namespace for the figurebrowser widget."""
         self.figurebrowser = figurebrowser
 
     # ---- Private API (overrode by us)
-
     def _handle_display_data(self, msg):
         """
         Reimplemented to handle communications between the figure explorer

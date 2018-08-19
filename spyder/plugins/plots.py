@@ -53,7 +53,6 @@ class Plots(SpyderPluginWidget):
                 ['mute_inline_plotting',  'show_plot_outline']}
 
     # ---- Stack accesors
-
     def set_current_widget(self, fig_browser):
         """
         Set the currently visible fig_browser in the stack widget, refresh the
@@ -79,7 +78,6 @@ class Plots(SpyderPluginWidget):
         self.stack.addWidget(fig_browser)
 
     # ---- Public API
-
     def add_shellwidget(self, shellwidget):
         """
         Register shell with figure explorer.
@@ -117,7 +115,6 @@ class Plots(SpyderPluginWidget):
             self.set_current_widget(fig_browser)
 
     # ---- SpyderPluginWidget API
-
     def get_plugin_title(self):
         """Return widget title"""
         return _('Plots')

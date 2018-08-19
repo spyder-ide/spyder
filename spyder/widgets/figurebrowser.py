@@ -10,14 +10,10 @@ Figure browser widget
 This is the main widget used in the Plots plugin
 """
 
-
 # ---- Standard library imports
-
 import os.path as osp
 
-
 # ---- Third library imports
-
 from qtconsole.svg import svg_to_image
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import Qt, Signal, QRect, QEvent
@@ -27,9 +23,7 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QScrollArea, QPushButton, QScrollBar, QSizePolicy,
                             QSpinBox, QSplitter, QStyleOptionSlider, QStyle)
 
-
 # ---- Local library imports
-
 from spyder.config.base import _
 from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
@@ -85,12 +79,10 @@ class FigureBrowser(QWidget):
         self.setup_in_progress = False
 
         # Options :
-
         self.mute_inline_plotting = None
         self.show_plot_outline = None
 
         # Option actions :
-
         self.mute_inline_action = None
         self.show_plot_outline_action = None
 
@@ -119,11 +111,9 @@ class FigureBrowser(QWidget):
         self.thumbnails_sb = ThumbnailScrollBar(self.figviewer)
 
         # Option actions :
-
         self.setup_option_actions(mute_inline_plotting, show_plot_outline)
 
         # Create the layout :
-
         main_widget = QSplitter()
         main_widget.addWidget(self.figviewer)
         main_widget.addWidget(self.thumbnails_sb)
@@ -282,7 +272,6 @@ class FigureBrowser(QWidget):
         self.thumbnails_sb.add_thumbnail(fig, fmt)
 
     # ---- Toolbar Handlers
-
     def zoom_in(self):
         """
         Zoom the figure in by a single step in the figure viewer.
@@ -358,7 +347,6 @@ class FigureViewer(QScrollArea):
         """A filter to control the zooming and panning of the figure canvas."""
 
         # ---- Zooming
-
         if event.type() == QEvent.Wheel:
             modifiers = QApplication.keyboardModifiers()
             if modifiers == Qt.ControlModifier:
@@ -371,9 +359,7 @@ class FigureViewer(QScrollArea):
                 return False
 
         # ---- Panning
-
         # Set ClosedHandCursor:
-
         elif event.type() == QEvent.MouseButtonPress:
             if event.button() == Qt.LeftButton:
                 QApplication.setOverrideCursor(Qt.ClosedHandCursor)
@@ -382,13 +368,11 @@ class FigureViewer(QScrollArea):
                 self.yclick = event.globalY()
 
         # Reset Cursor:
-
         elif event.type() == QEvent.MouseButtonRelease:
             QApplication.restoreOverrideCursor()
             self._ispanning = False
 
         # Move  ScrollBar:
-
         elif event.type() == QEvent.MouseMove:
             if self._ispanning:
                 dx = self.xclick - event.globalX()
@@ -406,7 +390,6 @@ class FigureViewer(QScrollArea):
         return QWidget.eventFilter(self, widget, event)
 
     # ---- Figure Scaling Handlers
-
     def zoom_in(self):
         """Scale the image up by one scale step."""
         if self._scalefactor <= self._sfmax:
@@ -500,7 +483,6 @@ class ThumbnailScrollBar(QFrame):
                                                   QSizePolicy.Preferred))
 
         # Set the vertical scrollbar explicitely :
-
         # This is required to avoid a "RuntimeError: no access to protected
         # functions or signals for objects not created from Python" in Linux.
         self.scrollarea.setVerticalScrollBar(QScrollBar())
@@ -514,7 +496,6 @@ class ThumbnailScrollBar(QFrame):
         """
         # Get the height of the up/down arrow of the default vertical
         # scrollbar :
-
         vsb = self.scrollarea.verticalScrollBar()
         style = vsb.style()
         opt = QStyleOptionSlider()
@@ -523,7 +504,6 @@ class ThumbnailScrollBar(QFrame):
                 QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarAddLine, self)
 
         # Setup the up and down arrow button :
-
         up_btn = up_btn = QPushButton(icon=ima.icon('last_edit_location'))
         up_btn.setFlat(True)
         up_btn.setFixedHeight(vsb_up_arrow.size().height())
@@ -541,7 +521,6 @@ class ThumbnailScrollBar(QFrame):
         self.figure_viewer = figure_viewer
 
     # ---- Save Figure
-
     def save_all_figures_as(self):
         """Save all the figures to a file."""
         self.redirect_stdio.emit(False)
@@ -591,7 +570,6 @@ class ThumbnailScrollBar(QFrame):
             save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
-
     def add_thumbnail(self, fig, fmt):
         thumbnail = FigureThumbnail()
         thumbnail.canvas.load_figure(fig, fmt)
@@ -643,7 +621,6 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.deleteLater()
 
         # Select a new thumbnail if any :
-
         if thumbnail == self.current_thumbnail:
             if len(self._thumbnails) > 0:
                 self.set_current_index(min(index, len(self._thumbnails)-1))
@@ -678,7 +655,6 @@ class ThumbnailScrollBar(QFrame):
             self.set_current_index(index)
 
     # ---- ScrollBar Handlers
-
     def go_up(self):
         """Scroll the scrollbar of the scrollarea up by a single step."""
         vsb = self.scrollarea.verticalScrollBar()
@@ -695,7 +671,6 @@ class FigureThumbnail(QWidget):
     A widget that consists of a FigureCanvas, a side toolbar, and a context
     menu that is used to show preview of figures in the ThumbnailScrollBar.
     """
-
     sig_canvas_clicked = Signal(object)
     sig_remove_figure = Signal(object)
     sig_save_figure = Signal(object, str)
@@ -815,7 +790,6 @@ class FigureCanvas(QFrame):
         """Qt method override to paint a custom image on the Widget."""
         super(FigureCanvas, self).paintEvent(event)
         # Prepare the rect on which the image is going to be painted :
-
         fw = self.frameWidth()
         rect = QRect(0 + fw, 0 + fw,
                      self.size().width() - 2 * fw,
@@ -825,7 +799,6 @@ class FigureCanvas(QFrame):
             return
 
         # Check/update the qpixmap buffer :
-
         qpix2paint = None
         for qpix in self._qpix_buffer:
             if qpix.size().width() == rect.width():
