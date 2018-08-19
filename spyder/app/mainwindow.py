@@ -1472,6 +1472,7 @@ class MainWindow(QMainWindow):
         explorer_project = self.projects
         explorer_file = self.explorer
         explorer_variable = self.variableexplorer
+        plots = self.plots
         history = self.historylog
         finder = self.findinfiles
         help_plugin = self.help
@@ -1494,8 +1495,8 @@ class MainWindow(QMainWindow):
                     # column 2
                     [[outline]],
                     # column 3
-                    [[help_plugin, explorer_variable, helper, explorer_file,
-                      finder] + plugins,
+                    [[help_plugin, explorer_variable, plots, helper,
+                      explorer_file, finder] + plugins,
                      [console_int, console_ipy, history]]
                     ],
                     'width fraction': [0.0,             # column 0 width
@@ -1514,7 +1515,8 @@ class MainWindow(QMainWindow):
                     [[editor],
                      [console_ipy, console_int]],
                     # column 1
-                    [[explorer_variable, history, outline, finder] + plugins,
+                    [[explorer_variable, plots, history,outline,
+                      finder] + plugins,
                      [explorer_file, explorer_project, help_plugin, helper]]
                     ],
                     'width fraction': [0.55,            # column 0 width
@@ -1533,7 +1535,7 @@ class MainWindow(QMainWindow):
                     [[editor],
                      [console_ipy, console_int]],
                     # column 2
-                    [[explorer_variable, finder] + plugins,
+                    [[explorer_variable, plots, finder] + plugins,
                      [history, help_plugin, helper]]
                     ],
                     'width fraction': [0.20,            # column 0 width
@@ -1550,7 +1552,7 @@ class MainWindow(QMainWindow):
                     # column 0
                     [[editor],
                      [console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable,
+                      explorer_project, help_plugin, explorer_variable, plots,
                       history, outline, finder, helper] + plugins]
                     ],
                     'width fraction': [1.0],            # column 0 width
@@ -1564,7 +1566,7 @@ class MainWindow(QMainWindow):
                     [[editor]],
                     # column 1
                     [[console_ipy, console_int, explorer_file,
-                      explorer_project, help_plugin, explorer_variable,
+                      explorer_project, help_plugin, explorer_variable, plots,
                       history, outline, finder, helper] + plugins]
                     ],
                     'width fraction': [0.55,      # column 0 width
