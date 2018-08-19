@@ -2338,7 +2338,7 @@ class MainWindow(QMainWindow):
                                     | Qt.WindowStaysOnTopHint)
                 r = QApplication.desktop().screenGeometry()
                 self.setGeometry(
-                    r.left()-1, r.top()-1, r.width()+2, r.height()+2)
+                    r.left() - 1, r.top() - 1, r.width() + 2, r.height() + 2)
                 self.showNormal()
             else:
                 self.showFullScreen()
