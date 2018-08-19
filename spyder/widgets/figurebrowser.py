@@ -54,6 +54,10 @@ def save_figure_tofile(fig, fmt, fname):
 
 
 def get_unique_figname(dirname, root, ext):
+    """
+    Append a number to "root" to form a filename that does not already exist
+    in "dirname".
+    """
     i = 1
     figname = root + '_%d' % i + ext
     while True:
