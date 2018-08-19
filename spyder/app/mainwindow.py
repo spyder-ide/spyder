@@ -1515,7 +1515,7 @@ class MainWindow(QMainWindow):
                     [[editor],
                      [console_ipy, console_int]],
                     # column 1
-                    [[explorer_variable, plots, history,outline,
+                    [[explorer_variable, plots, history, outline,
                       finder] + plugins,
                      [explorer_file, explorer_project, help_plugin, helper]]
                     ],
