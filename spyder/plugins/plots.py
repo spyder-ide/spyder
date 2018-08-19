@@ -96,7 +96,7 @@ class Plots(SpyderPluginWidget):
             fig_browser.setup(**self.get_settings())
             fig_browser.sig_option_changed.connect(
                 self.sig_option_changed.emit)
-            fig_browser.thumnails_sb.redirect_stdio.connect(
+            fig_browser.thumbnails_sb.redirect_stdio.connect(
                 self.main.redirect_internalshell_stdio)
             self.add_widget(fig_browser)
             self.shellwidgets[shellwidget_id] = fig_browser

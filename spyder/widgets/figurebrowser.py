@@ -112,7 +112,7 @@ class FigureBrowser(QWidget):
                                      "border-bottom-width: 0px;"
                                      "border-left-width: 0px;"
                                      "}")
-        self.thumnails_sb = ThumbnailScrollBar(self.figviewer)
+        self.thumbnails_sb = ThumbnailScrollBar(self.figviewer)
 
         # Option actions :
 
@@ -122,7 +122,7 @@ class FigureBrowser(QWidget):
 
         main_widget = QSplitter()
         main_widget.addWidget(self.figviewer)
-        main_widget.addWidget(self.thumnails_sb)
+        main_widget.addWidget(self.thumbnails_sb)
         main_widget.setFrameStyle(QScrollArea().frameStyle())
 
         self.tools_layout = QHBoxLayout()
@@ -140,12 +140,12 @@ class FigureBrowser(QWidget):
         savefig_btn = create_toolbutton(
                 self, icon=ima.icon('filesave'),
                 tip=_("Save Image As..."),
-                triggered=self.thumnails_sb.save_current_figure_as)
+                triggered=self.thumbnails_sb.save_current_figure_as)
 
         saveall_btn = create_toolbutton(
                 self, icon=ima.icon('save_all'),
                 tip=_("Save All Image..."),
-                triggered=self.thumnails_sb.save_all_figures_as)
+                triggered=self.thumbnails_sb.save_all_figures_as)
 
         closefig_btn = create_toolbutton(
                 self, icon=ima.icon('editclear'),
@@ -275,7 +275,7 @@ class FigureBrowser(QWidget):
         Handle when a new figure is sent to the ipython console by the
         kernel.
         """
-        self.thumnails_sb.add_thumbnail(fig, fmt)
+        self.thumbnails_sb.add_thumbnail(fig, fmt)
 
     # ---- Toolbar Handlers
 
@@ -296,22 +296,22 @@ class FigureBrowser(QWidget):
         Select the thumbnail previous to the currently selected one in the
         thumbnail scrollbar.
         """
-        self.thumnails_sb.go_previous_thumbnail()
+        self.thumbnails_sb.go_previous_thumbnail()
 
     def go_next_thumbnail(self):
         """
         Select the thumbnail next to the currently selected one in the
         thumbnail scrollbar.
         """
-        self.thumnails_sb.go_next_thumbnail()
+        self.thumbnails_sb.go_next_thumbnail()
 
     def close_figure(self):
         """Close the currently selected figure in the thumbnail scrollbar."""
-        self.thumnails_sb.remove_current_thumbnail()
+        self.thumbnails_sb.remove_current_thumbnail()
 
     def close_all_figures(self):
         """Close all the figures in the thumbnail scrollbar."""
-        self.thumnails_sb.remove_all_thumbnails()
+        self.thumbnails_sb.remove_all_thumbnails()
 
 
 class FigureViewer(QScrollArea):
