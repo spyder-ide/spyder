@@ -478,10 +478,13 @@ class MainWindow(QMainWindow):
         self.current_quick_layout = None
         self.previous_layout_settings = None  # TODO: related to quick layouts
         self.last_plugin = None
-        self.fullscreen_flag = None # isFullscreen does not work as expected
+        self.fullscreen_flag = None  # isFullscreen does not work as expected
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
         self.maximized_flag = None
+        self.saved_normal_geometry = None
+        # This flag is used to restore window's geometry when toggling out of
+        # fullscreen mode in Windows.
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
