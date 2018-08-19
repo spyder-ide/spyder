@@ -14,7 +14,6 @@ from base64 import decodestring
 
 # ---- Third party library imports
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-# from qtconsole.svg import save_svg, svg_to_clipboard, svg_to_image
 
 
 class FigureBrowserWidget(RichJupyterWidget):

@@ -273,15 +273,11 @@ class FigureBrowser(QWidget):
 
     # ---- Toolbar Handlers
     def zoom_in(self):
-        """
-        Zoom the figure in by a single step in the figure viewer.
-        """
+        """Zoom the figure in by a single step in the figure viewer."""
         self.figviewer.zoom_in()
 
     def zoom_out(self):
-        """
-        Zoom the figure out by a single step in the figure viewer.
-        """
+        """Zoom the figure out by a single step in the figure viewer."""
         self.figviewer.zoom_out()
 
     def go_previous_thumbnail(self):
