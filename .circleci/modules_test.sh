@@ -72,12 +72,6 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/utils/introspection/numpy_docstr.py ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/lsp_transport/*.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/utils/code_analysis/*.py ]]; then
-        continue
-    fi
     python "$f"
     if [ $? -ne 0 ]; then
         exit 1
@@ -90,19 +84,10 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
-    if [[ $f == spyder/utils/code_analysis/lsp_*/*.py ]]; then
-        continue
-    fi
     if [[ $f == spyder/plugins/help/utils/*.py ]]; then
         continue
     fi
     if [[ $f == spyder/plugins/ipythonconsole/widgets/__init__.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/plugins/ipythonconsole/utils/start_kernel.py ]]; then
-        continue
-    fi
-    if [[ $f == spyder/plugins/ipythonconsole/utils/spyder_kernel.py ]]; then
         continue
     fi
     python "$f"
@@ -117,7 +102,22 @@ for f in spyder/*/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
-    if [[ $f == spyder/plugins/ipythonconsole/utils/site/sitecustomize.py ]]; then
+    if [[ $f == spyder/plugins/editor/utils/code_analysis/*.py ]]; then
+        continue
+    fi
+    python "$f"
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+done
+
+
+# Depth 6
+for f in spyder/*/*/*/*/*/*.py; do
+    if [[ $f == *test*/*.* ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/editor/utils/code_analysis/lsp_*/*.py ]]; then
         continue
     fi
     python "$f"
