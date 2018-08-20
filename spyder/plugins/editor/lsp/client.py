@@ -21,17 +21,15 @@ import os.path as osp
 # from spyder.config.base import DEV
 from spyder.py3compat import PY2, getcwd
 from spyder.config.base import debug_print, get_conf_path
-from spyder.plugins.editor.utils.code_analysis import (
+from spyder.plugins.editor.lsp import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
     LSPEventTypes, ClientConstants)
-from spyder.plugins.editor.utils.code_analysis.decorators import (
+from spyder.plugins.editor.lsp.decorators import (
     send_request, class_register, handles)
-from spyder.plugins.editor.utils.code_analysis.lsp_providers import (
-    LSPMethodProviderMixIn)
+from spyder.plugins.editor.lsp.providers import LSPMethodProviderMixIn
 
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
-# from qtpy.QtWidgets import QApplication
 
 if PY2:
     import pathlib2 as pathlib
@@ -83,7 +81,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.req_reply = {}
 
         self.transport_args = [sys.executable, '-u',
-                               osp.join(LOCATION, 'lsp_transport', 'main.py')]
+                               osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = external_server
 
         self.folder = folder

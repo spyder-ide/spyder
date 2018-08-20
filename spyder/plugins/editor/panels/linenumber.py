@@ -16,7 +16,7 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import check_version
 from spyder.api.panel import Panel
-from spyder.plugins.editor.utils.code_analysis import DiagnosticSeverity
+from spyder.plugins.editor.lsp import DiagnosticSeverity
 
 
 QT55_VERSION = check_version(QT_VERSION, "5.5", ">=")

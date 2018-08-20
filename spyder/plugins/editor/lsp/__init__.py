@@ -5,7 +5,9 @@
 # (see spyder/__init__.py for details)
 
 
-"""Code introspection and linting utillites."""
+"""
+LSP client, code introspection and linting utillites.
+"""
 
 from spyder.config.base import DEV
 

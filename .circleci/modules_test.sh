@@ -84,6 +84,9 @@ for f in spyder/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
+    if [[ $f == spyder/plugins/editor/lsp/*.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/plugins/help/utils/*.py ]]; then
         continue
     fi
@@ -102,22 +105,7 @@ for f in spyder/*/*/*/*/*.py; do
     if [[ $f == *test*/*.* ]]; then
         continue
     fi
-    if [[ $f == spyder/plugins/editor/utils/code_analysis/*.py ]]; then
-        continue
-    fi
-    python "$f"
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-done
-
-
-# Depth 6
-for f in spyder/*/*/*/*/*/*.py; do
-    if [[ $f == *test*/*.* ]]; then
-        continue
-    fi
-    if [[ $f == spyder/plugins/editor/utils/code_analysis/lsp_*/*.py ]]; then
+    if [[ $f == spyder/plugins/editor/lsp/*/*.py ]]; then
         continue
     fi
     python "$f"

@@ -67,13 +67,13 @@ from spyder.plugins.editor.panels.classfunctiondropdown import ClassFunctionDrop
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.extensions.manager import (
-        EditorExtensionsManager)
+    EditorExtensionsManager)
 from spyder.plugins.editor.extensions.closequotes import (
-        CloseQuotesExtension)
+    CloseQuotesExtension)
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.utils.lsp import (
     request, handles, class_register)
-from spyder.plugins.editor.utils.code_analysis import (
+from spyder.plugins.editor.lsp import (
     LSPRequestTypes, TextDocumentSyncKind, DiagnosticSeverity,
     TextDocumentSaveReason)
 from spyder.api.panel import Panel
