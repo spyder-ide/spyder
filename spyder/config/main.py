@@ -185,6 +185,11 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False
              }),
+            ('plots',
+             {
+              'mute_inline_plotting': False,
+              'show_plot_outline': False,
+             }),
             ('editor',
              {
               'printer_header/font/family': SANS_SERIF,
