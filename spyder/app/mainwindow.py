@@ -869,7 +869,7 @@ class MainWindow(QMainWindow):
 
         # Figure browser
         self.set_splash(_("Loading figure browser..."))
-        from spyder.plugins.plots import Plots
+        from spyder.plugins.plots.plugin import Plots
         self.plots = Plots(self)
         self.plots.register_plugin()
 

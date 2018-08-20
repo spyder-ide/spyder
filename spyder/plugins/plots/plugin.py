@@ -16,7 +16,7 @@ from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import icon_manager as ima
-from spyder.widgets.figurebrowser import FigureBrowser
+from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 
 
 class PlotsConfigPage(PluginConfigPage):
